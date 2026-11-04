@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 import sqlite3
 import pytest
 from uptime.contracts import Principal
-from uptime.storage import database, initialize, save_cases, settlement_events, stored_cases, transition_settlement
+from uptime.storage import database, initialize, case_versions, save_cases, settlement_events, stored_cases, transition_settlement
 
 
 def test_restart_and_corruption(tmp_path):
@@ -11,7 +11,8 @@ def test_restart_and_corruption(tmp_path):
     save_cases(path,"a",[{"id":"e","amount":"10.00"}])
     save_cases(path,"a",[{"id":"e","amount":"99.00"}])
     initialize(path)
-    assert stored_cases(path,"a")[0]["amount"] == "10.00"
+    assert stored_cases(path,"a")[0]["amount"] == "99.00"
+    assert [r["payload"]["amount"] for r in case_versions(path,"a","e")]==["10.00","99.00"]
     assert stored_cases(path,"b") == []
     with database(path) as db, db:
         db.execute("UPDATE case_snapshot SET payload='{}'")
