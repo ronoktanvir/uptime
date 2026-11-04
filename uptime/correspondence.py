@@ -185,7 +185,7 @@ class CorrespondenceDesk:
             if body["kind"] == "message":
                 if not state["submissions"] or body["receipt_id"] != state["submissions"][-1]["id"]:
                     raise ValueError("Correspondence does not refer to the current local submission.")
-                
+
             fact = dict(event_id=event.event_id, source=source, subject=subject, kind=body["kind"], digest=digest,
                         received_at=now.isoformat(), known_at=now.isoformat(), body=body)
             state["evidence"].append(fact)
