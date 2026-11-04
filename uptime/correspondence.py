@@ -289,10 +289,20 @@ class CorrespondenceDesk:
                 raise ValueError("One material evidence-backed correction is required.")
         return packet
 
+    @staticmethod
+    def _approval_binding(current):
+        return fingerprint([current.version, current.cutoff.isoformat() if current.cutoff else None,
+                            current.evidence_digest, money(current.evaluation.amount.amount) if current.evaluation.amount else None,
+                            [asdict(c) for c in current.evaluation.clauses]])
+
     def _actions(self, p, scope, state, current, now):
         if (p.role != "reviewer" or not (action := ACTIONS.get(state["stage"]))
                 or current.evaluation.outcome != Outcome.ELIGIBLE or current.cutoff is None or now >= current.cutoff):
             return []
+        if action.startswith("submit-") and state["approval"]:
+            binding = self._approval_binding(current)
+            if state["approval"].get("binding") != binding:
+                action = "approve-claim" if action == "submit-claim" else "approve-response"
         if action == "submit-response" and now < instant(state["cooldown"]):
             return []
         return [dict(id=action, label=action.replace("-", " ").title())]
@@ -304,15 +314,17 @@ class CorrespondenceDesk:
             now = self._now()
             if any(r["action"] == action for r in state["submissions"]):
                 return self._view(db, p, claim_id)
-            if state["approval"] and state["approval"]["action"] == action:
-                return self._view(db, p, claim_id)
             current = self._assess(p.tenant, scope, state, now)
+            if (state["approval"] and state["approval"]["action"] == action
+                    and state["approval"].get("binding") == self._approval_binding(current)):
+                return self._view(db, p, claim_id)
             if action not in {a["id"] for a in self._actions(p, scope, state, current, now)}:
                 raise ValueError("Action unavailable for the current policy, filing window, evidence and stage.")
             packet = self._packet(p.tenant, claim_id, scope, state, current)
             digest = fingerprint(packet)
             if action.startswith("approve-"):
-                state["approval"] = dict(action=action, actor=p.subject, at=now.isoformat(), digest=digest)
+                state["approval"] = dict(action=action, actor=p.subject, at=now.isoformat(), digest=digest,
+                                         binding=self._approval_binding(current))
                 state["stage"] = "CLAIM_APPROVED" if action == "approve-claim" else "RESPONSE_APPROVED"
                 audit(state, now, p.subject, "Approved exact local packet.", digest=digest)
             else:

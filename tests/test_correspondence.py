@@ -292,8 +292,11 @@ def test_authoritative_active_resolver_version_and_scope_binding(tmp_path):
     approved = env.act("approve-claim")
     assert approved["approval"]
     current_version[0] = "active-2"
-    with pytest.raises(ValueError, match="differs"):
+    with pytest.raises(ValueError):
         env.act("submit-claim")
+    assert env.get()["actions"][0]["id"] == "approve-claim"
+    reapproved = env.act("approve-claim")
+    assert reapproved["approval"]["digest"] != approved["approval"]["digest"]
     env.desk.active_resolver = lambda *args: replace(resolve(*args), tenant="other")
     assert env.get()["outcome"] == "UNSUPPORTED_RULE"
 
