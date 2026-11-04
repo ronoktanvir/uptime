@@ -11,6 +11,7 @@ from uptime.contracts import Principal
 from uptime.onboarding_extract import SUPPORT, read_public, validate_model_inputs
 from uptime.auth import DEFAULT_ORIGIN, Session, digest, enroll
 from uptime.auth_client import ReviewerClient
+from uptime.auth_keys import generate_reviewer_key
 from uptime.server import create_app
 from uptime.storage import database, initialize
 
@@ -18,13 +19,13 @@ HEADERS={"X-Uptime-Action":"1","Origin":DEFAULT_ORIGIN}
 
 
 def login(tmp_path,mode="replay",readonly=False):
-    password = secrets.token_urlsafe(36)
+    credential = generate_reviewer_key()
     subject = "qa.viewer" if readonly else "qa.reviewer"
     db = tmp_path / "release.sqlite"
-    enroll(db, subject, password, "viewer" if readonly else "reviewer", mode)
+    enroll(db, subject, credential, "viewer" if readonly else "reviewer", mode)
     app = create_app(db, mode=mode, approvals_enabled=True)
     client = TestClient(app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 50000))
-    client.signer = ReviewerClient(client, DEFAULT_ORIGIN, subject, password)
+    client.signer = ReviewerClient(client, DEFAULT_ORIGIN, subject, credential)
     client.headers["Authorization"] = client.signer.headers["Authorization"]
     return client, app, db
 
@@ -48,7 +49,7 @@ def configure(client,mode,cap="100.00"):
 def test_expired_or_foreign_server_issued_session(tmp_path,tenant,expires,code):
     client,app,db=login(tmp_path,mode="sandbox")
     token = secrets.token_urlsafe(32)
-    tag = digest(app.state.auth.account("qa.reviewer")[2])
+    tag = digest(app.state.auth.account("qa.reviewer")[1])
     app.state.auth.sessions[digest(token.encode())] = Session(
         Principal(tenant, "qa.reviewer", "reviewer"), time.time()+expires, tag)
     client.headers["Authorization"] = "Bearer " + token

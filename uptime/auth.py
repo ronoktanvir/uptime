@@ -1,11 +1,11 @@
 """Local named identities, process-bound read sessions and exact single-use writes.
 
-Enrollment is an offline operator action. A PBKDF2-derived HMAC key signs random,
-short-lived challenges; neither the password nor the signing key travels over HTTP.
-This is a single-process loopback prototype. Protect its verifier database as a secret.
+Enrollment is an offline operator action. A random P-256 key signs short-lived
+challenges. The server stores only its public key. Private keys stay with the operator.
+This is a single-process loopback prototype.
 """
 from dataclasses import dataclass
-from hashlib import pbkdf2_hmac, sha256
+from hashlib import sha256
 import hmac
 import json
 from pathlib import Path
@@ -19,19 +19,15 @@ from urllib.parse import urlsplit
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
+from .auth_keys import public_bytes, rehearsal_key, verify_reviewer
 from .contracts import Principal
 from .storage import database
 
 TENANT = "bears"
 SCRIPT = "scripted-test-reviewer"
 DEFAULT_ORIGIN = "http://127.0.0.1:8765"
-ITERATIONS = 600_000
 TTL = 60
 NAME = re.compile(r"[a-z][a-z0-9_.-]{1,63}", re.ASCII)
-
-
-def key_for(password, salt):
-    return pbkdf2_hmac("sha256", password.encode(), salt, ITERATIONS, dklen=32)
 
 
 def digest(data):
@@ -68,24 +64,27 @@ def bind_workspace(path, mode, rehearsal):
         if tuple(row) != scope:
             raise ValueError("Database belongs to a different authority or execution mode")
         Path(path).chmod(0o600)
+        if "authority_user" in tables:
+            columns = {row[1] for row in db.execute("PRAGMA table_info(authority_user)")}
+            if columns != {"subject", "role", "public_key"}:
+                raise ValueError("Legacy password authority requires a fresh workspace and offline key enrollment")
         db.execute("CREATE TABLE IF NOT EXISTS authority_user "
-                   "(subject TEXT PRIMARY KEY, role TEXT NOT NULL, salt BLOB NOT NULL, verifier BLOB NOT NULL)")
+                   "(subject TEXT PRIMARY KEY, role TEXT NOT NULL, public_key BLOB NOT NULL UNIQUE)")
 
 
-def enroll(path, subject, password, role="reviewer", mode="replay"):
+def enroll(path, subject, credential, role="reviewer", mode="replay"):
     if (not NAME.fullmatch(subject) or subject.startswith(("scripted-", "service-", "local-"))
             or role not in {"viewer", "reviewer"}):
         raise ValueError("Use a named local human account and a viewer or reviewer role")
-    if not 14 <= len(password) <= 256:
-        raise ValueError("Use a password of 14–256 characters")
+    if isinstance(credential, dict) and credential.get("uptime_rehearsal"):
+        raise ValueError("A scripted rehearsal key cannot enroll a human")
+    public = public_bytes(credential)
     bind_workspace(path, mode, False)
-    salt = secrets.token_bytes(16)
     try:
         with database(path) as db, db:
-            db.execute("INSERT INTO authority_user VALUES(?,?,?,?)",
-                       (subject, role, salt, key_for(password, salt)))
+            db.execute("INSERT INTO authority_user VALUES(?,?,?)", (subject, role, public))
     except sqlite3.IntegrityError:
-        raise ValueError("Account already enrolled") from None
+        raise ValueError("Account or public key already enrolled") from None
 
 
 class Strict(BaseModel):
@@ -100,7 +99,7 @@ class ChallengeRequest(Strict):
 
 class LoginProof(Strict):
     challenge: str = Field(min_length=20, max_length=128)
-    proof: str = Field(pattern=r"^[a-f0-9]{64}$")
+    proof: str = Field(pattern=r"^[a-f0-9]{128}$")
 
 
 @dataclass(frozen=True)
@@ -125,7 +124,6 @@ class Authority:
     def __init__(self, path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin):
         self.origin = valid_origin(origin)
         self.instance = secrets.token_hex(24)
-        self.dummy = secrets.token_bytes(32)
         self.approvals_enabled = bool(approvals_enabled)
         self.mode = mode
         self.rehearsal = rehearsal
@@ -143,14 +141,13 @@ class Authority:
             raise ValueError("Only a scripted replay can use a private rehearsal credential")
         bind_workspace(path, mode, rehearsal)
         if rehearsal:
-            salt = secrets.token_bytes(16)
-            self.script_account = ("reviewer", salt, key_for(rehearsal_secret, salt))
+            self.script_account = ("reviewer", public_bytes(rehearsal_key(rehearsal_secret)))
 
     def account(self, subject):
         if self.rehearsal:
             return self.script_account if subject == SCRIPT else None
         with database(self.path) as db:
-            row = db.execute("SELECT role,salt,verifier FROM authority_user WHERE subject=?", (subject,)).fetchone()
+            row = db.execute("SELECT role,public_key FROM authority_user WHERE subject=?", (subject,)).fetchone()
         return tuple(row) if row else None
 
     def prune(self):
@@ -174,7 +171,7 @@ class Authority:
             raise HTTPException(401, "Session expired. Sign in again.")
         principal = session.principal
         account = self.account(principal.subject)
-        if not account or principal.tenant != TENANT or principal.role != account[0] or digest(account[2]) != session.key_tag:
+        if not account or principal.tenant != TENANT or principal.role != account[0] or digest(account[1]) != session.key_tag:
             raise HTTPException(403, "Local authority changed. Sign in again.")
         return principal
 
@@ -202,8 +199,6 @@ class Authority:
             session = self.session_id(request)
         elif body.body_sha256:
             raise HTTPException(400, "Invalid login challenge")
-        account = self.account(body.subject)
-        salt = account[1] if account else hmac.digest(self.dummy, body.subject.encode(), "sha256")[:16]
         with self.lock:
             self.prune()
             if len(self.challenges) >= 2048:
@@ -215,7 +210,7 @@ class Authority:
                                   self.revision, expires, nonce], separators=(",", ":"))
             self.challenges[nonce] = Challenge(body.subject, body.path, body.body_sha256, session,
                                                self.revision, expires, message)
-        return {"challenge": nonce, "message": message, "salt": salt.hex(), "iterations": ITERATIONS}
+        return {"challenge": nonce, "message": message, "algorithm": "ES256"}
 
     def consume(self, nonce, proof, path, body, session):
         with self.lock:
@@ -224,13 +219,12 @@ class Authority:
                     or item.session != session or (session and item.revision != self.revision)):
                 raise HTTPException(403, "Expired, reused or mismatched proof")
             account = self.account(item.subject)
-            expected = signature(account[2] if account else self.dummy, item.message)
-            if not re.fullmatch(r"[a-f0-9]{64}", proof) or not hmac.compare_digest(expected, proof) or not account:
+            if not account or not verify_reviewer(account[1], item.message, proof):
                 raise HTTPException(403, "Invalid credential proof")
             if session:
                 # Invalidate every pending write after an authorized action, even if validation later fails.
                 self.revision += 1
-            return Principal(TENANT, item.subject, account[0]), digest(account[2])
+            return Principal(TENANT, item.subject, account[0]), digest(account[1])
 
     def login(self, body: LoginProof):
         principal, tag = self.consume(body.challenge, body.proof, "/api/auth/login", "", "")

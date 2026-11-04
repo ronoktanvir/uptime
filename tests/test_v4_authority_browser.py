@@ -2,7 +2,7 @@
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-import secrets
+import json
 import shutil
 import socket
 from threading import Thread
@@ -13,6 +13,7 @@ from playwright.sync_api import sync_playwright
 import uvicorn
 
 from uptime.auth import enroll
+from uptime.auth_keys import generate_reviewer_key
 from uptime.auth_client import ReviewerClient
 from uptime.server import create_app
 
@@ -64,8 +65,8 @@ def sibling():
 
 
 def test_real_browser_sibling_cannot_exfiltrate_or_replay_authority(tmp_path):
-    path, password, subject = tmp_path/"browser.db", secrets.token_urlsafe(32), "browser.reviewer"
-    enroll(path, subject, password)
+    path, credential, subject = tmp_path/"browser.db", generate_reviewer_key(), "browser.reviewer"
+    enroll(path, subject, credential)
     with running(lambda origin:create_app(path, approvals_enabled=True, origin=origin)) as (origin, app), sibling() as (evil, captured), sync_playwright() as pw:
         chrome = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
         executable = str(chrome) if chrome.is_file() else shutil.which("google-chrome") or pw.chromium.executable_path
@@ -76,15 +77,26 @@ def test_real_browser_sibling_cannot_exfiltrate_or_replay_authority(tmp_path):
             context.route("**/*", lambda route: route.continue_() if
                           route.request.url.startswith((origin+"/", evil+"/")) else route.abort())
             context.route_web_socket("**/*", lambda ws: ws.close())
+            context.add_init_script("""(() => {
+              const original = crypto.subtle.importKey.bind(crypto.subtle);
+              crypto.subtle.importKey = async (...args) => {
+                const key = await original(...args);
+                window.importedReviewerKey = {extractable:key.extractable, algorithm:key.algorithm.name};
+                return key;
+              };
+            })();""")
             page = context.new_page()
             requests = []
-            page.on("request", lambda req: requests.append((req.url, req.headers)))
+            page.on("request", lambda req: requests.append((req.url, req.headers, req.post_data)))
             page.goto(origin)
             page.get_by_label("Account name").fill(subject)
-            page.get_by_label("Password", exact=True).fill(password)
+            page.get_by_label("Credential file", exact=True).set_input_files({
+                "name":"reviewer.json", "mimeType":"application/json", "buffer":json.dumps(credential).encode()})
             page.get_by_role("button", name="Sign in", exact=True).click()
             page.get_by_role("heading", name="Contract ledger", exact=True).wait_for()
             assert not context.cookies()
+            assert page.evaluate("window.importedReviewerKey") == {"extractable":False,"algorithm":"ECDSA"}
+            assert credential["d"] not in page.evaluate("JSON.stringify(sessionStorage)")
             assert page.url == origin+"/"
             # Positive human control uses the same UI signer and persists the named audit identity.
             case = page.evaluate("window.uptimeAPI('/api/cases/dispute-cure/actions/approve-claim', {})")
@@ -111,11 +123,12 @@ def test_real_browser_sibling_cannot_exfiltrate_or_replay_authority(tmp_path):
                 headers["Authorization"] = "Bearer "+stolen_read
                 response = native.post("/api/cases/dispute-partial/actions/approve-claim", json={}, headers=headers)
                 assert response.status_code == 403
-                signer = ReviewerClient(native, origin, subject, password)
+                signer = ReviewerClient(native, origin, subject, credential)
                 replay = signer.prepare("/api/cases/dispute-partial/actions/approve-claim", {})
                 assert native.post("/api/cases/dispute-partial/actions/approve-claim", **replay).status_code == 200
                 assert native.post("/api/cases/dispute-partial/actions/approve-claim", **replay).status_code == 403
-            assert all(password not in url and "/session/" not in url and
-                       password not in str(headers) for url,headers in requests)
+            assert all(credential["d"] not in url and "/session/" not in url and
+                       credential["d"] not in str(headers) and credential["d"] not in (body or "")
+                       for url,headers,body in requests)
         finally:
             browser.close()

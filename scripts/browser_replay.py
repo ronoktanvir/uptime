@@ -196,9 +196,12 @@ def record(args):
 def scripted_login(page, origin, password):
     """Exercise the same challenge UI as a human using a disposable scripted account."""
     from uptime.auth import SCRIPT
+    from uptime.auth_keys import rehearsal_key
     page.goto(origin + "/")
     page.get_by_label("Account name").fill(SCRIPT)
-    page.get_by_label("Password", exact=True).fill(password)
+    page.get_by_label("Credential file", exact=True).set_input_files({
+        "name":"scripted-reviewer.json", "mimeType":"application/json",
+        "buffer":json.dumps(rehearsal_key(password)).encode()})
     page.get_by_role("button", name="Sign in", exact=True).click()
     page.get_by_role("heading", name="Contract ledger", exact=True).wait_for()
     if page.context.cookies():
