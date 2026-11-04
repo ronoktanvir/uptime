@@ -65,12 +65,17 @@ class FakeProvider:
         self.lose_create_reply = self.lose_update_reply = False
         self.bad_read = False
 
-    def _draft_mutation(self, tok, ident, data):
+    def _draft_mutation(self, tok, ident, data, *, authorized=False):
+        assert authorized is True
         if ident is None:
             self.posts += 1
             self.row = {"id": str(uuid4()), "vendor": {"id": data["vendor_id"]}, "status": "DRAFT",
                         "amount": {"currency_code": "USD", "amount": 3750000, "minor_unit_conversion_rate": 100},
-                        "remote_id": data["remote_id"], "invoice_number": data["invoice_number"]}
+                        "remote_id": data["remote_id"], "invoice_number": data["invoice_number"],
+                        "sync_status": "NOT_SYNCED", "inventory_line_items": [{
+                            "id": str(uuid4()), "quantity": "1000",
+                            "amount": {"currency_code": "USD", "amount": 3750000, "minor_unit_conversion_rate": 100},
+                            "unit_price": {"currency_code": "USD", "amount": 3750, "minor_unit_conversion_rate": 100}}]}
             if self.lose_create_reply:
                 raise RampError("Connection lost")
         else:
@@ -88,43 +93,44 @@ class FakeProvider:
         return row
 
 
-def test_verified_draft_replay_and_ambiguous_updates(tmp_path):
+def test_verified_draft_replay_and_ambiguous_updates(tmp_path, draft_gate):
     vendor = str(uuid4())
     provider = FakeProvider()
     provider.lose_update_reply = True
-    with pytest.raises(RampError): verify_draft(provider, token(), tmp_path / "ops", vendor)
-    first = verify_draft(provider, token(), tmp_path / "ops", vendor)
-    assert verify_draft(provider, token(), tmp_path / "ops", vendor)["id"] == first["id"]
+    with pytest.raises(RampError): verify_draft(provider, token(), tmp_path / "ops", vendor, authorized=True)
+    first = verify_draft(provider, token(), tmp_path / "ops", vendor, authorized=True)
+    assert verify_draft(provider, token(), tmp_path / "ops", vendor, authorized=True)["id"] == first["id"]
     assert (provider.posts, provider.patches) == (1, 1)
     assert "tag" in first and first["status"] == "DRAFT"
 
 
-def test_ambiguous_create_is_never_retried(tmp_path):
+def test_ambiguous_create_is_never_retried(tmp_path, draft_gate):
     p = FakeProvider()
     p.lose_create_reply = True
     vendor = str(uuid4())
     for _ in range(2):
-        with pytest.raises(RampError): verify_draft(p, token(), tmp_path / "ops", vendor)
+        with pytest.raises(RampError): verify_draft(p, token(), tmp_path / "ops", vendor, authorized=True)
     assert (p.posts, p.patches) == (1, 0)
 
 
-def test_wrong_draft_identity_blocks_update(tmp_path):
+def test_wrong_draft_identity_blocks_update(tmp_path, draft_gate):
     p = FakeProvider()
     p.bad_read = True
-    with pytest.raises(RampError): verify_draft(p, token(), tmp_path / "ops", str(uuid4()))
+    with pytest.raises(RampError): verify_draft(p, token(), tmp_path / "ops", str(uuid4()), authorized=True)
     assert (p.posts, p.patches) == (1, 0)
 
 
 @pytest.mark.parametrize("granted", [{"bills:read"}, WRITE_SCOPES | {"vendors:write"}])
-def test_mismatched_scope_capture_stops_write(tmp_path, granted):
+def test_mismatched_scope_capture_stops_write(tmp_path, granted, draft_gate):
+    vendor = str(uuid4())
     class Narrow:
         def token(self, scopes):
             return Token("unused", frozenset(granted if scopes == WRITE_SCOPES else scopes),
                          frozenset(scopes))
         def request(self, tok, method, path, query):
             assert method == "GET"
-            return {"data": [], "page": {"next": None}}
-    proof = capture(Narrow(), True, tmp_path / "ops")
+            return {"data": [{"id": vendor}] if path == "vendors" else [], "page": {"next": None}}
+    proof = capture(Narrow(), True, tmp_path / "ops", designated_vendor_id=vendor, authorize_draft=True)
     assert proof["draft"] is None
     assert proof["capabilities"]["draft_write"]["state"] == "SCOPE_MISMATCH"
     assert not (tmp_path / "ops").exists()
@@ -135,3 +141,10 @@ def test_minor_units_never_use_a_float():
     assert money(val)["amount"] == "481.28"
     for bad in (Decimal("1.5"), None):
         with pytest.raises(RampError): money({**val, "minor_unit_conversion_rate": bad})
+
+
+@pytest.fixture
+def draft_gate(monkeypatch):
+    monkeypatch.setenv("RAMP_ENV", "sandbox")
+    monkeypatch.setenv("RAMP_BASE_URL", ORIGIN)
+    monkeypatch.setenv("RAMP_ENABLE_DRAFT_WRITE", "1")

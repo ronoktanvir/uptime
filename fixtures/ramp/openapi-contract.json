@@ -1,0 +1,183 @@
+{
+  "source": "https://docs.ramp.com/openapi/developer-api.json",
+  "source_sha256": "742ef47d2af8734d49b4913e254bf28a6e287d72491591781f0238c696070091",
+  "provenance": "Public OpenAPI archived in V3 audit, inspected 2026-11-04; fresh retrieval blocked in worker environment.",
+  "paths": {
+    "/developer/v1/token": {
+      "post": {
+        "security": [],
+        "status_codes": [
+          "200"
+        ],
+        "pagination_parameters": []
+      }
+    },
+    "/developer/v1/vendors": {
+      "get": {
+        "security": [
+          {
+            "oauth2": [
+              "vendors:read"
+            ]
+          }
+        ],
+        "status_codes": [
+          "200",
+          "400"
+        ],
+        "pagination_parameters": [
+          "start",
+          "page_size"
+        ]
+      }
+    },
+    "/developer/v1/vendors/credits": {
+      "get": {
+        "security": [
+          {
+            "oauth2": [
+              "vendors:read"
+            ]
+          }
+        ],
+        "status_codes": [
+          "200",
+          "400"
+        ],
+        "pagination_parameters": [
+          "start",
+          "page_size"
+        ]
+      }
+    },
+    "/developer/v1/vendors/credits/{vendor_credit_id}": {
+      "get": {
+        "security": [
+          {
+            "oauth2": [
+              "vendors:read"
+            ]
+          }
+        ],
+        "status_codes": [
+          "200",
+          "404"
+        ],
+        "pagination_parameters": []
+      }
+    },
+    "/developer/v1/bills": {
+      "get": {
+        "security": [
+          {
+            "oauth2": [
+              "bills:read"
+            ]
+          }
+        ],
+        "status_codes": [
+          "200",
+          "400"
+        ],
+        "pagination_parameters": [
+          "start",
+          "page_size"
+        ]
+      }
+    },
+    "/developer/v1/bills/{bill_id}": {
+      "get": {
+        "security": [
+          {
+            "oauth2": [
+              "bills:read"
+            ]
+          }
+        ],
+        "status_codes": [
+          "200",
+          "400"
+        ],
+        "pagination_parameters": []
+      }
+    },
+    "/developer/v1/bills/drafts": {
+      "get": {
+        "security": [
+          {
+            "oauth2": [
+              "bills:read"
+            ]
+          }
+        ],
+        "status_codes": [
+          "200",
+          "400"
+        ],
+        "pagination_parameters": [
+          "start",
+          "page_size"
+        ]
+      },
+      "post": {
+        "security": [
+          {
+            "oauth2": [
+              "bills:write"
+            ]
+          }
+        ],
+        "status_codes": [
+          "201"
+        ],
+        "pagination_parameters": []
+      }
+    },
+    "/developer/v1/bills/drafts/{draft_bill_id}": {
+      "get": {
+        "security": [
+          {
+            "oauth2": [
+              "bills:read"
+            ]
+          }
+        ],
+        "status_codes": [
+          "200",
+          "400"
+        ],
+        "pagination_parameters": []
+      },
+      "patch": {
+        "security": [
+          {
+            "oauth2": [
+              "bills:write"
+            ]
+          }
+        ],
+        "status_codes": [
+          "200"
+        ],
+        "pagination_parameters": []
+      }
+    }
+  },
+  "facts": {
+    "pagination_next": "URL; do not follow arbitrary origins or paths",
+    "page_size": {
+      "minimum": 2,
+      "maximum": 100,
+      "default": 20
+    },
+    "bill_vendor_id": "vendor.id UUID",
+    "bill_entity_id": "entity_id UUID; not a customer account",
+    "customer_account_id": "Not specified in Bill/DraftBill schemas",
+    "accounting_selection_id": "Opaque string; GL account category is separate from customer identity",
+    "inventory_quantity": "number, nullable for draft",
+    "inventory_unit_price": "CurrencyAmount; minor units",
+    "inventory_amount": "CurrencyAmount; documented quantity times unit price",
+    "draft_request_unit_price": "decimal string or number in major units",
+    "draft_sync_status": "NOT_SYNCED"
+  }
+}
