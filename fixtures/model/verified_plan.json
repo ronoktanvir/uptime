@@ -1,0 +1,58 @@
+{
+  "model": "claude-opus-5-5",
+  "session": "fbc58b78-bbc1-4b60-989d-7070301336c1",
+  "input_digest": "0273f1c93a19fde29aebb0e40f8f2d15f7df22322d37bcf7e5e0bc7078866d15",
+  "created_at": "2026-11-04T05:06:42.984023+00:00",
+  "plan": {
+    "extraction": [
+      {
+        "ref": "default_threshold",
+        "value": "99.95"
+      },
+      {
+        "ref": "edition_threshold",
+        "value": "99.99"
+      },
+      {
+        "ref": "minimum_duration",
+        "value": "5"
+      },
+      {
+        "ref": "claim_window",
+        "value": "30"
+      },
+      {
+        "ref": "fee_basis",
+        "value": "affected_fees"
+      }
+    ],
+    "investigation": {
+      "unitemized_invoice": [
+        "fee_lines"
+      ],
+      "public_incident_only": [
+        "status_interval",
+        "plan",
+        "fee_lines",
+        "exclusion"
+      ]
+    },
+    "guide": {
+      "basis": [
+        "fee_lines",
+        "ledger",
+        "outcome"
+      ],
+      "proof": [
+        "required",
+        "evidence",
+        "citations"
+      ],
+      "next": [
+        "stage",
+        "permitted",
+        "human"
+      ]
+    }
+  }
+}

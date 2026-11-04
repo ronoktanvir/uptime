@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T05:02:41.490433+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** Adopt the proposed design (loopback, out-of-band bootstrap token, HttpOnly opaque short-lived DB sessions, host/origin/JSON/custom-header CSRF checks, server-fixed tenant). It is adequate for an interactive sandbox demo reviewer. Implicit localhost trust is rightly rejected.\n\n**Strongest dissent:** One operator approving their own simulated credit is self-approval. The demo shows the mechanics but not separation of duties. The token could also leak through shell history, logs, screen recordings or referrers. DNS rebinding is blocked only if Host checks are strict allowlists.\n\n**Falsification tests (prospective):**\n- Forged role/tenant fields are ignored.\n- Cross-site and rebinding-Host POSTs are rejected.\n- The viewer token is refused on every write route.\n- Replayed or expired sessions and duplicate postings are rejected (idempotency key).\n- Posting without an existing award fails.\n- The token is absent from logs and the recording.\n- The default state contains no approvals.\n- No confidential payloads reach model inputs.\n\n**Evidence status:** Five CP1 tests pass. Sandbox reads were real, with no write scope. Everything else is unverified.\n\n**Boundary / production blockers:**\n- Real IdP/SSO.\n- Server-side RBAC with dual control.\n- An immutable audit trail.\n- A reviewed write scope.\n- Secrets management.\n- A threat-model sign-off.",
+  "session": "8898a436-f51e-4af7-800e-65a6fe23751a"
+}

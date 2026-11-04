@@ -148,7 +148,7 @@ def record(args):
     try:
         with tempfile.TemporaryDirectory(prefix="uptime-qa-") as temp, local_connections_only():
             secret = secrets.token_urlsafe(32)
-            app = create_app(Path(temp) / "replay.sqlite3", session_secret=secret, mode="replay")
+            app = create_app(Path(temp) / "replay.sqlite3", session_secret=secret, mode="replay", rehearsal=True)
             # Pre-bind an ephemeral loopback socket; never attach to another process.
             listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             listener.bind(("127.0.0.1", 0))
@@ -238,6 +238,7 @@ def capture_browser(browser, origin, secret, artifacts, duration):
         page.get_by_text(re.compile("evidence|trace|clause", re.I)).first.wait_for()
         page.screenshot(path=str(artifacts / "case.png"), full_page=True)
         hold_until(page, started + duration * 0.45)
+        page.get_by_role("button", name="Close case inspector").click()
         click_named(page, ["onboarding", "adapter lab", "vendor lab"])
         page.get_by_text("Atlassian", exact=False).first.wait_for()
         page.screenshot(path=str(artifacts / "onboarding.png"), full_page=True)

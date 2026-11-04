@@ -1,0 +1,22 @@
+{
+  "verified_utc": "2026-11-04T05:29:30.931372+00:00",
+  "python_gate": "475 passed, 1 warning in 67.33s (0:01:07)",
+  "node_tests": 7,
+  "passed_merge_gates": {
+    "gate-EXT.log": "382 passed in 0.54s",
+    "gate-W1-revision.log": "464 passed, 1 warning in 9.32s",
+    "gate-W2.log": "251 passed in 0.53s",
+    "gate-W3.log": "101 passed in 17.22s",
+    "gate-W4.log": "152 passed in 0.36s",
+    "gate-W5.log": "179 passed in 0.60s",
+    "gate-W6.log": "350 passed in 0.49s",
+    "gate-W7.log": "350 passed in 0.45s",
+    "gate-W8-film.log": "452 passed, 1 warning in 7.69s",
+    "gate-W8.log": "452 passed, 1 warning in 8.43s"
+  },
+  "model_reviews": 13,
+  "playback_seconds": "120.000",
+  "frames": 2880,
+  "film_sha256": "a77642613be096c98321c553166d4731276f62c3472763c9f717f6a4f719e4b6",
+  "actual_recovery": null
+}

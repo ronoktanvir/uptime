@@ -1,2 +1,10 @@
-# Boundaries
-Production writes, real outward vendor communications, live promotion and settlement have no authority. The local sandbox credential is readable; scope must be tested. No customer contracts or actual awards were supplied.
+# Verified limits
+
+- **Sandbox draft not authorized.** The authenticated app has exact `vendors:read` and `bills:read` grants. The token endpoint omitted `bills:write`. No create/update call was made. Read-only proof is sufficient to replay the observed bills. A sandbox admin would have to separately authorize the exact draft scope for a real draft demonstration.
+- **Browser proof requires a separate sandbox login.** The browser opened `demo.ramp.com/sign-in`. Provider object IDs were verified through the API, not visually confirmed in an authenticated browser. The IDs, timestamps and official UI link are in Integrations.
+- **No real credit to match.** The sandbox returned no vendor credits or applied amounts for the verified bills. The no-record observation is real. The awarded, posted and applied demo values are simulated.
+- **Sandbox line items lack commercial evidence.** The sampled pending and paid expense records lacked SKU, quantity, rate and service date. Treat the actual records as missing evidence. Keep the synthetic itemized price demonstration separate.
+- **Human approval.** A human operator can activate a local candidate through the launcher. Test reviewers exercised the same controls in isolated databases. The default demo state is shadow; production activation and real claims are unavailable.
+- **LLM and vendor scope.** Atlassian coverage is direct-purchase Jira browser experiences on supported plans and attributable USD monthly charges. Other obligations, unsupported vendor monitoring, new terms, uncertain business-day calendars and unknown entitlement fail closed. The synthetic dispute replay is a bounded independent simulator, not a live vendor or unrestricted negotiation engine.
+- **No perpetual worker.** Worktrees, commits, reports and fixtures are durable. There is no installed background scheduler or guarantee a chat-owned server or agent survives session exit. Restart with the runbook.
+- **Local filesystem.** macOS File Provider intermittently evicted files in Documents. Verification also ran from an isolated locked environment outside the sync directory. The portable release archive permits extraction to a nonsynchronized development folder.

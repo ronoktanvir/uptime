@@ -1,0 +1,16 @@
+{
+  "mode": "DETERMINISTIC_REPLAY",
+  "identity": "scripted-test-reviewer",
+  "price_exposure": "7500.00",
+  "confirmed_simulated_award": "100.00",
+  "recorded": "100.00",
+  "applied": "50.00",
+  "disputed": "20.00",
+  "onboarding": [
+    "SHADOW",
+    "APPROVED",
+    "ACTIVE",
+    "REVOKED"
+  ],
+  "actual_customer_recovery": null
+}

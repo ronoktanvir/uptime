@@ -1,0 +1,101 @@
+{
+  "video": {
+    "codec_name": "h264",
+    "width": 1280,
+    "height": 900,
+    "pix_fmt": "yuv420p",
+    "duration": "120.000000",
+    "nb_frames": "2880"
+  },
+  "scenes": [
+    {
+      "start_s": 0,
+      "duration_s": 6,
+      "chapter": "Finance workbench"
+    },
+    {
+      "start_s": 6,
+      "duration_s": 7,
+      "chapter": "Prevent  /  Flag before approval"
+    },
+    {
+      "start_s": 13,
+      "duration_s": 9,
+      "chapter": "Prevent  /  Recompute the line"
+    },
+    {
+      "start_s": 22,
+      "duration_s": 7,
+      "chapter": "Recover  /  Qualifying SLA"
+    },
+    {
+      "start_s": 29,
+      "duration_s": 7,
+      "chapter": "Recover  /  Refuse the excluded interval"
+    },
+    {
+      "start_s": 36,
+      "duration_s": 7,
+      "chapter": "Dispute  /  Missing evidence"
+    },
+    {
+      "start_s": 43,
+      "duration_s": 7,
+      "chapter": "Dispute  /  Cure the gap"
+    },
+    {
+      "start_s": 50,
+      "duration_s": 7,
+      "chapter": "Dispute  /  Simulated award"
+    },
+    {
+      "start_s": 57,
+      "duration_s": 7,
+      "chapter": "Dispute  /  Accept a correct denial"
+    },
+    {
+      "start_s": 64,
+      "duration_s": 7,
+      "chapter": "Dispute  /  Escalate a genuine disagreement"
+    },
+    {
+      "start_s": 71,
+      "duration_s": 6,
+      "chapter": "Reconcile  /  Record the credit"
+    },
+    {
+      "start_s": 77,
+      "duration_s": 8,
+      "chapter": "Reconcile  /  Partial application"
+    },
+    {
+      "start_s": 85,
+      "duration_s": 9,
+      "chapter": "Expand  /  Generated adapter in shadow"
+    },
+    {
+      "start_s": 94,
+      "duration_s": 5,
+      "chapter": "Expand  /  Scripted approval"
+    },
+    {
+      "start_s": 99,
+      "duration_s": 5,
+      "chapter": "Expand  /  Local activation"
+    },
+    {
+      "start_s": 104,
+      "duration_s": 7,
+      "chapter": "Expand  /  Rollback"
+    },
+    {
+      "start_s": 111,
+      "duration_s": 9,
+      "chapter": "Finance workbench  /  Provenance"
+    }
+  ],
+  "identity": "scripted-test-reviewer",
+  "database": "fresh disposable replay",
+  "network": "loopback only",
+  "capture": "actual browser frames with timed editorial captions"
+}

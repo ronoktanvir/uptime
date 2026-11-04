@@ -5,7 +5,9 @@
   const display = value => value == null ? 'Not provided' : typeof value === 'object' ? JSON.stringify(value) : String(value);
   const title = value => String(value).replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
   function safeURL(value) {
-    try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? url.href : null; } catch { return null; }
+    try { if (typeof value === 'string' && /^fixture:pricing\/agreement\.json(?:#|$)/.test(value)) return '/fixtures/pricing/agreement.json' + (value.split('#')[1] ? '#' + value.split('#')[1] : '');
+      if (typeof value === 'string' && /^\/fixtures\/other_obligations\/agreement\.txt(?:#|$)/.test(value)) return value;
+      const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? url.href : null; } catch { return null; }
   }
   // Compare decimal strings without rounding large balances through binary floats.
   function compareDecimal(a, b) {
@@ -46,7 +48,7 @@
   function empty(text) { return el('p', 'empty', text); }
   function announce(text) { notice.className = 'notice'; notice.textContent = text; }
   async function api(path, payload) {
-    const response = await fetch(path, {method: payload === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store', headers: payload === undefined ? {Accept: 'application/json'} : {Accept: 'application/json', 'Content-Type': 'application/json'}, ...(payload === undefined ? {} : {body: JSON.stringify(payload)})});
+    const response = await fetch(path, {method: payload === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store', headers: payload === undefined ? {Accept: 'application/json'} : {Accept: 'application/json', 'Content-Type': 'application/json', 'X-Uptime-Action': '1'}, ...(payload === undefined ? {} : {body: JSON.stringify(payload)})});
     if (!response.ok) { const error = new Error(response.status === 401 || response.status === 403 ? 'This link needs an authenticated local session. Start the local demo using the project launcher, then open the bootstrap login URL printed by that launcher in this browser. Refresh this page after signing in. If access is still denied, the session may not permit this action.' : `The server could not complete this request (HTTP ${response.status}). Refresh to retrieve the latest state before trying again.`); error.status = response.status; throw error; }
     if (response.status === 204) return null;
     if (!(response.headers.get('content-type') || '').includes('application/json')) throw new Error('The API returned a page instead of data. Start the local demo server and open its authenticated launch URL.');
@@ -70,8 +72,8 @@
     return node;
   }
   function renderDashboard(data) {
-    const head = heading('Every credit, accounted for.', 'Investigate contract obligations, follow the evidence and track each financial stage.');
-    head.append(el('div', 'as-of', `As of ${display(data.as_of)}`));
+    const head = heading('Contract ledger', 'Unpaid invoice exposure and the current recovery case. Each figure belongs to a separate financial stage.');
+    head.append(el('div', 'as-of', `${data.mode === "replay" ? "Offline replay" : "Sandbox capture · " + display(data.as_of)}`));
     const metrics = el('section', 'metrics'); metrics.setAttribute('aria-label', 'Financial stages');
     list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', metric.label), el('div', 'metric-value', metric.value), el('p', '', metric.note), sources(metric.sources))));
     if (!metrics.children.length) metrics.append(empty('No financial metrics returned.'));
@@ -137,14 +139,67 @@
   function renderOnboarding(data) {
     const overview = panel(display(data.vendor)); add(overview, el('div', 'lab-state', display(data.state)), el('p', 'help', `Version ${display(data.version)}`), sources(data.sources), actions(data.actions, '/api/onboarding/actions', load));
     const checks = panel('Validation & shadow checks'); list(data.checks).forEach(check => { const passed = check.passed === true; add(checks, add(el('div', 'check'), el('span', passed ? 'pill valid' : 'pill pending', passed ? 'Passed' : check.passed === false ? 'Not passed' : 'Pending'), el('strong', '', check.label), el('p', '', check.detail), check.sources ? sources(check.sources) : null)); }); if (!list(data.checks).length) checks.append(empty('No validation results returned.'));
-    const history = panel('Candidate history'); add(history, el('p', 'help', 'Candidate-level provenance is shown above. History entries without their own source are marked accordingly.'), timeline(data.history, true));
-    const rest = Object.fromEntries(Object.entries(data).filter(([key]) => !['vendor','state','version','sources','checks','history','actions'].includes(key)));
-    content.replaceChildren(heading('Coverage starts with proof.', 'Inspect the candidate, review deterministic checks and follow server-approved promotion or rollback actions.'), overview, add(el('div', 'section-grid'), checks, history));
-    if (Object.keys(rest).length) content.append(add(panel('Candidate details'), record(rest)));
+    const history = panel('Candidate history'); add(history, el('p', 'help', 'Each transition is recorded against the candidate version and reviewer.'), timeline(data.audit || data.history, true));
+    const terms=panel('Governing sources');terms.append(el('p','',data.scope || 'Candidate scope unavailable.'));
+    list(data.clauses).forEach(c=>{
+      const url=safeURL(c.uri); if(!url) return;
+      const link=el('a','record',c.label);link.href=url;link.target='_blank';link.rel='noopener noreferrer';terms.append(link);
+    });
+    const limits=panel('Coverage limits');
+    list(data.limits).forEach(limit=>limits.append(el('p','help',limit)));
+    const detail=el('details','panel');add(detail,el('summary','','Inspect generated rules and customer overlay'),record({template:data.template,overlay:data.overlay,sources:data.sources}));
+    content.replaceChildren(heading('Vendor onboarding','Review the generated adapter, its shadow evaluations and the authority required to activate it.'),overview,add(el('div','section-grid'),checks,history),add(el('div','section-grid'),terms,limits),detail);
+  }
+  function renderPolicy(data) {
+    const rules = panel('Execution policy');
+    add(rules, badge(data.mode), el('p', '', data.scope), el('p','help',data.reviewer_controls), sources(data.sources));
+    if (data.can_configure) {
+      const mode = el('select');
+      for (const option of data.available_modes) mode.add(new Option(option.replaceAll('_',' '),option));
+      mode.value = data.mode;
+      const cap=el('input'); cap.value=data.cap; cap.inputMode='decimal'; cap.maxLength=12;
+      const save=button('Save local policy',async () => {
+        save.disabled=true;
+        try {
+          renderPolicy(await api('/api/policy',{mode:mode.value,cap:cap.value}));
+          announce('Local policy saved.');
+        } catch(error) { announce(error.message); save.disabled=false; }
+      },'primary');
+      add(rules,add(el('div','filters'),add(el('label','','Mode'),mode),add(el('label','','USD ceiling'),cap),save));
+    }
+    const history=panel('Policy changes');
+    if (!list(data.history).length) history.append(empty('Default assisted mode. No policy changes recorded.'));
+    else history.append(timeline(data.history.map(r=>({at:r.at,event:r.actor+' selected '+r.mode+' · USD '+r.cap,sources:data.sources}))));
+    content.replaceChildren(heading('Policies','Role: '+data.role+'. Only local simulated work is eligible for automation.'),rules,history);
+  }
+
+  function renderIntegrations(data) {
+    const ramp=data.ramp, publicData=data.public_evidence, model=data.model;
+    const bills=panel('Ramp Bill Pay');
+    add(bills,el('p','',ramp.note),sources(ramp.sources));
+    if (ramp.observed_at) bills.append(el('p','help','Retrieved '+ramp.observed_at));
+    if (ramp.ui_url) {
+      const link=el('a','case-link','Open Ramp sandbox'); link.href='https://demo.ramp.com'; link.target='_blank';link.rel='noopener noreferrer';bills.append(link);
+    }
+    for (const [name,obj] of Object.entries(ramp.capabilities || {})) {
+      bills.append(el('p','help',name+' · '+(obj.state || 'checked')+' · granted '+(list(obj.granted).join(', ') || 'none')));
+    }
+    for (const b of ramp.bills) {
+      const row=el('div','record'); const amount=b.amount ? b.amount.currency+' '+b.amount.amount : 'Amount unavailable';
+      add(row,el('strong','',amount+' · '+b.approval_status),el('p','help',b.id),sources(ramp.sources));
+      if(ramp.ui_url) row.append(button('Inspect bill mapping',()=>openCase('ramp-'+b.id),'quiet'));
+      bills.append(row);
+    }
+    const feed=panel('Twilio status evidence');
+    add(feed,el('p','',publicData.items.length+' captured incident leads. Customer impact and claimable fees require separate proof.'),sources(publicData.sources));
+    list(publicData.items).slice(0,3).forEach(item=>add(feed,add(el('div','record'),el('strong','',item.label),el('p','help',item.detail),el('p','help',item.ref))));
+    const extraction=panel('Verified model run');
+    add(extraction,el('strong','',model.model),el('p','',model.note),el('p','help','Input SHA-256 · '+model.input_digest),sources(model.sources));
+    content.replaceChildren(heading('Integrations','Provider observations, evidence sources and verified model provenance.'),bills,add(el('div','section-grid'),feed,extraction));
   }
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
-    try { const data = await api(`/api/${route}`); if (token !== generation) return; if (route === 'dashboard') renderDashboard(data); else if (route === 'onboarding') renderOnboarding(data); else content.replaceChildren(heading(route === 'policy' ? 'Authority has boundaries.' : 'Know where the evidence comes from.', route === 'policy' ? 'Server-enforced policies and limits. This view is read-only.' : 'Connection state, provider proof and exact source provenance.'), add(panel(route === 'policy' ? 'Approval & execution policy' : 'Integration records'), record(data))); }
+    try { const data = await api(`/api/${route}`); if (token !== generation) return; if (route === 'dashboard') renderDashboard(data); else if (route === 'onboarding') renderOnboarding(data); else if (route === 'policy') renderPolicy(data); else renderIntegrations(data); }
     catch (error) { if (token === generation) showError(content,error,load); }
     finally { if (token === generation) content.setAttribute('aria-busy', 'false'); }
   }

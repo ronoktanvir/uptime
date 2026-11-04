@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T05:16:53.116272+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** Adopt the proposed hardening as a package: per-session server-fixed workspace check, native currency with an insufficient-evidence state, automation only on new human approval, settlement independent of dispute remainder, per-stage origin proof, and bounded bodies with allowlisted no-redirect reads plus text-hash. The alternatives each leave at least one defect open.\n\n**Strongest dissent:** The evidence does not show the fixes work. The two failures were resolved by \"pinned fixture and terminology corrections,\" which may have changed the tests rather than the code, the very loosening the packet rejects. The \"100 unauthorized-on-retry\" result reads as a defect reproduction, not a post-fix pass. No result is marked as an executed post-fix run.\n\n**Falsification tests (prospective):**\n- Foreign-tenant valid session gets denied, including on cached projections.\n- EUR 105 and null render natively or as insufficient, never as USD.\n- Retry after a policy change produces zero dispatches across 100 runs.\n- An $80 applied / $20 remainder case keeps its human-review flag.\n- A synthetic application is rejected at every stage.\n- Chunked oversized POST gets 413; a redirect gets refused; a hash mismatch blocks modeling.\n- Diff the two \"corrected\" tests against their original assertions.\n\n**Boundary:** Sandbox, read-only scopes, synthetic IDs, no production actions.",
+  "session": "5fc02492-3ed8-4746-811a-901384a0a890"
+}

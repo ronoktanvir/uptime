@@ -1,0 +1,39 @@
+{
+  "vendor": "Twilio",
+  "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis",
+  "version": "2026-04-09",
+  "retrieved_at": "2026-11-04T05:02:55.638042+00:00",
+  "source_sha256": "0d0f6e2c66519daf8a182e1fd9b79504f1fa8bb453d00ed2a500919c8fac0e30",
+  "fields": [
+    {
+      "id": "default_threshold",
+      "section": "\u00a71 / threshold table",
+      "quote": "99.95%",
+      "meaning": "Default monthly availability threshold"
+    },
+    {
+      "id": "edition_threshold",
+      "section": "\u00a71 / threshold table",
+      "quote": "99.99%",
+      "meaning": "Qualifying paid editions threshold"
+    },
+    {
+      "id": "minimum_duration",
+      "section": "\u00a74(g)",
+      "quote": "five (5) minutes",
+      "meaning": "Continuous unavailability minimum in minutes"
+    },
+    {
+      "id": "claim_window",
+      "section": "\u00a73",
+      "quote": "thirty (30) days",
+      "meaning": "Filing window after the last day of the applicable month, in days"
+    },
+    {
+      "id": "fee_basis",
+      "section": "\u00a71 / API Service Credit",
+      "quote": "fees Customer actually incurs",
+      "meaning": "Affected API fees only; exclude tax, carrier and third-party charges"
+    }
+  ]
+}

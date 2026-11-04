@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T05:06:16.262002+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred:** Opt-in, reviewer-configured per-tenant policy with a capped USD threshold. Assisted is the default and one-click enable is off. Automated mode may dispatch only one separately human-reviewed, eligible, complete claim to the local simulator.\n\n**Strongest dissent:** Supported estimates can still be wrong, so \"eligible\" may be a false comfort. A static assisted-only policy is safer and loses only configurability, which may not matter in a hackathon.\n\n**Falsification tests (all prospective, none passed yet):**\n- A guide, nonreviewer or forged browser role/amount relaxes the mode or threshold. That should revert to assisted-only.\n- An ambiguous, partial or sensitive record reaches dispatch.\n- A failure or retry produces a duplicate dispatch, meaning idempotency is lost.\n- An action starts after shutdown, or a mode change is missing from the SQLite audit.\n- Concurrent writes corrupt serialization.\n- Grants intended to be read-only can mutate.\n- Estimate error across the W4 denial range exceeds the cap.\n\n**Flags that would change the policy:** any failure above, or multi-process deployment.\n\n**Boundary (irreversible):** No real vendor dispatch, external transport, rebuttals, postings or promotions. Simulator only.",
+  "session": "7a47f273-9569-4d16-a181-2c2b864119af"
+}

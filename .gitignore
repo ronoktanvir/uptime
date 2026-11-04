@@ -12,3 +12,6 @@ test-results/
 *.pem
 *credentials.json
 ramp-sandbox.json
+
+# Browser harness captures are reproducible generated media.
+fixtures/qa/artifacts/

@@ -1,0 +1,15 @@
+name: Verify offline workbench
+on: [push, pull_request]
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --python 3.13
+      - run: uv run --locked pytest -q
+        env:
+          UPTIME_QA_REQUIRE_SERVER: "1"
+      - run: node --test web/*.test.cjs
+      - run: uv run --locked python scripts/rehearse.py
+      - run: uv run --locked python scripts/check_repo.py
