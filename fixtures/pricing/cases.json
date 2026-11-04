@@ -1,0 +1,7 @@
+[
+  {"id": "price-prepayment", "title": "Amended usage price: $7,500 provisional prepayment discrepancy", "status": "pending", "start": "2026-10-01T00:00:00Z", "end": "2026-11-01T00:00:00Z", "quantity": "1500", "net": "27500.00", "support": "2500.00", "expected_outcome": "ELIGIBLE", "expected_overcharge": "7500.00"},
+  {"id": "price-paid-retrospective", "title": "Paid invoice: $7,500 retrospective correction candidate", "status": "paid", "start": "2026-10-01T00:00:00Z", "end": "2026-11-01T00:00:00Z", "quantity": "1500", "net": "27500.00", "support": "2500.00", "expected_outcome": "ELIGIBLE", "expected_overcharge": "7500.00"},
+  {"id": "price-before-amendment", "title": "September performance retains the original signed rate", "status": "paid", "start": "2026-09-01T00:00:00Z", "end": "2026-10-01T00:00:00Z", "quantity": "1500", "net": "27500.00", "support": "2500.00", "expected_outcome": "INELIGIBLE", "expected_overcharge": "0.00"},
+  {"id": "price-undercharge", "title": "Undercharge surfaced for review; no recovery value", "status": "pending", "start": "2026-10-01T00:00:00Z", "end": "2026-11-01T00:00:00Z", "quantity": "1500", "net": "19000.00", "support": "2500.00", "expected_outcome": "INELIGIBLE", "expected_overcharge": "0.00"},
+  {"id": "price-cross-amendment-unknown", "title": "Spanning amendment: quantity allocation missing", "status": "pending", "start": "2026-09-15T00:00:00Z", "end": "2026-10-15T00:00:00Z", "quantity": "1500", "net": "27500.00", "support": "2500.00", "expected_outcome": "INSUFFICIENT_EVIDENCE", "expected_overcharge": null}
+]
