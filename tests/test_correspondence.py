@@ -328,3 +328,27 @@ def test_uncertain_or_revoked_award_abstains(env, text):
     env.file()
     row = env.message(text)
     assert row["stage"] == "HUMAN_REVIEW" and row["ledger"]["awarded"] == "0.00"
+
+
+def test_customer_contract_alias_cannot_duplicate_governing_obligation(env):
+    env.file()
+    other_scope = env.scope.model_copy(update={"contract":"customer-contract-alias","invoice":"another-id","incident":"another-label"})
+    env.desk.provision("bears", other_scope.account, other_scope.vendor, other_scope.contract, other_scope.service, other_scope.component, other_scope.region)
+    env.desk.create(REVIEWER, Claim(claim_id="inbox-contract-alias", scope=other_scope))
+    for kind in ("status", "impact", "invoice"):
+        env.desk.receive(Principal("bears", SOURCES[kind] + "-fixture", "service"), "inbox-contract-alias",
+                         Delivery(event_id="alias-"+kind, scope=other_scope, body=BODIES[kind]))
+    env.desk.act(REVIEWER, "inbox-contract-alias", "approve-claim")
+    with pytest.raises(ValueError, match="another claim or route"):
+        env.desk.act(REVIEWER, "inbox-contract-alias", "submit-claim")
+    assert len(env.get()["submissions"]) == 1 and not env.desk.case(REVIEWER, "inbox-contract-alias")["submissions"]
+
+
+def test_independent_vendor_rejects_unregistered_and_cross_tenant_packet(env):
+    initial = env.file()
+    private = json.loads((Path(__file__).parents[1] / "fixtures/correspondence/vendor_record.json").read_text())
+    record = VendorRecord(private["tenant"], Scope.model_validate(private["scope"]), private["start"], private["end"],
+                          Decimal(private["affected_fees"]), frozenset(private["attachments"].items()))
+    packet = initial["packet"]
+    assert propose(adjudicate({**packet,"tenant":"other"}, record, env.now)).reason == "unknown"
+    assert propose(adjudicate({**packet,"artifacts":packet["artifacts"] + [{"kind":"component","digest":"0"*64}]}, record, env.now)).reason == "unknown"

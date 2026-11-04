@@ -29,6 +29,8 @@ def adjudicate(packet, record: VendorRecord, filed_at):
             or packet.get("version") != VERSION or packet.get("destination") != "isolated-local-simulator"
             or packet.get("subject") != "SLA Claim"):
         return "We cannot reconcile the account, governing terms or destination."
+    if scope.month < VERSION[:7] or scope.month == VERSION[:7]:
+        return "The applicable agreement for the complete service month is unverified."
     if filed_at >= deadline(scope.month):
         return "We received this claim outside the filing window."
     if any((a["kind"], a["digest"]) not in record.attachments for a in packet["artifacts"]):
@@ -48,6 +50,8 @@ def adjudicate(packet, record: VendorRecord, filed_at):
     if (month != scope.month or (end - timedelta(microseconds=1)).strftime("%Y-%m") != month or
             duration < timedelta(minutes=5) or duration * 2000 <= total):
         return "Our measured service availability satisfies the applicable threshold."
+    if not record.affected_fees.is_finite() or record.affected_fees < 0:
+        return "Covered charges require further verification."
     with localcontext() as ctx:
         ctx.prec = 50
         amount = min(Decimal(packet["requested"]), record.affected_fees * Decimal("0.10"))
