@@ -12,22 +12,50 @@
       {
         "id": "msg-1-a",
         "kind": "affected_api",
-        "usd": "800.00"
+        "usd": "800.00",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-101",
+        "evidence_ref": "invoice-sim-acct-101/msg-1-a"
       },
       {
         "id": "msg-1-b",
         "kind": "affected_api",
-        "usd": "200.00"
+        "usd": "200.00",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-101",
+        "evidence_ref": "invoice-sim-acct-101/msg-1-b"
       },
       {
         "id": "carrier-1",
         "kind": "carrier",
-        "usd": "90.00"
+        "usd": "90.00",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-101",
+        "evidence_ref": "invoice-sim-acct-101/carrier-1"
       },
       {
         "id": "tax-1",
         "kind": "tax",
-        "usd": "60.00"
+        "usd": "60.00",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-101",
+        "evidence_ref": "invoice-sim-acct-101/tax-1"
       }
     ],
     "initial_documents": [
@@ -43,7 +71,9 @@
         "end": "2026-10-14T12:30:00+00:00",
         "origin": "synthetic_status_archive",
         "status_subject": "Twilio Messaging API availability",
-        "classification": "redacted_replay"
+        "classification": "redacted_replay",
+        "observed_at": "2026-10-14T12:30:00+00:00",
+        "available_at": "2026-10-14T12:30:00+00:00"
       }
     ],
     "supplemental_archive": [
@@ -60,14 +90,30 @@
         "origin": "synthetic_status_archive",
         "status_subject": "Twilio Messaging API availability",
         "classification": "redacted_replay",
-        "component_id": "messaging-rest-us1"
+        "component_id": "messaging-rest-us1",
+        "observed_at": "2026-11-02T10:02:00+00:00",
+        "available_at": "2026-11-02T10:02:00+00:00"
       }
     ],
     "customer_notice_archive": [],
     "governing_version": "2026-04-09",
     "currency": "USD",
     "exclusion_screen": "no_known_exclusion",
-    "allow_approved_initial_dispatch": true
+    "allow_approved_initial_dispatch": true,
+    "tenant": "bears",
+    "vendor": "Twilio",
+    "component_id": "messaging-rest-us1",
+    "invoice_id": "invoice-sim-acct-101",
+    "invoice_registry": {
+      "msg-1-a": "24ffdba704df105c4539d85dd3c76f72a4d0aa6d2f132b57fc6de36e54eda433",
+      "msg-1-b": "5ce609a844a4f7eede10209b87f19b29beca9f53db862807a8d52a7ab2c2cec6",
+      "carrier-1": "0169d8cda75b3f526912c5ffa1369c458cb80877b4823121cecadf6de12d99bc",
+      "tax-1": "1e5923eedbc6615e745da52aae44d32047cc056c1bbd6ffc44d3d395cd3ec1b6"
+    },
+    "artifact_registry": {
+      "status-1-summary": "4c9249a9c6cd77e93281edeccbd32779984ca2f6aa1b2462bfa7e4156358e43d",
+      "status-1-component": "9b31be77d67a1810682c132efea354e6675d65bb486978adc81ab8f859d5758a"
+    }
   },
   "dispute-denial": {
     "title": "Check a scheduled maintenance exclusion",
@@ -82,22 +128,50 @@
       {
         "id": "msg-2-a",
         "kind": "affected_api",
-        "usd": "800.00"
+        "usd": "800.00",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-102",
+        "evidence_ref": "invoice-sim-acct-102/msg-2-a"
       },
       {
         "id": "msg-2-b",
         "kind": "affected_api",
-        "usd": "200.00"
+        "usd": "200.00",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-102",
+        "evidence_ref": "invoice-sim-acct-102/msg-2-b"
       },
       {
         "id": "carrier-2",
         "kind": "carrier",
-        "usd": "90.00"
+        "usd": "90.00",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-102",
+        "evidence_ref": "invoice-sim-acct-102/carrier-2"
       },
       {
         "id": "tax-2",
         "kind": "tax",
-        "usd": "60.00"
+        "usd": "60.00",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-102",
+        "evidence_ref": "invoice-sim-acct-102/tax-2"
       }
     ],
     "initial_documents": [
@@ -113,7 +187,9 @@
         "end": "2026-10-14T12:30:00+00:00",
         "origin": "synthetic_status_archive",
         "status_subject": "Twilio Messaging API availability",
-        "classification": "redacted_replay"
+        "classification": "redacted_replay",
+        "observed_at": "2026-10-14T12:30:00+00:00",
+        "available_at": "2026-10-14T12:30:00+00:00"
       },
       {
         "ref": "status-2-component",
@@ -128,7 +204,9 @@
         "origin": "synthetic_status_archive",
         "status_subject": "Twilio Messaging API availability",
         "classification": "redacted_replay",
-        "component_id": "messaging-rest-us1"
+        "component_id": "messaging-rest-us1",
+        "observed_at": "2026-10-14T12:30:00+00:00",
+        "available_at": "2026-10-14T12:30:00+00:00"
       }
     ],
     "supplemental_archive": [],
@@ -143,13 +221,30 @@
         "region": "US1",
         "source": "DETERMINISTIC_REPLAY",
         "start": "2026-10-14T12:00:00+00:00",
-        "end": "2026-10-14T12:30:00+00:00"
+        "end": "2026-10-14T12:30:00+00:00",
+        "observed_at": "2026-11-02T10:02:00+00:00",
+        "available_at": "2026-11-02T10:02:00+00:00"
       }
     ],
     "governing_version": "2026-04-09",
     "currency": "USD",
     "exclusion_screen": "no_known_exclusion",
-    "allow_approved_initial_dispatch": false
+    "allow_approved_initial_dispatch": false,
+    "tenant": "bears",
+    "vendor": "Twilio",
+    "component_id": "messaging-rest-us1",
+    "invoice_id": "invoice-sim-acct-102",
+    "invoice_registry": {
+      "msg-2-a": "03a69bd5d6856930e52d9c1593a25a3f36d765eb68c2ccf5a4c81f149b667576",
+      "msg-2-b": "f16fbe33c5e06047a3d875e559d8d0536ae12dc8d382186f61033dbf15106e9b",
+      "carrier-2": "f7e8d3b035b91ebd0e007beb9dd743fbefea3f69894d2b6fbbc8ca82f485c8f4",
+      "tax-2": "ab53d78909c75052126fe0cde2d206ff042cc9e7f94fa46a4853712375f410ab"
+    },
+    "artifact_registry": {
+      "status-2-summary": "16b41c52d052c4ee292788bfe6870ed16c3167d31e38af66e1eaa72cb6ad93de",
+      "status-2-component": "5f8efaff7c28111de164094e2805890f6d63638d42880c0f6635a44c3db96b3e",
+      "notice-2": "dedf716992ded01c141c71534acfb266d48564a8c431d2cf9c0062d65aab61af"
+    }
   },
   "dispute-review": {
     "title": "Review a disputed maintenance window",
@@ -164,22 +259,50 @@
       {
         "id": "msg-3-a",
         "kind": "affected_api",
-        "usd": "800.00"
+        "usd": "800.00",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-103",
+        "evidence_ref": "invoice-sim-acct-103/msg-3-a"
       },
       {
         "id": "msg-3-b",
         "kind": "affected_api",
-        "usd": "200.00"
+        "usd": "200.00",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-103",
+        "evidence_ref": "invoice-sim-acct-103/msg-3-b"
       },
       {
         "id": "carrier-3",
         "kind": "carrier",
-        "usd": "90.00"
+        "usd": "90.00",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-103",
+        "evidence_ref": "invoice-sim-acct-103/carrier-3"
       },
       {
         "id": "tax-3",
         "kind": "tax",
-        "usd": "60.00"
+        "usd": "60.00",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-103",
+        "evidence_ref": "invoice-sim-acct-103/tax-3"
       }
     ],
     "initial_documents": [
@@ -195,7 +318,9 @@
         "end": "2026-10-14T12:30:00+00:00",
         "origin": "synthetic_status_archive",
         "status_subject": "Twilio Messaging API availability",
-        "classification": "redacted_replay"
+        "classification": "redacted_replay",
+        "observed_at": "2026-10-14T12:30:00+00:00",
+        "available_at": "2026-10-14T12:30:00+00:00"
       },
       {
         "ref": "status-3-component",
@@ -210,7 +335,9 @@
         "origin": "synthetic_status_archive",
         "status_subject": "Twilio Messaging API availability",
         "classification": "redacted_replay",
-        "component_id": "messaging-rest-us1"
+        "component_id": "messaging-rest-us1",
+        "observed_at": "2026-10-14T12:30:00+00:00",
+        "available_at": "2026-10-14T12:30:00+00:00"
       }
     ],
     "supplemental_archive": [],
@@ -218,7 +345,21 @@
     "governing_version": "2026-04-09",
     "currency": "USD",
     "exclusion_screen": "no_known_exclusion",
-    "allow_approved_initial_dispatch": false
+    "allow_approved_initial_dispatch": false,
+    "tenant": "bears",
+    "vendor": "Twilio",
+    "component_id": "messaging-rest-us1",
+    "invoice_id": "invoice-sim-acct-103",
+    "invoice_registry": {
+      "msg-3-a": "a2e9c3d5290cc429c10d0564c4987180585828316a7a428e290a8fc215d48484",
+      "msg-3-b": "be93b7042624f3a9086960a4fe7f39ab1afcc357ad872ad25e57cd14b3ba9f50",
+      "carrier-3": "cdd4dc099fd972e89dca615acbbd6ef08dcd0ef4f56322fa6372640cce369792",
+      "tax-3": "c1b7cd4d217a11ae57d53e9301fe809eccd5bf2374beebdcef105eeaf2bbc8be"
+    },
+    "artifact_registry": {
+      "status-3-summary": "9e177ee3c2c6f45204bc4e204042c730b949504fc6981ea42857070cafefab11",
+      "status-3-component": "0e22c8a4b49e8befaf248d0763f49d12a4130bd83bf5470604b2533e89b3142c"
+    }
   },
   "dispute-partial": {
     "title": "Separate an uncontested credit from disputed fees",
@@ -233,22 +374,50 @@
       {
         "id": "msg-4-a",
         "kind": "affected_api",
-        "usd": "800.00"
+        "usd": "800.00",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-104",
+        "evidence_ref": "invoice-sim-acct-104/msg-4-a"
       },
       {
         "id": "msg-4-b",
         "kind": "affected_api",
-        "usd": "200.00"
+        "usd": "200.00",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-104",
+        "evidence_ref": "invoice-sim-acct-104/msg-4-b"
       },
       {
         "id": "carrier-4",
         "kind": "carrier",
-        "usd": "90.00"
+        "usd": "90.00",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-104",
+        "evidence_ref": "invoice-sim-acct-104/carrier-4"
       },
       {
         "id": "tax-4",
         "kind": "tax",
-        "usd": "60.00"
+        "usd": "60.00",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-104",
+        "evidence_ref": "invoice-sim-acct-104/tax-4"
       }
     ],
     "initial_documents": [
@@ -264,7 +433,9 @@
         "end": "2026-10-14T12:30:00+00:00",
         "origin": "synthetic_status_archive",
         "status_subject": "Twilio Messaging API availability",
-        "classification": "redacted_replay"
+        "classification": "redacted_replay",
+        "observed_at": "2026-10-14T12:30:00+00:00",
+        "available_at": "2026-10-14T12:30:00+00:00"
       },
       {
         "ref": "status-4-component",
@@ -279,7 +450,9 @@
         "origin": "synthetic_status_archive",
         "status_subject": "Twilio Messaging API availability",
         "classification": "redacted_replay",
-        "component_id": "messaging-rest-us1"
+        "component_id": "messaging-rest-us1",
+        "observed_at": "2026-10-14T12:30:00+00:00",
+        "available_at": "2026-10-14T12:30:00+00:00"
       }
     ],
     "supplemental_archive": [],
@@ -287,6 +460,20 @@
     "governing_version": "2026-04-09",
     "currency": "USD",
     "exclusion_screen": "no_known_exclusion",
-    "allow_approved_initial_dispatch": false
+    "allow_approved_initial_dispatch": false,
+    "tenant": "bears",
+    "vendor": "Twilio",
+    "component_id": "messaging-rest-us1",
+    "invoice_id": "invoice-sim-acct-104",
+    "invoice_registry": {
+      "msg-4-a": "fa67e8971c5fff99e8d3b369dc5a743b24cbb9ed1f8539cdd57471d1a1b8c76b",
+      "msg-4-b": "0143452f40d1bf5fdd038cf6f7e331a91754cebc678f632de0be99efa0be81d3",
+      "carrier-4": "2834b2557648f1c80bc9ae5a26e8b4189635b4fea80980b786b5d2d4bd4c74df",
+      "tax-4": "59d4584cf7b0f24cc0ed8f4c29e9a925f39df8810ee08adecf1bef3747db6629"
+    },
+    "artifact_registry": {
+      "status-4-summary": "4f635cb2a5571682be138693f7ccf0a308938fd7cd993cf369b3971821b67dd9",
+      "status-4-component": "ba8d6b4958b26b06188ec9f6ebbf3fc1eaecb32cc2a71f46f8e073c80d9cfecd"
+    }
   }
 }

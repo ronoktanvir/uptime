@@ -1,0 +1,28 @@
+{
+  "pre_effective_agreement": {
+    "outcome": "UNSUPPORTED_RULE",
+    "amount": null
+  },
+  "already_available_maintenance": {
+    "outcome": "INELIGIBLE",
+    "amount": null
+  },
+  "contradictory_invoice_scope": {
+    "outcome": "INSUFFICIENT_EVIDENCE",
+    "amount": null
+  },
+  "missing_document_reference": {
+    "outcome": "INSUFFICIENT_EVIDENCE",
+    "amount": null
+  },
+  "fractional_cent": {
+    "outcome": "ELIGIBLE",
+    "amount": "0.001"
+  },
+  "authentic_missing_component": "UNVERIFIED_DOCUMENT",
+  "sentinel_in_outbound_packet": false,
+  "foreign_tenant_vendor_reply": "CONTESTED_SCOPE",
+  "duplicate_obligation_receipts": 1,
+  "timely_time_bar_stage": "HUMAN_REVIEW",
+  "incomplete_cure_auto_dispatchable": false
+}

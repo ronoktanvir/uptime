@@ -1,0 +1,28 @@
+{
+  "pre_effective_agreement": {
+    "outcome": "ELIGIBLE",
+    "amount": "100.00"
+  },
+  "already_available_maintenance": {
+    "outcome": "ELIGIBLE",
+    "amount": "100.00"
+  },
+  "contradictory_invoice_scope": {
+    "outcome": "ELIGIBLE",
+    "amount": "100.00"
+  },
+  "missing_document_reference": {
+    "outcome": "ELIGIBLE",
+    "amount": "100.00"
+  },
+  "fractional_cent": {
+    "outcome": "INELIGIBLE",
+    "amount": null
+  },
+  "authentic_missing_component": "PARTIAL_AWARD",
+  "sentinel_in_outbound_packet": true,
+  "foreign_tenant_vendor_reply": "PARTIAL_AWARD",
+  "duplicate_obligation_receipts": 2,
+  "timely_time_bar_stage": "EXPIRED",
+  "incomplete_cure_auto_dispatchable": true
+}

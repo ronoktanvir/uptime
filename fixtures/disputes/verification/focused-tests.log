@@ -1,0 +1,31 @@
+........................................................................ [ 63%]
+.........................................                                [100%]
+============================ Hypothesis Statistics =============================
+tests/test_disputes_v4.py::test_property_exact_entitlement_and_settlement_boundary:
+
+  - during generate phase (0.05 seconds):
+    - Typical runtimes: < 1ms, of which < 1ms in data generation
+    - 100 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=100
+
+
+tests/test_disputes_v4.py::test_property_equivalent_instants_preserve_claimant_threshold:
+
+  - during generate phase (0.02 seconds):
+    - Typical runtimes: < 1ms, of which < 1ms in data generation
+    - 60 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=60
+
+
+tests/test_disputes_v4.py::test_property_provider_line_aliases_never_inflate_entitlement:
+
+  - during generate phase (0.00 seconds):
+    - Typical runtimes: < 1ms, of which < 1ms in data generation
+    - 10 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+113 passed in 1.22s

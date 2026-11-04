@@ -34,12 +34,12 @@
   ],
   "trace": [
     "Twilio Services APIs / standard plan / region US1.",
-    "Covered API, archived status interval, submitted documentation, initial exclusion screen, filing clock and affected fees support a local claim.",
+    "Governing dates, available archived evidence, exclusions, filing clock and verified invoice scope support the exact entitlement.",
     "Replayed interval 2026-10-14T12:00:00+00:00 through 2026-10-14T12:30:00+00:00. If all 30 minutes count, monthly availability is 99.93280% over 44,640 minutes against the 99.95% standard threshold. Section 4 exclusions apply.",
-    "USD 1000.00 in affected API fees \u00d7 10% = USD 100.00 in the draft. Carrier and tax lines are excluded. An award is a future service credit.",
+    "USD 1000.00 in affected API fees \u00d7 10% = USD 100.00 exact contractual entitlement. Carrier and tax lines are excluded. An award is a future service credit.",
     "Claim drafted from synthetic October API charges and a replayed status interval.",
     "Scheduled maintenance was announced at least 24 hours in advance.",
-    "Customer notice notice-2 independently confirms the exclusion. Close without a rebuttal."
+    "Customer notice notice-2 available by reply receipt independently confirms the exclusion. Close without a rebuttal."
   ],
   "evidence": [
     {
@@ -77,7 +77,7 @@
     {
       "label": "status_summary",
       "detail": "status-2-summary \u00b7 Twilio Messaging API \u00b7 2026-10-14T12:00:00+00:00 to 2026-10-14T12:30:00+00:00",
-      "digest": "c038bed8e9c034b844efee93fbd8f5627f8b55f4cceed79334586d9ee1dc85da",
+      "digest": "16b41c52d052c4ee292788bfe6870ed16c3167d31e38af66e1eaa72cb6ad93de",
       "sources": [
         "DETERMINISTIC_REPLAY"
       ]
@@ -85,7 +85,7 @@
     {
       "label": "component_record",
       "detail": "status-2-component \u00b7 Twilio Messaging API \u00b7 2026-10-14T12:00:00+00:00 to 2026-10-14T12:30:00+00:00",
-      "digest": "9cbf5f6ee025f2fc30b582ffd43147b9c8f040bfd351f43fcae105986c484289",
+      "digest": "5f8efaff7c28111de164094e2805890f6d63638d42880c0f6635a44c3db96b3e",
       "sources": [
         "DETERMINISTIC_REPLAY"
       ]
@@ -93,7 +93,7 @@
     {
       "label": "Customer copy of maintenance notice",
       "detail": "notice-2 \u00b7 issued 2026-10-13T10:00:00+00:00 \u00b7 Twilio Messaging API",
-      "digest": "319b113ecd07463d0115571ec7a13662e92602319c05f2e01322a8f9f9be292a",
+      "digest": "dedf716992ded01c141c71534acfb266d48564a8c431d2cf9c0062d65aab61af",
       "sources": [
         "SYNTHETIC_CUSTOMER",
         "DETERMINISTIC_REPLAY"
@@ -122,7 +122,7 @@
         "SYNTHETIC_CUSTOMER",
         "DETERMINISTIC_REPLAY"
       ],
-      "digest": "7a9ee065266af8d7fb9d44bd85fcc2a377b5170d256937b6a8cab282621d3a05",
+      "digest": "8b9571fbc9ff3f1e685eb71c02c8c5e2d572141f6d7e5d80c0ce2c2c556e134a",
       "action": "approve-claim"
     },
     {
@@ -135,11 +135,11 @@
         "SIMULATED_VENDOR",
         "DETERMINISTIC_REPLAY"
       ],
-      "receipt": "SIM-e36df330084ca23a",
-      "digest": "7a9ee065266af8d7fb9d44bd85fcc2a377b5170d256937b6a8cab282621d3a05"
+      "receipt": "SIM-ca84723e86558bf4",
+      "digest": "8b9571fbc9ff3f1e685eb71c02c8c5e2d572141f6d7e5d80c0ce2c2c556e134a"
     },
     {
-      "at": "2026-11-02T10:01:00+00:00",
+      "at": "2026-11-02T10:02:00+00:00",
       "event": "Scheduled maintenance was announced at least 24 hours in advance.",
       "actor": "vendor-simulator",
       "role": "simulator",
@@ -152,8 +152,8 @@
       "clause": "\u00a74(d)"
     },
     {
-      "at": "2026-11-02T10:01:00+00:00",
-      "event": "Customer notice notice-2 independently confirms the exclusion. Close without a rebuttal.",
+      "at": "2026-11-02T10:02:00+00:00",
+      "event": "Customer notice notice-2 available by reply receipt independently confirms the exclusion. Close without a rebuttal.",
       "actor": "dispute-reviewer",
       "role": "system",
       "tenant": "bears",
@@ -167,10 +167,10 @@
   ],
   "submissions": [
     {
-      "id": "SIM-e36df330084ca23a",
-      "idempotency_key": "e36df330084ca23a8a6b9e1da6497f79d9ad83d4a4106cde1de7a22328d16c99",
+      "id": "SIM-ca84723e86558bf4",
+      "idempotency_key": "ca84723e86558bf46780a5776b8907a204c1cf416e4a268e3e431de565a9e81d",
       "action": "submit-claim",
-      "digest": "7a9ee065266af8d7fb9d44bd85fcc2a377b5170d256937b6a8cab282621d3a05",
+      "digest": "8b9571fbc9ff3f1e685eb71c02c8c5e2d572141f6d7e5d80c0ce2c2c556e134a",
       "document_refs": [
         "status-2-summary",
         "status-2-component"
@@ -178,12 +178,12 @@
       "approval": {
         "by": "finance-reviewer",
         "at": "2026-11-02T10:00:00+00:00",
-        "digest": "7a9ee065266af8d7fb9d44bd85fcc2a377b5170d256937b6a8cab282621d3a05",
+        "digest": "8b9571fbc9ff3f1e685eb71c02c8c5e2d572141f6d7e5d80c0ce2c2c556e134a",
         "action": "approve-claim",
         "basis": {
           "outcome": "ELIGIBLE",
           "trace": [
-            "Covered API, archived status interval, submitted documentation, initial exclusion screen, filing clock and affected fees support a local claim."
+            "Governing dates, available archived evidence, exclusions, filing clock and verified invoice scope support the exact entitlement."
           ],
           "clauses": [
             {
@@ -202,7 +202,78 @@
       "sources": [
         "SIMULATED_VENDOR",
         "DETERMINISTIC_REPLAY"
-      ]
+      ],
+      "obligation_key": "bc65c4da7bb665d155508e40cb3e75fd74f2f03a18207ba961d2c3905e019918",
+      "source_artifact_digests": {
+        "status-2-summary": "16b41c52d052c4ee292788bfe6870ed16c3167d31e38af66e1eaa72cb6ad93de",
+        "status-2-component": "5f8efaff7c28111de164094e2805890f6d63638d42880c0f6635a44c3db96b3e"
+      },
+      "payload": {
+        "tenant": "bears",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "subject": "SLA Claim",
+        "channel": "Twilio Customer Support (simulation)",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00",
+        "requested": "100.00",
+        "documents": [
+          {
+            "fact": {
+              "ref": "status-2-summary",
+              "tenant": "bears",
+              "kind": "status_summary",
+              "source": "DETERMINISTIC_REPLAY",
+              "digest": "8927b7954c0d75af7d4e2abaa167b5c618e6a033aa15f61c085657008b2cc12e",
+              "observed_at": "2026-10-14T12:30:00+00:00"
+            },
+            "body": {
+              "ref": "status-2-summary",
+              "kind": "status_summary",
+              "account": "sim-acct-102",
+              "month": "2026-10",
+              "product": "Twilio Messaging API",
+              "region": "US1",
+              "source": "DETERMINISTIC_REPLAY",
+              "start": "2026-10-14T12:00:00+00:00",
+              "end": "2026-10-14T12:30:00+00:00",
+              "origin": "synthetic_status_archive",
+              "classification": "redacted_replay",
+              "observed_at": "2026-10-14T12:30:00+00:00"
+            }
+          },
+          {
+            "fact": {
+              "ref": "status-2-component",
+              "tenant": "bears",
+              "kind": "component_record",
+              "source": "DETERMINISTIC_REPLAY",
+              "digest": "d45b47b105ba1e981b991bc644091cc84a646775b078b5003b0ade4edad1fbd7",
+              "observed_at": "2026-10-14T12:30:00+00:00"
+            },
+            "body": {
+              "ref": "status-2-component",
+              "kind": "component_record",
+              "account": "sim-acct-102",
+              "month": "2026-10",
+              "product": "Twilio Messaging API",
+              "region": "US1",
+              "source": "DETERMINISTIC_REPLAY",
+              "start": "2026-10-14T12:00:00+00:00",
+              "end": "2026-10-14T12:30:00+00:00",
+              "origin": "synthetic_status_archive",
+              "classification": "redacted_replay",
+              "component_id": "messaging-rest-us1",
+              "observed_at": "2026-10-14T12:30:00+00:00"
+            }
+          }
+        ],
+        "vendor": "Twilio",
+        "governing_version": "2026-04-09",
+        "obligation": "monthly_api_availability"
+      }
     }
   ],
   "replies": [
@@ -212,11 +283,12 @@
       "clause": "\u00a74(d)",
       "awarded": "0.00",
       "needed_kind": null,
+      "received_at": "2026-11-02T10:02:00+00:00",
       "sources": [
         "SIMULATED_VENDOR",
         "DETERMINISTIC_REPLAY"
       ],
-      "receipt": "SIM-e36df330084ca23a"
+      "receipt": "SIM-ca84723e86558bf4"
     }
   ],
   "filing_cutoff": "2026-12-01T00:00:00+00:00",

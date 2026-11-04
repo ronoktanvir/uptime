@@ -1,0 +1,23 @@
+........................................................................ [ 13%]
+........................................................................ [ 26%]
+........................................................................ [ 40%]
+........................................................................ [ 53%]
+........................................................................ [ 67%]
+........................................................................ [ 80%]
+........................F............................................... [ 93%]
+.................................                                        [100%]
+=================================== FAILURES ===================================
+_______ test_automated_mode_requires_separate_scoped_approval[100.00-1] ________
+tests/test_release_boundaries.py:72: in test_automated_mode_requires_separate_scoped_approval
+    assert len(result["submissions"])==expected
+E   assert 0 == 1
+E    +  where 0 = len([])
+=============================== warnings summary ===============================
+../venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /private/tmp/uptime-v4.WTuRU4/venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_release_boundaries.py::test_automated_mode_requires_separate_scoped_approval[100.00-1]
+1 failed, 536 passed, 1 warning in 16.72s
