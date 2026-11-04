@@ -1,0 +1,33 @@
+{
+  "id": "synthetic-negotiated-001",
+  "source": "SYNTHETIC_CUSTOMER",
+  "customer": "synthetic-bears",
+  "vendor": "synthetic-cloud",
+  "expires_at": "2027-01-01T00:00:00Z",
+  "notice": "Fictional signed agreement and amendment for deterministic demonstration only. Signatures are synthetic fixture assertions, not real execution or commercial authority.",
+  "terms": {
+    "scope": "Only compute-job in completed whole job units is covered. Premium support is expressly non-covered. Unidentified products must not be inferred to be covered or excluded.",
+    "allocation": "Each complete, nonoverlapping performance slice for a product is a separate graduated tier bucket. All units for that slice must be included exactly once. No monthly or cumulative tiers. A slice crossing an amendment must be split with independently evidenced quantities for each effective period; never prorate by time or reset on arbitrary invoice lines.",
+    "boundaries": "Performance intervals are [start, end). A new version governs performance at its effective timestamp. Quantity tiers use previous upper < units <= upper; the first 1000 units receive the first rate, remaining units receive the second rate.",
+    "money": "USD only; separate itemized tax excluded from price enforcement, with tax correctness outside scope. Round each completed line HALF_UP to cents, then sum. Report overcharges and undercharges separately; no automatic netting.",
+    "amendments": "Each signed amendment replaces the complete rate snapshot prospectively. Both parties must sign no later than effectiveness. Late signatures or retroactive effect require review. Invoice dates do not control the rate."
+  },
+  "versions": [
+    {
+      "id": "agreement-v1", "effective_at": "2026-01-01T00:00:00Z",
+      "signed_at": "2025-12-20T12:00:00Z", "signatories": ["synthetic-bears", "synthetic-cloud"],
+      "supersedes": null, "currency": "USD", "tax_treatment": "separate_excluded",
+      "rounding": "line_half_up_cent", "excluded_products": ["premium-support"],
+      "citation": {"document": "Synthetic signed order form", "version": "agreement-v1", "section": "rates-and-allocation", "uri": "fixture:pricing/agreement.json#versions/0"},
+      "rates": [{"product": "compute-job", "unit": "job", "mode": "graduated", "quantity_scope": "complete_performance_slice", "boundary": "upper_inclusive", "tiers": [{"upper": "1000", "rate": "20.00"}, {"upper": null, "rate": "15.00"}]}]
+    },
+    {
+      "id": "amendment-v2", "effective_at": "2026-10-01T00:00:00Z",
+      "signed_at": "2026-09-20T12:00:00Z", "signatories": ["synthetic-bears", "synthetic-cloud"],
+      "supersedes": "agreement-v1", "currency": "USD", "tax_treatment": "separate_excluded",
+      "rounding": "line_half_up_cent", "excluded_products": ["premium-support"],
+      "citation": {"document": "Synthetic signed amendment", "version": "amendment-v2", "section": "replacement-rates-and-allocation", "uri": "fixture:pricing/agreement.json#versions/1"},
+      "rates": [{"product": "compute-job", "unit": "job", "mode": "graduated", "quantity_scope": "complete_performance_slice", "boundary": "upper_inclusive", "tiers": [{"upper": "1000", "rate": "15.00"}, {"upper": null, "rate": "10.00"}]}]
+    }
+  ]
+}
