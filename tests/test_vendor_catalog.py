@@ -468,3 +468,13 @@ def test_nonfinite_malformed_intake_quarantines_current_registry(api):
     activate(c)
     result = direct_install(path, REVIEWER, 'example-cloud', {'document': float('nan')})
     assert result['state'] == 'QUARANTINED' and result['active_version'] is None
+
+
+@pytest.mark.parametrize('injected', ['up to 15%', '15% may be credited', '15% excluding tax', '15% at most'])
+def test_broader_tier_cannot_infer_definite_rate_from_qualified_source(injected):
+    document, proposal = proposition_document()
+    document['text'] = document['text'].replace('| 15% |', '| ' + injected + ' |')
+    for p in proposal:
+        p['quote'] = p['quote'].replace('| 15% |', '| ' + injected + ' |')
+    with pytest.raises(ValueError):
+        validate_proposal(Document(**document), proposal, allow_propositions=True)

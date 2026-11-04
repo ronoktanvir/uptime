@@ -263,8 +263,8 @@ def compile_propositions(document, clauses):
                 'tiers': [], 'citations': []}
     seen, scope, header = set(), None, None
     header_comparator = False
-    qualifiers = r'\b(?:unless|except|excluding|provided|subject to|only if|conditional|cap(?:ped)?|maximum|' \
-                 r'discretion|refund|business days|rolling|not|greater than|above|at least|maintenance)\b|<=|≤'
+    qualifiers = r'\b(?:unless|except|exclud(?:e|es|ed|ing)|provided|subject to|only if|conditional|cap(?:ped)?|maximum|' \
+                 r'discretion|refund|business days|rolling|not|greater than|above|at least|up to|at most|may|can|maintenance)\b|<=|≤'
     for index, (row, (start, end, quote)) in enumerate(zip(clauses, spans, strict=True), 1):
         field, value = row['field'], row['value']
         text = ' '.join(quote.split())
@@ -290,7 +290,8 @@ def compile_propositions(document, clauses):
                 raise ValueError('Reversed source effective interval.')
         elif field == 'period':
             if (value != 'utc_calendar_month' or 'utc' not in lower or 'calendar month' not in lower
-                    or not re.search(r'\b(?:availability|uptime|measure|measured|measurement|period|calculated)\b', lower)):
+                    or not re.search(r'\b(?:availability|uptime|measure|measured|measurement|period|calculated)\b', lower)
+                    or re.search(r'[0-9%]|\b(?:prorat(?:e|ed|ion)|hours?|days?|subtract|adjust)\b', lower)):
                 raise ValueError('Unsupported measurement denominator or timezone.')
         elif field == 'filing_days':
             if (type(value) is not int or not 1 <= value <= 365
