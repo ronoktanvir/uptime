@@ -1,0 +1,153 @@
+{
+  "template": {
+    "schema": "atlassian-utc-tiers/1",
+    "sources": {
+      "legal": "ca8703f3214a845e463c49216e182ef6bd4b912166038546d1ff1029b32836c8",
+      "support": "6250c0aa0d32e9e7d4da57659f45ae434c74196031accd593a5250613473b043"
+    },
+    "rules": {
+      "effective": "2026-04-30",
+      "product": "Jira",
+      "surface": "browser",
+      "experiences": [
+        "view issue",
+        "create issue",
+        "edit issue",
+        "view board"
+      ],
+      "bands": {
+        "Premium": [
+          {
+            "below": "95.0",
+            "credit": "50"
+          },
+          {
+            "below": "99.0",
+            "credit": "25"
+          },
+          {
+            "below": "99.9",
+            "credit": "10"
+          }
+        ],
+        "Enterprise": [
+          {
+            "below": "95.0",
+            "credit": "50"
+          },
+          {
+            "below": "99.0",
+            "credit": "25"
+          },
+          {
+            "below": "99.9",
+            "credit": "10"
+          },
+          {
+            "below": "99.95",
+            "credit": "5"
+          }
+        ]
+      },
+      "zone": "UTC",
+      "error_rate_gt": "5",
+      "monitor": "vendor_logs",
+      "claim": {
+        "origin": "utc_month_end",
+        "calendar_days": 15
+      },
+      "challenge": {
+        "origin": "amount_posted_to_ticket",
+        "business_days": 3
+      },
+      "basis": "affected_product_monthly_fees"
+    },
+    "capabilities": {
+      "status_context": {
+        "connector": "jira-public-status",
+        "uri": "https://jira-software.status.atlassian.com/",
+        "entitlement_evidence": false
+      },
+      "claim_channel": {
+        "connector": "atlassian-support-manual",
+        "uri": "https://support.atlassian.com/contact",
+        "external_submission": false
+      },
+      "evidence": "vendor-confirmed, exclusion-adjusted product-month downtime minutes"
+    }
+  },
+  "generated_tests": [
+    {
+      "plan": "Premium",
+      "uptime": "94.9999999",
+      "rate": "50"
+    },
+    {
+      "plan": "Premium",
+      "uptime": "95.0",
+      "rate": "25"
+    },
+    {
+      "plan": "Premium",
+      "uptime": "98.9999999",
+      "rate": "25"
+    },
+    {
+      "plan": "Premium",
+      "uptime": "99.0",
+      "rate": "10"
+    },
+    {
+      "plan": "Premium",
+      "uptime": "99.8999999",
+      "rate": "10"
+    },
+    {
+      "plan": "Premium",
+      "uptime": "99.9",
+      "rate": "0"
+    },
+    {
+      "plan": "Enterprise",
+      "uptime": "94.9999999",
+      "rate": "50"
+    },
+    {
+      "plan": "Enterprise",
+      "uptime": "95.0",
+      "rate": "25"
+    },
+    {
+      "plan": "Enterprise",
+      "uptime": "98.9999999",
+      "rate": "25"
+    },
+    {
+      "plan": "Enterprise",
+      "uptime": "99.0",
+      "rate": "10"
+    },
+    {
+      "plan": "Enterprise",
+      "uptime": "99.8999999",
+      "rate": "10"
+    },
+    {
+      "plan": "Enterprise",
+      "uptime": "99.9",
+      "rate": "5"
+    },
+    {
+      "plan": "Enterprise",
+      "uptime": "99.9499999",
+      "rate": "5"
+    },
+    {
+      "plan": "Enterprise",
+      "uptime": "99.95",
+      "rate": "0"
+    }
+  ],
+  "engine": "jira-local-1",
+  "version": "71cc717a58e5ff8c22e6c2aba9b7b8cc3dbed382dc3e7f0685a16bc930bb8eed"
+}

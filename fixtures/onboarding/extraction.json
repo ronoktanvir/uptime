@@ -1,0 +1,76 @@
+{
+  "recorded_at": "2026-11-04T05:02:35.083531+00:00",
+  "sources": {
+    "legal": {
+      "uri": "https://dam-cdn.atl.orangelogic.com/CDNLink/AT12MQRY.pdf",
+      "bytes_sha256": "5662321408a736f10beb06b7fe0dc588929f4897bd29c6ccd75b883ab50ae903",
+      "text_sha256": "ca8703f3214a845e463c49216e182ef6bd4b912166038546d1ff1029b32836c8"
+    },
+    "support": {
+      "uri": "https://support.atlassian.com/subscriptions-and-billing/docs/service-level-agreement-for-atlassian-cloud-products/",
+      "bytes_sha256": "30e132ce0efb58422068b1d967f27683459f9b6d8b73371186f95ce3b1806a11",
+      "text_sha256": "6250c0aa0d32e9e7d4da57659f45ae434c74196031accd593a5250613473b043"
+    }
+  },
+  "model": "claude-opus-5-5",
+  "session": "dfeaf605-8ad1-45ea-8953-8875fbc2a7e5",
+  "prompt_sha256": "0f49526b8997631f0519f90d603a4b12cf5608f40109fcad207a25dff71b234b",
+  "raw_result_sha256": "7cf2553ccba1c60e6f0cdf36c5ffe5898424f3d8ff648da3e1e5e79b7819f749",
+  "rules": {
+    "effective": "2026-04-30",
+    "product": "Jira",
+    "surface": "browser",
+    "experiences": [
+      "view issue",
+      "create issue",
+      "edit issue",
+      "view board"
+    ],
+    "bands": {
+      "Premium": [
+        {
+          "below": "95.0",
+          "credit": "50"
+        },
+        {
+          "below": "99.0",
+          "credit": "25"
+        },
+        {
+          "below": "99.9",
+          "credit": "10"
+        }
+      ],
+      "Enterprise": [
+        {
+          "below": "95.0",
+          "credit": "50"
+        },
+        {
+          "below": "99.0",
+          "credit": "25"
+        },
+        {
+          "below": "99.9",
+          "credit": "10"
+        },
+        {
+          "below": "99.95",
+          "credit": "5"
+        }
+      ]
+    },
+    "zone": "UTC",
+    "error_rate_gt": "5",
+    "monitor": "vendor_logs",
+    "claim": {
+      "origin": "utc_month_end",
+      "calendar_days": 15
+    },
+    "challenge": {
+      "origin": "amount_posted_to_ticket",
+      "business_days": 3
+    },
+    "basis": "affected_product_monthly_fees"
+  }
+}

@@ -10,5 +10,6 @@
   "effective_from": "2026-05-01",
   "effective_until": "2026-12-31",
   "fee_line_ref": "synthetic-jira-monthly-line",
-  "source": "SYNTHETIC_CUSTOMER"
+  "source": "SYNTHETIC_CUSTOMER",
+  "site": "demo-bears-jira"
 }

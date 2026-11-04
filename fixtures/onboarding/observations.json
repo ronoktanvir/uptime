@@ -12,5 +12,14 @@
   "received_at": "2026-07-13T12:00:00Z",
   "fee_line_ref": "synthetic-jira-monthly-line",
   "fee_basis": "affected_product_monthly_fees",
-  "monthly_fee": "1200.00"
+  "monthly_fee": "1200.00",
+  "tenant": "bears",
+  "product": "Jira",
+  "site": "demo-bears-jira",
+  "vendor_month": "2026-06",
+  "fee_month": "2026-06",
+  "authorized_ticket_submitter": true,
+  "monitor_rate_operator": "strictly_greater",
+  "monitor_rate_threshold_percent": "5",
+  "monitor_month_complete": true
 }
