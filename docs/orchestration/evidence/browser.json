@@ -1,0 +1,20 @@
+{
+  "mode": "replay",
+  "sources": [
+    "DETERMINISTIC_REPLAY",
+    "SYNTHETIC_CUSTOMER"
+  ],
+  "requested_seconds": 120,
+  "minimum_content_seconds": 120,
+  "screens": [
+    "desktop",
+    "case",
+    "onboarding",
+    "policy",
+    "mobile"
+  ],
+  "browser_errors": 0,
+  "external_requests": 0,
+  "database": "disposable",
+  "status": "captured"
+}

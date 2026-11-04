@@ -42,3 +42,7 @@ W8 merge 6f578b3: 452 passed, 1 warning in 8.43s.
 W8-film merge 99313b1: 452 passed, 1 warning in 7.69s.
 
 W1 provenance follow-on cc16482: 464 passed, 1 warning in 9.32s.
+
+### Portable release verification
+
+A clean Git archive was extracted outside the synced Documents folder. A fresh locked environment passed all 475 Python tests and all seven Node tests. The service rehearsal matched the committed JSON after restart. A second real browser run verified desktop and 390-pixel mobile views, case, onboarding and policy navigation with no browser errors or external requests. Its first attempt exposed a modal-navigation bug in the QA driver; closing the inspector before navigation repaired it. The browser proof is in evidence/browser.json and the mobile capture is in docs/demo/film/mobile-workbench.png. All 15 supplied files matched the source package byte-for-byte.

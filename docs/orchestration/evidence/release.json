@@ -18,5 +18,8 @@
   "playback_seconds": "120.000",
   "frames": 2880,
   "film_sha256": "a77642613be096c98321c553166d4731276f62c3472763c9f717f6a4f719e4b6",
-  "actual_recovery": null
+  "actual_recovery": null,
+  "clean_checkout": "475 passed, 1 warning in 10.75s",
+  "attachment_files_verified": 15,
+  "browser_capture": "Verified desktop, case, onboarding, policy and mobile views; 0 browser errors and 0 external requests."
 }
