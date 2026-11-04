@@ -48,11 +48,11 @@
   function empty(text) { return el('p', 'empty', text); }
   function announce(text) { notice.className = 'notice'; notice.textContent = text; }
   async function api(path, payload) {
-    const response = await fetch(path, {method: payload === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store', headers: payload === undefined ? {Accept: 'application/json'} : {Accept: 'application/json', 'Content-Type': 'application/json', 'X-Uptime-Action': '1'}, ...(payload === undefined ? {} : {body: JSON.stringify(payload)})});
-    if (!response.ok) { const error = new Error(response.status === 401 || response.status === 403 ? 'This link needs an authenticated local session. Start the local demo using the project launcher, then open the bootstrap login URL printed by that launcher in this browser. Refresh this page after signing in. If access is still denied, the session may not permit this action.' : `The server could not complete this request (HTTP ${response.status}). Refresh to retrieve the latest state before trying again.`); error.status = response.status; throw error; }
-    if (response.status === 204) return null;
-    if (!(response.headers.get('content-type') || '').includes('application/json')) throw new Error('The API returned a page instead of data. Start the local demo server and open its authenticated launch URL.');
-    return response.json();
+    return window.uptimeAPI(path, payload);
+  }
+  function account() {
+    if (dialog.open) dialog.close();
+    content.replaceChildren(window.uptimeAuth.signInForm(navigate));
   }
   function showError(target, error, retry) { target.replaceChildren(add(el('section', 'panel error'), el('h2', '', 'Unable to load this view'), el('p', '', error.message || 'Connection unavailable. Check that the local demo server is running.'), button('Try again', retry, 'quiet'))); }
   function timeline(items, history = false) {
@@ -97,6 +97,8 @@
     add(ledger, add(el('div', 'ledger-head'), el('h2', '', 'Case ledger'), controls, count), add(el('div', 'table-scroll'), table)); rows();
     const audit = panel('Activity & provenance'); audit.append(timeline(data.audit));
     const ramp = panel('Ramp connection'); ramp.append(record(data.ramp || {status: 'Not provided'}));
+    const current = window.uptimeAuth.session();
+    if (current) $('#account').textContent = 'Sign out · ' + current.subject;
     content.replaceChildren(head, metrics, ledger, add(el('div', 'section-grid'), audit, ramp));
     $('#workspace-name').textContent = typeof data.workspace === 'string' ? data.workspace : 'Contract operations';
   }
@@ -118,11 +120,27 @@
     try { const data = await api(`/api/cases/${encodeURIComponent(id)}`); if (token !== caseGeneration || !dialog.open) return; renderCase(data, id); }
     catch (error) { if (token === caseGeneration) { showError(target,error,() => openCase(id)); target.querySelector('h2').id = 'case-title'; } }
   }
+  function localSource(link, url) {
+    if (!url.startsWith('/fixtures/')) return;
+    link.addEventListener('click', async event => {
+      event.preventDefault();
+      const current = window.uptimeAuth.session();
+      if (!current) return account();
+      try {
+        const response = await fetch(url.split('#')[0], {headers:{Authorization:'Bearer '+current.token},
+          credentials:'omit', redirect:'error', cache:'no-store'});
+        if (!response.ok) throw new Error('Unable to read the local source');
+        const details = el('details', 'record');
+        add(details, el('summary', '', 'Source text'), el('pre', '', await response.text()));
+        details.open = true; link.after(details);
+      } catch (error) { announce(error.message); }
+    });
+  }
   function renderCase(data, id) {
     const name = el('h1', '', data.title || data.vendor || id); name.id = 'case-title';
     const target = $('#case-content'); target.replaceChildren(name, el('p', 'help', `${display(data.vendor)} / ${id}`), add(el('div', 'case-meta'), badge(data.outcome), badge(data.stage)), sources(data.sources));
     const financials = panel('Financial stages'); list(data.financials).forEach(f => financials.append(add(el('div', 'record'), el('h3', '', f.label), el('div', 'metric-value', f.value), sources(f.sources)))); if (!list(data.financials).length) financials.append(empty('No financial stages returned.'));
-    const clauses = panel('Governing clauses'); list(data.clauses).forEach(c => { const url = safeURL(c.uri); const item = el(url ? 'a' : 'span', 'record', c.label); if (url) { item.href = url; item.target = '_blank'; item.rel = 'noopener noreferrer'; } clauses.append(add(el('p'), item)); }); if (!list(data.clauses).length) clauses.append(empty('No governing clauses returned.'));
+    const clauses = panel('Governing clauses'); list(data.clauses).forEach(c => { const url = safeURL(c.uri); const item = el(url ? 'a' : 'span', 'record', c.label); if (url) { item.href = url; item.target = '_blank'; item.rel = 'noopener noreferrer'; localSource(item, url); } clauses.append(add(el('p'), item)); }); if (!list(data.clauses).length) clauses.append(empty('No governing clauses returned.'));
     const evidence = panel('Evidence'); list(data.evidence).forEach(e => evidence.append(add(el('article', 'record'), el('h3', '', e.label), el('p', '', e.detail), sources(e.sources)))); if (!list(data.evidence).length) evidence.append(empty('No evidence returned.'));
     const trace = panel('Decision trace'); trace.append(add(el('ol', 'trace'), ...list(data.trace).map(t => el('li', '', t))));
     const history = panel('Case timeline'); history.append(timeline(data.timeline));
@@ -143,7 +161,7 @@
     const terms=panel('Governing sources');terms.append(el('p','',data.scope || 'Candidate scope unavailable.'));
     list(data.clauses).forEach(c=>{
       const url=safeURL(c.uri); if(!url) return;
-      const link=el('a','record',c.label);link.href=url;link.target='_blank';link.rel='noopener noreferrer';terms.append(link);
+      const link=el('a','record',c.label);link.href=url;link.target='_blank';link.rel='noopener noreferrer';localSource(link,url);terms.append(link);
     });
     const limits=panel('Coverage limits');
     list(data.limits).forEach(limit=>limits.append(el('p','help',limit)));
@@ -200,11 +218,16 @@
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
     try { const data = await api(`/api/${route}`); if (token !== generation) return; if (route === 'dashboard') renderDashboard(data); else if (route === 'onboarding') renderOnboarding(data); else if (route === 'policy') renderPolicy(data); else renderIntegrations(data); }
-    catch (error) { if (token === generation) showError(content,error,load); }
+    catch (error) { if (token === generation) { if (error.status === 401) account(); else showError(content,error,load); } }
     finally { if (token === generation) content.setAttribute('aria-busy', 'false'); }
   }
   function navigate() { const requested = location.hash.slice(1); view = ['dashboard','onboarding','policy','integrations'].includes(requested) ? requested : 'dashboard'; document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); }); content.replaceChildren(empty('Loading server state…')); announce(''); load(); }
   $('#close-inspector').addEventListener('click', () => dialog.close()); dialog.addEventListener('close', () => { caseGeneration++; activeCase = null; });
   $('#refresh').addEventListener('click', () => { announce(''); load(); if (dialog.open && activeCase) openCase(activeCase); });
+  $('#account').addEventListener('click', () => {
+    const current = window.uptimeAuth.session();
+    if (current) window.uptimeAuth.signOut();
+    else account();
+  });
   window.addEventListener('hashchange', navigate); navigate();
 })();

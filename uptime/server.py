@@ -1,20 +1,18 @@
 """Local authenticated finance workbench. Serve through scripts/serve.py."""
-from hashlib import sha256
-import hmac
+from asyncio import Lock
+from importlib.util import find_spec
+from ipaddress import ip_address
 from pathlib import Path
-import secrets
-import time
 
-from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi import Depends, FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
-from starlette.middleware.trustedhost import TrustedHostMiddleware
+from .auth import Authority, DEFAULT_ORIGIN
 
 from .contracts import Principal
 from .intelligence import explain
-from .storage import add_session, lookup_session
-from .workbench import TENANT, Workbench
+from .workbench import Workbench
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -33,47 +31,61 @@ class ModeRequest(Empty):
     cap: str
 
 
-def viewer_token(secret):
-    return hmac.new(secret.encode(),b"uptime-readonly-v1",sha256).hexdigest()
-
-
-def create_app(db_path, *, session_secret=None, mode="replay", rehearsal=False):
-    session_secret=session_secret or secrets.token_urlsafe(32)
-    if len(session_secret)<24:
-        raise ValueError("Use at least 24 characters of random session secret")
-    if rehearsal and mode!="replay":
-        raise ValueError("Scripted rehearsal requires replay mode")
-    bench=Workbench(db_path,mode)
-    app=FastAPI(title="Uptime for Ramp",docs_url=None,redoc_url=None,openapi_url=None)
-    app.state.bench=bench
+def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=False, rehearsal_secret=None,
+               service_credentials=None, origin=DEFAULT_ORIGIN):
+    auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin)
+    bench = Workbench(db_path, mode)
+    app = FastAPI(title="Uptime for Ramp", docs_url=None, redoc_url=None, openapi_url=None)
+    app.state.bench, app.state.auth = bench, auth
+    write_lock = Lock()
 
     @app.middleware("http")
     async def security(request: Request, call_next):
-        if request.method=="POST":
-            origin=request.headers.get("origin")
-            allowed=f"{request.url.scheme}://{request.headers.get('host','')}"
-            if (request.headers.get("X-Uptime-Action")!="1" or
-                request.headers.get("content-type","").split(";")[0]!="application/json" or
-                (origin is not None and origin!=allowed) or request.headers.get("sec-fetch-site")=="cross-site"):
-                return JSONResponse({"detail":"Same-origin authenticated workbench action required"},403)
-            size=request.headers.get("content-length")
-            if not size or request.headers.get("transfer-encoding") or len(size)>5 or not size.isdigit() or int(size)>4096:
-                return JSONResponse({"detail":"Action body too large"},413)
-        response=await call_next(request)
-        response.headers.update({"Cache-Control":"no-store","Referrer-Policy":"no-referrer",
-                "X-Content-Type-Options":"nosniff","Content-Security-Policy":
-                    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"})
+        try:
+            local = ip_address(request.client.host).is_loopback
+        except (ValueError, AttributeError):
+            local = False
+        if not local or f"{request.url.scheme}://{request.headers.get('host', '')}" != auth.origin:
+            return JSONResponse({"detail": "Exact local listener required"}, 400)
+        if request.method == "POST":
+            if (request.headers.get("X-Uptime-Action") != "1" or
+                    request.headers.get("content-type", "").split(";")[0] != "application/json" or
+                    request.headers.get("origin") != auth.origin or
+                    request.headers.get("sec-fetch-site", "same-origin") != "same-origin"):
+                return JSONResponse({"detail": "Same-origin authenticated workbench action required"}, 403)
+            size = request.headers.get("content-length", "")
+            large_intake = any(request.url.path == stem or request.url.path.startswith(stem + "/")
+                               for stem in ("/api/v4", "/api/vendors", "/api/correspondence"))
+            limit = 262144 if large_intake else 4096
+            if (request.headers.get("transfer-encoding") or len(size)>6 or not size.isascii()
+                    or not size.isdigit() or int(size)>limit):
+                return JSONResponse({"detail": "Action body too large"}, 413)
+            chunks, actual_size = [], 0
+            async for chunk in request.stream():
+                actual_size += len(chunk)
+                if actual_size > limit or actual_size > int(size):
+                    return JSONResponse({"detail": "Action body too large"}, 413)
+                chunks.append(chunk)
+            if actual_size != int(size):
+                return JSONResponse({"detail": "Action body length mismatch"}, 413)
+            # Starlette's cached Request body is replayed by call_next after bounded collection.
+            request._body = b"".join(chunks)
+            async with write_lock:
+                response = await call_next(request)
+        else:
+            response = await call_next(request)
+        response.headers.update({"Cache-Control": "no-store", "Referrer-Policy": "no-referrer",
+            "X-Content-Type-Options": "nosniff", "Cross-Origin-Opener-Policy": "same-origin",
+            "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; "
+                "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"})
         return response
 
-    app.add_middleware(TrustedHostMiddleware,allowed_hosts=["localhost","127.0.0.1","testserver","[::1]"])
+    auth.register(app)
+    actor = auth.actor
 
-    def actor(request: Request):
-        current=lookup_session(db_path,request.cookies.get("uptime_session"),time.time())
-        if not current:
-            raise HTTPException(401,"Open the local sign-in link from the launcher.")
-        if current.tenant != TENANT or current.role not in {"viewer","reviewer"}:
-            raise HTTPException(403,"Session does not belong to this local workspace")
-        return current
+    def display_actor(p=Depends(actor)):
+        # V3 views derive offered actions directly from this domain role.
+        return p if auth.approvals_enabled else Principal(p.tenant, p.subject, "viewer")
 
     @app.exception_handler(KeyError)
     async def missing(request, exc):
@@ -91,48 +103,32 @@ def create_app(db_path, *, session_secret=None, mode="replay", rehearsal=False):
     def health():
         return {"status":"ok","mode":mode}
 
-    @app.get("/session/{token}",include_in_schema=False)
-    def session(token: str):
-        if hmac.compare_digest(token.encode(),session_secret.encode()):
-            role="reviewer"
-        elif hmac.compare_digest(token.encode(),viewer_token(session_secret).encode()):
-            role="viewer"
-        else:
-            raise HTTPException(403,"Invalid local session link")
-        opaque=secrets.token_urlsafe(32)
-        principal=Principal(TENANT,("scripted-test-" if rehearsal else "local-")+role,role)
-        add_session(db_path,opaque,principal,time.time()+3600)
-        redirect=RedirectResponse("/",303)
-        redirect.set_cookie("uptime_session",opaque,httponly=True,samesite="strict",max_age=3600,
-                            path="/",secure=False)  # Loopback HTTP; deployment requires TLS.
-        return redirect
-
     @app.get("/api/dashboard")
-    def dashboard(p=Depends(actor)):
+    def dashboard(p=Depends(display_actor)):
         return bench.dashboard(p)
 
     @app.get("/api/cases/{case_id}")
-    def case(case_id: str,p=Depends(actor)):
+    def case(case_id: str,p=Depends(display_actor)):
         return bench.case(p,case_id)
 
     @app.post("/api/cases/{case_id}/actions/{action}")
-    def case_action(case_id: str,action: str,body: Empty,p=Depends(actor)):
+    def case_action(case_id: str,action: str,body: Empty,p=Depends(auth.reviewer)):
         return bench.act(p,case_id,action)
 
     @app.get("/api/onboarding")
-    def lab(p=Depends(actor)):
+    def lab(p=Depends(display_actor)):
         return bench.lab(p)
 
     @app.post("/api/onboarding/actions/{action}")
-    def lab_action(action: str,body: Empty,p=Depends(actor)):
+    def lab_action(action: str,body: Empty,p=Depends(auth.reviewer)):
         return bench.lab(p,action)
 
     @app.get("/api/policy")
-    def access_policy(p=Depends(actor)):
+    def access_policy(p=Depends(display_actor)):
         return bench.setting(p)
 
     @app.post("/api/policy")
-    def change(request: ModeRequest,p=Depends(actor)):
+    def change(request: ModeRequest,p=Depends(auth.reviewer)):
         return bench.change_setting(p,request.mode,request.cap)
 
     @app.get("/api/integrations")
@@ -155,5 +151,8 @@ def create_app(db_path, *, session_secret=None, mode="replay", rehearsal=False):
     def index():
         return FileResponse(ROOT/"web/index.html")
 
+    if find_spec("uptime.v4_routes") is not None:
+        from .v4_routes import register_v4_routes
+        register_v4_routes(app, bench, auth)
     app.mount("/static",StaticFiles(directory=ROOT/"web",check_dir=False),name="static")
     return app

@@ -9,36 +9,49 @@ from fastapi.testclient import TestClient
 
 from uptime.contracts import Principal
 from uptime.onboarding_extract import SUPPORT, read_public, validate_model_inputs
-from uptime.server import create_app, viewer_token
-from uptime.storage import add_session, database, initialize
+from uptime.auth import DEFAULT_ORIGIN, Session, digest, enroll
+from uptime.auth_client import ReviewerClient
+from uptime.server import create_app
+from uptime.storage import database, initialize
 
-HEADERS={"X-Uptime-Action":"1","Origin":"http://testserver"}
+HEADERS={"X-Uptime-Action":"1","Origin":DEFAULT_ORIGIN}
 
 
 def login(tmp_path,mode="replay",readonly=False):
-    secret=secrets.token_urlsafe(36)
-    db=tmp_path/"release.sqlite"
-    app=create_app(db,session_secret=secret,mode=mode,rehearsal=mode=="replay")
-    client=TestClient(app)
-    client.get("/session/"+(viewer_token(secret) if readonly else secret))
-    return client,app,db
+    password = secrets.token_urlsafe(36)
+    subject = "qa.viewer" if readonly else "qa.reviewer"
+    db = tmp_path / "release.sqlite"
+    enroll(db, subject, password, "viewer" if readonly else "reviewer", mode)
+    app = create_app(db, mode=mode, approvals_enabled=True)
+    client = TestClient(app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 50000))
+    client.signer = ReviewerClient(client, DEFAULT_ORIGIN, subject, password)
+    client.headers["Authorization"] = client.signer.headers["Authorization"]
+    return client, app, db
+
+
+def write(client, path, payload):
+    # A viewer is unable to obtain an action proof. Exercise the action endpoint itself.
+    if client.signer.subject == "qa.viewer":
+        return client.post(path, json=payload, headers=HEADERS)
+    return client.signer.post(path, payload)
 
 
 def act(client,case,action):
-    return client.post(f"/api/cases/{case}/actions/{action}",json={},headers=HEADERS)
+    return write(client, f"/api/cases/{case}/actions/{action}", {})
 
 
 def configure(client,mode,cap="100.00"):
-    return client.post("/api/policy",json={"mode":mode,"cap":cap},headers=HEADERS)
+    return write(client, "/api/policy", {"mode":mode,"cap":cap})
 
 
 @pytest.mark.parametrize("tenant,expires,code",[("foreign",500,403),("bears",-1,401)])
 def test_expired_or_foreign_server_issued_session(tmp_path,tenant,expires,code):
     client,app,db=login(tmp_path,mode="sandbox")
-    token=secrets.token_urlsafe(32)
-    add_session(db,token,Principal(tenant,"qa","viewer"),time.time()+expires)
-    client.cookies.clear()
-    client.cookies.set("uptime_session",token)
+    token = secrets.token_urlsafe(32)
+    tag = digest(app.state.auth.account("qa.reviewer")[2])
+    app.state.auth.sessions[digest(token.encode())] = Session(
+        Principal(tenant, "qa.reviewer", "reviewer"), time.time()+expires, tag)
+    client.headers["Authorization"] = "Bearer " + token
     for path in ("/api/dashboard","/api/integrations","/api/cases/ramp-any","/api/policy"):
         assert client.get(path).status_code==code
 

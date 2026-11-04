@@ -148,12 +148,13 @@ def record(args):
     try:
         with tempfile.TemporaryDirectory(prefix="uptime-qa-") as temp, local_connections_only():
             secret = secrets.token_urlsafe(32)
-            app = create_app(Path(temp) / "replay.sqlite3", session_secret=secret, mode="replay", rehearsal=True)
             # Pre-bind an ephemeral loopback socket; never attach to another process.
             listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             listener.bind(("127.0.0.1", 0))
             listener.listen(128)
             origin = "http://127.0.0.1:" + str(listener.getsockname()[1])
+            app = create_app(Path(temp) / "replay.sqlite3", rehearsal_secret=secret, rehearsal=True,
+                             approvals_enabled=True, origin=origin)
             server = uvicorn.Server(uvicorn.Config(app, access_log=False, log_level="critical",
                                                  log_config=None))
             thread = threading.Thread(target=server.run, kwargs={"sockets": [listener]}, daemon=True)
@@ -192,6 +193,18 @@ def record(args):
             artifacts.rmdir()
 
 
+def scripted_login(page, origin, password):
+    """Exercise the same challenge UI as a human using a disposable scripted account."""
+    from uptime.auth import SCRIPT
+    page.goto(origin + "/")
+    page.get_by_label("Account name").fill(SCRIPT)
+    page.get_by_label("Password", exact=True).fill(password)
+    page.get_by_role("button", name="Sign in", exact=True).click()
+    page.get_by_role("heading", name="Contract ledger", exact=True).wait_for()
+    if page.context.cookies():
+        raise CaptureBlocked("Authentication introduced ambient cookies")
+
+
 def capture_browser(browser, origin, secret, artifacts, duration):
     failures = []  # Only counts and generic labels enter the artifact manifest.
     context = browser.new_context(viewport={"width": 1440, "height": 1000},
@@ -211,15 +224,8 @@ def capture_browser(browser, origin, secret, artifacts, duration):
     context.add_init_script(REDACT_RENDERED_TEXT)
     video = None
     try:
-        # The real bootstrap endpoint establishes HttpOnly cookies in memory.
-        # Authenticate before creating a page so no login URL can enter video.
-        login = context.request.get(origin + "/session/" + secret, max_redirects=0)
-        if login.status != 303:
-            raise CaptureBlocked("Session bootstrap failed")
-        cookies = context.cookies()
-        if not cookies or not all(cookie["httpOnly"] for cookie in cookies):
-            raise CaptureBlocked("Session bootstrap did not establish HttpOnly cookies")
         page = context.new_page()
+        scripted_login(page, origin, secret)
         video = page.video
         page.on("pageerror", lambda error: failures.append("page error"))
         page.on("response", lambda response: failures.append("HTTP failure")
@@ -227,10 +233,10 @@ def capture_browser(browser, origin, secret, artifacts, duration):
         page.goto(origin + "/", wait_until="networkidle")
         assert_rendered_ui(page)
         # Require the real API and seed, not a static mock or an error shell.
-        dashboard = context.request.get(origin + "/api/dashboard")
-        if dashboard.status != 200 or not dashboard.json().get("cases"):
+        dashboard = page.evaluate("window.uptimeAPI('/api/dashboard')")
+        if not dashboard.get("cases"):
             raise CaptureBlocked("Replay dashboard contains no cases")
-        case = dashboard.json()["cases"][0]
+        case = dashboard["cases"][0]
         page.screenshot(path=str(artifacts / "desktop.png"), full_page=True)
         started = time.monotonic()
         hold_until(page, started + duration * 0.20)
