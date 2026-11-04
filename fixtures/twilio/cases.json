@@ -1,0 +1,321 @@
+{
+  "fixture_version": 1,
+  "label": "DETERMINISTIC_REPLAY of wholly SYNTHETIC_CUSTOMER facts; public terms only. No historical customer incident, invoice, or recovery is asserted.",
+  "terms": {
+    "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis",
+    "version": "2026-04-09",
+    "input_sha256": "2c6497dc657464b6153b6d2da241fbf45958aded379246ed6329ce8fd71d2154",
+    "provenance": "Official source text supplied locally by orchestrator; retrieval timestamp not supplied. No network fetch performed by this worker.",
+    "source": "LIVE_VENDOR_PUBLIC"
+  },
+  "cases": [
+    {
+      "id": "sla-eligible",
+      "title": "Synthetic Twilio outage: $100 candidate credit",
+      "expected_outcome": "ELIGIBLE",
+      "expected_amount": "100.0000",
+      "input": {
+        "month": "2026-10-01",
+        "timezone": "UTC",
+        "timezone_ref": "synthetic:calendar-policy-utc",
+        "service": {
+          "api_id": "twilio-messaging-api",
+          "family": "twilio_api",
+          "supported": true,
+          "generally_available": true,
+          "evidence_ref": "synthetic:service-subscription"
+        },
+        "plan": "base",
+        "plan_ref": "synthetic:base-plan-order",
+        "agreement_ref": "synthetic:public-sla-applicability",
+        "subscription_coverage": {
+          "start": "2026-10-01T00:00:00+00:00",
+          "end": "2026-11-01T00:00:00+00:00",
+          "complete": true,
+          "evidence_ref": "synthetic:subscription-october"
+        },
+        "status_coverage": {
+          "start": "2026-10-01T00:00:00+00:00",
+          "end": "2026-11-01T00:00:00+00:00",
+          "complete": true,
+          "evidence_ref": "synthetic:complete-status-archive-october"
+        },
+        "intervals": [
+          {
+            "start": "2026-10-10T12:00:00+00:00",
+            "end": "2026-10-10T13:00:00+00:00",
+            "api_id": "twilio-messaging-api",
+            "status_url": "https://status.twilio.com",
+            "documentation_refs": [
+              "synthetic:status-documentation-60-minute-outage"
+            ],
+            "customer_affected": true,
+            "attribution_ref": "synthetic:customer-api-mapping",
+            "exclusion": "none",
+            "exclusion_ref": "synthetic:exclusion-review"
+          }
+        ],
+        "fees": [
+          {
+            "id": "api-fee",
+            "api_id": "twilio-messaging-api",
+            "month": "2026-10-01",
+            "kind": "api_service",
+            "amount": "1000.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-1",
+            "mapping_ref": "synthetic:fee-allocation-1"
+          },
+          {
+            "id": "carrier",
+            "api_id": "twilio-messaging-api",
+            "month": "2026-10-01",
+            "kind": "carrier_fee_surcharge",
+            "amount": "200.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-2",
+            "mapping_ref": "synthetic:fee-allocation-2"
+          },
+          {
+            "id": "tax",
+            "api_id": "twilio-messaging-api",
+            "month": "2026-10-01",
+            "kind": "tax_levy_duty",
+            "amount": "80.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-3",
+            "mapping_ref": "synthetic:fee-allocation-3"
+          },
+          {
+            "id": "third-party",
+            "api_id": "twilio-messaging-api",
+            "month": "2026-10-01",
+            "kind": "third_party",
+            "amount": "50.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-4",
+            "mapping_ref": "synthetic:fee-allocation-4"
+          },
+          {
+            "id": "other-api",
+            "api_id": "twilio-other-api",
+            "month": "2026-10-01",
+            "kind": "api_service",
+            "amount": "400.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-5",
+            "mapping_ref": "synthetic:fee-allocation-5"
+          }
+        ],
+        "fees_complete": true,
+        "fees_ref": "synthetic:complete-october-invoice",
+        "as_of": "2026-11-03T12:00:00+00:00"
+      }
+    },
+    {
+      "id": "sla-ineligible",
+      "title": "Synthetic Twilio maintenance: excluded downtime",
+      "expected_outcome": "INELIGIBLE",
+      "expected_amount": null,
+      "input": {
+        "month": "2026-10-01",
+        "timezone": "UTC",
+        "timezone_ref": "synthetic:calendar-policy-utc",
+        "service": {
+          "api_id": "twilio-messaging-api",
+          "family": "twilio_api",
+          "supported": true,
+          "generally_available": true,
+          "evidence_ref": "synthetic:service-subscription"
+        },
+        "plan": "base",
+        "plan_ref": "synthetic:base-plan-order",
+        "agreement_ref": "synthetic:public-sla-applicability",
+        "subscription_coverage": {
+          "start": "2026-10-01T00:00:00+00:00",
+          "end": "2026-11-01T00:00:00+00:00",
+          "complete": true,
+          "evidence_ref": "synthetic:subscription-october"
+        },
+        "status_coverage": {
+          "start": "2026-10-01T00:00:00+00:00",
+          "end": "2026-11-01T00:00:00+00:00",
+          "complete": true,
+          "evidence_ref": "synthetic:complete-status-archive-october"
+        },
+        "intervals": [
+          {
+            "start": "2026-10-10T12:00:00+00:00",
+            "end": "2026-10-10T13:00:00+00:00",
+            "api_id": "twilio-messaging-api",
+            "status_url": "https://status.twilio.com",
+            "documentation_refs": [
+              "synthetic:status-documentation-60-minute-outage"
+            ],
+            "customer_affected": true,
+            "attribution_ref": "synthetic:customer-api-mapping",
+            "exclusion": "scheduled_maintenance",
+            "exclusion_ref": "synthetic:exclusion-review",
+            "scheduled_notice_hours": "24"
+          }
+        ],
+        "fees": [
+          {
+            "id": "api-fee",
+            "api_id": "twilio-messaging-api",
+            "month": "2026-10-01",
+            "kind": "api_service",
+            "amount": "1000.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-1",
+            "mapping_ref": "synthetic:fee-allocation-1"
+          },
+          {
+            "id": "carrier",
+            "api_id": "twilio-messaging-api",
+            "month": "2026-10-01",
+            "kind": "carrier_fee_surcharge",
+            "amount": "200.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-2",
+            "mapping_ref": "synthetic:fee-allocation-2"
+          },
+          {
+            "id": "tax",
+            "api_id": "twilio-messaging-api",
+            "month": "2026-10-01",
+            "kind": "tax_levy_duty",
+            "amount": "80.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-3",
+            "mapping_ref": "synthetic:fee-allocation-3"
+          },
+          {
+            "id": "third-party",
+            "api_id": "twilio-messaging-api",
+            "month": "2026-10-01",
+            "kind": "third_party",
+            "amount": "50.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-4",
+            "mapping_ref": "synthetic:fee-allocation-4"
+          },
+          {
+            "id": "other-api",
+            "api_id": "twilio-other-api",
+            "month": "2026-10-01",
+            "kind": "api_service",
+            "amount": "400.00",
+            "currency": "USD",
+            "actually_incurred": true,
+            "evidence_ref": "synthetic:invoice-line-5",
+            "mapping_ref": "synthetic:fee-allocation-5"
+          }
+        ],
+        "fees_complete": true,
+        "fees_ref": "synthetic:complete-october-invoice",
+        "as_of": "2026-11-03T12:00:00+00:00"
+      }
+    },
+    {
+      "id": "sla-insufficient",
+      "title": "Synthetic Twilio claim: fee allocation missing",
+      "expected_outcome": "INSUFFICIENT_EVIDENCE",
+      "expected_amount": null,
+      "input": {
+        "month": "2026-10-01",
+        "timezone": "UTC",
+        "timezone_ref": "synthetic:calendar-policy-utc",
+        "service": {
+          "api_id": "twilio-messaging-api",
+          "family": "twilio_api",
+          "supported": true,
+          "generally_available": true,
+          "evidence_ref": "synthetic:service-subscription"
+        },
+        "plan": "base",
+        "plan_ref": "synthetic:base-plan-order",
+        "agreement_ref": "synthetic:public-sla-applicability",
+        "subscription_coverage": {
+          "start": "2026-10-01T00:00:00+00:00",
+          "end": "2026-11-01T00:00:00+00:00",
+          "complete": true,
+          "evidence_ref": "synthetic:subscription-october"
+        },
+        "status_coverage": {
+          "start": "2026-10-01T00:00:00+00:00",
+          "end": "2026-11-01T00:00:00+00:00",
+          "complete": true,
+          "evidence_ref": "synthetic:complete-status-archive-october"
+        },
+        "intervals": [
+          {
+            "start": "2026-10-10T12:00:00+00:00",
+            "end": "2026-10-10T13:00:00+00:00",
+            "api_id": "twilio-messaging-api",
+            "status_url": "https://status.twilio.com",
+            "documentation_refs": [
+              "synthetic:status-documentation-60-minute-outage"
+            ],
+            "customer_affected": true,
+            "attribution_ref": "synthetic:customer-api-mapping",
+            "exclusion": "none",
+            "exclusion_ref": "synthetic:exclusion-review"
+          }
+        ],
+        "fees": [],
+        "fees_complete": false,
+        "fees_ref": "",
+        "as_of": "2026-11-03T12:00:00+00:00"
+      }
+    },
+    {
+      "id": "sla-unsupported",
+      "title": "Synthetic SendGrid connection-rate claim: unsupported",
+      "expected_outcome": "UNSUPPORTED_RULE",
+      "expected_amount": null,
+      "input": {
+        "month": "2026-10-01",
+        "timezone": "UTC",
+        "timezone_ref": "synthetic:calendar-policy-utc",
+        "service": {
+          "api_id": "sendgrid-mail-send",
+          "family": "sendgrid_mail_send",
+          "supported": true,
+          "generally_available": true,
+          "evidence_ref": "synthetic:service-subscription"
+        },
+        "plan": "email_deliverability",
+        "plan_ref": "synthetic:email-deliverability-order",
+        "agreement_ref": "synthetic:public-sla-applicability",
+        "subscription_coverage": {
+          "start": "2026-10-01T00:00:00+00:00",
+          "end": "2026-11-01T00:00:00+00:00",
+          "complete": true,
+          "evidence_ref": "synthetic:subscription-october"
+        },
+        "status_coverage": {
+          "start": "2026-10-01T00:00:00+00:00",
+          "end": "2026-11-01T00:00:00+00:00",
+          "complete": true,
+          "evidence_ref": "synthetic:complete-status-archive-october"
+        },
+        "intervals": [],
+        "fees": [],
+        "fees_complete": true,
+        "fees_ref": "synthetic:complete-october-invoice",
+        "as_of": "2026-11-03T12:00:00+00:00",
+        "basis": "successful_connection_rate"
+      }
+    }
+  ]
+}
