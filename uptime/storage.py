@@ -37,6 +37,16 @@ def initialize(path):
             tenant TEXT NOT NULL, case_id TEXT NOT NULL, digest TEXT NOT NULL, payload TEXT NOT NULL,
             PRIMARY KEY (tenant,case_id)
         );
+        CREATE TABLE IF NOT EXISTS case_revision (
+            tenant TEXT NOT NULL, case_id TEXT NOT NULL, revision INTEGER NOT NULL CHECK(revision>=2),
+            previous_digest TEXT NOT NULL, digest TEXT NOT NULL, payload TEXT NOT NULL, observed_at TEXT NOT NULL,
+            PRIMARY KEY (tenant, case_id, revision),
+            FOREIGN KEY (tenant,case_id) REFERENCES case_snapshot(tenant,case_id)
+        );
+        CREATE TRIGGER IF NOT EXISTS case_revision_no_update BEFORE UPDATE ON case_revision
+          BEGIN SELECT RAISE(ABORT,'case revision is immutable'); END;
+        CREATE TRIGGER IF NOT EXISTS case_revision_no_delete BEFORE DELETE ON case_revision
+          BEGIN SELECT RAISE(ABORT,'case revision is immutable'); END;
         CREATE TABLE IF NOT EXISTS session (
             digest TEXT PRIMARY KEY, tenant TEXT NOT NULL, subject TEXT NOT NULL,
             role TEXT NOT NULL, expires REAL NOT NULL
@@ -51,24 +61,63 @@ def initialize(path):
         """)
 
 
+def persist_case(db, tenant, case):
+    """Append the changed evaluation in the caller's transaction; V3 snapshots remain revision 1."""
+    case_id=case["id"]
+    value=json.dumps(case,allow_nan=False)
+    digest=fingerprint(case)
+    cur=db.execute("INSERT OR IGNORE INTO case_snapshot VALUES (?,?,?,?)",(tenant,case_id,digest,value))
+    if cur.rowcount:
+        return 1
+    head=db.execute("SELECT revision,digest FROM case_revision WHERE tenant=? AND case_id=? ORDER BY revision DESC LIMIT 1",(tenant,case_id)).fetchone()
+    if head is None:
+        head=(1,db.execute("SELECT digest FROM case_snapshot WHERE tenant=? AND case_id=?",(tenant,case_id)).fetchone()[0])
+    if head[1]==digest:
+        return head[0]
+    number=head[0]+1
+    db.execute("INSERT INTO case_revision VALUES (?,?,?,?,?,?,?)",(tenant,case_id,number,head[1],digest,value,now()))
+    return number
+
+
 def save_cases(path, tenant, cases):
     with database(path) as db, db:
+        db.execute("BEGIN IMMEDIATE")
         for case in cases:
-            digest = fingerprint(case)
-            db.execute("INSERT OR IGNORE INTO case_snapshot VALUES (?,?,?,?)",
-                       (tenant, case["id"], digest, json.dumps(case, allow_nan=False)))
+            persist_case(db,tenant,case)
+
+
+def _read_versions(db, tenant, case_id=None):
+    sql="""SELECT case_id,1 AS revision,NULL AS previous_digest,digest,payload,NULL AS observed_at
+             FROM case_snapshot WHERE tenant=?
+           UNION ALL
+           SELECT case_id,revision,previous_digest,digest,payload,observed_at
+             FROM case_revision WHERE tenant=?"""
+    params=[tenant,tenant]
+    if case_id is not None:
+        sql="SELECT * FROM ("+sql+") WHERE case_id=?"
+        params.append(case_id)
+    last={}
+    for row in db.execute(sql+" ORDER BY case_id,revision",params):
+        payload=json.loads(row["payload"])
+        if (fingerprint(payload)!=row["digest"] or row["previous_digest"]!=last.get(row["case_id"])
+                or payload.get("id")!=row["case_id"]):
+            raise ValueError("case evaluation history failed its integrity check")
+        last[row["case_id"]]=row["digest"]
+        yield dict(row) | {"payload":payload}
 
 
 def stored_cases(path, tenant):
     with database(path) as db:
-        rows = db.execute("SELECT payload,digest FROM case_snapshot WHERE tenant=? ORDER BY case_id", (tenant,))
-        result = []
-        for row in rows:
-            payload = json.loads(row["payload"])
-            if fingerprint(payload) != row["digest"]:
-                raise ValueError("case snapshot failed its integrity check")
-            result.append(payload)
-        return result
+        current={r["case_id"]:r["payload"] for r in _read_versions(db,tenant)}
+        return list(current.values())
+
+
+def case_versions(path, tenant, case_id):
+    with database(path) as db:
+        rows=list(_read_versions(db,tenant,case_id))
+        if not rows:
+            raise KeyError(case_id)
+        return rows
 
 
 def add_session(path, token, principal: Principal, expires):
