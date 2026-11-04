@@ -60,3 +60,77 @@ def test_demo_awards_and_utilization_have_independent_provenance():
     assert demo_reconciliation(Decimal(0), "NONE")["award_id"] is None
     with pytest.raises(ValueError):
         demo_reconciliation("10", "NONE")
+
+
+def live_records():
+    a, c, x, b = records()
+    vendor_id = "ada00000-0000-4000-8000-000000000001"
+    c["id"] = "ada00000-0000-4000-8000-000000000002"
+    b["id"] = "ada00000-0000-4000-8000-000000000003"
+    x.update(credit_id=c["id"], bill_id=b["id"], id=f"ramp:{c['id']}:{b['id']}")
+    for row in (a, c, x, b):
+        row["vendor_id"] = vendor_id
+    for row in (c, x, b):
+        row["source"] = "LIVE_RAMP_SANDBOX"
+    return a, c, x, b
+
+
+def test_simulated_memo_and_fully_sandbox_settlement_retain_separate_sources():
+    a, c, x, b = live_records()
+    r = reconcile("one", a, [c], [x, x], [b])
+    assert r["applied"] == "10.25"
+    assert r["sources"] == ["LIVE_RAMP_SANDBOX", "SIMULATED_VENDOR"]
+    assert r["stage_sources"] == {
+        "awarded": ["SIMULATED_VENDOR"], "posted": ["LIVE_RAMP_SANDBOX"],
+        "applied": ["LIVE_RAMP_SANDBOX"], "unapplied_posted": ["LIVE_RAMP_SANDBOX"],
+        "unposted": ["LIVE_RAMP_SANDBOX", "SIMULATED_VENDOR"],
+        "outstanding": ["LIVE_RAMP_SANDBOX", "SIMULATED_VENDOR"],
+    }
+    assert r["actual_recovery"] is None
+
+
+@pytest.mark.parametrize("idx,source", [(1, "DETERMINISTIC_REPLAY"), (2, "DETERMINISTIC_REPLAY"),
+                                        (3, "SYNTHETIC_CUSTOMER")])
+def test_settlement_modes_cannot_mix_in_either_direction(idx, source):
+    rows = live_records()
+    rows[idx]["source"] = source
+    a, c, x, b = rows
+    with pytest.raises(ValueError, match="cannot be combined"):
+        reconcile("one", a, [c], [x], [b])
+    for i, tag in enumerate(("DETERMINISTIC_REPLAY", "DETERMINISTIC_REPLAY", "SYNTHETIC_CUSTOMER"), 1):
+        rows[i]["source"] = "LIVE_RAMP_SANDBOX" if i == idx else tag
+    with pytest.raises(ValueError, match="cannot be combined"):
+        reconcile("one", a, [c], [x], [b])
+
+
+@pytest.mark.parametrize("idx,tag", [(0, "LIVE_RAMP_SANDBOX"), (0, "SYNTHETIC_CUSTOMER"),
+                                     (1, "SIMULATED_VENDOR"), (2, "SIMULATED_VENDOR"),
+                                     (1, "SYNTHETIC_CUSTOMER"), (3, "SIMULATED_VENDOR")])
+def test_sources_must_match_financial_record_roles(idx, tag):
+    rows = records()
+    rows[idx]["source"] = tag
+    a, c, x, b = rows
+    with pytest.raises(ValueError, match="record type"):
+        reconcile("one", a, [c], [x], [b])
+
+
+def test_links_and_provider_ids_cannot_have_aliases():
+    a, c, x, b = live_records()
+    for bad_credit in ({**c, "id": c["id"].upper()}, {**c, "memo_ref": "memo "}):
+        with pytest.raises(ValueError): reconcile("one", a, [bad_credit], [x], [b])
+    with pytest.raises(ValueError, match="application identifier"):
+        reconcile("one", a, [c], [{**x, "id": "unverified-provider-application-id"}], [b])
+    a, c, x, b = records()
+    with pytest.raises(ValueError, match="noncanonical"):
+        reconcile("one", a, [c, {**c, "id": c["id"] + " "}], [x], [b])
+
+
+def test_fixture_stage_sources_do_not_imply_provider_evidence():
+    awarded = demo_reconciliation("10", "AWARDED")
+    assert awarded["stage_sources"]["posted"] == ["UNAVAILABLE"]
+    posted = demo_reconciliation("10", "POSTED")
+    assert posted["stage_sources"]["posted"] == ["DETERMINISTIC_REPLAY"]
+    assert posted["stage_sources"]["applied"] == ["UNAVAILABLE"]
+    applied = demo_reconciliation("10", "APPLIED")
+    assert applied["stage_sources"]["applied"] == ["DETERMINISTIC_REPLAY", "SYNTHETIC_CUSTOMER"]
+    assert applied["actual_recovery"] is None
