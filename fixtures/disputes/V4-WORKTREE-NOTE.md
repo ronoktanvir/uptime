@@ -1,0 +1,35 @@
+# V4 legacy dispute coordination
+
+Owner: v4/legacy; baseline 18afaa6. Scope: existing uptime/disputes*.py, fixtures/disputes/**, tests/test_disputes*.py only. No external requests or nested agents. Lead owns required real Opus review; this note is the review packet and API notice for lead and C.
+
+## Consequential design choices (before implementation)
+
+- Preserve frozen oracle/v1.json byte-for-byte. Freeze oracle/v2.json before code changes: four original dollar outcomes stay $100 cure, $0 correct denial, $100 disputed ambiguous, $80 awarded/$20 disputed partial. V4 adds explicit observed/available-at evidence timing. A maintenance notice already available before filing blocks the claim. A later-observed notice can corroborate a denial only after its recorded availability; initial filing and reply receipt times stay distinct.
+- The stock cure remains an assisted, incomplete initial filing with later-available component evidence. policy_dispatchable becomes false for that initial packet. Complete-only automatic policy requires both summary and component now available, allowed classifications, valid immutable source artifacts and the exact approved minimized payload. Lead/C must update any old test or UI expectation that one approval automatically dispatches dispute-cure. This does not grant any real send authority.
+- Invoice lines gain mandatory account/product/region/month/currency/invoice/evidence bindings. Missing or contradictory metadata fails closed. A 2025 incident cannot use the April 2026 governing agreement. Fractional-cent entitlement remains exact and eligible mathematically; automatic/assisted dispatch is held for human review when no settlement rounding rule can express it in cents.
+- Canonical claim identity uses tenant, vendor, account, agreement, monthly obligation, product, region, month and channel; excludes case ID, incident interval and payload digest so duplicate/revised imports cannot create a second initial claim. One bounded supplement shares the obligation. SQLite reserves the obligation transactionally before simulator evaluation. Vendor records independently bind tenant/account/vendor.
+- Outbound attachments use an allowlist before the simulator sees them. Raw source artifacts are separately pinned; immutable document bodies and append-only receipt/artifact records preserve approved content. Unknown raw fields cannot leak through a redacted classification label.
+- WINDOW_CLOSED is checked against the actual initial receipt and governing local cutoff; a timely claim receiving a contradictory vendor code escalates to HUMAN_REVIEW. No blind expiry.
+
+Tradeoffs: legacy wire supports one ordinary Twilio USD monthly interval, not a general contract engine. Required metadata is a deliberate fail-closed compatibility change for operator-provisioned dossiers. Existing seeded databases need revalidation against immutable source pins. Native correspondence modules remain C's ownership. This implementation remains a local simulator with synthetic evidence and UTC filing convention, not verified live contract enforcement.
+
+## Integration notice (first real suite run)
+
+The baseline full suite returned **474 passed, 1 failed** on this branch. The sole failure is outside this worker's ownership: `tests/test_release_boundaries.py::test_automated_mode_requires_separate_scoped_approval[100.00-1]` expects the incomplete stock cure to auto-send after approval. Lead/C should revise it to expect zero initial sends and add a complete-packet positive control. The legacy tests now preserve that negative check and verify a complete refreshed packet produces AWARD without DOCUMENTATION_NEEDED.
+
+Additive API fields: `Reply.received_at`, `Ticket.vendor/governing_version/obligation`, receipt `obligation_key/payload`, and stage action `refresh-claim` when newly available evidence changes an approved initial packet. Existing callers render returned actions. Retry coverage now uses a stable complete packet; a newly available component invalidates the old digest and needs fresh approval. Receipts preserve submission and observed reply instants separately. Dossier source bindings and artifact pins are required; tenant `bears` is independently bound in vendor fixtures.
+
+## Final worker handoff
+
+Implemented and tested the legacy remediations entirely in the appointed worktree. No general correspondence modules, shared schemas, security gates, policy module or out-of-ownership tests were edited. No nested agents, secret inspection or external requests occurred. Central lead still owns the mandatory real Opus review; this worker does not claim one.
+
+Final validation:
+
+- **113 focused tests passed**, including the original revised checks, four replay traces, a valid novel $417.30/$41.73 control, concurrent alias submissions and 170 deterministic Hypothesis examples (100 exact money/precision, 60 equivalent instant/threshold, 10 canonical identity variants). `verification/focused-tests.log` contains the actual run.
+- **536 passed, 1 failed** in the full suite. The sole failure remains the out-of-ownership release expectation described above. Exact command: `UV_OFFLINE=1 UV_NO_SYNC=1 UV_PROJECT_ENVIRONMENT=/private/tmp/uptime-v4.WTuRU4/venv UV_CACHE_DIR=/private/tmp/uptime-v4.WTuRU4/legacy/.uv-cache uv run --locked pytest -q --tb=short`. Sync was disabled to use the lead's existing Hypothesis-enabled environment without changing owned dependency files or making network requests. Lead must retain Hypothesis in the integrated dev lock and rerun after merge.
+- The same `reproduce_audit.py` was actually run against a temporary Git archive of **18afaa6** inside this worktree and against this branch. All 11 observed before/after controls are saved in `verification/v3-counterexamples.json` and `verification/v4-counterexamples.json`; the baseline archive was removed automatically after execution.
+- `git diff --check` passes. All four original dollar outcomes and `oracle/v1.json` bytes are preserved. New expectations were frozen in commit `8626fa8` before implementation; current trace JSON is generated from real runtime output.
+
+Additional integration details: source manifest roots are separately append-only, so deleting a notice and its hash cannot hide a registered fact, while multiple legitimate source manifests for one account remain usable. Receipt `source_artifact_digests` links each minimized document to its original pinned archive body; wire `EvidenceFact.observed_at` now preserves the real modeled observation instant. Legacy V3 dossiers lack the new source manifests and need explicitly source-backed reprovisioning; they are not silently authorized by seed.
+
+Remaining scope limits are deliberate: synthetic, UTC, ordinary Twilio USD single-interval branch; no live terms verification, external claims, settlement-rounding inference, multi-incident aggregation or new public intake. Complete-only policy may require fresh approval after evidence arrival. These tradeoffs and the stale integration expectation require lead/C attention before V4's broader gate is reported green.

@@ -1,0 +1,85 @@
+{
+  "version": 2,
+  "scope": "Offline Twilio Services APIs availability claims, October 2026, ordinary 99.95% plan, USD. Private QA expectations; neither party receives this file. V4 expectations frozen before implementation; v1 remains historical.",
+  "cases": {
+    "dispute-cure": {
+      "responses": [
+        "DOCUMENTATION_NEEDED",
+        "AWARD"
+      ],
+      "claimant_stage": "AWARDED",
+      "claimed": "100.00",
+      "awarded": "100.00",
+      "disputed_remainder": "0.00",
+      "submissions": 2,
+      "reason": "The component is first available after initial submission. Assisted filing is curable; incomplete automatic dispatch is prohibited. Verified fees remain USD 1,000 and credit USD 100."
+    },
+    "dispute-denial": {
+      "responses": [
+        "MAINTENANCE_EXCLUDED"
+      ],
+      "claimant_stage": "DENIAL_ACCEPTED",
+      "claimed": "100.00",
+      "awarded": "0.00",
+      "disputed_remainder": "0.00",
+      "submissions": 1,
+      "reason": "The notice was issued 26 hours before the incident but first observed/available after initial submission and by reply receipt. Accept the independently corroborated denial. The same notice available before filing blocks all submissions."
+    },
+    "dispute-review": {
+      "responses": [
+        "CONTESTED_SCOPE"
+      ],
+      "claimant_stage": "HUMAN_REVIEW",
+      "claimed": "100.00",
+      "awarded": "0.00",
+      "disputed_remainder": "100.00",
+      "submissions": 1,
+      "reason": "The incident overlaps a maintenance window whose prior notice cannot be verified. Neither side can establish the exclusion. Escalate without an outbound rebuttal."
+    },
+    "dispute-partial": {
+      "responses": [
+        "PARTIAL_AWARD"
+      ],
+      "claimant_stage": "PARTIAL_AWARD_REVIEW",
+      "claimed": "100.00",
+      "awarded": "80.00",
+      "disputed_remainder": "20.00",
+      "submissions": 1,
+      "reason": "USD 800 of the USD 1,000 claimed affected-fee basis is confirmed. Preserve the awarded USD 80 credit with a distinct USD 20 disputed remainder. No settlement or applied amount."
+    }
+  },
+  "adversarial": {
+    "unregistered_attachment": {
+      "response": "UNVERIFIED_DOCUMENT",
+      "awarded": "0.00"
+    },
+    "same_ref_modified_contents": {
+      "response": "UNVERIFIED_DOCUMENT",
+      "awarded": "0.00"
+    },
+    "other_tenant_document": {
+      "response": "UNVERIFIED_DOCUMENT",
+      "awarded": "0.00"
+    },
+    "late_submission": {
+      "response": "WINDOW_CLOSED",
+      "awarded": "0.00"
+    },
+    "short_outage_or_threshold_met": {
+      "response": "THRESHOLD_MET",
+      "awarded": "0.00"
+    }
+  },
+  "controls": {
+    "known_maintenance": "INELIGIBLE",
+    "pre_effective_incident": "UNSUPPORTED_RULE",
+    "contradictory_invoice_scope": "INSUFFICIENT_EVIDENCE",
+    "blank_document_reference": "INSUFFICIENT_EVIDENCE",
+    "missing_component_identity": "INSUFFICIENT_EVIDENCE",
+    "timely_window_closed": "HUMAN_REVIEW",
+    "fractional_cent_entitlement": "ELIGIBLE_WITH_HUMAN_REVIEW_NO_SEND",
+    "incomplete_auto_dispatch": false,
+    "duplicate_obligation_initial_submissions": 1,
+    "sensitive_extra_field_at_simulator": false
+  }
+}

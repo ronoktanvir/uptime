@@ -9,27 +9,66 @@
     "incident_class": "outage",
     "notice_sent_at": null,
     "document_registry": {
-      "status-1-summary": "c5bd263265d6c5e0c732127ade6732870efdb9e663c59bec92b4d2c3733995d5",
-      "status-1-component": "582c343f1e374ab834e5f54263f64680af1a7d08dc13854c8c42531b717da048"
+      "status-1-summary": "c18850d3d093d81196f4fbf41612f786b128aa5220b4b6a8aaebaac49de63404",
+      "status-1-component": "c32caaba35ed4cb69419c713bbd90ef53d6a493056ed84779cec33354b850a01"
     },
     "lines": [
       {
+        "id": "msg-1-a",
         "kind": "affected_api",
-        "usd": "800.00"
+        "usd": "800.00",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-101",
+        "evidence_ref": "invoice-sim-acct-101/msg-1-a"
       },
       {
+        "id": "msg-1-b",
         "kind": "affected_api",
-        "usd": "200.00"
+        "usd": "200.00",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-101",
+        "evidence_ref": "invoice-sim-acct-101/msg-1-b"
       },
       {
-        "kind": "tax",
-        "usd": "60.00"
-      },
-      {
+        "id": "carrier-1",
         "kind": "carrier",
-        "usd": "90.00"
+        "usd": "90.00",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-101",
+        "evidence_ref": "invoice-sim-acct-101/carrier-1"
+      },
+      {
+        "id": "tax-1",
+        "kind": "tax",
+        "usd": "60.00",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-101",
+        "evidence_ref": "invoice-sim-acct-101/tax-1"
       }
-    ]
+    ],
+    "tenant": "bears",
+    "vendor": "Twilio",
+    "account": "sim-acct-101",
+    "governing_version": "2026-04-09",
+    "component_id": "messaging-rest-us1",
+    "invoice_id": "invoice-sim-acct-101",
+    "reply_delay_seconds": 0
   },
   "sim-acct-102": {
     "plan": "standard",
@@ -41,27 +80,66 @@
     "incident_class": "maintenance",
     "notice_sent_at": "2026-10-13T10:00:00+00:00",
     "document_registry": {
-      "status-2-summary": "c038bed8e9c034b844efee93fbd8f5627f8b55f4cceed79334586d9ee1dc85da",
-      "status-2-component": "9cbf5f6ee025f2fc30b582ffd43147b9c8f040bfd351f43fcae105986c484289"
+      "status-2-summary": "8927b7954c0d75af7d4e2abaa167b5c618e6a033aa15f61c085657008b2cc12e",
+      "status-2-component": "d45b47b105ba1e981b991bc644091cc84a646775b078b5003b0ade4edad1fbd7"
     },
     "lines": [
       {
+        "id": "msg-2-a",
         "kind": "affected_api",
-        "usd": "800.00"
+        "usd": "800.00",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-102",
+        "evidence_ref": "invoice-sim-acct-102/msg-2-a"
       },
       {
+        "id": "msg-2-b",
         "kind": "affected_api",
-        "usd": "200.00"
+        "usd": "200.00",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-102",
+        "evidence_ref": "invoice-sim-acct-102/msg-2-b"
       },
       {
-        "kind": "tax",
-        "usd": "60.00"
-      },
-      {
+        "id": "carrier-2",
         "kind": "carrier",
-        "usd": "90.00"
+        "usd": "90.00",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-102",
+        "evidence_ref": "invoice-sim-acct-102/carrier-2"
+      },
+      {
+        "id": "tax-2",
+        "kind": "tax",
+        "usd": "60.00",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-102",
+        "evidence_ref": "invoice-sim-acct-102/tax-2"
       }
-    ]
+    ],
+    "tenant": "bears",
+    "vendor": "Twilio",
+    "account": "sim-acct-102",
+    "governing_version": "2026-04-09",
+    "component_id": "messaging-rest-us1",
+    "invoice_id": "invoice-sim-acct-102",
+    "reply_delay_seconds": 60
   },
   "sim-acct-103": {
     "plan": "standard",
@@ -73,27 +151,66 @@
     "incident_class": "uncertain",
     "notice_sent_at": null,
     "document_registry": {
-      "status-3-summary": "ccbf3f4cdc4a17edc93db8b4f1c63d1f4a9430c5c0ef88a677ac9f106a0dff37",
-      "status-3-component": "bb88a9329f37bdd987b69f9fd18e5a86df1e786576dcee715c4d799f5ecc69f0"
+      "status-3-summary": "e978fbd5793f1456e4f0f349a532bcc6dbc49306dfad86bfc20a0b1f64779e27",
+      "status-3-component": "2248f292c5a0a4289c7089eec0cae9759981fb8a18be071351f558706f636332"
     },
     "lines": [
       {
+        "id": "msg-3-a",
         "kind": "affected_api",
-        "usd": "800.00"
+        "usd": "800.00",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-103",
+        "evidence_ref": "invoice-sim-acct-103/msg-3-a"
       },
       {
+        "id": "msg-3-b",
         "kind": "affected_api",
-        "usd": "200.00"
+        "usd": "200.00",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-103",
+        "evidence_ref": "invoice-sim-acct-103/msg-3-b"
       },
       {
-        "kind": "tax",
-        "usd": "60.00"
-      },
-      {
+        "id": "carrier-3",
         "kind": "carrier",
-        "usd": "90.00"
+        "usd": "90.00",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-103",
+        "evidence_ref": "invoice-sim-acct-103/carrier-3"
+      },
+      {
+        "id": "tax-3",
+        "kind": "tax",
+        "usd": "60.00",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-103",
+        "evidence_ref": "invoice-sim-acct-103/tax-3"
       }
-    ]
+    ],
+    "tenant": "bears",
+    "vendor": "Twilio",
+    "account": "sim-acct-103",
+    "governing_version": "2026-04-09",
+    "component_id": "messaging-rest-us1",
+    "invoice_id": "invoice-sim-acct-103",
+    "reply_delay_seconds": 0
   },
   "sim-acct-104": {
     "plan": "standard",
@@ -105,26 +222,65 @@
     "incident_class": "outage",
     "notice_sent_at": null,
     "document_registry": {
-      "status-4-summary": "b70a03dc1d9f054d6e4ff0a48a5975b547358fe4aae8632e15b98d3886d84ae3",
-      "status-4-component": "c32aa66f9d407e9b7c865192fc7e3558bdd1bd4fc70c8e247dd0f8d049cd7f46"
+      "status-4-summary": "aafb176ce214ab0ad7afaaadee42a7a895744dca47710429523d736672444673",
+      "status-4-component": "d8c9ac1cf76b6d421fd1da9120504ed64926a7cf99e2173d9286dc35771d6862"
     },
     "lines": [
       {
+        "id": "msg-4-a",
         "kind": "affected_api",
-        "usd": "800.00"
+        "usd": "800.00",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-104",
+        "evidence_ref": "invoice-sim-acct-104/msg-4-a"
       },
       {
+        "id": "msg-4-b",
         "kind": "unconfirmed_scope",
-        "usd": "200.00"
+        "usd": "200.00",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-104",
+        "evidence_ref": "invoice-sim-acct-104/msg-4-b"
       },
       {
-        "kind": "tax",
-        "usd": "60.00"
-      },
-      {
+        "id": "carrier-4",
         "kind": "carrier",
-        "usd": "90.00"
+        "usd": "90.00",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-104",
+        "evidence_ref": "invoice-sim-acct-104/carrier-4"
+      },
+      {
+        "id": "tax-4",
+        "kind": "tax",
+        "usd": "60.00",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "currency": "USD",
+        "invoice_id": "invoice-sim-acct-104",
+        "evidence_ref": "invoice-sim-acct-104/tax-4"
       }
-    ]
+    ],
+    "tenant": "bears",
+    "vendor": "Twilio",
+    "account": "sim-acct-104",
+    "governing_version": "2026-04-09",
+    "component_id": "messaging-rest-us1",
+    "invoice_id": "invoice-sim-acct-104",
+    "reply_delay_seconds": 0
   }
 }

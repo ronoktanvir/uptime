@@ -1,0 +1,21 @@
+{
+  "baseline": "18afaa6",
+  "expectations_frozen_before_implementation": "8626fa8",
+  "oracle_v1_sha256": "f74f74098229c949956536fce23c191ff1fe49d0de062f7f6accf0aa108823f8",
+  "oracle_v2_sha256": "7c03ad35241f9756beb00c2c6c244f7429ac4914105aa8549895bae13cad8041",
+  "focused_tests": {
+    "passed": 113,
+    "failed": 0,
+    "generated_examples": 170
+  },
+  "full_tests": {
+    "passed": 536,
+    "failed": 1,
+    "remaining_failure": "tests/test_release_boundaries.py::test_automated_mode_requires_separate_scoped_approval[100.00-1]",
+    "reason": "Out-of-ownership V3 expectation requires unsafe incomplete auto-dispatch."
+  },
+  "environment": "/private/tmp/uptime-v4.WTuRU4/venv/bin/python",
+  "no_network": true,
+  "opus_review": "Central lead responsibility; not invoked by this worker",
+  "scope": "Existing legacy dispute modules, fixtures and dispute tests only"
+}
