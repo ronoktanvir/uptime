@@ -1,6 +1,6 @@
 """Provision named users offline or start the loopback workbench."""
 import argparse
-from getpass import getpass
+import json
 import os
 from pathlib import Path
 import socket
@@ -13,6 +13,7 @@ import webbrowser
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import uvicorn
 from uptime.auth import enroll
+from uptime.auth_keys import generate_reviewer_key, write_credential
 from uptime.server import create_app
 
 
@@ -23,21 +24,38 @@ def main():
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--open", action="store_true", help="Open the local sign-in page")
     parser.add_argument("--enroll", metavar="ACCOUNT", help="Provision a named account offline and exit")
+    keys = parser.add_mutually_exclusive_group()
+    keys.add_argument("--credential-file", type=Path,
+                      help="Create a random private reviewer JWK at this new absolute path outside the repository")
+    keys.add_argument("--public-key", type=Path, help="Enroll an existing public P-256 JWK")
     parser.add_argument("--role", choices=["reviewer", "viewer"], default="reviewer")
     parser.add_argument("--enable-local-approvals", action="store_true",
                         help="Enable local actions only with a verified V4 release receipt")
     args = parser.parse_args()
     os.umask(0o077)
     if args.enroll:
-        password = getpass("Local workspace password (14 or more characters): ")
-        if password != getpass("Confirm password: "):
-            parser.exit(1, "Passwords did not match.\n")
+        if not (args.credential_file or args.public_key):
+            parser.exit(1, "Enrollment needs --credential-file or --public-key.\n")
+        created = None
         try:
-            enroll(args.db, args.enroll, password, args.role, args.mode)
-        except ValueError as exc:
-            parser.exit(1, str(exc) + "\n")
-        print("Named account enrolled for the selected local workspace.")
+            if args.credential_file:
+                credential = generate_reviewer_key()
+                created = write_credential(args.credential_file, credential, Path(__file__).resolve().parents[1])
+            else:
+                if args.public_key.stat().st_size > 16384:
+                    raise ValueError("Public key file is too large")
+                credential = json.loads(args.public_key.read_text())
+                if not isinstance(credential, dict) or "d" in credential:
+                    raise ValueError("--public-key requires a public JWK without private key material")
+            enroll(args.db, args.enroll, credential, args.role, args.mode)
+        except (ValueError, OSError) as exc:
+            if created is not None:
+                created.unlink(missing_ok=True)
+            parser.exit(1, "Offline enrollment failed: " + str(exc) + "\n")
+        print("Named public key enrolled. Use the matching private credential file to sign in.")
         return
+    if args.credential_file or args.public_key:
+        parser.exit(1, "Key enrollment options require --enroll ACCOUNT.\n")
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
         try:
@@ -67,7 +85,7 @@ def main():
                         time.sleep(.1)
             threading.Thread(target=launch, daemon=True).start()
         print(f"Local workbench: {base}/  Sign in with an offline-enrolled account.", flush=True)
-        print("Enroll an account before first use with --enroll ACCOUNT and the same --mode and --db.", flush=True)
+        print("Enroll first with --enroll ACCOUNT --credential-file /private/path/key.json and the same --mode and --db.", flush=True)
         config = uvicorn.Config(app, access_log=False, proxy_headers=False, log_level="warning")
         uvicorn.Server(config).run(sockets=[listener])
 

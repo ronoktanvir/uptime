@@ -6,7 +6,6 @@
   const encoder = new TextEncoder();
   let signingKey = null;
   const hex = bytes => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
-  const bytes = value => Uint8Array.from(value.match(/../g), pair => parseInt(pair, 16));
   function session() {
     try { return JSON.parse(sessionStorage.getItem(storageKey)) || null; } catch { return null; }
   }
@@ -31,17 +30,15 @@
     }
     return data;
   }
-  async function derive(password, challenge) {
-    const material = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveKey']);
-    return crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt:bytes(challenge.salt),
-      iterations:challenge.iterations}, material, {name:'HMAC', hash:'SHA-256', length:256}, false, ['sign']);
-  }
   async function sign(key, challenge) {
-    return hex(await crypto.subtle.sign('HMAC', key, encoder.encode(challenge.message)));
+    if (challenge.algorithm !== 'ES256') throw new Error('Unsupported reviewer proof');
+    return hex(await crypto.subtle.sign({name:'ECDSA', hash:'SHA-256'}, key, encoder.encode(challenge.message)));
   }
-  async function login(subject, password) {
+  async function login(subject, file) {
+    if (!file || file.size > 16384) throw new Error('Choose your enrolled reviewer credential file.');
+    const credential = JSON.parse(await file.text());
+    const key = await crypto.subtle.importKey('jwk', credential, {name:'ECDSA', namedCurve:'P-256'}, false, ['sign']);
     const challenge = await send('/api/auth/challenge', {subject});
-    const key = await derive(password, challenge);
     const data = await send('/api/auth/login', {challenge:challenge.challenge, proof:await sign(key, challenge)});
     signingKey = key;
     sessionStorage.setItem(storageKey, JSON.stringify(data));
@@ -68,7 +65,7 @@
     form.className = 'panel';
     const heading = document.createElement('h1'); heading.textContent = 'Sign in to Uptime';
     const note = document.createElement('p');
-    note.textContent = 'Use your named account for this local workspace. The operator enrolls accounts from the launcher.';
+    note.textContent = 'Use your named account for this local workspace. Select the credential file provisioned for your account. It is used locally to prove your identity.';
     const feedback = document.createElement('p'); feedback.setAttribute('role','status');
     function field(title, type, auto) {
       const label = document.createElement('label'); label.textContent = title;
@@ -76,13 +73,14 @@
       label.append(input); form.append(label); return input;
     }
     form.append(heading, note);
-    const subject = field('Account name', 'text', 'username'), password = field('Password', 'password', 'current-password');
+    const subject = field('Account name', 'text', 'username'), credential = field('Credential file', 'file', 'off');
+    credential.accept = '.json,application/json';
     const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = 'Sign in';
     form.append(submit, feedback);
     form.addEventListener('submit', async event => {
       event.preventDefault(); submit.disabled = true;
-      try { await login(subject.value, password.value); password.value=''; onSuccess(); }
-      catch (error) { password.value=''; feedback.textContent = error.message; }
+      try { await login(subject.value, credential.files[0]); credential.value=''; onSuccess(); }
+      catch (error) { credential.value=''; feedback.textContent = error.message; }
       finally { submit.disabled = false; }
     });
     return form;
