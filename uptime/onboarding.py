@@ -2,18 +2,19 @@
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from decimal import Decimal
+from hashlib import sha256
 import json
 import sqlite3
 
 from .contracts import Principal, Source, fingerprint
-from .onboarding_extract import PDF, SLA, SUPPORT
+from .onboarding_extract import FIXTURES, PDF, SLA, SUPPORT
 from .onboarding_rules import compile_template, evaluate, fixture, generated_cases, rate_for
 
 ENGINE_REVISION = 'jira-local-1'
 PUBLIC_SOURCES = [Source.PUBLIC.value, Source.REPLAY.value]
 LOCAL_SOURCES = [*PUBLIC_SOURCES, Source.CUSTOMER.value]
 ACTIONS = {'approve': 'Approve candidate', 'activate': 'Activate locally', 'rollback': 'Roll back activation',
-           'revoke': 'Revoke approval', 'shadow': 'Replay shadow checks'}
+           'revoke': 'Revoke approval', 'shadow': 'Replay shadow checks', 'review': 'Begin a new review'}
 
 
 def _encode(value):
@@ -111,11 +112,12 @@ def _authorize(principal):
 
 
 def _tail(db, tenant):
-    row = db.execute('SELECT payload FROM onb_events WHERE tenant=? ORDER BY id DESC LIMIT 1', (tenant,)).fetchone()
-    return json.loads(row[0]) if row else None
+    row = db.execute('SELECT payload,id FROM onb_events WHERE tenant=? ORDER BY id DESC LIMIT 1', (tenant,)).fetchone()
+    return (json.loads(row[0]) | {'revision': row[1]}) if row else None
 
 
 def _event(db, tenant, actor, role, kind, state):
+    state['revision'] = db.execute('SELECT COALESCE(MAX(id),0)+1 FROM onb_events').fetchone()[0]
     db.execute('INSERT INTO onb_events(tenant,recorded_at,actor,role,kind,payload) VALUES(?,?,?,?,?,?)',
                (tenant, datetime.now(UTC).isoformat(), actor, role, kind, _encode(state)))
 
@@ -170,14 +172,14 @@ def _available(p, checks, overlay, state):
         return ['activate', 'revoke']
     if state['state'] == 'ACTIVE':
         return ['rollback', 'revoke']
-    if state['state'] == 'REVOKED' and state['active']:
-        return ['revoke']
+    if state['state'] == 'REVOKED':
+        return ['review', 'revoke'] if state['active'] else ['review']
     return []
 
 
 def _action_id(op, state):
     # Bind the action to the exact artifact, overlay, gate evidence and displayed state.
-    return f"{op}~{state['basis']}~{state['state']}"
+    return f"{op}~{state['basis']}~{state['state']}~{state['revision']}"
 
 
 def _view(db, p, candidate, checks, overlay, state, record):
@@ -188,7 +190,7 @@ def _view(db, p, candidate, checks, overlay, state, record):
              for at, actor, role, event, payload in history_rows]
     rules = candidate['template']['rules']
     view = {'vendor': 'Atlassian', 'state': state['state'], 'version': candidate['version'], 'active_version': state['active'],
-            'reviewer': state['reviewer'], 'sources': LOCAL_SOURCES if overlay else PUBLIC_SOURCES,
+            'revision': state['revision'], 'reviewer': state['reviewer'], 'sources': LOCAL_SOURCES if overlay else PUBLIC_SOURCES,
             'checks': checks, 'history': [f"{a['at']} · {a['event']} · {a['actor']}" for a in audit], 'audit': audit,
             'actions': [{'id': _action_id(op, state), 'label': ACTIONS[op]} for op in _available(p, checks, overlay, state)],
             'scope': 'Local shadow simulator for Jira in a supported browser on Premium or Enterprise.',
@@ -206,13 +208,14 @@ def _view(db, p, candidate, checks, overlay, state, record):
     if overlay and observations.get('tenant') == p.tenant:
         sample = evaluate(candidate['template'], p, overlay, observations)
         view['sample'] = {'outcome': sample.outcome.value, 'trace': list(sample.trace),
-                          'amount': str(sample.amount.amount) if sample.amount else None, 'sources': [*LOCAL_SOURCES, Source.VENDOR.value]}
+                          'amount': str(sample.amount.amount) if sample.amount else None,
+                          'filing_status': sample.filing_status, 'issuance_status': sample.issuance_status, 'sources': [*LOCAL_SOURCES, Source.VENDOR.value]}
     return view
 
 
 def _quarantine(db, p, record):
     # A newly deployed extraction with unknown/injected clauses cannot reuse existing approval.
-    version = fingerprint(record)
+    version = fingerprint(repr(record))
     prior = _tail(db, p.tenant)
     if not prior or prior['version'] != version or prior['state'] != 'DRAFT':
         state = {'state': 'DRAFT', 'version': version, 'active': None, 'previous': None, 'terms': None,
@@ -231,13 +234,19 @@ def _request(db, principal, action=None):
     if action is not None and principal.role != 'reviewer':
         raise PermissionError('An interactive local reviewer is required.')
     # Read only deployed, locally packaged fixture. HTTP callers cannot supply terms or overlays.
-    record = fixture('extraction')
     stale = False
     with _atomic(db):
         _schema(db)
+        record = None
         try:
+            record = fixture('extraction')
             candidate, checks, overlay, state = _prepare(db, principal, record)
-        except ValueError:
+        except (ValueError, TypeError, OSError, OverflowError):
+            if record is None:
+                try:
+                    record = sha256((FIXTURES / 'extraction.json').read_bytes()).hexdigest()
+                except OSError:
+                    record = 'unreadable deployed extraction'
             view = _quarantine(db, principal, record)
             stale = action is not None
         else:
@@ -253,6 +262,8 @@ def _request(db, principal, action=None):
                         state.update(state='ACTIVE', previous=state['active'], active=state['version'])
                     elif op == 'rollback':
                         state.update(state='REVOKED', active=state['previous'], previous=None)
+                    elif op == 'review':
+                        state.update(state='SHADOW', reviewer=None)
                     elif op == 'revoke':
                         state.update(state='REVOKED', active=None, previous=None)
                     _event(db, principal.tenant, principal.subject, principal.role, ACTIONS[op], state)

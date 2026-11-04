@@ -141,3 +141,50 @@ def test_concurrent_same_candidate_approval_is_consumed_once(tmp_path):
         assert sorted(pool.map(try_approve, range(2))) == ['APPROVED', 'stale']
     with sqlite3.connect(path) as db:
         assert len(lab.get_lab(db, VIEWER)['audit']) == 4
+
+
+def test_reinstallation_and_explicit_new_review_require_fresh_actions(monkeypatch):
+    db = sqlite3.connect(':memory:')
+    first = lab.get_lab(db, REVIEWER)
+    approved = lab.act(db, REVIEWER, action(first, 'approve'))
+    active = lab.act(db, REVIEWER, action(approved, 'activate'))
+    original = lab.fixture
+    changed = original('extraction')
+    changed['rules']['challenge']['business_days'] = 4
+    monkeypatch.setattr(lab, 'fixture', lambda name: changed if name == 'extraction' else original(name))
+    assert lab.get_lab(db, REVIEWER)['active_version'] is None
+    monkeypatch.setattr(lab, 'fixture', original)
+    restored = lab.get_lab(db, REVIEWER)
+    assert restored['version'] == first['version'] and restored['revision'] > first['revision']
+    with pytest.raises(ValueError):
+        lab.act(db, REVIEWER, action(first, 'approve'))
+    again = lab.act(db, REVIEWER, action(restored, 'approve'))
+    with pytest.raises(ValueError):
+        lab.act(db, REVIEWER, action(approved, 'activate'))
+    new = lab.act(db, REVIEWER, action(again, 'activate'))
+    revoked = lab.act(db, REVIEWER, action(new, 'revoke'))
+    review = lab.act(db, REVIEWER, action(revoked, 'review'))
+    assert review['reviewer'] is None and review['state'] == 'SHADOW'
+    assert active['version'] == review['version']
+    assert action(review, 'approve') not in {action(first, 'approve'), action(restored, 'approve')}
+
+
+def test_invalid_json_persists_quarantine_even_when_old_action_is_attempted(monkeypatch):
+    import json
+    db = sqlite3.connect(':memory:')
+    old = activate(db)
+    original = lab.fixture
+
+    def malformed(name):
+        if name == 'extraction':
+            return json.loads('{broken')
+        return original(name)
+
+    monkeypatch.setattr(lab, 'fixture', malformed)
+    with pytest.raises(ValueError, match='Stale'):
+        lab.act(db, REVIEWER, action(old, 'rollback'))
+    assert lab.get_lab(db, REVIEWER)['active_version'] is None
+    monkeypatch.setattr(lab, 'fixture', original)
+    recovered = lab.get_lab(db, REVIEWER)
+    assert recovered['version'] == old['version'] and recovered['state'] == 'SHADOW'
+    assert recovered['active_version'] is None
