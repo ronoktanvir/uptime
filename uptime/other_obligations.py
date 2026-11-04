@@ -1,6 +1,6 @@
 """Read-only gold examples for one explicitly synthetic agreement, version NB-DEMO-2025-10."""
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from datetime import UTC, date, datetime, time, timedelta
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP, localcontext
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import json
@@ -32,6 +32,10 @@ def result(section, outcome, trace, amount=None):
                             Money(amount) if amount is not None else None)
 
 
+def _canonical(value):
+    return isinstance(value, str) and bool(value.strip()) and value == value.strip() and value.isprintable()
+
+
 def unique_records(records):
     if not isinstance(records, list):
         raise MissingFact("Complete identified source records are required.")
@@ -40,7 +44,7 @@ def unique_records(records):
         if not isinstance(record, dict):
             raise MissingFact("An identified source record is missing.")
         key = record.get("id")
-        if not key or (key in unique and record != unique[key]):
+        if not _canonical(key) or (key in unique and record != unique[key]):
             raise MissingFact("An identifier is absent or has conflicting source records.")
         unique[key] = record
     return list(unique.values())
@@ -60,6 +64,33 @@ def usd(record):
 
 
 def evaluate_rebate(data):
+    """Isolate exact ledger sums from ambient Decimal precision and rounding."""
+    if not isinstance(data, dict):
+        return result("R-1", Outcome.MISSING, ["A scoped ledger is required."])
+    with localcontext() as context:
+        # Cent-aligned amounts need integer digits plus two fractional digits,
+        # carry growth for the sum, and headroom for the percentage product.
+        width = 0
+        count = 0
+        for key in ("charges", "credits"):
+            records = data.get(key)
+            if not isinstance(records, list):
+                continue  # The evaluator reports the missing ledger.
+            count += len(records)
+            for record in records:
+                if not isinstance(record, dict) or not isinstance(record.get("amount"), str):
+                    continue
+                try:
+                    value = Decimal(record["amount"])
+                except InvalidOperation:
+                    continue
+                if value.is_finite():
+                    width = max(width, value.adjusted() + 3)
+        context.prec = max(60, width + len(str(count + 1)) + 5)
+        return _evaluate_rebate(data)
+
+
+def _evaluate_rebate(data):
     """Account-scoped annual ledger, with returns and only this term's already-issued credits."""
     trace = []
     try:
@@ -134,7 +165,7 @@ def evaluate_notice(data):
                       [str(exc) if isinstance(exc, MissingFact) else "The governing working-day calendar is incomplete."])
     trace = [f"N-2 receipt cutoff {cutoff.isoformat()} in America/Los_Angeles after counting three working days back."]
     receipt = data.get("receipt") or {}
-    if (not receipt.get("id") or receipt.get("obligation") != "N-2" or receipt.get("renewal") != RENEWAL.isoformat()
+    if (not _canonical(receipt.get("id")) or receipt.get("obligation") != "N-2" or receipt.get("renewal") != RENEWAL.isoformat()
             or receipt.get("channel") != "designated_customer_portal"):
         return result("N-2", Outcome.MISSING, trace + ["The scoped designated-portal receipt is absent."])
     try:
@@ -144,7 +175,7 @@ def evaluate_notice(data):
     except (KeyError, TypeError, ValueError):
         return result("N-2", Outcome.MISSING, trace + ["The receipt needs a timestamp with an explicit offset."])
     trace.append(f"Receipt {receipt['id']} arrived {received.astimezone(PACIFIC).isoformat()}.")
-    if received > cutoff:
+    if received.astimezone(UTC) > cutoff.astimezone(UTC):
         return result("N-2", Outcome.INELIGIBLE, trace + ["Receipt was late. Route notice timing to a human reviewer."])
     return result("N-2", Outcome.ELIGIBLE, trace + ["Receipt met the inclusive cutoff. No monetary remedy is modeled."])
 

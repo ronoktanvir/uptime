@@ -161,7 +161,13 @@ def test_unsupported_invoice(agreement, invoice, change):
 
 def test_no_partial_claim_when_one_line_unidentified(agreement, invoice):
     invoice = replace(invoice, lines=(invoice.lines[0], replace(invoice.lines[1], product=None)))
-    assert_closed(evaluate_price(agreement, invoice), Outcome.MISSING)
+    # V4 audit B04: retain verified line evidence without asserting that an
+    # incomplete invoice has a known aggregate claim. Historical fixtures stay.
+    result = evaluate_price(agreement, invoice)
+    assert result.evaluation.outcome == Outcome.MISSING
+    assert result.evaluation.amount is None
+    assert result.overcharge is result.undercharge is None
+    assert len(result.lines) == 1 and result.lines[0].delta == D("7500.00")
 
 
 def test_explicitly_noncovered_only_is_ineligible(agreement, invoice):
