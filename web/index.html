@@ -7,6 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <title>Uptime for Ramp · Finance workbench</title>
   <link rel="stylesheet" href="/static/style.css">
+  <script defer src="/static/auth.js"></script>
   <script defer src="/static/app.js"></script>
 </head>
 <body>
@@ -23,7 +24,7 @@
     <div class="rail-foot"><span class="prototype">Local prototype</span><p>Single-workspace sandbox</p></div>
   </aside>
   <main id="workspace" tabindex="-1">
-    <header class="topbar"><span id="workspace-name">Contract operations</span><button id="refresh" class="quiet">Refresh data</button></header>
+    <header class="topbar"><span id="workspace-name">Contract operations</span><button id="account" class="quiet">Account</button><button id="refresh" class="quiet">Refresh data</button></header>
     <div id="notice" role="status" aria-live="polite"></div>
     <div id="content" aria-busy="true"><p class="empty">Loading the workbench…</p></div>
     <footer>Estimates, awards and applied credits are separate stages. Simulated values are not real recoveries.</footer>

@@ -1,0 +1,97 @@
+/* The read token is scoped to this origin and tab. Only the page that proved a named
+   account can sign a fresh write challenge. No credential is sent as a cookie or URL. */
+(function () {
+  'use strict';
+  const storageKey = 'uptime-v4-session';
+  const encoder = new TextEncoder();
+  let signingKey = null;
+  const hex = bytes => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
+  const bytes = value => Uint8Array.from(value.match(/../g), pair => parseInt(pair, 16));
+  function session() {
+    try { return JSON.parse(sessionStorage.getItem(storageKey)) || null; } catch { return null; }
+  }
+  async function send(path, payload, token, proof = {}) {
+    if (new URL(path, location.origin).origin !== location.origin || !path.startsWith('/api/'))
+      throw new Error('Local API route required');
+    const headers = {Accept:'application/json', ...proof};
+    if (token) headers.Authorization = 'Bearer ' + token;
+    const options = {method:'GET', credentials:'omit', cache:'no-store', redirect:'error', headers};
+    if (payload !== undefined) {
+      options.method = 'POST';
+      options.body = JSON.stringify(payload);
+      headers['Content-Type'] = 'application/json';
+      headers['X-Uptime-Action'] = '1';
+    }
+    const response = await fetch(path, options);
+    const data = await response.json();
+    if (!response.ok) {
+      const error = new Error(typeof data.detail === 'string' ? data.detail : 'Request rejected. Review the latest workspace state.');
+      error.status = response.status;
+      throw error;
+    }
+    return data;
+  }
+  async function derive(password, challenge) {
+    const material = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt:bytes(challenge.salt),
+      iterations:challenge.iterations}, material, {name:'HMAC', hash:'SHA-256', length:256}, false, ['sign']);
+  }
+  async function sign(key, challenge) {
+    return hex(await crypto.subtle.sign('HMAC', key, encoder.encode(challenge.message)));
+  }
+  async function login(subject, password) {
+    const challenge = await send('/api/auth/challenge', {subject});
+    const key = await derive(password, challenge);
+    const data = await send('/api/auth/login', {challenge:challenge.challenge, proof:await sign(key, challenge)});
+    signingKey = key;
+    sessionStorage.setItem(storageKey, JSON.stringify(data));
+  }
+  async function api(path, payload) {
+    const current = session();
+    if (!current || !current.token) {
+      const error = new Error('Sign in to this local workspace.'); error.status = 401; throw error;
+    }
+    const headers = {};
+    if (payload !== undefined && path !== '/api/guide') {
+      if (!signingKey) {
+        const e = new Error('Sign in again to authorize changes from this page.'); e.status = 401; throw e;
+      }
+      const bodyHash = hex(await crypto.subtle.digest('SHA-256', encoder.encode(JSON.stringify(payload))));
+      const challenge = await send('/api/auth/challenge', {subject:current.subject, path, body_sha256:bodyHash}, current.token);
+      headers['X-Uptime-Challenge'] = challenge.challenge;
+      headers['X-Uptime-Proof'] = await sign(signingKey, challenge);
+    }
+    return send(path, payload, current.token, headers);
+  }
+  function signInForm(onSuccess) {
+    const form = document.createElement('form');
+    form.className = 'panel';
+    const heading = document.createElement('h1'); heading.textContent = 'Sign in to Uptime';
+    const note = document.createElement('p');
+    note.textContent = 'Use your named account for this local workspace. The operator enrolls accounts from the launcher.';
+    const feedback = document.createElement('p'); feedback.setAttribute('role','status');
+    function field(title, type, auto) {
+      const label = document.createElement('label'); label.textContent = title;
+      const input = document.createElement('input'); input.type = type; input.required = true; input.autocomplete = auto;
+      label.append(input); form.append(label); return input;
+    }
+    form.append(heading, note);
+    const subject = field('Account name', 'text', 'username'), password = field('Password', 'password', 'current-password');
+    const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = 'Sign in';
+    form.append(submit, feedback);
+    form.addEventListener('submit', async event => {
+      event.preventDefault(); submit.disabled = true;
+      try { await login(subject.value, password.value); password.value=''; onSuccess(); }
+      catch (error) { password.value=''; feedback.textContent = error.message; }
+      finally { submit.disabled = false; }
+    });
+    return form;
+  }
+  async function signOut() {
+    const current = session();
+    try { if (current) await send('/api/auth/logout', {}, current.token); }
+    finally { signingKey = null; sessionStorage.removeItem(storageKey); location.reload(); }
+  }
+  window.uptimeAPI = api;
+  window.uptimeAuth = {session, signInForm, signOut};
+})();

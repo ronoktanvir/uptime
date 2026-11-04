@@ -9,10 +9,13 @@ from importlib.util import find_spec
 import os
 import secrets
 import socket
-from urllib.parse import quote, urlsplit
+from urllib.parse import quote
 
 import pytest
 from fastapi.testclient import TestClient
+
+from uptime.auth import DEFAULT_ORIGIN, SCRIPT
+from uptime.auth_client import ReviewerClient
 
 
 SOURCES = {
@@ -22,7 +25,7 @@ SOURCES = {
 OUTCOMES = {"ELIGIBLE", "INELIGIBLE", "INSUFFICIENT_EVIDENCE", "UNSUPPORTED_RULE"}
 READS = ["/api/dashboard", "/api/onboarding", "/api/policy", "/api/integrations",
          "/api/cases/qa-does-not-exist"]
-AJAX = {"X-Uptime-Action": "1", "Origin": "http://testserver"}
+AJAX = {"X-Uptime-Action": "1", "Origin": DEFAULT_ORIGIN}
 
 
 @pytest.fixture
@@ -40,17 +43,17 @@ def app_factory(monkeypatch):
     return create_app
 
 
+def local_client(app):
+    return TestClient(app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 50000))
+
+
 @contextmanager
-def session(factory, path, token=None):
-    token = token or secrets.token_urlsafe(32)
-    with TestClient(factory(path, session_secret=token, mode="replay")) as client:
-        login = client.get("/session/" + token, follow_redirects=False)
-        assert login.status_code == 303
-        if "httponly" not in login.headers.get("set-cookie", "").lower():
-            pytest.fail("Bootstrap must issue an HttpOnly session cookie")
-        location = urlsplit(login.headers["location"])
-        if location.netloc or location.query or location.fragment or location.path.startswith("/session/"):
-            pytest.fail("Bootstrap must redirect to a local path without credential parameters")
+def session(factory, path):
+    password = secrets.token_urlsafe(36)
+    with local_client(factory(path, mode="replay", rehearsal=True, rehearsal_secret=password,
+                              approvals_enabled=True)) as client:
+        client.signer = ReviewerClient(client, DEFAULT_ORIGIN, SCRIPT, password)
+        client.headers["Authorization"] = client.signer.headers["Authorization"]
         yield client
 
 
@@ -108,8 +111,8 @@ def business_state(client):
 
 @pytest.mark.parametrize("path", READS)
 def test_unauthenticated_reads_rejected(app_factory, tmp_path, path):
-    with TestClient(app_factory(tmp_path / "anonymous.sqlite3",
-                               session_secret=secrets.token_urlsafe(32), mode="replay")) as anon:
+    with local_client(app_factory(tmp_path / "anonymous.sqlite3",
+                               mode="replay")) as anon:
         response = anon.get(path, follow_redirects=False)
         assert response.status_code in {401, 403}
 
@@ -120,8 +123,8 @@ def test_unauthenticated_reads_rejected(app_factory, tmp_path, path):
     ("/api/onboarding/actions/approve", {}),
 ])
 def test_spoofed_identity_cannot_authenticate(app_factory, tmp_path, path, payload):
-    with TestClient(app_factory(tmp_path / "spoof.sqlite3",
-                               session_secret=secrets.token_urlsafe(32), mode="replay")) as anon:
+    with local_client(app_factory(tmp_path / "spoof.sqlite3",
+                               mode="replay")) as anon:
         response = anon.post(path, json={**payload, "role": "admin", "tenant": "other"},
                              headers={**AJAX, "X-Role": "admin", "X-Tenant": "other",
                                       "X-Tenant-ID": "other", "X-User": "admin"})
@@ -129,8 +132,8 @@ def test_spoofed_identity_cannot_authenticate(app_factory, tmp_path, path, paylo
 
 
 def test_invalid_bootstrap_does_not_issue_session(app_factory, tmp_path):
-    with TestClient(app_factory(tmp_path / "login.sqlite3",
-                               session_secret=secrets.token_urlsafe(32), mode="replay")) as anon:
+    with local_client(app_factory(tmp_path / "login.sqlite3",
+                               mode="replay")) as anon:
         response = anon.get("/session/qa-invalid-token", follow_redirects=False)
         assert response.status_code in {401, 403, 404}
         if anon.cookies:
@@ -138,26 +141,16 @@ def test_invalid_bootstrap_does_not_issue_session(app_factory, tmp_path):
         assert anon.get("/api/dashboard").status_code in {401, 403}
 
 
-def test_login_cookie_is_http_only_and_not_cross_site(app_factory, tmp_path):
-    token = secrets.token_urlsafe(32)
-    with TestClient(app_factory(tmp_path / "cookie.sqlite3", session_secret=token,
-                               mode="replay")) as browser:
-        response = browser.get("/session/" + token, follow_redirects=False)
-        assert response.status_code == 303
-        cookie = response.headers.get("set-cookie", "").lower()
-        if ("httponly" not in cookie or "path=/" not in cookie or
-                not ("samesite=lax" in cookie or "samesite=strict" in cookie)):
-            pytest.fail("Session cookie needs HttpOnly, root path and SameSite Lax or Strict")
-        assert browser.get("/api/dashboard").status_code == 200
+def test_login_has_no_ambient_credentials(client):
+    assert not list(client.cookies.jar)
+    assert client.get("/api/dashboard").status_code == 200
+    del client.headers["Authorization"]
+    assert client.get("/api/dashboard").status_code == 401
 
 
-def test_tampered_session_cookie_is_rejected(client):
-    cookies = list(client.cookies.jar)
-    assert cookies, "Login must establish a session"
-    client.cookies.clear()
-    for cookie in cookies:
-        client.cookies.set(cookie.name, "qa-tampered-session", path=cookie.path)
-    assert client.get("/api/dashboard").status_code in {401, 403}
+def test_tampered_named_session_is_rejected(client):
+    client.headers["Authorization"] = "Bearer qa-tampered-session"
+    assert client.get("/api/dashboard").status_code == 401
 
 
 def test_spoofed_read_identity_cannot_change_workspace(client):
@@ -193,14 +186,14 @@ def write_target(client, kind):
 
 @pytest.mark.parametrize("kind", ["guide", "case", "onboarding"])
 @pytest.mark.parametrize("headers", [
-    {}, {"Origin": "http://testserver"},
-    {"X-Uptime-Action": "0", "Origin": "http://testserver"},
+    {}, {"Origin": DEFAULT_ORIGIN},
+    {"X-Uptime-Action": "0", "Origin": DEFAULT_ORIGIN},
     {"X-Uptime-Action": "1", "Origin": "https://attacker.invalid"},
     {"X-Uptime-Action": "1", "Origin": "null"},
     {"X-Uptime-Action": "1", "Origin": "http://testserver.attacker.invalid"},
     {"X-Uptime-Action": "1", "Origin": "http://testserver:9999"},
     {"X-Uptime-Action": "1", "Sec-Fetch-Site": "cross-site"},
-    {"X-Uptime-Action": "1", "Origin": "http://testserver", "Sec-Fetch-Site": "cross-site"},
+    {"X-Uptime-Action": "1", "Origin": DEFAULT_ORIGIN, "Sec-Fetch-Site": "cross-site"},
 ], ids=["no-csrf", "origin-only", "wrong-marker", "foreign-origin", "opaque-origin",
         "host-prefix", "wrong-port", "cross-site-without-origin", "cross-site-conflicting-origin"])
 def test_browser_csrf_rejected_without_mutation(client, kind, headers):
@@ -211,11 +204,15 @@ def test_browser_csrf_rejected_without_mutation(client, kind, headers):
 
 
 @pytest.mark.parametrize("headers", [AJAX, {"X-Uptime-Action": "1"}],
-                         ids=["same-origin-browser", "native-no-origin"])
+                         ids=["same-origin-native-or-browser", "no-origin-rejected"])
 def test_guide_accepts_legitimate_client(client, headers):
     path, payload = write_target(client, "guide")
     before = business_state(client)
     response = client.post(path, json=payload, headers=headers)
+    if "Origin" not in headers:
+        assert response.status_code == 403
+        assert business_state(client) == before
+        return
     assert response.status_code == 200
     assert isinstance(response.json()["answer"], str) and response.json()["answer"]
     sources(response.json()["sources"])
@@ -269,7 +266,7 @@ def test_action_body_cannot_override_server_authority(app_factory, tmp_path, kin
     with session(app_factory, tmp_path / "forged.sqlite3") as attacked:
         target, payload = write_target(attacked, kind)
         before = business_state(attacked)
-        response = attacked.post(target, json={**payload, **forgery}, headers=AJAX)
+        response = attacked.signer.post(target, {**payload, **forgery})
         if response.status_code in {400, 403, 422}:
             assert business_state(attacked) == before
             return
@@ -278,7 +275,7 @@ def test_action_body_cannot_override_server_authority(app_factory, tmp_path, kin
     with session(app_factory, tmp_path / "control.sqlite3") as control:
         clean_target, clean_payload = write_target(control, kind)
         assert clean_target == target, "Replay seeds must select the same action"
-        clean = control.post(clean_target, json=clean_payload, headers=AJAX)
+        clean = control.signer.post(clean_target, clean_payload)
         assert clean.status_code == response.status_code
         assert financial_projection(control) == observed
 
@@ -286,7 +283,7 @@ def test_action_body_cannot_override_server_authority(app_factory, tmp_path, kin
 def test_unknown_action_fails_without_mutation(client):
     case = case_details(client)[0]
     before = business_state(client)
-    response = client.post(case_path(case) + "/actions/qa-unknown-action", json={}, headers=AJAX)
+    response = client.signer.post(case_path(case) + "/actions/qa-unknown-action", {})
     assert response.status_code in {400, 404, 422}
     assert business_state(client) == before
 
@@ -357,7 +354,7 @@ def test_human_action_persists_across_restart(app_factory, tmp_path, kind):
     with session(app_factory, path) as first:
         target, payload = write_target(first, kind)
         before = business_state(first)
-        response = first.post(target, json=payload, headers=AJAX)
+        response = first.signer.post(target, payload)
         assert response.status_code in {200, 201, 202, 204}
         after = business_state(first)
         assert after != before, "Advertised human action must change persistent state"

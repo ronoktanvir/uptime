@@ -33,7 +33,9 @@ def serve(db, secret):
     with socket.socket() as listener:
         listener.bind(('127.0.0.1', 0))
         listener.listen(128)
-        app = create_app(db, session_secret=secret, mode='replay', rehearsal=True)
+        origin = 'http://127.0.0.1:' + str(listener.getsockname()[1])
+        app = create_app(db, rehearsal_secret=secret, mode='replay', rehearsal=True,
+                         approvals_enabled=True, origin=origin)
         server = uvicorn.Server(uvicorn.Config(app, log_level='critical', access_log=False, log_config=None))
         worker = Thread(target=server.run, kwargs={'sockets': [listener]}, daemon=True)
         worker.start()
@@ -56,9 +58,7 @@ class Director:
         self.case_id = None
 
     def get(self, path):
-        response = self.page.request.get(self.origin + path)
-        assert response.ok, 'Authenticated replay read failed'
-        return response.json()
+        return self.page.evaluate("path => window.uptimeAPI(path)", path)
 
     def view(self, route):
         page = self.page
@@ -253,7 +253,7 @@ Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
 def record(app_root, destination):
     from playwright.sync_api import sync_playwright
     sys.path.insert(0, str(app_root.resolve()))
-    from scripts.browser_replay import local_connections_only, allowed_browser_url, REDACT_RENDERED_TEXT
+    from scripts.browser_replay import local_connections_only, allowed_browser_url, REDACT_RENDERED_TEXT, scripted_login
     destination = destination.resolve()
     if destination.exists() and any(destination.iterdir()):
         raise ValueError('Output must be a new or empty directory')
@@ -280,9 +280,8 @@ def record(app_root, destination):
                 context.route('**/*',intercept)
                 context.route_web_socket('**/*',lambda ws: ws.close())
                 context.add_init_script(REDACT_RENDERED_TEXT)
-                login = context.request.get(origin+'/session/'+secret,max_redirects=0)
-                assert login.status == 303
                 page = context.new_page()
+                scripted_login(page, origin, secret)
                 page.on('pageerror',lambda _: failures.append('browser script error'))
                 page.on('response',lambda r: failures.append('HTTP error') if r.status>=400 else None)
                 page.set_default_timeout(8000)
