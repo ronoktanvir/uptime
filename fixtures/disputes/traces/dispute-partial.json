@@ -1,0 +1,218 @@
+{
+  "id": "dispute-partial",
+  "title": "Separate an uncontested credit from disputed fees",
+  "vendor": "Twilio",
+  "mode": "LOCAL_SIMULATOR",
+  "sources": [
+    "LIVE_VENDOR_PUBLIC",
+    "SYNTHETIC_CUSTOMER",
+    "SIMULATED_VENDOR",
+    "DETERMINISTIC_REPLAY"
+  ],
+  "stage": "PARTIAL_AWARD_REVIEW",
+  "ledger": {
+    "estimated": "100.00",
+    "claimed": "100.00",
+    "awarded": "80.00",
+    "disputed_remainder": "20.00",
+    "posted": "0.00",
+    "applied": "0.00"
+  },
+  "clauses": [
+    {
+      "label": "Twilio APIs SLA 2026-04-09 \u00a71 Fee basis",
+      "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+    },
+    {
+      "label": "Twilio APIs SLA 2026-04-09 \u00a73 Filing and credits",
+      "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+    },
+    {
+      "label": "Twilio APIs SLA 2026-04-09 \u00a74 Exclusions",
+      "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+    }
+  ],
+  "trace": [
+    "Twilio Services APIs / standard plan / region US1.",
+    "Covered API, archived status interval, submitted documentation, initial exclusion screen, filing clock and affected fees support a local claim.",
+    "Replayed interval 2026-10-14T12:00:00+00:00 through 2026-10-14T12:30:00+00:00. If all 30 minutes count, monthly availability is 99.93280% over 44,640 minutes against the 99.95% standard threshold. Section 4 exclusions apply.",
+    "USD 1000.00 in affected API fees \u00d7 10% = USD 100.00 in the draft. Carrier and tax lines are excluded. An award is a future service credit.",
+    "Claim drafted from synthetic October API charges and a replayed status interval.",
+    "Only USD 800.00 of affected charges is substantiated.",
+    "Preserve the confirmed portion. Route the outstanding amount to a human without accepting a settlement."
+  ],
+  "evidence": [
+    {
+      "label": "Customer invoice lines",
+      "detail": "msg-4-a \u00b7 affected_api \u00b7 USD 800.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer invoice lines",
+      "detail": "msg-4-b \u00b7 affected_api \u00b7 USD 200.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer invoice lines",
+      "detail": "carrier-4 \u00b7 carrier \u00b7 USD 90.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer invoice lines",
+      "detail": "tax-4 \u00b7 tax \u00b7 USD 60.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "status_summary",
+      "detail": "status-4-summary \u00b7 Twilio Messaging API \u00b7 2026-10-14T12:00:00+00:00 to 2026-10-14T12:30:00+00:00",
+      "digest": "b70a03dc1d9f054d6e4ff0a48a5975b547358fe4aae8632e15b98d3886d84ae3",
+      "sources": [
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "component_record",
+      "detail": "status-4-component \u00b7 Twilio Messaging API \u00b7 2026-10-14T12:00:00+00:00 to 2026-10-14T12:30:00+00:00",
+      "digest": "c32aa66f9d407e9b7c865192fc7e3558bdd1bd4fc70c8e247dd0f8d049cd7f46",
+      "sources": [
+        "DETERMINISTIC_REPLAY"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "at": "2026-11-02T10:00:00+00:00",
+      "event": "Claim drafted from synthetic October API charges and a replayed status interval.",
+      "actor": "fixture-loader",
+      "role": "system",
+      "tenant": "bears",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "at": "2026-11-02T10:00:00+00:00",
+      "event": "Reviewer approved this exact simulated ticket.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "digest": "800888454b8137b40c0979621342b9c68853fff4cc0a802a89330743c595d7c1",
+      "action": "approve-claim"
+    },
+    {
+      "at": "2026-11-02T10:01:00+00:00",
+      "event": "Claim sent to simulator.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "receipt": "SIM-8949e7bc8c2ac8c2",
+      "digest": "800888454b8137b40c0979621342b9c68853fff4cc0a802a89330743c595d7c1"
+    },
+    {
+      "at": "2026-11-02T10:01:00+00:00",
+      "event": "Only USD 800.00 of affected charges is substantiated.",
+      "actor": "vendor-simulator",
+      "role": "simulator",
+      "tenant": "bears",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "code": "PARTIAL_AWARD",
+      "clause": "\u00a7\u00a71, 3"
+    },
+    {
+      "at": "2026-11-02T10:01:00+00:00",
+      "event": "Preserve the confirmed portion. Route the outstanding amount to a human without accepting a settlement.",
+      "actor": "dispute-reviewer",
+      "role": "system",
+      "tenant": "bears",
+      "sources": [
+        "LIVE_VENDOR_PUBLIC",
+        "SYNTHETIC_CUSTOMER",
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ]
+    }
+  ],
+  "submissions": [
+    {
+      "id": "SIM-8949e7bc8c2ac8c2",
+      "idempotency_key": "8949e7bc8c2ac8c2981ecab2bce7bc0746ae7ed358277b287a319fe39352d72b",
+      "action": "submit-claim",
+      "digest": "800888454b8137b40c0979621342b9c68853fff4cc0a802a89330743c595d7c1",
+      "document_refs": [
+        "status-4-summary",
+        "status-4-component"
+      ],
+      "approval": {
+        "by": "finance-reviewer",
+        "at": "2026-11-02T10:00:00+00:00",
+        "digest": "800888454b8137b40c0979621342b9c68853fff4cc0a802a89330743c595d7c1",
+        "action": "approve-claim",
+        "basis": {
+          "outcome": "ELIGIBLE",
+          "trace": [
+            "Covered API, archived status interval, submitted documentation, initial exclusion screen, filing clock and affected fees support a local claim."
+          ],
+          "clauses": [
+            {
+              "document": "Twilio APIs SLA",
+              "version": "2026-04-09",
+              "section": "\u00a7\u00a71, 3, 4",
+              "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+            }
+          ],
+          "usd": "100.00"
+        }
+      },
+      "subject": "SLA Claim",
+      "destination": "Twilio Customer Support (simulation)",
+      "at": "2026-11-02T10:01:00+00:00",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ]
+    }
+  ],
+  "replies": [
+    {
+      "code": "PARTIAL_AWARD",
+      "reason": "Only USD 800.00 of affected charges is substantiated.",
+      "clause": "\u00a7\u00a71, 3",
+      "awarded": "80.00",
+      "needed_kind": null,
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "receipt": "SIM-8949e7bc8c2ac8c2"
+    }
+  ],
+  "filing_cutoff": "2026-12-01T00:00:00+00:00",
+  "performed_actions": [
+    "approve-claim",
+    "submit-claim"
+  ]
+}

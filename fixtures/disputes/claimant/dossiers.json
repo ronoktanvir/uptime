@@ -1,0 +1,292 @@
+{
+  "dispute-cure": {
+    "title": "Recover a credit with a missing status attachment",
+    "account": "sim-acct-101",
+    "plan": "standard",
+    "month": "2026-10",
+    "product": "Twilio Messaging API",
+    "region": "US1",
+    "start": "2026-10-14T12:00:00+00:00",
+    "end": "2026-10-14T12:30:00+00:00",
+    "invoice_lines": [
+      {
+        "id": "msg-1-a",
+        "kind": "affected_api",
+        "usd": "800.00"
+      },
+      {
+        "id": "msg-1-b",
+        "kind": "affected_api",
+        "usd": "200.00"
+      },
+      {
+        "id": "carrier-1",
+        "kind": "carrier",
+        "usd": "90.00"
+      },
+      {
+        "id": "tax-1",
+        "kind": "tax",
+        "usd": "60.00"
+      }
+    ],
+    "initial_documents": [
+      {
+        "ref": "status-1-summary",
+        "kind": "status_summary",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "source": "DETERMINISTIC_REPLAY",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00",
+        "origin": "synthetic_status_archive",
+        "status_subject": "Twilio Messaging API availability",
+        "classification": "redacted_replay"
+      }
+    ],
+    "supplemental_archive": [
+      {
+        "ref": "status-1-component",
+        "kind": "component_record",
+        "account": "sim-acct-101",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "source": "DETERMINISTIC_REPLAY",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00",
+        "origin": "synthetic_status_archive",
+        "status_subject": "Twilio Messaging API availability",
+        "classification": "redacted_replay",
+        "component_id": "messaging-rest-us1"
+      }
+    ],
+    "customer_notice_archive": [],
+    "governing_version": "2026-04-09",
+    "currency": "USD",
+    "exclusion_screen": "no_known_exclusion",
+    "allow_approved_initial_dispatch": true
+  },
+  "dispute-denial": {
+    "title": "Check a scheduled maintenance exclusion",
+    "account": "sim-acct-102",
+    "plan": "standard",
+    "month": "2026-10",
+    "product": "Twilio Messaging API",
+    "region": "US1",
+    "start": "2026-10-14T12:00:00+00:00",
+    "end": "2026-10-14T12:30:00+00:00",
+    "invoice_lines": [
+      {
+        "id": "msg-2-a",
+        "kind": "affected_api",
+        "usd": "800.00"
+      },
+      {
+        "id": "msg-2-b",
+        "kind": "affected_api",
+        "usd": "200.00"
+      },
+      {
+        "id": "carrier-2",
+        "kind": "carrier",
+        "usd": "90.00"
+      },
+      {
+        "id": "tax-2",
+        "kind": "tax",
+        "usd": "60.00"
+      }
+    ],
+    "initial_documents": [
+      {
+        "ref": "status-2-summary",
+        "kind": "status_summary",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "source": "DETERMINISTIC_REPLAY",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00",
+        "origin": "synthetic_status_archive",
+        "status_subject": "Twilio Messaging API availability",
+        "classification": "redacted_replay"
+      },
+      {
+        "ref": "status-2-component",
+        "kind": "component_record",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "source": "DETERMINISTIC_REPLAY",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00",
+        "origin": "synthetic_status_archive",
+        "status_subject": "Twilio Messaging API availability",
+        "classification": "redacted_replay",
+        "component_id": "messaging-rest-us1"
+      }
+    ],
+    "supplemental_archive": [],
+    "customer_notice_archive": [
+      {
+        "ref": "notice-2",
+        "kind": "maintenance_notice",
+        "issued_at": "2026-10-13T10:00:00+00:00",
+        "account": "sim-acct-102",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "source": "DETERMINISTIC_REPLAY",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00"
+      }
+    ],
+    "governing_version": "2026-04-09",
+    "currency": "USD",
+    "exclusion_screen": "no_known_exclusion",
+    "allow_approved_initial_dispatch": false
+  },
+  "dispute-review": {
+    "title": "Review a disputed maintenance window",
+    "account": "sim-acct-103",
+    "plan": "standard",
+    "month": "2026-10",
+    "product": "Twilio Messaging API",
+    "region": "US1",
+    "start": "2026-10-14T12:00:00+00:00",
+    "end": "2026-10-14T12:30:00+00:00",
+    "invoice_lines": [
+      {
+        "id": "msg-3-a",
+        "kind": "affected_api",
+        "usd": "800.00"
+      },
+      {
+        "id": "msg-3-b",
+        "kind": "affected_api",
+        "usd": "200.00"
+      },
+      {
+        "id": "carrier-3",
+        "kind": "carrier",
+        "usd": "90.00"
+      },
+      {
+        "id": "tax-3",
+        "kind": "tax",
+        "usd": "60.00"
+      }
+    ],
+    "initial_documents": [
+      {
+        "ref": "status-3-summary",
+        "kind": "status_summary",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "source": "DETERMINISTIC_REPLAY",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00",
+        "origin": "synthetic_status_archive",
+        "status_subject": "Twilio Messaging API availability",
+        "classification": "redacted_replay"
+      },
+      {
+        "ref": "status-3-component",
+        "kind": "component_record",
+        "account": "sim-acct-103",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "source": "DETERMINISTIC_REPLAY",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00",
+        "origin": "synthetic_status_archive",
+        "status_subject": "Twilio Messaging API availability",
+        "classification": "redacted_replay",
+        "component_id": "messaging-rest-us1"
+      }
+    ],
+    "supplemental_archive": [],
+    "customer_notice_archive": [],
+    "governing_version": "2026-04-09",
+    "currency": "USD",
+    "exclusion_screen": "no_known_exclusion",
+    "allow_approved_initial_dispatch": false
+  },
+  "dispute-partial": {
+    "title": "Separate an uncontested credit from disputed fees",
+    "account": "sim-acct-104",
+    "plan": "standard",
+    "month": "2026-10",
+    "product": "Twilio Messaging API",
+    "region": "US1",
+    "start": "2026-10-14T12:00:00+00:00",
+    "end": "2026-10-14T12:30:00+00:00",
+    "invoice_lines": [
+      {
+        "id": "msg-4-a",
+        "kind": "affected_api",
+        "usd": "800.00"
+      },
+      {
+        "id": "msg-4-b",
+        "kind": "affected_api",
+        "usd": "200.00"
+      },
+      {
+        "id": "carrier-4",
+        "kind": "carrier",
+        "usd": "90.00"
+      },
+      {
+        "id": "tax-4",
+        "kind": "tax",
+        "usd": "60.00"
+      }
+    ],
+    "initial_documents": [
+      {
+        "ref": "status-4-summary",
+        "kind": "status_summary",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "source": "DETERMINISTIC_REPLAY",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00",
+        "origin": "synthetic_status_archive",
+        "status_subject": "Twilio Messaging API availability",
+        "classification": "redacted_replay"
+      },
+      {
+        "ref": "status-4-component",
+        "kind": "component_record",
+        "account": "sim-acct-104",
+        "month": "2026-10",
+        "product": "Twilio Messaging API",
+        "region": "US1",
+        "source": "DETERMINISTIC_REPLAY",
+        "start": "2026-10-14T12:00:00+00:00",
+        "end": "2026-10-14T12:30:00+00:00",
+        "origin": "synthetic_status_archive",
+        "status_subject": "Twilio Messaging API availability",
+        "classification": "redacted_replay",
+        "component_id": "messaging-rest-us1"
+      }
+    ],
+    "supplemental_archive": [],
+    "customer_notice_archive": [],
+    "governing_version": "2026-04-09",
+    "currency": "USD",
+    "exclusion_screen": "no_known_exclusion",
+    "allow_approved_initial_dispatch": false
+  }
+}

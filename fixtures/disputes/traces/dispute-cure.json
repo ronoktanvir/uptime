@@ -1,0 +1,336 @@
+{
+  "id": "dispute-cure",
+  "title": "Recover a credit with a missing status attachment",
+  "vendor": "Twilio",
+  "mode": "LOCAL_SIMULATOR",
+  "sources": [
+    "LIVE_VENDOR_PUBLIC",
+    "SYNTHETIC_CUSTOMER",
+    "SIMULATED_VENDOR",
+    "DETERMINISTIC_REPLAY"
+  ],
+  "stage": "AWARDED",
+  "ledger": {
+    "estimated": "100.00",
+    "claimed": "100.00",
+    "awarded": "100.00",
+    "disputed_remainder": "0.00",
+    "posted": "0.00",
+    "applied": "0.00"
+  },
+  "clauses": [
+    {
+      "label": "Twilio APIs SLA 2026-04-09 \u00a71 Fee basis",
+      "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+    },
+    {
+      "label": "Twilio APIs SLA 2026-04-09 \u00a73 Filing and credits",
+      "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+    },
+    {
+      "label": "Twilio APIs SLA 2026-04-09 \u00a74 Exclusions",
+      "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+    }
+  ],
+  "trace": [
+    "Twilio Services APIs / standard plan / region US1.",
+    "Covered API, archived status interval, submitted documentation, initial exclusion screen, filing clock and affected fees support a local claim.",
+    "Replayed interval 2026-10-14T12:00:00+00:00 through 2026-10-14T12:30:00+00:00. If all 30 minutes count, monthly availability is 99.93280% over 44,640 minutes against the 99.95% standard threshold. Section 4 exclusions apply.",
+    "USD 1000.00 in affected API fees \u00d7 10% = USD 100.00 in the draft. Carrier and tax lines are excluded. An award is a future service credit.",
+    "Claim drafted from synthetic October API charges and a replayed status interval.",
+    "The submitted record does not yet document the affected component and interval.",
+    "A component attachment is missing. Search the scoped archive before requesting follow-up approval.",
+    "Confirmed affected charges of USD 1000.00 support a future service credit.",
+    "Record the simulated future-use credit. Posting and bill application require separate receipts."
+  ],
+  "evidence": [
+    {
+      "label": "Customer invoice lines",
+      "detail": "msg-1-a \u00b7 affected_api \u00b7 USD 800.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer invoice lines",
+      "detail": "msg-1-b \u00b7 affected_api \u00b7 USD 200.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer invoice lines",
+      "detail": "carrier-1 \u00b7 carrier \u00b7 USD 90.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer invoice lines",
+      "detail": "tax-1 \u00b7 tax \u00b7 USD 60.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "status_summary",
+      "detail": "status-1-summary \u00b7 Twilio Messaging API \u00b7 2026-10-14T12:00:00+00:00 to 2026-10-14T12:30:00+00:00",
+      "digest": "c5bd263265d6c5e0c732127ade6732870efdb9e663c59bec92b4d2c3733995d5",
+      "sources": [
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "component_record",
+      "detail": "status-1-component \u00b7 Twilio Messaging API \u00b7 2026-10-14T12:00:00+00:00 to 2026-10-14T12:30:00+00:00",
+      "digest": "582c343f1e374ab834e5f54263f64680af1a7d08dc13854c8c42531b717da048",
+      "sources": [
+        "DETERMINISTIC_REPLAY"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "at": "2026-11-02T10:00:00+00:00",
+      "event": "Claim drafted from synthetic October API charges and a replayed status interval.",
+      "actor": "fixture-loader",
+      "role": "system",
+      "tenant": "bears",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "at": "2026-11-02T10:00:00+00:00",
+      "event": "Reviewer approved this exact simulated ticket.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "digest": "24940a36cd0e1aaebc53469103ff058bf619ceb627098a87e61364d983710ea9",
+      "action": "approve-claim"
+    },
+    {
+      "at": "2026-11-02T10:01:00+00:00",
+      "event": "Claim sent to simulator.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "receipt": "SIM-2facb8818dc52aac",
+      "digest": "24940a36cd0e1aaebc53469103ff058bf619ceb627098a87e61364d983710ea9"
+    },
+    {
+      "at": "2026-11-02T10:01:00+00:00",
+      "event": "The submitted record does not yet document the affected component and interval.",
+      "actor": "vendor-simulator",
+      "role": "simulator",
+      "tenant": "bears",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "code": "DOCUMENTATION_NEEDED",
+      "clause": "\u00a73"
+    },
+    {
+      "at": "2026-11-02T10:01:00+00:00",
+      "event": "A component attachment is missing. Search the scoped archive before requesting follow-up approval.",
+      "actor": "dispute-reviewer",
+      "role": "system",
+      "tenant": "bears",
+      "sources": [
+        "LIVE_VENDOR_PUBLIC",
+        "SYNTHETIC_CUSTOMER",
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "at": "2026-11-02T10:02:00+00:00",
+      "event": "Prepared existing archive record status-1-component for the requested component and interval.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "digest": "582c343f1e374ab834e5f54263f64680af1a7d08dc13854c8c42531b717da048"
+    },
+    {
+      "at": "2026-11-02T10:03:00+00:00",
+      "event": "Reviewer approved this exact simulated ticket.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "digest": "8f50aca6c051802b64570134d0216e9c0d48a5392f7f0f62e95fdc3aaa711e70",
+      "action": "approve-response"
+    },
+    {
+      "at": "2026-11-03T10:01:00+00:00",
+      "event": "Replay clock advanced to the first permitted follow-up time.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "at": "2026-11-03T10:02:00+00:00",
+      "event": "Evidence supplement sent to simulator.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "receipt": "SIM-07baa992b74e0836",
+      "digest": "8f50aca6c051802b64570134d0216e9c0d48a5392f7f0f62e95fdc3aaa711e70"
+    },
+    {
+      "at": "2026-11-03T10:02:00+00:00",
+      "event": "Confirmed affected charges of USD 1000.00 support a future service credit.",
+      "actor": "vendor-simulator",
+      "role": "simulator",
+      "tenant": "bears",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "code": "AWARD",
+      "clause": "\u00a7\u00a71, 3"
+    },
+    {
+      "at": "2026-11-03T10:02:00+00:00",
+      "event": "Record the simulated future-use credit. Posting and bill application require separate receipts.",
+      "actor": "dispute-reviewer",
+      "role": "system",
+      "tenant": "bears",
+      "sources": [
+        "LIVE_VENDOR_PUBLIC",
+        "SYNTHETIC_CUSTOMER",
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ]
+    }
+  ],
+  "submissions": [
+    {
+      "id": "SIM-2facb8818dc52aac",
+      "idempotency_key": "2facb8818dc52aac89cfa26a88445a977220d56f929533125f1732b3324af998",
+      "action": "submit-claim",
+      "digest": "24940a36cd0e1aaebc53469103ff058bf619ceb627098a87e61364d983710ea9",
+      "document_refs": [
+        "status-1-summary"
+      ],
+      "approval": {
+        "by": "finance-reviewer",
+        "at": "2026-11-02T10:00:00+00:00",
+        "digest": "24940a36cd0e1aaebc53469103ff058bf619ceb627098a87e61364d983710ea9",
+        "action": "approve-claim",
+        "basis": {
+          "outcome": "ELIGIBLE",
+          "trace": [
+            "Covered API, archived status interval, submitted documentation, initial exclusion screen, filing clock and affected fees support a local claim."
+          ],
+          "clauses": [
+            {
+              "document": "Twilio APIs SLA",
+              "version": "2026-04-09",
+              "section": "\u00a7\u00a71, 3, 4",
+              "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+            }
+          ],
+          "usd": "100.00"
+        }
+      },
+      "subject": "SLA Claim",
+      "destination": "Twilio Customer Support (simulation)",
+      "at": "2026-11-02T10:01:00+00:00",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "id": "SIM-07baa992b74e0836",
+      "idempotency_key": "07baa992b74e0836cddcb1467dffcec4f4f7f4ae4fec1f2d2a311e41769addd9",
+      "action": "submit-response",
+      "digest": "8f50aca6c051802b64570134d0216e9c0d48a5392f7f0f62e95fdc3aaa711e70",
+      "document_refs": [
+        "status-1-summary",
+        "status-1-component"
+      ],
+      "approval": {
+        "by": "finance-reviewer",
+        "at": "2026-11-02T10:03:00+00:00",
+        "digest": "8f50aca6c051802b64570134d0216e9c0d48a5392f7f0f62e95fdc3aaa711e70",
+        "action": "approve-response",
+        "basis": {
+          "needed_kind": "component_record",
+          "new_document": "582c343f1e374ab834e5f54263f64680af1a7d08dc13854c8c42531b717da048"
+        }
+      },
+      "subject": "SLA Claim",
+      "destination": "Twilio Customer Support (simulation)",
+      "at": "2026-11-03T10:02:00+00:00",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ]
+    }
+  ],
+  "replies": [
+    {
+      "code": "DOCUMENTATION_NEEDED",
+      "reason": "The submitted record does not yet document the affected component and interval.",
+      "clause": "\u00a73",
+      "awarded": "0.00",
+      "needed_kind": "component_record",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "receipt": "SIM-2facb8818dc52aac"
+    },
+    {
+      "code": "AWARD",
+      "reason": "Confirmed affected charges of USD 1000.00 support a future service credit.",
+      "clause": "\u00a7\u00a71, 3",
+      "awarded": "100.00",
+      "needed_kind": null,
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "receipt": "SIM-07baa992b74e0836"
+    }
+  ],
+  "filing_cutoff": "2026-12-01T00:00:00+00:00",
+  "performed_actions": [
+    "approve-claim",
+    "submit-claim",
+    "prepare-response",
+    "approve-response",
+    "advance-cooldown",
+    "submit-response"
+  ]
+}

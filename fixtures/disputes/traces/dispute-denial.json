@@ -1,0 +1,227 @@
+{
+  "id": "dispute-denial",
+  "title": "Check a scheduled maintenance exclusion",
+  "vendor": "Twilio",
+  "mode": "LOCAL_SIMULATOR",
+  "sources": [
+    "LIVE_VENDOR_PUBLIC",
+    "SYNTHETIC_CUSTOMER",
+    "SIMULATED_VENDOR",
+    "DETERMINISTIC_REPLAY"
+  ],
+  "stage": "DENIAL_ACCEPTED",
+  "ledger": {
+    "estimated": "100.00",
+    "claimed": "100.00",
+    "awarded": "0.00",
+    "disputed_remainder": "0.00",
+    "posted": "0.00",
+    "applied": "0.00"
+  },
+  "clauses": [
+    {
+      "label": "Twilio APIs SLA 2026-04-09 \u00a71 Fee basis",
+      "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+    },
+    {
+      "label": "Twilio APIs SLA 2026-04-09 \u00a73 Filing and credits",
+      "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+    },
+    {
+      "label": "Twilio APIs SLA 2026-04-09 \u00a74 Exclusions",
+      "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+    }
+  ],
+  "trace": [
+    "Twilio Services APIs / standard plan / region US1.",
+    "Covered API, archived status interval, submitted documentation, initial exclusion screen, filing clock and affected fees support a local claim.",
+    "Replayed interval 2026-10-14T12:00:00+00:00 through 2026-10-14T12:30:00+00:00. If all 30 minutes count, monthly availability is 99.93280% over 44,640 minutes against the 99.95% standard threshold. Section 4 exclusions apply.",
+    "USD 1000.00 in affected API fees \u00d7 10% = USD 100.00 in the draft. Carrier and tax lines are excluded. An award is a future service credit.",
+    "Claim drafted from synthetic October API charges and a replayed status interval.",
+    "Scheduled maintenance was announced at least 24 hours in advance.",
+    "Customer notice notice-2 independently confirms the exclusion. Close without a rebuttal."
+  ],
+  "evidence": [
+    {
+      "label": "Customer invoice lines",
+      "detail": "msg-2-a \u00b7 affected_api \u00b7 USD 800.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer invoice lines",
+      "detail": "msg-2-b \u00b7 affected_api \u00b7 USD 200.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer invoice lines",
+      "detail": "carrier-2 \u00b7 carrier \u00b7 USD 90.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer invoice lines",
+      "detail": "tax-2 \u00b7 tax \u00b7 USD 60.00",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "status_summary",
+      "detail": "status-2-summary \u00b7 Twilio Messaging API \u00b7 2026-10-14T12:00:00+00:00 to 2026-10-14T12:30:00+00:00",
+      "digest": "c038bed8e9c034b844efee93fbd8f5627f8b55f4cceed79334586d9ee1dc85da",
+      "sources": [
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "component_record",
+      "detail": "status-2-component \u00b7 Twilio Messaging API \u00b7 2026-10-14T12:00:00+00:00 to 2026-10-14T12:30:00+00:00",
+      "digest": "9cbf5f6ee025f2fc30b582ffd43147b9c8f040bfd351f43fcae105986c484289",
+      "sources": [
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "label": "Customer copy of maintenance notice",
+      "detail": "notice-2 \u00b7 issued 2026-10-13T10:00:00+00:00 \u00b7 Twilio Messaging API",
+      "digest": "319b113ecd07463d0115571ec7a13662e92602319c05f2e01322a8f9f9be292a",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "at": "2026-11-02T10:00:00+00:00",
+      "event": "Claim drafted from synthetic October API charges and a replayed status interval.",
+      "actor": "fixture-loader",
+      "role": "system",
+      "tenant": "bears",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ]
+    },
+    {
+      "at": "2026-11-02T10:00:00+00:00",
+      "event": "Reviewer approved this exact simulated ticket.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "SYNTHETIC_CUSTOMER",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "digest": "7a9ee065266af8d7fb9d44bd85fcc2a377b5170d256937b6a8cab282621d3a05",
+      "action": "approve-claim"
+    },
+    {
+      "at": "2026-11-02T10:01:00+00:00",
+      "event": "Claim sent to simulator.",
+      "actor": "finance-reviewer",
+      "role": "reviewer",
+      "tenant": "bears",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "receipt": "SIM-e36df330084ca23a",
+      "digest": "7a9ee065266af8d7fb9d44bd85fcc2a377b5170d256937b6a8cab282621d3a05"
+    },
+    {
+      "at": "2026-11-02T10:01:00+00:00",
+      "event": "Scheduled maintenance was announced at least 24 hours in advance.",
+      "actor": "vendor-simulator",
+      "role": "simulator",
+      "tenant": "bears",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "code": "MAINTENANCE_EXCLUDED",
+      "clause": "\u00a74(d)"
+    },
+    {
+      "at": "2026-11-02T10:01:00+00:00",
+      "event": "Customer notice notice-2 independently confirms the exclusion. Close without a rebuttal.",
+      "actor": "dispute-reviewer",
+      "role": "system",
+      "tenant": "bears",
+      "sources": [
+        "LIVE_VENDOR_PUBLIC",
+        "SYNTHETIC_CUSTOMER",
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ]
+    }
+  ],
+  "submissions": [
+    {
+      "id": "SIM-e36df330084ca23a",
+      "idempotency_key": "e36df330084ca23a8a6b9e1da6497f79d9ad83d4a4106cde1de7a22328d16c99",
+      "action": "submit-claim",
+      "digest": "7a9ee065266af8d7fb9d44bd85fcc2a377b5170d256937b6a8cab282621d3a05",
+      "document_refs": [
+        "status-2-summary",
+        "status-2-component"
+      ],
+      "approval": {
+        "by": "finance-reviewer",
+        "at": "2026-11-02T10:00:00+00:00",
+        "digest": "7a9ee065266af8d7fb9d44bd85fcc2a377b5170d256937b6a8cab282621d3a05",
+        "action": "approve-claim",
+        "basis": {
+          "outcome": "ELIGIBLE",
+          "trace": [
+            "Covered API, archived status interval, submitted documentation, initial exclusion screen, filing clock and affected fees support a local claim."
+          ],
+          "clauses": [
+            {
+              "document": "Twilio APIs SLA",
+              "version": "2026-04-09",
+              "section": "\u00a7\u00a71, 3, 4",
+              "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+            }
+          ],
+          "usd": "100.00"
+        }
+      },
+      "subject": "SLA Claim",
+      "destination": "Twilio Customer Support (simulation)",
+      "at": "2026-11-02T10:01:00+00:00",
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ]
+    }
+  ],
+  "replies": [
+    {
+      "code": "MAINTENANCE_EXCLUDED",
+      "reason": "Scheduled maintenance was announced at least 24 hours in advance.",
+      "clause": "\u00a74(d)",
+      "awarded": "0.00",
+      "needed_kind": null,
+      "sources": [
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "receipt": "SIM-e36df330084ca23a"
+    }
+  ],
+  "filing_cutoff": "2026-12-01T00:00:00+00:00",
+  "performed_actions": [
+    "approve-claim",
+    "submit-claim"
+  ]
+}
