@@ -1,0 +1,20 @@
+[
+  {"name":"qualified June outage","outcome":"ELIGIBLE","amount":"120.00"},
+  {"name":"enterprise-only tier","overlay":{"plan":"Enterprise"},"facts":{"downtime_minutes":30},"outcome":"ELIGIBLE","amount":"60.00"},
+  {"name":"same minutes premium","facts":{"downtime_minutes":30},"outcome":"INELIGIBLE"},
+  {"name":"exact 95 percent threshold","facts":{"downtime_minutes":2160},"outcome":"ELIGIBLE","amount":"300.00"},
+  {"name":"below 95 percent","facts":{"downtime_minutes":2161},"outcome":"ELIGIBLE","amount":"600.00"},
+  {"name":"exact 99 percent","facts":{"downtime_minutes":432},"outcome":"ELIGIBLE","amount":"120.00"},
+  {"name":"public incident only","facts":{"monitor_source":"public_status"},"outcome":"INSUFFICIENT_EVIDENCE"},
+  {"name":"late compensation ticket","facts":{"received_at":"2026-07-16T00:00:00Z"},"outcome":"INELIGIBLE"},
+  {"name":"credit deadline inclusive through 15th","facts":{"received_at":"2026-07-15T23:59:59Z"},"outcome":"ELIGIBLE","amount":"120.00"},
+  {"name":"sandbox Jira","overlay":{"instance":"sandbox"},"outcome":"INELIGIBLE"},
+  {"name":"bundle lacks vendor allocation","facts":{"fee_basis":"unallocated_bundle"},"outcome":"INSUFFICIENT_EVIDENCE"},
+  {"name":"API is outside scope","overlay":{"surface":"api"},"outcome":"INELIGIBLE"},
+  {"name":"reseller uses different fee path","overlay":{"agreement":"reseller"},"outcome":"UNSUPPORTED_RULE"},
+  {"name":"unsupported plan","overlay":{"plan":"Standard"},"outcome":"INELIGIBLE"},
+  {"name":"uncovered experience","overlay":{"experience":"export board"},"outcome":"INELIGIBLE"},
+  {"name":"before source effective date","facts":{"month":"2026-03"},"outcome":"UNSUPPORTED_RULE"},
+  {"name":"support incident ticket uncertain","facts":{"tech_ticket_during_incident":null},"outcome":"INSUFFICIENT_EVIDENCE"},
+  {"name":"non-USD fee line","overlay":{"currency":"EUR"},"outcome":"UNSUPPORTED_RULE"}
+]

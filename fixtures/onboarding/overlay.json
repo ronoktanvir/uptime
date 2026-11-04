@@ -1,0 +1,14 @@
+{
+  "tenant": "bears",
+  "agreement": "public-direct",
+  "plan": "Premium",
+  "product": "Jira",
+  "instance": "production",
+  "experience": "view issue",
+  "surface": "browser",
+  "currency": "USD",
+  "effective_from": "2026-05-01",
+  "effective_until": "2026-12-31",
+  "fee_line_ref": "synthetic-jira-monthly-line",
+  "source": "SYNTHETIC_CUSTOMER"
+}

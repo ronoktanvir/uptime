@@ -1,0 +1,16 @@
+{
+  "month": "2026-06",
+  "monitor_source": "simulated_atlassian_logs",
+  "downtime_minutes": 60,
+  "excluded_minutes_removed": true,
+  "good_standing": true,
+  "provisioned": true,
+  "breach": false,
+  "requested_documentation_complete": true,
+  "tech_ticket_during_incident": true,
+  "compensation_ticket_complete": true,
+  "received_at": "2026-07-13T12:00:00Z",
+  "fee_line_ref": "synthetic-jira-monthly-line",
+  "fee_basis": "affected_product_monthly_fees",
+  "monthly_fee": "1200.00"
+}
