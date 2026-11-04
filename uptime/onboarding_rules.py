@@ -1,9 +1,11 @@
 """Restricted compiler and interpreter for the supported Atlassian Jira direct-purchase scope."""
 import calendar
 from datetime import UTC, date, datetime, timedelta
-from decimal import Decimal, ROUND_HALF_UP
+from dataclasses import dataclass
+from decimal import Context, Decimal, ROUND_HALF_UP, localcontext
 import json
 import re
+from fractions import Fraction
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -132,6 +134,12 @@ def challenge_through(template, posted_at, zone, holidays):
     return day
 
 
+@dataclass(frozen=True)
+class JiraEvaluation(EvaluationResult):
+    filing_status: str = 'UNDETERMINED'
+    issuance_status: str = 'NOT_ESTABLISHED'
+
+
 def generated_cases(template):
     """Synthesize boundary tests on either side of every exclusive breakpoint."""
     rows = []
@@ -139,7 +147,9 @@ def generated_cases(template):
         for index, band in enumerate(bands):
             threshold = Decimal(band['below'])
             next_credit = bands[index + 1]['credit'] if index + 1 < len(bands) else '0'
-            rows.append({'plan': plan, 'uptime': str(threshold - Decimal('0.0000001')), 'rate': band['credit']})
+            with localcontext(Context(prec=40)):
+                adjacent = threshold - Decimal('0.0000001')
+            rows.append({'plan': plan, 'uptime': str(adjacent), 'rate': band['credit']})
             rows.append({'plan': plan, 'uptime': str(threshold), 'rate': next_credit})
     return rows
 
@@ -150,10 +160,10 @@ def evaluate(template, principal, overlay, facts):
         raise PermissionError('Tenant mismatch')
     r = template['rules']
 
-    def result(outcome, clause, detail, missing=(), money=None, support=False):
+    def result(outcome, clause, detail, missing=(), money=None, support=False, filing="UNDETERMINED", issuance="NOT_ESTABLISHED"):
         uri = SUPPORT if support else SLA
         citation = Citation('Atlassian support' if support else 'Atlassian SLA', r['effective'], clause, uri)
-        return EvaluationResult(outcome, (citation,), (detail,), tuple(missing), money)
+        return JiraEvaluation(outcome, (citation,), (detail,), tuple(missing), money, filing, issuance)
 
     def missing(clause, fact, support=False):
         return result(Outcome.MISSING, clause, 'Missing or unverified: ' + fact, [fact], support=support)
@@ -186,7 +196,7 @@ def evaluate(template, principal, overlay, facts):
         return missing('§2.1 / Appendix A', 'matching tenant site and product evidence')
     for key, required, clause, support in (
         ('breach', False, '§3', False), ('provisioned', True, '§3', False),
-        ('good_standing', True, '§2.2', False), ('tech_ticket_during_incident', True, 'Process to get compensation', True),
+        ('tech_ticket_during_incident', True, 'Process to get compensation', True),
         ('authorized_ticket_submitter', True, 'Request a compensation credit', True),
         ('compensation_ticket_complete', True, '§2.1', False), ('requested_documentation_complete', True, '§2.1', False)):
         if type(facts.get(key)) is not bool:
@@ -202,7 +212,7 @@ def evaluate(template, principal, overlay, facts):
     except (KeyError, TypeError, ValueError):
         return missing('§2.1', 'timestamped complete compensation ticket receipt')
     if not end <= receipt < claim_cutoff(template, facts['month']):
-        return result(Outcome.INELIGIBLE, '§2.1', 'Compensation request receipt falls outside the calendar-day window.')
+        return result(Outcome.INELIGIBLE, '§2.1', 'Compensation request receipt falls outside the calendar-day window.', filing='OUTSIDE_WINDOW')
     if (facts.get('monitor_source') != 'simulated_atlassian_logs' or facts.get('vendor_month') != facts['month']
             or facts.get('excluded_minutes_removed') is not True or facts.get('monitor_month_complete') is not True
             or facts.get('monitor_rate_operator') != 'strictly_greater'
@@ -212,8 +222,10 @@ def evaluate(template, principal, overlay, facts):
     down = facts.get('downtime_minutes')
     if type(down) is not int or not 0 <= down <= total:
         return missing('Appendix B', 'count of vendor-confirmed minutes exceeding the error threshold')
-    uptime = Decimal(100) * (total - down) / total
-    rate = rate_for(template, overlay['plan'], uptime)
+    ratio = Fraction(100 * (total - down), total)
+    rate = rate_for(template, overlay['plan'], ratio)
+    with localcontext(Context(prec=40)):
+        uptime = Decimal(ratio.numerator) / ratio.denominator
     trace = f'{total} UTC minutes, {down} confirmed qualifying minutes; {uptime:.8f}% uptime gives a {rate}% rate.'
     if not rate:
         return result(Outcome.INELIGIBLE, 'Appendix B', trace)
@@ -222,5 +234,11 @@ def evaluate(template, principal, overlay, facts):
             or facts.get('fee_line_ref') != overlay['fee_line_ref'] or facts.get('fee_month') != facts['month']
             or not isinstance(fee, str) or not re.fullmatch(r'\d{1,12}(?:\.\d{1,2})?', fee)):
         return missing('Appendix B', 'verified affected product-month fee allocation')
-    amount = (Decimal(fee) * rate / 100).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    return result(Outcome.ELIGIBLE, 'Appendix B / §2.2', trace + f' USD {fee} × {rate}% = {amount} modeled service credit.', money=Money(amount))
+    with localcontext(Context(prec=40)):
+        amount = (Decimal(fee) * rate / 100).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    standing = facts.get('good_standing')
+    issuance = ('CONDITIONAL_ON_VENDOR_REVIEW' if standing is True else
+                'BLOCKED_ACCOUNT_STANDING' if standing is False else 'ACCOUNT_STANDING_UNKNOWN')
+    detail = f' USD {fee} × {rate}% = {amount} modeled filing amount. Issuance: {issuance}.'
+    return result(Outcome.ELIGIBLE, 'Appendix B / §2.2', trace + detail, money=Money(amount),
+                  filing='TIMELY', issuance=issuance)

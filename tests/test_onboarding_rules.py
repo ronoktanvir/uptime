@@ -96,3 +96,19 @@ def test_cross_tenant_facts_or_overlay_blocked():
         evaluate(R, TEST_VIEWER, fixture('overlay'), fixture('observations') | {'tenant': 'other'})
     with pytest.raises(PermissionError):
         evaluate(R, TEST_VIEWER, fixture('overlay') | {'tenant': 'other'}, fixture('observations'))
+
+
+def test_jira_calculation_and_generation_are_independent_of_ambient_precision():
+    from decimal import localcontext
+    with localcontext() as context:
+        context.prec = 3
+        result = evaluate(R, TEST_VIEWER, fixture('overlay'), fixture('observations'))
+        assert result.outcome == Outcome.ELIGIBLE and str(result.amount.amount) == '120.00'
+        assert build_candidate()['generated_tests'] == fixture('generated_candidate')['generated_tests']
+
+
+@pytest.mark.parametrize('standing,issuance', [(False, 'BLOCKED_ACCOUNT_STANDING'), (None, 'ACCOUNT_STANDING_UNKNOWN')])
+def test_timely_filing_survives_blocked_or_unconfirmed_issuance(standing, issuance):
+    result = evaluate(R, TEST_VIEWER, fixture('overlay'), fixture('observations') | {'good_standing': standing})
+    assert result.outcome == Outcome.ELIGIBLE and result.amount.amount == Decimal('120.00')
+    assert result.filing_status == 'TIMELY' and result.issuance_status == issuance
