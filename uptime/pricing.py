@@ -8,7 +8,7 @@ No provider I/O, payment mutation, commercial authorization or claim submission.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal, ROUND_HALF_UP, localcontext
 
 from uptime.contracts import Citation, EvaluationResult, Money, Outcome, Source
@@ -162,10 +162,19 @@ def _aware(value: object) -> bool:
     return isinstance(value, datetime) and value.tzinfo is not None and value.utcoffset() is not None
 
 
+def _canonical(value: object) -> bool:
+    """Identifiers/references are supplied exactly, never repaired into authority."""
+    return isinstance(value, str) and bool(value.strip()) and value == value.strip() and value.isprintable()
+
+
+def _instant(value: datetime) -> datetime:
+    return value.astimezone(UTC)
+
+
 def _number(value: object) -> bool:
     # Bounded fixed-point domain keeps arithmetic exact under our local context.
     return (isinstance(value, Decimal) and value.is_finite()
-            and abs(value) <= Decimal("1e15") and value.as_tuple().exponent >= -6)
+            and value.copy_abs() <= Decimal("1e15") and value.as_tuple().exponent >= -6)
 
 
 def _money(value: object) -> bool:
@@ -176,11 +185,11 @@ def _money(value: object) -> bool:
 
 def _validate_binding(provider: ProviderBill, mapping: Invoice):
     _require(provider.verified is True and provider.source == Source.RAMP
-             and bool(provider.verification_ref.strip()), "Verified live sandbox read reference required")
+             and _canonical(provider.verification_ref), "Verified live sandbox read reference required")
     _require(provider.base_url == "https://demo-api.ramp.com", "Only sandbox provider binding supported", Outcome.UNSUPPORTED)
     _require(_aware(provider.observed_at), "Provider read timestamp with timezone required")
-    _require(bool(provider.id.strip()) and provider.id == mapping.id, "Provider bill ID conflicts with synthetic mapping")
-    _require(bool(provider.vendor_id) and provider.vendor_id == mapping.provider_vendor_id,
+    _require(_canonical(provider.id) and provider.id == mapping.id, "Provider bill ID conflicts with synthetic mapping")
+    _require(_canonical(provider.vendor_id) and provider.vendor_id == mapping.provider_vendor_id,
              "Provider vendor ID conflicts with explicit synthetic mapping")
     _require(provider.currency == mapping.currency == "USD", "Provider currency/FX unsupported", Outcome.UNSUPPORTED)
     _require(_money(provider.amount) and _money(mapping.total) and provider.amount == mapping.total,
@@ -196,9 +205,9 @@ def _validate_binding(provider: ProviderBill, mapping: Invoice):
         ctx.prec = 60
         _require(sum((line.net + line.tax for line in mapping.lines), ZERO) == provider.amount,
                  "Synthetic line allocation does not equal verified provider total")
-    _require(len({line.id for line in mapping.lines}) == len(mapping.lines), "Duplicate synthetic line IDs")
+    _require(all(_canonical(line.id) for line in mapping.lines) and len({line.id for line in mapping.lines}) == len(mapping.lines), "Duplicate synthetic line IDs")
     if provider.lines:
-        _require(len({line.id for line in provider.lines}) == len(provider.lines), "Duplicate provider line IDs")
+        _require(all(_canonical(line.id) for line in provider.lines) and len({line.id for line in provider.lines}) == len(provider.lines), "Duplicate provider line IDs")
         mapped = {line.id: line for line in mapping.lines}
         _require(set(mapped) == {line.id for line in provider.lines}, "Provider line scope conflicts with mapping")
         for line in provider.lines:
@@ -208,8 +217,11 @@ def _validate_binding(provider: ProviderBill, mapping: Invoice):
                     if name in ("net", "tax", "quantity"):
                         _require(_number(value), f"Invalid provider {name}")
                     if name in ("start", "end"):
-                        _require(_aware(value), f"Provider {name} timezone required")
-                    _require(value == getattr(mapped[line.id], name), f"Provider line {line.id} {name} conflicts with mapping")
+                        mapped_value = getattr(mapped[line.id], name)
+                        _require(_aware(value) and _aware(mapped_value), f"Provider/mapping {name} timezone required")
+                        _require(_instant(value) == _instant(mapped_value), f"Provider line {line.id} {name} conflicts with mapping")
+                    else:
+                        _require(value == getattr(mapped[line.id], name), f"Provider line {line.id} {name} conflicts with mapping")
 
 
 def bind_sandbox_bill(provider: ProviderBill, mapping: Invoice) -> Invoice:
@@ -224,27 +236,27 @@ def bind_sandbox_bill(provider: ProviderBill, mapping: Invoice) -> Invoice:
 
 def _validate_agreement(agreement: Agreement):
     _require(agreement.source == Source.CUSTOMER, "Only synthetic agreements supported", Outcome.UNSUPPORTED)
-    _require(bool(agreement.id) and bool(agreement.customer) and bool(agreement.vendor)
+    _require(_canonical(agreement.id) and _canonical(agreement.customer) and _canonical(agreement.vendor)
              and agreement.customer != agreement.vendor, "Agreement parties and identity required")
     _require(isinstance(agreement.versions, tuple) and bool(agreement.versions), "Immutable version history required")
     _require(_aware(agreement.expires_at), "Contract expiration timezone required")
     previous = None
     seen = set()
     for version in agreement.versions:
-        _require(bool(version.id) and version.id not in seen, "Unique version identity required")
+        _require(_canonical(version.id) and version.id not in seen, "Unique version identity required")
         seen.add(version.id)
         _require(_aware(version.effective_at) and _aware(version.signed_at), "Effective and signed timestamps with timezone required")
-        _require(version.signed_at <= version.effective_at,
+        _require(_instant(version.signed_at) <= _instant(version.effective_at),
                  "Retroactive or late-signed terms require commercial interpretation", Outcome.UNSUPPORTED)
         _require(isinstance(version.signatories, tuple)
                  and set(version.signatories) == {agreement.customer, agreement.vendor}, "Both party signatures required")
-        _require(version.effective_at < agreement.expires_at, "Version effective after agreement expiration")
+        _require(_instant(version.effective_at) < _instant(agreement.expires_at), "Version effective after agreement expiration")
         _require(version.supersedes == (previous.id if previous else None), "Broken or ambiguous amendment chain")
         if previous:
-            _require(previous.effective_at < version.effective_at, "Amendments must have strictly increasing effective dates")
-            _require(previous.signed_at <= version.signed_at, "Amendment signed before predecessor")
-        _require(bool(version.citation.uri) and bool(version.citation.section)
-                 and bool(version.citation.document) and version.citation.version == version.id,
+            _require(_instant(previous.effective_at) < _instant(version.effective_at), "Amendments must have strictly increasing effective dates")
+            _require(_instant(previous.signed_at) <= _instant(version.signed_at), "Amendment signed before predecessor")
+        _require(_canonical(version.citation.uri) and _canonical(version.citation.section)
+                 and _canonical(version.citation.document) and version.citation.version == version.id,
                  "Exact version clause citation required")
         _require(version.currency == "USD", "FX/non-USD agreement unsupported", Outcome.UNSUPPORTED)
         _require(version.tax_treatment == "separate_excluded", "Tax interpretation unsupported", Outcome.UNSUPPORTED)
@@ -271,7 +283,7 @@ def _validate_agreement(agreement: Agreement):
         previous = version
 
 
-def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str]) -> tuple[LineFinding, ...]:
+def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str], findings: list[LineFinding]) -> tuple[LineFinding, ...]:
     _validate_agreement(agreement)
     _require(invoice.source == Source.CUSTOMER, "Invoice service mapping must be labeled synthetic")
     if invoice.provider:
@@ -282,67 +294,96 @@ def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str]) -> tuple
         trace.append("Synthetic invoice only; no live Ramp bill bound.")
     _require(invoice.customer == agreement.customer and invoice.vendor == agreement.vendor,
              "Invoice parties do not match synthetic agreement", Outcome.INELIGIBLE)
-    _require(bool(invoice.id) and _aware(invoice.issued_at), "Invoice identity and issue timestamp required")
+    _require(_canonical(invoice.id) and _aware(invoice.issued_at), "Invoice identity and issue timestamp required")
     _require(invoice.currency == "USD", "FX/non-USD invoice unsupported", Outcome.UNSUPPORTED)
     _require(invoice.payment_status in ("pending", "paid"), "Payment state unsupported", Outcome.UNSUPPORTED)
     _require(isinstance(invoice.lines, tuple) and bool(invoice.lines), "Itemized invoice required")
     _require(_money(invoice.total), "Finite nonnegative cent-precision invoice total required")
-    _require(len({line.id for line in invoice.lines}) == len(invoice.lines), "Duplicate invoice line IDs")
+    _require(all(_canonical(line.id) for line in invoice.lines)
+             and len({line.id for line in invoice.lines}) == len(invoice.lines), "Canonical unique invoice line IDs required")
     for line in invoice.lines:
-        _require(bool(line.id) and _money(line.net) and _money(line.tax), "Itemized net fees and separate tax required")
+        _require(_canonical(line.id) and _money(line.net) and _money(line.tax), "Itemized net fees and separate tax required")
     _require(sum((line.net + line.tax for line in invoice.lines), ZERO) == invoice.total,
              "Invoice net lines plus tax do not reconcile to gross amount")
-    findings: list[LineFinding] = []
-    allocations = set()
+    errors: list[PricingInputError] = []
     for line in invoice.lines:
-        _require(bool(line.product), f"Line {line.id}: unidentified product scope")
-        _require(_aware(line.start) and _aware(line.end), f"Line {line.id}: performance dates with timezone required")
-        _require(line.start < line.end, f"Line {line.id}: nonempty half-open performance interval required")
-        _require(line.start >= agreement.versions[0].effective_at and line.end <= agreement.expires_at,
-                 f"Line {line.id}: outside agreement performance period", Outcome.INELIGIBLE)
-        _require(line.end <= invoice.issued_at, f"Line {line.id}: future performance requires separate advance-billing rules", Outcome.UNSUPPORTED)
-        version = max((v for v in agreement.versions if v.effective_at <= line.start), key=lambda v: v.effective_at)
-        _require(not any(line.start < v.effective_at < line.end for v in agreement.versions),
-                 f"Line {line.id}: cross-amendment quantity allocation unknown; split with documented complete allocations")
-        trace.append(f"[{version.citation.uri} #{version.citation.section}] Line {line.id}: performance "
-                     f"[{line.start.isoformat()}, {line.end.isoformat()}); effective version {version.id}, "
-                     f"signed {version.signed_at.isoformat()}, effective {version.effective_at.isoformat()}, "
-                     f"supersedes {version.supersedes or 'none'}; invoice date does not choose rate.")
-        if line.product in version.excluded_products:
-            trace.append(f"Line {line.id}: {line.product} explicitly non-covered; {line.net} USD excluded from discrepancy; tax {line.tax} excluded.")
-            findings.append(LineFinding(line.id, line.product, version.id, line.net, None, None, "NON_COVERED"))
-            continue
-        rate = next((r for r in version.rates if r.product == line.product), None)
-        _require(rate is not None, f"Line {line.id}: product {line.product} lacks identified contractual scope")
-        _require(line.unit == rate.unit, f"Line {line.id}: quantity unit missing or conflicting")
-        _require(_number(line.quantity) and line.quantity > 0 and line.quantity == line.quantity.to_integral_value(),
-                 f"Line {line.id}: positive whole-unit decimal quantity required")
-        _require(line.allocation_complete is True and bool(line.allocation_ref),
-                 f"Line {line.id}: complete performance-slice quantity allocation required")
-        _require(line.allocation_ref not in allocations, f"Line {line.id}: duplicate allocation reference")
-        allocations.add(line.allocation_ref)
-        _require(not any(other.product == line.product and other.id != line.id
-                         and _aware(other.start) and _aware(other.end)
-                         and line.start < other.end and other.start < line.end for other in invoice.lines),
-                 f"Line {line.id}: overlapping product allocations make tier attainment ambiguous")
-        trace.append(f"Line {line.id}: allocation {line.allocation_ref}; complete quantity {line.quantity} {line.unit}; "
-                     "graduated tiers reset for this complete performance slice; thresholds upper-inclusive.")
-        expected = ZERO
-        lower = ZERO
-        for tier in rate.tiers:
-            units = max(ZERO, min(line.quantity, tier.upper if tier.upper is not None else line.quantity) - lower)
-            subtotal = units * tier.rate
-            expected += subtotal
-            trace.append(f"Line {line.id}: tier ({lower}, {tier.upper if tier.upper is not None else 'unbounded'}] "
-                         f"{units} × {tier.rate} USD = {subtotal} USD.")
-            if tier.upper is not None:
-                lower = tier.upper
-        expected = expected.quantize(CENT, rounding=ROUND_HALF_UP)
-        delta = line.net - expected
-        direction = "OVERCHARGE" if delta > 0 else "UNDERCHARGE" if delta < 0 else "MATCH"
-        trace.append(f"Line {line.id}: billed net {line.net} - expected {expected} = {delta} USD ({direction}); "
-                     f"line HALF_UP to cents; tax {line.tax} separately excluded and not adjudicated.")
-        findings.append(LineFinding(line.id, line.product, version.id, line.net, expected, delta, direction))
+        try:
+            _require(_canonical(line.product), f"Line {line.id}: unidentified product scope")
+            # Only a product expressly excluded throughout the supplied agreement
+            # history can be omitted without resolving its performance version.
+            if all(line.product in v.excluded_products for v in agreement.versions):
+                # Preserve the dated version where resolvable; otherwise cite
+                # every source of exclusion without inventing an effective one.
+                versions = [v for v in agreement.versions if _aware(line.start)
+                            and _instant(v.effective_at) <= _instant(line.start)]
+                dated = (versions and _aware(line.end)
+                         and _instant(line.start) < _instant(line.end) <= _instant(agreement.expires_at)
+                         and not any(_instant(line.start) < _instant(v.effective_at) < _instant(line.end)
+                                     for v in agreement.versions))
+                version_ref = versions[-1].id if dated else "all versions: " + ", ".join(v.id for v in agreement.versions)
+                trace.append(f"Line {line.id}: {line.product} explicitly non-covered in every version "
+                             f"({', '.join(v.id for v in agreement.versions)}); {line.net} USD and tax {line.tax} excluded.")
+                findings.append(LineFinding(line.id, line.product, version_ref,
+                                            line.net, None, None, "NON_COVERED"))
+                continue
+            _require(_aware(line.start) and _aware(line.end), f"Line {line.id}: performance dates with timezone required")
+            _require(_instant(line.start) < _instant(line.end), f"Line {line.id}: nonempty half-open performance interval required")
+            _require(_instant(line.start) >= _instant(agreement.versions[0].effective_at) and _instant(line.end) <= _instant(agreement.expires_at),
+                     f"Line {line.id}: outside agreement performance period", Outcome.INELIGIBLE)
+            _require(_instant(line.end) <= _instant(invoice.issued_at), f"Line {line.id}: future performance requires separate advance-billing rules", Outcome.UNSUPPORTED)
+            version = max((v for v in agreement.versions if _instant(v.effective_at) <= _instant(line.start)), key=lambda v: _instant(v.effective_at))
+            _require(not any(_instant(line.start) < _instant(v.effective_at) < _instant(line.end) for v in agreement.versions),
+                     f"Line {line.id}: cross-amendment quantity allocation unknown; split with documented complete allocations")
+            trace.append(f"[{version.citation.uri} #{version.citation.section}] Line {line.id}: performance "
+                         f"[{line.start.isoformat()}, {line.end.isoformat()}); effective version {version.id}, "
+                         f"signed {version.signed_at.isoformat()}, effective {version.effective_at.isoformat()}, "
+                         f"supersedes {version.supersedes or 'none'}; invoice date does not choose rate.")
+            if line.product in version.excluded_products:
+                trace.append(f"Line {line.id}: {line.product} explicitly non-covered; {line.net} USD excluded from discrepancy; tax {line.tax} excluded.")
+                findings.append(LineFinding(line.id, line.product, version.id, line.net, None, None, "NON_COVERED"))
+                continue
+            rate = next((r for r in version.rates if r.product == line.product), None)
+            _require(rate is not None, f"Line {line.id}: product {line.product} lacks identified contractual scope")
+            _require(line.unit == rate.unit, f"Line {line.id}: quantity unit missing or conflicting")
+            _require(_number(line.quantity) and line.quantity > 0 and line.quantity == line.quantity.to_integral_value(),
+                     f"Line {line.id}: positive whole-unit decimal quantity required")
+            _require(line.allocation_complete is True and _canonical(line.allocation_ref),
+                     f"Line {line.id}: complete performance-slice quantity allocation required")
+            _require(not any(other.id != line.id and other.allocation_ref == line.allocation_ref
+                             for other in invoice.lines), f"Line {line.id}: duplicate allocation reference")
+            _require(not any(other.product == line.product and other.id != line.id
+                             and _aware(other.start) and _aware(other.end)
+                             and _instant(line.start) < _instant(other.end) and _instant(other.start) < _instant(line.end) for other in invoice.lines),
+                     f"Line {line.id}: overlapping product allocations make tier attainment ambiguous")
+            trace.append(f"Line {line.id}: allocation {line.allocation_ref}; complete quantity {line.quantity} {line.unit}; "
+                         "graduated tiers reset for this complete performance slice; thresholds upper-inclusive.")
+            expected = ZERO
+            lower = ZERO
+            for tier in rate.tiers:
+                units = max(ZERO, min(line.quantity, tier.upper if tier.upper is not None else line.quantity) - lower)
+                subtotal = units * tier.rate
+                expected += subtotal
+                trace.append(f"Line {line.id}: tier ({lower}, {tier.upper if tier.upper is not None else 'unbounded'}] "
+                             f"{units} × {tier.rate} USD = {subtotal} USD.")
+                if tier.upper is not None:
+                    lower = tier.upper
+            expected = expected.quantize(CENT, rounding=ROUND_HALF_UP)
+            delta = line.net - expected
+            direction = "OVERCHARGE" if delta > 0 else "UNDERCHARGE" if delta < 0 else "MATCH"
+            trace.append(f"Line {line.id}: billed net {line.net} - expected {expected} = {delta} USD ({direction}); "
+                         f"line HALF_UP to cents; tax {line.tax} separately excluded and not adjudicated.")
+            findings.append(LineFinding(line.id, line.product, version.id, line.net, expected, delta, direction))
+        except PricingInputError as error:
+            errors.append(error)
+            trace.append(f"Unassessed line {line.id}: {error}")
+    if errors:
+        # A verified line remains inspectable, but incomplete invoice totals are
+        # never exposed as claim amounts. Missing/unsupported beats denial.
+        priority = {Outcome.MISSING: 0, Outcome.UNSUPPORTED: 1, Outcome.INELIGIBLE: 2}
+        error = min(errors, key=lambda error: priority[error.outcome])
+        if error.outcome == Outcome.INELIGIBLE and any(line.delta is not None for line in findings):
+            raise PricingInputError(Outcome.MISSING, "Mixed covered and out-of-term lines; aggregate discrepancy not established")
+        raise error
     return tuple(findings)
 
 
@@ -351,8 +392,11 @@ def evaluate_price(agreement: Agreement, invoice: Invoice) -> PricingResult:
 
     ELIGIBLE amounts are provisional overcharge findings, never money prevented,
     awarded or recovered. Undercharges are exposed separately without netting.
+    On incomplete line evidence, verified findings remain available for review,
+    but aggregate discrepancy and claim amounts remain unknown.
     """
     trace: list[str] = []
+    findings: list[LineFinding] = []
     clauses = tuple(v.citation for v in agreement.versions) or (
         Citation("Missing agreement", "unknown", "required terms", "fixture:pricing/missing"),)
     sources = (Source.CUSTOMER, Source.REPLAY)
@@ -363,7 +407,7 @@ def evaluate_price(agreement: Agreement, invoice: Invoice) -> PricingResult:
             if invoice.provider:
                 _validate_binding(invoice.provider, invoice)
                 sources = (Source.RAMP, Source.CUSTOMER)
-            lines = _evaluate(agreement, invoice, trace)
+            lines = _evaluate(agreement, invoice, trace, findings)
             over = sum((max(ZERO, line.delta) for line in lines if line.delta is not None), ZERO)
             under = sum((max(ZERO, -line.delta) for line in lines if line.delta is not None), ZERO)
         trace.append(f"Provisional overcharge {over} USD; undercharge {under} USD; no automatic netting. "
@@ -375,7 +419,8 @@ def evaluate_price(agreement: Agreement, invoice: Invoice) -> PricingResult:
         trace.append(f"FAIL CLOSED: {error}")
         evaluation = EvaluationResult(error.outcome, clauses, tuple(trace),
                                       missing=(str(error),) if error.outcome == Outcome.MISSING else ())
-        return PricingResult(evaluation, (), None, None, "NEEDS_REVIEW", sources)
+        return PricingResult(evaluation, tuple(line for line in findings if line.delta is not None),
+                             None, None, "NEEDS_REVIEW", sources)
 
 
 def demo_cases() -> list[dict]:

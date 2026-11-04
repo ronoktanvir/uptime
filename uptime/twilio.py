@@ -82,6 +82,10 @@ def _decimal(value: Decimal) -> None:
         raise ValueError("finite Decimal required; floats are not accepted")
 
 
+def _reference(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip()) and value == value.strip() and value.isprintable()
+
+
 def _boolean(value: bool | None, *, optional: bool = True) -> None:
     if type(value) is not bool and not (optional and value is None):
         raise ValueError("boolean required; strings and integers are not evidence")
@@ -260,7 +264,12 @@ def evaluate(data: TwilioInput) -> EvaluationResult:
     """Return a cited CP1 outcome; ELIGIBLE means a candidate credit, never an award."""
     # Isolate calculations from the caller's ambient decimal precision/rounding.
     with localcontext() as context:
-        context.prec = 50
+        # Sum and percentage multiplication must preserve even sub-cent fees;
+        # size precision to the fixed-point inputs instead of rounding at 50 digits.
+        amounts = [line.amount for line in data.fees]
+        highest = max((amount.adjusted() for amount in amounts), default=0)
+        lowest = min((amount.as_tuple().exponent for amount in amounts), default=0)
+        context.prec = max(50, highest - min(lowest, 0) + len(str(len(amounts) + 1)) + 5)
         return _evaluate(data)
 
 
@@ -279,7 +288,7 @@ def _evaluate(data: TwilioInput) -> EvaluationResult:
         return result(Outcome.UNSUPPORTED, "Agreement version is not implemented.", "6. Updates")
     if data.month < date(2026, 4, 1):
         return result(Outcome.UNSUPPORTED, "This dated rule cannot establish historical agreement applicability.", "6. Updates")
-    if not data.agreement_ref:
+    if not _reference(data.agreement_ref):
         return missing("Governing agreement and whole-month applicability evidence required.", "6. Updates")
     if data.currency != "USD":
         return result(Outcome.UNSUPPORTED, "Prototype supports USD only; no currency conversion.", "1. Definitions")
@@ -290,11 +299,11 @@ def _evaluate(data: TwilioInput) -> EvaluationResult:
         return result(Outcome.INELIGIBLE, "This service is expressly outside the API SLA; its separate agreement is not evaluated.", "4. Exclusions")
     if scope.family == ServiceFamily.OTHER:
         return result(Outcome.UNSUPPORTED, "Unrecognized service family; no inferred API coverage.", "1. Definitions")
-    if not scope.api_id or not scope.evidence_ref or scope.supported is None or scope.generally_available is None:
+    if not _reference(scope.api_id) or not _reference(scope.evidence_ref) or scope.supported is None or scope.generally_available is None:
         return missing("Service API scope, support and general-availability evidence required.", "4. Exclusions")
     if not scope.supported or not scope.generally_available:
         return result(Outcome.INELIGIBLE, "Unsupported/discontinued or preview API is excluded.", "4. Exclusions")
-    if data.plan is None or not data.plan_ref:
+    if data.plan is None or not _reference(data.plan_ref):
         return missing("Customer plan and purchase evidence required.", "1. Definitions — thresholds")
     threshold = Decimal("99.95")
     if scope.family == ServiceFamily.TWILIO:
@@ -313,14 +322,14 @@ def _evaluate(data: TwilioInput) -> EvaluationResult:
         threshold = Decimal("99.99")
     elif data.plan != Plan.BASE:
         return result(Outcome.UNSUPPORTED, "Twilio edition cannot establish a SendGrid package.", "1. Definitions — thresholds")
-    if not data.timezone or not data.timezone_ref:
+    if not data.timezone or not _reference(data.timezone_ref):
         return missing("Explicit calendar timezone and evidence/assumption reference required; SLA specifies no timezone.", "1. Definitions — Total Monthly API Time")
     try:
         start, end = calendar_bounds(data.month, data.timezone)
     except (ZoneInfoNotFoundError, ValueError):
         return missing("Valid IANA calendar timezone required.", "1. Definitions — Total Monthly API Time")
     for name, coverage in (("subscription/plan", data.subscription_coverage), ("status-page", data.status_coverage)):
-        if (coverage is None or not coverage.complete or not coverage.evidence_ref
+        if (coverage is None or not coverage.complete or not _reference(coverage.evidence_ref)
                 or coverage.start.astimezone(UTC) > start or coverage.end.astimezone(UTC) < end):
             return missing(f"Complete {name} coverage of the calendar month required.")
         trace.append(f"{name} coverage_ref={coverage.evidence_ref}; [{start.isoformat()}, {end.isoformat()}).")
@@ -328,7 +337,7 @@ def _evaluate(data: TwilioInput) -> EvaluationResult:
         return missing("Calendar month is not complete; final monthly availability/fees cannot be established.")
     when = data.submitted_at or data.as_of
     if data.submitted_at is not None:
-        if not data.submission_ref:
+        if not _reference(data.submission_ref):
             return missing("Submission receipt required to use a historical submission timestamp.")
         if when.astimezone(UTC) > data.as_of.astimezone(UTC) or when.astimezone(UTC) < end:
             return missing("Submission timestamp must follow the completed month and not be in the future.")
@@ -341,12 +350,19 @@ def _evaluate(data: TwilioInput) -> EvaluationResult:
     included: list[tuple[datetime, datetime]] = []
     excluded: list[tuple[datetime, datetime]] = []
     host = "status.twilio.com" if scope.family == ServiceFamily.TWILIO else "status.sendgrid.com"
+    # Select connected same-service components before validating evidence. An
+    # adjacent historical chain can establish five continuous minutes at a month
+    # boundary; disconnected history cannot change this month's entitlement.
+    components = _merge([(i.start.astimezone(UTC), i.end.astimezone(UTC))
+                         for i in data.intervals if i.api_id == scope.api_id])
+    relevant = [(left, right) for left, right in components if left < end and right > start]
     for incident in data.intervals:
         left, right = incident.start.astimezone(UTC), incident.end.astimezone(UTC)
-        # Preserve outside/adjacent spans until after merging and the minimum-
-        # duration check: even a chain of records can cross the month boundary.
         if incident.api_id != scope.api_id:
             trace.append(f"Ignored interval for different API {incident.api_id}.")
+            continue
+        if not any(begin <= left and right <= finish for begin, finish in relevant):
+            trace.append("Ignored disconnected interval outside the billing month.")
             continue
         if right > data.as_of.astimezone(UTC):
             return missing("Future incident end cannot establish observed continuous unavailability.")
@@ -355,14 +371,14 @@ def _evaluate(data: TwilioInput) -> EvaluationResult:
         except ValueError:
             return missing("Valid vendor status URL required.")
         if (parsed.scheme != "https" or parsed.hostname != host or parsed.username or parsed.password
-                or not incident.documentation_refs or not all(incident.documentation_refs)):
+                or not isinstance(incident.documentation_refs, tuple) or not incident.documentation_refs or not all(_reference(ref) for ref in incident.documentation_refs)):
             return missing(f"Dates/times calculated from https://{host} and supporting documentation required; generic telemetry is insufficient.")
-        if incident.customer_affected is None or not incident.attribution_ref:
+        if incident.customer_affected is None or not _reference(incident.attribution_ref):
             return missing("Affected-customer/service mapping required; a public incident alone is only a lead.")
         if not incident.customer_affected:
             trace.append(f"Not customer-affected: {incident.attribution_ref}.")
             continue
-        if incident.exclusion == Exclusion.UNKNOWN or not incident.exclusion_ref:
+        if incident.exclusion == Exclusion.UNKNOWN or not _reference(incident.exclusion_ref):
             return missing("Exclusion assessment and evidence required for each relevant interval.", "4. Exclusions")
         is_excluded = incident.exclusion != Exclusion.NONE
         if incident.exclusion == Exclusion.SCHEDULED_MAINTENANCE:
@@ -391,28 +407,28 @@ def _evaluate(data: TwilioInput) -> EvaluationResult:
     breached = seconds * Decimal(100) > total_seconds * (Decimal(100) - threshold)
     if not breached:
         if scope.family == ServiceFamily.SENDGRID and data.plan in EMAIL_PLANS:
-            if data.connection_rate_met is not True or not data.connection_rate_ref:
+            if data.connection_rate_met is not True or not _reference(data.connection_rate_ref):
                 return result(Outcome.UNSUPPORTED, "Availability threshold met, but enhanced SendGrid has an independent Successful Connection Rate remedy; failure evaluation is unsupported and cannot be silently denied.", "3. API Service Credits — Successful Connection Rate")
             trace.append(f"Successful Connection Rate met per {data.connection_rate_ref}.")
         return result(Outcome.INELIGIBLE, "Availability is at or above the strict less-than threshold.", "3. API Service Credits")
-    if not data.fees_complete or not data.fees_ref:
+    if not data.fees_complete or not _reference(data.fees_ref):
         return missing("Complete affected-service monthly invoice/fee allocation required; vendor total is not an eligible fee basis.", "1. Definitions — API Service Credit")
     basis = Decimal(0)
     seen: set[str] = set()
     desired_kind = FeeKind.API if scope.family == ServiceFamily.TWILIO else FeeKind.EMAIL_PACKAGE
     for line in data.fees:
-        if not line.id or line.id in seen:
+        if not _reference(line.id) or line.id in seen:
             return missing("Unique invoice line IDs required; duplicate fee lines cannot be counted.", "1. Definitions — API Service Credit")
         seen.add(line.id)
         if line.month != data.month:
             trace.append(f"Fee {line.id} omitted: different calendar month.")
             continue
-        if not line.evidence_ref or not line.mapping_ref:
+        if not _reference(line.evidence_ref) or not _reference(line.mapping_ref):
             return missing(f"Fee {line.id}: invoice and classification/mapping evidence required.", "1. Definitions — API Service Credit")
         if line.kind in {FeeKind.TAX, FeeKind.CARRIER, FeeKind.THIRD_PARTY}:
             trace.append(f"[1] Fee {line.id} excluded: {line.kind.value}; ref={line.evidence_ref}; mapping={line.mapping_ref}.")
             continue
-        if line.api_id is None:
+        if not _reference(line.api_id):
             return missing(f"Fee {line.id}: affected API mapping unknown.", "1. Definitions — API Service Credit")
         if line.api_id != scope.api_id:
             trace.append(f"Fee {line.id} omitted: different API; mapping={line.mapping_ref}.")
