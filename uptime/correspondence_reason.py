@@ -27,7 +27,7 @@ def propose(text: str) -> Proposal:
     if component and request:
         found.append(("component", (min(component.start(), request.start()), max(component.end(), request.end()))))
     award = re.search(r"\b(award(?:ed|ing)?|grant(?:ed|ing)?|approve(?:d)?|issued?|applied|credit(?:ed)?|allow(?:ed)?)\b", text)
-    values = list(re.finditer(r"(?:\busd\s*|\$\s*)([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?)(?![\w.])|\b([0-9]+(?:\.[0-9]+)?)\s*usd\b", text))
+    values = list(re.finditer(r"(?:\busd\s*|\$\s*)([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?)(?!\w|[.,][0-9])|\b([0-9]+(?:\.[0-9]+)?)\s*usd\b", text))
     # 'We deny the credit' is not an award. A request to send a credit is not
     # an assertion of issuance. A monetary assertion needs one explicit USD amount.
     if award and values:
