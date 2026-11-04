@@ -186,7 +186,7 @@ class CorrespondenceDesk:
                     raise ValueError("Correspondence does not refer to the current local submission.")
                 
             fact = dict(event_id=event.event_id, source=source, subject=subject, kind=body["kind"], digest=digest,
-                        received_at=now.isoformat(), body=body)
+                        received_at=now.isoformat(), known_at=now.isoformat(), body=body)
             state["evidence"].append(fact)
             audit(state, now, subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
                   event_id=event.event_id, digest=digest)
@@ -355,7 +355,7 @@ class CorrespondenceDesk:
         amount = awarded if stage in {"AWARDED", "PARTIAL_AWARD_REVIEW"} else predicted if not submitted and evaluation.amount else None
         outcome = Outcome.INELIGIBLE if stage == "DENIAL_ACCEPTED" else evaluation.outcome if amount is not None or not submitted else Outcome.MISSING
         evidence = [dict(label=e["kind"], detail=e["event_id"] + " · " + e["source"], digest=e["digest"],
-                         received_at=e["received_at"], sources=VENDOR if e["source"] == "vendor" else SOURCES)
+                         received_at=e["received_at"], known_at=e.get("known_at", e["received_at"]), sources=VENDOR if e["source"] == "vendor" else SOURCES)
                     for e in state["evidence"]]
         replies = [{**r, "text": next(e["body"]["text"] for e in state["evidence"] if e["digest"] == r["digest"])} for r in state["replies"]]
         return dict(id=claim_id, title="Claim correspondence · " + scope.invoice, vendor=scope.vendor,

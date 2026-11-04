@@ -76,8 +76,9 @@ def env(tmp_path):
 def test_independent_simulator_new_evidence_and_oracle(env):
     initial = env.file()
     assert initial["requested"] == ORACLE["candidate"]
-    record = VendorRecord("bears", SCOPE, INTERVAL["start"], INTERVAL["end"], Decimal("621.30"),
-                          frozenset((a["kind"], a["digest"]) for a in initial["packet"]["artifacts"]))
+    private = json.loads((Path(__file__).parents[1] / "fixtures/correspondence/vendor_record.json").read_text())
+    record = VendorRecord(private["tenant"], Scope.model_validate(private["scope"]), private["start"], private["end"],
+                          Decimal(private["affected_fees"]), frozenset(private["attachments"].items()))
     request = adjudicate(initial["packet"], record, env.now)
     row = env.message(request)
     assert row["stage"] == "NEEDS_EVIDENCE" and not row["actions"]
@@ -88,7 +89,7 @@ def test_independent_simulator_new_evidence_and_oracle(env):
         env.act("submit-response")
     env.now += timedelta(hours=24)
     packet = env.act("submit-response")["submissions"][1]["packet"]
-    record = replace(record, attachments=record.attachments | {("component", doc["digest"])})
+    assert ("component", doc["digest"]) in record.attachments
     final = env.message(adjudicate(packet, record, env.now), "closing")
     oracle = ORACLE["component_cure"]
     assert (final["stage"], len(final["submissions"]), final["ledger"]["awarded"]) == (oracle["stage"], oracle["submissions"], oracle["awarded"])
