@@ -1,6 +1,7 @@
 """Append-only tenant catalog and lifecycle. Activation changes which evaluator can dispatch."""
 from contextlib import contextmanager
 import json
+from hashlib import sha256
 import re
 
 from pydantic import Field, ValidationError
@@ -14,7 +15,7 @@ from .vendor_terms import Intake, Strict, bind_overlay, candidate_version
 
 SOURCES = [Source.REPLAY.value, Source.CUSTOMER.value, Source.VENDOR.value]
 OPS = {'approve': 'Approve reviewed tests', 'activate': 'Activate for local evaluation',
-       'rollback': 'Roll back activation', 'review': 'Begin fresh review', 'revoke': 'Revoke approval'}
+       'rollback': 'Roll back activation', 'interpret': 'Accept source interpretation for this review', 'review': 'Begin fresh review', 'revoke': 'Revoke approval'}
 
 
 class IndependentTest(Strict):
@@ -84,7 +85,9 @@ def _event(db, p, vendor, state, kind):
 
 def _actions(state):
     if state['state'] == 'SHADOW':
-        return ['approve'] if state['checks'] and all(r['passed'] for r in state['checks']) else []
+        if state['checks'] and all(r['passed'] for r in state['checks']):
+            return ['interpret'] if state.get('interpretation_required') and not state.get('interpretation_reviewer') else ['approve']
+        return []
     if state['state'] == 'APPROVED':
         return ['activate', 'revoke']
     if state['state'] == 'ACTIVE':
@@ -144,7 +147,7 @@ def install(path, p, vendor, body):
             overlay = bind_overlay(manifest, intake.overlay)
         except (ValueError, OSError, TypeError, OverflowError) as exc:
             # Retain a safe digest and error category, never echo malformed/private raw inputs.
-            state.update(state='QUARANTINED', outcome=Outcome.UNSUPPORTED.value, rejected_digest=fingerprint(body),
+            state.update(state='QUARANTINED', outcome=Outcome.UNSUPPORTED.value, rejected_digest=sha256(json.dumps(body, sort_keys=True, allow_nan=True).encode()).hexdigest(),
                          reason='Invalid intake schema.' if isinstance(exc, ValidationError) else str(exc)[:240])
             if old and old.get('rejected_digest') == state['rejected_digest'] and old['state'] == 'QUARANTINED':
                 return _view(db, p, vendor, old)
@@ -154,7 +157,7 @@ def install(path, p, vendor, body):
         if old and old['version'] == version:
             return _view(db, p, vendor, old)
         artifact = {'manifest': manifest, 'overlay': overlay, 'extraction': extraction, 'source_text': intake.document.text,
-                    'generated_tests': generated_checks(manifest)}
+                    'generated_tests': generated_checks(manifest), 'source_received_at': now()}
         if not _artifact(db, p, vendor, version):
             db.execute('INSERT INTO v4_vendor_artifact VALUES(?,?,?,?)', (p.tenant, vendor, version, encode(artifact)))
         if old and old['active_version']:
@@ -162,7 +165,9 @@ def install(path, p, vendor, body):
             if prior['manifest'] == manifest and prior['overlay'] == overlay:
                 state['previous'] = old['active_version']
                 state['previous_suite'] = old['suite']
-        state.update(version=version, vendor=manifest['vendor'])
+        state.update(version=version, vendor=manifest['vendor'],
+                     interpretation_required=extraction.get('method') == 'tool_free_model_propositions',
+                     interpretation_reviewer=None)
         _event(db, p, vendor, state, 'Imported public document and separate tenant overlay')
         state.update(state='VALIDATED')
         _event(db, p, vendor, state, 'Validated source coverage, typed thresholds and governing dates')
@@ -213,9 +218,13 @@ def act(path, p, vendor, action):
         if action not in ops:
             raise ValueError('Stale or unavailable reviewer action.')
         op = ops[action]
-        if op == 'approve':
+        if op == 'interpret':
+            state['interpretation_reviewer'] = p.subject
+        elif op == 'approve':
+            if state.get('interpretation_required') and state.get('interpretation_reviewer') != p.subject:
+                raise PermissionError('The approving reviewer must accept the cited source interpretation.')
             state.update(state='APPROVED', reviewer=p.subject,
-                         reviewer_kind='scripted_test' if 'test' in p.subject.lower() else 'local_interactive')
+                         reviewer_kind='scripted_test' if 'test' in p.subject.lower() else 'authenticated_reviewer')
         elif op == 'activate':
             if state['reviewer'] != p.subject:
                 raise PermissionError('Activation requires the same authenticated approving reviewer.')
@@ -226,7 +235,7 @@ def act(path, p, vendor, action):
             state.update(state='REVOKED', active_version=None, previous=None, reviewer=None)
         else:
             state.update(state='SHADOW', active_version=None, previous=None, checks=[], tests=[],
-                         suite=None, reviewer=None, reviewer_kind=None, test_author=None)
+                         suite=None, reviewer=None, reviewer_kind=None, test_author=None, interpretation_reviewer=None)
         _event(db, p, vendor, state, OPS[op])
         return _view(db, p, vendor, state)
 
@@ -257,6 +266,8 @@ def dispatch(path, p, vendor, facts):
                             'sha256': fingerprint(override), 'uri': ''})
         case = dict(result, id=case_id, vendor=manifest['vendor'], vendor_id=vendor, title='Monthly availability · ' + overlay['product'],
                     stage='EVALUATED', version=version, obligation_id=obligation, sources=SOURCES, clauses=clauses,
+                    source_sha256=doc['sha256'], source_received_at=artifact['source_received_at'],
+                    source_currentness='Version supplied at intake; current external terms unverified',
                     agreement=overlay['agreement'], account=overlay['account'], adapter_revision=state['revision'],
                     evidence=[{'label': 'Scoped synthetic customer and vendor observations', 'detail': facts, 'sources': SOURCES}],
                     financials=[{'label': 'Modeled filing estimate', 'value': result['amount'] or 'Unavailable', 'sources': SOURCES}],

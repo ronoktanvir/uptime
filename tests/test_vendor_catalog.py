@@ -382,3 +382,89 @@ def test_tool_free_cli_has_digest_gate_and_never_transmits_private_overlay(monke
     (tmp_path / (artifact['source_sha256'] + '.json')).write_text(json.dumps(bad))
     with pytest.raises(ValueError, match='integrity'):
         staged_extraction(Document(**DOC))
+
+
+def proposition_document():
+    rows = [
+        ('The service provider under this agreement is Stratosphere Networks.', 'vendor', 'Stratosphere Networks'),
+        ('This contract is identified as Test-AG-3.', 'agreement', 'Test-AG-3'),
+        ('This service level agreement is effective on 2026-02-01.', 'effective', ['2026-02-01', None]),
+        ('We calculate availability for full calendar months using UTC.', 'period', 'utc_calendar_month'),
+        ('The availability commitment applies to the Data Lake product and the Advanced plan.', 'scope',
+         {'product': 'Data Lake', 'plan': 'Advanced'}),
+        ('| Monthly availability below | Service credit |', 'table_header', None),
+        ('| --- | --- |', 'table_separator', None),
+        ('| 99.9% | 15% |', 'tier', {'product': 'Data Lake', 'plan': 'Advanced', 'below': '99.9', 'credit': '15'}),
+        ('A claim must be submitted within 21 calendar days following month end.', 'filing_days', 21),
+        ('The credit is calculated from the affected monthly service fees and credited to your next invoice.', 'remedy',
+         'affected_monthly_fees_future_invoice'),
+    ]
+    document = DOC | {'text': '\n'.join(r[0] for r in rows)}
+    proposal = [{'quote': quote, 'field': field, 'value': value} for quote, field, value in rows]
+    return document, proposal
+
+
+def test_broader_propositions_are_opt_in_and_require_interpretation_acceptance(api, monkeypatch, tmp_path):
+    import json
+    from uptime.vendor_model import MODEL
+    c, _, _, _ = api
+    document, proposal = proposition_document()
+    with pytest.raises(ValueError):
+        validate_proposal(Document(**document), proposal)
+    manifest = validate_proposal(Document(**document), proposal, allow_propositions=True)
+    assert manifest['effective'] == ['2026-02-01', None]
+    assert manifest['interpretation'] == 'model_proposition_human_review_required'
+    digest = sha256(document['text'].encode()).hexdigest()
+    artifact = dict(source_sha256=digest, model=MODEL, session='synthetic-test-propositions', at='2026-01-01T00:00:00Z',
+                    proposal=proposal, proposal_sha256=fingerprint(proposal))
+    (tmp_path / (digest + '.json')).write_text(json.dumps(artifact))
+    monkeypatch.setenv('UPTIME_PUBLIC_EXTRACTIONS', str(tmp_path))
+    overlay = OVERLAY | {'agreement': 'Test-AG-3', 'product': 'Data Lake', 'plan': 'Advanced'}
+    assert install(c, document, overlay)['state'] == 'QUARANTINED'
+    monkeypatch.setenv('UPTIME_MODEL_PROPOSITIONS', '1')
+    shadow = install(c, document, overlay)
+    assert shadow['state'] == 'SHADOW'
+    facts = FACTS | {k: overlay[k] for k in ('agreement', 'product', 'plan')}
+    scenarios = [
+        {'name': 'independent payout', 'facts': facts, 'expected': {'outcome': 'ELIGIBLE', 'amount': '15.00'}},
+        {'name': 'independent nonqualifying downtime', 'facts': facts | {'eligible_downtime_minutes': 43},
+         'expected': {'outcome': 'INELIGIBLE'}},
+    ]
+    shadow = run_suite(c, shadow, scenarios)
+    assert [a['operation'] for a in shadow['actions']] == ['interpret']
+    accepted = transition(c, shadow, 'interpret')
+    assert accepted['interpretation_reviewer'] == REVIEWER.subject
+    active = transition(c, transition(c, accepted, 'approve'), 'activate')
+    assert active['active_version']
+    assert c.post(V + '/evaluate', json={'facts': facts}).json()['amount'] == '15.00'
+
+
+@pytest.mark.parametrize('old,new', [
+    ('below', 'at least'), ('99.9%', '99.9% unless maintenance'),
+    ('21 calendar days', '22 calendar days'), ('UTC', 'local time'),
+    ('affected monthly service fees', 'all vendor fees'),
+])
+def test_guarded_propositions_reject_source_divergence_and_material_qualifiers(old, new):
+    document, proposal = proposition_document()
+    document['text'] = document['text'].replace(old, new)
+    for p in proposal:
+        p['quote'] = p['quote'].replace(old, new)
+    with pytest.raises(ValueError):
+        validate_proposal(Document(**document), proposal, allow_propositions=True)
+
+
+def test_open_ended_source_requires_finite_overlay():
+    from uptime.vendor_terms import Overlay, bind_overlay
+    manifest = compile_terms(Document(**(DOC | {'text': SOURCE.replace(' through 2026-12-31', '')})))
+    assert manifest['effective'] == ['2026-01-01', None]
+    assert bind_overlay(manifest, Overlay(**OVERLAY)) == OVERLAY
+    with pytest.raises(ValueError):
+        bind_overlay(manifest, Overlay(**(OVERLAY | {'effective_until': ''})))
+
+
+def test_nonfinite_malformed_intake_quarantines_current_registry(api):
+    from uptime.vendor_registry import install as direct_install
+    c, _, _, path = api
+    activate(c)
+    result = direct_install(path, REVIEWER, 'example-cloud', {'document': float('nan')})
+    assert result['state'] == 'QUARANTINED' and result['active_version'] is None

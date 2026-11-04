@@ -73,7 +73,7 @@ def evaluate(manifest, overlay, facts, tenant):
         return stop(Outcome.UNSUPPORTED, 'Calendar interval outside supported range.')
     base['claim_cutoff_exclusive'] = cutoff.isoformat()
     if (start.isoformat() < max(overlay['effective_from'], manifest['effective'][0])
-            or last.isoformat() > min(overlay['effective_until'], manifest['effective'][1])):
+            or last.isoformat() > min(overlay['effective_until'], manifest['effective'][1] or overlay['effective_until'])):
         return stop(Outcome.UNSUPPORTED, 'The complete month must be governed by both the contract and the account overlay.')
     if (facts.get('monitor_source') != 'simulated_vendor' or facts.get('month_complete') is not True
             or facts.get('exclusions_removed') is not True or facts.get('monitor_month', month) != month):
