@@ -22,6 +22,7 @@ class ActiveRemedy:
     version: str
     cutoff: datetime
     evaluation: EvaluationResult
+    agreement_id: str = ""
 
 
 Resolver = Callable[[str, Scope, tuple[dict, ...], datetime], ActiveRemedy | None]
@@ -33,6 +34,7 @@ class Assessment:
     cutoff: datetime | None
     version: str
     evidence_digest: str
+    agreement_id: str = "twilio-apis"
 
 
 def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = None):
@@ -51,12 +53,12 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
     if not supported:
         active = resolver(tenant, scope, facts, at) if resolver else None
         if (active is None or active.tenant != tenant or active.scope != scope or active.evidence_digest != digest
-                or not active.version or active.cutoff.utcoffset() is None):
+                or not active.version or not active.agreement_id or active.cutoff.utcoffset() is None):
             return stop(Outcome.UNSUPPORTED, "No ACTIVE evaluation and remedy terms match this tenant, scope and evidence.")
         if (filed or at) >= active.cutoff:
             return Assessment(EvaluationResult(Outcome.INELIGIBLE, active.evaluation.clauses, ("Verified filing window closed.",)),
-                              active.cutoff, active.version, digest)
-        return Assessment(active.evaluation, active.cutoff, active.version, digest)
+                              active.cutoff, active.version, digest, active.agreement_id)
+        return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id)
 
     month = datetime.strptime(scope.month, "%Y-%m").date()
     first, following = twilio.calendar_bounds(month, "UTC")

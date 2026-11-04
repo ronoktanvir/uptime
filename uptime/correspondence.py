@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from .contracts import Outcome, Source, fingerprint
+from .claim_identity import reserve_claim
 from .correspondence_reason import propose
 from .correspondence_rules import assess, confirmed_maintenance
 from .correspondence_types import Claim, Delivery, SOURCE, Scope, instant
@@ -273,6 +274,7 @@ class CorrespondenceDesk:
         request = money(current.evaluation.amount.amount)
         packet = dict(tenant=tenant, claim=claim_id, scope=scope.model_dump(), destination="isolated-local-simulator",
                       subject="SLA Claim", version=current.version, requested=request, evidence_digest=current.evidence_digest,
+                      agreement_id=current.agreement_id,
                       filing_cutoff=current.cutoff.isoformat(), terms_digest=fingerprint([asdict(c) for c in current.evaluation.clauses]),
                       artifacts=[dict(kind=e["kind"], digest=e["digest"]) for e in facts])
         if state["submissions"]:
@@ -291,7 +293,7 @@ class CorrespondenceDesk:
 
     @staticmethod
     def _approval_binding(current):
-        return fingerprint([current.version, current.cutoff.isoformat() if current.cutoff else None,
+        return fingerprint([current.agreement_id, current.version, current.cutoff.isoformat() if current.cutoff else None,
                             current.evidence_digest, money(current.evaluation.amount.amount) if current.evaluation.amount else None,
                             [asdict(c) for c in current.evaluation.clauses]])
 
@@ -333,6 +335,11 @@ class CorrespondenceDesk:
                 receipt = dict(id="LOCAL-" + digest[:24], action=action, at=now.isoformat(), digest=digest, packet=packet,
                                requested=packet["requested"], approval=state["approval"],
                                evidence_digests=[a["digest"] for a in packet["artifacts"]], sources=VENDOR)
+                reserve_claim(db, tenant=p.tenant, vendor=scope.vendor, account=scope.account,
+                              agreement_id=current.agreement_id, agreement_version=current.version, service=scope.service,
+                              month=scope.month, remedy="availability", route="correspondence", case_id=claim_id,
+                              packet_digest=digest, scope=scope.model_dump(), receipt_id=receipt["id"], at=receipt["at"],
+                              initial_receipt_id=state["submissions"][0]["id"] if state["submissions"] else None)
                 state["submissions"].append(receipt)
                 state["approval"] = None
                 state["stage"] = "AWAITING_VENDOR"

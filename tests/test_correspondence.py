@@ -285,7 +285,7 @@ def test_authoritative_active_resolver_version_and_scope_binding(tmp_path):
         result = EvaluationResult(Outcome.ELIGIBLE, (Citation("Signed example SLA", "1", "§2", "urn:example:terms"),),
                                   ("Server-persisted ACTIVE template evaluated the scoped facts.",), amount=Money(Decimal("47.21")))
         return ActiveRemedy(tenant, scope, fingerprint([[e["source"], e["digest"]] for e in facts]),
-                            current_version[0], datetime(2026, 11, 20, tzinfo=UTC), result)
+                            current_version[0], datetime(2026, 11, 20, tzinfo=UTC), result, agreement_id="example-request-sla")
     env.desk.active_resolver = resolve
     env.build()
     assert env.get()["amount"] == "47.21"
