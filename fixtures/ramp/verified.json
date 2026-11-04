@@ -1,0 +1,139 @@
+{
+  "mode": "saved sandbox observation",
+  "origin": "https://demo-api.ramp.com",
+  "observed_at": "2026-11-04T05:03:56.359649+00:00",
+  "ui_url": "https://demo.ramp.com",
+  "sources": [
+    "LIVE_RAMP_SANDBOX"
+  ],
+  "capabilities": {
+    "vendors": {
+      "granted": [
+        "vendors:read"
+      ],
+      "requested": [
+        "vendors:read"
+      ],
+      "state": "READ_VERIFIED",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ],
+      "sampled": 20,
+      "page_limit": 20,
+      "has_next": true
+    },
+    "credits": {
+      "granted": [
+        "vendors:read"
+      ],
+      "requested": [
+        "vendors:read"
+      ],
+      "state": "READ_VERIFIED",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ],
+      "sampled": 0,
+      "page_limit": 20,
+      "has_next": false
+    },
+    "bills": {
+      "granted": [
+        "bills:read"
+      ],
+      "requested": [
+        "bills:read"
+      ],
+      "state": "READ_VERIFIED",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ],
+      "sampled": 6,
+      "page_limit": 20,
+      "has_next": false,
+      "readback_ids": [
+        "055d36bd-4586-4cd2-ade2-48e29b95a63d",
+        "ae98c421-2c70-5586-8719-4fe8acd7ceda"
+      ],
+      "readback_id": "055d36bd-4586-4cd2-ade2-48e29b95a63d"
+    },
+    "draft_write": {
+      "granted": [
+        "bills:read"
+      ],
+      "requested": [
+        "bills:read",
+        "bills:write"
+      ],
+      "state": "SCOPE_MISMATCH",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ],
+      "detail": "Ramp omitted or changed requested scopes. No draft mutation attempted."
+    }
+  },
+  "bills": [
+    {
+      "id": "055d36bd-4586-4cd2-ade2-48e29b95a63d",
+      "status": "PAID",
+      "approval_status": "APPROVED",
+      "issued_at": "2026-11-04T00:00:00+00:00",
+      "amount": {
+        "currency": "USD",
+        "amount": "481.28"
+      },
+      "lines": [
+        {
+          "id": "01a1a47d-681a-74f0-895e-ad57d1f3e841",
+          "kind": "line_items",
+          "amount": {
+            "currency": "USD",
+            "amount": "481.28"
+          },
+          "unit_price": null,
+          "quantity": null,
+          "service_date": null,
+          "sku": null
+        }
+      ],
+      "applied_credits": [],
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    },
+    {
+      "id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+      "status": "OPEN",
+      "approval_status": "PENDING",
+      "issued_at": "2026-10-28T00:00:00+00:00",
+      "amount": {
+        "currency": "USD",
+        "amount": "840"
+      },
+      "lines": [
+        {
+          "id": "01a1a47c-70e7-7262-90c8-219966485bd9",
+          "kind": "line_items",
+          "amount": {
+            "currency": "USD",
+            "amount": "840"
+          },
+          "unit_price": null,
+          "quantity": null,
+          "service_date": null,
+          "sku": null
+        }
+      ],
+      "applied_credits": [],
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    }
+  ],
+  "vendor_ids": [
+    "2962c60a-6acc-46ae-a0dc-6aa2d2d9fa55"
+  ],
+  "credits": [],
+  "draft": null,
+  "schema_url": "https://docs.ramp.com/openapi/developer-api.json"
+}
