@@ -3,10 +3,8 @@ from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from hashlib import sha256
 import json
 from pathlib import Path
-import secrets
 
 from .contracts import Outcome, Source, fingerprint
 from .correspondence_reason import propose
@@ -26,7 +24,8 @@ CREATE TABLE IF NOT EXISTS inbox_account (
  service TEXT NOT NULL, component TEXT NOT NULL, region TEXT NOT NULL,
  PRIMARY KEY(tenant, account, vendor, contract, service, component, region));
 CREATE TABLE IF NOT EXISTS inbox_sender (
- digest TEXT PRIMARY KEY, tenant TEXT NOT NULL, account TEXT NOT NULL, source TEXT NOT NULL);
+ tenant TEXT NOT NULL, subject TEXT NOT NULL, account TEXT NOT NULL, source TEXT NOT NULL,
+ PRIMARY KEY(tenant,subject,account,source), UNIQUE(tenant,subject,account));
 CREATE TABLE IF NOT EXISTS inbox_claim (
  tenant TEXT NOT NULL, id TEXT NOT NULL, obligation TEXT NOT NULL, scope TEXT NOT NULL,
  state TEXT NOT NULL, PRIMARY KEY(tenant,id), UNIQUE(tenant,obligation));
@@ -91,17 +90,18 @@ class CorrespondenceDesk:
             db.execute("INSERT OR IGNORE INTO inbox_account VALUES(?,?,?,?,?,?,?)",
                        (tenant, binding.account, binding.vendor, binding.contract, binding.service, binding.component, binding.region))
 
-    def issue_sender(self, tenant, account, source):
-        """Local fixture/operator provisioning, never an HTTP route. Store only the digest."""
-        if source not in SOURCE.values():
-            raise ValueError("Unsupported channel.")
-        value = secrets.token_urlsafe(32)
+    def bind_sender(self, tenant, account, source, subject):
+        """Operator-only allowlist of named HMAC service identities and source roles."""
+        if source not in SOURCE.values() or not subject or not tenant:
+            raise ValueError("Unsupported source binding.")
         with self._write() as db:
             if not db.execute("SELECT 1 FROM inbox_account WHERE tenant=? AND account=?", (tenant, account)).fetchone():
                 raise PermissionError("No such provisioned account.")
-            db.execute("INSERT INTO inbox_sender VALUES(?,?,?,?)",
-                       (sha256(value.encode()).hexdigest(), tenant, account, source))
-        return value
+            existing = db.execute("SELECT source FROM inbox_sender WHERE tenant=? AND account=? AND subject=?",
+                                  (tenant, account, subject)).fetchone()
+            if existing and existing["source"] != source:
+                raise ValueError("Source roles require independent signers for this account.")
+            db.execute("INSERT OR IGNORE INTO inbox_sender VALUES(?,?,?,?)", (tenant, subject, account, source))
 
     def create(self, p, claim: Claim):
         authorize(p, True)
@@ -140,18 +140,18 @@ class CorrespondenceDesk:
         filed = instant(state["submissions"][0]["at"]) if state["submissions"] else None
         return assess(tenant, scope, state["evidence"], now, filed, self.active_resolver)
 
-    def receive(self, credential, claim_id, event: Delivery):
-        """A sender sees only its own receipt, never customer evidence or the case view."""
-        if not isinstance(credential, str) or not 24 <= len(credential) <= 200:
-            raise PermissionError("Invalid source credential.")
-        with self._write() as db:
-            sender = db.execute("SELECT tenant,account,source FROM inbox_sender WHERE digest=?",
-                                (sha256(credential.encode()).hexdigest(),)).fetchone()
+    def receive(self, p, claim_id, event: Delivery):
+        """Only a server-authenticated service identity can deliver. Return only its receipt."""
+        if p.role != "service" or not p.subject or not p.tenant:
+            raise PermissionError("An authenticated source service is required.")
+        with self._write(p.tenant) as db:
+            sender = db.execute("SELECT source FROM inbox_sender WHERE tenant=? AND subject=? AND account=?",
+                                (p.tenant, p.subject, event.scope.account)).fetchone()
             if not sender:
-                raise PermissionError("Invalid source credential.")
-            return self._receive(db, sender["tenant"], sender["account"], sender["source"], claim_id, event)
+                raise PermissionError("Service has no source grant on this account.")
+            return self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p.subject)
 
-    def _receive(self, db, tenant, account, source, claim_id, event):
+    def _receive(self, db, tenant, account, source, claim_id, event, subject):
         if source != SOURCE[event.body.kind] or account != event.scope.account or observe_only(db, tenant):
             raise PermissionError("Source cannot deliver this evidence.")
         scope, state = self._read(db, tenant, claim_id)
@@ -180,10 +180,10 @@ class CorrespondenceDesk:
                     raise ValueError("Correspondence does not refer to the current local submission.")
                 if state["stage"] != "AWAITING_VENDOR":
                     raise ValueError("A substantive response already exists for this receipt.")
-            fact = dict(event_id=event.event_id, source=source, kind=body["kind"], digest=digest,
+            fact = dict(event_id=event.event_id, source=source, subject=subject, kind=body["kind"], digest=digest,
                         received_at=now.isoformat(), body=body)
             state["evidence"].append(fact)
-            audit(state, now, source, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
+            audit(state, now, subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
                   event_id=event.event_id, digest=digest)
             if body["kind"] == "message":
                 self._reply(tenant, scope, state, fact, now)
