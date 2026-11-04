@@ -1,0 +1,37 @@
+digraph UPTIME_V3 {
+  graph [label="UPTIME V3  •  PARALLEL ENGINEERING WORKSTREAMS & CHECKPOINTS", labelloc=t,
+         fontsize=20, fontname="DejaVu Sans", bgcolor="#FCFDFE", ranksep=0.62, nodesep=0.28,
+         pad=0.32, newrank=true, compound=true, splines=ortho];
+  node [shape=box, style="rounded,filled", fillcolor="#EFF4F8", color="#BACAD6", penwidth=1.1,
+        fontsize=10, fontname="DejaVu Sans", margin="0.19,0.13"];
+  edge [color="#7690A4", arrowsize=0.65, penwidth=1.25];
+
+  CP0 [label="CP0  •  AUDIT & TOOL PROOF\nRepo, auth, model/Opus access", fillcolor="#24384C", fontcolor="white", color="#24384C"];
+  CP1 [label="CP1  •  SHARED CONTRACTS FROZEN\nCases, facts, obligations, actions, tests", fillcolor="#24384C", fontcolor="white", color="#24384C"];
+  CP2 [label="CP2  •  FINANCIAL ENGINE VERIFIED\nRamp proof + SLA and price math", fillcolor="#24384C", fontcolor="white", color="#24384C"];
+  CP3A [label="CP3A  •  ADAPTER VALIDATED\nAtlassian shadow + promotion + rollback", fillcolor="#11695A", fontcolor="white", color="#11695A"];
+  CP3B [label="CP3B  •  DISPUTES VALIDATED\n3 adversarial cases + deadlines + stop", fillcolor="#11695A", fontcolor="white", color="#11695A"];
+  CP4 [label="CP4  •  SYSTEM CONNECTED\nDashboard + persistence + reconciliation", fillcolor="#24384C", fontcolor="white", color="#24384C"];
+  CP5 [label="CP5  •  ADVERSARIAL QA\nAuth, idempotency, provenance, replay", fillcolor="#24384C", fontcolor="white", color="#24384C"];
+  CP6 [label="CP6  •  FINAL DEMO\nLive sandbox + deterministic backup", fillcolor="#24384C", fontcolor="white", color="#24384C"];
+  W0 [label="W0  Orchestrator, CI, ADR & merges", fillcolor="#FFF5DC"];
+  W1 [label="W1  Ramp sandbox + billing + credits"];
+  W2 [label="W2  Contracts + deterministic DSL"];
+  W3 [label="W3  DEDICATED HIGH: Vendor onboarding\nGenerated config → tests → shadow → human", fillcolor="#DAF4EA",color="#40A389",penwidth=2.0];
+  W4 [label="W4  DEDICATED HIGH: Dispute/appeals\nIndependent vendor → challenge → stop", fillcolor="#DAF4EA",color="#40A389",penwidth=2.0];
+  W5 [label="W5  SLA status + evidence provenance"];
+  W6 [label="W6  Price caps + bill prevention"];
+  W7 [label="W7  Finance dashboard + guide"];
+  W8 [label="W8  Integrated security / E2E / demo",fillcolor="#FFF5DC"];
+
+  CP0 -> CP1;
+  CP0 -> W0; CP0 -> W1;
+  CP1 -> W2; CP1 -> W3; CP1 -> W4; CP1 -> W5; CP1 -> W6; CP1 -> W7;
+  W1 -> CP2; W2 -> CP2; W5 -> CP2; W6 -> CP2;
+  W3 -> CP3A; W2 -> CP3A; W5 -> CP3A;
+  W4 -> CP3B; W5 -> CP3B;
+  CP2 -> CP4; CP3A -> CP4; CP3B -> CP4; W7 -> CP4;
+  CP4 -> W8; W0 -> W8; W8 -> CP5; CP5 -> CP6;
+  { rank=same; W3; W4; W5; W6; W7; }
+  { rank=same; CP3A; CP3B; }
+}

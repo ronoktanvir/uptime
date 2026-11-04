@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T04:58:38.527631+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** Versioned synthetic agreement with effective-dated amendments resolved per performance date (not invoice or posting date), keyed by service mapping, currency, tax treatment and tier. Preapproval discrepancies stay provisional and separate from posted-payment prevention and retrospective recovery.\n\n**Strongest dissent:** Per-line effective dating adds complexity. Tiers are often cumulative across a period, so a mid-period amendment makes tier attainment ambiguous. A vendor-blended rate avoids that but hides line-level over- and undercharges. Retroactive latest-amendment pricing misstates history.\n\n**Falsification tests (prospective):**\n- Performance exactly at the amendment effective timestamp, including timezone handling.\n- A line spanning a rate change.\n- Unmapped service: flagged, never defaulted.\n- Tier crossing within an amended period.\n- Currency/tax mismatch.\n- Rounding at the line versus the total, with fixed decimal precision.\n- Both overcharge and undercharge surfaced symmetrically.\n- An assertion that payment status is unchanged after every run.\n\n**Boundary:** Sandbox, synthetic data only, read-only toward payment status. No recovery actions, only flags. Amendments are append-only. Rollback means disabling the surface, keeping the immutable prior state, and rerunning the offline fixtures.",
+  "session": "5a54ea50-20f8-4204-a634-00eaa00913e4"
+}

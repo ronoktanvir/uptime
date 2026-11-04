@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+.env*
+runtime/
+*.sqlite*
+.coverage
+node_modules/
+test-results/
+*.pem
+*credentials.json
+ramp-sandbox.json

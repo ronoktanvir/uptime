@@ -1,0 +1,20 @@
+digraph CONSULT {
+  graph [label="UPTIME V3  •  IMPACTFUL DECISION PROTOCOL",labelloc=t,fontsize=19,fontname="DejaVu Sans",bgcolor="#FCFDFE",ranksep=.55,nodesep=.4,pad=.32];
+  node [shape=box,style="rounded,filled",fontname="DejaVu Sans",fontsize=10,fillcolor="#EFF4F8",color="#B7C6D6",margin=".18,.13"];
+  edge [color="#728A9F",arrowsize=.75];
+  A [label="New decision needed\nCollect exact options + test evidence"];
+  B [label="Impactful?\nMoney / contract / architecture / security / scope",shape=diamond,fillcolor="#FFF2D9"];
+  C [label="Routine reversible choice\nImplement + test + log"];
+  D [label="Write sanitized decision packet\nNo tokens, customer secrets or PII"];
+  E [label="Real Opus 5.5 access?",shape=diamond,fillcolor="#FFF2D9"];
+  F [label="Invoke Claude Opus 5.5\nRead-only advisory critique",fillcolor="#DAF4EA"];
+  G [label="Compare with orchestrator position\nResolve disagreement with evidence"];
+  H [label="Write signed-off ADR\nChoice + dissent + tests + rollback",fillcolor="#DDEAF5"];
+  I [label="Irreversible / external / legal act?",shape=diamond,fillcolor="#FFF2D9"];
+  J [label="Require explicit human authorization\nDo not let Opus substitute for user"];
+  K [label="Implement + test + merge\nAdvance other parallel tracks",fillcolor="#DAF4EA"];
+  L [label="Mark OPUS_BLOCKED\nOnly reversible parallel work; retry later",fillcolor="#FFF0E4"];
+  A->B; B->C [label="No"]; B->D [label="Yes"]; C->K;
+  D->E; E->F [label="Yes"]; E->L [label="No"]; F->G; G->H; H->I;
+  I->J [label="Yes"]; I->K [label="No"]; J->K [label="Authorized"];
+}

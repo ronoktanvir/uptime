@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T04:58:42.235207+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** Stage-separated dashboard. Render estimate, filed, awarded, posted and applied as distinct, non-additive series sourced from persisted evaluations and the stage ledger. Each figure carries an exact provenance tag (source, case ID, stage, read timestamp). Staging Uptime synthetic balances and live Ramp sandbox reads appear side by side and are never merged into a headline savings number.\n\n**Strongest dissent:** Stage separation may confuse demo judges, and an honest \"applied = $0\" can look like a failure. The cumulative sum would tell a clearer story. The rebuttal is that summing stages double-counts the same dollars as they move through the pipeline. The fix is clearer labeling, not aggregation.\n\n**Falsification tests (prospective):**\n1. API projection: the sum across stages for any case is never exposed as one total, and each figure's tag round-trips exactly.\n2. Partial credit: awarded is less than filed, and both values persist correctly.\n3. Replay: re-ingesting the ledger is idempotent and produces no duplicate postings.\n4. Offline fixtures produce the same output as the live projection.\n5. The source label for a given figure is identical on every screen.\n\n**Boundary:** Sandbox only, with no production Ramp credentials. Changes must be reversible behind a flag, and immutable prior state is retained. Any synthetic-vs-live mismatch blocks the demo rather than being reconciled silently.",
+  "session": "ebf3340f-9233-40f1-80da-ea4be3c37c0c"
+}

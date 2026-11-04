@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T04:58:31.286901+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** Independent simulator with a precommitted oracle. Claimant evidence and simulator proof stay separate, and the oracle is fixed before any run, so the demo can't be tuned to pass. The negotiation option can't be verified, and the pre-baked script proves nothing.\n\n**Strongest dissent:** The oracle and simulator are written by the same team, often from the same mental model. Their agreement can hide shared blind spots, so \"independent\" may only be nominal. Assisted mode also risks building in human judgment that the oracle never captures.\n\n**Falsification tests (all prospective, none run yet):**\n- Duplicate or retried claim produces exactly one state change (idempotency key).\n- Replay after expiry or cooldown is refused, and the refusal is terminal.\n- Tenant-mismatched evidence is rejected before evaluation.\n- Fabricated evidence is caught by the oracle, not only by simulator heuristics.\n- An ambiguous denial escalates and never auto-resolves.\n- Partial credit never changes the binary verdict.\n- Seeded mutation: the oracle must flag \u22651 injected simulator bug.\n\n**Boundary:** Sandbox only, with simulated transport, no external claims and no real credentials. Every step must be reversible. Rollback means disabling the surface, keeping prior immutable state and replaying offline fixtures. The repo is empty, so nothing is verified yet.",
+  "session": "a46e8158-3fe6-44fc-a198-34bb10250d05"
+}

@@ -1,0 +1,2 @@
+# Engineering status
+CP0. The provided workspace had only empty work/ and outputs/ directories. No Git root, manifests, tests, branches, worktrees or implementing files were present. All V3 handoff files are preserved in docs/uptime-v3. Local sandbox credential path is readable, mode 0600. Claude Code 2.1.318 authenticated and returned OPUS_READY with modelUsage claude-opus-5-5. Native subagent harness exposes three worker slots beside the lead. Codex CLI 0.156.1 authenticated separately. No live service or persistent scheduler installed by this project.

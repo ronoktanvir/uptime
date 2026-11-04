@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T04:58:41.187261+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** The proposed design: public-source allowlist, opt-in tool-free authenticated Claude, model outputs treated as untrusted data and passed through strict-schema and deterministic gates, a read-only tenant-bound guide, and separate approvals. Blanket external modeling of private docs breaks the no-confidential-data rule. Fixture-only can't test real extraction.\n\n**Strongest dissent:** \"Public\" and \"confidential\" have no defined classifier. Allowlisted public pages can still hold injected text or leaked secrets. Provenance stays weak until source content is hashed and snapshotted at ingest, since otherwise replay can drift.\n\n**Falsification tests (prospective; nothing exists yet, repo is empty):**\n- Forged or uncited fact refs reach output: reject.\n- Model-suggested tool calls execute or change state: reject.\n- Injected text alters gate decisions: reject.\n- Seeded secrets or non-allowlisted content reach the model or the logs: reject.\n- Cross-tenant reads or self-approval succeed: reject.\n- Replay with the same snapshot gives a different gated result: reject.\n- Oversized inputs bypass the bounds: reject.\n\n**Boundary:** Sandbox only, synthetic data, isolated worktrees, no production credentials or private documents. Rollback is to disable the surface, keep the immutable state, and run the offline fixtures. Promotion beyond the sandbox needs a separate review.",
+  "session": "006850fd-1fe9-4145-b94d-ec83b3795657"
+}

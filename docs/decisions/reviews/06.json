@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T04:58:33.555994+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** Build the SLA-credit calculator from the dated, exact Twilio SLA term for each plan. Use the vendor's measurement method, plan thresholds and defined exclusions. Treat public status incidents only as leads. Each lead becomes a typed, qualified interval mapped to the affected fees, with a claim clock and an explicit uncertainty field. Reject the generic-downtime and total-spend approaches: they overclaim.\n\n**Strongest dissent:** Public status data can't reproduce vendor-side measurement, which may rely on per-account error rates or internal monitoring. Precise math on imprecise inputs gives false confidence. A ranged estimate (\"candidate claim\") may be more honest than a single computed credit.\n\n**Falsification tests (prospective, none run):**\n- The same outage under both plans gives different credits at the exact thresholds, including just-below and just-at boundaries.\n- An outage spanning two months splits correctly.\n- An excluded incident (maintenance, customer-caused) yields zero.\n- A claim one day past the deadline is rejected.\n- Unmapped fees are excluded from the credit base.\n\n**Boundary:** Sandbox only, with synthetic holdings and public data. No real claims are filed and no account access is used. Changes stay reversible, with rollback through the disable flag and offline fixtures. Before any math, cite the exact SLA version you are using.",
+  "session": "b6557b68-e666-41b8-be8a-74a7d1698a88"
+}

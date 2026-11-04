@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T04:58:22.480390+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** Generated, strictly schema-validated declarative candidate from the public SLA, with a separate tenant overlay, immutable versions, held-out gold set, shadow run, then explicit human approval \u2192 activation, and rollback. Any new SLA terms invalidate prior approval. The hardcoded plug-in is a fallback only.\n\n**Strongest dissent:** In a greenfield hackathon, the generator plus validator plus shadow pipeline may exceed the time budget. A hardcoded plug-in for the one known SLA ships something correct and auditable. \"Generative\" earns its place only if a second SLA arrives.\n\n**Falsification tests (prospective, none run):**\n- Injected or unknown fields are rejected at validation.\n- A wrong-tier mapping is caught by the gold set.\n- Shadow mismatches above threshold block activation.\n- Cross-tenant overlay leakage fails isolation checks.\n- 15-calendar-day receipt and 3-business-day challenge windows handle holidays, time zones and ambiguous start events, or flag them for humans.\n- A changed term revokes approval.\n- Rollback restores the prior version from offline fixtures.\n\n**Boundary:** Sandbox and isolated worktrees only. No generated executable code. The agent never grants approval or activates in production. Every step must be reversible by disabling the surface and keeping prior immutable state.",
+  "session": "6b64e5ad-7a6c-4b44-8d15-8eb5f66d571f"
+}

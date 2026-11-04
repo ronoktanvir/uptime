@@ -1,0 +1,1 @@
+Read docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md and its companion specification, DAG and credential guide. Treat attached product examples as proposals subject to verified current terms. Follow approved ownership, keep secret values out of outputs, use exact provenance and never infer commercial authority from the demo. Run uv run --locked pytest after each merge.

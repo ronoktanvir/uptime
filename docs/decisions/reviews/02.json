@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T04:58:22.480324+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** Adopt the deterministic contract: a cited immutable rule version, four explicit outcomes, Decimal currency, explicit inclusive/exclusive ranges, missing kept distinct from unsupported, and fail-closed handling of unknown fee or pricing attribution. Reject the generic probability model and vendor totals as the source of truth. Use vendor totals only as a reconciliation cross-check.\n\n**Strongest dissent:** With an empty repo, strict fail-closed handling may return \"unsupported\" for most real inputs, which would make the demo useless. The four-outcome taxonomy is also unvalidated, so it may need a fifth state such as \"stale source.\" Equal W3/W4 staffing after a *provisional* CP1 commits resources before the evidence justifies it.\n\n**Falsification tests (all prospective):**\n- Half-even vs half-up rounding at the boundary cents\n- Partial-month proration at both endpoints\n- Mixed currencies with no FX rule should fail closed\n- A changed source hash should invalidate cached outcomes\n- A missing measurement should give \"missing,\" not zero or \"unsupported\"\n- Vendor-total divergence above tolerance should be flagged\n\n**Boundary:** Sandbox only, with reversible steps and offline fixtures. Make no claims about accuracy or savings until the tests pass. Revisit the staffing split at CP1 confirmation.",
+  "session": "994b7cc9-c6bd-4fbd-9f1d-8f0d62bf2968"
+}

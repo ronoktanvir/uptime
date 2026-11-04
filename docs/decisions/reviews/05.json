@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T04:58:31.981532+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** Scope-gated, uniquely tagged draft creation with same-ID readback, sandbox origin pinned (redirects included), never payment. It exercises the real integration while staying reversible. The alternatives fall short: fixture-only proves nothing about the API, and mutating an arbitrary existing bill is unbounded and non-reversible.\n\n**Strongest dissent:** Fixture-only until scopes are observed. Greenfield evidence means scope behavior, draft deletability, and idempotency are all unverified. A \"draft\" may still trigger approval workflows, notifications, or vendor-side effects that rollback (\"disable surface\") won't undo.\n\n**Falsification tests (prospective):**\n- Any redirect or host outside the exact `demo-api.ramp.com` HTTPS origin causes an abort.\n- A missing or broader-than-expected scope means no write is attempted.\n- A replayed create with the same tag or idempotency key yields no duplicate and no crash.\n- Readback ID, amount, currency, and tag all match.\n- Credit application with missing ID, currency, or bill is rejected, partial outstanding is preserved, and nothing is inferred.\n- A static grep finds no payment or approve endpoints in the code.\n- Credentials are absent from the repo and its history.\n\n**Boundary:** Sandbox only, drafts only, tagged objects only. No payment, approval, publish, or production host. Stop on the first unexpected response.",
+  "session": "e209b077-8a0e-41e4-b65a-813278184128"
+}

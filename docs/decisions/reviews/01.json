@@ -1,0 +1,9 @@
+{
+  "status": "REVIEWED",
+  "utc": "2026-11-04T04:58:22.480042+00:00",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Preferred option:** The single-process loopback stack: FastAPI, plain JS, versioned dataclasses, SQLite, and offline golden fixtures. It fits a sandbox hackathon. Postgres, Next, and a queue would buy replica support that is explicitly out of scope.\n\n**Strongest dissent:** Tenant and role logic in a single-tenant demo can give false confidence. It may get reused later as if it were production authorization. SQLite's single-writer locking can also hide race bugs that would appear under Postgres. A further discrepancy: the workspace is not a git repo, so \"available isolated worktrees\" is unverified.\n\n**Falsification tests** (all prospective):\n- Run `kill -9` mid-transaction, restart, and confirm no partial rows and fixtures still match.\n- Fire concurrent duplicate submissions and confirm idempotency keys yield exactly one effect.\n- Send malformed or missing tenant and role values and confirm a 4xx with no cross-tenant read.\n- Load a mismatched schema version and confirm it is refused rather than silently coerced.\n- Check that money uses integer cents or Decimal, never float.\n\n**Boundary:** Bind to 127.0.0.1 only and use synthetic data. There is no multi-tenant or production certification. Make only reversible changes. Rollback means disabling the surface, keeping the immutable prior state, and re-running the fixtures.",
+  "session": "93256edf-2b0f-429f-9bda-b34f0b1fbb23"
+}
