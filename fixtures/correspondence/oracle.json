@@ -1,0 +1,12 @@
+{
+  "scope": "Offline single-incident standard API claim, 29 minutes in October, 621.30 USD of eligible fees plus 90 USD of tax. Expected values specified independently before implementation.",
+  "candidate": "62.13",
+  "notice_known_initially": {"outcome": "INELIGIBLE", "submissions": 0},
+  "notice_first_obtained_after_filing": {"stage": "DENIAL_ACCEPTED", "submissions": 1, "awarded": "0.00"},
+  "component_cure": {"stage": "AWARDED", "submissions": 2, "awarded": "62.13"},
+  "partial": {"stage": "PARTIAL_AWARD_REVIEW", "awarded": "48.50", "disputed_remainder": "13.63"},
+  "unrecognized_or_conflicting_message": {"stage": "HUMAN_REVIEW", "submissions": 1, "awarded": "0.00"},
+  "false_time_bar": {"stage": "RESPONSE_DRAFTED", "submissions": 1, "awarded": "0.00"},
+  "component_without_account_binding": {"new_submissions": 0},
+  "clone": {"total_initial_submissions": 1}
+}
