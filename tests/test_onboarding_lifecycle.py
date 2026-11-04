@@ -188,3 +188,16 @@ def test_invalid_json_persists_quarantine_even_when_old_action_is_attempted(monk
     recovered = lab.get_lab(db, REVIEWER)
     assert recovered['version'] == old['version'] and recovered['state'] == 'SHADOW'
     assert recovered['active_version'] is None
+
+
+def test_legacy_action_and_activation_are_bound_to_reviewing_subject():
+    db = sqlite3.connect(':memory:')
+    first = lab.get_lab(db, REVIEWER)
+    other = Principal(REVIEWER.tenant, 'synthetic-second-reviewer', 'reviewer')
+    with pytest.raises(ValueError):
+        lab.act(db, other, action(first, 'approve'))
+    approved = lab.act(db, REVIEWER, action(first, 'approve'))
+    assert not any(a['id'].startswith('activate~') for a in lab.get_lab(db, other)['actions'])
+    with pytest.raises(ValueError):
+        lab.act(db, other, action(approved, 'activate'))
+    assert lab.act(db, REVIEWER, action(approved, 'activate'))['state'] == 'ACTIVE'

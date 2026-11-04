@@ -169,7 +169,7 @@ def _available(p, checks, overlay, state):
     if state['state'] == 'SHADOW':
         return ['shadow'] + (['approve'] if overlay and all(c['passed'] for c in checks) else [])
     if state['state'] == 'APPROVED':
-        return ['activate', 'revoke']
+        return ['activate', 'revoke'] if p.subject == state['reviewer'] else ['revoke']
     if state['state'] == 'ACTIVE':
         return ['rollback', 'revoke']
     if state['state'] == 'REVOKED':
@@ -177,9 +177,9 @@ def _available(p, checks, overlay, state):
     return []
 
 
-def _action_id(op, state):
+def _action_id(op, state, principal):
     # Bind the action to the exact artifact, overlay, gate evidence and displayed state.
-    return f"{op}~{state['basis']}~{state['state']}~{state['revision']}"
+    return f"{op}~{state['basis']}~{state['state']}~{state['revision']}~{fingerprint(principal.subject)}"
 
 
 def _view(db, p, candidate, checks, overlay, state, record):
@@ -192,7 +192,7 @@ def _view(db, p, candidate, checks, overlay, state, record):
     view = {'vendor': 'Atlassian', 'state': state['state'], 'version': candidate['version'], 'active_version': state['active'],
             'revision': state['revision'], 'reviewer': state['reviewer'], 'sources': LOCAL_SOURCES if overlay else PUBLIC_SOURCES,
             'checks': checks, 'history': [f"{a['at']} · {a['event']} · {a['actor']}" for a in audit], 'audit': audit,
-            'actions': [{'id': _action_id(op, state), 'label': ACTIONS[op]} for op in _available(p, checks, overlay, state)],
+            'actions': [{'id': _action_id(op, state, p), 'label': ACTIONS[op]} for op in _available(p, checks, overlay, state)],
             'scope': 'Local shadow simulator for Jira in a supported browser on Premium or Enterprise.',
             'effective': rules['effective'], 'template': candidate['template'], 'overlay': overlay, 'generated_tests': candidate['generated_tests'],
             'clauses': [{'label': 'Atlassian SLA §§1–3, Appendices A & B', 'uri': SLA},
@@ -251,7 +251,7 @@ def _request(db, principal, action=None):
             stale = action is not None
         else:
             if action is not None:
-                allowed = {_action_id(op, state): op for op in _available(principal, checks, overlay, state)}
+                allowed = {_action_id(op, state, principal): op for op in _available(principal, checks, overlay, state)}
                 op = allowed.get(action)
                 if op is None:
                     stale = True
