@@ -4,6 +4,7 @@ Inputs are an award-specific set of records selected by trusted server code.
 A memo reference must agree explicitly. Never match by amount, date, or name.
 """
 from decimal import Decimal, InvalidOperation
+from uuid import UUID
 
 from .contracts import Source
 
@@ -22,52 +23,90 @@ def _amount(value):
 
 def _required(record, field):
     value = record.get(field)
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"Missing {field}")
+    if (not isinstance(value, str) or not value or value != value.strip()
+            or not value.isprintable()):
+        raise ValueError(f"Missing or noncanonical {field}")
     return value
 
 
-def _documented_source(row):
-    source = Source(row["source"])
-    if source not in (Source.VENDOR, Source.REPLAY, Source.CUSTOMER, Source.RAMP):
-        raise ValueError("Financial record requires financial evidence")
-    return source.value
+def _source(row, allowed):
+    source = Source(row.get("source"))
+    if source not in allowed:
+        raise ValueError("Source cannot substantiate this record type")
+    return source
 
 
-def _index(records, tenant, vendor):
+def _provider_id(value):
+    # Reject alternative spellings of one Ramp UUID before using it as a ledger key.
+    if value != str(UUID(value)):
+        raise ValueError("Noncanonical Ramp UUID")
+    return value
+
+
+def _index(records, tenant, vendor, role):
+    allowed = {Source.RAMP, Source.REPLAY}
+    if role == "bill":
+        allowed.add(Source.CUSTOMER)
     by_id = {}
     for row in records:
         ident = _required(row, "id")
         if row.get("tenant") != tenant or row.get("vendor_id") != vendor or row.get("currency") != "USD":
             raise ValueError("Mismatched tenant, vendor or currency")
+        if _source(row, allowed) == Source.RAMP:
+            _provider_id(vendor)
+            if role == "application":
+                # Ramp exposes a cumulative amount per credit/bill pair, with no
+                # independent application ID. Name the pair consistently across both GETs.
+                pair = (_provider_id(_required(row, "credit_id")), _provider_id(_required(row, "bill_id")))
+                if ident != f"ramp:{pair[0]}:{pair[1]}":
+                    raise ValueError("Unmatched provider application identifier")
+            else:
+                _provider_id(ident)
         if ident in by_id and by_id[ident] != row:
             raise ValueError("Conflicting duplicate record")
         by_id[ident] = row
     return by_id
 
 
+def _provenance(award, posted, applied):
+    def labels(values):
+        return sorted(values) or [Source.UNAVAILABLE.value]
+    return {"awarded": labels(award), "posted": labels(posted), "applied": labels(applied),
+            "outstanding": labels(award | applied), "unposted": labels(award | posted),
+            "unapplied_posted": labels(posted | applied)}
+
+
 def reconcile(tenant, award, credits, applications, bills):
-    """Validate a single award. Return JSON-safe totals and record-level provenance."""
+    """Reconcile a confirmed simulated memo against one isolated settlement evidence set.
+
+    All rows must have been observed by a trusted adapter. Sandbox utilization
+    can establish a sandbox result only. No source here certifies customer recovery.
+    """
     vendor = _required(award, "vendor_id")
     award_id = _required(award, "id")
     memo = _required(award, "memo_ref")
-    if (not tenant or award.get("tenant") != tenant or award.get("currency") != "USD"
+    if (_required(award, "tenant") != tenant or award.get("currency") != "USD"
             or award.get("confirmed") is not True):
         raise ValueError("Confirmed in-tenant USD award required")
+    award_sources = {_source(award, {Source.VENDOR}).value}
     limit = _amount(award["amount"])
-    credits = _index(credits, tenant, vendor)
-    bills = _index(bills, tenant, vendor)
-    apps = _index(applications, tenant, vendor)
+    credits = _index(credits, tenant, vendor, "credit")
+    bills = _index(bills, tenant, vendor, "bill")
+    apps = _index(applications, tenant, vendor, "application")
+    settlement_sources = {row["source"] for group in (credits, bills, apps) for row in group.values()}
+    if Source.RAMP in settlement_sources and settlement_sources != {Source.RAMP}:
+        raise ValueError("Sandbox and fixture settlement records cannot be combined")
     posted_by_credit = {}
     applied_by_credit = {}
     applied_by_bill = {}
     pairs = set()
-    sources = {_documented_source(award)}
+    posted_sources = set()
+    applied_sources = set()
     for ident, credit in credits.items():
         if credit.get("award_id") != award_id or credit.get("memo_ref") != memo:
             raise ValueError("Unmatched credit record")
         posted_by_credit[ident] = _amount(credit["amount"])
-        sources.add(_documented_source(credit))
+        posted_sources.add(credit["source"])
     for app in apps.values():
         credit_id, bill_id = _required(app, "credit_id"), _required(app, "bill_id")
         if credit_id not in credits or bill_id not in bills:
@@ -81,7 +120,7 @@ def reconcile(tenant, award, credits, applications, bills):
         if (applied_by_credit[credit_id] > posted_by_credit[credit_id]
                 or applied_by_bill[bill_id] > _amount(bills[bill_id]["amount"])):
             raise ValueError("Application exceeds credit or bill")
-        sources.update((_documented_source(app), _documented_source(bills[bill_id])))
+        applied_sources.update((app["source"], bills[bill_id]["source"], credits[credit_id]["source"]))
     posted = sum(posted_by_credit.values(), Decimal(0))
     applied = sum(applied_by_credit.values(), Decimal(0))
     if posted > limit:
@@ -91,7 +130,10 @@ def reconcile(tenant, award, credits, applications, bills):
               "unapplied_posted": posted - applied}
     return {**{k: f"{v:.2f}" for k, v in totals.items()}, "currency": "USD",
             "award_id": award_id, "memo_ref": memo, "credit_ids": sorted(credits),
-            "application_ids": sorted(apps), "bill_ids": sorted(applied_by_bill), "sources": sorted(sources)}
+            "application_ids": sorted(apps), "bill_ids": sorted(applied_by_bill),
+            "stage_sources": _provenance(award_sources, posted_sources, applied_sources),
+            "sources": sorted(award_sources | posted_sources | applied_sources),
+            "actual_recovery": None}
 
 
 def demo_reconciliation(award_amount, stage, *, tenant="demo", case_id="twilio"):
@@ -105,7 +147,8 @@ def demo_reconciliation(award_amount, stage, *, tenant="demo", case_id="twilio")
         return {**{k: "0.00" for k in ("awarded", "posted", "applied", "outstanding", "unposted",
                                           "unapplied_posted")}, "currency": "USD", "award_id": None,
                 "memo_ref": None, "credit_ids": [], "application_ids": [], "bill_ids": [],
-                "sources": [Source.REPLAY.value], "stage": stage}
+                "sources": [Source.REPLAY.value], "stage": stage,
+                "stage_sources": _provenance(set(), set(), set()), "actual_recovery": None}
     amount = _amount(award_amount)
     base = {"tenant": tenant, "vendor_id": "fixture-vendor:" + case_id, "currency": "USD"}
     key = "sim:" + case_id + ":"
