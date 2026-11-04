@@ -59,6 +59,9 @@ def initialize(path):
         PRAGMA user_version = 1;
         COMMIT;
         """)
+    # Settlement has its own additive schema; unrelated V3 tables keep version 1.
+    from .allocations import initialize_allocations
+    initialize_allocations(path)
 
 
 def persist_case(db, tenant, case):
@@ -149,22 +152,32 @@ SETTLEMENT_ACTIONS = {
 
 
 def transition_settlement(path, principal, case_id, action, award):
-    from decimal import Decimal
+    from .allocations import (_connect, _cutoff, _demo_transition, _json,
+                              canonical, initialize_allocations, usd_cents)
     if principal.role != "reviewer":
         raise PermissionError("Reviewer session required")
-    total = Decimal(award)
-    if not total.is_finite() or total <= 0 or total.as_tuple().exponent < -2:
+    total = usd_cents(award)
+    if total <= 0:
         raise ValueError("a confirmed USD award in cents is required")
     required, next_stage, _ = SETTLEMENT_ACTIONS[action]
-    with database(path) as db, db:
-        db.execute("BEGIN IMMEDIATE")
+    tenant, case_id = canonical(principal.tenant), canonical(case_id)
+    initialize_allocations(path)
+    with _connect(path, write=True) as db:
         rows = db.execute("SELECT stage, action, awarded FROM settlement_event WHERE tenant=? AND case_id=? ORDER BY sequence",
-                          (principal.tenant, case_id)).fetchall()
-        if rows and any(Decimal(r["awarded"]) != total for r in rows):
+                          (tenant, case_id)).fetchall()
+        if rows and any(usd_cents(r["awarded"]) != total for r in rows):
             raise ValueError("award changed after reconciliation")
         if any(r["action"] == action for r in rows):
             return
-        if (rows[-1]["stage"] if rows else None) != required:
+        previous = rows[-1]["stage"] if rows else None
+        # A cent has no positive proper half. Full application is the next action.
+        direct_cent = total == 1 and action == "apply-balance" and previous == "POSTED"
+        if previous != required and not direct_cent:
             raise ValueError("credit stage precondition failed")
-        db.execute("INSERT INTO settlement_event(tenant,case_id,action,stage,actor,awarded,at) VALUES (?,?,?,?,?,?,?)",
-                   (principal.tenant,case_id,action,next_stage,principal.subject,str(total),now()))
+        _demo_transition(db, tenant, case_id, action, total)
+        cursor = db.execute("INSERT INTO settlement_event(tenant,case_id,action,stage,actor,awarded,at) VALUES (?,?,?,?,?,?,?)",
+                           (tenant,case_id,action,next_stage,principal.subject,str(award),now()))
+        row = db.execute("SELECT * FROM settlement_event WHERE sequence=?", (cursor.lastrowid,)).fetchone()
+        # Mark V4-written events so restart never re-projects a live ledger entry.
+        db.execute("INSERT INTO allocation_legacy VALUES(?,?,?,?,?)",
+                   (row["sequence"],tenant,case_id,_json(dict(row)),_cutoff(db,None)))

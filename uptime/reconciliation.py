@@ -2,23 +2,18 @@
 
 Inputs are an award-specific set of records selected by trusted server code.
 A memo reference must agree explicitly. Never match by amount, date, or name.
+This compatibility evaluator cannot establish portfolio capacity. Persisted
+settlement must use allocations.AllocationLedger, which joins every award/case.
 """
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from uuid import UUID
 
 from .contracts import Source
 
 
 def _amount(value):
-    try:
-        if not isinstance(value, (str, Decimal)):
-            raise ValueError("Decimal text required")
-        value = Decimal(value)
-        if not value.is_finite() or value < 0 or value != value.quantize(Decimal(".01")):
-            raise ValueError("Invalid USD amount")
-    except InvalidOperation as exc:
-        raise ValueError("Invalid USD amount") from exc
-    return value
+    from .allocations import money, usd_cents
+    return Decimal(money(usd_cents(value)))
 
 
 def _required(record, field):
@@ -82,6 +77,7 @@ def reconcile(tenant, award, credits, applications, bills):
     All rows must have been observed by a trusted adapter. Sandbox utilization
     can establish a sandbox result only. No source here certifies customer recovery.
     """
+    from .allocations import _cents, calendar_date, money, usd_cents
     vendor = _required(award, "vendor_id")
     award_id = _required(award, "id")
     memo = _required(award, "memo_ref")
@@ -89,10 +85,22 @@ def reconcile(tenant, award, credits, applications, bills):
             or award.get("confirmed") is not True):
         raise ValueError("Confirmed in-tenant USD award required")
     award_sources = {_source(award, {Source.VENDOR}).value}
-    limit = _amount(award["amount"])
+    limit = usd_cents(award["amount"])
     credits = _index(credits, tenant, vendor, "credit")
     bills = _index(bills, tenant, vendor, "bill")
     apps = _index(applications, tenant, vendor, "application")
+    # V3 omitted these fields. When scope/date evidence is supplied, it must be
+    # complete and consistent; legacy absence never establishes persisted scope.
+    records = [award, *credits.values(), *bills.values(), *apps.values()]
+    for field in ("account_id", "product_id", "contract_id", "contract_version"):
+        if any(field in row for row in records):
+            expected = _required(award, field)
+            if any(_required(row, field) != expected for row in records):
+                raise ValueError(f"Mismatched {field}")
+    dated = any("effective_date" in row for row in records)
+    if dated:
+        for row in records:
+            calendar_date(row.get("effective_date"))
     settlement_sources = {row["source"] for group in (credits, bills, apps) for row in group.values()}
     if Source.RAMP in settlement_sources and settlement_sources != {Source.RAMP}:
         raise ValueError("Sandbox and fixture settlement records cannot be combined")
@@ -105,7 +113,9 @@ def reconcile(tenant, award, credits, applications, bills):
     for ident, credit in credits.items():
         if credit.get("award_id") != award_id or credit.get("memo_ref") != memo:
             raise ValueError("Unmatched credit record")
-        posted_by_credit[ident] = _amount(credit["amount"])
+        if dated and credit["effective_date"] < award["effective_date"]:
+            raise ValueError("Credit predates award")
+        posted_by_credit[ident] = usd_cents(credit["amount"])
         posted_sources.add(credit["source"])
     for app in apps.values():
         credit_id, bill_id = _required(app, "credit_id"), _required(app, "bill_id")
@@ -114,21 +124,33 @@ def reconcile(tenant, award, credits, applications, bills):
         if (credit_id, bill_id) in pairs:
             raise ValueError("Duplicate credit/bill application pair")
         pairs.add((credit_id, bill_id))
-        amount = _amount(app["amount"])
-        applied_by_credit[credit_id] = applied_by_credit.get(credit_id, Decimal(0)) + amount
-        applied_by_bill[bill_id] = applied_by_bill.get(bill_id, Decimal(0)) + amount
+        if dated and (bills[bill_id]["effective_date"] < max(award["effective_date"], credits[credit_id]["effective_date"])
+                      or credits[credit_id]["effective_date"] < award["effective_date"]
+                      or app["effective_date"] < max(bills[bill_id]["effective_date"], credits[credit_id]["effective_date"])):
+            raise ValueError("Application date mismatch or predating bill")
+        amount = usd_cents(app["amount"])
+        if amount == 0:
+            raise ValueError("Application must have positive cents")
+        applied_by_credit[credit_id] = applied_by_credit.get(credit_id, 0) + amount
+        applied_by_bill[bill_id] = applied_by_bill.get(bill_id, 0) + amount
+        capacity = usd_cents(bills[bill_id]["amount"])
+        if "eligible_cents" in bills[bill_id] or "eligible_amount" in bills[bill_id]:
+            eligible = _cents(bills[bill_id], "eligible_cents", "eligible_amount", positive=False)
+            if eligible > capacity:
+                raise ValueError("Eligible bill amount exceeds total")
+            capacity = eligible
         if (applied_by_credit[credit_id] > posted_by_credit[credit_id]
-                or applied_by_bill[bill_id] > _amount(bills[bill_id]["amount"])):
+                or applied_by_bill[bill_id] > capacity):
             raise ValueError("Application exceeds credit or bill")
         applied_sources.update((app["source"], bills[bill_id]["source"], credits[credit_id]["source"]))
-    posted = sum(posted_by_credit.values(), Decimal(0))
-    applied = sum(applied_by_credit.values(), Decimal(0))
+    posted = sum(posted_by_credit.values())
+    applied = sum(applied_by_credit.values())
     if posted > limit:
         raise ValueError("Posted credit exceeds award")
     totals = {"awarded": limit, "posted": posted, "applied": applied,
               "outstanding": limit - applied, "unposted": limit - posted,
               "unapplied_posted": posted - applied}
-    return {**{k: f"{v:.2f}" for k, v in totals.items()}, "currency": "USD",
+    return {**{k: money(v) for k, v in totals.items()}, "currency": "USD",
             "award_id": award_id, "memo_ref": memo, "credit_ids": sorted(credits),
             "application_ids": sorted(apps), "bill_ids": sorted(applied_by_bill),
             "stage_sources": _provenance(award_sources, posted_sources, applied_sources),
@@ -159,7 +181,10 @@ def demo_reconciliation(award_amount, stage, *, tenant="demo", case_id="twilio")
         credits.append({**base, "id": key + "credit", "amount": str(amount), "award_id": award["id"],
                         "memo_ref": award["memo_ref"], "source": Source.REPLAY.value})
     if stage in stages[3:]:
-        applied = amount if stage == "APPLIED" else (amount / 2).quantize(Decimal(".01"), rounding="ROUND_DOWN")
+        from .allocations import money, usd_cents
+        applied = amount if stage == "APPLIED" else Decimal(money(usd_cents(amount) // 2))
+        if applied == 0:
+            raise ValueError("A partial application must have positive cents; apply the balance")
         bills.append({**base, "id": key + "bill", "amount": str(amount), "source": Source.CUSTOMER.value})
         applications.append({**base, "id": key + "application", "credit_id": credits[0]["id"],
                              "bill_id": bills[0]["id"], "amount": str(applied), "source": Source.REPLAY.value})
