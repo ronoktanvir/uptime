@@ -1,0 +1,31 @@
+/* Same-origin V4 extension; scoped to preserve the V3 finance dashboard. */
+.uptime-v4{color:var(--text,#242c45);line-height:1.5;min-width:0}
+.uptime-v4 .v4-panel{background:var(--paper,#fff);border:1px solid var(--line,#dce1ed);border-radius:9px;padding:24px;margin-block:20px}
+.uptime-v4 .v4-panel .v4-panel{padding:18px;background:var(--wash,#f4f6fb)}
+.uptime-v4 h2{color:var(--ink,#233d8b);font-size:22px;margin:0 0 16px}
+.uptime-v4 h3{margin-top:24px}
+.uptime-v4 .v4-note{font-size:13px;color:var(--muted,#5c6478);max-width:85ch;line-height:1.65}
+.uptime-v4 .v4-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.uptime-v4 .v4-field{display:grid;gap:7px;min-width:0;font-size:13px;color:var(--muted,#5c6478)}
+.uptime-v4 .v4-field:has(textarea){grid-column:1/-1}
+.uptime-v4 input,.uptime-v4 select,.uptime-v4 textarea{width:100%;min-width:0;border:1px solid #bfc8dd;border-radius:5px;padding:10px;background:#fff;color:var(--text,#242c45);font:inherit}
+.uptime-v4 textarea{resize:vertical;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.6}
+.uptime-v4 button{font:inherit;border:1px solid var(--ink,#233d8b);border-radius:6px;background:var(--ink,#233d8b);color:white;padding:10px 16px;min-height:44px;cursor:pointer}
+.uptime-v4 button:disabled{cursor:not-allowed;opacity:.6}
+.uptime-v4 .v4-form>button{grid-column:1/-1;justify-self:start}
+.uptime-v4 .v4-actions{display:flex;flex-wrap:wrap;gap:12px;margin-block:18px}
+.uptime-v4 :is(button,input,select,textarea,summary):focus-visible{outline:3px solid #6888f2;outline-offset:4px}
+.uptime-v4 .v4-status:not(:empty){padding:14px 18px;border-left:3px solid #c98b24;background:var(--amber,#fff0d2);font-size:14px}
+.uptime-v4 .v4-record{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,3fr);gap:8px 18px;font-size:13px;border-bottom:1px solid var(--line,#dce1ed);padding-bottom:12px}
+.uptime-v4 .v4-record dt{color:var(--muted,#5c6478)}
+.uptime-v4 .v4-record dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.uptime-v4 .v4-record .v4-record{display:block;border-left:2px solid var(--line,#dce1ed);padding-left:12px}
+.uptime-v4 .v4-record .v4-record dd{margin:4px 0 12px}
+.uptime-v4 .v4-detail{margin-block:16px;border-top:1px solid var(--line,#dce1ed);padding-top:12px}
+.uptime-v4 summary{cursor:pointer;color:var(--ink,#233d8b);padding:8px 0}
+.uptime-v4 .v4-sources{display:flex;flex-wrap:wrap;gap:6px;margin-block:10px}
+.uptime-v4 .v4-source{border:1px solid #cdd4e4;border-radius:3px;padding:3px 6px;font-size:11px;background:#f8f9fd;color:#4d5877;overflow-wrap:anywhere}
+.uptime-v4 .v4-unknown{background:var(--amber,#fff0d2);color:var(--brown,#805306)}
+.uptime-v4 .v4-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.uptime-v4 .v4-case{border-top:1px solid var(--line,#dce1ed);padding-block:14px}
+@media(max-width:800px){.uptime-v4 .v4-grid,.uptime-v4 .v4-form{grid-template-columns:1fr}.uptime-v4 .v4-panel{padding:16px}.uptime-v4 .v4-record{grid-template-columns:1fr;gap:4px}.uptime-v4 .v4-record dd{margin-bottom:12px}}
