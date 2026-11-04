@@ -1,0 +1,61 @@
+# Vendor catalog and monthly availability adapters
+
+The catalog accepts source document text and a separate tenant account overlay. It extracts a bounded monthly availability contract family, runs reviewer-supplied expectations in shadow, and requires authenticated review before activating new workbench evaluations. Catalog operations are local. Every customer observation and resulting credit estimate is explicitly synthetic.
+
+## Application interface
+
+The host mounts uptime.vendor_api.make_router(db_path, actor, reviewer, check_write, mutex). The host supplies authenticated tenant dependencies, same-origin action proof, the observe-only policy, and the shared mutation lock. Candidate and test requests need a bounded JSON body limit larger than the legacy 4 KiB action limit.
+
+| Route | Behavior |
+| --- | --- |
+| GET /api/vendors | Lists installation IDs, vendor identity, revisions, and current activation |
+| GET /api/vendors/{installation_id} | Shows cited rules, private overlay, tests, review actions, and audit |
+| POST /api/vendors/{installation_id}/candidates | Extracts a document, validates an overlay, and creates a shadow revision or quarantine |
+| POST /api/vendors/{installation_id}/tests | Runs externally specified expected outcomes |
+| POST /api/vendors/{installation_id}/actions/{returned_id} | Consumes a subject-bound, revision-bound action with an empty JSON body |
+| POST /api/vendors/{installation_id}/evaluate | Uses the current active adapter to persist a workbench evaluation |
+
+The path identifier is a tenant-scoped installation slot. One slot has one account/product/plan overlay. Multiple slots can refer to the same explicit vendor identity and public contract. A public manifest can define multiple products, plans and tiers. Updating an overlay in a slot creates a new governed candidate.
+
+A candidate body contains document and overlay. The document contains name, uri, classification and text. Accepted classifications are public and synthetic_public. The latter permits a synthetic URN as provenance. HTTPS URLs are retained as citations and are never fetched by intake. A supplied classification and URL do not establish externally verified provenance or currentness.
+
+The overlay requires agreement, account, product, plan, effective_from, effective_until, fee_line_ref and currency. Only USD affected monthly fees are implemented. An optional private override has filing_days, source_ref and an explicit quoted filing clause. It changes the filing window only for this agreement/account/product/plan and finite overlay interval. A mismatching quoted window is rejected. Private amendments remain local.
+
+## Supported contract family
+
+The strict offline extractor recognizes independently changing vendor and agreement names, dates, monthly UTC availability, exclusive percent thresholds, descending credit tiers, calendar-day filing windows after month end, and future invoice credits based on affected monthly fees. Percentages become integers with six fractional decimal places. The evaluator compares exact integer ratios and preserves fractional-cent modeled estimates.
+
+The parser supports concise ordinary clauses and Markdown percentage tables. For example, a source can say “For Data Lake on the Advanced plan, monthly availability below 99.9% earns a 15% service credit.” A table can name product, plan, monthly availability below, and service credit. Unsupported units, comparators, fee bases, overlapping tiers, qualification clauses, or unconsumed source text quarantine the candidate.
+
+An explicit public start date may have a null end when the source provides no termination date. Every overlay must provide a finite inclusive interval. Evaluations require the whole calendar month to fit both intervals. Each case retains source digest, intake receipt time and exact version. The receipt time records when this text arrived, with external currentness explicitly unverified.
+
+## Tool-free model extraction
+
+The application never sends uploaded documents or overlays to a model. An operator can separately stage a public-only model proposal after approving the digest of the exact UTF-8 document text.
+
+~~~sh
+python -m uptime.vendor_model \
+  --document /absolute/path/public-document.json \
+  --approved-sha256 EXACT_TEXT_SHA256 \
+  --output-dir /absolute/path/operator-owned-extractions
+~~~
+
+The command invokes Claude Opus 5.5 with tools disabled, strict MCP configuration, an empty working directory and no session persistence. Only document text and extraction instructions enter the prompt. The private overlay is absent from the input type. The subprocess environment excludes provider secrets.
+
+Set UPTIME_PUBLIC_EXTRACTIONS to the operator-owned extraction directory to consume the digest-named receipt. The application checks source digest, proposal digest, model identity, full source coverage, exact spans and locally interpreted values. Otherwise it parses the new input offline.
+
+A reversible profile broadens ordinary prose through model-proposed typed propositions. It requires CLI --allow-propositions and app environment UPTIME_MODEL_PROPOSITIONS=1. The default strict path remains available. The broader profile accepts cited scopes and two-column tables plus variable prose. Deterministic guards check percentages, dates, units, exclusive operators, product/plan bindings and unsupported qualifiers. These guards do not establish full semantic equivalence. The returned interpret action requires an authenticated reviewer to accept the cited interpretation before approval. Its actor and revision are recorded.
+
+## Reviewer gates and dispatch
+
+The test submission has revision and tests. Each test contains a unique name, facts and expected with outcome plus the exact string amount for eligible cases. Tests must contain a positive and a refusal. Every expectation and generated arithmetic check must pass. A failing suite exposes no approval action. Generated checks exercise arithmetic boundaries and do not substitute for independently authored contract expectations.
+
+Facts bind agreement, account, product, plan, month and fee_line_ref. Synthetic observations include eligible_downtime_minutes, monitor_source equal to simulated_vendor, month_complete, exclusions_removed, monthly_fee_cents and offset-aware received_at. Optional monitor_ref, fee_ref, monitor_month and fee_month bind explicit evidence references and periods. Missing authoritative measurements, incomplete periods, mismatched scopes and public status alone cannot create an eligible estimate.
+
+Approval records the authenticated principal. Activation requires the same approving principal. Test identities are labeled scripted_test. Other reviewers are labeled authenticated_reviewer, without inferring human physical presence from a subject string.
+
+Source or overlay replacement suspends dispatch and resets review. Malformed intake quarantines the slot. Restored sources require fresh revision-bound actions. Explicit revoke and review cannot resurrect approval links. Rollback restores a previous version only when source, overlay and independent suite remain compatible. Otherwise it disables dispatch.
+
+An active adapter writes through storage.persist_case in the lifecycle transaction. Obligation identity stays stable when observations change, so corrections append revisions instead of duplicate portfolio rows. Historical cases survive rollback. vendor_registry.resolve_case(path, principal, case_id) requires the current active version for downstream workflows. require_active=False permits explicit historical inspection. active_binding(path, principal, installation_id) resolves the trusted current manifest and overlay.
+
+Filing remains distinct from issuance, award, posting and application. The generic interpreter establishes as-filed synthetic eligibility estimates. Vendor issuance remains unconfirmed. Legacy Jira separately reports timely filing and blocked or unconfirmed account-standing issuance conditions.
