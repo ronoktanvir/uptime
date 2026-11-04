@@ -1,0 +1,24 @@
+{
+  "tenant": "bears",
+  "scope": {
+    "account": "account-71",
+    "vendor": "Twilio",
+    "contract": "agreement-X",
+    "service": "Twilio Messaging API",
+    "component": "api-east",
+    "invoice": "oct-invoice",
+    "incident": "evt-411",
+    "currency": "USD",
+    "month": "2026-10",
+    "region": "east"
+  },
+  "start": "2026-10-18T13:11:00Z",
+  "end": "2026-10-18T13:40:00Z",
+  "affected_fees": "621.30",
+  "attachments": {
+    "status": "3fa7acc94c76c2773bfa16047b8138bb481c3928d2b9fe792a380c81973f7599",
+    "impact": "1402fbebb91b2054160580773f36816c6da76dfa632397fba6098c3e62f0795b",
+    "invoice": "c2882f9f803cbd7a58a1c767f24458277291546515d8dc4ab8c46a450f55b75d",
+    "component": "aac1510cf45887f92b961f306885ba1e6cb93b14f2b0bddbac2ff7a9f227ae16"
+  }
+}
