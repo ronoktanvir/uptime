@@ -478,3 +478,26 @@ def test_broader_tier_cannot_infer_definite_rate_from_qualified_source(injected)
         p['quote'] = p['quote'].replace('| 15% |', '| ' + injected + ' |')
     with pytest.raises(ValueError):
         validate_proposal(Document(**document), proposal, allow_propositions=True)
+
+
+def test_rollback_restores_compatible_previously_reviewed_version(api, monkeypatch, tmp_path):
+    import json
+    from uptime.vendor_model import MODEL
+    from uptime.vendor_registry import active_binding
+    c, _, _, path = api
+    first = activate(c)
+    proposal = public_proposal()
+    digest = sha256(SOURCE.encode()).hexdigest()
+    artifact = dict(source_sha256=digest, model=MODEL, session='synthetic-test-compiler-version', at='2026-01-01T00:00:00Z',
+                    proposal=proposal, proposal_sha256=fingerprint(proposal))
+    (tmp_path / (digest + '.json')).write_text(json.dumps(artifact))
+    monkeypatch.setenv('UPTIME_PUBLIC_EXTRACTIONS', str(tmp_path))
+    second = install(c)
+    assert second['version'] != first['version'] and second['previous'] == first['version']
+    assert second['active_version'] is None
+    second = run_suite(c, second)
+    second = transition(c, transition(c, second, 'approve'), 'activate')
+    rolled = transition(c, second, 'rollback')
+    assert rolled['active_version'] == first['version']
+    assert active_binding(path, REVIEWER, 'example-cloud')['version'] == first['version']
+    assert c.post(V + '/evaluate', json={'facts': FACTS}).json()['version'] == first['version']
