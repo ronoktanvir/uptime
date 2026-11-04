@@ -1,0 +1,13 @@
+{
+  "mode": "offline fixture", "observed_at": null, "origin": null,
+  "sources": ["DETERMINISTIC_REPLAY", "SYNTHETIC_CUSTOMER"], "capabilities": {},
+  "vendor_ids": ["fixture-vendor"], "credits": [], "draft": null,
+  "bills": [{
+    "id": "fixture-bill-01", "status": "OPEN", "approval_status": "PENDING",
+    "issued_at": "2026-10-01", "amount": {"amount": "37500.00", "currency": "USD"},
+    "lines": [{"id": "fixture-line-01", "sku": "seats", "service_date": "2026-10-01",
+      "kind": "inventory_line_items", "quantity": "1000", "unit_price": {"amount": "37.50", "currency": "USD"},
+      "amount": {"amount": "37500.00", "currency": "USD"}}],
+    "applied_credits": [], "sources": ["SYNTHETIC_CUSTOMER", "DETERMINISTIC_REPLAY"]
+  }]
+}
