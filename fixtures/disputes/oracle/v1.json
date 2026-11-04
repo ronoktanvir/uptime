@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "scope": "Offline Twilio Services APIs availability claims, October 2026, ordinary 99.95% plan, USD. Private QA expectations; neither party receives this file.",
+  "cases": {
+    "dispute-cure": {
+      "responses": ["DOCUMENTATION_NEEDED", "AWARD"],
+      "claimant_stage": "AWARDED",
+      "claimed": "100.00",
+      "awarded": "100.00",
+      "disputed_remainder": "0.00",
+      "submissions": 2,
+      "reason": "A 30-minute continuous outage in a 44,640-minute month breaches the threshold. A status attachment omits authoritative scope linkage. A previously archived matching component record supplies it. Ten percent applies to USD 1,000 of affected API charges."
+    },
+    "dispute-denial": {
+      "responses": ["MAINTENANCE_EXCLUDED"],
+      "claimant_stage": "DENIAL_ACCEPTED",
+      "claimed": "100.00",
+      "awarded": "0.00",
+      "disputed_remainder": "0.00",
+      "submissions": 1,
+      "reason": "A timely maintenance notice, independently corroborated in the customer's archive, excludes this interval under section 4(d). Stop without sending an appeal."
+    },
+    "dispute-review": {
+      "responses": ["CONTESTED_SCOPE"],
+      "claimant_stage": "HUMAN_REVIEW",
+      "claimed": "100.00",
+      "awarded": "0.00",
+      "disputed_remainder": "100.00",
+      "submissions": 1,
+      "reason": "The incident overlaps a maintenance window whose prior notice cannot be verified. Neither side can establish the exclusion. Escalate without an outbound rebuttal."
+    },
+    "dispute-partial": {
+      "responses": ["PARTIAL_AWARD"],
+      "claimant_stage": "PARTIAL_AWARD_REVIEW",
+      "claimed": "100.00",
+      "awarded": "80.00",
+      "disputed_remainder": "20.00",
+      "submissions": 1,
+      "reason": "USD 800 of the USD 1,000 claimed affected-fee basis is confirmed. Preserve the awarded USD 80 credit with a distinct USD 20 disputed remainder. No settlement or applied amount."
+    }
+  },
+  "adversarial": {
+    "unregistered_attachment": {"response": "UNVERIFIED_DOCUMENT", "awarded": "0.00"},
+    "same_ref_modified_contents": {"response": "UNVERIFIED_DOCUMENT", "awarded": "0.00"},
+    "other_tenant_document": {"response": "UNVERIFIED_DOCUMENT", "awarded": "0.00"},
+    "late_submission": {"response": "WINDOW_CLOSED", "awarded": "0.00"},
+    "short_outage_or_threshold_met": {"response": "THRESHOLD_MET", "awarded": "0.00"}
+  }
+}

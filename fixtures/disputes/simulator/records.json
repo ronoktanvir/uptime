@@ -1,0 +1,130 @@
+{
+  "sim-acct-101": {
+    "plan": "standard",
+    "month": "2026-10",
+    "product": "Twilio Messaging API",
+    "region": "US1",
+    "start": "2026-10-14T12:00:00+00:00",
+    "end": "2026-10-14T12:30:00+00:00",
+    "incident_class": "outage",
+    "notice_sent_at": null,
+    "document_registry": {
+      "status-1-summary": "c5bd263265d6c5e0c732127ade6732870efdb9e663c59bec92b4d2c3733995d5",
+      "status-1-component": "582c343f1e374ab834e5f54263f64680af1a7d08dc13854c8c42531b717da048"
+    },
+    "lines": [
+      {
+        "kind": "affected_api",
+        "usd": "800.00"
+      },
+      {
+        "kind": "affected_api",
+        "usd": "200.00"
+      },
+      {
+        "kind": "tax",
+        "usd": "60.00"
+      },
+      {
+        "kind": "carrier",
+        "usd": "90.00"
+      }
+    ]
+  },
+  "sim-acct-102": {
+    "plan": "standard",
+    "month": "2026-10",
+    "product": "Twilio Messaging API",
+    "region": "US1",
+    "start": "2026-10-14T12:00:00+00:00",
+    "end": "2026-10-14T12:30:00+00:00",
+    "incident_class": "maintenance",
+    "notice_sent_at": "2026-10-13T10:00:00+00:00",
+    "document_registry": {
+      "status-2-summary": "c038bed8e9c034b844efee93fbd8f5627f8b55f4cceed79334586d9ee1dc85da",
+      "status-2-component": "9cbf5f6ee025f2fc30b582ffd43147b9c8f040bfd351f43fcae105986c484289"
+    },
+    "lines": [
+      {
+        "kind": "affected_api",
+        "usd": "800.00"
+      },
+      {
+        "kind": "affected_api",
+        "usd": "200.00"
+      },
+      {
+        "kind": "tax",
+        "usd": "60.00"
+      },
+      {
+        "kind": "carrier",
+        "usd": "90.00"
+      }
+    ]
+  },
+  "sim-acct-103": {
+    "plan": "standard",
+    "month": "2026-10",
+    "product": "Twilio Messaging API",
+    "region": "US1",
+    "start": "2026-10-14T12:00:00+00:00",
+    "end": "2026-10-14T12:30:00+00:00",
+    "incident_class": "uncertain",
+    "notice_sent_at": null,
+    "document_registry": {
+      "status-3-summary": "ccbf3f4cdc4a17edc93db8b4f1c63d1f4a9430c5c0ef88a677ac9f106a0dff37",
+      "status-3-component": "bb88a9329f37bdd987b69f9fd18e5a86df1e786576dcee715c4d799f5ecc69f0"
+    },
+    "lines": [
+      {
+        "kind": "affected_api",
+        "usd": "800.00"
+      },
+      {
+        "kind": "affected_api",
+        "usd": "200.00"
+      },
+      {
+        "kind": "tax",
+        "usd": "60.00"
+      },
+      {
+        "kind": "carrier",
+        "usd": "90.00"
+      }
+    ]
+  },
+  "sim-acct-104": {
+    "plan": "standard",
+    "month": "2026-10",
+    "product": "Twilio Messaging API",
+    "region": "US1",
+    "start": "2026-10-14T12:00:00+00:00",
+    "end": "2026-10-14T12:30:00+00:00",
+    "incident_class": "outage",
+    "notice_sent_at": null,
+    "document_registry": {
+      "status-4-summary": "b70a03dc1d9f054d6e4ff0a48a5975b547358fe4aae8632e15b98d3886d84ae3",
+      "status-4-component": "c32aa66f9d407e9b7c865192fc7e3558bdd1bd4fc70c8e247dd0f8d049cd7f46"
+    },
+    "lines": [
+      {
+        "kind": "affected_api",
+        "usd": "800.00"
+      },
+      {
+        "kind": "unconfirmed_scope",
+        "usd": "200.00"
+      },
+      {
+        "kind": "tax",
+        "usd": "60.00"
+      },
+      {
+        "kind": "carrier",
+        "usd": "90.00"
+      }
+    ]
+  }
+}
