@@ -222,3 +222,87 @@ def test_no_twilio_fallback_for_other_vendor(tmp_path):
     env = Setup(tmp_path / "other.db", SCOPE.model_copy(update={"vendor":"Example Cloud"}))
     env.build()
     assert env.get()["outcome"] == "UNSUPPORTED_RULE" and env.get()["filing_cutoff"] is None
+
+
+@pytest.mark.parametrize("text", ["We approved invoice USD 62.13.", "We approved a credit of -$62.13.",
+                                 'The quoted statement says "we approved a credit of USD 62.13".',
+                                 "We did not need a component record.", "There was no maintenance."])
+def test_negative_and_quoted_statements_are_proposals_only(text):
+    assert propose(text).reason == "unknown"
+
+
+def test_invoice_scope_mismatch_without_other_invoice(env):
+    env.send("status"); env.send("impact")
+    env.send("invoice", data=dict(kind="invoice", lines=[dict(id="a", kind="affected_api", amount="84.00", month="2025-10")]))
+    assert env.get()["outcome"] == "INSUFFICIENT_EVIDENCE"
+    assert "contradicts" in env.get()["trace"][0]
+
+
+def test_substantive_contradictory_vendor_response_and_exact_alias(env):
+    env.file()
+    original = env.message("We have approved a credit of USD 48.50.")
+    assert original["stage"] == "PARTIAL_AWARD_REVIEW"
+    env.message("We have approved a credit of USD 48.50.", "redelivery")
+    assert env.get()["stage"] == "PARTIAL_AWARD_REVIEW" and len(env.get()["replies"]) == 1
+    row = env.message("We have approved a credit of USD 62.13.", "conflicting-amount")
+    assert row["stage"] == "HUMAN_REVIEW" and row["ledger"]["awarded"] == "48.50"
+
+
+def test_after_deadline_reply_uses_original_filing_time(env):
+    env.file()
+    env.now = datetime(2026, 12, 3, tzinfo=UTC)
+    row = env.message("The filing period expired.")
+    assert row["stage"] == "RESPONSE_DRAFTED"
+    assert row["preflight"]["outcome"] == "ELIGIBLE"
+    assert not row["actions"]
+
+
+def test_later_contradictory_evidence_freezes_award_without_erasing_receipt(env):
+    env.file()
+    env.message("We have approved a service credit of USD 62.13.")
+    env.send("impact", data={**BODIES["impact"], "affected":False}, event_id="independent-correction")
+    row = env.get()
+    assert row["stage"] == "HUMAN_REVIEW" and row["ledger"]["awarded"] == "62.13"
+    assert len(row["submissions"]) == 1 and not row["actions"]
+
+
+def test_exact_money_under_small_decimal_context(env):
+    env.file()
+    with localcontext() as ctx:
+        ctx.prec = 2
+        row = env.message("We have approved a service credit of USD 48.50.")
+        assert row["ledger"]["disputed_remainder"] == "13.63"
+
+
+def test_authoritative_active_resolver_version_and_scope_binding(tmp_path):
+    from uptime.correspondence_rules import ActiveRemedy
+    from uptime.contracts import Citation, EvaluationResult, Money, Outcome, fingerprint
+
+    env = Setup(tmp_path / "active.db", SCOPE.model_copy(update={"vendor":"Example API", "service":"Example Request API"}))
+    current_version = ["active-1"]
+    def resolve(tenant, scope, facts, now):
+        result = EvaluationResult(Outcome.ELIGIBLE, (Citation("Signed example SLA", "1", "§2", "urn:example:terms"),),
+                                  ("Server-persisted ACTIVE template evaluated the scoped facts.",), amount=Money(Decimal("47.21")))
+        return ActiveRemedy(tenant, scope, fingerprint([[e["source"], e["digest"]] for e in facts]),
+                            current_version[0], datetime(2026, 11, 20, tzinfo=UTC), result)
+    env.desk.active_resolver = resolve
+    env.build()
+    assert env.get()["amount"] == "47.21"
+    approved = env.act("approve-claim")
+    assert approved["approval"]
+    current_version[0] = "active-2"
+    with pytest.raises(ValueError, match="differs"):
+        env.act("submit-claim")
+    env.desk.active_resolver = lambda *args: replace(resolve(*args), tenant="other")
+    assert env.get()["outcome"] == "UNSUPPORTED_RULE"
+
+
+def test_transactional_observe_policy_applies_to_source_and_reviewer(env):
+    from uptime import policy
+    policy.setup(env.path)
+    policy.configure(env.path, REVIEWER, "OBSERVE", "0.00")
+    with pytest.raises(PermissionError):
+        env.send("status")
+    with pytest.raises(PermissionError):
+        env.act("approve-claim")
+    assert env.get()["actions"] == []

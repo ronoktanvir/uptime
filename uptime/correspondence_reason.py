@@ -14,8 +14,8 @@ class Proposal:
 # imperatives about system behavior, conditional offers and unsupported units
 # cannot authorize a follow-up or a financial entry.
 def propose(text: str) -> Proposal:
-    text = text.casefold()
-    if re.search(r"\b(ignore|override|execute|credentials?|password|secret|token|system prompt|wire transfer|instructions?|disregard|hypothetical|hypothetically)\b|[<>{}]|https?://", text):
+    text = text.translate(str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"))
+    if re.search(r"\b(ignore|override|execute|credentials?|password|secret|token|system prompt|wire transfer|instructions?|disregard|hypothetical|hypothetically|quoted|forwarded)\b|[<>{}\"“”]|https?://", text):
         return Proposal("unknown")
     reasons = {
         "maintenance": r"\b(maintenance|planned (?:work|downtime)|scheduled (?:work|downtime))\b",
@@ -24,13 +24,15 @@ def propose(text: str) -> Proposal:
     found = [(reason, m.span()) for reason, pattern in reasons.items() if (m := re.search(pattern, text))]
     component = re.search(r"\b(component|endpoint|service identifier|affected api|service id)\b", text)
     request = re.search(r"\b(need(?:ed)?|missing|lack(?:s|ing)?|provide|send|supply|attach|require(?:s|d)?|identify|confirm|cannot verify|unable to verify|which|without|does not (?:identify|show)|did not (?:identify|include))\b", text)
-    if component and request:
+    if component and request and not re.search(r"\b(no|not|never)\b.{0,50}\b(component|endpoint|needed|required)\b", text):
         found.append(("component", (min(component.start(), request.start()), max(component.end(), request.end()))))
     award = re.search(r"\b(award(?:ed|ing)?|grant(?:ed|ing)?|approve(?:d)?|issued?|applied|credit(?:ed)?|allow(?:ed)?)\b", text)
     values = list(re.finditer(r"(?:\busd\s*|\$\s*)([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?)(?!\w|[.,][0-9])|\b([0-9]+(?:\.[0-9]+)?)\s*usd\b", text))
     # 'We deny the credit' is not an award. A request to send a credit is not
     # an assertion of issuance. A monetary assertion needs one explicit USD amount.
     if award and values:
+        if not re.search(r"\b(service credit|credit|credit memo)\b", text) or re.search(r"[-−]\s*(?:usd|\$)|\b(?:usd|\$)\s*[-−]", text):
+            return Proposal("unknown")
         if (len(values) != 1 or re.search(r"\b(if|could|may|would|might|pending|propos\w*|offer\w*|request\w*|deny|denied|not|cannot|unable|no|never|up to|unless|instead|eur|cad|gbp)\b", text)
                 or not re.search(r"\b(awarded|granted|approved|issued|credited|we (?:award|grant|approve|confirm)|(?:credit|award) (?:of|is|has been|for))\b", text)):
             return Proposal("unknown")

@@ -2,7 +2,7 @@
 from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, localcontext
 import json
 from pathlib import Path
 
@@ -40,6 +40,12 @@ def money(amount):
     raw = format(Decimal(amount), "f")
     whole, _, fraction = raw.partition(".")
     return whole + "." + fraction.rstrip("0").ljust(2, "0")
+
+
+def remainder(claimed, awarded):
+    with localcontext() as context:
+        context.prec = 50
+        return money(Decimal(claimed) - Decimal(awarded))
 
 
 def authorize(p, write=False):
@@ -178,15 +184,21 @@ class CorrespondenceDesk:
             if body["kind"] == "message":
                 if not state["submissions"] or body["receipt_id"] != state["submissions"][-1]["id"]:
                     raise ValueError("Correspondence does not refer to the current local submission.")
-                if state["stage"] != "AWAITING_VENDOR":
-                    raise ValueError("A substantive response already exists for this receipt.")
+                
             fact = dict(event_id=event.event_id, source=source, subject=subject, kind=body["kind"], digest=digest,
                         received_at=now.isoformat(), body=body)
             state["evidence"].append(fact)
             audit(state, now, subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
                   event_id=event.event_id, digest=digest)
             if body["kind"] == "message":
-                self._reply(tenant, scope, state, fact, now)
+                if any(r["receipt"] == body["receipt_id"] for r in state["replies"]):
+                    state["stage"] = "HUMAN_REVIEW"
+                    state["approval"] = None
+                    state["replies"].append(dict(reason="contradictory_correspondence", span=None, event_id=fact["event_id"],
+                        digest=digest, receipt=body["receipt_id"], received_at=now.isoformat(), sources=VENDOR))
+                    audit(state, now, "claimant", "Additional substantive vendor correspondence requires review.", VENDOR)
+                else:
+                    self._reply(tenant, scope, state, fact, now)
             else:
                 self._evidence_arrival(tenant, scope, state, now)
         self._save(db, tenant, claim_id, state)
@@ -196,6 +208,11 @@ class CorrespondenceDesk:
 
     def _evidence_arrival(self, tenant, scope, state, now):
         if state["stage"] in TERMINAL:
+            evaluation = self._assess(tenant, scope, state, now).evaluation
+            if (state["stage"] in {"AWARDED", "PARTIAL_AWARD_REVIEW"} and evaluation.outcome != Outcome.ELIGIBLE
+                    or state["stage"] == "DENIAL_ACCEPTED" and evaluation.outcome != Outcome.INELIGIBLE):
+                state["stage"] = "HUMAN_REVIEW"
+                audit(state, now, "claimant", "Later contradictory evidence requires review; historical receipts remain recorded.")
             return
         if state["approval"]:
             state["stage"] = "DRAFTED" if not state["submissions"] else "RESPONSE_DRAFTED"
@@ -256,6 +273,7 @@ class CorrespondenceDesk:
         request = money(current.evaluation.amount.amount)
         packet = dict(tenant=tenant, claim=claim_id, scope=scope.model_dump(), destination="isolated-local-simulator",
                       subject="SLA Claim", version=current.version, requested=request, evidence_digest=current.evidence_digest,
+                      filing_cutoff=current.cutoff.isoformat(), terms_digest=fingerprint([asdict(c) for c in current.evaluation.clauses]),
                       artifacts=[dict(kind=e["kind"], digest=e["digest"]) for e in facts])
         if state["submissions"]:
             original = state["submissions"][0]
@@ -333,7 +351,7 @@ class CorrespondenceDesk:
         stage = state["stage"]
         unresolved = stage in {"HUMAN_REVIEW", "PARTIAL_AWARD_REVIEW", "NEEDS_EVIDENCE", "AWAITING_NOTICE", "RESPONSE_DRAFTED", "RESPONSE_APPROVED"}
         ledger = dict(estimated=predicted, claimed=claimed, awarded=awarded, posted="0.00", applied="0.00",
-                      disputed_remainder=money(Decimal(claimed) - Decimal(awarded)) if unresolved else "0.00")
+                      disputed_remainder=remainder(claimed, awarded) if unresolved else "0.00")
         amount = awarded if stage in {"AWARDED", "PARTIAL_AWARD_REVIEW"} else predicted if not submitted and evaluation.amount else None
         outcome = Outcome.INELIGIBLE if stage == "DENIAL_ACCEPTED" else evaluation.outcome if amount is not None or not submitted else Outcome.MISSING
         evidence = [dict(label=e["kind"], detail=e["event_id"] + " · " + e["source"], digest=e["digest"],
