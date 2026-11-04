@@ -1,0 +1,26 @@
+Northbank Analytics | Demonstration customer agreement
+Synthetic fixture. Version NB-DEMO-2025-10. Both parties and all transactions are fictional.
+
+REBATE | Section R-1. Annual usage rebate.
+For the contract year October 1, 2025 through September 30, 2026 inclusive,
+count paid charges for Core and Analytics posted during that year. Subtract
+returns posted in that year on those products. Exclude other products.
+If net eligible spend is at least USD 100,000.00, a rebate of 2.00% applies
+to the entire net eligible spend, rounded once to the nearest cent, half up.
+Deduct all previously issued credits identified against R-1 for that contract
+year. The agreement supplies no foreign-currency conversion rule.
+
+NOTICE | Section N-2. Renewal notice receipt.
+For the November 9, 2026 renewal, a notice must be received through the
+designated customer portal by 17:00 America/Los_Angeles on the third working
+day before the renewal date. Count backward, excluding the renewal date.
+Calendar NB-OFFICE-2026 is authoritative. Saturday and Sunday are closed,
+as is November 6, 2026, the vendor's scheduled office closure. A matching
+portal receipt timestamp controls. A dispatch timestamp does not establish
+receipt. This is a nonmonetary obligation.
+
+PARITY | Section M-3. Negotiated price parity.
+A same-period, same-product, same-volume commitment comparator furnished
+with permission to use its terms is required for a parity determination.
+This fixture includes no authorized comparator, pricing method or adjustment
+amount. Any monetary determination requires a separately verified method.

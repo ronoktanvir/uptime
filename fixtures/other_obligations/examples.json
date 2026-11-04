@@ -1,0 +1,21 @@
+{
+  "rebate": {
+    "complete": true,
+    "through": "2026-09-30",
+    "charges": [
+      {"id":"P-1","date":"2025-10-01","product":"Core","kind":"paid","amount":"65000.00","currency":"USD"},
+      {"id":"P-2","date":"2026-09-30","product":"Analytics","kind":"paid","amount":"45000.00","currency":"USD"},
+      {"id":"R-1","date":"2026-03-03","product":"Core","kind":"return","amount":"10000.00","currency":"USD"},
+      {"id":"P-3","date":"2026-01-08","product":"Training","kind":"paid","amount":"4000.00","currency":"USD"},
+      {"id":"P-4","date":"2025-09-30","product":"Core","kind":"paid","amount":"7000.00","currency":"USD"}
+    ],
+    "credits": [
+      {"id":"CM-7","clause":"R-1","year_end":"2026-09-30","amount":"500.00","currency":"USD"},
+      {"id":"CM-1","clause":"R-1","year_end":"2025-09-30","amount":"300.00","currency":"USD"}
+    ]
+  },
+  "notice": {
+    "calendar": {"id":"NB-OFFICE-2026","from":"2026-01-01","through":"2026-12-31","weekdays":[0,1,2,3,4],"closed":["2026-11-06"]},
+    "receipt": {"id":"PORTAL-14","obligation":"N-2","renewal":"2026-11-09","channel":"designated_customer_portal","received_at":"2026-11-04T01:00:00+00:00"}
+  }
+}
