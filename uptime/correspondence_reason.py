@@ -33,7 +33,22 @@ def propose(text: str) -> Proposal:
     if award and values:
         if not re.search(r"\b(service credit|credit|credit memo)\b", text) or re.search(r"[-−]\s*(?:usd|\$)|\b(?:usd|\$)\s*[-−]", text):
             return Proposal("unknown")
-        if (len(values) != 1 or re.search(r"\b(if|could|may|would|might|pending|propos\w*|offer\w*|request\w*|deny|denied|not|cannot|unable|no|never|up to|unless|instead|eur|cad|gbp)\b", text)
+        if len(values) > 1:
+            # A partial award may restate the requested amount. Recognize it only
+            # when exactly one amount follows an affirmative grant, and every
+            # other amount is explicitly labeled as the prior claim/fee basis.
+            grant_values = []
+            for value in values:
+                preceding = text[max(0, value.start() - 90):value.start()]
+                labels = list(re.finditer(r"\b(approved|awarded|granted|issued|credited|requested|claimed|invoice|charges|fees)\b", preceding))
+                if not labels:
+                    return Proposal("unknown")
+                if labels[-1].group() in {"approved", "awarded", "granted", "issued", "credited"}:
+                    grant_values.append(value)
+            if len(grant_values) != 1:
+                return Proposal("unknown")
+            values = grant_values
+        if (re.search(r"\b(if|could|may|would|might|pending|reversed|rescinded|withdrawn|cancell?ed|void|rejected|refused|disputed|limit|propos\w*|offer\w*|request|requesting|deny|denied|not|cannot|unable|no|never|up to|unless|instead|eur|cad|gbp)\b", text)
                 or not re.search(r"\b(awarded|granted|approved|issued|credited|we (?:award|grant|approve|confirm)|(?:credit|award) (?:of|is|has been|for))\b", text)):
             return Proposal("unknown")
         value = values[0]

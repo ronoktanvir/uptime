@@ -310,3 +310,21 @@ def test_transactional_observe_policy_applies_to_source_and_reviewer(env):
     with pytest.raises(PermissionError):
         env.act("approve-claim")
     assert env.get()["actions"] == []
+
+
+@pytest.mark.parametrize("text", ["You claimed USD 62.13. We approved a service credit of USD 48.50.",
+                                 "We approved a service credit of USD 48.50 against the requested USD 62.13."])
+def test_partial_award_can_distinguish_requested_amount(env, text):
+    env.file()
+    row = env.message(text)
+    assert row["stage"] == "PARTIAL_AWARD_REVIEW" and row["ledger"]["awarded"] == "48.50"
+
+
+@pytest.mark.parametrize("text", ["We approved a service credit of USD 62.13 but have reversed this.",
+                                 "We approved a service credit of USD 62.13. It was rescinded.",
+                                 "We approved a credit limit of USD 62.13.",
+                                 "We approved a service credit of USD 61.13 or USD 62.13."])
+def test_uncertain_or_revoked_award_abstains(env, text):
+    env.file()
+    row = env.message(text)
+    assert row["stage"] == "HUMAN_REVIEW" and row["ledger"]["awarded"] == "0.00"
