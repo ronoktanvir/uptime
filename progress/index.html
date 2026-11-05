@@ -1,5 +1,126 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Uptime / Delivery map</title><link rel="stylesheet" href="styles.css"><script defer src="app.js"></script></head>
-<body><aside class="rail"><a href="#" class="brand" aria-label="Uptime home">uptime<span>↗</span></a><div class="workspace">Engineering workspace</div><nav><a class="selected" href="#map">◈ <span>Delivery map</span></a><a id="repo-link" target="_blank" rel="noopener">⌘ <span>Repository</span></a><a id="app-link" href="http://localhost:8765" target="_blank" rel="noopener">↗ <span>Open application</span></a></nav><div class="rail-foot"><span class="lime-dot"></span> Local workspace<br><small>Evidence, before confidence.</small></div></aside>
-<main><header class="topbar"><span>Uptime <span class="slash">/</span> Build progress</span><div><span class="snapshot">Saved snapshot</span><button id="refresh">↻ Refresh</button></div></header><section class="intro"><div><h1 id="headline">The path to delivery.</h1><p id="summary">Loading the recorded work and its dependencies.</p></div><div class="timestamp"><span>Snapshot updated</span><strong id="updated">—</strong><small id="read-at"></small></div></section><section id="evidence" class="evidence" aria-label="Verification evidence"></section><section class="delivery" id="map"><div class="section-title"><div><h2>Work, connected.</h2><p>Follow the arrows from prerequisites to outcomes. Select any task for its evidence.</p></div><div class="view-switch" aria-label="View"><button id="graph-view" aria-pressed="true">Dependency map</button><button id="list-view" aria-pressed="false">Task list</button></div></div><div class="toolbar"><div id="filters" class="filters" aria-label="Filter tasks by status"></div><label class="search"><span aria-hidden="true">⌕</span><input id="search" placeholder="Find a task or owner" aria-label="Search tasks"></label></div><div id="notice" role="status"></div><div class="map-meta"><span id="visible-count"></span><span>Arrows show dependencies <span aria-hidden="true">⟶</span> Scroll to explore</span></div><div id="graph-scroll" tabindex="0" aria-label="Dependency diagram; scroll horizontally to explore"><div id="graph"></div></div><div id="task-list" hidden></div><div class="legend"><span><i class="done"></i> Done</span><span><i class="active"></i> In progress</span><span><i class="blocked"></i> Blocked</span><span><i class="todo"></i> Remaining</span><span class="snapshot-note">Recorded state; refresh reads the snapshot file. No automatic agent tracking.</span></div></section><section class="activity-section"><h2>Latest evidence</h2><div id="activity"></div></section><footer>Uptime engineering <span>Local, read-only delivery view</span></footer></main>
-<dialog id="detail"><button id="close-detail" aria-label="Close task details">×</button><div id="detail-content"></div></dialog></body></html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Uptime / Delivery map</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <aside class="rail">
+      <a href="#" class="brand" aria-label="Uptime home"
+        >uptime<span>↗</span></a
+      >
+      <div class="workspace">Engineering workspace</div>
+      <nav>
+        <a class="selected" href="#map">◈ <span>Delivery map</span></a
+        ><a id="repo-link" target="_blank" rel="noopener"
+          >⌘ <span>Repository</span></a
+        ><a
+          id="app-link"
+          href="http://localhost:8765"
+          target="_blank"
+          rel="noopener"
+          >↗ <span>Open application</span></a
+        >
+      </nav>
+      <div class="rail-foot">
+        <span class="lime-dot"></span> Local workspace
+      </div>
+    </aside>
+    <main>
+      <header class="topbar">
+        <span>Uptime <span class="slash">/</span> Build progress</span>
+        <div>
+          <span class="snapshot">Saved snapshot</span
+          ><button id="refresh">↻ Refresh</button>
+        </div>
+      </header>
+      <section class="intro">
+        <div>
+          <h1 id="headline">The path to delivery.</h1>
+          <p id="summary">Loading the recorded work and its dependencies.</p>
+        </div>
+        <div class="timestamp">
+          <span>Snapshot updated</span><strong id="updated">—</strong
+          ><small id="read-at"></small>
+        </div>
+      </section>
+      <section
+        id="evidence"
+        class="evidence"
+        aria-label="Verification evidence"
+      ></section>
+      <section class="delivery" id="map">
+        <div class="section-title">
+          <div>
+            <h2>Work dependencies</h2>
+            <p>
+              Follow the arrows from prerequisites to outcomes. Select any task
+              for its evidence.
+            </p>
+          </div>
+          <div class="view-controls">
+            <button id="expand-graph" aria-pressed="false">Expand graph</button>
+            <div class="view-switch" aria-label="View">
+              <button id="graph-view" aria-pressed="true">Dependency map</button
+              ><button id="list-view" aria-pressed="false">Task list</button>
+            </div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div
+            id="filters"
+            class="filters"
+            aria-label="Filter tasks by status"
+          ></div>
+          <label class="search"
+            ><span aria-hidden="true">⌕</span
+            ><input
+              id="search"
+              placeholder="Find a task or owner"
+              aria-label="Search tasks"
+          /></label>
+        </div>
+        <div id="notice" role="status"></div>
+        <div class="map-meta">
+          <span id="visible-count"></span
+          ><span
+            >Arrows show dependencies <span aria-hidden="true">⟶</span> Scroll
+            to explore</span
+          >
+        </div>
+        <div
+          id="graph-scroll"
+          tabindex="0"
+          aria-label="Dependency diagram; scroll horizontally to explore"
+        >
+          <div id="graph"></div>
+        </div>
+        <div id="task-list" hidden></div>
+        <div class="legend">
+          <span><i class="done"></i> Done</span
+          ><span><i class="active"></i> In progress</span
+          ><span><i class="blocked"></i> Blocked</span
+          ><span><i class="todo"></i> Remaining</span
+          ><span class="snapshot-note"
+            >Recorded state; refresh reads the snapshot file. No automatic agent
+            tracking.</span
+          >
+        </div>
+      </section>
+      <section class="activity-section">
+        <h2>Latest evidence</h2>
+        <div id="activity"></div>
+      </section>
+      <footer>
+        Uptime engineering <span>Local, read-only delivery view</span>
+      </footer>
+    </main>
+    <dialog id="detail">
+      <button id="close-detail" aria-label="Close task details">×</button>
+      <div id="detail-content"></div>
+    </dialog>
+  </body>
+</html>
