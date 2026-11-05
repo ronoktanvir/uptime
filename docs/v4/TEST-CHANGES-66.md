@@ -18,3 +18,13 @@ Initial receipt: `W/receipts/northwind-provider-001.log`, 15 passed. The mandato
 Provider allowlist follow-up adds exact scope and generic signed case-route tests (20 focused tests passed). The configured provider now pins the claim, bill and vendor/account/product/contract/currency at the shared Workbench entrypoints, including refusals through the existing generic action route. No pre-existing test changed.
 
 The source-stable24dbed1 full run first had2698 passes and one environment failure because Node was absent from PATH. The unchanged rerun with explicit PATH passed2699 tests in134.83s. Both logs remain: W/receipts/northwind-24dbed1-full-{001,002}.log. Later projection and scope refinements require their own integrated run.
+
+## Generic route and signed setup increment
+
+No existing pre-66 tests changed. Added `tests/test_northwind_workflow.py` controls for unconfigured null projection, exact signed setup, actual scripted identity, CalyxQuay activation/rollback/reactivation history, unknown pricing before the governing-fee join, body-bound request authentication, unsupported payload rejection, native/tenant/mode startup refusal, and stepped economic version pins with byte-identical legacy preimages. The 27 focused workflow/provider controls passed in `northwind-composition-001.log`; the new action/recovery implementation still needs its full lifecycle tests after 65a.
+
+Required post-merge acdadf4 full run: 2,797 passed and 8 failed, 159.64 seconds (`northwind-acdadf4-full-001.log`). The failures were existing public shadow/film semantic-review setup and six historical procedural fixture joins; no assertions were weakened. Root owns their integration corrections. No private corpus was inspected.
+
+The initial populated projection at `northwind-projection-003/initial-projection.json` was obtained through actual signed public API setup. Northwind remains SHADOW and money unknown until the approved fee context lands. The separate CalyxQuay catalog is ACTIVE with immutable rollback/review/reactivation history. This is intermediate composition evidence, not a completed financial walkthrough.
+
+Decision68 supersedes the proposed March application: the existing future-invoice guard remains unchanged. April source intake and final application are pending the separately authored settlement input; March application remains unavailable.

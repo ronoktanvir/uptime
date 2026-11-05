@@ -15,7 +15,7 @@ from uuid import UUID, uuid4, uuid5
 from .contracts import Source, fingerprint
 from .storage import database,stored_cases
 from .auth import SCRIPT
-from .correspondence_types import instant
+from .correspondence_types import instant, Delivery, SOURCE
 from .vendor_registry import get_vendor
 
 
@@ -79,7 +79,7 @@ class LocalLedgerProvider:
         return dict(award,id=identity,source_ref=identity,award_id=award['id'],source=Source.REPLAY.value)
 
     def application(self,tenant,plan,*,case_id):
-        credit=self.read(tenant,plan['credit_id'])
+        credit=self.verified_read(tenant,plan['credit_id'],'credit')
         if (case_id!=self.claim_id or plan['bill_id']!=self.bill_id or not credit
                 or not self.allows_case(case_id,credit['payload'])):
             raise PermissionError('Local ledger is not configured for this credit and eligible bill.')
@@ -98,6 +98,14 @@ class LocalLedgerProvider:
             return None
         result=dict(row)
         result['payload']=json.loads(result['payload'])
+        return result
+
+    def verified_read(self,tenant,identity,kind):
+        result=self.read(tenant,identity)
+        if result and (result['tenant']!=tenant or result['id']!=identity or result['kind']!=kind
+                or result['idempotency_key']!=fingerprint([self.instance,tenant,kind,identity])
+                or result['payload'].get('id')!=identity or fingerprint(result['payload'])!=result['payload_sha256']):
+            raise ValueError('Local ledger record integrity does not match its immutable identity.')
         return result
 
     def confirm(self,tenant,action,plan,*,case_id):
@@ -184,6 +192,9 @@ class WorkspaceWorkflow:
                 id TEXT PRIMARY KEY,operation TEXT NOT NULL,expected TEXT NOT NULL,actor TEXT NOT NULL,
                 status TEXT NOT NULL,created_at TEXT NOT NULL,result_ref TEXT,error TEXT)''')
         self.inbox.clock=self.now
+        if auth.source_registry is None:
+            raise PermissionError('Configured workflow sources require the protected exact-grant registry.')
+        auth.source_registry.config.bind(self.inbox)
         ledger_scope=dict(vendor_id=scope.vendor,account_id=scope.account,product_id=scope.service,
                           contract_id=scope.contract,currency=scope.currency)
         self.provider=LocalLedgerProvider(bench.path,config['provider_path'],self.instance,
@@ -211,6 +222,8 @@ class WorkspaceWorkflow:
         except KeyError:return None
         if case.get('scope')!=self.scopes[self.claim_month].model_dump():
             raise PermissionError('Configured claim identity no longer matches the exact workflow scope.')
+        if case.get('contract_source_sha256') not in (None,self.package['manifest']['document']['sha256']):
+            raise PermissionError('The configured workflow source differs from the active agreement.')
         return case
 
     @staticmethod
@@ -256,6 +269,8 @@ class WorkspaceWorkflow:
             records['credit']=rec['credit_ids'][0] if len(rec['credit_ids'])==1 else None
             records['application']=rec['application_ids'][0] if len(rec['application_ids'])==1 else None
         posted=records['credit'] is not None
+        if posted and not self.provider.verified_read(p.tenant,records['credit'],'credit'):
+            raise ValueError('A posted local credit has no matching provider readback.')
         reviewer=dict(name='Dana Reyes',role='Contract reviewer',authority_kind='SCRIPTED_REVIEWER',principal=SCRIPT)
         documents=[dict(title=v.citation.document,ref=v.citation.uri,version=v.id,effective_at=v.effective_at.isoformat(),
                         description=v.citation.section) for v in self.package['pricing_agreement'].versions if v.signed_at and v.signed_at<=self.now()]
@@ -280,5 +295,172 @@ class WorkspaceWorkflow:
             audit=audit,onboarding=dict(vendor='CalyxQuay',state=onboarding['state'] if onboarding else 'NOT_INSTALLED',
                 version=onboarding.get('active_version') if onboarding else None,reviewer=reviewer,
                 history=[dict(at=r['at'],event=r['kind'],ref=str(r['revision'])) for r in (onboarding or {}).get('audit',[])],actions=[]),
-            next_actions=[])
+            next_actions=self._offers(p,claim))
         return {'workflow':projection}
+
+    def _domain_pin(self,p,claim):
+        vendor=self._vendor(p,self.installation)
+        return dict(claim_state=claim['state_sha256'],version=claim['contract_version'],
+                    source=claim['contract_source_sha256'],journal=self.bench.allocations.head(),
+                    vendor_revision=vendor['revision'] if vendor else None,
+                    package=self.package_digest,scope=self.scopes[self.claim_month].model_dump())
+
+    def _next(self,claim):
+        if not claim:return None
+        offered={a['id'] for a in claim['actions']}
+        for op,label in (('approve-claim','Approve January claim'),('submit-claim','File January claim')):
+            if op in offered:return op,label,'claim'
+        if claim['submissions'] and not claim['replies']:
+            return 'receive-denial','Receive vendor response','evidence'
+        if claim['stage'] in {'NEEDS_EVIDENCE','RESPONSE_DRAFTED','RESPONSE_APPROVED'}:
+            supplement=self.package['supplements'][0]
+            arrived={e['detail'].split(' · ')[0] for e in claim['evidence']}
+            if claim['requested_artifact']:
+                if supplement['artifact_event_id'] not in arrived:
+                    return 'receive-artifact','Attach requested log','evidence'
+                if supplement['verification_event_id'] not in arrived:
+                    return 'receive-verification','Verify supplied log','evidence'
+            if 'approve-response' in offered:return 'approve-response','Approve response','claim'
+            if claim['stage']=='RESPONSE_APPROVED':return 'submit-response','Send response','claim'
+        if any(r['action']=='submit-response' for r in claim['submissions']) and len(claim['replies'])==1:
+            return 'receive-award','Receive credit decision','evidence'
+        if 'record-credit' in offered:return 'record-credit','Post to Local ledger','ledger'
+        # Existing future-invoice rules do not permit the already-issued March
+        # invoice merely because a later opening-balance observation exists.
+        return None
+
+    def _descriptor(self,p,claim):
+        next_step=self._next(claim)
+        if next_step is None:return None
+        operation,label,group=next_step
+        with database(self.bench.path) as db:
+            sequence=db.execute('SELECT COALESCE(MAX(rowid),0)+1 FROM workspace_workflow_intent').fetchone()[0]
+        pin=self._domain_pin(p,claim)
+        identity='action-'+fingerprint([self.instance,sequence,p.subject,operation,pin])
+        return dict(id=identity,operation=operation,label=label,group=group,pin=pin)
+
+    def _offers(self,p,claim):
+        if p.role!='reviewer' or p.subject!=SCRIPT or self.bench.setting(p)['mode']=='OBSERVE':return []
+        # An interrupted exact operation remains the only offered operation.
+        with database(self.bench.path) as db:
+            pending=db.execute("SELECT id,operation FROM workspace_workflow_intent WHERE status='EXECUTING' ORDER BY rowid LIMIT 1").fetchone()
+        if pending:return [dict(id=pending['id'],label='Resume interrupted action',group='claim')]
+        descriptor=self._descriptor(p,claim)
+        return [{k:descriptor[k] for k in ('id','label','group')}] if descriptor else []
+
+    def _delivery(self,operation,claim):
+        supplement=self.package['supplements'][0]
+        if operation in {'receive-denial','receive-award'}:
+            row=self.correspondence['denial' if operation=='receive-denial' else 'credit_decision']
+            body=dict(kind='message',receipt_id=claim['submissions'][-1]['id'],text=row['text'])
+            event_id,known=row['event_id'],row['known_at']
+        else:
+            name='artifact' if operation=='receive-artifact' else 'verification'
+            body=deepcopy(supplement[name]);event_id=supplement[name+'_event_id'];known=body['observed_at']
+        event=Delivery(event_id=event_id,scope=self.scopes[self.claim_month],body=body)
+        return event,instant(known)
+
+    async def deliver(self,claim_id,event):
+        """Shared ingress verifier: ordinary fresh signatures, exact scope and role."""
+        from fastapi import Request
+        from .auth_client import service_headers
+        if claim_id not in self.claim_ids.values() or event.scope!=self.scopes.get(event.scope.month):
+            raise PermissionError('Source delivery is outside the configured workflow.')
+        source=SOURCE[event.body.kind]
+        sender=self.senders[(event.scope.month,source)]
+        if sender.scope!=event.scope or sender.source!=source:
+            raise PermissionError('Source key does not bind this exact operation.')
+        path='/api/correspondence/claims/'+claim_id+'/events'
+        raw=event.model_dump_json(exclude_unset=True).encode()
+        headers=service_headers(instance=self.auth.instance,origin=self.auth.origin,subject=sender.subject,key=sender,path=path,body=raw)
+        headers['host']=self.auth.origin.removeprefix('http://')
+        request=Request(dict(type='http',method='POST',scheme='http',path=path,raw_path=path.encode(),query_string=b'',
+            headers=[(k.lower().encode(),v.encode()) for k,v in headers.items()],server=('127.0.0.1',int(headers['host'].split(':')[1])),
+            client=('127.0.0.1',0)))
+        request._body=raw
+        source_principal=await self.auth.service(request)
+        return self.inbox.receive(source_principal,claim_id,event)
+
+    def _effect(self,p,operation,claim):
+        if operation.startswith('receive-'):
+            event,at=self._delivery(operation,claim)
+            return dict(event=event.model_dump(exclude_unset=True),at=max(self.now(),at).isoformat())
+        if operation=='record-credit':
+            _,plan=self.bench._settlement_plan(p,claim)
+            return dict(credit=plan['credits'][0],at=self.now().isoformat())
+        with database(self.bench.path) as db:
+            scope,state=self.inbox._read(db,p.tenant,self.claim_id)
+            at=max(self.now(),instant(state['cooldown'])) if operation=='submit-response' else self.now()
+            current=self.inbox._assess(p.tenant,scope,state,at)
+            packet=self.inbox._packet(p.tenant,self.claim_id,scope,state,current)
+        return dict(packet_sha256=fingerprint(packet),at=at.isoformat())
+
+    def _done(self,p,operation,effect,claim):
+        if operation.startswith('receive-'):
+            event=effect['event'];body=event['body'];source=SOURCE[body['kind']]
+            digest=fingerprint([p.tenant,self.claim_id,event['scope'],source,body])
+            return any(e['digest']==digest and e['detail'].split(' · ')[0]==event['event_id'] for e in claim['evidence'])
+        if operation=='record-credit':
+            credit=effect['credit'];readback=self.provider.read(p.tenant,credit['id'])
+            return bool(readback and readback['payload']==credit and fingerprint(credit)==readback['payload_sha256']
+                        and any(credit['id'] in r['credit_ids'] for r in claim.get('reconciliations',[])))
+        if operation.startswith('approve-'):
+            return bool(claim['approval'] and claim['approval']['action']==operation
+                        and claim['approval']['digest']==effect['packet_sha256'] and claim['approval']['actor']==p.subject)
+        return any(r['action']==operation and r['digest']==effect['packet_sha256'] and r['approval']['actor']==p.subject for r in claim['submissions'])
+
+    async def act(self,p,identity):
+        self._authorize(p,True)
+        # The server serializes all writes, including ordinary shared routes.
+        claim=self._claim(p)
+        with database(self.bench.path) as db:
+            old=db.execute('SELECT * FROM workspace_workflow_intent WHERE id=?',(identity,)).fetchone()
+        if old:
+            if old['actor']!=p.subject:raise PermissionError('Action belongs to a different reviewer.')
+            if old['status']=='COMPLETED':return self.view(p)
+            if old['status']!='EXECUTING':raise ValueError('This action requires review after an interrupted or stale operation.')
+            expected=json.loads(old['expected']);operation=old['operation']
+        else:
+            descriptor=self._descriptor(p,claim)
+            if not descriptor or descriptor['id']!=identity:raise ValueError('Stale or unavailable workflow action.')
+            operation=descriptor['operation']
+            expected=dict(pin=descriptor['pin'],effect=self._effect(p,operation,claim))
+            with database(self.bench.path) as db,db:
+                if db.execute("SELECT 1 FROM workspace_workflow_intent WHERE status='EXECUTING'").fetchone():
+                    raise ValueError('Resolve the existing interrupted action first.')
+                db.execute('INSERT INTO workspace_workflow_intent VALUES(?,?,?,?,?,?,?,?)',
+                    (identity,operation,encoded(expected),p.subject,'EXECUTING',self.now().isoformat(),None,None))
+        effect=expected['effect']
+        if not self._done(p,operation,effect,claim):
+            if self._domain_pin(p,claim)!=expected['pin']:
+                raise ValueError('The interrupted action no longer matches its exact domain state.')
+            at=instant(effect['at'])
+            if at<self.now():raise ValueError('Workflow event time cannot move backwards.')
+            with database(self.bench.path) as db,db:
+                db.execute('UPDATE workspace_workflow SET event_clock=? WHERE id=1',(at.isoformat(),))
+            if operation.startswith('receive-'):
+                await self.deliver(self.claim_id,Delivery(**effect['event']))
+            else:
+                self.bench.act(p,self.claim_id,operation)
+            if self.failure_point=='after-effect':raise RuntimeError('Injected workflow interruption after domain effect.')
+            claim=self._claim(p)
+            if not self._done(p,operation,effect,claim):raise ValueError('Domain result does not match the locked operation.')
+        with database(self.bench.path) as db,db:
+            db.execute("UPDATE workspace_workflow_intent SET status='COMPLETED',result_ref=? WHERE id=?",(claim['state_sha256'],identity))
+        return self.view(p)
+
+
+def register_workspace_workflow(app,bench,auth,config=None):
+    from fastapi import Depends
+    from .correspondence_types import Empty
+    workflow=WorkspaceWorkflow(bench,auth,config) if config is not None else None
+    app.state.workflow=workflow
+
+    @app.get('/api/workspace/workflow')
+    def workspace(p=Depends(auth.actor)):
+        return workflow.view(p) if workflow is not None else {'workflow':None}
+
+    @app.post('/api/workspace/workflow/actions/{identity}')
+    async def action(identity:str,body:Empty,p=Depends(auth.reviewer)):
+        if workflow is None:raise ValueError('No workflow is configured for this workspace.')
+        return await workflow.act(p,identity)

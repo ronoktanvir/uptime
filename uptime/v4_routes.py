@@ -41,6 +41,13 @@ def _economics(manifest, overlay):
         semantics["private_plan"] = overlay["plan"]
         semantics["private_mappings"] = [overlay.get(k) for k in ("symptom_aliases","cause_aliases","public_plan","public_product")]
         return fingerprint(semantics)
+    if "credit_rule" in manifest:
+        from .vendor_eval import rate_for
+        # Validate the exhaustive variant; never mix old tiers with stepped rules.
+        rate_for(manifest, overlay["product"], overlay["plan"], 1, 1)
+        filing_days = overlay.get("override", {}).get("filing_days", manifest["filing_days"])
+        return fingerprint([manifest["family"], manifest["period"], manifest["remedy"], overlay["plan"],
+                            manifest["credit_rule"], manifest["credit_rounding"], filing_days])
     tiers = sorted((t["below_units"], t["credit_units"]) for t in manifest["tiers"]
                    if t["product"] == overlay["product"] and t["plan"] == overlay["plan"])
     filing_days = overlay.get("override", {}).get("filing_days", manifest["filing_days"])
