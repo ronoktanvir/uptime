@@ -68,3 +68,40 @@ def test_configured_workflow_keeps_evidence_money_and_original_navigation_reacha
         assert not unexpected
         assert not errors
         browser.close()
+
+
+def test_workflow_action_uses_real_dom_collection_and_refreshes_server_state():
+    """Exercise the actual browser HTMLCollection, which the Node stub models as an array."""
+    errors = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch(channel="chrome" if Path("/Applications/Google Chrome.app").exists() else None)
+        page = browser.new_page()
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.set_content('<main id="workflow"></main>')
+        page.add_script_tag(path=str(ROOT / "web/workspace_ui.js"))
+        page.evaluate("""async () => {
+            window.workflowCalls = [];
+            let accepted = false;
+            const api = async (path, body) => {
+                window.workflowCalls.push({path, body});
+                if (body !== undefined) accepted = true;
+                return {workflow: {
+                    vendor: 'Action verification',
+                    claim: {id: 'claim-1', state: accepted ? 'CLAIMED' : 'DRAFT'},
+                    ledger: {destination: 'Local ledger', claimed: accepted ? '2400.00' : '0.00'},
+                    next_actions: accepted ? [] : [{id: 'approve/claim-1', label: 'Approve claim'}]
+                }};
+            };
+            await window.UptimeWorkspace.create({api}).render(document.getElementById('workflow'));
+        }""")
+        page.get_by_role("button", name="Approve claim", exact=True).click()
+        expect(page.get_by_role("button", name="Approve claim", exact=True)).to_have_count(0)
+        expect(page.get_by_text("$2,400.00", exact=True)).to_be_visible()
+        expect(page.get_by_text("No actions available in the current state.", exact=True)).to_be_visible()
+        assert page.evaluate("window.workflowCalls") == [
+            {"path": "/api/workspace/workflow", "body": None},
+            {"path": "/api/workspace/workflow/actions/approve%2Fclaim-1", "body": {}},
+            {"path": "/api/workspace/workflow", "body": None},
+        ]
+        assert not errors
+        browser.close()

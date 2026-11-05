@@ -33,6 +33,17 @@ test('lost action response blocks repeat until explicit server refresh and stale
  await s.ui.render(s.root);await action.listeners.click();assert.equal(s.requests.length,3);
  s.ui.unmount();await s.root.all('button')[0].listeners.click();assert.equal(s.requests.length,3);
 });
+test('expired signing authority returns to account login and invalidates stale action controls',async()=>{
+ let logins=0,posts=0;
+ const root=new Element('main');
+ const ui=create({document,onUnauthorized:()=>{logins++;},api:async(path,body)=>{
+   if(body!==undefined){posts++;const error=new Error('Sign in again');error.status=401;throw error;}
+   return {workflow:projection};
+ }});
+ await ui.render(root);const action=root.all('button')[0];
+ await action.listeners.click();await action.listeners.click();
+ assert.equal(logins,1);assert.equal(posts,1);assert.doesNotMatch(root.textContent,/Refresh to check/);
+});
 test('decimal display never rounds through Number and missing monetary observations remain unknown',()=>{
  assert.equal(money('9007199254740993.01'),'$9,007,199,254,740,993.01');assert.equal(money(null),'Not determined');assert.equal(money('0.00'),'$0.00');assert.equal(money('NaN'),'Not determined');
 });

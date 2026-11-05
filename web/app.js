@@ -67,7 +67,7 @@
   let rampCase = null, rampScroll = 0;
   let companion, companionAssets, signedPage = false, companionAccess = {};
   const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
-  const workspaceWorkflow = window.UptimeWorkspace?.create({api});
+  const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account});
   const filters = {query: '', status: '', sort: 'value-desc'};
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }

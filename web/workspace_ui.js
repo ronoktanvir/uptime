@@ -14,7 +14,7 @@
     const [whole, fraction] = raw.split('.');
     return `${currency === 'USD' ? '$' : text(currency) + ' '}${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${fraction == null ? '' : '.' + fraction}`;
   }
-  function create({api, document:doc = global.document, onRefresh = () => {}}) {
+  function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized}) {
     let epoch = 0, busy = false, uncertain = false;
     const el = (tag, value, cls) => { const n = doc.createElement(tag); if (value != null) n.textContent = text(value); if (cls) n.className = cls; return n; };
     const add = (n, ...children) => { children.filter(Boolean).forEach(c => n.append(c)); return n; };
@@ -59,13 +59,16 @@
         const button=el('button',action.label || state(action.id));button.type='button';button.disabled=busy || uncertain || action.enabled === false;
         button.addEventListener('click', async()=>{
           if (busy || uncertain || token !== epoch || action.enabled === false) return;
-          busy=true;controls.children.forEach(c=>{c.disabled=true;});status.textContent='Recording action…';
+          busy=true;Array.from(controls.children).forEach(c=>{c.disabled=true;});status.textContent='Recording action…';
           try {
             await api('/api/workspace/workflow/actions/'+encodeURIComponent(action.id),{});
             if (token !== epoch) return;
             await render(root);await onRefresh();
           } catch(error) {
             if(token !== epoch) return;
+            if(error.status === 401 && typeof onUnauthorized === 'function') {
+              epoch++;onUnauthorized();return;
+            }
             uncertain=true;status.textContent='Refresh to check the recorded outcome before continuing.';
           } finally {busy=false;}
         });controls.append(button);

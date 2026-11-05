@@ -62,3 +62,11 @@ The first full joined run at `efa4b2a` reported **2 failed, 2,857 passed, 1 warn
 - `tests/test_advanced_companion.py::test_companion_dom_workflows` failed only because it wraps that Node suite; its assertions and invocation are unchanged.
 
 Focused retest: **4 passed, 1 warning in 5.26s**, including the actual signed browser wizard, read-only controls and wrapped Node checks. The warning is the existing Starlette/httpx deprecation. Final joined financial-workflow regression follows the April integration.
+
+## Real browser action correction
+
+The manual signed browser walkthrough found `controls.children.forEach is not a function`: the Node harness used an array where the real DOM supplies an HTMLCollection. The handler now converts the collection with `Array.from` before disabling controls. Added `tests/test_workspace_ui_v4.py::test_workflow_action_uses_real_dom_collection_and_refreshes_server_state`, which clicks the actual rendered button in Chrome, checks the encoded empty-body transport call and subsequent read, and requires the changed monetary state and no browser exception. No existing assertion changed. This test covers DOM behavior; the signed end-to-end authority and ledger checks remain in the separate workflow/socket tests.
+
+The joined run `root-northwind-final-01` at `5146e17` was interrupted when this browser defect was found; it is not a passing full-suite result. Its original output remains preserved. The corrected source receives a fresh full run.
+
+The browser reload correctly discarded its in-memory signing key, but the workflow displayed a generic uncertain-outcome message on the resulting401. It now invokes the existing account-login screen and invalidates the old control. Added Node test `expired signing authority returns to account login and invalidates stale action controls`; no signing policy or server authorization changed. The new browser test's first assertion was corrected to account for Playwright serializing JavaScript `undefined` as Python `None`; its actual click and state transition already passed. One subsequent command named a nonexistent test file and collected no tests; the corrected focused run and original outputs are retained.
