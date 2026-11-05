@@ -63,12 +63,17 @@ def _availability_formula(quote):
              r'100\s*\*\s*\(\s*' + _TOTAL + r'\s*-\s*' + _LOST + r'\s*\)\s*/\s*' + _TOTAL]
     if not _RATIO_LIKE.search(quote):
         return False
-    for form in forms:
+    # Natural-language multiplication with no grouping has a second mathematical reading.
+    # The registry requires disclosure, a distinguishing shadow case and authenticated interpretation.
+    natural = bool(re.search(r'100\s+(?:times|multiplied by)\s+one\s+minus', quote, re.I))
+    if natural:
+        forms.append(r'100\s*\*\s*1\s*-\s*' + _LOST + r'\s*/\s*' + _TOTAL)
+    for index, form in enumerate(forms):
         match = re.search(r'(?<![\d.])' + form + end, expression)
         if match and not re.search(r'[+/*-]\s*$', expression[:match.start()]):
             units = {unit.rstrip('s') for unit in re.findall(_UNIT, match[0])}
             if len(units) == 1:
-                return True
+                return 'review_grouping' if index == 3 else 'explicit_grouping'
     return False
 
 
@@ -93,6 +98,15 @@ def apply_operator(manifest, key, value, quote):
         options = interval_options(quote)
         if not isinstance(value, list) or not value or any(not isinstance(item, str) or item not in options for item in value):
             raise ValueError('Uncited interval measurement proposition.')
+        if 'availability_ratio' in value and _availability_formula(quote) == 'review_grouping':
+            manifest['formula_grouping_review'] = {
+                'source_block': manifest['citations'][-1]['id'],
+                'selected': '100 * (1 - covered_duration / month_duration)',
+                'alternative': '(100 * 1) - covered_duration / month_duration',
+                'units': 'covered_duration and month_duration use the same unit',
+                'endpoint_vectors': [{'covered_fraction': '0', 'selected_percent': '100', 'alternative_percent': '100'},
+                                     {'covered_fraction': '1', 'selected_percent': '0', 'alternative_percent': '99'}],
+                'decision': 'Approve the selected grouping only if the independent case and cited meaning support it.'}
         manifest[key] = sorted(set(manifest.get(key, [])) | set(value))
         return
     if key == 'maintenance':

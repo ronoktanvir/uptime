@@ -208,6 +208,13 @@ EVIDENCE_LANGUAGE = {
 }
 
 
+def claimant_proof_required(quote, values):
+    return (isinstance(values.get('request_fields'), list) and bool(values['request_fields'])
+            and 'request_contents' in values.get('evidence', [])
+            and re.search(r'\b(?:include|attach|provide|supply|contain|enclose)\b', quote, re.I)
+            and re.search(r'\b(?:evidence|proof|documentation) (?:of|that|linking|tying|showing|demonstrating)\b', quote, re.I))
+
+
 def validate_material_coverage(quote, values):
     """Refuse common controlling conditions even when a proposal assigns an unrelated effect."""
     if re.search(r'(?:filing|processing|application|administrative) (?:fee|charge)|'
@@ -226,9 +233,15 @@ def validate_material_coverage(quote, values):
     if _PERCENT_TOKEN.search(quote) and not {'tiers', 'boundary', 'interval_measurement'} & values.keys():
         raise ValueError('Percentage condition has no applicable threshold or tier.')
     evidence = values.get('evidence', [])
-    if not isinstance(evidence, list) or any(not isinstance(kind, str) or kind not in EVIDENCE_LANGUAGE
-            or not re.search(EVIDENCE_LANGUAGE[kind], quote, re.I) for kind in evidence):
-        raise ValueError('Proposed evidence category has no supporting source wording.')
+    if not isinstance(evidence, list):
+        raise ValueError('Invalid resource evidence list.')
+    for kind in evidence:
+        if not isinstance(kind, str) or kind not in EVIDENCE_LANGUAGE:
+            raise ValueError('Unsupported resource evidence category.')
+        if kind == 'verification' and claimant_proof_required(quote, values):
+            continue
+        if not re.search(EVIDENCE_LANGUAGE[kind], quote, re.I):
+            raise ValueError('Proposed evidence category lacks source wording: ' + kind)
 
 
 @contextmanager
@@ -381,7 +394,11 @@ def _compile_resource(document, clauses, issues):
                     if key == 'evidence':
                         if not value:
                             raise ValueError('Empty resource evidence condition.')
-                        manifest.setdefault(key,[]).extend(v for v in value if v not in manifest.get(key,[]))
+                        evidence = list(value)
+                        if 'verification' in evidence and claimant_proof_required(quote, values):
+                            # This span asks the claimant for proof. It confers no issuer verification or award.
+                            evidence[evidence.index('verification')] = 'claimant_supporting_proof'
+                        manifest.setdefault(key,[]).extend(v for v in evidence if v not in manifest.get(key,[]))
                         continue
                     if key == 'tiers':
                         if not isinstance(value,list) or not value:

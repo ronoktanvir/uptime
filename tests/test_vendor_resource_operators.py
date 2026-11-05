@@ -186,3 +186,59 @@ def test_wrong_formula_is_unsupported_even_if_labeled_nonmaterial(expression):
     for mapping in [{'interval_measurement': ['availability_ratio']}, {'nonmaterial': 'Definition.'}]:
         with pytest.raises(ValueError):
             compiled(*extend_source([(source, mapping)]))
+
+
+def test_ungrouped_text_requires_case_distinction_and_explicit_recorded_formula_decision(tmp_path, monkeypatch):
+    import json
+    from hashlib import sha256
+    from test_vendor_resource import P
+    from uptime import vendor_registry as registry
+    from uptime.contracts import fingerprint
+    from uptime.storage import initialize
+    from uptime.vendor_model import MODEL
+
+    sentence = 'Station availability is 100 multiplied by one minus covered minutes divided by all minutes in the month.'
+    doc, proposal = extend_source([(sentence, {'interval_measurement': ['availability_ratio']})])
+    digest = sha256(doc['text'].encode()).hexdigest()
+    receipt = {'model': MODEL, 'source_sha256': digest, 'session': 'scripted-test-formula', 'at': '2026-05-01T00:00:00Z',
+               'proposal': proposal, 'proposal_sha256': fingerprint(proposal)}
+    (tmp_path / (digest + '.json')).write_text(json.dumps(receipt))
+    monkeypatch.setenv('UPTIME_MODEL_PROPOSITIONS', '1')
+    monkeypatch.setenv('UPTIME_PUBLIC_EXTRACTIONS', str(tmp_path))
+    path = tmp_path / 'sandbox.sqlite'
+    initialize(path)
+    shadow = registry.install(path, P, 'instruments', {'document': doc, 'overlay': OVERLAY})
+    grouping = shadow['manifest']['formula_grouping_review']
+    assert grouping['endpoint_vectors'][-1] == {'covered_fraction': '1', 'selected_percent': '0', 'alternative_percent': '99'}
+    refusal = {'name': 'complete observations without an outage', 'facts': FACTS | {'intervals': []},
+               'expected': {'outcome': 'INELIGIBLE'}}
+    def test_cases(current, cases):
+        return registry.submit_tests(path, P, 'instruments', registry.TestSubmission(revision=current['revision'], tests=cases))
+    isolated = test_cases(shadow, [refusal])
+    assert not isolated['actions'] and any('grouping' in c['name'] and not c['passed'] for c in isolated['checks'])
+    positive = {'name':'independent June value', 'facts': FACTS, 'expected':{'outcome':'ELIGIBLE','amount':'12.51'}}
+    tested = test_cases(isolated, [positive, refusal])
+    action = tested['actions'][0]
+    assert action['operation'] == 'interpret' and grouping['selected'] in action['label']
+    accepted = registry.act(path, P, 'instruments', action['id'])
+    assert accepted['formula_decision'] == {'selected':grouping['selected'], 'source_block':grouping['source_block'],
+            'suite':tested['suite'], 'version':tested['version'], 'reviewer':P.subject}
+
+
+def test_claimant_proof_never_establishes_issuer_verification():
+    row = ('Include proof of failed samples in the claim.',
+           {'request_fields': ['failed samples'], 'evidence': ['verification', 'request_contents']})
+    manifest = compiled(*extend_source([row]))
+    assert 'claimant_supporting_proof' in manifest['evidence']
+    # The original fixture has its own separate issuer-verification clause.
+    from test_vendor_resource import DOC, PROPOSAL
+    standalone = deepcopy(PROPOSAL)
+    standalone[-1]['value'].pop('evidence')
+    text = standalone[-1]['quote']
+    fresh = text.replace('After verification, ', '')
+    standalone[-1]['quote'] = fresh
+    standalone.append({'quote': row[0], 'field': 'resource_terms', 'value': row[1]})
+    doc = DOC | {'text': DOC['text'].replace(text, fresh) + '\n' + row[0]}
+    assert 'verification' not in compiled(doc, standalone)['evidence']
+    with pytest.raises(ValueError, match='verification'):
+        compiled(*extend_source([('Include the station identifier in the claim.', row[1] | {'request_fields':['station identifier']})]))
