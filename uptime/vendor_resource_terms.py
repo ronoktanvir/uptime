@@ -71,7 +71,7 @@ def count_grounded(number, kind, quote):
     ordinal = {1:'first', 2:'second', 3:'third', 4:'fourth', 5:'fifth', 7:'seventh', 10:'tenth',
                12:'twelfth', 14:'fourteenth', 15:'fifteenth', 20:'twentieth', 30:'thirtieth'}
     candidates = [str(number)] + ([words[number]] if number < len(words) else []) + ([ordinal[number]] if number in ordinal else [])
-    unit = {'calendar_days': r'calendar days?', 'billing_cycles': r'(?:(?:full|whole|complete|monthly) )?billing cycles?'}.get(kind)
+    unit = {'calendar_days': r'calendar days?', 'elapsed_days': r'elapsed days?', 'billing_cycles': r'(?:(?:full|whole|complete|monthly) )?billing cycles?'}.get(kind)
     if unit is None:
         return False
     # A section number or UTC clock on the same line cannot establish the filing interval.
@@ -308,7 +308,7 @@ def _compile_resource(document, clauses, issues):
                          r'(?:as (?:defined|set forth|described)|governed) (?:in|by) (?:section|the .*?agreement|our .*?terms)',quote,re.I):
                 raise ValueError(f'Unresolved governing reference in resource clause {index}.')
             if (re.search(r'\b(?:excluded|excludes?|excluding|unless|except(?:ions?)?)\b',quote,re.I)
-                    and not {'exclusions','fee_exclusions','account_conditions','maintenance'} & values.keys()):
+                    and not {'exclusions','fee_exclusions','account_conditions','maintenance','subscription','telemetry','causal_report','fee_settlement'} & values.keys()):
                 raise ValueError(f'Unmapped exclusion or condition in clause {index}.')
             if re.search(r'\b(?:capped at|up to|aggregate cap|total cap|at our discretion|sole discretion)\b',quote,re.I):
                 raise ValueError(f'Unsupported discretionary amount or cap in clause {index}.')
@@ -470,6 +470,14 @@ def _compile_resource(document, clauses, issues):
                             or re.search(r'(?:option|elect|choose|exchange|redeem).{0,35}\bcash\b',lower)):
                         raise ValueError('Unconfirmed future credit remedy.')
                     manifest[key]=value
+    dual = manifest.get('telemetry')
+    if dual:
+        if (dual.get('join') != 'intersect_customer_provider' or not dual.get('provider_status') or not dual.get('customer_status')):
+            raise ValueError('Incomplete independent customer/provider intersection conditions.')
+        manifest.setdefault('symptoms', [dual['customer_status']])
+        manifest.setdefault('provider_causes', [dual['provider_status']])
+    if manifest.get('cure_clock') and manifest.get('supplement'):
+        raise ValueError('Contradictory supplement deadlines.')
     required={'vendor','effective','scope','period','symptoms','provider_causes','fee_basis','filing','remedy','evidence'}
     if required-set(manifest) or not manifest['tiers']:
         raise ValueError('Incomplete resource-month source propositions: '+', '.join(sorted(required-set(manifest))))
