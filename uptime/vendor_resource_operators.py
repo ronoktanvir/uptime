@@ -135,7 +135,9 @@ def apply_operator(manifest, key, value, quote):
             symbol, phrase = definition['symbol'], definition['phrase']
             if (not isinstance(symbol, str) or not re.fullmatch('[A-Za-z]',symbol)
                     or not isinstance(phrase,str) or ' '.join(phrase.split()) not in ' '.join(quote.split())
-                    or not re.search(r'\b'+symbol+r'\b', phrase)
+                    or not re.search(r'\b' + re.escape(symbol) + r'\s+(?:(?:be|is|means|denotes|represents)\s+)?'
+                                     + re.escape(' '.join(phrase.split())), ' '.join(quote.split()))
+                       and not re.search(r'\b'+symbol+r'\b', phrase)
                     or not _cites([r'month',r'all|total|every',r'second|minute|duration|elapsed'] if role=='total'
                                   else [r'unavail|downtime|covered|qualifying',r'second|minute|duration|elapsed'],phrase)):
                 raise ValueError('Symbol is not grounded in the proposed duration role.')
