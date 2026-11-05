@@ -31,6 +31,7 @@ SCRIPT = "scripted-test-reviewer"
 DEFAULT_ORIGIN = "http://127.0.0.1:8765"
 TTL = 60
 NAME = re.compile(r"[a-z][a-z0-9_.-]{1,63}", re.ASCII)
+SEMANTIC_SCHEMA_EPOCH = 61
 
 
 def digest(data):
@@ -75,10 +76,19 @@ def bind_workspace(path, mode, rehearsal, tenant=TENANT):
         Path(path).chmod(0o600)
         if "authority_user" in tables:
             columns = {row[1] for row in db.execute("PRAGMA table_info(authority_user)")}
-            if columns != {"subject", "role", "public_key"}:
+            legacy = {"subject", "role", "public_key"}
+            if columns not in (legacy, legacy | {"schema_epoch"}):
                 raise ValueError("Legacy password authority requires a fresh workspace and offline key enrollment")
+            if columns == legacy:
+                # 704caa5 and earlier inspect this exact column set at startup.
+                # Preserve keys/roles and force that old startup to refuse the
+                # upgraded store, rather than silently ignore semantic review.
+                db.execute("ALTER TABLE authority_user ADD COLUMN schema_epoch INTEGER NOT NULL DEFAULT 61 CHECK(schema_epoch=61)")
+            if db.execute("SELECT 1 FROM authority_user WHERE schema_epoch != ? LIMIT 1",(SEMANTIC_SCHEMA_EPOCH,)).fetchone():
+                raise ValueError("Unsupported semantic authority schema epoch")
         db.execute("CREATE TABLE IF NOT EXISTS authority_user "
-                   "(subject TEXT PRIMARY KEY, role TEXT NOT NULL, public_key BLOB NOT NULL UNIQUE)")
+                   "(subject TEXT PRIMARY KEY, role TEXT NOT NULL, public_key BLOB NOT NULL UNIQUE, "
+                   "schema_epoch INTEGER NOT NULL DEFAULT 61 CHECK(schema_epoch=61))")
         mandates.setup(db)
 
 
@@ -95,7 +105,7 @@ def enroll(path, subject, credential, role="reviewer", mode="replay", tenant=TEN
             db.execute("BEGIN IMMEDIATE")
             if db.execute("SELECT 1 FROM mandate_issuer WHERE subject=?", (subject,)).fetchone():
                 raise ValueError("A mandate issuer cannot enroll as a reviewer account")
-            db.execute("INSERT INTO authority_user VALUES(?,?,?)", (subject, role, public))
+            db.execute("INSERT INTO authority_user(subject,role,public_key) VALUES(?,?,?)", (subject, role, public))
     except sqlite3.IntegrityError:
         raise ValueError("Account or public key already enrolled") from None
 

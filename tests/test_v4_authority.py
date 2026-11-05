@@ -191,7 +191,7 @@ def test_human_database_contains_only_public_verifier_and_it_cannot_sign(tmp_pat
     with database(db) as connection:
         columns = {row[1] for row in connection.execute("PRAGMA table_info(authority_user)")}
         verifier = connection.execute("SELECT public_key FROM authority_user").fetchone()[0]
-    assert columns == {"subject", "role", "public_key"}
+    assert columns == {"subject", "role", "public_key", "schema_epoch"}
     assert verifier == public_bytes(credential)
     assert credential["d"] not in verifier.decode()
     with client_for(create_app(db, approvals_enabled=True)) as client:
