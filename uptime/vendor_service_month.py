@@ -1,6 +1,7 @@
 """Attested aggregate service-month evidence and its explicit UTC and filing clocks."""
 from datetime import UTC, datetime, timedelta
 from calendar import monthrange
+from decimal import Decimal, DecimalException, Inexact, localcontext
 import re
 
 from .contracts import Outcome, fingerprint
@@ -101,6 +102,30 @@ def _report(facts,key,overlay):
     return content
 
 
+def minute_microseconds(value):
+    """Interpret a preserved JSON number/string as an exact bounded duration."""
+    if type(value) not in (int, float, str):
+        raise ValueError('Unavailable minutes must be a finite decimal quantity.')
+    text = str(value)
+    if len(text) > 64 or not re.fullmatch(r'-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?', text):
+        raise ValueError('Unavailable minutes must be a finite decimal quantity.')
+    try:
+        minutes = Decimal(text)
+        if not minutes.is_finite() or not 0 <= minutes <= 44640:
+            raise ValueError('Unavailable minutes must be within a calendar month.')
+        # Decimal is only an input parser. Every comparison thereafter uses integer
+        # microseconds, avoiding floating-point threshold drift and silent rounding.
+        with localcontext() as context:
+            context.prec = 80
+            context.traps[Inexact] = True
+            duration = minutes * 60_000_000
+            if duration != duration.to_integral_value():
+                raise ValueError('Unavailable minutes exceed the supported microsecond precision.')
+    except DecimalException as exc:
+        raise ValueError('Unavailable minutes exceed the supported exact duration range.') from exc
+    return int(duration)
+
+
 def evaluate(manifest, overlay, facts, tenant):
     from .vendor_resource_eval import Gap, instant, required_ref
     if facts.get('tenant',tenant) != tenant:
@@ -121,8 +146,12 @@ def evaluate(manifest, overlay, facts, tenant):
         monitor=_report(facts,'service_monitor',overlay)
         invoice=_report(facts,'service_invoice',overlay)
         minutes=(end-start)//timedelta(minutes=1)
-        down=monitor.get('unavailable_minutes')
-        if monitor.get('source')!='simulated_vendor' or type(down) is not int or not 0<=down<=minutes:
+        try:
+            down = minute_microseconds(monitor.get('unavailable_minutes'))
+        except ValueError as exc:
+            raise Gap(str(exc)) from exc
+        total = minutes * 60_000_000
+        if monitor.get('source')!='simulated_vendor' or down > total:
             raise Gap('Verified scoped vendor status and bounded unavailable minutes required.')
         if invoice.get('paid') is not True or invoice.get('currency')!='USD' or not isinstance(invoice.get('lines'),list):
             raise Gap('Paid complete itemized USD subscription invoice required.')
@@ -163,15 +192,15 @@ def evaluate(manifest, overlay, facts, tenant):
         cutoff=utc(manifest['fixed_filing']['at'])
         inclusive=manifest['fixed_filing']['endpoint']=='inclusive'
         result.update(claim_cutoff=cutoff.isoformat(), cutoff_inclusive=inclusive, affected_fee_cents=fees[0],
-                      downtime_microseconds=down*60000000,total_microseconds=minutes*60000000)
+                      downtime_microseconds=down,total_microseconds=total)
         if not end<=received<=cutoff or received==cutoff and not inclusive:
             return result|{'outcome':Outcome.INELIGIBLE.value,'filing_status':'OUTSIDE_WINDOW','trace':['Outside the fixed UTC filing window.']}
-        rate,citation=rate_for(manifest,manifest['scope']['product'],manifest['scope']['plan'] or '*',minutes-down,minutes)
+        rate,citation=rate_for(manifest,manifest['scope']['product'],manifest['scope']['plan'] or '*',total-down,total)
         amount=usd_estimate(fees[0],rate)
         if manifest.get('rounding')=='nearest_cent_half_up':
             cents=(2*fees[0]*rate+MAX_PERCENT)//(2*MAX_PERCENT);amount=f'{cents//100}.{cents%100:02d}'
         result.update(rate_units=rate,tier_citation=citation,filing_status='TIMELY',service_estimate=amount,
-                      trace=[f'{minutes-down}/{minutes} minutes available; {fees[0]} verified affected USD cents.'])
+                      trace=[f'{total-down}/{total} microseconds available; {fees[0]} verified affected USD cents.'])
         if amount=='0.00':
             return result|{'outcome':Outcome.INELIGIBLE.value}
         return result|{'outcome':Outcome.ELIGIBLE.value,'amount':amount,'issuance_status':'NONCASH_SERVICE_CREDIT_UNCONFIRMED'}
