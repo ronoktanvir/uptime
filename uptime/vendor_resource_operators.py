@@ -34,9 +34,6 @@ _MEASURES = {
                        r'time|interval|minute|second|incident|outage|failure|duration|report'),
     'exact_elapsed': (r'fraction|elapsed|sub.?minute|sub.?second|actual duration|without rounding|not round|partial minutes?|partial seconds?',
                       r'time|duration|minute|second|interval|outage'),
-    'clip_to_month': (r'within|inside|clip|portion|boundary|boundaries|falls? in', r'month',
-                      r'interval|incident|outage|downtime|unavaila|elapsed'),
-    'availability_ratio': (r'percent|100|ratio|divid|subtract|minus', r'availab|uptime', r'month', r'downtime|unavaila|outage'),
 
 }
 
@@ -45,8 +42,54 @@ def _cites(patterns, text):
     return all(re.search(pattern, text, re.I) for pattern in patterns)
 
 
+_UNIT = r'(?:seconds?|minutes?|hours?)'
+_LOST = (r'(?:the )?(?:(?:total|actual|aggregate) )?(?:(?:covered|qualifying|eligible|unavailable|interrupted|lost) '
+         r'(?:(?:outage|interruption|downtime) )?' + _UNIT + r'|(?:covered |qualifying |eligible )?'
+         r'(?:downtime|interruption duration|outage duration)|(?:duration|elapsed time) of (?:the )?(?:covered|qualifying) interruptions?)')
+_TOTAL = (r'(?:the )?(?:(?:all|total|number of) )?' + _UNIT
+          + r' (?:in|during|of|for) (?:the |this |that |each )?(?:(?:utc|calendar|service|measurement|applicable|affected|billing) )*month')
+_RATIO_LIKE = re.compile(r'\b(?:availability|uptime)\b[^.;\n]*(?:divided by|minus|[×÷*/−])[^.;\n]*'
+                         r'\b(?:seconds?|minutes?|hours?|downtime|interruptions?)\b', re.I)
+
+
+def _availability_formula(quote):
+    # Recognize only algebra actually evaluated by the interpreter. Operand order matters.
+    expression = re.sub(r'\s+', ' ', quote.casefold()).translate(str.maketrans({'×':'*','÷':'/','−':'-'}))
+    for word, symbol in [('multiplied by','*'), ('times','*'), ('divided by','/'), ('minus','-'), ('one','1')]:
+        expression = re.sub(r'\b' + word + r'\b', symbol, expression)
+    end = r'(?!\s*(?:[+*/−-]|plus\b|less\b|squared\b))'
+    forms = [r'100\s*\*\s*\(\s*1\s*-\s*' + _LOST + r'\s*/\s*' + _TOTAL + r'\s*\)',
+             r'\(\s*1\s*-\s*' + _LOST + r'\s*/\s*' + _TOTAL + r'\s*\)\s*\*\s*100',
+             r'100\s*\*\s*\(\s*' + _TOTAL + r'\s*-\s*' + _LOST + r'\s*\)\s*/\s*' + _TOTAL]
+    if not _RATIO_LIKE.search(quote):
+        return False
+    # Natural-language multiplication with no grouping has a second mathematical reading.
+    # The registry requires disclosure, a distinguishing shadow case and authenticated interpretation.
+    natural = bool(re.search(r'100\s+(?:times|multiplied by)\s+one\s+minus', quote, re.I))
+    if natural:
+        forms.append(r'100\s*\*\s*1\s*-\s*' + _LOST + r'\s*/\s*' + _TOTAL)
+    for index, form in enumerate(forms):
+        match = re.search(r'(?<![\d.])' + form + end, expression)
+        if match and not re.search(r'[+/*-]\s*$', expression[:match.start()]):
+            units = {unit.rstrip('s') for unit in re.findall(_UNIT, match[0])}
+            if len(units) == 1:
+                return 'review_grouping' if index == 3 else 'explicit_grouping'
+    return False
+
+
+_MONTH_CLIP = re.compile(
+    r'\b(?:clip|truncate|intersect|split)\w*\b.{0,55}\b(?:month.{0,12}boundar|service month|calendar month)|'
+    r'\b(?:portion|part|intervals?)\b.{0,35}\b(?:within|inside|fall(?:s|ing)? in)\b.{0,22}\bmonth\b|'
+    r'\bcount(?:s|ed)? only\b.{0,38}\b(?:during|within|inside)\b.{0,22}\bmonth\b', re.I)
+
+
 def interval_options(quote):
-    return [name for name, patterns in _MEASURES.items() if _cites(patterns, quote)]
+    options = [name for name, patterns in _MEASURES.items() if _cites(patterns, quote)]
+    if _MONTH_CLIP.search(quote):
+        options.append('clip_to_month')
+    if _availability_formula(quote):
+        options.append('availability_ratio')
+    return options
 
 
 def apply_operator(manifest, key, value, quote):
@@ -55,6 +98,15 @@ def apply_operator(manifest, key, value, quote):
         options = interval_options(quote)
         if not isinstance(value, list) or not value or any(not isinstance(item, str) or item not in options for item in value):
             raise ValueError('Uncited interval measurement proposition.')
+        if 'availability_ratio' in value and _availability_formula(quote) == 'review_grouping':
+            manifest['formula_grouping_review'] = {
+                'source_block': manifest['citations'][-1]['id'],
+                'selected': '100 * (1 - covered_duration / month_duration)',
+                'alternative': '(100 * 1) - covered_duration / month_duration',
+                'units': 'covered_duration and month_duration use the same unit',
+                'endpoint_vectors': [{'covered_fraction': '0', 'selected_percent': '100', 'alternative_percent': '100'},
+                                     {'covered_fraction': '1', 'selected_percent': '0', 'alternative_percent': '99'}],
+                'decision': 'Approve the selected grouping only if the independent case and cited meaning support it.'}
         manifest[key] = sorted(set(manifest.get(key, [])) | set(value))
         return
     if key == 'maintenance':
@@ -104,6 +156,10 @@ def apply_operator(manifest, key, value, quote):
 
 
 def require_operative_mapping(quote, values):
+    if _RATIO_LIKE.search(quote):
+        measurement = values.get('interval_measurement')
+        if not isinstance(measurement, list) or 'availability_ratio' not in measurement or not _availability_formula(quote):
+            raise ValueError('Explicit availability ratio is unsupported or unmapped.')
     cues = {
         'maintenance': (r'maintenance', r'notice|announc|notif|publish|post(?:ed|ing)'),
         'fee_adjustment': (r'discount', r'net|after|less|deduct|subtract|reduc'),

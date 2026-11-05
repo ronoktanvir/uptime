@@ -39,3 +39,27 @@ def test_model_semantic_rejection_is_separate_immutable_and_replayable(tmp_path,
     path.write_text(json.dumps(saved|{'raw_proposal':{'blocks':[]}}))
     with pytest.raises(ValueError,match='integrity'):
         replay_rejection(document,path,digest)
+
+
+def test_offline_diagnostics_collects_independent_fields_and_source_blocks(tmp_path):
+    from copy import deepcopy
+    from test_vendor_resource import DOC, ROWS
+    from uptime.contracts import fingerprint
+
+    document = Document(**DOC)
+    digest = sha256(document.text.encode()).hexdigest()
+    blocks = [{'id': index, 'value': deepcopy(value)} for index, (_, value) in enumerate(ROWS, 1)]
+    blocks[0]['value'].update(vendor='Uncited vendor', agreement='Uncited agreement')
+    blocks[7]['value']['tiers'][0]['below'] = '12'
+    blocks[8]['value'] = {'unsupported': 'unsupported rounding'}
+    raw = {'blocks': blocks}
+    receipt = {'status':'REJECTED', 'model':MODEL, 'session':'synthetic-test-diagnostic', 'source_sha256':digest,
+               'profile':'resource-month','allow_propositions':True,'reason':'first historical rejection',
+               'raw_proposal':raw,'raw_proposal_sha256':fingerprint(raw)}
+    path = save_rejection(receipt, tmp_path)
+    before = path.read_bytes()
+    result = replay_rejection(document, path, digest)
+    issues = {(row['block'], row['field']) for row in result['diagnostics']}
+    assert {(1, 'vendor'), (1, 'agreement'), (8, 'tiers'), (9, None)} <= issues
+    assert result['current_validation'] == 'REJECTED'
+    assert path.read_bytes() == before and not (tmp_path / (digest + '.json')).exists()

@@ -144,9 +144,16 @@ def replay_rejection(document,path,approved_digest):
             'raw_proposal_sha256':receipt['raw_proposal_sha256'],'historical_reason':receipt['reason']}
     try:
         clauses,_=_project(document,receipt['profile'],receipt['raw_proposal'])
+        if receipt['profile'] == 'resource-month' and receipt['allow_propositions']:
+            from .vendor_resource_terms import diagnose_resource
+            issues = diagnose_resource(document, clauses)
+            result['diagnostics'] = issues
+            if issues:
+                return result | {'current_validation': 'REJECTED', 'current_reason': issues[0]['reason']}
         validate_proposal(document,clauses,allow_propositions=receipt['allow_propositions'])
     except (TypeError,ValueError) as exc:
-        return result|{'current_validation':'REJECTED','current_reason':str(exc)}
+        return result|{'current_validation':'REJECTED','current_reason':str(exc),
+                       'diagnostics':[{'block':None,'field':None,'reason':str(exc)}]}
     return result|{'current_validation':'VALIDATES_UNDER_CURRENT_CODE','requires_fresh_intake':True}
 
 

@@ -9,7 +9,7 @@ from pydantic import Field, ValidationError
 from .contracts import Outcome, Principal, Source, fingerprint
 from .onboarding import _atomic
 from .storage import database, now, persist_case, _read_versions
-from .vendor_eval import evaluate, generated_checks
+from .vendor_eval import evaluate, generated_checks, rate_for
 from .vendor_model import staged_extraction
 from .vendor_terms import Intake, Strict, bind_overlay, candidate_version, semantics_revision
 
@@ -139,6 +139,10 @@ def _view(db, p, vendor, state):
         result.update(artifact)
     if p.role == 'reviewer':
         result['actions'] = [{'id': _key(p, vendor, state, op), 'label': OPS[op], 'operation': op} for op in _actions(state)]
+        if artifact and (grouping := artifact['manifest'].get('formula_grouping_review')):
+            for action in result['actions']:
+                if action['operation'] == 'interpret':
+                    action['label'] = 'Accept reviewed availability formula ' + grouping['selected']
     return result
 
 
@@ -211,6 +215,8 @@ def submit_tests(path, p, vendor, submission):
             raise ValueError('Test submission requires the current shadow revision.')
         artifact = _require_current(db,p,vendor,state['version'])
         rows, outcomes, names = [], set(), set()
+        manifest = artifact['manifest']
+        distinguishes_grouping = False
         for test in submission.tests:
             expected = test.expected
             if not set(expected) <= {'outcome', 'amount'} or expected.get('outcome') not in set(Outcome):
@@ -228,10 +234,20 @@ def submit_tests(path, p, vendor, submission):
             actual = {k: result[k] for k in ('outcome', 'amount')}
             rows.append({'name': test.name, 'expected': expected, 'actual': actual, 'passed':
                          actual['outcome'] == expected['outcome'] and actual['amount'] == expected.get('amount')})
+            if manifest.get('formula_grouping_review') and rows[-1]['passed'] and actual['outcome'] == Outcome.ELIGIBLE:
+                total, covered = result['total_microseconds'], result['downtime_microseconds']
+                alternate_rate, _ = rate_for(manifest, manifest['scope']['product'], manifest['scope']['plan'] or '*',
+                                             100 * total - covered, 100 * total)
+                if alternate_rate == 0 and result['rate_units'] > 0:
+                    distinguishes_grouping = True
+        if manifest.get('formula_grouping_review'):
+            rows.append({'name': 'Independent positive case distinguishes proposed availability formula grouping',
+                         'passed': distinguishes_grouping})
         rows.append({'name': 'Independent positive and refusal coverage', 'passed':
                      Outcome.ELIGIBLE in outcomes and bool(outcomes - {Outcome.ELIGIBLE})})
         rows.append({'name': 'Generated exact threshold checks', 'passed': all(r['passed'] for r in artifact['generated_tests'])})
         state.update(tests=[t.model_dump() for t in submission.tests], checks=rows, test_author=p.subject, interpretation_reviewer=None)
+        state.pop('formula_decision', None)
         state['suite'] = fingerprint(state['tests'])
         if state.get('previous_suite') != state['suite']:
             state['previous'] = None
@@ -249,6 +265,10 @@ def act(path, p, vendor, action):
         _require_current(db,p,vendor,state['version'])
         if op == 'interpret':
             state['interpretation_reviewer'] = p.subject
+            artifact = _artifact(db, p, vendor, state['version'])
+            if grouping := artifact['manifest'].get('formula_grouping_review'):
+                state['formula_decision'] = {'selected': grouping['selected'], 'source_block': grouping['source_block'],
+                                             'reviewer': p.subject, 'suite': state['suite'], 'version': state['version']}
         elif op == 'approve':
             if state.get('interpretation_required') and state.get('interpretation_reviewer') != p.subject:
                 raise PermissionError('The approving reviewer must accept the cited source interpretation.')
