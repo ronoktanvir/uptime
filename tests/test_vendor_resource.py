@@ -63,8 +63,12 @@ def compiled(doc=DOC,proposal=PROPOSAL):
     return validate_proposal(Document(**doc),proposal,allow_propositions=True)
 
 def result(facts=FACTS,manifest=None,overlay=OVERLAY):
+    # Arithmetic/evidence controls explicitly assume a named synthetic meaning
+    # review. Unreviewed and adversarial meaning controls call evaluate directly.
+    from test_vendor_semantic_bindings import reviewed_context
     m=manifest or compiled()
-    return evaluate(m,bind_overlay(m,Overlay(**overlay)),facts,P.tenant)
+    bound=bind_overlay(m,Overlay(**overlay))
+    return evaluate(m,bound,facts,P.tenant,bindings=reviewed_context(m,bound))
 
 
 def test_source_quoted_intervals_tiers_monthly_fees_and_credit_rounding():
@@ -84,7 +88,7 @@ def test_source_quoted_intervals_tiers_monthly_fees_and_credit_rounding():
     ({'fee_lines':[LINE|{'resource_id':'other'}]},'INSUFFICIENT_EVIDENCE'),
     ({'fee_lines':[LINE,LINE|{'amount_cents':123}]},'INSUFFICIENT_EVIDENCE'),
     ({'intervals':[interval('a',0,500,'unverified attribution')]},'INSUFFICIENT_EVIDENCE'),
-    ({'intervals':[interval('a',0,500,symptom='cosmetic display delay')]},'INELIGIBLE'),
+    ({'intervals':[interval('a',0,500,symptom='cosmetic display delay')]},'INSUFFICIENT_EVIDENCE'),
     ({'intervals':[interval('a',0,500,'Customer cable damage')]},'INELIGIBLE'),
     ({'received_at':'2026-07-10T18:00:01Z'},'INELIGIBLE'),
     ({'filing_proof':FACTS['filing_proof']|{'submitted_to':'wrong@example.invalid'}},'INSUFFICIENT_EVIDENCE'),
@@ -166,6 +170,9 @@ def test_review_gate_and_transaction_scoped_active_resolution(monkeypatch,tmp_pa
     monkeypatch.setenv('UPTIME_MODEL_PROPOSITIONS','1')
     shadow=registry.install(path,P,'meters',{'document':DOC,'overlay':OVERLAY})
     assert shadow['state']=='SHADOW',shadow
+    from test_vendor_semantic_bindings import review_submission
+    shadow=registry.review_semantics(path,P,'meters',registry.SemanticSubmission(revision=shadow['revision'],
+        review=review_submission(shadow['manifest'],shadow['overlay'],DOC['text'])))
     with pytest.raises(ValueError,match='inactive'):
         registry.evaluate_active(path,P,'meters',FACTS)
     suite=registry.TestSubmission(revision=shadow['revision'],tests=[
@@ -328,7 +335,8 @@ def test_stable_service_predicate_identifier_requires_literal_source_grounding()
     assert m['label_bindings']['symptoms']['sample_loss']['block']==5
     assert result(manifest=m)['amount']=='12.51'
     rows=[r|{'symptom':'sample_loss'} for r in FACTS['intervals']]
-    assert result(FACTS|{'intervals':rows},m)['amount']=='12.51'
+    # Opaque IDs are no longer implicit raw evidence representations (ADR61).
+    assert result(FACTS|{'intervals':rows},m)['amount'] is None
     proposal[4]['value']['symptoms'][0]['phrase']='silent data distortion'
     with pytest.raises(ValueError):
         compiled(proposal=proposal)

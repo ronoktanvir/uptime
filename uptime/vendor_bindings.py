@@ -124,7 +124,7 @@ def required(manifest):
 def dependency(manifest):
     files = ('vendor_bindings.py', 'vendor_resource_terms.py', 'vendor_resource_eval.py',
              'vendor_resource_scopes.py', 'vendor_service_month.py', 'correspondence_resource.py',
-             'correspondence_service.py', 'v4_routes.py', 'vendor_registry.py')
+             'correspondence_service.py', 'correspondence_history.py', 'v4_routes.py', 'vendor_registry.py')
     return fingerprint({'protocol':PROTOCOL, 'definitions':definitions(manifest), 'source':manifest['document']['sha256'],
                         'files':{name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in files}})
 
@@ -149,7 +149,8 @@ def review_record(manifest, overlay, source_text, tenant, reviewer, submitted, a
         raise SemanticBindingRequired('An exact semantic review payload is required.')
     if any(submitted[k] != needed[k] for k in allowed - {'bindings', 'block_reviews', 'attestations'}):
         raise SemanticBindingRequired('Semantic review does not match the current source, scope or dependencies.')
-    if submitted['attestations'] != {name:True for name in ATTESTATIONS}:
+    if (not isinstance(submitted['attestations'],dict) or set(submitted['attestations']) != set(ATTESTATIONS)
+            or any(value is not True for value in submitted['attestations'].values())):
         raise SemanticBindingRequired('The named reviewer must resolve source meaning, conditions, overrides and evidence scope.')
     block_reviews = submitted['block_reviews']
     if not isinstance(block_reviews, list) or len(block_reviews) != len(needed['blocks']):

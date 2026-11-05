@@ -87,6 +87,29 @@ def test_reviewed_whitespace_equivalence_is_bounded():
         context.resolve('symptoms','rejected\u2028samples')
 
 
+def test_explicit_review_can_bind_an_exact_external_representation_without_label_name_policy():
+    manifest=compiled()
+    body=review_submission(manifest)
+    definition=next(d for d in bindings.definitions(manifest) if d['role']=='symptoms' and d['label']=='rejected samples')
+    selected=next(row for row in body['bindings'] if row['definition_id']==definition['id'])
+    selected['literals']=['sensor_code_61']
+    record=bindings.review_record(manifest,OVERLAY,DOC['text'],'weather-tenant','scripted-semantic-fixture',body,'2026-11-05T00:00:00Z')
+    context=bindings._from_record(record,lambda:True)
+    assert context.resolve('symptoms','sensor_code_61')=={'rejected samples'}
+    for raw in ('sensor code 61','rejected samples'):
+        with pytest.raises(bindings.SemanticBindingRequired):
+            context.resolve('symptoms',raw)
+
+
+@pytest.mark.parametrize('false_authority',[1,'true',None,False])
+def test_semantic_attestation_requires_explicit_json_true(false_authority):
+    manifest=compiled()
+    body=review_submission(manifest)
+    body['attestations']['conditions_supported']=false_authority
+    with pytest.raises(bindings.SemanticBindingRequired):
+        bindings.review_record(manifest,OVERLAY,DOC['text'],'weather-tenant','scripted-semantic-fixture',body,'2026-11-05T00:00:00Z')
+
+
 @pytest.mark.parametrize('fault', ['missing_block','wrong_source','wrong_overlay','wrong_dependency','missing_attestation',
                                    'unresolved_condition','wrong_occurrence','duplicate_definition','empty_literal'])
 def test_review_is_explicit_and_complete(fault):

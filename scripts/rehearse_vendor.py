@@ -22,7 +22,7 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def exercise(document, overlay, scenarios, origin, secret):
+def exercise(document, overlay, scenarios, origin, secret, *, semantic_review=None):
     digest = sha256(document['text'].encode()).hexdigest()
     slot = 'rehearsal-' + digest[:16]
     prefix = '/api/vendors/' + slot
@@ -54,6 +54,10 @@ def exercise(document, overlay, scenarios, origin, secret):
         require(not shadow['actions'] and not shadow['active_version'], 'Untested candidate exposed authority.')
         observation = {'facts': scenarios[0]['facts']}
         call('shadow dispatch denied', 'POST', prefix + '/evaluate', observation, status=409)
+        if shadow.get('semantic_binding_required'):
+            require(semantic_review is not None, 'An explicit separately authored synthetic semantic review is required before pricing.')
+            shadow = call('record explicit scripted semantic review', 'POST', prefix + '/semantic-bindings',
+                          {'revision':shadow['revision'],'review':semantic_review})
         tested = call('submit independent scenarios', 'POST', prefix + '/tests',
                       {'revision': shadow['revision'], 'tests': scenarios})
         require(all(check['passed'] for check in tested['checks']), 'Independent or generated shadow checks failed.')
@@ -97,12 +101,14 @@ def main():
     parser.add_argument('--document', required=True, type=Path)
     parser.add_argument('--overlay', required=True, type=Path)
     parser.add_argument('--scenarios', required=True, type=Path)
+    parser.add_argument('--semantic-review', type=Path, help='Explicit source/literal review; never derived from scenario answers')
     args = parser.parse_args()
     documents = [json.loads(path.read_text()) for path in (args.document, args.overlay, args.scenarios)]
     secret = secrets.token_urlsafe(32)
     with TemporaryDirectory(prefix='uptime-synthetic-onboarding-') as directory:
         with serve(Path(directory) / 'rehearsal.sqlite', secret) as origin:
-            receipt = exercise(*documents, origin, secret)
+            review = json.loads(args.semantic_review.read_text()) if args.semantic_review else None
+            receipt = exercise(*documents, origin, secret, semantic_review=review)
     print(json.dumps(receipt, indent=2, allow_nan=False))
 
 

@@ -50,6 +50,9 @@ def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, condit
     s=env.post(base+"/candidates",dict(document=dict(name="Synthetic station SLA",uri="urn:synthetic:weather",
                     classification="synthetic_public",text=text),overlay=overlay))
     assert s["state"]=="SHADOW",s
+    from test_vendor_semantic_bindings import review_submission
+    s=env.post(base+'/semantic-bindings',dict(revision=s['revision'],
+        review=review_submission(s['manifest'],s['overlay'],text)))
     negative = deepcopy(facts)
     negative["intervals"] = []
     if "provider_telemetry" in negative:
@@ -509,8 +512,15 @@ def test_distinct_filing_items_reference_only_their_provenance():
     groups = dict(resource_status=dict(event_id="stat",body=dict(source_ref="stat-ledger")),
                   resource_invoice=dict(event_id="bill",body=dict(source_ref="invoice-ledger")),
                   request_evidence=dict(body=dict(observed_at=OBSERVED,records=[witness])))
+    from test_vendor_resource import extend_source
+    from test_vendor_semantic_bindings import reviewed_context
+    fields=['the measured month','covered instrument failure','evidence that valid requests failed',
+            'billing evidence tying the charge to that endpoint']
+    document,proposal=extend_source([('Required claim items: '+', '.join(fields)+'.',{'request_fields':fields})])
+    terms=compiled(document,proposal)
+    context=reviewed_context(terms,OVERLAY,source=document['text'])
     def references(field):
-        return filing_refs(field, compiled(), OVERLAY, scope, groups, [span], [])
+        return filing_refs(field, terms, OVERLAY, scope, groups, [span], [], context)
     assert references("the measured month") == {scope.month}
     assert references("covered instrument failure") == {"error-4"}
     assert references("evidence that valid requests failed") == {"probe-74"}

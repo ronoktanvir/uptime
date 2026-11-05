@@ -214,7 +214,7 @@ def resolve_active(path, tenant, scope, events, at):
                 # using a published clause for a nonfinancial procedural response.
                 evaluate_active_db(db, Principal(tenant,"local-active-join","viewer"), installation, {},
                                    expected_version=state["active_version"], expected_revision=state["revision"])
-                historical = procedure(scope, events, manifest, overlay)
+                historical = procedure(scope, events, manifest, overlay, bindings=semantics)
             except ValueError:
                 historical = None
         try:

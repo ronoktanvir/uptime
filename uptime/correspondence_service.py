@@ -47,7 +47,10 @@ def join_service(scope, events, manifest, overlay, filed, receipts, *, bindings=
         fields = {row["name"]:row["refs"] for row in body["fields"]}
         if len(fields) != len(body["fields"]):
             raise ValueError("Source-defined filing fields must each appear once.")
-        bound_filing_fields(fields, manifest, bindings)
+        try:
+            bound_filing_fields(fields, manifest, bindings)
+        except ValueError:
+            raise ValueError('Source-defined filing fields must each appear once.') from None
         for name, refs in fields.items():
             allowed = filing_refs(name, manifest, overlay, scope, groups, [], [], bindings)
             if not allowed or set(refs) - allowed or len(set(refs)) != len(refs):
