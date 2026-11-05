@@ -349,3 +349,98 @@ def test_durable_minimized_history_and_offline_cli(tmp_path, capsys, monkeypatch
         assert "private" not in payload
         with pytest.raises(sqlite3.IntegrityError, match="immutable"):
             db.execute("DELETE FROM ramp_credit_snapshot")
+
+
+def test_all_bindings_rollback_together_on_later_projection_failure(tmp_path):
+    sync = seed(tmp_path / "db", eligible=500)
+    sync.ledger.record_award("t", "second-case", dict(SCOPE, id="award-2", source="SIMULATED_VENDOR",
+        source_ref="synthetic:award-2", amount_cents=1000, memo_ref="synthetic:memo-2", confirmed=True,
+        effective_date="2026-09-01"))
+    s = snapshot()
+    second = deepcopy(s["credits"][0])
+    second["id"] = uid(20)
+    s["credits"].append(second)
+    s["bills"][0]["applied_vendor_credits"].append(dict(id=uid(20), amount=money(200)))
+    sync.import_snapshot("t", s, as_of=AT)
+    sync.link_award("t", binding(s), as_of=AT)
+    b = dict(binding(s), credit_id=uid(20), award_id="award-2",
+             award_source_ref="synthetic:award-2", memo_ref="synthetic:memo-2")
+    sync.link_award("t", b, as_of=AT)
+    history = sync.ledger.history("t")
+    later = deepcopy(s)
+    later.update(id="later", observed_at="2026-11-04T13:00:00+00:00")
+    later["credits"][0]["applied_bills"][0]["amount"]["amount"] = 250
+    later["credits"][0]["remaining_amount"]["amount"] = 650
+    later["credits"][0]["total_applied_amount"]["amount"] = 350
+    later["bills"][0]["applied_vendor_credits"][0]["amount"]["amount"] = 250
+    # The first credit can advance by 50. The second is archived, so the whole
+    # import must fail without retaining that first delta.
+    later["credits"][1]["archived_at"] = later["observed_at"]
+    result = sync.import_snapshot("t", later, as_of=later["observed_at"])
+    assert result["status"] == "CONFLICT"
+    assert result["issues"] == ["ARCHIVED_CREDIT"]
+    assert sync.ledger.history("t") == history
+    assert sync.summary("t")["applied_cents"] == 400
+
+
+def test_sparse_bill_scope_can_be_observed_but_cannot_link(tmp_path):
+    sync = seed(tmp_path / "db")
+    s = snapshot()
+    s["bills"][0]["vendor"]["id"] = None
+    assert sync.import_snapshot("t", s, as_of=AT)["status"] == "RECORDED"
+    with pytest.raises(ValueError, match="SPARSE_BILL_READBACK"):
+        sync.link_award("t", binding(s), as_of=AT)
+
+
+def test_malformed_application_fails_without_cli_payload_echo(tmp_path, capsys):
+    s = snapshot()
+    s["credits"][0]["applied_bills"] = ["private invalid entry"]
+    data = tmp_path / "input.json"
+    data.write_text(json.dumps(s))
+    with pytest.raises(SystemExit) as error:
+        main(["--db", str(tmp_path / "db"), "--tenant", "t", "import", str(data)])
+    assert error.value.code == 2
+    captured = capsys.readouterr()
+    assert "private invalid" not in captured.err + captured.out
+    assert "rejected local input" in captured.err
+
+
+def test_explicit_foreign_tenant_is_rejected(tmp_path):
+    sync = seed(tmp_path / "db")
+    with pytest.raises(ValueError, match="TENANT_CONFLICT"):
+        sync.import_snapshot("t", dict(snapshot(), tenant="other"), as_of=AT)
+    sync.import_snapshot("t", snapshot(), as_of=AT)
+    with pytest.raises(ValueError, match="TENANT_CONFLICT"):
+        sync.link_award("t", dict(binding(), tenant="other"), as_of=AT)
+
+
+def test_draft_migration_to_bill_does_not_double_total(tmp_path):
+    sync = seed(tmp_path / "db")
+    link(sync)
+    s = snapshot("draft-converted", applied=300, draft=0, at="2026-11-04T13:00:00+00:00")
+    assert sync.import_snapshot("t", s, as_of=s["observed_at"])["status"] == "RECORDED"
+    state = sync.summary("t", as_of=s["observed_at"])
+    assert state["applied_cents"] == state["observed_totals"][0]["provider_applied_minor"] == 300
+    assert state["observed_totals"][0]["applied_drafts_minor"] == 0
+
+
+def test_new_valid_looking_read_cannot_silently_clear_archive_conflict(tmp_path):
+    sync = seed(tmp_path / "db")
+    link(sync)
+    archived = snapshot("archive", at="2026-11-04T13:00:00+00:00")
+    archived["credits"][0]["archived_at"] = archived["observed_at"]
+    assert sync.import_snapshot("t", archived, as_of=archived["observed_at"])["status"] == "CONFLICT"
+    unarchived = snapshot("unarchive", applied=400, at="2026-11-04T14:00:00+00:00")
+    assert sync.import_snapshot("t", unarchived, as_of=unarchived["observed_at"])["issues"] == ["PRIOR_CONFLICT_REQUIRES_REVIEW"]
+    assert sync.summary("t")["applied_cents"] == 200
+    assert sync.summary("t")["quarantined"] is True
+
+
+def test_late_conflict_cannot_be_hidden_by_newer_observation_time(tmp_path):
+    sync = seed(tmp_path / "db")
+    sync.import_snapshot("t", snapshot(), as_of=AT)
+    invalid = snapshot("late-conflict", applied=400, at="2026-11-04T11:00:00+00:00")
+    assert sync.import_snapshot("t", invalid, as_of=AT)["status"] == "CONFLICT"
+    assert sync.summary("t", as_of=AT)["status"] == "CONFLICT"
+    with pytest.raises(ValueError, match="PRIOR_CONFLICT_REQUIRES_REVIEW"):
+        sync.link_award("t", binding(), as_of=AT)

@@ -114,6 +114,14 @@ increase bill application while leaving total applied unchanged. Missing linked
 credits in a subsequent complete list produce a conflict, not an automatic
 reversal or loss of historical accounting.
 
+Financial conflicts quarantine the tenant's sync journal: later apparently valid
+imports cannot silently resume allocation, and delayed conflicts remain visible
+even if their observation timestamp precedes the latest successful read. Summary
+exposes `quarantined: true`; new links and promotions stop with
+`PRIOR_CONFLICT_REQUIRES_REVIEW`. There is intentionally no automatic conflict
+clearance or reversal endpoint in this version. Root must review a separate
+resolution workflow before resuming that journal; historical evidence is retained.
+
 Statuses are `RECORDED`, `EMPTY`, `PARTIAL`, `STALE`, `UNAVAILABLE`,
 `INSUFFICIENT_EVIDENCE`, or `CONFLICT`. Unknown quantities and missing required
 scopes never become numeric zero. Partial/unavailable data cannot promote

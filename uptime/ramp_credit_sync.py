@@ -87,12 +87,16 @@ def _project_fields(row, fields):
     for key, ident in (("applied_bills", "bill_id"), ("applied_draft_bills", "bill_id"),
                        ("applied_vendor_credits", "id")):
         if isinstance(result.get(key), list):
-            result[key] = [_project_fields(r, (ident, "amount")) if ident == "id" else
-                           {"bill_id": _native(r.get("bill_id")),
-                            "amount": {k: r["amount"].get(k) for k in
-                                       ("amount", "currency_code", "minor_unit_conversion_rate")}
-                            if isinstance(r.get("amount"), dict) else None}
-                           for r in result[key]]
+            links = []
+            for link in result[key]:
+                if not isinstance(link, dict):
+                    _fail("INVALID_APPLICATIONS")
+                amount = link.get("amount")
+                if isinstance(amount, dict):
+                    amount = {k: amount.get(k) for k in
+                              ("amount", "currency_code", "minor_unit_conversion_rate")}
+                links.append({ident: _native(link.get(ident)), "amount": amount})
+            result[key] = sorted(links, key=lambda link: link[ident])
     return result
 
 
@@ -163,7 +167,8 @@ def _facts(snapshot):
                                   archived_at=archived, total=total[0], unit=total[1:],
                                   remaining=remaining[0], applied=applied[0], links=links, drafts=drafts)
     for row in snapshot["bills"] or []:
-        if row.get("amount") is None or not isinstance(row.get("vendor"), dict):
+        if (row.get("amount") is None or not isinstance(row.get("vendor"), dict)
+                or row["vendor"].get("id") is None):
             continue  # Sparse bills cannot satisfy a later binding/readback.
         total = _money(row["amount"])
         if row.get("applied_vendor_credits") is None:
@@ -250,8 +255,17 @@ class RampCreditSync:
                 if earlier["observed_at"] == snapshot["observed_at"] and before != after:
                     _fail("SAME_TIME_CONFLICT")
 
+    @staticmethod
+    def _quarantined(db, tenant):
+        # Reversals/archives/capacity contradictions need an explicit reviewed
+        # resolution, never an automatic reset by the next successful-looking read.
+        return db.execute("SELECT 1 FROM ramp_credit_snapshot WHERE tenant=? AND status='CONFLICT' LIMIT 1",
+                          (tenant,)).fetchone() is not None
+
     def import_snapshot(self, tenant, snapshot, *, as_of=None):
         """Persist sanitized readbacks; quarantine conflicts without changing allocations."""
+        if isinstance(snapshot, dict) and "tenant" in snapshot and canonical(snapshot["tenant"]) != canonical(tenant):
+            _fail("TENANT_CONFLICT")
         tenant, snapshot = canonical(tenant), _normalize(snapshot)
         now = as_of or datetime.now(timezone.utc).isoformat()
         payload = _json(snapshot)
@@ -267,6 +281,8 @@ class RampCreditSync:
             db.execute("SAVEPOINT projection")
             try:
                 credits, bills = _facts(snapshot)
+                if self._quarantined(db, tenant):
+                    _fail("PRIOR_CONFLICT_REQUIRES_REVIEW")
                 self._history_check(db, tenant, snapshot, credits)
                 if not _fresh(snapshot, now):
                     status, issues = "STALE", ["STALE_OR_FUTURE_OBSERVATION"]
@@ -306,6 +322,10 @@ class RampCreditSync:
     def link_award(self, tenant, binding, *, as_of=None):
         """Bind an existing confirmed ledger award; never creates one from a claim."""
         tenant = canonical(tenant)
+        if not isinstance(binding, dict):
+            _fail("INVALID_BINDING")
+        if "tenant" in binding and canonical(binding["tenant"]) != tenant:
+            _fail("TENANT_CONFLICT")
         binding = {k: canonical(binding.get(k), k) for k in BINDING_FIELDS}
         for key in ("credit_id", "bill_id", "vendor_id"):
             binding[key] = _native(binding[key])
@@ -318,6 +338,8 @@ class RampCreditSync:
                 if old[0] != _json(binding):
                     _fail("BINDING_CONFLICT")
                 return dict(credit_id=binding["credit_id"], status="LINKED", actual_recovery=None)
+            if self._quarantined(db, tenant):
+                _fail("PRIOR_CONFLICT_REQUIRES_REVIEW")
             row = db.execute("SELECT * FROM ramp_credit_snapshot WHERE tenant=? ORDER BY observed_at DESC,sequence DESC LIMIT 1",
                              (tenant,)).fetchone()
             if not row or row["id"] != binding["observation_id"] or row["status"] != "RECORDED":
@@ -413,17 +435,21 @@ class RampCreditSync:
             unlinked_awards = db.execute("""SELECT COUNT(*) FROM allocation_award a WHERE a.tenant=?
                 AND NOT EXISTS (SELECT 1 FROM allocation_credit c JOIN ramp_credit_binding b
                 ON b.tenant=c.tenant AND b.credit_id=c.id WHERE c.tenant=a.tenant AND c.award_id=a.id)""", (tenant,)).fetchone()[0]
+            quarantined = self._quarantined(db, tenant)
         result = dict(status="UNAVAILABLE", observed_at=None, captured_credits=None,
                       unmatched_credits=None, linked_credits=len(bindings), recorded_cents=amounts,
                       applied_cents=applied, currency="USD", awards_without_native_credit=unlinked_awards,
                       claimed_only=None, claims_balance=None, actual_recovery=None,
                       claims_status="NOT_SUPPLIED", award_provenance=Source.VENDOR.value,
                       recovery_status="UNVERIFIED",
+                      quarantined=quarantined,
                       external_writes=False, amounts_are_historical=True, observed_totals=[], issues=[])
         if not row:
             return result
         snapshot = json.loads(row["payload"])
         result.update(status=row["status"], observed_at=row["observed_at"], issues=json.loads(row["issues"]))
+        if quarantined and row["status"] != "CONFLICT":
+            result.update(status="CONFLICT", issues=["PRIOR_CONFLICT_REQUIRES_REVIEW"])
         if snapshot["available"] is True and snapshot["credits"] is not None:
             result["captured_credits"] = len(snapshot["credits"])
             result["unmatched_credits"] = sum(r["id"] not in bindings for r in snapshot["credits"])
@@ -431,7 +457,7 @@ class RampCreditSync:
             result["freshness"] = "STALE_OR_FUTURE"
         else:
             result["freshness"] = "FRESH"
-        if row["status"] in ("RECORDED", "EMPTY", "PARTIAL", "STALE"):
+        if not quarantined and row["status"] in ("RECORDED", "EMPTY", "PARTIAL", "STALE"):
             credits, _ = _facts(snapshot)
             totals = {}
             for credit in credits.values():
