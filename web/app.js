@@ -31,7 +31,9 @@
   if (typeof document === 'undefined') return;
   const $ = selector => document.querySelector(selector);
   const content = $('#content'), notice = $('#notice'), dialog = $('#inspector');
-  let view = 'dashboard', generation = 0, caseGeneration = 0, activeCase = null, busy = false;
+  let view = 'ramp', generation = 0, caseGeneration = 0, activeCase = null, busy = false;
+  let rampCase = null, rampScroll = 0;
+  const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
   const filters = {query: '', status: '', sort: 'value-desc'};
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
@@ -72,7 +74,7 @@
     return node;
   }
   function renderDashboard(data) {
-    const head = heading('Contract ledger', 'Unpaid invoice exposure and the current recovery case. Each figure belongs to a separate financial stage.');
+    const head = heading('Evidence ledger', 'Unpaid invoice exposure and the current recovery case. Each figure belongs to a separate financial stage.');
     head.append(el('div', 'as-of', `${data.mode === "replay" ? "Offline replay" : "Sandbox capture · " + display(data.as_of)}`));
     const metrics = el('section', 'metrics'); metrics.setAttribute('aria-label', 'Financial stages');
     list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', metric.label), el('div', 'metric-value', metric.value), el('p', '', metric.note), sources(metric.sources))));
@@ -241,13 +243,42 @@
   }
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
-    try { const data = await api(`/api/${route}`); if (token !== generation) return; if (route === 'dashboard') renderDashboard(data); else if (route === 'onboarding') renderOnboarding(data); else if (route === 'policy') renderPolicy(data); else renderIntegrations(data); }
+    try { if (route === 'ramp') {
+      if (!ramp) throw new Error('Ramp UI asset unavailable.');
+      await ramp.render(content, rampCase);
+      if (token === generation) {
+        window.scrollTo?.({top:rampCase ? 0 : rampScroll, behavior:'instant'});
+        $('#workspace-name').textContent = 'Ramp sandbox · Uptime evidence';
+        const current = window.uptimeAuth.session();
+        if (current) $('#account').textContent = 'Sign out · ' + current.subject;
+      }
+      return;
+    }
+    const data = await api(`/api/${route}`); if (token !== generation) return; if (route === 'dashboard') renderDashboard(data); else if (route === 'onboarding') renderOnboarding(data); else if (route === 'policy') renderPolicy(data); else renderIntegrations(data); }
     catch (error) { if (token === generation) { if (error.status === 401) account(); else showError(content,error,load); } }
     finally { if (token === generation) content.setAttribute('aria-busy', 'false'); }
   }
-  function navigate() { const requested = location.hash.slice(1); view = ['dashboard','onboarding','policy','integrations'].includes(requested) ? requested : 'dashboard'; document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); }); content.replaceChildren(empty('Loading server state…')); announce(''); load(); }
+  function navigate() {
+    const requested = location.hash.slice(1);
+    if (requested === 'workspace') return; // Skip link is an in-page accessibility target.
+    if (view === 'ramp' && !rampCase) rampScroll = window.scrollY || 0;
+    ramp?.unmount();
+    if (dialog.open) dialog.close();
+    rampCase = null;
+    if (requested.startsWith('ramp/')) {
+      try { rampCase = decodeURIComponent(requested.slice(5)); } catch { rampCase = null; }
+    }
+    view = requested === 'rehearsal' ? 'dashboard' : requested === 'ramp' || requested.startsWith('ramp/') ? 'ramp' : ['dashboard','onboarding','policy','integrations'].includes(requested) ? requested : 'ramp';
+    document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
+    if (!content.children.length) content.append(empty('Loading server state…')); announce(''); load();
+  }
+  // Updating route history explicitly prevents fragment scrolling during normal navigation.
+  document.querySelectorAll('.rail a[href^="#"]').forEach(link => link.addEventListener('click', event => {
+    if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault(); history.pushState(null, '', link.getAttribute('href')); navigate();
+  }));
   $('#close-inspector').addEventListener('click', () => dialog.close()); dialog.addEventListener('close', () => { caseGeneration++; activeCase = null; });
-  $('#refresh').addEventListener('click', () => { announce(''); load(); if (dialog.open && activeCase) openCase(activeCase); });
+  $('#refresh').addEventListener('click', () => { if (view === 'ramp' && !rampCase) rampScroll = window.scrollY || 0; announce(''); load(); if (dialog.open && activeCase) openCase(activeCase); });
   $('#account').addEventListener('click', () => {
     const current = window.uptimeAuth.session();
     if (current) window.uptimeAuth.signOut();

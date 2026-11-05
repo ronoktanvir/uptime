@@ -12,6 +12,9 @@ from collections import Counter
 from datetime import UTC, datetime
 import hashlib
 import importlib.util
+import importlib.metadata
+import platform
+import traceback
 import json
 import os
 from pathlib import Path
@@ -22,6 +25,8 @@ import tempfile
 
 V3 = "18afaa6433284dc582d38c02b797dc4e688892f1"
 GATE_ROOT = Path(__file__).resolve().parents[1]
+SCHEMA = 'uptime-v4-independent-audit-gate-v2'
+REQUIRED_COUNT = 118
 
 # IDs and categories are pinned from the independent audit, not discovered from
 # candidate output. A candidate cannot pass by returning fewer observations.
@@ -75,7 +80,7 @@ FINANCIAL_MANIFEST = {'P-UTC-control': 'control',
  'J-other-product': 'boundary',
  'J-reseller': 'boundary',
  'J-technical-ticket': 'control',
- 'J-good-standing': 'control',
+ 'J-good-standing': 'defect',
  'J-challenge-local-holiday': 'control',
  'J-unknown-holiday-list': 'control',
  'J-ambient-rounding-alters-tier': 'defect',
@@ -89,10 +94,10 @@ FINANCIAL_MANIFEST = {'P-UTC-control': 'control',
  'T-blank-document-provenance': 'defect',
  'T-no-document-provenance': 'control',
  'R-idempotent-positive': 'control',
- 'R-multi-award-same-bill-total': 'design gap',
+ 'R-multi-award-same-bill-total': 'defect',
  'R-single-award-bill-cap': 'control',
  'R-zero-cent-partial-stage': 'defect',
- 'R-different-product-account-before-award': 'design gap',
+ 'R-different-product-account-before-award': 'defect',
  'P-tier-999': 'control',
  'P-tier-1000': 'control',
  'P-tier-1001': 'control',
@@ -103,7 +108,7 @@ FINANCIAL_MANIFEST = {'P-UTC-control': 'control',
  'P-unimplemented-quantity_scope': 'boundary',
  'P-late-amendment': 'boundary',
  'D-desk-old-terms-can-approve': 'defect',
- 'J-issuance-vs-filing': 'design gap',
+ 'J-issuance-vs-filing': 'defect',
  'T-enhanced-SendGrid-region-is-not-availability-input': 'control',
  'T-base-SendGrid-at-same-duration': 'control',
  'T-enhanced-SendGrid-independent-remedy': 'boundary',
@@ -128,14 +133,14 @@ WORKFLOW_GROUPS = {
     "capture_integrity": ["A-unattested-capture-provenance"],
 }
 PRIMARY = {
-    "B01": ["W-browser-sibling-origin", "W-mode-session-isolation"],
+    "B01": ["W-browser-sibling-origin", "W-mode-session-isolation", "W-named-authority-positive", "W-named-authority-refusals"],
     "B02": ["W-known-exclusion-before-filing", "W-complete-policy-packet"],
     "B03": ["D-predates-governing-SLA", "D-desk-old-terms-can-approve", "W-novel-missing-component", "W-novel-wrong-line-scope", "W-reply-WINDOW_CLOSED"],
     "B04": ["P-fold-incorrect-version", "P-fold-conflicting-provider-date", "P-unrelated-outside-line"],
     "B05": ["T-padded-repeat", "B-padded-repeat-triggers-tier"],
     "B06": ["W-business-claim-idempotency", "W-outbound-allowlist"],
-    "B07": ["W-lifecycle-ABA", "W-malformed-source-quarantine"],
-    "B08": ["R-multi-award-same-bill-total", "R-zero-cent-partial-stage", "R-different-product-account-before-award"],
+    "B07": ["W-lifecycle-ABA", "W-malformed-source-quarantine", "W-activation-runtime"],
+    "B08": ["R-multi-award-same-bill-total", "R-zero-cent-partial-stage", "R-different-product-account-before-award", "R-serialized-concurrency", "R-durable-identity-readback"],
 }
 AUDIT_PROVENANCE = {
     "audit": {"path": "ENGINEERING-AUDIT.md", "sha256": "edf0d5d2a2a1b446c2532ad163f46d23489e258bcb29c1a32c12bb8f08719060"},
@@ -176,14 +181,22 @@ SYNTHETIC_INPUTS = [
 def input_identity(source):
     return {name: hashlib.sha256((source / name).read_bytes()).hexdigest() for name in SYNTHETIC_INPUTS}
 
-# These audit design gaps require staged/transactional interfaces which do not
-# exist in V3. Keep their real observations, but never pretend prose expectations
-# are executable V4 acceptance predicates. Lead must supply the reviewed binding.
-PENDING_INTERFACE_ASSERTIONS = {
-    "R-multi-award-same-bill-total": "durable cross-award allocation interface",
-    "R-different-product-account-before-award": "award restriction and bill scope interface",
-    "J-issuance-vs-filing": "separate filing and issuance result interface",
-}
+# The reviewed V4 bindings now have executable invariants. V3 observations are
+# retained as failing before evidence, rather than waived as interface gaps.
+PENDING_INTERFACE_ASSERTIONS = {}
+EXTRA_GROUPS = {"ledger.durable_allocations": ["R-durable-identity-readback", "R-serialized-concurrency"],
+                "workflow.named_authority": ["W-named-authority-positive", "W-named-authority-refusals"]}
+
+
+def safe_error(exc):
+    frames = traceback.extract_tb(exc.__traceback__)
+    return {"error_type": type(exc).__name__, "error_location": [
+        {"file": Path(f.filename).name, "function": f.name, "line": f.lineno} for f in frames[-5:]]}
+
+
+class InterruptedProbe(Exception):
+    def __init__(self, rows, cause):
+        self.rows, self.cause = rows, cause
 
 
 def load_probe(name):
@@ -202,12 +215,26 @@ def canonical(value):
 def execute_group(group, callable_, required):
     """Never trust a probe's reported matches/pass count; recompute assertions."""
     try:
-        observations = callable_()
+        interrupted = None
+        try:
+            observations = callable_()
+        except InterruptedProbe as exc:
+            observations, interrupted = exc.rows, exc.cause
+            present = {r['id'] for r in observations}
+            if present == set(required) and observations:
+                observations[-1] = dict(observations[-1], unavailable=safe_error(interrupted))
+            observations += [dict(id=ident, category=FINANCIAL_MANIFEST.get(ident, 'required'),
+                                 unavailable=safe_error(interrupted)) for ident in required if ident not in present]
         identifiers = [row["id"] for row in observations]
         if len(identifiers) != len(set(identifiers)) or set(identifiers) != set(required):
             raise ValueError("Probe coverage differs from fixed manifest")
         results = []
         for row in observations:
+            if 'unavailable' in row:
+                results.append(dict(id=row['id'], group=group, category=row['category'], status='UNAVAILABLE',
+                                    callable=callable_.__name__, **row['unavailable'],
+                                    **{k: canonical(row[k]) for k in ('observed','expected') if k in row}))
+                continue
             observed, expected = canonical(row["observed"]), canonical(row["expected"])
             category = FINANCIAL_MANIFEST.get(row["id"], row["category"])
             result = dict(id=row["id"], group=group, category="v3-known-limit" if category == "boundary" else category,
@@ -217,32 +244,37 @@ def execute_group(group, callable_, required):
             if row["id"] in PENDING_INTERFACE_ASSERTIONS:
                 result.update(status="UNAVAILABLE", error_type="RequiredV4InterfaceNotSupplied",
                               pending_interface=PENDING_INTERFACE_ASSERTIONS[row["id"]])
+            if 'browser_version' in row:
+                result['browser_version'] = row['browser_version']
             results.append(result)
         return results
     except Exception as exc:
         # Exception text may include records or capabilities. Only type is safe.
         return [dict(id=ident, group=group, status="UNAVAILABLE",
                      category=FINANCIAL_MANIFEST.get(ident, "required"),
-                     error_type=type(exc).__name__, callable=callable_.__name__,
+                     **safe_error(exc), callable=callable_.__name__,
                      assertion_source="independent-audit-and-known-mutation") for ident in required]
 
 
 def required_ids():
-    return set(FINANCIAL_MANIFEST) | {i for ids in WORKFLOW_GROUPS.values() for i in ids} | {"W-browser-sibling-origin", "A-ui-financial-join-ids"}
+    return set(FINANCIAL_MANIFEST) | {i for ids in WORKFLOW_GROUPS.values() for i in ids} | {i for ids in EXTRA_GROUPS.values() for i in ids} | {"W-browser-sibling-origin", "A-ui-financial-join-ids"}
 
 
 def release_passes(results):
     ids = [r["id"] for r in results]
-    return (len(ids) == len(set(ids)) and set(ids) == required_ids()
+    return (len(ids) == REQUIRED_COUNT and len(ids) == len(set(ids)) and set(ids) == required_ids()
             and all(r.get("status") == "PASS" for r in results))
 
 
 def compare_before(before, results):
     """The prior artifact supplies observations only, never expected outcomes."""
-    if (before.get("phase") != "baseline" or before.get("source", {}).get("commit") != V3
+    if (before.get("schema") != SCHEMA or before.get("gate_code") != gate_identity()
+            or before.get("phase") != "baseline" or before.get("source", {}).get("commit") != V3
             or before.get("release_pass") is not False):
         raise ValueError("Baseline provenance mismatch")
     previous = before["results"]
+    if len(previous) != REQUIRED_COUNT:
+        raise ValueError('Baseline observation count mismatch')
     identifiers = [row["id"] for row in previous]
     if len(set(identifiers)) != len(identifiers) or set(identifiers) != required_ids():
         raise ValueError("Baseline coverage mismatch")
@@ -250,6 +282,9 @@ def compare_before(before, results):
     transitions = []
     for row in results:
         prior = by_id[row["id"]]
+        if prior.get('status') in ('PASS', 'FAIL'):
+            if prior['status'] != ('PASS' if prior.get('observed') == prior.get('expected') else 'FAIL'):
+                raise ValueError('Baseline status contradicts actual observation')
         if prior.get("status") != "UNAVAILABLE" and row.get("status") != "UNAVAILABLE":
             if prior["expected"] != row["expected"]:
                 raise ValueError("Independent assertion changed between runs")
@@ -261,15 +296,25 @@ def compare_before(before, results):
 def source_identity(source):
     def git(*args):
         return subprocess.check_output(["git", "-C", str(source), *args], text=True).strip()
-    digest = hashlib.sha256()
-    for directory, pattern in (("uptime", "*.py"), ("web", "*.js"), ("web", "*.html")):
-        for path in sorted((source / directory).glob(pattern)):
-            digest.update(str(path.relative_to(source)).encode() + b"\0" + path.read_bytes())
-    return dict(commit=git("rev-parse", "HEAD"), product_source_sha256=digest.hexdigest(),
+    return dict(commit=git("rev-parse", "HEAD"), product_source_sha256=product_hash(source),
                 changed_tracked_paths=git("diff", "HEAD", "--name-only").splitlines())
 
 
+def product_hash(source):
+    digest = hashlib.sha256()
+    for directory, pattern in (("uptime", "*.py"), ("web", "*.js"), ("web", "*.html")):
+        for path in sorted((source / directory).rglob(pattern)):
+            digest.update(str(path.relative_to(source)).encode() + b"\0" + path.read_bytes())
+    return digest.hexdigest()
+
+
+def gate_identity():
+    return {str(path.relative_to(GATE_ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in [Path(__file__), *sorted((GATE_ROOT / "tests").glob("test_v4_audit_*.py"))]}
+
+
 def collect(source):
+    sys.path.insert(0, str(GATE_ROOT / "tests"))
     sys.path.insert(0, str(source))
     # Fail rather than accidentally testing another checkout already in memory.
     if "uptime" in sys.modules:
@@ -277,14 +322,22 @@ def collect(source):
     results = []
     for name, function, ids in [("financial", "collect_financial", list(FINANCIAL_MANIFEST)),
                                *[("workflow", f, ids) for f, ids in WORKFLOW_GROUPS.items()],
+                               *[(g.split(".")[0], g.split(".")[1], ids) for g, ids in EXTRA_GROUPS.items()],
                                ("browser", "browser_sibling_origin", ["W-browser-sibling-origin", "A-ui-financial-join-ids"])]:
         def run(name=name, function=function):
-            return getattr(load_probe(name), function)()
+            fn = getattr(load_probe(name), function)
+            if name == 'financial':
+                collected = []
+                try:
+                    return fn(collected)
+                except Exception as exc:
+                    raise InterruptedProbe(collected, exc) from None
+            return fn()
         run.__name__ = "test_v4_audit_" + name + "." + function
         group = name + "." + function
         rows = execute_group(group, run, ids)
         for row in rows:
-            row["audit_evidence"] = [AUDIT_PROVENANCE[key] for key in GROUP_EVIDENCE[group]]
+            row["audit_evidence"] = [AUDIT_PROVENANCE[key] for key in GROUP_EVIDENCE.get(group, ["audit"])]
         results.extend(rows)
     return results
 
@@ -303,6 +356,24 @@ def archive_v3(source, destination):
     archive.unlink()
 
 
+def package_version(name):
+    try:
+        return importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
+def browser_identity():
+    path = Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
+    version = None
+    if path.is_file():
+        import plistlib
+        with (path.parents[1]/'Info.plist').open('rb') as stream:
+            version = plistlib.load(stream).get('CFBundleShortVersionString')
+    return dict(path=str(path), installed=path.is_file(), installed_version=version,
+                required='system Chrome; actual launch and loopback requests required for browser observations')
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=GATE_ROOT)
@@ -311,18 +382,26 @@ def main(argv=None):
     parser.add_argument("--before", type=Path, help="Required for release: exact-V3 baseline report from this gate")
     args = parser.parse_args(argv)
     source = args.source.resolve()
+    # These opt-ins may select private staged artifacts; the audit never uses them.
+    for name in ('UPTIME_PUBLIC_EXTRACTIONS', 'UPTIME_MODEL_PROPOSITIONS'):
+        os.environ.pop(name, None)
     input_hashes = {}
+    initial_gate = gate_identity()
+    source_stable = True
     try:
         identity = source_identity(source)
         if args.phase == "baseline":
             with tempfile.TemporaryDirectory() as tmp:
                 archive_v3(source, Path(tmp))
                 input_hashes = input_identity(Path(tmp))
+                identity = {"commit": V3, "materialization": "git archive of exact immutable V3 commit",
+                            "product_source_sha256": product_hash(Path(tmp))}
                 results = collect(Path(tmp))
-            identity = {"commit": V3, "materialization": "git archive of exact immutable V3 commit"}
         else:
             input_hashes = input_identity(source)
             results = collect(source)
+            ending_identity = source_identity(source)
+            source_stable = ending_identity == identity
     except Exception as exc:
         identity = {"unavailable": True, "error_type": type(exc).__name__}
         results = [dict(id=ident, status="UNAVAILABLE", error_type=type(exc).__name__)
@@ -337,15 +416,20 @@ def main(argv=None):
             transitions, baseline_verified = compare_before(json.loads(args.before.read_text()), results)
         except Exception as exc:
             baseline_error = type(exc).__name__
-    report = dict(schema="uptime-v4-independent-audit-gate-v1", phase=args.phase,
+    report = dict(schema=SCHEMA, phase=args.phase,
         generated_at=datetime.now(UTC).isoformat(), baseline_commit=V3, source=identity,
+        invocation=[sys.executable, str(Path(__file__).resolve()), *(sys.argv[1:] if argv is None else argv)],
+        runtime={"python":sys.version.split()[0], "executable":sys.executable, "platform":platform.platform(),
+                 "packages":{name: package_version(name) for name in ('fastapi','starlette','httpx','uvicorn','playwright','cryptography')},
+                 "browser": browser_identity()},
         interpreter=sys.version.split()[0], audit_provenance=AUDIT_PROVENANCE,
         synthetic_input_sha256=input_hashes,
-        gate_code={str(path.relative_to(GATE_ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
-                   for path in [Path(__file__), *sorted((GATE_ROOT / "tests").glob("test_v4_audit_*.py"))]},
+        gate_code=gate_identity(),
         required_ids=sorted(required_ids()), primary_coverage=PRIMARY, results=results,
         before_after=transitions, baseline_verified=baseline_verified, baseline_error_type=baseline_error,
-        release_pass=args.phase == "release" and baseline_verified and release_passes(results),
+        source_stable=source_stable, driver_stable=initial_gate == gate_identity(),
+        release_pass=args.phase == "release" and source_stable and initial_gate == gate_identity()
+                     and baseline_verified and release_passes(results),
         counts=dict(Counter(r["status"] for r in results)))
     payload = json.dumps(report, indent=2, allow_nan=False) + "\n"
     if args.report:

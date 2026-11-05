@@ -21,14 +21,14 @@ class Element {
   focus() {}
 }
 const flush = () => new Promise(resolve => setImmediate(resolve));
-async function setup(unauthorized = false) {
+async function setup(unauthorized = false, initialHash = '#dashboard') {
   const nodes = Object.fromEntries(['content','notice','inspector','case-content','workspace-name','account','refresh','close-inspector'].map(id => [id,new Element('div')]));
-  const requests = [], window = {}, location = {hash:'#dashboard'};
+  const requests = [], window = {}, location = {hash:initialHash};
   const source = ['SYNTHETIC_CUSTOMER','SIMULATED_VENDOR'];
   const item = {id:'case/1',vendor:'<img src=x onerror=alert(1)>',title:'Contract test',stage:'DRAFT',outcome:'ELIGIBLE',amount:'12.00',currency:'USD',sources:source};
   const context = {document:{querySelector:s => nodes[s.slice(1)],querySelectorAll:() => [],createElement:t => new Element(t)}, window:{addEventListener:(k,fn) => window[k]=fn},location,URL,Option:function(label,value){const e=new Element('option');e.textContent=label;e.value=value;return e;},fetch:async(path,options) => {
     requests.push({path,options});
-    let data = path === '/api/dashboard' ? {workspace:'Test workspace',as_of:'test timestamp',metrics:[{label:'Simulated award',value:'12.00',sources:source}],cases:[item],audit:[{at:'test',event:'Recorded',sources:source}],ramp:{sources:['UNAVAILABLE']}} : path === '/api/onboarding' ? {vendor:'Test vendor',state:'DRAFT',sources:source,checks:[{label:'Golden check',passed:true,detail:'Test result'}],history:['Draft created'],actions:[]} : path === '/api/guide' ? {answer:'Read-only answer',sources:source} : {...item,financials:[],clauses:[{label:'Unsafe link',uri:'javascript:alert(1)'}],evidence:[],trace:['Deterministic trace'],timeline:[],actions:[{id:'approve',label:'Approve draft'}]};
+    let data = path === '/api/ramp/workspace' ? {source_mode:'TEST_ONLY',records:[{...item,provider_id:'native-1',provider_object_type:'bills',native_status:'OPEN'}],resources:[]} : path === '/api/dashboard' ? {workspace:'Test workspace',as_of:'test timestamp',metrics:[{label:'Simulated award',value:'12.00',sources:source}],cases:[item],audit:[{at:'test',event:'Recorded',sources:source}],ramp:{sources:['UNAVAILABLE']}} : path === '/api/onboarding' ? {vendor:'Test vendor',state:'DRAFT',sources:source,checks:[{label:'Golden check',passed:true,detail:'Test result'}],history:['Draft created'],actions:[]} : path === '/api/guide' ? {answer:'Read-only answer',sources:source} : {...item,financials:[],clauses:[{label:'Unsafe link',uri:'javascript:alert(1)'}],evidence:[],trace:['Deterministic trace'],timeline:[],actions:[{id:'approve',label:'Approve draft'}]};
     return {ok:!unauthorized,status:unauthorized?401:200,headers:{get:()=>'application/json'},json:async()=>data};
   }};
   context.window.uptimeAuth = {session:()=>({subject:'test.reader'}), signInForm:()=>{
@@ -41,6 +41,9 @@ async function setup(unauthorized = false) {
     if (!response.ok) { const error=new Error('Authentication required'); error.status=response.status; throw error; }
     return response.json();
   };
+  context.window.document = context.document;
+  context.history = {pushState:(_,__,url)=>{location.hash=url;}};
+  vm.runInNewContext(fs.readFileSync(__dirname+'/ramp_ui.js','utf8'),context);
   vm.runInNewContext(fs.readFileSync(__dirname+'/app.js','utf8'),context); await flush(); return {nodes,requests,window,location};
 }
 test('ledger consumes API data, keeps sources exact and treats markup as text', async () => {
@@ -72,4 +75,25 @@ test('onboarding keeps unproven event provenance explicit', async () => {
 });
 test('unauthorized session offers named account login', async () => {
   const {nodes} = await setup(true); assert.match(nodes.content.textContent,/Sign in to Uptime/);
+});
+
+test('default landing is Ramp, deep links encode opaque IDs, explicit rehearsal retains dashboard', async () => {
+  const {nodes,requests,location,window}=await setup(false,'');
+  assert.equal(requests[0].path,'/api/ramp/workspace');
+  assert.match(nodes.content.textContent,/Ramp worklist/);
+  await nodes.content.querySelectorAll('button').find(b=>b.className==='case-link').listeners.click();
+  await flush();
+  assert.equal(location.hash,'#ramp/case%2F1');
+  assert.ok(requests.some(r=>r.path==='/api/ramp/records/case%2F1'));
+  assert.equal(nodes.inspector.open,false);
+  location.hash='#rehearsal';window.hashchange();await flush();
+  assert.match(nodes.content.textContent,/Evidence ledger/);
+  location.hash='#ramp';window.hashchange();await flush();
+  assert.match(nodes.content.textContent,/Ramp worklist/);
+});
+test('Ramp authentication failures reuse named sign-in and skip link does not change route', async () => {
+  const denied=await setup(true,'#ramp');assert.match(denied.nodes.content.textContent,/Sign in to Uptime/);
+  const s=await setup(false,'#ramp');const count=s.requests.length;
+  s.location.hash='#workspace';s.window.hashchange();await flush();
+  assert.equal(s.requests.length,count);assert.match(s.nodes.content.textContent,/Ramp worklist/);
 });

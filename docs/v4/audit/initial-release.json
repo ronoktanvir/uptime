@@ -1,0 +1,3042 @@
+{
+  "schema": "uptime-v4-independent-audit-gate-v1",
+  "phase": "release",
+  "generated_at": "2026-11-05T00:19:25.968468+00:00",
+  "baseline_commit": "18afaa6433284dc582d38c02b797dc4e688892f1",
+  "source": {
+    "commit": "e120dcd7abb0d7d677536c5b8ec1987d32d3b2f7",
+    "product_source_sha256": "9d61b6cf92743fc8b8d1b1b9c49fe1849353927e4910d65d6637fca97306dfe0",
+    "changed_tracked_paths": []
+  },
+  "interpreter": "3.13.12",
+  "audit_provenance": {
+    "audit": {
+      "path": "ENGINEERING-AUDIT.md",
+      "sha256": "edf0d5d2a2a1b446c2532ad163f46d23489e258bcb29c1a32c12bb8f08719060"
+    },
+    "financial": {
+      "path": "evidence/financial/probes.py",
+      "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+    },
+    "workflow": {
+      "path": "evidence/workflow/workflow_probe.py",
+      "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+    },
+    "novel": {
+      "path": "evidence/workflow/novel_probe.py",
+      "sha256": "d62b65e8865cf50db68b7e183a0241576f220e1fefd932ccb0ac9f55eb805e43"
+    },
+    "boundary": {
+      "path": "evidence/independent/boundary_probes.py",
+      "sha256": "7889daeb293d4f14bfe391207158917c50ab97774c5cf38f11c23b16eb9deac7"
+    },
+    "independent": {
+      "path": "evidence/independent/probes.py",
+      "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+    },
+    "lead": {
+      "path": "evidence/lead/lead_probes.py",
+      "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+    }
+  },
+  "synthetic_input_sha256": {
+    "fixtures/disputes/claimant/dossiers.json": "0cf5a1b425962256a0bf45de5d4d36cdbc75673bc5f30a218e9f6d9cc1d0e880",
+    "fixtures/disputes/simulator/records.json": "63366935a8faecc8c15b6254dfb0d2007c50b0232ee98491815cb89a51aeb11b",
+    "fixtures/onboarding/extraction.json": "2bdd9d3740de9f349f4e8046957c659ff45f51a53533eed6c3d232aad4ac04b7",
+    "fixtures/onboarding/overlay.json": "ea630cfe2779d60c03ef04c799e1477401d47d6a0e3ef76d365b6a36f7bf7714",
+    "fixtures/onboarding/observations.json": "1b67a7ca79e3dd8d1dc75d649df9548812ebdceb0b0590d4b775e04ad570610c",
+    "fixtures/pricing/agreement.json": "797e3240283f50c7d1c23c90a1d2fe73e13efae6eb3c6330ae99b673714f0123",
+    "fixtures/pricing/cases.json": "13675a64789fa7100cb20b18c236423620edcc13197945e71dab2c9891acc0cb",
+    "fixtures/twilio/cases.json": "fe99f6e08ffd5fa0c50d44307a2493504f6f1ee6e1de6f56cd8d39d42069d175",
+    "fixtures/other_obligations/agreement.txt": "62ebae7fa9d8e079ff0b032c2862f79ac0a5c9baab045483af0bf59777903452",
+    "fixtures/other_obligations/examples.json": "06ac26b235d7b2f2d41b82b7b9512ea791eaa1b2695fcb06724bb59ca7c22f56"
+  },
+  "gate_code": {
+    "scripts/v4_audit_gate.py": "7c7baa1f58836098ae9403ffde301de5c042c958dced1f54790c4ee45a0c1dce",
+    "tests/test_v4_audit_browser.py": "e89fcaec83e44eb51ed374a23247b59c54aec6d224be29c8c8dbd0d9a3bb77e1",
+    "tests/test_v4_audit_financial.py": "6c948dd5224f71218a0e0727e6f80db198f44ff89cff9c14b2c215af403b2a05",
+    "tests/test_v4_audit_gate.py": "22e490ea425657cafc97dc639e974e54a5f02cb3ed29e555e69abbdc50fd74eb",
+    "tests/test_v4_audit_workflow.py": "dd7511ff87fb3b993ea687f61be0719140dd8e032019e1b3227a52bcc5d635b2"
+  },
+  "required_ids": [
+    "A-billing-profile-intent",
+    "A-case-revision-not-silent",
+    "A-guide-ui-api-limit",
+    "A-null-bill-status-resilience",
+    "A-prevention-paid-title",
+    "A-provider-line-preserves-known-facts",
+    "A-ui-financial-join-ids",
+    "A-unattested-capture-provenance",
+    "B-cross-currency",
+    "B-identical-repeat",
+    "B-inclusive-and-earlier-credit",
+    "B-inclusive-minus-one-cent",
+    "B-only-closed-year",
+    "B-padded-repeat-triggers-tier",
+    "B-single-below-threshold",
+    "D-cent-claim-drops-to-zero",
+    "D-cent-positive-W2",
+    "D-desk-old-terms-can-approve",
+    "D-known-ordinary-case",
+    "D-missing-doc-reference",
+    "D-missing-ref-at-ticket-construction",
+    "D-predates-governing-SLA",
+    "J-95-below",
+    "J-95-exact",
+    "J-99-below",
+    "J-99-exact",
+    "J-ambient-rounding-alters-tier",
+    "J-challenge-local-holiday",
+    "J-explicit-vendor-aggregate",
+    "J-general-surface",
+    "J-good-standing",
+    "J-issuance-vs-filing",
+    "J-june-21min-enterprise",
+    "J-june-22min-enterprise",
+    "J-june-43min-premium",
+    "J-june-44min-premium",
+    "J-late",
+    "J-on-time",
+    "J-other-product",
+    "J-positive",
+    "J-reseller",
+    "J-sandbox",
+    "J-technical-ticket",
+    "J-threshold-operator",
+    "J-unknown-holiday-list",
+    "J-zero-fee-not-claimable",
+    "P-UTC-control",
+    "P-amendment-end",
+    "P-amendment-start",
+    "P-covered-line-positive",
+    "P-fold-conflicting-provider-date",
+    "P-fold-incorrect-version",
+    "P-late-amendment",
+    "P-tier-1000",
+    "P-tier-1001",
+    "P-tier-999",
+    "P-unimplemented-mode",
+    "P-unimplemented-quantity_scope",
+    "P-unrelated-outside-line",
+    "P-unsplit-amendment",
+    "R-different-product-account-before-award",
+    "R-idempotent-positive",
+    "R-multi-award-same-bill-total",
+    "R-single-award-bill-cap",
+    "R-zero-cent-partial-stage",
+    "T-500-overlap-gap-cross-boundary-patterns",
+    "T-across-month-five-before-clipping",
+    "T-across-month-fraction-under-five",
+    "T-admin-before-cutoff",
+    "T-admin-cutoff",
+    "T-base-SendGrid-at-same-duration",
+    "T-base-boundary-above",
+    "T-base-boundary-at",
+    "T-blank-document-provenance",
+    "T-connection-throughput",
+    "T-distant-out-of-period-unknown",
+    "T-enhanced-SendGrid-independent-remedy",
+    "T-enhanced-SendGrid-region-is-not-availability-input",
+    "T-exact-repeat",
+    "T-exclusion-splits-short-spans",
+    "T-first-late-instant",
+    "T-foreign-status-host",
+    "T-historical-version-control",
+    "T-incomplete-status-month",
+    "T-last-instant",
+    "T-min-5-exact",
+    "T-min-below-5",
+    "T-no-attribution",
+    "T-no-document-provenance",
+    "T-padded-repeat",
+    "T-partial-coverage",
+    "T-prior-receipt",
+    "T-proven-month",
+    "T-region-scope-dispute-preflight",
+    "T-short-notice",
+    "T-tax-carrier-third-party",
+    "W-activation-runtime",
+    "W-browser-sibling-origin",
+    "W-business-claim-idempotency",
+    "W-complete-policy-packet",
+    "W-known-exclusion-before-filing",
+    "W-lifecycle-ABA",
+    "W-malformed-source-quarantine",
+    "W-mode-policy-isolation",
+    "W-mode-session-isolation",
+    "W-novel-missing-component",
+    "W-novel-positive",
+    "W-novel-wrong-line-scope",
+    "W-outbound-allowlist",
+    "W-reply-FREEFORM_MISSING_DOC",
+    "W-reply-WINDOW_CLOSED",
+    "W-tenant-account-binding",
+    "W-tenant-account-positive",
+    "W-viewer-boundary"
+  ],
+  "primary_coverage": {
+    "B01": [
+      "W-browser-sibling-origin",
+      "W-mode-session-isolation"
+    ],
+    "B02": [
+      "W-known-exclusion-before-filing",
+      "W-complete-policy-packet"
+    ],
+    "B03": [
+      "D-predates-governing-SLA",
+      "D-desk-old-terms-can-approve",
+      "W-novel-missing-component",
+      "W-novel-wrong-line-scope",
+      "W-reply-WINDOW_CLOSED"
+    ],
+    "B04": [
+      "P-fold-incorrect-version",
+      "P-fold-conflicting-provider-date",
+      "P-unrelated-outside-line"
+    ],
+    "B05": [
+      "T-padded-repeat",
+      "B-padded-repeat-triggers-tier"
+    ],
+    "B06": [
+      "W-business-claim-idempotency",
+      "W-outbound-allowlist"
+    ],
+    "B07": [
+      "W-lifecycle-ABA",
+      "W-malformed-source-quarantine"
+    ],
+    "B08": [
+      "R-multi-award-same-bill-total",
+      "R-zero-cent-partial-stage",
+      "R-different-product-account-before-award"
+    ]
+  },
+  "results": [
+    {
+      "id": "P-UTC-control",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-fold-incorrect-version",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-fold-conflicting-provider-date",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-proven-month",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-distant-out-of-period-unknown",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-padded-repeat",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-exact-repeat",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-known-ordinary-case",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-cent-positive-W2",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-cent-claim-drops-to-zero",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-predates-governing-SLA",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-historical-version-control",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-missing-doc-reference",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-missing-ref-at-ticket-construction",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-last-instant",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-first-late-instant",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-prior-receipt",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-no-attribution",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-incomplete-status-month",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-tax-carrier-third-party",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-partial-coverage",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-connection-throughput",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "boundary",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-base-boundary-at",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-base-boundary-above",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-min-5-exact",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-min-below-5",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-admin-before-cutoff",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-admin-cutoff",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-exclusion-splits-short-spans",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-short-notice",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-across-month-five-before-clipping",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-across-month-fraction-under-five",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-positive",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-explicit-vendor-aggregate",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-threshold-operator",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-june-43min-premium",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-june-44min-premium",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-june-22min-enterprise",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-june-21min-enterprise",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-99-exact",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-99-below",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-95-exact",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-95-below",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-on-time",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-late",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-sandbox",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-general-surface",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-other-product",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "boundary",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-reseller",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "boundary",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-technical-ticket",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-good-standing",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-challenge-local-holiday",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-unknown-holiday-list",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-ambient-rounding-alters-tier",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-single-below-threshold",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-identical-repeat",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-padded-repeat-triggers-tier",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-inclusive-and-earlier-credit",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-inclusive-minus-one-cent",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-only-closed-year",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-cross-currency",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "boundary",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-blank-document-provenance",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-no-document-provenance",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-idempotent-positive",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-multi-award-same-bill-total",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "design gap",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-single-award-bill-cap",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-zero-cent-partial-stage",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-different-product-account-before-award",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "design gap",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-tier-999",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-tier-1000",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-tier-1001",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-amendment-end",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-amendment-start",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-unsplit-amendment",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "boundary",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-unimplemented-mode",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "boundary",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-unimplemented-quantity_scope",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "boundary",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-late-amendment",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "boundary",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-desk-old-terms-can-approve",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "defect",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-issuance-vs-filing",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "design gap",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-enhanced-SendGrid-region-is-not-availability-input",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-base-SendGrid-at-same-duration",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-enhanced-SendGrid-independent-remedy",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "boundary",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-foreign-status-host",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-region-scope-dispute-preflight",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-500-overlap-gap-cross-boundary-patterns",
+      "group": "financial.collect_financial",
+      "status": "UNAVAILABLE",
+      "category": "control",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "W-known-exclusion-before-filing",
+      "group": "workflow.stock_denial",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.stock_denial",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        },
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "W-complete-policy-packet",
+      "group": "workflow.complete_policy",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.complete_policy",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-reply-WINDOW_CLOSED",
+      "group": "workflow.denial_responses",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.denial_responses",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "W-reply-FREEFORM_MISSING_DOC",
+      "group": "workflow.denial_responses",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.denial_responses",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "W-business-claim-idempotency",
+      "group": "workflow.duplicate_and_privacy",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.duplicate_and_privacy",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/boundary_probes.py",
+          "sha256": "7889daeb293d4f14bfe391207158917c50ab97774c5cf38f11c23b16eb9deac7"
+        }
+      ]
+    },
+    {
+      "id": "W-outbound-allowlist",
+      "group": "workflow.duplicate_and_privacy",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.duplicate_and_privacy",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/boundary_probes.py",
+          "sha256": "7889daeb293d4f14bfe391207158917c50ab97774c5cf38f11c23b16eb9deac7"
+        }
+      ]
+    },
+    {
+      "id": "W-lifecycle-ABA",
+      "group": "workflow.lifecycle",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.lifecycle",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-malformed-source-quarantine",
+      "group": "workflow.malformed_source",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.malformed_source",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-viewer-boundary",
+      "group": "workflow.session_isolation",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.session_isolation",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-mode-session-isolation",
+      "group": "workflow.session_isolation",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.session_isolation",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-mode-policy-isolation",
+      "group": "workflow.session_isolation",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.session_isolation",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-novel-positive",
+      "group": "workflow.novel_evidence",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.novel_evidence",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/novel_probe.py",
+          "sha256": "d62b65e8865cf50db68b7e183a0241576f220e1fefd932ccb0ac9f55eb805e43"
+        }
+      ]
+    },
+    {
+      "id": "W-novel-missing-component",
+      "group": "workflow.novel_evidence",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.novel_evidence",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/novel_probe.py",
+          "sha256": "d62b65e8865cf50db68b7e183a0241576f220e1fefd932ccb0ac9f55eb805e43"
+        }
+      ]
+    },
+    {
+      "id": "W-novel-wrong-line-scope",
+      "group": "workflow.novel_evidence",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.novel_evidence",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/novel_probe.py",
+          "sha256": "d62b65e8865cf50db68b7e183a0241576f220e1fefd932ccb0ac9f55eb805e43"
+        }
+      ]
+    },
+    {
+      "id": "W-tenant-account-positive",
+      "group": "workflow.tenant_account",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_workflow.tenant_account",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-tenant-account-binding",
+      "group": "workflow.tenant_account",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ValueError",
+      "callable": "test_v4_audit_workflow.tenant_account",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "A-prevention-paid-title",
+      "group": "workflow.comparative_api",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.comparative_api",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-case-revision-not-silent",
+      "group": "workflow.comparative_api",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.comparative_api",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-billing-profile-intent",
+      "group": "workflow.comparative_api",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.comparative_api",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-guide-ui-api-limit",
+      "group": "workflow.comparative_api",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.comparative_api",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-provider-line-preserves-known-facts",
+      "group": "workflow.captured_line_api",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.captured_line_api",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-null-bill-status-resilience",
+      "group": "workflow.captured_line_api",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.captured_line_api",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "W-activation-runtime",
+      "group": "workflow.activation_runtime",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "ImportError",
+      "callable": "test_v4_audit_workflow.activation_runtime",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        },
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "P-covered-line-positive",
+      "group": "workflow.additional_domain",
+      "category": "control",
+      "status": "PASS",
+      "observed": "7500.00",
+      "expected": "7500.00",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.additional_domain",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "P-unrelated-outside-line",
+      "group": "workflow.additional_domain",
+      "category": "defect",
+      "status": "PASS",
+      "observed": "7500.00",
+      "expected": "7500.00",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.additional_domain",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "J-zero-fee-not-claimable",
+      "group": "workflow.additional_domain",
+      "category": "defect",
+      "status": "FAIL",
+      "observed": true,
+      "expected": false,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.additional_domain",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "A-unattested-capture-provenance",
+      "group": "workflow.capture_integrity",
+      "category": "defect",
+      "status": "PASS",
+      "observed": true,
+      "expected": true,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.capture_integrity",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "ENGINEERING-AUDIT.md",
+          "sha256": "edf0d5d2a2a1b446c2532ad163f46d23489e258bcb29c1a32c12bb8f08719060"
+        }
+      ]
+    },
+    {
+      "id": "W-browser-sibling-origin",
+      "group": "browser.browser_sibling_origin",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "TypeError",
+      "callable": "test_v4_audit_browser.browser_sibling_origin",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "A-ui-financial-join-ids",
+      "group": "browser.browser_sibling_origin",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "TypeError",
+      "callable": "test_v4_audit_browser.browser_sibling_origin",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    }
+  ],
+  "before_after": [
+    {
+      "id": "P-UTC-control",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-fold-incorrect-version",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "5.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-fold-conflicting-provider-date",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": "accepted",
+      "after_observed": null
+    },
+    {
+      "id": "T-proven-month",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-distant-out-of-period-unknown",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-padded-repeat",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "200.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-exact-repeat",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "D-known-ordinary-case",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "D-cent-positive-W2",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "0.0010"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "D-cent-claim-drops-to-zero",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "D-predates-governing-SLA",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-historical-version-control",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "D-missing-doc-reference",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "D-missing-ref-at-ticket-construction",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": "KeyError 'ref'",
+      "after_observed": null
+    },
+    {
+      "id": "T-last-instant",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-first-late-instant",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-prior-receipt",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-no-attribution",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-incomplete-status-month",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-tax-carrier-third-party",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-partial-coverage",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-connection-throughput",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-base-boundary-at",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-base-boundary-above",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-min-5-exact",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-min-below-5",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-admin-before-cutoff",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-admin-cutoff",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-exclusion-splits-short-spans",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-short-notice",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-across-month-five-before-clipping",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-across-month-fraction-under-five",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-positive",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-explicit-vendor-aggregate",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-threshold-operator",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-june-43min-premium",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-june-44min-premium",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-june-22min-enterprise",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "60.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-june-21min-enterprise",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-99-exact",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-99-below",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "300.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-95-exact",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "300.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-95-below",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "600.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-on-time",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-late",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-sandbox",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-general-surface",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-other-product",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-reseller",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-technical-ticket",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-good-standing",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "J-challenge-local-holiday",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": "2026-07-09",
+      "after_observed": null
+    },
+    {
+      "id": "J-unknown-holiday-list",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": null,
+      "after_observed": null
+    },
+    {
+      "id": "J-ambient-rounding-alters-tier",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "B-single-below-threshold",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "B-identical-repeat",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "B-padded-repeat-triggers-tier",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "2000.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "B-inclusive-and-earlier-credit",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "1750.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "B-inclusive-minus-one-cent",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "B-only-closed-year",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "B-cross-currency",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-blank-document-provenance",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-no-document-provenance",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "R-idempotent-positive",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "80.00",
+        "80.00",
+        "80.00",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "R-multi-award-same-bill-total",
+      "before": "UNAVAILABLE",
+      "after": "UNAVAILABLE",
+      "before_observed": "160.00",
+      "after_observed": null
+    },
+    {
+      "id": "R-single-award-bill-cap",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": "rejected",
+      "after_observed": null
+    },
+    {
+      "id": "R-zero-cent-partial-stage",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "PARTIALLY_APPLIED",
+        "0.00",
+        1
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "R-different-product-account-before-award",
+      "before": "UNAVAILABLE",
+      "after": "UNAVAILABLE",
+      "before_observed": "80.00",
+      "after_observed": null
+    },
+    {
+      "id": "P-tier-999",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-tier-1000",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-tier-1001",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-amendment-end",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-amendment-start",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-unsplit-amendment",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        "None",
+        []
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-unimplemented-mode",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-unimplemented-quantity_scope",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "P-late-amendment",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "D-desk-old-terms-can-approve",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": "CLAIM_APPROVED",
+      "after_observed": null
+    },
+    {
+      "id": "J-issuance-vs-filing",
+      "before": "UNAVAILABLE",
+      "after": "UNAVAILABLE",
+      "before_observed": "INELIGIBLE",
+      "after_observed": null
+    },
+    {
+      "id": "T-enhanced-SendGrid-region-is-not-availability-input",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-base-SendGrid-at-same-duration",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-enhanced-SendGrid-independent-remedy",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-foreign-status-host",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-region-scope-dispute-preflight",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "T-500-overlap-gap-cross-boundary-patterns",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [],
+      "after_observed": null
+    },
+    {
+      "id": "W-known-exclusion-before-filing",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": {
+        "outcome": "ELIGIBLE",
+        "approval_offered": true,
+        "approval_denied": false,
+        "receipts": 0
+      },
+      "after_observed": null
+    },
+    {
+      "id": "W-complete-policy-packet",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": {
+        "missing_component_reply": true,
+        "policy_claims_complete": true
+      },
+      "after_observed": null
+    },
+    {
+      "id": "W-reply-WINDOW_CLOSED",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": {
+        "stage": "EXPIRED",
+        "awarded": "0.00",
+        "has_receipt": true
+      },
+      "after_observed": null
+    },
+    {
+      "id": "W-reply-FREEFORM_MISSING_DOC",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": {
+        "stage": "HUMAN_REVIEW",
+        "awarded": "0.00",
+        "has_receipt": true
+      },
+      "after_observed": null
+    },
+    {
+      "id": "W-business-claim-idempotency",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": 2,
+      "after_observed": null
+    },
+    {
+      "id": "W-outbound-allowlist",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": true,
+      "after_observed": null
+    },
+    {
+      "id": "W-lifecycle-ABA",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        409,
+        200,
+        200
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "W-malformed-source-quarantine",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": {
+        "request_rejected_or_quarantined": true,
+        "silently_active": true,
+        "audit_added": false
+      },
+      "after_observed": null
+    },
+    {
+      "id": "W-viewer-boundary",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": 403,
+      "after_observed": null
+    },
+    {
+      "id": "W-mode-session-isolation",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": false,
+      "after_observed": null
+    },
+    {
+      "id": "W-mode-policy-isolation",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": false,
+      "after_observed": null
+    },
+    {
+      "id": "W-novel-positive",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": "41.73",
+      "after_observed": null
+    },
+    {
+      "id": "W-novel-missing-component",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": "41.73",
+      "after_observed": null
+    },
+    {
+      "id": "W-novel-wrong-line-scope",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": {
+        "receipts": 2,
+        "awarded": "41.73",
+        "eligible": true
+      },
+      "after_observed": null
+    },
+    {
+      "id": "W-tenant-account-positive",
+      "before": "PASS",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "AWARD",
+        "100.00"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "W-tenant-account-binding",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": true,
+      "after_observed": null
+    },
+    {
+      "id": "A-prevention-paid-title",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": [
+        "price-000-audit",
+        "$9,123.45"
+      ],
+      "after_observed": null
+    },
+    {
+      "id": "A-case-revision-not-silent",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": false,
+      "after_observed": null
+    },
+    {
+      "id": "A-billing-profile-intent",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": true,
+      "after_observed": null
+    },
+    {
+      "id": "A-guide-ui-api-limit",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": 422,
+      "after_observed": null
+    },
+    {
+      "id": "A-provider-line-preserves-known-facts",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": true,
+      "after_observed": null
+    },
+    {
+      "id": "A-null-bill-status-resilience",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": false,
+      "after_observed": null
+    },
+    {
+      "id": "W-activation-runtime",
+      "before": "FAIL",
+      "after": "UNAVAILABLE",
+      "before_observed": {
+        "adds_governed_case": false,
+        "rollback_removes_active_case": false
+      },
+      "after_observed": null
+    },
+    {
+      "id": "P-covered-line-positive",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": "7500.00",
+      "after_observed": "7500.00"
+    },
+    {
+      "id": "P-unrelated-outside-line",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": "None",
+      "after_observed": "7500.00"
+    },
+    {
+      "id": "J-zero-fee-not-claimable",
+      "before": "FAIL",
+      "after": "FAIL",
+      "before_observed": true,
+      "after_observed": true
+    },
+    {
+      "id": "A-unattested-capture-provenance",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": false,
+      "after_observed": true
+    },
+    {
+      "id": "W-browser-sibling-origin",
+      "before": "UNAVAILABLE",
+      "after": "UNAVAILABLE",
+      "before_observed": null,
+      "after_observed": null
+    },
+    {
+      "id": "A-ui-financial-join-ids",
+      "before": "UNAVAILABLE",
+      "after": "UNAVAILABLE",
+      "before_observed": null,
+      "after_observed": null
+    }
+  ],
+  "baseline_verified": false,
+  "baseline_error_type": null,
+  "release_pass": false,
+  "counts": {
+    "UNAVAILABLE": 110,
+    "PASS": 3,
+    "FAIL": 1
+  }
+}

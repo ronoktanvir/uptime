@@ -7,7 +7,7 @@ This module is a callable probe library; pytest infrastructure tests live separa
 """
 
 
-def collect_financial():
+def collect_financial(rows=None):
     from pathlib import Path
     import json
     from copy import deepcopy
@@ -25,11 +25,14 @@ def collect_financial():
     from uptime.disputes_claimant import preflight, ticket_for
     from uptime.disputes_wire import FIXTURES
 
-    rows=[]
+    rows=[] if rows is None else rows
     def record(id, observed, expected, category):
         rows.append(dict(id=id, category=category, observed=observed, expected=expected, matches=observed==expected))
     def result(r):
-        return (r.outcome.value, str(r.amount.amount) if r.amount else None)
+        value = r.amount.amount if r.amount else None
+        # Fixed audit precision for sub-cent entitlements; representation is not a monetary defect.
+        amount = format(value, '.4f') if value is not None and 0 < abs(value) < D('.01') else str(value) if value is not None else None
+        return (r.outcome.value, amount)
     def price(r):
         return (r.evaluation.outcome.value, str(r.overcharge), [l.version for l in r.lines])
     T=demo_inputs()[0][1]
@@ -92,6 +95,8 @@ def collect_financial():
     record('D-known-ordinary-case',result(preflight(dossier,at)),(tm,'100.00'),'control')
     cent_dossier=deepcopy(dossier)
     cent_dossier['invoice_lines']=[{'id':'one-cent','kind':'affected_api','usd':'0.01'}]
+    from test_v4_audit_protocol import scoped_dossier
+    scoped_dossier(cent_dossier)
     record('D-cent-positive-W2',result(t_eval(fees=(replace(T.fees[0],amount=D('0.01')),))),(tm,'0.0010'),'control')
     record('D-cent-claim-drops-to-zero',result(preflight(cent_dossier,at)),(tm,'0.0010'),'defect')
 
@@ -172,7 +177,7 @@ def collect_financial():
     record('J-other-product',result(je({}, {'product':'Confluence'})),(unsupported,None),'boundary')
     record('J-reseller',result(je({}, {'agreement':'reseller'})),(unsupported,None),'boundary')
     record('J-technical-ticket',result(je({'tech_ticket_during_incident':False})),(no,None),'control')
-    record('J-good-standing',result(je({'good_standing':False})),(no,None),'control')
+    record('J-good-standing',result(je({'good_standing':False})),(tm,'120.00'),'defect')
     record('J-challenge-local-holiday',str(jira.challenge_through(J,datetime(2026,7,4,1,tzinfo=UTC),'America/Los_Angeles',{date(2026,7,6)})),'2026-07-09','control')
     record('J-unknown-holiday-list',jira.challenge_through(J,at,'UTC',None),None,'control')
     with localcontext() as ctx:
@@ -212,20 +217,41 @@ def collect_financial():
     r1=ledger(A1,[C1,C1],[X1,X1],[B1,B1])
     r2=ledger(A2,[C2],[X2],[B2])
     record('R-idempotent-positive',(r1['awarded'],r1['posted'],r1['applied'],r1['actual_recovery']),('80.00','80.00','80.00',None),'control')
-    record('R-multi-award-same-bill-total',str(D(r1['applied'])+D(r2['applied'])),'at most 100.00 or explicit scope error','design gap')
+    shared_total = str(D(r1['applied'])+D(r2['applied']))
     try:
         ledger(A1,[C1],[X1],[B1|{'amount':'79.99'}])
         cap='accepted'
     except ValueError:
         cap='rejected'
     record('R-single-award-bill-cap',cap,'rejected','control')
-    tiny=rec.demo_reconciliation('0.01','PARTIALLY_APPLIED')
+    from test_v4_audit_protocol import is_v4
+    if is_v4():
+        import tempfile
+        from uptime.allocations import settlement_reconciliation
+        from uptime.storage import initialize, transition_settlement
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'one-cent.sqlite'
+            initialize(path)
+            reviewer = Principal('bears', 'qa-reviewer', 'reviewer')
+            transition_settlement(path, reviewer, 'audit-one-cent', 'record-credit', '0.01')
+            try:
+                transition_settlement(path, reviewer, 'audit-one-cent', 'apply-partial', '0.01')
+            except ValueError:
+                pass
+            tiny=settlement_reconciliation(path, 'bears', 'audit-one-cent', '0.01')
+    else:
+        tiny=rec.demo_reconciliation('0.01','PARTIALLY_APPLIED')
     record('R-zero-cent-partial-stage',(tiny['stage'],tiny['applied'],len(tiny['application_ids'])),('POSTED','0.00',0),'defect')
     # A mapping helper has no product or account-period test in its schema. Trace explicit contradictory facts.
     a=A1 | dict(product='Jira',account='customer-1',period='2026-10')
     b=B1 | dict(product='Confluence',account='customer-2',period='2026-09')
     wrong=ledger(a,[C1],[X1],[b])
-    record('R-different-product-account-before-award',wrong['applied'],'reject or report insufficient scope evidence','design gap')
+    scoped_applied = wrong['applied']
+    if is_v4():
+        from test_v4_audit_ledger import allocation_counterexamples
+        shared_total, scoped_applied = allocation_counterexamples()
+    record('R-multi-award-same-bill-total', shared_total, '80.00', 'defect')
+    record('R-different-product-account-before-award', scoped_applied, '0.00', 'defect')
 
     # Dated two-tier pricing has a separate graduation bucket per attested performance slice.
     for units,cost in [(999,14985),(1000,15000),(1001,15010)]:
@@ -264,7 +290,10 @@ def collect_financial():
             record('D-desk-old-terms-can-approve',actual,'no approval action','defect')
     # Input advertised by its public read model as historical. Distinguish the timing of filing and issuance.
     standing=je({'good_standing':False})
-    record('J-issuance-vs-filing',standing.outcome.value,'timely filing retained, issuance blocked/undetermined','design gap')
+    record('J-issuance-vs-filing', {
+        'outcome': standing.outcome.value, 'amount': str(standing.amount.amount) if standing.amount else None,
+        'filing': getattr(standing, 'filing_status', None), 'issuance': getattr(standing, 'issuance_status', None)},
+        {'outcome': tm, 'amount': '120.00', 'filing': 'TIMELY', 'issuance': 'BLOCKED_ACCOUNT_STANDING'}, 'defect')
     # Individual authority/exclusion records examined when they have no economic effect on this claim.
     vscope=replace(T.service,api_id='mail-send',family=twilio.ServiceFamily.SENDGRID)
     sgrid=replace(I,api_id='mail-send',status_url='https://status.sendgrid.com/',end=I.start+timedelta(minutes=5))

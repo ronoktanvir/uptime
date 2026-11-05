@@ -49,7 +49,8 @@ BASELINE_COUNTEREXAMPLES = {
     "R-zero-cent-partial-stage": ["PARTIALLY_APPLIED", "0.00", 1],
     "R-different-product-account-before-award": "80.00",
     "D-desk-old-terms-can-approve": "CLAIM_APPROVED",
-    "J-issuance-vs-filing": "INELIGIBLE",
+    "J-issuance-vs-filing": {"outcome":"INELIGIBLE", "amount":None, "filing":None, "issuance":None},
+    "J-good-standing": ["INELIGIBLE", None],
     "W-business-claim-idempotency": 2,
     "W-outbound-allowlist": True,
     "W-lifecycle-ABA": [409, 200, 200],
@@ -138,7 +139,7 @@ def test_exception_messages_and_synthetic_tokens_never_reach_report():
 
 
 def test_comparison_cannot_replace_gold_or_certify_unrun_baseline(baseline):
-    before = dict(phase="baseline", source={"commit": GATE.V3}, release_pass=False,
+    before = dict(schema=GATE.SCHEMA, gate_code=GATE.gate_identity(), phase="baseline", source={"commit": GATE.V3}, release_pass=False,
                   results=list(baseline.values()))
     transitions, verified = GATE.compare_before(before, list(baseline.values()))
     assert len(transitions) == len(GATE.required_ids())
@@ -150,3 +151,55 @@ def test_comparison_cannot_replace_gold_or_certify_unrun_baseline(baseline):
     before["source"]["commit"] = "not-the-audited-release"
     with pytest.raises(ValueError):
         GATE.compare_before(before, list(baseline.values()))
+
+
+def test_manifest_has_frozen_count_and_no_duplicate_ownership():
+    ids = [*GATE.FINANCIAL_MANIFEST, *[i for group in GATE.WORKFLOW_GROUPS.values() for i in group],
+           *[i for group in GATE.EXTRA_GROUPS.values() for i in group], 'W-browser-sibling-origin','A-ui-financial-join-ids']
+    assert len(ids) == len(set(ids)) == 118 == GATE.REQUIRED_COUNT
+
+
+def test_mid_probe_failure_preserves_actual_results_and_counts_missing():
+    def interrupted():
+        raise GATE.InterruptedProbe([dict(id='done', observed=7, expected=8, category='defect')], RuntimeError('secret'))
+    result = GATE.execute_group('unit', interrupted, ['done', 'pending'])
+    assert [(r['id'], r['status']) for r in result] == [('done','FAIL'), ('pending','UNAVAILABLE')]
+    assert result[0]['observed'] == 7
+    assert 'secret' not in json.dumps(result)
+
+
+def test_driver_drift_cannot_certify_baseline(baseline):
+    before = dict(schema=GATE.SCHEMA, gate_code={'driver':'different'}, phase='baseline',
+                  source={'commit':GATE.V3}, release_pass=False, results=list(baseline.values()))
+    with pytest.raises(ValueError):
+        GATE.compare_before(before, list(baseline.values()))
+
+
+def test_forged_baseline_status_cannot_certify_baseline(baseline):
+    rows = [dict(r) for r in baseline.values()]
+    next(r for r in rows if r['status']=='FAIL')['status']='PASS'
+    before = dict(schema=GATE.SCHEMA, gate_code=GATE.gate_identity(), phase='baseline',
+                  source={'commit':GATE.V3}, release_pass=False, results=rows)
+    with pytest.raises(ValueError):
+        GATE.compare_before(before, list(baseline.values()))
+
+
+@pytest.mark.parametrize('probe', ['named_authority','lifecycle','novel_evidence','activation_runtime','session_isolation','duplicate_and_privacy','stock_denial'])
+def test_actual_v4_protocol_positive_and_negative_controls(probe):
+    import test_v4_audit_workflow as workflow
+    rows = getattr(workflow, probe)()
+    assert rows and all(row['observed']==row['expected'] for row in rows), rows
+
+
+def test_actual_v4_durable_identity_and_serialized_allocations():
+    from test_v4_audit_ledger import durable_allocations
+    rows = durable_allocations()
+    assert rows and all(row['observed']==row['expected'] for row in rows), rows
+
+
+def test_exception_after_last_observation_still_blocks():
+    def interrupted():
+        raise GATE.InterruptedProbe([dict(id='done', observed=1, expected=1, category='control')], RuntimeError('private'))
+    result = GATE.execute_group('unit', interrupted, ['done'])
+    assert result[0]['status']=='UNAVAILABLE'
+    assert result[0]['observed']==result[0]['expected']==1

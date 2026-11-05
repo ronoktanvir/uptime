@@ -21,6 +21,12 @@ FIXTURES = ROOT / "fixtures/ramp"
 ORIGIN = "https://demo-api.ramp.com"
 READS = {"vendors:read", "bills:read"}
 WRITE_SCOPES = {"bills:read", "bills:write"}
+# Token capability only; workflow mutations belong to the separately gated workflow adapter.
+NATIVE_READ_SCOPES = frozenset({"vendors:read", "bills:read", "transactions:read",
+                                "purchase_orders:read", "approvals:read"})
+WORKFLOW_SCOPES = frozenset({"transactions:write", "blank_canvas:write", "unified_requests:read",
+                             "custom_forms:read", "spend_programs:read", "spend_requests:read"})
+TOKEN_SCOPES = NATIVE_READ_SCOPES | WRITE_SCOPES | WORKFLOW_SCOPES
 DRAFT_PATH = "bills/drafts"
 SCOPE = re.compile(r"[a-z][a-z0-9_]*:(?:read|write)")
 LEGACY_SHA256 = "c6dff501561a29d626e4c28ebc774c77eb0c54e92e4a82193acf8114eccaf2c6"
@@ -183,6 +189,36 @@ class Token:
         return self.scope_reported and self.granted == self.expected
 
 
+def _read_query(query, path):
+    """Allow only the bounded filters used by the read synchronizer and legacy capture."""
+    lists = {"bills", DRAFT_PATH, "vendors", "vendors/credits", "vendors/agreements",
+             "transactions", "purchase-orders", "approvals"}
+    allowed = {"page_size", "start"} if path in lists or path.startswith("comments/") else set()
+    if path == "vendors/credits":
+        allowed |= {"include_fully_used"}
+    if path == "approvals":
+        allowed |= {"entity_type", "entity_ids"}
+    if not isinstance(query, dict) or set(query) - allowed:
+        raise RampError("Query outside allowlist")
+    if "page_size" in query and (type(query["page_size"]) is not int or not 2 <= query["page_size"] <= 100):
+        raise RampError("Invalid page bound")
+    if "start" in query and (not isinstance(query["start"], str)
+                             or not re.fullmatch(r"[A-Za-z0-9_=-]{1,512}", query["start"])):
+        raise RampError("Invalid read cursor")
+    if "include_fully_used" in query and query["include_fully_used"] != "true":
+        raise RampError("Invalid credit filter")
+    if path == "vendors/agreements" and "page_size" not in query:
+        raise RampError("Bounded agreement query required")
+    if path == "approvals":
+        if query.get("entity_type") not in {"BILL", "TRANSACTION"}:
+            raise RampError("Approval entity outside allowlist")
+        ids = query.get("entity_ids")
+        if not isinstance(ids, list) or not 1 <= len(ids) <= 100:
+            raise RampError("Bounded approval parents required")
+        for ident in ids:
+            uuid_text(ident)
+
+
 class SandboxRampProvider:
     def __init__(self):
         self._guard()
@@ -220,7 +256,7 @@ class SandboxRampProvider:
 
     def token(self, scopes):
         scopes = frozenset(scopes)
-        if not scopes or not scopes <= READS | WRITE_SCOPES:
+        if not scopes or not scopes <= TOKEN_SCOPES:
             raise RampError("Scope outside allowlist")
         body = urlencode({"grant_type": "client_credentials", "scope": " ".join(sorted(scopes))})
         data = self._http("POST", "token", {"Authorization": "Basic " + self._basic,
@@ -235,23 +271,46 @@ class SandboxRampProvider:
         return Token(data["access_token"], granted, scopes, "scope" in data)
 
     def request(self, token, method, path, query=None, data=None):
-        if not token.exact or method != "GET" or data is not None:
+        if not token.exact:
+            raise RampError("Only scope-verified reads permitted")
+        agreement_query = method == "POST" and path == "vendors/agreements"
+        if agreement_query:
+            if query is not None or not isinstance(data, dict):
+                raise RampError("Only bounded agreement query permitted")
+            _read_query(data, "vendors/agreements")
+            needed = "vendors:read"
+        elif method != "GET" or data is not None:
             raise RampError("Only scope-verified reads permitted")
         parts = path.split("/")
-        if path in {"vendors", "vendors/credits"}:
+        if agreement_query:
+            pass
+        elif path in {"vendors", "vendors/credits"}:
             needed = "vendors:read"
         elif path in {"bills", DRAFT_PATH}:
             needed = "bills:read"
-        elif parts[:-1] in (["bills", "drafts"], ["bills"], ["vendors", "credits"]):
+        elif path in {"transactions", "purchase-orders", "approvals"}:
+            needed = {"transactions": "transactions:read", "purchase-orders": "purchase_orders:read",
+                      "approvals": "approvals:read"}[path]
+        elif parts[:-1] in (["bills", "drafts"], ["bills"], ["vendors", "credits"],
+                           ["vendors"], ["vendors", "agreements"], ["transactions"], ["purchase-orders"]):
             if parts[-1] != uuid_text(parts[-1]):
                 raise RampError("Invalid provider ID")
-            needed = "vendors:read" if parts[0] == "vendors" else "bills:read"
+            needed = {"vendors": "vendors:read", "bills": "bills:read",
+                      "transactions": "transactions:read", "purchase-orders": "purchase_orders:read"}[parts[0]]
+        elif len(parts) == 3 and parts[0] == "comments" and parts[1] in {"bills", "draft-bills"}:
+            uuid_text(parts[-1])
+            needed = "bills:read"
         else:
             raise RampError("Path outside allowlist")
         if needed not in token.granted:
             raise RampError("Scope outside allowlist")
-        path += "?" + urlencode(query) if query else ""
-        return self._http("GET", path, {"Authorization": "Bearer " + token.value})
+        headers = {"Authorization": "Bearer " + token.value}
+        if agreement_query:
+            headers["Content-Type"] = "application/json"
+            return self._http("POST", path, headers, json.dumps(data, allow_nan=False))
+        _read_query({} if query is None else query, path)
+        path += "?" + urlencode(query, doseq=True) if query else ""
+        return self._http("GET", path, headers)
 
     def _draft_mutation(self, token, ident, data, *, authorized=False):
         _write_gate(authorized)
