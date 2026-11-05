@@ -126,6 +126,24 @@ def test_unclassified_fees_and_duplicate_subscription_lines_remain_gaps(tmp_path
                                               dict(service=PRIVATE['service'], description='Subscription', amount_usd='2.00')])
     assert {'UNCLASSIFIED_FEE', 'FRACTIONAL_CENT_UNSUPPORTED', 'AMBIGUOUS_SUBSCRIPTION_LINE'} <= {i['code'] for i in projected['issues']}
     assert projected['facts']['service_invoice']['content']['lines'][2]['amount_cents'] == '499.900'
+    assert projected['facts']['service_invoice']['verified'] is False
+
+
+@pytest.mark.parametrize('changes,code', [
+    ({'monthly_subscription_usd': '999.00'}, 'SOURCE_FEE_SUMMARY_MISMATCH'),
+    ({'recorded_at': '2030-06-30T23:59:59Z'}, 'SOURCE_CHRONOLOGY_GAP'),
+    ({'recorded_at': '2030-07-04T00:00:00Z'}, 'SOURCE_CHRONOLOGY_GAP'),
+])
+def test_source_fee_and_chronology_conflicts_cannot_be_verified(tmp_path, changes, code):
+    case, overlay, manifest, hashes = sample(tmp_path, complete=True)
+    path = tmp_path / 'invoice.json'
+    path.write_text(json.dumps(json.loads(path.read_text()) | changes))
+    hashes['invoice.json'] = sha(path.read_bytes())
+    projected = project_case(tmp_path, case, overlay, manifest, hashes)
+    invoice = projected['facts']['service_invoice']
+    assert invoice['verified'] is False
+    assert invoice['content']['lines'][0]['amount_cents'] == 12501
+    assert code in {i['code'] for i in projected['issues']}
 
 
 def test_sealed_public_controls_signed_mounted_api_activation(tmp_path, monkeypatch):
