@@ -1,0 +1,257 @@
+{
+  "status": "rendered_and_probed",
+  "duration_s": 120,
+  "checked_native_id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+  "capture_digest": "a9279bdb0166eb9ca8720b7375a4ea6802b8694a96ad793575cff573e02e006a",
+  "scenes": [
+    {
+      "view": "Ramp worklist",
+      "duration_s": 8,
+      "native_id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+      "source_kinds": [
+        "LIVE_RAMP_SANDBOX",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": {
+        "currency": "USD",
+        "amount": "840",
+        "amount_minor": 84000,
+        "minor_unit_conversion_rate": 100
+      },
+      "finding_amount": null,
+      "ledger": null,
+      "stage": "PREPAYMENT_REVIEW"
+    },
+    {
+      "view": "Designated bill",
+      "duration_s": 12,
+      "native_id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+      "source_kinds": [
+        "LIVE_RAMP_SANDBOX",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": {
+        "currency": "USD",
+        "amount": "840",
+        "amount_minor": 84000,
+        "minor_unit_conversion_rate": 100
+      },
+      "finding_amount": null,
+      "ledger": null,
+      "stage": "PREPAYMENT_REVIEW"
+    },
+    {
+      "view": "Record-bound approval evidence",
+      "duration_s": 10,
+      "native_id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+      "source_kinds": [
+        "LIVE_RAMP_SANDBOX",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": {
+        "currency": "USD",
+        "amount": "840",
+        "amount_minor": 84000,
+        "minor_unit_conversion_rate": 100
+      },
+      "finding_amount": null,
+      "ledger": null,
+      "stage": "PREPAYMENT_REVIEW"
+    },
+    {
+      "view": "Captured payee",
+      "duration_s": 7,
+      "native_id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+      "source_kinds": [
+        "LIVE_RAMP_SANDBOX",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": {
+        "currency": "USD",
+        "amount": "840",
+        "amount_minor": 84000,
+        "minor_unit_conversion_rate": 100
+      },
+      "finding_amount": null,
+      "ledger": null,
+      "stage": "PREPAYMENT_REVIEW"
+    },
+    {
+      "view": "Captured card transaction",
+      "duration_s": 7,
+      "native_id": "2176d51c-a5e8-4db2-a498-065f50a4d78d",
+      "source_kinds": [
+        "LIVE_RAMP_SANDBOX",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": {
+        "currency": "USD",
+        "amount": "435.92",
+        "amount_minor": 43592,
+        "minor_unit_conversion_rate": 100
+      },
+      "finding_amount": null,
+      "ledger": null,
+      "stage": "RETROSPECTIVE_REVIEW"
+    },
+    {
+      "view": "Available purchase order",
+      "duration_s": 10,
+      "native_id": "01a1a47b-7f66-749a-8205-3ae9d241d3ed",
+      "source_kinds": [
+        "LIVE_RAMP_SANDBOX",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": {
+        "currency": "USD",
+        "amount": "20500",
+        "amount_minor": 2050000,
+        "minor_unit_conversion_rate": 100
+      },
+      "finding_amount": null,
+      "ledger": null,
+      "stage": "NEEDS_REVIEW"
+    },
+    {
+      "view": "Constructed cap on the same ID",
+      "duration_s": 12,
+      "native_id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+      "source_kinds": [
+        "LIVE_RAMP_SANDBOX",
+        "SYNTHETIC_CUSTOMER"
+      ],
+      "native_amount": {
+        "amount": "840",
+        "amount_minor": 84000,
+        "currency": "USD",
+        "minor_unit_conversion_rate": 100
+      },
+      "finding_amount": "40.00",
+      "ledger": null,
+      "stage": "SIMULATION_ONLY"
+    },
+    {
+      "view": "Informational note plan",
+      "duration_s": 12,
+      "native_id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+      "source_kinds": [
+        "LIVE_RAMP_SANDBOX",
+        "SYNTHETIC_CUSTOMER"
+      ],
+      "native_amount": {
+        "amount": "840",
+        "amount_minor": 84000,
+        "currency": "USD",
+        "minor_unit_conversion_rate": 100
+      },
+      "finding_amount": "40.00",
+      "ledger": null,
+      "stage": "SIMULATION_ONLY"
+    },
+    {
+      "view": "Synthetic Twilio dispute",
+      "duration_s": 8,
+      "native_id": null,
+      "source_kinds": [
+        "LIVE_VENDOR_PUBLIC",
+        "SYNTHETIC_CUSTOMER",
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": null,
+      "finding_amount": null,
+      "ledger": {
+        "estimated": "100.00",
+        "claimed": "100.00",
+        "awarded": "0.00",
+        "disputed_remainder": "0.00",
+        "posted": "0.00",
+        "applied": "0.00"
+      },
+      "stage": "NEEDS_EVIDENCE"
+    },
+    {
+      "view": "Simulated award",
+      "duration_s": 10,
+      "native_id": null,
+      "source_kinds": [
+        "LIVE_VENDOR_PUBLIC",
+        "SYNTHETIC_CUSTOMER",
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": null,
+      "finding_amount": "100.00",
+      "ledger": {
+        "estimated": "100.00",
+        "claimed": "100.00",
+        "awarded": "100.00",
+        "disputed_remainder": "0.00",
+        "posted": "0.00",
+        "applied": "0.00"
+      },
+      "stage": "AWARDED"
+    },
+    {
+      "view": "Recorded simulated credit",
+      "duration_s": 7,
+      "native_id": null,
+      "source_kinds": [
+        "LIVE_VENDOR_PUBLIC",
+        "SYNTHETIC_CUSTOMER",
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": null,
+      "finding_amount": "100.00",
+      "ledger": {
+        "estimated": "100.00",
+        "claimed": "100.00",
+        "awarded": "100.00",
+        "disputed_remainder": "0.00",
+        "posted": "100.00",
+        "applied": "0.00"
+      },
+      "stage": "POSTED"
+    },
+    {
+      "view": "Partial simulated application",
+      "duration_s": 7,
+      "native_id": null,
+      "source_kinds": [
+        "LIVE_VENDOR_PUBLIC",
+        "SYNTHETIC_CUSTOMER",
+        "SIMULATED_VENDOR",
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": null,
+      "finding_amount": "100.00",
+      "ledger": {
+        "estimated": "100.00",
+        "claimed": "100.00",
+        "awarded": "100.00",
+        "disputed_remainder": "0.00",
+        "posted": "100.00",
+        "applied": "50.00"
+      },
+      "stage": "PARTIALLY_APPLIED"
+    },
+    {
+      "view": "Shadow onboarding",
+      "duration_s": 10,
+      "native_id": null,
+      "source_kinds": [
+        "DETERMINISTIC_REPLAY"
+      ],
+      "native_amount": null,
+      "finding_amount": null,
+      "ledger": null,
+      "stage": null
+    }
+  ],
+  "reviewer_origin": "disposable scripted-test-reviewer",
+  "copy_origin": "editorial captions; UI text is literal application output",
+  "network": "loopback only; no provider API calls",
+  "external_writes": 0,
+  "audio": "none; spoken script in docs/v4/DEMO.md"
+}

@@ -12,24 +12,49 @@ def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
     # field type. Keep log, billing and identity evidence in separate namespaces.
     label = manifest.get("label_bindings", {}).get("request_fields", {}).get(name, {}).get("phrase", name)
     words = set(re.findall(r"[a-z0-9]+", label.casefold()))
-    status = groups["resource_status"]
-    invoice = groups["resource_invoice"]
-    matches = []
+    status = groups.get("resource_status")
+    invoice = groups.get("resource_invoice")
+    if words & {"invoice", "charges", "charge", "fees", "billing", "bill"}:
+        if invoice is None:
+            return set()
+        lines = {r["ref"] for r in fees if r.get("kind") == "resource_service"
+                 and r.get("fee_line_ref") == overlay["fee_line_ref"] and r["amount_cents"] > 0}
+        return lines | {scope.invoice, invoice["event_id"], invoice["body"]["source_ref"]} if lines else set()
+    if words & {"valid", "validity"} and words & {"requests", "request"}:
+        report = groups.get("request_evidence")
+        times = {r["ref"]:r for r in intervals}
+        # A scoped status witness may itself explicitly attest that valid
+        # requests failed. A generic error or availability percentage cannot.
+        refs = {r["ref"] for r in intervals if re.search(r"\bvalid requests?\b", r["symptom"], re.I)
+                and re.search(r"\b(?:fail(?:ed|ure)?|reject(?:ed|ion)?)\b", r["symptom"], re.I)
+                and not re.search(r"\b(?:no|not|never|uncertain|maybe)\b", r["symptom"], re.I)}
+        for item in report["body"]["records"] if report else ():
+            span = times.get(item["interval_ref"])
+            observed = instant(item["requested_at"])
+            if (item["resource_id"] == scope.component and span and item["valid"] and item["failed"]
+                    and instant(span["start"]) <= observed < instant(span["end"])
+                    and observed <= instant(report["body"]["observed_at"])):
+                refs.add(item["ref"])
+        return refs
+    if words & {"cause", "failure", "attribution"}:
+        causes = {c.casefold() for c in manifest["provider_causes"]}
+        aliases = overlay.get("cause_aliases", {})
+        return {r["ref"] for r in intervals if aliases.get(r.get("cause"), r.get("cause", "")).casefold() in causes}
     if words & {"logs", "log", "timestamps", "times", "intervals", "timeline", "telemetry"}:
-        matches.append({status["event_id"], status["body"]["source_ref"], *(r["ref"] for r in intervals)})
-    if words & {"invoice", "charges", "fees", "billing", "bill"}:
-        matches.append({scope.invoice, invoice["event_id"], invoice["body"]["source_ref"], *(r["ref"] for r in fees)})
+        return {r["ref"] for r in intervals} | ({status["event_id"], status["body"]["source_ref"]} if status else set())
+    if words & {"month", "period"}:
+        return {scope.month}
     if words & {"account", "tenant", "subscriber"}:
-        matches.append({scope.account})
+        return {scope.account}
     if words & {"incident", "outage", "ticket"}:
-        matches.append({scope.incident})
+        return {scope.incident}
     if words & {"region", "location"}:
-        matches.append({scope.region})
+        return {scope.region}
     resource_words = {"resource", "station", "component", "endpoint", "instance", "cluster", "zone"}
     resource_words.update(str(overlay.get("resource_label", "")).casefold().split())
     if words & resource_words:
-        matches.append({scope.component})
-    return matches[0] if len(matches) == 1 else set()
+        return {scope.component}
+    return set()
 
 
 def append_monthly_reports(facts, groups, manifest, scope, following):
@@ -77,7 +102,7 @@ def join_resource(scope, events, manifest, overlay, filed, receipts=()):
     required = {"resource_status","resource_attribution","resource_invoice"}
     if missing := required - groups.keys():
         raise ValueError("Awaiting signed " + ", ".join(sorted(missing)) + ".")
-    if groups.keys() - required - HISTORICAL - {"billing_calendar","filing_material","account_conditions","maintenance_evidence","prior_credit_evidence"}:
+    if groups.keys() - required - HISTORICAL - {"billing_calendar","filing_material","request_evidence","account_conditions","maintenance_evidence","prior_credit_evidence"}:
         raise ValueError("Evidence outside the active resource profile requires review.")
     if overlay["resource_id"] != scope.component:
         raise ValueError("Resource differs from the reviewed customer and contract mapping.")
@@ -164,8 +189,8 @@ def join_resource(scope, events, manifest, overlay, filed, receipts=()):
                                      submitted_to=channel, fields={k:", ".join(v) for k,v in fields.items()})
         historical = groups.keys() & HISTORICAL
         if historical:
-            if receipts:
-                raise ValueError("Local filings conflict with imported existing submission receipts.")
+            if receipts and (len(receipts) != 1 or receipts[0]["packet"].get("purpose") != "procedural_evidence_only"):
+                raise ValueError("Local original filings conflict with imported existing submission receipts.")
             initial = groups.get("original_filing_receipt")
             if not initial:
                 raise ValueError("Awaiting the independently observed original filing receipt.")
@@ -184,7 +209,17 @@ def join_resource(scope, events, manifest, overlay, filed, receipts=()):
                 item = followup["body"]
                 facts["filing_proof"]["supplements"] = [dict(corroborate(followup), original_ref=item["original_ref"],
                     month=scope.month, agreement=scope.contract, received_at=item["received_at"])]
-        if receipts:
+        if historical and receipts:
+            response = receipts[0]
+            packet = response["packet"]
+            if followup or packet.get("in_reply_to") != initial["body"]["receipt_id"]:
+                raise ValueError("Competing follow-ups or a mismatched original require review.")
+            if manifest.get("supplement") and (response_material := packet.get("filing_material")):
+                facts["filing_proof"]["supplements"] = [dict(verified=True, ref=response["id"], original_ref=packet["in_reply_to"],
+                    month=scope.month, agreement=scope.contract, received_at=response["at"], account=scope.account,
+                    resource_id=scope.component, submitted_to=response_material["channel"],
+                    fields={k:", ".join(v) for k,v in response_material["fields"].items()})]
+        if receipts and not historical:
             original = receipts[0]
             original_material = original["packet"].get("filing_material")
             if not original_material or original_material != filing:

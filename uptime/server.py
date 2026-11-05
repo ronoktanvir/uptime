@@ -32,7 +32,7 @@ class ModeRequest(Empty):
 
 
 def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=False, rehearsal_secret=None,
-               service_credentials=None, origin=DEFAULT_ORIGIN, tenant=TENANT, native_config=None):
+               service_credentials=None, origin=DEFAULT_ORIGIN, tenant=TENANT, native_config=None, award_office=None):
     auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant)
     bench = Workbench(db_path, mode) if tenant == TENANT else Workbench(db_path, mode, tenant=tenant)
     app = FastAPI(title="Uptime for Ramp", docs_url=None, redoc_url=None, openapi_url=None)
@@ -155,9 +155,9 @@ def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=Fal
         from .v4_routes import register_v4_routes
         register_v4_routes(app, bench, auth)
     from .ramp_workspace import register_ramp_workspace
-    native_workspace = register_ramp_workspace(app, bench, auth)
+    native_workspace = register_ramp_workspace(app, bench, auth, award_office=award_office)
     if native_config is not None:
         from .ramp_native_binding import register_native_binding
-        register_native_binding(app, workspace=native_workspace, auth=auth, config_path=native_config)
+        native_workspace.native_binding = register_native_binding(app, workspace=native_workspace, auth=auth, config_path=native_config)
     app.mount("/static",StaticFiles(directory=ROOT/"web",check_dir=False),name="static")
     return app

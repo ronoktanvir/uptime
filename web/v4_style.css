@@ -29,3 +29,11 @@
 .uptime-v4 .v4-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
 .uptime-v4 .v4-case{border-top:1px solid var(--line,#dce1ed);padding-block:14px}
 @media(max-width:800px){.uptime-v4 .v4-grid,.uptime-v4 .v4-form{grid-template-columns:1fr}.uptime-v4 .v4-panel{padding:16px}.uptime-v4 .v4-record{grid-template-columns:1fr;gap:4px}.uptime-v4 .v4-record dd{margin-bottom:12px}}
+.uptime-v4,.uptime-v4 *{box-sizing:border-box}
+.uptime-v4 .v4-review{grid-column:1/-1;min-width:0;overflow-wrap:anywhere}
+.uptime-v4 a{display:inline-block;padding:10px 0;min-height:44px;color:var(--ink,#233d8b);text-decoration:underline}
+.uptime-v4 a:focus-visible{outline:3px solid #6888f2;outline-offset:4px}
+.uptime-v4 .v4-panel,.uptime-v4 .v4-record dt,.uptime-v4 h2{overflow-wrap:anywhere;min-width:0}
+/* The expanded portal navigation must remain reachable in short desktop windows. */
+.rail{overflow-y:auto}
+.rail nav,.rail .brand,.rail .rail-foot{flex-shrink:0}

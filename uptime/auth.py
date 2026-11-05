@@ -153,6 +153,8 @@ class Authority:
         self.origin = valid_origin(origin)
         self.instance = secrets.token_hex(24)
         self.approvals_enabled = bool(approvals_enabled)
+        self.native_gate = None
+        self.local_gate = None
         self.mode = mode
         self.rehearsal = rehearsal
         self.path = path
@@ -230,8 +232,12 @@ class Authority:
                 f"{request.url.scheme}://{request.headers.get('host', '')}" != self.origin):
             raise HTTPException(403, "Exact local origin required")
 
-    def require_gate(self):
-        if not self.approvals_enabled:
+    def require_gate(self, path=""):
+        if path.startswith("/api/ramp/native/") and self.native_gate is not None:
+            if self.native_gate():
+                return
+            raise HTTPException(403, "Native installation release has expired or changed")
+        if not self.approvals_enabled or (self.local_gate is not None and not self.local_gate()):
             raise HTTPException(403, "Consequential actions are disabled in this deployment")
 
     def challenge(self, request: Request, body: ChallengeRequest):
@@ -239,7 +245,7 @@ class Authority:
         login = body.path == "/api/auth/login"
         session = ""
         if not login:
-            self.require_gate()
+            self.require_gate(body.path)
             p = self.actor(request)
             if p.role != "reviewer" or p.subject != body.subject:
                 raise HTTPException(403, "Named reviewer required")
@@ -294,7 +300,7 @@ class Authority:
 
     async def reviewer(self, request: Request):
         self.require_origin(request)
-        self.require_gate()
+        self.require_gate(request.scope["raw_path"].decode("ascii"))
         principal = self.actor(request)
         if principal.role != "reviewer" or request.method != "POST" or request.url.query:
             raise HTTPException(403, "An exact reviewer POST is required")
@@ -321,7 +327,7 @@ class Authority:
 
     def authorize_native(self, principal, *, business_id, resource_type, resource_id, action, payload_sha256):
         """Called at dispatch using the provider-bound IDs and exact bytes of the prepared effect."""
-        self.require_gate()
+        self.require_gate("/api/ramp/native/dispatch")
         if (self.mode != "sandbox" or self.rehearsal or not isinstance(principal, AuthorizedReviewer)
                 or principal.tenant != self.tenant or principal.role != "reviewer"):
             raise PermissionError(mandates.DENIED)

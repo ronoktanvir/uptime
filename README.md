@@ -1,38 +1,19 @@
 # Uptime for Ramp
 
-Uptime checks unpaid invoices against negotiated terms, tests SLA credit eligibility, prepares and disputes simulated claims, and reconciles awards through bill application. It runs locally as a finance workbench with a persistent case ledger.
+Uptime adds contract evidence to the Ramp records an accounts-payable reviewer already uses. Open a bill to inspect its approval state, associated records, governing terms and any amount the evidence supports. Use the companion for evidence inspection, vendor onboarding, disputes and the audit trail. Ramp remains the financial system of record.
 
-**The live sandbox evidence is read-only.** Ramp returned six bills. Uptime read a pending USD 840.00 bill and a paid USD 481.28 bill back by their actual IDs. The token lacked `bills:write`. Neither verified line had a quantity, rate, SKU or service date. Uptime displays the bill and the missing evidence instead of assigning it a discrepancy.
+**Start the application** on macOS with `./Open\ Uptime.command`. The launcher opens a local reader account and prints the location of the private sign-in file. For a fresh sandbox sync, command-line setup or restarting an existing installation, follow the [operator guide](docs/v4/OPERATIONS.md).
 
-**The demonstration has two distinct financial results.** A synthetic invoice shows a USD 7,500 prepayment discrepancy. A separate simulated Twilio case earns a USD 100 service credit and can apply USD 50 to a fixture bill. There is no verified customer recovery, actual prevented payment, or live credit application.
+**Watch the two-minute demonstration** from the [film](docs/demo/v4/walkthrough.mp4) or follow the [spoken script](docs/v4/DEMO.md). Its real sandbox capture contains six bills, twelve vendor records, twelve card transactions and twelve purchase orders. Eleven approval observations add context. Vendor, card, purchase-order and approval lists are sampled. The agreement and vendor-credit lists returned zero rows.
 
-## Run the workbench
+The demonstration follows the same open, approval-pending **$840 Ramp bill** into its evidence. There is no signed customer contract for that bill. A separately labeled constructed $800 cap produces a $40 hypothetical discrepancy. Nothing was stopped, paid or recovered in that example. Both the invoice and the amount remain traceable to their different sources.
 
-From this checkout, with Python 3.11+ and `uv` installed:
+## What you can verify
 
-```sh
-uv sync --locked
-uv run --locked python scripts/serve.py --mode sandbox --open
-```
+- **Read the finance records.** Refresh a tenant-bound sandbox installation using first-party OAuth, then inspect resource completeness, actual native references and case history. [Supported Ramp interfaces](docs/v4/RAMP-FEASIBILITY.md)
+- **Evaluate a real bill when terms exist.** Install a signed, documented agreement-to-line binding. An unbound line returns missing evidence. The operator can revoke a package or verifier. [Price evidence procedure](docs/v4/RAMP-PRICE-EVIDENCE.md)
+- **Review a finding in a native workflow.** Uptime prepares a redacted exact-object bill discussion, requires independent authorization and verifies delivery against the same thread. Current credentials lack the write grant. Blank Canvas requires a separately configured procurement trigger. [Native workflow](docs/v4/NATIVE-OPERATOR.md)
+- **Follow a claim through credit application.** Estimated, filed, awarded, posted and applied amounts carry independent references. Completed sandbox reads found no native credits. [Credit synchronization](docs/v4/RAMP-CREDIT-SYNC.md) · [Award attribution](docs/v4/RAMP-ATTRIBUTION.md)
+- **Inspect the acceptance evidence.** Before/after audit vectors, independent holdouts and the full regression suite answer different questions. The current release status records each individually. [Acceptance and remaining gaps](docs/v4/STATUS.md) · [Capability matrix](docs/v4/CAPABILITIES.md)
 
-On macOS, double-click **Open Uptime.command** instead. Sandbox mode displays the last verified observations, with their collection time. Use `--mode replay` for an entirely offline synthetic workspace. Use a separate database for a fresh rehearsal, for example `--db runtime/rehearsal-01.sqlite`. The server binds to loopback and the launcher opens an authenticated local reviewer session. Close with Ctrl-C.
-
-## Demonstrate it
-
-1. Open **Case ledger → price-prepayment**. The amendment prices 1,500 units at USD 20,000. The covered line billed USD 27,500. Review the separate paid-invoice comparison and missing-evidence examples.
-2. Compare **sla-eligible** with **sla-ineligible**. The eligible basis excludes tax, carrier and unrelated charges. Public status observations alone cannot fill missing fee lines.
-3. In **dispute-cure**, approve and submit to the simulator. Prepare the requested supplement, approve it and advance the replay cooldown if prompted. The simulator adjudicates the new evidence. Record the simulated credit and apply part of it. The award, posting, application and remainder have distinct IDs and amounts.
-4. Inspect **dispute-denial**, **dispute-review** and **dispute-partial**. The workbench stops on corroborated maintenance, escalates uncertain notice timing and retains the contested remainder of a partial award.
-5. Open **Onboarding lab**. The generated Atlassian candidate begins in shadow. Review its source clauses, tenant overlay, generated tests and independent gold results. A reviewer can approve and activate it locally, then roll it back. The delivered workspace contains no preapproved version.
-6. In **Integrations**, inspect the exact sandbox observation and its readback IDs. The canonical provider UI requires a separate Ramp login. The public incident feed, model extraction and simulated transport each have their own source labels.
-
-The two-minute captioned film and stills are under `docs/demo/film/`. All approvals in the film belong to a disposable scripted test reviewer. Use the [runbook](docs/orchestration/RUNBOOK.md) for the release gate, capture and deployment commands.
-
-## Engineering record
-
-- [Architecture and boundaries](docs/ARCHITECTURE.md)
-- [Live, synthetic, replay and unavailable capability matrix](docs/orchestration/CAPABILITY_MATRIX.md)
-- [Checkpoint evidence](docs/orchestration/STATUS.md) and [workstream ownership](docs/orchestration/TASKS.md)
-- [Decision records and actual Opus review responses](docs/orchestration/DECISIONS_INDEX.md)
-- [Open blockers and production limits](docs/orchestration/BLOCKERS.md)
-- [Original V3 specification and handoff](docs/uptime-v3/)
+[Architecture](docs/v4/ARCHITECTURE.md) · [Decision records](docs/v4/decisions/INDEX.md) · [Original V3 specification](docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md)

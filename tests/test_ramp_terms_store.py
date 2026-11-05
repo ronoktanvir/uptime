@@ -105,8 +105,39 @@ def test_offline_cli_registration_signature_and_installed_bill_pricing(tmp_path,
     assert row["actual_money_prevented"] is None
     status=json.loads(cli("status","--tenant",TENANT,"--business",BIZ))
     assert status["bindings"][0]["authority_digest"]==sha256(packet.signing_bytes()).hexdigest()
+    from fastapi.testclient import TestClient
+    from uptime.auth import DEFAULT_ORIGIN, enroll
+    from uptime.auth_client import ReviewerClient
+    from uptime.auth_keys import generate_reviewer_key
+    from uptime.server import create_app
+    viewer=generate_reviewer_key()
+    enroll(db,"price.viewer",viewer,"viewer","sandbox",TENANT)
+    app=create_app(db,mode="sandbox",tenant=TENANT)
+    with TestClient(app,base_url=DEFAULT_ORIGIN,client=("127.0.0.1",45006)) as transport:
+        reader=ReviewerClient(transport,DEFAULT_ORIGIN,"price.viewer",viewer)
+        def read(path):
+            result=transport.get(path,headers=reader.headers)
+            assert result.status_code==200, result.text
+            return result.json()
+        overview=read("/api/ramp/workspace")
+        assert overview["snapshot_status"]["price_terms"]=={"verified_bindings":1,"omissions":[]}
+        actual=next(c for c in overview["records"] if c["id"]==row["id"])
+        assert actual["data_provenance"]["classification"]==classification and actual["amount"]=="40.00"
+        current=read("/api/ramp/records/"+row["id"])
+        assert current["native_audit"]["terms_binding_digest"]==row["data_provenance"]["binding_digest"]
+        assert read("/api/cases/"+row["id"])["finding_digest"]==current["finding_digest"]
+        decision=app.state.ramp_workspace.record_for_native("bills",BILL)
+        if mode=="OPERATOR_ATTESTED":
+            assert decision["terms_provenance"]["digest"]==status["bindings"][0]["authority_digest"]
+            assert decision["native_review_reason"]=="ATTESTED_PRICE_EXCEPTION"
+        else:
+            assert decision["native_review_reason"]=="EVIDENCE_REQUIRED"
+            assert current["native_workflow"]["status"]=="SIMULATION_ONLY"
+            assert any(r["provider_id"]==BILL and r["finding_kind"]=="UNBOUND_RECORD" for r in overview["records"])
+        assert overview["credit_sync"]["verified_award_attribution"]["status"]=="NO_VERIFICATION_OFFICE"
     cli("revoke","key",key.subject,"--tenant",TENANT,"--business",BIZ)
     assert not store.bindings(TENANT,BIZ,snap)
+    assert app.state.ramp_workspace.record_for_native("bills",BILL)["native_review_reason"]=="EVIDENCE_REQUIRED"
 
 
 @pytest.mark.parametrize("fault",["absent-key","bad-signature","unsigned-rate","absent-bytes","wrong-bytes","new-capture",

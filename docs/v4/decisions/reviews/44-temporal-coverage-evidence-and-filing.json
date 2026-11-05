@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:58:23.100504+00:00",
+  "packet_sha256": "54e663302211d543dcf5a3ea99517f83dd2374d9f59427f3c6cde00fe0412b6e",
+  "prompt_sha256": "0970232077f3852836fb2ebf616fa64694e698b890434c13d8253f65af7cd57b",
+  "status": "REVIEWED",
+  "session": "9a3323e5-6cf5-46cb-848d-048bff02326f",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Option 3 (versioned reusable primitives) is sound, but conditional on evidence it generalizes beyond one contract.\n\n**Alternatives:** Universal abstention is safe but leaves value unrealized. Vendor-specific calculators duplicate logic and rot. Primitives win only if a second, independent contract reuses them unchanged.\n\n**Strongest objection:** You are designing primitives from one synthetic contract. \"Reusable\" is asserted, not shown. You risk encoding vendor branches under generic names.\n\n**Unsupported claims:**\n- Primitives are \"independently covered.\"\n- Overlap attribution between customer and provider is decidable from receipts.\n- Time-zone and day-boundary semantics are unambiguous in the source text.\n- Revalidating old candidates is cheap.\n\n**Falsification tests:**\n- Apply the primitives to 2\u20133 unseen public agreements, frozen before any fix. If more than minor parameterization is needed, the claim fails.\n- Run mutation tests: off-by-1s, an overlapping customer/provider outage, a missing refund line, and an ambiguous proof-request timestamp. Each must fail closed, with a trace.\n- Check old-version and new-version result diffs on the prior corpus. Any unexplained change blocks release.\n\n**Leakage:** Report the original failure permanently. Report prospective controls separately. Do not tune thresholds on the studied contract.\n\n**Costs:** Receipt acquisition and signed linkage are the real operational burden, so estimate them before building.\n\n**Human authorization:** Required for the evaluator version bump, revalidation policy, deadline-cure semantics, and any credit claim filing. These are outward-facing and hard to reverse."
+}

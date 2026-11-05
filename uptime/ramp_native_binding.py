@@ -209,7 +209,6 @@ class NativeBinding:
             raise WorkflowError("Invalid public native operator configuration") from None
         uuid_text(self.config.business_id)
         self.lock, self._grant, self._report = RLock(), None, None
-        self._guard()
         reviewers = {}
         for name, key in self.config.reviewers.items():
             if not NAME.fullmatch(name) or set(key) != {"kty", "crv", "x", "y"}:
@@ -220,13 +219,19 @@ class NativeBinding:
             reviewers[name] = WorkflowReviewer(public, simulation_only=False)
         if not reviewers:
             raise WorkflowError("At least one locally provisioned reviewer public key is required")
+        realm = mandates.describe(auth.path, next(iter(reviewers)))["workspace_id"]
+        self.installation = {"workspace_id": realm, "tenant": self.config.tenant, "business_id": self.config.business_id,
+                             "config_sha256": sha256(self._config_bytes).hexdigest()}
+        self._guard()
         self.outbox_path = self.config_path.with_suffix(".outbox.sqlite3")
         if self.outbox_path.resolve() == Path(auth.path).resolve():
             raise WorkflowError("Native outbox must be separate from the authority database")
         if self.outbox_path.exists() or self.outbox_path.is_symlink():
             self._check_outbox()
         self.flow = RampWorkflow(self.outbox_path, tenant=auth.tenant, business_id=self.config.business_id,
-                                 finding_resolver=self._finding, reviewers=reviewers, clock=clock)
+                                 finding_resolver=self._finding, reviewers=reviewers, clock=clock,
+                                 native_review_reasons=True)
+        auth.native_gate = self._release_ready
 
     def _check_outbox(self):
         p = self.outbox_path
@@ -234,9 +239,11 @@ class NativeBinding:
                 or p.stat().st_uid != os.getuid() or p.stat().st_nlink != 1):
             raise WorkflowError("Native outbox custody is not protected")
 
+    def _release_ready(self):
+        return gates.native_install_ready(self.installation)
+
     def _guard(self):
-        if (self.auth.mode != "sandbox" or self.auth.rehearsal or not self.auth.approvals_enabled
-                or not gates.local_release_ready() or self.config.tenant != self.auth.tenant
+        if (self.auth.mode != "sandbox" or self.auth.rehearsal or not self._release_ready() or self.config.tenant != self.auth.tenant
                 or self.workspace.tenant != self.auth.tenant or self.workspace.mode != "sandbox"):
             raise WorkflowError("Explicit sandbox installation and current security release gate required")
         if _protected_bytes(self.config_path) != self._config_bytes:
@@ -253,17 +260,57 @@ class NativeBinding:
         self._business()
         finding = self.workspace.record_for_native(object_type, object_id)
         provenance = finding.get("data_provenance", {})
+        expected_sources = (["LIVE_RAMP_SANDBOX", "OPERATOR_ATTESTED_CUSTOMER"]
+                            if finding.get("native_review_reason") == "ATTESTED_PRICE_EXCEPTION"
+                            else ["LIVE_RAMP_SANDBOX"])
         if (object_type != "bills" or finding.get("provider_object_type") != object_type
                 or finding.get("provider_id") != object_id or finding.get("business_id") != self.config.business_id
                 or finding.get("workspace_tenant") != self.auth.tenant
-                or finding.get("sources") != ["LIVE_RAMP_SANDBOX"]
-                or finding.get("finding_kind") not in {"NATIVE_OBSERVATION", "UNBOUND_RECORD"}
-                or provenance.get("classification") != "PROVIDER_OBSERVATION"
+                or finding.get("sources") != expected_sources
                 or provenance.get("freshness") != "FRESH"
                 or not re.fullmatch(r"[a-f0-9]{64}", provenance.get("record_digest", ""))):
             raise WorkflowError("An exact factual provider observation is required; synthetic and foreign findings are blocked")
         if not timedelta(0) <= self.clock()-timestamp(finding.get("observed_at")) <= timedelta(hours=24):
             raise WorkflowError("Current actual capture timestamp required")
+        if "native_review_reason" not in finding:
+            if (finding.get("finding_kind") not in {"NATIVE_OBSERVATION", "UNBOUND_RECORD"}
+                    or provenance.get("classification") != "PROVIDER_OBSERVATION"):
+                raise WorkflowError("An exact factual provider observation is required")
+            return finding
+        reason = finding["native_review_reason"]
+        if reason == "EVIDENCE_REQUIRED":
+            if (finding.get("finding_kind") != "NATIVE_OBSERVATION"
+                    or provenance.get("classification") != "PROVIDER_OBSERVATION"
+                    or finding.get("outcome") not in {None, "INSUFFICIENT_EVIDENCE"}
+                    or finding.get("terms_provenance") is not None):
+                raise WorkflowError("Evidence-required reason conflicts with current evidence")
+        elif reason == "ATTESTED_PRICE_EXCEPTION":
+            terms = finding.get("terms_provenance")
+            if (finding.get("finding_kind") != "OPERATOR_PRICE_REVIEW"
+                    or provenance.get("classification") != "PROVIDER_WITH_OPERATOR_EVIDENCE"
+                    or provenance.get("terms_mode") != "OPERATOR_ATTESTED"
+                    or finding.get("outcome") != "ELIGIBLE"
+                    or finding.get("stage") not in {"PREPAYMENT_REVIEW", "RETROSPECTIVE_REVIEW"}
+                    or finding.get("missing") != []
+                    or not isinstance(finding.get("line_findings"), list) or not finding["line_findings"]
+                    or not isinstance(terms, dict) or terms.get("mode") != "OPERATOR_ATTESTED"
+                    or terms.get("integrity") != "VERIFIED" or terms.get("operator_context_verified") is not True
+                    or not isinstance(terms.get("digest"), str)
+                    or not re.fullmatch(r"[a-f0-9]{64}", terms["digest"])
+                    or not isinstance(provenance.get("binding_digest"), str)
+                    or not re.fullmatch(r"[a-f0-9]{64}", provenance["binding_digest"])):
+                raise WorkflowError("Current verified operator-scoped price exception evidence required")
+        else:
+            # INELIGIBLE also covers exclusions and unsupported comparisons. It
+            # cannot establish affirmative compliance or a safe-to-approve bill.
+            raise WorkflowError("Unsupported native review reason")
+        # The trusted workspace recomputes signature, scope, custody, validity and
+        # deterministic outcome. Bind that proof independently of its finding hash.
+        proof = {key: finding.get(key) for key in (
+            "native_review_reason", "terms_provenance", "outcome", "stage", "missing", "line_findings")}
+        proof["data_provenance"] = {key: provenance.get(key) for key in (
+            "classification", "freshness", "record_digest", "binding_digest", "terms_mode")}
+        finding = dict(finding, native_review_digest=digest(proof))
         return finding
 
     def _current_grant(self, grant=None):
@@ -346,15 +393,11 @@ class NativeBinding:
             "Authorization": "Bearer " + grant.token, "Accept": "application/json"})
         if business.get("id") != self._business() or business.get("active") is not True:
             raise WorkflowError("Business changed before publication")
-        if self.flow._finding(plan["object_type"], plan["object_id"]) != {
-                k: plan[k] for k in ("finding_digest", "sources", "observed_at", "simulation_only")}:
-            raise WorkflowError("Finding changed before publication")
+        self.flow._check_finding(plan)
         record = _BoundProvider(self, grant).read_object(plan["object_type"], plan["object_id"])
         if remote_state(record, plan["object_id"]) != plan["expected_remote_state"]:
             raise WorkflowError("Native object changed before publication")
-        if self.flow._finding(plan["object_type"], plan["object_id"]) != {
-                k: plan[k] for k in ("finding_digest", "sources", "observed_at", "simulation_only")}:
-            raise WorkflowError("Finding changed during the final native read")
+        self.flow._check_finding(plan)
 
     def execute(self, action_id, *, principal, review_digest):
         self._guard()

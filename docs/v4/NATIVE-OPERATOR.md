@@ -6,16 +6,7 @@ The implementation uses `RampWorkflow` and `ScopedSandboxWorkflowProvider.post_c
 
 ## Root registration and configuration
 
-Root owns `uptime/server.py`, `scripts/serve.py`, and `uptime/ramp_workspace.py`; this change does not edit them. Add an explicit optional `native_config: Path | None = None` application argument and launcher `--native-config` option, passing the operator's value through unchanged. After creating the existing `Authority` and registering the Ramp workspace:
-
-```python
-from uptime.ramp_native_binding import register_native_binding
-
-register_native_binding(app, workspace=ramp_workspace, auth=auth,
-                        config_path=native_config)
-```
-
-Use the existing workspace and Authority instances. Do not also mount `register_ramp_workflow()` with a live provider. With `config_path=None`, this function installs no routes, creates no HTTP client and reads no credentials. An explicit config still requires sandbox mode, a named non-rehearsal Authority, approvals enabled, matching tenant, enrolled reviewer public keys, and `gates.local_release_ready()`. The release gate is rechecked before each action and at dispatch; its local release attestation does not grant external commercial authority. Root should call `app.state.native_binding.close()` on shutdown when configured.
+Run the loopback launcher with `--mode sandbox --tenant TENANT --db DB --native-config PRIVATE_CONFIG` for an authorized native installation. The launcher mounts native routes only for an explicit protected configuration. A current separately signed native release binds the database realm, business, tested source and exact configuration bytes. Global approvals stay disabled. See [release evidence](RELEASE-EVIDENCE.md) for the independent release and installation proof formats. The binding rechecks both proofs at dispatch and still requires the per-action issuer mandate and reviewer proof.
 
 The operator provisions an absolute physical JSON path outside the repository, in an owner-only directory (0700) and a regular owner-only file (0600). Symlinks and hard-linked files are rejected. Example shape, with actual locally verified public values substituted:
 
@@ -64,7 +55,7 @@ Extra fields are rejected. The client cannot select business, finding, resolved 
     "finding_digest": stable_sha256_of_current_factual_finding,
     "observed_at": actual_capture_timestamp,
     "sources": ["LIVE_RAMP_SANDBOX"],
-    "finding_kind": "NATIVE_OBSERVATION",  # UNBOUND_RECORD also accepted
+    "finding_kind": "NATIVE_OBSERVATION",  # UNBOUND_RECORD accepted only for reason-free legacy records
     "data_provenance": {
         "classification": "PROVIDER_OBSERVATION", "freshness": "FRESH",
         "record_digest": fingerprint(captured_sanitized_bill),
@@ -111,3 +102,50 @@ Delivery means the comment's exact ID, message and unique marker were read back 
 The reviewed local official OpenAPI snapshot is `reference/openapi.json`, SHA-256 `2f7d60ff0a94859bd8ae94ac7a688c1a8df60ea281e3ef8f5d061b04b9ae849a`, API title `Ramp Developer API`, version `v1`. It specifies GET `/developer/v1/business` with `business:read`, POST `/developer/v1/comments/{object_type}/{object_id}` with the resource's write scope, `{message, message_format}` and 201 `ApiCommentResource`, and paginated GET for readback. No internet fetch or provider request was made to implement this binding. The schema is a pinned supplied reference, not evidence of current live endpoint behavior.
 
 The genuine Opus 31–36 and 40 replies in `docs/v4/decisions/reviews/` informed the boundary: preserve snapshot/version provenance, prefer comments, reconcile uncertain delivery, verify business/scopes, separate synthetic overlays, and never equate native annotation with prevention or recovery. Those advisory replies do not grant permission or substitute for the schema, scope receipt, current-object checks, independent mandate or real readback.
+
+## Actionable native reasons (Opus43)
+
+The native binding now accepts an optional **trusted resolver output**, `native_review_reason`. It is never an HTTP input. The two supported values produce fixed wording that gives the AP approver an evidence-review task:
+
+- `EVIDENCE_REQUIRED`: price compliance is undetermined; obtain signed governing terms and amendments and verify itemized charges, service dates, quantities and tax treatment.
+- `ATTESTED_PRICE_EXCEPTION`: a deterministic comparison against operator-attested signed terms identified a potential price exception; review the governing terms and mapped evidence with the contract owner. The comment explicitly describes the result as provisional.
+
+`ATTESTED_PRICE_WITHIN_TERMS` is deliberately refused. The evaluator's `INELIGIBLE` outcome also covers exclusions or comparisons that cannot establish overall compliance. No reason contains a monetary amount, private contract prose, party name or URL. Only the existing opaque outbox marker is appended to the fixed message. Neither a comment nor successful delivery approves the bill or changes any funds.
+
+`EVIDENCE_REQUIRED` requires `NATIVE_OBSERVATION`, `PROVIDER_OBSERVATION`, no terms proof, and an absent or `INSUFFICIENT_EVIDENCE` outcome. A price exception requires all of:
+
+```python
+{
+    "native_review_reason": "ATTESTED_PRICE_EXCEPTION",
+    "finding_kind": "OPERATOR_PRICE_REVIEW",
+    "outcome": "ELIGIBLE",
+    "stage": "PREPAYMENT_REVIEW",  # RETROSPECTIVE_REVIEW also accepted
+    "missing": [],
+    "line_findings": [...],  # nonempty deterministic evaluation, never copied into comment
+    "sources": ["LIVE_RAMP_SANDBOX"],  # provider provenance; terms proof is separate
+    "data_provenance": {
+        "classification": "PROVIDER_WITH_OPERATOR_EVIDENCE",
+        "freshness": "FRESH", "terms_mode": "OPERATOR_ATTESTED",
+        "record_digest": "<64 lowercase hex>", "binding_digest": "<64 lowercase hex>",
+    },
+    "terms_provenance": {
+        "mode": "OPERATOR_ATTESTED", "integrity": "VERIFIED",
+        "digest": "<64 lowercase hex signed evidence digest>",
+        "operator_context_verified": True,
+    },
+}
+```
+
+The existing exact tenant, business, bill, capture time and stable finding digest fields remain required. ROOT must recompute the finance signature, active key/package, document custody, validity, exact account/bill/line scope and deterministic price outcome before returning this proof. `operator_context_verified` is the result of that trusted verification; a mode label alone does not establish it. ROOT must reject ambiguous evidence and keep synthetic bindings out of native projections. The binding independently verifies proof shape and current provider facts; it cannot authenticate terms that ROOT did not actually verify.
+
+The native binding opts into reason projection with `RampWorkflow(..., native_review_reasons=True)`. Generic callers keep their existing projection and exact body. Previously persisted reason-free actions retain their exact bytes and provider request ordering even after the resolver gains a reason. The logical outbox key remains unchanged, so a newly worded comment cannot create a second delivery for an already attempted finding.
+
+For a new reason-bearing plan, the binding computes `native_review_digest` from the reason, terms proof, stable provider provenance and deterministic result. Reevaluation timestamps are excluded. The workflow binds that digest into the signed review and checks it again when producing/verifying the review and at execute. The final HTTP boundary repeats it after discussion lookup, business GET, and bill GET, before consuming the independent native mandate. Terms revocation, evidence mutation, missing reason, changed outcome or changed package prevents publication. Cross-system changes can still race the last check; no atomic external terms-and-Ramp transaction is claimed.
+
+The actual Opus43 response (`43-native-review-message.json`, session `e690a4c1-f845-4663-a001-58577a327665`, model `claude-opus-5-5`) was read before finalization. Its required constraints informed the fixed templates, revocation tests, null money fields and conservative handling of zero/ambiguous outcomes. Two qualifications remain explicit: the existing opaque marker is dynamic audit metadata, and the API has no documented idempotency header, so the implementation retains the durable outbox and exact discussion readback instead of inventing one. Live write authority remains blocked; the review does not authorize live posting.
+
+The exact bodies actually sent through the local signed mounted routes are recorded in [native-reason-mock.json](evidence/native-reason-mock.json). These are `MOCK_HTTP` protocol observations using ephemeral keys and synthetic test documents. They are not Ramp execution receipts or actual customer terms. `tests/test_ramp_native_reason.py` also exercises real local finance-key registration, signed packet installation, evidence custody, deterministic evaluation and key/package/document revocation with a test adapter implementing ROOT's resolver contract. ROOT's production resolver integration remains ROOT-owned.
+
+Owner validation on 2026-11-05 UTC: **250 passed in 53.40s** across `test_ramp_native_reason.py`, `test_ramp_native_binding.py`, `test_ramp_workflow.py`, `test_ramp_workflow_webhooks.py`, `test_signed_mandates.py`, and `test_ramp_terms_store.py`. The signed finance positive dispatch took 0.87s in that run; key/package/document revocation controls took 0.80/0.63/0.60s. These include local signature/database overhead and are not provider latency measurements. The command used `UV_OFFLINE=1 uv run --locked --no-sync pytest ... -q --durations=10` against the existing installed test environment after dependency synchronization failed on unavailable package-network DNS. No merge or live operation was performed; ROOT must run its complete integration suite after merging.
+
+A separate final review-invalidation and duplicate-delivery regression passed in 1.62s (0.22s test body), bringing owner validation to **251 passing targeted tests**.
