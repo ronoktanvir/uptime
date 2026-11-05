@@ -15,10 +15,10 @@ OBSERVED = "2026-07-01T06:00:00Z"
 MONTH = dict(start="2026-06-01T00:00:00Z",end="2026-07-01T00:00:00Z",complete=True)
 
 
-def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, conditions=False, extra_terms=(), shadow=None, expected="12.51"):
+def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, conditions=False, extra_terms=(), shadow=None, expected="12.51", overlay_override=None):
     rows=deepcopy(ROWS) + list(extra_terms)
     facts=deepcopy(shadow if shadow is not None else FACTS)
-    overlay = deepcopy(OVERLAY)
+    overlay = deepcopy(overlay_override if overlay_override is not None else OVERLAY)
     if cycles:
         overlay.pop("billing_period", None)
         rows[3]=("Each station has its own availability measurement over each UTC calendar month.",
@@ -50,8 +50,12 @@ def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, condit
     s=env.post(base+"/candidates",dict(document=dict(name="Synthetic station SLA",uri="urn:synthetic:weather",
                     classification="synthetic_public",text=text),overlay=overlay))
     assert s["state"]=="SHADOW",s
+    negative = deepcopy(facts)
+    negative["intervals"] = []
+    if "provider_telemetry" in negative:
+        negative["provider_telemetry"].update(records=[], no_events_verified=True)
     tests=[dict(name="verified scoped outage",facts=facts,expected=dict(outcome="ELIGIBLE",amount=expected)),
-           dict(name="no incident",facts=facts|{"intervals":[]},expected=dict(outcome="INELIGIBLE"))]
+           dict(name="no incident",facts=negative,expected=dict(outcome="INELIGIBLE"))]
     s=env.post(base+"/tests",dict(revision=s["revision"],tests=tests))
     for op in ("interpret","approve","activate"):
         action=next(a["id"] for a in s["actions"] if a["operation"]==op)

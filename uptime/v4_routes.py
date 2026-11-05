@@ -28,7 +28,8 @@ def _economics(manifest, overlay):
         fields = ("family","period","scope","symptoms","provider_causes","exclusions","fee_basis","fee_exclusions",
                   "rounding","filing","cycle_calendar_month","submission_channel","request_fields","remedy",
                   "account_conditions","precedence","label_bindings","maintenance","prior_credit",
-                  "supplement","interval_measurement","fee_adjustment")
+                  "supplement","interval_measurement","fee_adjustment","subscription","telemetry",
+                  "original_receipt","cure_clock","fee_settlement","causal_report")
         semantics = {k:manifest.get(k) for k in fields}
         semantics["tiers"] = [(t["below_units"],t["credit_units"]) for t in manifest["tiers"]]
         semantics["billing_period"] = overlay.get("billing_period", {}).get("kind") if overlay.get("billing_period") else None
@@ -68,6 +69,8 @@ def _active_publication(db, tenant, scope):
         artifact = json.loads(artifact_json)
         if artifact["overlay"].get("resource_id",scope.component) != scope.component:
             continue
+        if artifact["overlay"].get("subscription_record", {}).get("region",scope.region) != scope.region:
+            continue
         if artifact["manifest"].get("family") not in {"monthly-availability/1","resource-month/1"}:
             return None
         left, right = _period(artifact["manifest"], artifact["overlay"])
@@ -98,6 +101,8 @@ def _active_publication(db, tenant, scope):
         prior = json.loads(row[0])
         old_manifest, old_overlay = prior["manifest"], prior["overlay"]
         if old_overlay.get("resource_id",scope.component) != scope.component:
+            continue
+        if old_overlay.get("subscription_record", {}).get("region",scope.region) != scope.region:
             continue
         if old_manifest.get("family") != manifest["family"]:
             return None
@@ -246,7 +251,7 @@ def resolve_active(path, tenant, scope, events, at):
                                total_microseconds=(following-first)//timedelta(microseconds=1))
     return ActiveRemedy(tenant, scope, fingerprint([[e["source"], e["digest"]] for e in events]),
                         controlling, cutoff, result, agreement_id=manifest.get("agreement") or overlay["agreement"],
-                        remedy="resource-month/"+scope.component if resource else "availability", filing_material=filing,
+                        remedy=("resource-month/"+scope.component+("/"+scope.region if manifest.get("subscription") else "")) if resource else "availability", filing_material=filing,
                         measurement=measurement, procedure=historical)
 
 

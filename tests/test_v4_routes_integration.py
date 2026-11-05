@@ -27,9 +27,12 @@ Service credits apply to affected monthly fees on a future invoice."""
 
 
 class App:
-    def __init__(self, path):
+    def __init__(self, path, extra_roles=None):
         key = secrets.token_urlsafe(32)
         self.keys = {source + "-fixture":secrets.token_hex(32) for source in ("status", "customer", "billing", "vendor")}
+        self.roles = {subject:subject.removesuffix("-fixture") for subject in self.keys}
+        self.roles.update(extra_roles or {})
+        self.keys.update({subject:secrets.token_hex(32) for subject in extra_roles or {}})
         self.app = create_app(path, rehearsal=True, rehearsal_secret=key, approvals_enabled=True, service_credentials=self.keys)
         self.client = TestClient(self.app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 4510))
         self.human = ReviewerClient(self.client, DEFAULT_ORIGIN, SCRIPT, key)
@@ -43,7 +46,7 @@ class App:
     def provision(self):
         self.inbox.provision("bears", *(self.scope[k] for k in ("account", "vendor", "contract", "service", "component", "region")))
         for subject in self.keys:
-            self.inbox.bind_sender("bears", self.scope["account"], subject.removesuffix("-fixture"), subject, scope=self.scope)
+            self.inbox.bind_sender("bears", self.scope["account"], self.roles[subject], subject, scope=self.scope)
 
     def post(self, path, payload):
         result = self.human.post(path,payload)
