@@ -53,9 +53,11 @@
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
   function button(label, handler, className = '') { const node = el('button', className, label); node.type = 'button'; node.addEventListener('click', handler); return node; }
   function sources(values) {
-    const node = el('div', 'sources');
-    if (!list(values).length) return add(node, el('span', 'missing-source', 'Source not provided'));
-    list(values).forEach(value => node.append(el('span', 'source', display(value))));
+    const node = el('details', 'source-record');
+    node.append(el('summary', '', 'Source record'));
+    const entries = el('div', 'sources'); node.append(entries);
+    if (!list(values).length) { entries.append(el('span', 'missing-source', 'Source not provided')); return node; }
+    list(values).forEach(value => entries.append(el('span', 'source', display(value))));
     return node;
   }
   function badge(value) { const text = display(value); return el('span', /pending|draft|shadow|review|insufficient|submitted/i.test(text) ? 'pill pending' : 'pill', text); }

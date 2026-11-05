@@ -40,3 +40,5 @@
 
 .uptime-v4 .v4-source{border:0;border-radius:0;padding:0;background:transparent;color:var(--muted,#5c6478)}
 .uptime-v4 .v4-sources{gap:4px 10px}.uptime-v4 .v4-source+.v4-source::before{content:"·";margin-right:10px}
+
+.uptime-v4 .v4-source-record{margin-block:12px;font-size:12px}.uptime-v4 .v4-source-record summary{font-size:12px;color:var(--muted,#5c6478)}

@@ -146,3 +146,11 @@ test('unsupported projection requests never fall through to an empty API route',
   const {ui,root,requests}=setup(); await assert.rejects(ui.render(root,'portfolio'),/projection is required/);
   assert.equal(requests.length,0);
 });
+
+test('source identity stays exact inside ordinary record disclosures and intake origin keeps wire values',async()=>{
+ const s=setup();await s.ui.render(s.root,'vendors');
+ const source=s.root.all('details').find(n=>n.all('summary').some(x=>x.textContent==='Source record'));
+ assert.ok(source);assert.match(source.textContent,/SYNTHETIC_CUSTOMER/);assert.equal(source.attrs.open,undefined);
+ const origin=s.root.all('select').find(n=>n.name==='classification');
+ assert.deepEqual(origin.all('option').slice(1).map(n=>[n.value,n.textContent]),[['public','Public document'],['synthetic_public','Authored document']]);
+});

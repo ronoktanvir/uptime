@@ -11,3 +11,8 @@
 - New `web/workspace_ui.test.cjs` verifies separate financial stages, exact decimals and missing amounts, source citations, scripted reviewer authority, absence of classification chrome in the configured product, encoded action IDs, duplicate suppression, refresh after lost responses, and stale-control invalidation.
 
 - `web/browser-contract.test.cjs`, new `configured workspace renders inside the finance shell and keeps native records accessible` and `workflow authorization and server errors never silently fall back to native records`: verify configured composition in the existing shell, direct native-record access, and failure propagation for 403/500. Harness now supports an explicit workflow projection/status and loads the workspace renderer.
+
+## Original views and source records
+
+- No existing test assertions changed in this increment. Added `web/v4_ui.test.cjs`, `source identity stays exact inside ordinary record disclosures and intake origin keeps wire values`, to verify that the source identity remains inspectable in a closed record disclosure and document-origin copy preserves exact backend classifications. Existing financial, source, authorization and missing-provenance assertions all remain.
+- Added direct main-navigation links to existing Vendor contracts and Correspondence routes; original case ledger, Ramp records and integration permissions remain reachable. Repeated source tags now live in ordinary Source record disclosures; service values are unchanged.

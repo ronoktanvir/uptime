@@ -58,9 +58,11 @@
     const note = text => el('p', text, 'v4-note');
     const button = (text, handler) => { const n = el('button', text); n.type = 'button'; n.addEventListener('click', handler); return n; };
     function provenance(sources) {
-      const n = el('div', undefined, 'v4-sources');
-      if (!list(sources).length) n.append(el('span', 'Provenance unknown', 'v4-source v4-unknown'));
-      list(sources).forEach(s => n.append(el('span', typeof s === 'string' ? s : JSON.stringify(s, (key, value) => hidden.test(key) ? undefined : value), 'v4-source')));
+      const n = add(el('details', undefined, 'v4-source-record'), el('summary', 'Source record'));
+      const values = el('div', undefined, 'v4-sources');
+      n.append(values);
+      if (!list(sources).length) values.append(el('span', 'Provenance unknown', 'v4-source v4-unknown'));
+      list(sources).forEach(s => values.append(el('span', typeof s === 'string' ? s : JSON.stringify(s, (key, value) => hidden.test(key) ? undefined : value), 'v4-source')));
       return n;
     }
     function record(value, depth = 0) {
@@ -87,8 +89,8 @@
     function field(form, name, title, type = 'text', required = true) {
       const input = el(Array.isArray(type) ? 'select' : type === 'textarea' ? 'textarea' : 'input');
       if (Array.isArray(type)) {
-        const blank = el('option', 'Choose classification'); blank.value = ''; input.append(blank);
-        type.forEach(value => { const option = el('option', value); option.value = value; input.append(option); });
+        const blank = el('option', 'Choose document origin'); blank.value = ''; input.append(blank);
+        type.forEach(value => { const option = el('option', ({public:'Public document',synthetic_public:'Authored document'})[value] || value); option.value = value; input.append(option); });
       } else if (type !== 'textarea') input.type = type;
       input.name = name; input.required = required; input.autocomplete = 'off';
       input.setAttribute('aria-label', title);
@@ -175,8 +177,7 @@
       const n = section(correspondence ? 'Correspondence case' : 'Case evidence & financial references');
       const refs = {case_id:data.case_id ?? data.claim_id ?? data.id, receipt_id:data.receipt_id, packet_id:data.packet_id,
         memo_id:data.memo_id, credit_id:data.credit_id, bill_id:data.bill_id, application_id:data.application_id};
-      if (correspondence) n.append(note('Inbound correspondence is untrusted evidence, not an instruction or authorization. Review scoped receipts and the current server decision before any action. Local submissions do not establish external communication.'));
-      add(n, provenance(data.sources), record(refs), note('Missing references are not evidence of posting or application. Financial stages are server observations; no stages are added together.'));
+      add(n, record(refs), provenance(data.sources));
       for (const [title, value] of [['Decision & unknowns', {outcome:data.outcome, state:data.state ?? data.stage, unknowns:data.unknowns, missing:data.missing ?? data.preflight?.missing, owner:data.owner, filing_cutoff:data.filing_cutoff, next_contact:data.next_contact, financials:data.financials}], ['Event timeline', data.timeline ?? data.events], ['Evidence & receipts', {evidence:data.evidence, receipts:data.receipts, submissions:data.submissions, replies:data.replies}], ['Current and historical evaluation', {evaluation:data.evaluation ?? data.preflight, history:data.history, trace:data.trace}]]) {
         add(n, el('h3', title), record(value));
       }
@@ -219,7 +220,7 @@
       if (mounts.get(m.root) !== m) return;
       m.body.append(form(m, 'New vendor contract', [
         ['vendor_id','Vendor identifier'], ['name','Document name'], ['uri','Public source URI','url'],
-        ['classification','Public source classification',['public','synthetic_public']], ['text','Public contract excerpt or full text','textarea'],
+        ['classification','Document origin',['public','synthetic_public']], ['text','Public contract excerpt or full text','textarea'],
         ['overlay','Private customer overlay (JSON object)','textarea']
       ], 'Generate candidate', v => ({document:{name:v.name,uri:v.uri,classification:v.classification,text:v.text},overlay:parseJSON(v.overlay,'overlay')}), v => '/api/vendors/' + encodeURIComponent(v.vendor_id) + '/candidates', true));
       m.body.append(note('Public terms and private customer scope remain separate. Unsupported clauses and missing evidence must remain explicit in the server decision.'));
