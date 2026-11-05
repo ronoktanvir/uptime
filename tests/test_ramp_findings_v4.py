@@ -3,11 +3,15 @@ from copy import deepcopy
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+import json
+from unittest.mock import patch
 
 import pytest
 
 from uptime.contracts import Citation, fingerprint
 from uptime.pricing import Agreement, ContractVersion, Rate, Tier
+from uptime.ramp import RampError, RampHTTPError, Token
+from uptime import ramp_records as records
 from uptime.ramp_findings import (
     PriceBinding, ServiceMapping, binding_digest, evaluate_snapshot, line_digest,
     _case, _context, _price, _workflow,
@@ -240,43 +244,105 @@ def test_transaction_refund_preserves_negative_native_amount():
 
 
 def test_evaluate_uses_records_validator_when_dependency_is_integrated():
-    records = pytest.importorskip("uptime.ramp_records", reason="Records owner dependency is integrated by root")
     # Round-trip through the canonical owner validator; no substitute validator.
-    snapshot = canonical_observation(records)
+    snapshot = canonical_observation()
     records._validate_snapshot(snapshot)
     rows = evaluate_snapshot(snapshot, as_of=AT, bindings=(binding(snapshot),))
     assert len(rows) == 5
-    assert next(c for c in rows if c["provider_id"] == BILL)["amount"] == "40.00"
-    assert all(c["finding_digest"] == fingerprint({k: v for k, v in c.items() if k != "finding_digest"}) for c in rows)
+    case = next(c for c in rows if c["provider_id"] == BILL)
+    assert case["amount"] == "40.00" and case["outcome"] == "ELIGIBLE"
+    assert case["linked_records"] == [
+        dict(object_type="vendors", id=VENDOR, relationship="provider_vendor_id"),
+        dict(object_type="purchase-orders", id=PO, relationship="provider_purchase_order_id"),
+        dict(object_type="vendor-agreements", id=AGREEMENT, relationship="same_vendor_context_only"),
+    ]
+    assert case["sources"] == ["LIVE_RAMP_SANDBOX", "SYNTHETIC_CUSTOMER"]
+    assert case["data_provenance"]["classification"] == "MIXED"
+    assert case["line_findings"][0]["line_id"] == LINE
+    po = next(c for c in rows if c["provider_id"] == PO)
+    assert dict(object_type="bills", id=BILL, relationship="reciprocal_provider_bill_id") in po["linked_records"]
+    assert all(c["amount"] is None for c in rows if c["provider_id"] != BILL)
     tampered = deepcopy(snapshot)
     tampered["resources"]["bills"]["records"][0]["status"] = "PAID"
-    with pytest.raises(Exception):
+    with pytest.raises(RampError, match="Invalid Ramp records snapshot"):
         evaluate_snapshot(tampered, as_of=AT)
 
 
-def canonical_observation(records):
-    """Use the records owner's real sanitizers on artificial official-wire shapes."""
-    snap = observation()
-    def raw_money(cents):
-        return dict(amount=cents, currency_code="USD", minor_unit_conversion_rate=100)
-    r = snap["resources"]
-    r["bills"]["records"] = [records.sanitize_bill(dict(id=BILL, vendor={"id": VENDOR}, entity_id=ENTITY,
-        status="OPEN", approval_status="PENDING", issued_at=AT.isoformat(), amount=raw_money(12000),
-        purchase_order_id=PO, line_items=[dict(id=LINE, amount=raw_money(12000), purchase_order_line_item_id=POLINE)]))]
-    po = records.sanitize_purchase_order(dict(id=PO, vendor_id=VENDOR, entity_id=ENTITY,
-        billing_status="UNBILLED", amount=raw_money(10000), bill_ids=[BILL], line_items=[dict(id=POLINE,
-        amount=raw_money(10000), quantity=10, unit_price=raw_money(1000), start_date="2026-10-01", end_date="2026-11-01")]))
-    po.update(discovery=["LINKED"], reciprocal_bill_ids=[BILL])
-    r["purchase_orders"]["records"] = [po]
-    r["vendors"]["records"] = [records.sanitize_vendor(dict(id=VENDOR, approval_status="APPROVED", is_active=True))]
-    r["transactions"]["records"] = [records.sanitize_transaction(dict(id=TX, entity_id=ENTITY, state="CLEARED",
-        entity_amount={"value": -100, "currency": "USD"}, minor_unit_conversion_rate=100))]
-    r["agreements"]["records"] = [records.sanitize_agreement(dict(id=AGREEMENT, payee={"uuid": VENDOR},
-        currency="USD", start_date="2026-01-01", end_date="2027-01-01"))]
-    for name, resource in r.items():
-        scope = records.RESOURCE_SCOPES[name]
-        resource["grant"] = dict(requested=[scope], granted=[scope], scope_reported=True, state="GRANTED")
-    return seal(snap)
+def raw_money(cents):
+    return dict(amount=cents, currency_code="USD", minor_unit_conversion_rate=100)
+
+
+class SyntheticReader:
+    """Credential-free wire fixtures through the production importer.
+
+    Shapes follow the native owner's published OpenAPI contract (00da82e).
+    Labels emitted by the importer are assertions under test, not live captures.
+    Quantities belong to structured inventory/PO lines; SKU/unit are deliberately
+    absent because the native schema does not provide them.
+    """
+    def __init__(self, *, inventory=False):
+        self.calls = []
+        self.forbidden = set()
+        self.approval_status = "PENDING"
+        line = dict(id=LINE, amount=raw_money(12000))
+        if inventory:
+            line.update(quantity=10, unit_price=raw_money(1200))
+        else:
+            line["purchase_order_line_item_id"] = POLINE
+        self.rows = {
+            "bills": [dict(id=BILL, vendor={"id": VENDOR}, entity_id=ENTITY,
+                status="OPEN", approval_status="PENDING", issued_at=AT.isoformat(), amount=raw_money(12000),
+                purchase_order_id=None if inventory else PO,
+                **{"inventory_line_items" if inventory else "line_items": [line]})],
+            "bills/drafts": [],
+            "purchase-orders": [dict(id=PO, vendor_id=VENDOR, entity_id=ENTITY,
+                billing_status="UNBILLED", amount=raw_money(10000), bill_ids=[] if inventory else [BILL],
+                line_items=[dict(id=POLINE, amount=raw_money(10000), quantity=10, unit_price=raw_money(1000),
+                                start_date="2026-10-01", end_date="2026-11-01")])],
+            "vendors": [dict(id=VENDOR, approval_status="APPROVED", is_active=True)],
+            "transactions": [dict(id=TX, entity_id=ENTITY, state="CLEARED",
+                entity_amount={"value": -100, "currency": "USD"}, minor_unit_conversion_rate=100)],
+            "vendors/agreements": [dict(id=AGREEMENT, payee={"uuid": VENDOR}, currency="USD",
+                start_date="2026-01-01", end_date="2027-01-01", purchase_orders=[{"id": PO}])],
+            "vendors/credits": [],
+        }
+
+    def token(self, scopes):
+        return Token("synthetic-test-token", frozenset(scopes), frozenset(scopes))
+
+    def request(self, token, method, path, query=None, data=None):
+        assert token.exact
+        self.calls.append((method, path, deepcopy(query), deepcopy(data)))
+        assert method == ("POST" if path == "vendors/agreements" else "GET")
+        if path in self.forbidden:
+            raise RampHTTPError(403)
+        if path == "vendors/agreements":
+            assert query is None and set(data) <= {"page_size", "start"}
+        if path == "approvals":
+            rows = [dict(entity_id=query["entity_ids"][0], entity_type=query["entity_type"].lower(),
+                         status=self.approval_status, approval_history=[], next_approvers=[])]
+        elif path.startswith("comments/"):
+            rows = []
+        elif path in self.rows:
+            rows = self.rows[path]
+        else:
+            resource, ident = path.rsplit("/", 1)
+            return deepcopy(next(row for row in self.rows[resource] if row["id"] == ident))
+        return dict(data=deepcopy(rows), page={"next": None})
+
+
+def canonical_observation(reader=None):
+    with patch.object(records, "now", return_value=AT.isoformat()):
+        snapshot = records.sync_records(reader if reader is not None else SyntheticReader())
+    records._validate_snapshot(snapshot)
+    return snapshot
+
+
+def inventory_binding(snapshot):
+    bound = binding(snapshot)
+    mapping = replace(bound.mappings[0], quantity_source="BILL_INVENTORY", purchase_order_id=None,
+                      purchase_order_line_id=None, purchase_order_line_digest=None)
+    return replace(bound, mappings=(mapping,))
 
 
 def test_inventory_line_uses_its_own_quantity_without_po():
@@ -317,8 +383,8 @@ def test_raw_terms_text_and_private_document_urls_do_not_escape():
 
 
 def test_snapshot_freshness_digest_target_and_availability_integration():
-    records = pytest.importorskip("uptime.ramp_records")
-    snapshot = canonical_observation(records)
+    reader = SyntheticReader()
+    snapshot = canonical_observation(reader)
     bound = binding(snapshot)
     for at in (AT - timedelta(seconds=1), AT + timedelta(hours=25)):
         cases = evaluate_snapshot(snapshot, as_of=at, bindings=(bound,))
@@ -329,30 +395,22 @@ def test_snapshot_freshness_digest_target_and_availability_integration():
     with pytest.raises(ValueError, match="absent"):
         evaluate_snapshot(snapshot, as_of=AT, bindings=(replace(bound, object_id=ENTITY),))
     before = evaluate_snapshot(snapshot, as_of=AT)[0]["finding_digest"]
-    snapshot["resources"]["bills"]["records"][0]["approval_status"] = "APPROVED"
-    seal(snapshot)
+    reader.rows["bills"][0]["approval_status"] = "APPROVED"
+    snapshot = canonical_observation(reader)
     after = evaluate_snapshot(snapshot, as_of=AT)[0]["finding_digest"]
     assert before != after
-    snapshot["resources"]["agreements"].update(status="FORBIDDEN", records=[], complete=False)
-    seal(snapshot)
+    reader.forbidden.add("vendors/agreements")
+    snapshot = canonical_observation(reader)
+    assert snapshot["resources"]["agreements"]["status"] == "FORBIDDEN"
     rows = evaluate_snapshot(snapshot, as_of=AT)
     assert all(c["provider_id"] != AGREEMENT for c in rows)
     assert all(c["amount"] is None for c in rows)
 
 
 def test_inventory_binding_through_actual_records_validator():
-    records = pytest.importorskip("uptime.ramp_records")
-    snapshot = canonical_observation(records)
-    row = snapshot["resources"]["bills"]["records"][0]
-    row["purchase_order_id"] = None
-    row["lines"][0].update(kind="inventory_line_items", quantity="10", unit_price=records._money(dict(amount=1200, currency_code="USD", minor_unit_conversion_rate=100)),
-                            quantity_rate_check="MATCH", purchase_order_line_item_id=None)
-    snapshot["resources"]["purchase_orders"]["records"][0]["reciprocal_bill_ids"] = []
-    seal(snapshot)
-    bound = binding(snapshot)
-    mapping = replace(bound.mappings[0], quantity_source="BILL_INVENTORY", purchase_order_id=None,
-                      purchase_order_line_id=None, purchase_order_line_digest=None)
-    cases = evaluate_snapshot(snapshot, as_of=AT, bindings=(replace(bound, mappings=(mapping,)),))
+    snapshot = canonical_observation(SyntheticReader(inventory=True))
+    assert snapshot["resources"]["bills"]["records"][0]["lines"][0]["quantity_rate_check"] == "MATCH"
+    cases = evaluate_snapshot(snapshot, as_of=AT, bindings=(inventory_binding(snapshot),))
     case = next(c for c in cases if c["provider_id"] == BILL)
     assert case["id"].startswith("ramp-synthetic-price-")
     assert case["amount"] == "40.00"
@@ -366,3 +424,212 @@ def test_invalid_binding_reference_is_not_echoed_in_refusal():
     case = direct(snapshot, bound)
     assert "private customer contract raw text" not in json.dumps(case)
     assert case["amount"] is None
+
+
+def bill_case(snapshot, bound=None, at=AT):
+    cases = evaluate_snapshot(snapshot, as_of=at, bindings=() if bound is None else (bound,))
+    return next(case for case in cases if case["provider_id"] == BILL)
+
+
+@pytest.mark.parametrize("mode", [None, "SYNTHETIC_NEGOTIATED", "OPERATOR_ATTESTED"])
+def test_idempotent_readback_retains_audit_clock_without_changing_finding(tmp_path, mode):
+    snapshot = canonical_observation()
+    bound = None if mode is None else replace(binding(snapshot), terms_mode=mode, signed_terms_attested=True)
+    original = deepcopy(snapshot)
+    path = tmp_path / "synthetic-records.json"
+    path.write_text(json.dumps(snapshot))
+    first = evaluate_snapshot(snapshot, as_of=AT, bindings=() if bound is None else (bound,))
+    for elapsed in (timedelta(microseconds=1), timedelta(minutes=10), timedelta(hours=24)):
+        at = AT + elapsed
+        # Exercise the actual disk loader, including its transient snapshot_status.
+        loaded = records.load_snapshot(path, at=at)
+        again = evaluate_snapshot(loaded, as_of=at, bindings=() if bound is None else (bound,))
+        assert [c["finding_digest"] for c in again] == [c["finding_digest"] for c in first]
+        assert all(c["data_provenance"]["evaluated_at"] == at.isoformat() for c in again)
+        assert all(c["data_provenance"]["freshness"] == "FRESH" for c in again)
+        for old, new in zip(first, again, strict=True):
+            expected = deepcopy(old)
+            expected["data_provenance"]["evaluated_at"] = at.isoformat()
+            assert new == expected
+    assert snapshot == original
+
+
+def test_future_fresh_and_stale_findings_have_distinct_stable_digests():
+    snapshot = canonical_observation()
+    bound = binding(snapshot)
+    checks = [
+        (AT - timedelta(seconds=2), "FUTURE", None),
+        (AT - timedelta(seconds=1), "FUTURE", None),
+        (AT, "FRESH", "40.00"),
+        (AT + timedelta(hours=24), "FRESH", "40.00"),
+        (AT + timedelta(hours=24, microseconds=1), "STALE", None),
+        (AT + timedelta(hours=25), "STALE", None),
+    ]
+    digests = {}
+    for at, state, amount in checks:
+        case = bill_case(snapshot, bound, at)
+        assert case["data_provenance"]["freshness"] == state
+        assert case["amount"] == amount
+        assert case["outcome"] == ("ELIGIBLE" if state == "FRESH" else "INSUFFICIENT_EVIDENCE")
+        assert digests.setdefault(state, case["finding_digest"]) == case["finding_digest"]
+    assert len(set(digests.values())) == 3
+
+
+@pytest.mark.parametrize("change", ["economics", "native_approval", "approval_evidence", "capture",
+                                  "terms", "terms_evidence", "service_evidence", "source"])
+def test_material_changes_invalidate_stable_finding_digest(change):
+    reader = SyntheticReader()
+    snapshot = canonical_observation(reader)
+    bound = binding(snapshot)
+    before = bill_case(snapshot, bound)
+    if change == "economics":
+        reader.rows["bills"][0]["amount"] = raw_money(13000)
+        reader.rows["bills"][0]["line_items"][0]["amount"] = raw_money(13000)
+    elif change == "native_approval":
+        reader.rows["bills"][0]["approval_status"] = "APPROVED"
+    elif change == "approval_evidence":
+        reader.approval_status = "APPROVED"
+    if change in {"economics", "native_approval", "approval_evidence"}:
+        snapshot = canonical_observation(reader)
+        bound = binding(snapshot)
+    elif change == "capture":
+        with patch.object(records, "now", return_value=(AT + timedelta(seconds=1)).isoformat()):
+            snapshot = records.sync_records(reader)
+        bound = binding(snapshot)
+    elif change == "terms":
+        version = replace(bound.agreement.versions[0], rates=(Rate("compute-unit", "unit", (Tier(None, Decimal(7)),)),))
+        bound = replace(bound, agreement=replace(bound.agreement, versions=(version,)))
+    elif change == "terms_evidence":
+        bound = replace(bound, terms_evidence_digest="c" * 64)
+    elif change == "service_evidence":
+        bound = replace(bound, mappings=(replace(bound.mappings[0], evidence_digest="d" * 64),))
+    elif change == "source":
+        bound = replace(bound, terms_mode="OPERATOR_ATTESTED", signed_terms_attested=True)
+    after = bill_case(snapshot, bound, AT + timedelta(minutes=1))
+    assert after["outcome"] == "ELIGIBLE"
+    assert after["amount"] == {"economics": "50.00", "terms": "50.00"}.get(change, "40.00")
+    assert before["finding_digest"] != after["finding_digest"]
+    if change == "source":
+        assert after["sources"] == ["LIVE_RAMP_SANDBOX", "OPERATOR_ATTESTED_CUSTOMER"]
+        assert after["data_provenance"]["classification"] == "PROVIDER_WITH_OPERATOR_EVIDENCE"
+
+
+@pytest.mark.parametrize("inventory", [False, True])
+@pytest.mark.parametrize("mode", ["SYNTHETIC_NEGOTIATED", "OPERATOR_ATTESTED"])
+def test_withheld_native_quantity_cannot_be_filled_by_operator_attestation(inventory, mode):
+    reader = SyntheticReader(inventory=inventory)
+    snapshot = canonical_observation(reader)
+    bind = inventory_binding if inventory else binding
+    good = replace(bind(snapshot), terms_mode=mode, signed_terms_attested=True)
+    assert bill_case(snapshot, good)["amount"] == "40.00"
+    line = reader.rows["bills"][0]["inventory_line_items"][0] if inventory else reader.rows["purchase-orders"][0]["line_items"][0]
+    line["quantity"] = None
+    snapshot = canonical_observation(reader)
+    bound = replace(bind(snapshot), terms_mode=mode, signed_terms_attested=True)
+    case = bill_case(snapshot, bound)
+    assert case["outcome"] == "INSUFFICIENT_EVIDENCE" and case["amount"] is None
+    assert case["missing"] == ["Authoritative structured quantity required."]
+    expected_source = "SYNTHETIC_CUSTOMER" if mode == "SYNTHETIC_NEGOTIATED" else "OPERATOR_ATTESTED_CUSTOMER"
+    assert case["sources"] == ["LIVE_RAMP_SANDBOX", expected_source]
+    assert case["evidence"][-1]["sources"] == [expected_source]
+    assert case["actual_money_prevented"] is None and case["actual_recovery"] is None
+    assert not case["publishable"]
+
+
+@pytest.mark.parametrize("resource", ["bills", "purchase-orders"])
+def test_withheld_native_money_scale_does_not_crash_or_create_po_variance(resource):
+    reader = SyntheticReader()
+    reader.rows[resource][0]["line_items"][0]["amount"]["minor_unit_conversion_rate"] = None
+    snapshot = canonical_observation(reader)
+    for bound in (None, binding(snapshot)):
+        case = bill_case(snapshot, bound)
+        assert case["amount"] is None and case["outcome"] == "INSUFFICIENT_EVIDENCE"
+        assert not case["line_findings"]
+        assert case["finding_kind"] != "PO_VARIANCE"
+
+
+def test_missing_native_po_line_ids_do_not_establish_a_join():
+    reader = SyntheticReader()
+    reader.rows["bills"][0]["line_items"][0]["purchase_order_line_item_id"] = None
+    reader.rows["purchase-orders"][0]["line_items"][0]["id"] = None
+    snapshot = canonical_observation(reader)
+    bound = binding(snapshot)
+    bound = replace(bound, mappings=(replace(bound.mappings[0], purchase_order_line_id=None),))
+    for candidate in (None, bound):
+        case = bill_case(snapshot, candidate)
+        assert case["outcome"] == "INSUFFICIENT_EVIDENCE" and case["amount"] is None
+        assert not case["line_findings"]
+        assert case["finding_kind"] != "PO_VARIANCE"
+
+
+@pytest.mark.parametrize("change", ["unsupported_sku", "source", "coverage", "quantity_check", "reciprocal"])
+def test_resealed_invalid_native_schema_is_still_rejected(change):
+    snapshot = canonical_observation()
+    resources = snapshot["resources"]
+    if change == "unsupported_sku":
+        resources["bills"]["records"][0]["lines"][0]["sku"] = "invented-native-sku"
+    elif change == "source":
+        resources["bills"]["records"][0]["sources"] = ["SYNTHETIC_CUSTOMER"]
+    elif change == "coverage":
+        resources["bills"]["coverage"] = {}
+    elif change == "quantity_check":
+        resources["purchase_orders"]["records"][0]["lines"][0]["quantity_rate_check"] = "UNAVAILABLE"
+    else:
+        resources["purchase_orders"]["records"][0]["reciprocal_bill_ids"] = []
+    seal(snapshot)
+    with pytest.raises(RampError, match="Invalid Ramp records snapshot"):
+        evaluate_snapshot(snapshot, as_of=AT)
+
+
+def test_operator_signed_terms_clock_transition_and_capture_expiry():
+    signature_at = AT + timedelta(hours=12)
+    snapshot = canonical_observation()
+    bound = binding(snapshot)
+    base = bound.agreement.versions[0]
+    # A later amendment leaves the billed October service on v1. Its signature
+    # must still be valid at the evaluation clock before accepting the binding.
+    amendment = replace(base, id="v2", supersedes="v1", signed_at=signature_at,
+                        effective_at=datetime(2026, 12, 1, tzinfo=UTC),
+                        citation=replace(base.citation, version="v2"))
+    bound = replace(bound, terms_mode="OPERATOR_ATTESTED", signed_terms_attested=True,
+                    agreement=replace(bound.agreement, versions=(base, amendment)))
+    before = bill_case(snapshot, bound, signature_at - timedelta(microseconds=1))
+    valid = bill_case(snapshot, bound, signature_at)
+    expired = bill_case(snapshot, bound, AT + timedelta(hours=24, microseconds=1))
+    assert before["amount"] is None
+    assert before["missing"] == ["Terms signature date is missing or after the evaluation clock."]
+    assert valid["amount"] == "40.00" and valid["outcome"] == "ELIGIBLE"
+    assert expired["amount"] is None and expired["outcome"] == "INSUFFICIENT_EVIDENCE"
+    assert len({c["finding_digest"] for c in (before, valid, expired)}) == 3
+    for case in (before, valid, expired):
+        assert case["sources"] == ["LIVE_RAMP_SANDBOX", "OPERATOR_ATTESTED_CUSTOMER"]
+        assert case["data_provenance"]["classification"] == "PROVIDER_WITH_OPERATOR_EVIDENCE"
+        assert not case["publishable"]
+
+
+def test_operator_cryptographic_binding_cannot_extend_native_capture_freshness():
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from uptime.ramp_cap import (InvoiceCapScope, evaluate_invoice_cap,
+                                 make_synthetic_binding, sign_synthetic_binding)
+
+    # All terms and key material are ephemeral synthetic test inputs. Exercise
+    # the real signature verifier against a native-validator-accepted capture.
+    snapshot = canonical_observation()
+    row = snapshot["resources"]["bills"]["records"][0]
+    terms = dict(schema="uptime-synthetic-invoice-cap/1", terms_id="fixture-cap", source="SYNTHETIC_CUSTOMER",
+                 label="Fictional invoice cap", clause="Synthetic gross cap of USD 80",
+                 basis="ENTIRE_INVOICE_INCLUSIVE_TAX_AND_FEES", date_basis="INVOICE_ISSUED_DATE_UTC",
+                 cap=money(8000), effective_from="2026-01-01", effective_until="2027-01-01",
+                 revision=1, supersedes=None, superseded_by=None, amendments=[])
+    key = Ed25519PrivateKey.generate()
+    payload = make_synthetic_binding(snapshot, BILL, tenant_id="test", operator_id="test", terms=terms)
+    scope = InvoiceCapScope("test", sign_synthetic_binding(payload, key), {"test": key.public_key()})
+    for at in (AT, AT + timedelta(hours=24)):
+        case = evaluate_invoice_cap(snapshot, row, terms, as_of=at, scope=scope)
+        assert case["outcome"] == "ELIGIBLE" and case["amount"] == "40.00"
+        assert case["sources"] == ["LIVE_RAMP_SANDBOX", "SYNTHETIC_CUSTOMER"]
+        assert case["data_provenance"] == "MIXED" and not case["publishable"]
+    expired = evaluate_invoice_cap(snapshot, row, terms, as_of=AT + timedelta(hours=24, microseconds=1), scope=scope)
+    assert expired["reason"] == "STALE_SNAPSHOT" and expired["amount"] is None
+    invalid = replace(scope, binding={**scope.binding, "signature": "00" * 64})
+    assert evaluate_invoice_cap(snapshot, row, terms, as_of=AT, scope=invalid)["reason"] == "INVALID_BINDING_SIGNATURE"
