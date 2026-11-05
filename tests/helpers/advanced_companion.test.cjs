@@ -42,7 +42,7 @@ test('receipt actions reload the same correspondence case',async()=>{
   let reads=0;
   const s=setup({reloadAfterMutation:true,api:async(path,body)=>body===undefined?{id:'inbox-x',stage:++reads===1?'DRAFT':'REVIEWED',actions:[{id:'review',label:'Review'}]}:{}});
   await s.ui.inspect(s.root,'inbox-x'); await button(s.root,'Review').listeners.click();
-  assert.equal(reads,2); assert.match(s.root.textContent,/REVIEWED/); assert.match(s.root.textContent,/untrusted evidence/);
+  assert.equal(reads,2); assert.match(s.root.textContent,/REVIEWED/); assert.match(s.root.textContent,/Evidence & receipts/);
 });
 const {companionPlan,companionRoute} = require('../../web/app.js');
 test('explicit V3 and companion routes preserve primary Ramp fallback',()=>{

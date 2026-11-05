@@ -79,7 +79,7 @@ def test_signed_wizard_refresh_routes_and_mobile(portal):
                          ('Public source URI','https://example.invalid/synthetic-terms'),
                          ('Public contract excerpt or full text',TEXT), ('Private customer overlay (JSON object)',json.dumps(overlay))]:
         page.get_by_label(label, exact=True).fill(value)
-    page.get_by_label('Public source classification', exact=True).select_option('synthetic_public')
+    page.get_by_label('Document origin', exact=True).select_option('synthetic_public')
     page.get_by_role('button', name='Generate candidate', exact=True).click()
     page.get_by_role('heading', name='Review exact local request').wait_for()
     assert not writes

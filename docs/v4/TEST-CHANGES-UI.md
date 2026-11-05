@@ -52,3 +52,13 @@ Read only the approved `tasks/northwind-projection-004/posted-projection.json` (
 Expanded details preserve the denial, acquired resource log, independent verification, award and actual `local-ledger:` credit references, scripted principal, and all 14 CalyxQuay lifecycle history entries including rollback. This validates rendering of a service-generated posted projection; it does not establish an interactive socket/browser lifecycle.
 
 The only code correction normalizes the known generated diagnostic prefix `Simulated scoped,` to `Scoped,` in monthly summaries and evaluator trace, preserving the full missing-measurement requirement and raw payload. Added `missing measurement diagnostic stays visible in summary and detail without generated source prefix`. No existing test assertion changed. All 46 Node checks and the actual posted-projection native-browser check pass.
+
+## Joined dashboard regression correction
+
+The first full joined run at `efa4b2a` reported **2 failed, 2,857 passed, 1 warning in 212.45s**. Both failures were stale presentation assertions outside the UI-focused harness; the original output remains in `root-ui-merge-01.log`.
+
+- `tests/test_advanced_companion.py::test_signed_wizard_refresh_routes_and_mobile`: the selector now uses the actual `Document origin` accessible label instead of `Public source classification`. It still submits the exact `synthetic_public` wire value, signs the request, tests review invalidation, and preserves authorization, route and overflow assertions.
+- `tests/helpers/advanced_companion.test.cjs`, `receipt actions reload the same correspondence case`: checks the actual `Evidence & receipts` section heading instead of removed disclaimer copy. It still requires a second server read of the same case and the returned `REVIEWED` state; no receipt, source-authority or financial assertion changed.
+- `tests/test_advanced_companion.py::test_companion_dom_workflows` failed only because it wraps that Node suite; its assertions and invocation are unchanged.
+
+Focused retest: **4 passed, 1 warning in 5.26s**, including the actual signed browser wizard, read-only controls and wrapped Node checks. The warning is the existing Starlette/httpx deprecation. Final joined financial-workflow regression follows the April integration.
