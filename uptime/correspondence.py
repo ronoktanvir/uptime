@@ -10,6 +10,7 @@ from .mandates import check_claim_decision, claim_preview
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import reserve_claim
 from .correspondence_artifacts import HISTORICAL, approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
+from .correspondence_history import historical_reply, receipt_chain
 from .correspondence_reason import propose
 from .correspondence_rules import assess, confirmed_maintenance
 from .correspondence_types import Claim, Delivery, SOURCE, Scope, instant
@@ -260,8 +261,12 @@ class CorrespondenceDesk:
             if body["kind"] == "notice" and instant(body["issued_at"]) > now:
                 raise ValueError("Notice has not been issued.")
             if body["kind"] == "message":
-                if not state["submissions"] or body["receipt_id"] != state["submissions"][-1]["id"]:
-                    raise ValueError("Correspondence does not refer to the current local submission.")
+                chain = receipt_chain(state)
+                latest = state["submissions"][-1]["id"] if state["submissions"] else None
+                if latest is None and chain:
+                    latest = (chain[1] or chain[0])["body"]["receipt_id"]
+                if latest is None or body["receipt_id"] != latest:
+                    raise ValueError("Correspondence must refer to the current independently observed or local filing.")
 
             fact = dict(event_id=event.event_id, source=source, subject=principal.subject, kind=body["kind"], digest=digest,
                         source_key_id=getattr(principal, "source_key_id", None), source_grant_id=getattr(principal, "source_grant_id", None),
@@ -272,6 +277,9 @@ class CorrespondenceDesk:
             if body["kind"] in HISTORICAL:
                 if state["submissions"]:
                     raise ValueError("Local and imported original submissions cannot share an intake.")
+                # Reject an equivocating receipt, or a supplement linked to a
+                # different original, before reserving the monthly obligation.
+                receipt_chain(state)
                 current = self._assess(tenant, scope, state, now)
                 if not current.remedy.startswith("resource-month/"):
                     raise ValueError("Historical filing evidence requires an active, reviewed resource-month agreement.")
@@ -290,6 +298,11 @@ class CorrespondenceDesk:
                     state["replies"].append(dict(reason="contradictory_correspondence", span=None, event_id=fact["event_id"],
                         digest=digest, receipt=body["receipt_id"], received_at=now.isoformat(), sources=VENDOR))
                     audit(state, now, "claimant", "Additional substantive vendor correspondence requires review.", VENDOR)
+                elif receipt_chain(state):
+                    reply = historical_reply(state, fact, now, propose(body["text"]))
+                    reply["sources"] = VENDOR
+                    state["replies"].append(reply)
+                    audit(state, now, "claimant", "Linked vendor reply to verified historical receipt.", VENDOR, receipt=body["receipt_id"])
                 else:
                     self._reply(tenant, scope, state, fact, now)
             else:
