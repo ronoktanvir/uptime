@@ -28,6 +28,9 @@ evidence: list selected from "resource_intervals", "account_records", "itemized_
 "verification" requires an express provider verification process or a verification condition on issuing credits.
 A customer or custodian verifying its recording system or records establishes claimant evidence custody only.
 Represent that obligation with the scoped telemetry/custodian operators and record categories actually stated.
+The legacy combination verification + request_contents + nonempty source-bound request_fields is accepted when
+the source expressly requires supplying proof of those fields. It is normalized exclusively to the internal
+claimant_supporting_proof label, and never retains issuer verification authority. That internal label is not an input enum.
 Provider incident records and customer operation intervals remain separately attributed even when both use
 the resource_intervals evidence category. Do not infer issuer verification from a signature or the word "verifying".
 request_fields: list of verbatim items the request MUST identify/include. submission_channel: exact stated address or channel.
@@ -424,7 +427,7 @@ def _compile_resource(document, clauses, issues):
                         evidence = list(value)
                         if 'verification' in evidence and claimant_proof_required(quote, values):
                             # This span asks the claimant for proof. It confers no issuer verification or award.
-                            evidence[evidence.index('verification')] = 'claimant_supporting_proof'
+                            evidence = ['claimant_supporting_proof' if item == 'verification' else item for item in evidence]
                         manifest.setdefault(key,[]).extend(v for v in evidence if v not in manifest.get(key,[]))
                         continue
                     if key == 'tiers':
