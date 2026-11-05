@@ -45,3 +45,12 @@ test('agreement amendments and adapter history retain actual references and scri
  assert.equal(s.root.all('a').find(a=>a.textContent==='Inspect vendor contracts').href,'#vendors');
  assert.deepEqual(data.sources,['SYNTHETIC_CUSTOMER']);assert.equal(data.mode,'replay');
 });
+
+test('invoice periods and source usage details preserve server observations and null without arithmetic',async()=>{
+ const data={...projection,months:[{...projection.months[2],invoice:{id:'NW-MAR-2026',issued_at:'2026-03-01',service_start:'2026-03-01',service_end:'2026-04-01'},evidence:[{label:'Coverage',ref:'usage-mar#coverage',value:null},{label:'Eligible downtime',ref:'usage-mar#downtime',value:'0 minutes observed'}],trace:['Required full-month coverage is unavailable.']}]};
+ const s=setup(()=>({workflow:data}));await s.ui.render(s.root);
+ const detail=s.root.all('details').find(n=>n.all('summary').some(x=>x.textContent==='Inspect invoice & usage'));
+ assert.ok(detail);for(const value of ['NW-MAR-2026','2026-03-01','2026-04-01','usage-mar#coverage','Not provided','0 minutes observed','Required full-month coverage is unavailable.'])assert.ok(detail.textContent.includes(value),value);
+ assert.equal(s.root.all('tbody')[0].all('tr')[0].children[2].textContent,'Not determined');
+ assert.equal(data.months[0].amount,null);assert.equal(data.months[0].evidence[0].value,null);
+});

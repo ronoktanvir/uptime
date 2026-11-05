@@ -33,3 +33,5 @@ Final focused validation: 42 Node behavioral checks pass. Both native-browser ch
 ## Legacy presentation headings
 
 Known legacy headings/actions now use ordinary names (`Run shadow checks`, agreement/invoice/evidence headings, estimated future-service credit and invoice cap review). Generated evidence summaries that only describe authoring or environment identity now show their exact returned reference/digest instead. Financial stages and missing-evidence/verification failures remain; linked source quotations are unchanged. No existing test assertions changed in this increment.
+
+- Added `invoice periods and source usage details preserve server observations and null without arithmetic` for optional production-projected invoice dates, source evidence values/references and evaluator trace. Missing coverage remains missing and the monthly credit remains null. No existing test assertion changed.

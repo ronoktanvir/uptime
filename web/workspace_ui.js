@@ -26,6 +26,18 @@
       list(items).forEach(c => refs.append(add(el('li'), el('span',typeof c === 'string' ? c : c.label || c.title || c.ref), typeof c === 'object' && c.ref ? el('code', c.ref) : null)));
       return refs.children.length ? refs : note('Source references not provided.');
     }
+    function monthEvidence(month) {
+      const cell=el('td');add(cell,note(month.reason),citations(month.citations));
+      if (month.invoice || list(month.evidence).length || list(month.trace).length) {
+        const detail=add(el('details',null,'workflow-evidence'),el('summary','Inspect invoice & usage'));
+        const invoice=month.invoice || {};
+        if (month.invoice) detail.append(fields([['Invoice',invoice.id],['Issued',invoice.issued_at],['Service starts',invoice.service_start],['Service ends',invoice.service_end]]));
+        list(month.evidence).forEach(item=>detail.append(add(el('article',null,'workflow-document'),el('h3',item.label),note(item.value == null ? 'Not provided' : item.value),item.ref ? el('code',item.ref) : null)));
+        if(list(month.trace).length) detail.append(add(el('ol',null,'trace'),...month.trace.map(line=>el('li',line))));
+        cell.append(detail);
+      }
+      return cell;
+    }
     function renderData(root,data,token) {
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
       const header=add(el('div',null,'page-head'),add(el('div'),el('h1',vendor || 'Contract operations'),note('Contract review & recovery')),note(data.as_of ? 'Updated '+data.as_of : ''));
@@ -61,7 +73,7 @@
       add(recovery,controls,status);
       const monthly=panel('Service credit evaluations'), table=el('table'), body=el('tbody');
       add(table,add(el('thead'),add(el('tr'),...['Service month','Decision','Service credit','Evidence'].map(t=>{const th=el('th',t);th.scope='col';return th;}))),body);
-      list(data.months).forEach(month=>body.append(add(el('tr'),el('td',month.month),el('td',state(month.outcome)),el('td',money(month.amount,month.currency || currency)),add(el('td'),note(month.reason),citations(month.citations)))));
+      list(data.months).forEach(month=>body.append(add(el('tr'),el('td',month.month),el('td',state(month.outcome)),el('td',money(month.amount,month.currency || currency)),monthEvidence(month))));
       add(monthly,add(el('div',null,'table-scroll'),table));
       const price=data.price_finding || {}, pricing=panel('March price review');
       add(pricing,fields([['Finding','Price cap review'],['Exposure',money(price.amount,price.currency || currency)],['Status',state(price.state)]]),note(price.reason),citations(price.citations));
