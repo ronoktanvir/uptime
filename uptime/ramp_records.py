@@ -381,10 +381,61 @@ def _details(provider, token, resource, path, rows, sanitizer, budget, coverage)
     return coverage["details_attempted"]
 
 
+def _vendor_capture(provider, token, resource, bills, page_size, max_pages, budget):
+    """Prioritize exact captured bill references within one vendor detail budget.
+
+    Linked coverage describes captured parents only, never the business inventory.
+    The injected provider owns business authentication; reuse its exact vendors grant.
+    Default entity and parent vendor IDs are observations, not bill ownership rules.
+    """
+    linked = sorted({b["vendor_id"] for b in bills if b["vendor_id"] is not None})
+    cov = {"listed": len(linked), "list_complete": True,
+           "parent_scope": "captured_native_records", "details_attempted": 0,
+           "details_read": 0, "detail_complete": False, "issues": []}
+    resource["coverage"]["LINKED_VENDORS"] = cov
+    if token is None:
+        _finish(resource)
+        cov["status"] = resource["status"]
+        return
+    budget -= _details(provider, token, resource, "vendors", [{"id": i} for i in linked],
+                       sanitize_vendor, budget, cov)
+    # Derive linked status before inventory errors can affect it.
+    linked_result = {**resource, "coverage": {"LINKED_VENDORS": cov}}
+    _finish(linked_result)
+    cov["status"] = linked_result["status"]
+    rows, inventory = _pages(provider, token, "vendors", page_size, max_pages)
+    resource["coverage"]["vendors"] = inventory
+    resource["issues"].extend(inventory["issues"])
+    independent, seen = [], set()
+    for row in rows:
+        try:
+            ident = uuid_text(row["id"])
+            if ident in seen:
+                raise RampError("Duplicate vendor list ID")
+            seen.add(ident)
+            # Never retry failed linked reads or allow a list payload to replace them.
+            if ident not in linked:
+                independent.append(row)
+        except _ERRORS as exc:
+            issue = _issue(exc)
+            inventory["issues"].append(issue)
+            resource["issues"].append(issue)
+    _details(provider, token, resource, "vendors", independent, sanitize_vendor, budget, inventory)
+    inventory["detail_complete"] = (inventory["detail_complete"] and not inventory["issues"]
+        and all(i in {r["id"] for r in resource["records"]} for i in seen))
+    _finish(resource)
+
+
 def sync_records(provider, *, page_size=10, max_pages=1, detail_limit=10,
-                 include_unlinked_purchase_orders=False):
-    """Read a bounded observation; default PO reads follow native bill/agreement IDs."""
+                 include_unlinked_purchase_orders=False, include_linked_vendors=True):
+    """Read a bounded observation, prioritizing native bill vendor references.
+
+    Vendor linked + inventory detail attempts together never exceed detail_limit.
+    Set include_linked_vendors=False to retain historical inventory-only behavior.
+    """
     _bounds(page_size, max_pages, detail_limit)
+    if type(include_linked_vendors) is not bool:
+        raise RampError("Invalid linked vendor option")
     if type(include_unlinked_purchase_orders) is not bool:
         raise RampError("Invalid independent PO option")
     observed = now()
@@ -398,6 +449,10 @@ def sync_records(provider, *, page_size=10, max_pages=1, detail_limit=10,
     for name, entries in plans.items():
         resource, budget = resources[name], detail_limit
         token = grants[RESOURCE_SCOPES[name]][0]
+        if name == "vendors" and include_linked_vendors:
+            _vendor_capture(provider, token, resource, resources["bills"]["records"],
+                            page_size, max_pages, budget)
+            continue
         if token is not None:
             for path, sanitizer in entries:
                 rows, coverage = _pages(provider, token, path, page_size, max_pages,
@@ -658,7 +713,7 @@ def _validate_coverage(resource):
     counts = {"listed", "details_attempted", "details_read", "pages_read", "page_size", "max_pages"}
     for key, cov in resource["coverage"].items():
         if key not in {"bills", "bills/drafts", "vendors", "transactions", "vendors/agreements", "vendors/credits",
-                       "LINKED", "INDEPENDENT_POs", "parents"}:
+                       "LINKED", "LINKED_VENDORS", "INDEPENDENT_POs", "parents"}:
             kind, ident = key.split(":", 1)
             if kind not in {"bill", "transaction", "draft"}:
                 raise RampError("Invalid coverage parent")
