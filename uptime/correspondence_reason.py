@@ -158,3 +158,20 @@ def propose(text: str, *, claimed: Decimal | None = None) -> Proposal:
     if reason == "maintenance" and re.search(r"\b(no|not|never|possibly|potential|unclear|unknown|unconfirmed)\b.{0,40}\bmaintenance\b", text):
         return Proposal("unknown")
     return Proposal(reason, span, artifact_type=artifact_type, reference=reference, scope_field=scope_field, downtime_us=downtime_us)
+
+
+def requested_filing_fields(text, names):
+    """Match an explicit request to corroborated public field labels, never arbitrary vendor instructions."""
+    lowered = text.casefold()
+    if (not re.search(r"\b(?:need|missing|lack|provide|document|prove|send|supply|attach|furnish|require|show|demonstrate|without)\w*\b", lowered)
+            or re.search(r"\b(?:ignore|override|execute|credentials?|password|secret|token|instructions?|disregard|quoted|hypothetical|already|unnecessary)\b|[<>{}\"“”]|https?://", lowered)):
+        return []
+    classes = ({"month","period"}, {"resource","station","endpoint","component"}, {"interval","intervals","timestamps","logs","journal"},
+               {"controller","attribution","cause"}, {"valid","validation"}, {"bill","billing","invoice","charge","fees"})
+    words = set(re.findall(r"[a-z]+", lowered))
+    result = []
+    for name in names:
+        terms = set(re.findall(r"[a-z]+", name.casefold()))
+        if name.casefold() in lowered or any(words & group and terms & group for group in classes):
+            result.append(name)
+    return sorted(result)

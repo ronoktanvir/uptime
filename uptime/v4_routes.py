@@ -17,6 +17,8 @@ from .twilio import calendar_bounds
 from .vendor_api import make_router
 from .vendor_registry import evaluate_active_db
 from .correspondence_resource import exclusive_cutoff, join_resource
+from .correspondence_history import procedure
+from .correspondence_artifacts import HISTORICAL
 from .correspondence_artifacts import SUPPLEMENTS
 from .vendor_terms import candidate_version
 
@@ -184,7 +186,16 @@ def resolve_active(path, tenant, scope, events, at):
         receipts = _filing_receipts(db, tenant, scope)
         filed = instant(receipts[0]["at"]) if receipts else at
         resource = manifest["family"] == "resource-month/1"
-        filing = raw = gap = cutoff = None
+        filing = raw = gap = cutoff = historical = None
+        if resource and any(e["kind"] in HISTORICAL for e in events):
+            try:
+                # This entry point also rejects stale interpreter semantics before
+                # using a published clause for a nonfinancial procedural response.
+                evaluate_active_db(db, Principal(tenant,"local-active-join","viewer"), installation, {},
+                                   expected_version=state["active_version"], expected_revision=state["revision"])
+                historical = procedure(scope, events, manifest, overlay)
+            except ValueError:
+                historical = None
         try:
             if resource:
                 obs, filing = join_resource(scope, events, manifest, overlay, filed, receipts)
@@ -198,6 +209,8 @@ def resolve_active(path, tenant, scope, events, at):
                 cutoff = exclusive_cutoff(raw)
         except ValueError as error:
             gap = str(error)
+    if not cutoff and historical:
+        cutoff = instant(historical["cutoff"])
     publication = state["active_version"]
     cited = tuple(Citation(manifest["document"]["name"], publication,
                            f"Clause {c['id']} (active revision {state['revision']})", manifest["document"]["uri"])
@@ -234,7 +247,7 @@ def resolve_active(path, tenant, scope, events, at):
     return ActiveRemedy(tenant, scope, fingerprint([[e["source"], e["digest"]] for e in events]),
                         controlling, cutoff, result, agreement_id=manifest.get("agreement") or overlay["agreement"],
                         remedy="resource-month/"+scope.component if resource else "availability", filing_material=filing,
-                        measurement=measurement)
+                        measurement=measurement, procedure=historical)
 
 
 def register_v4_routes(app, bench, auth):

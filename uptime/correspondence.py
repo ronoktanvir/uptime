@@ -10,8 +10,8 @@ from .mandates import check_claim_decision, claim_preview
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import reserve_claim
 from .correspondence_artifacts import HISTORICAL, approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
-from .correspondence_history import historical_reply, receipt_chain
-from .correspondence_reason import propose
+from .correspondence_history import apply_response_state, historical_reply, receipt_chain, response_material
+from .correspondence_reason import propose, requested_filing_fields
 from .correspondence_rules import assess, confirmed_maintenance
 from .correspondence_types import Claim, Delivery, SOURCE, Scope, instant
 from .storage import database
@@ -214,7 +214,7 @@ class CorrespondenceDesk:
     def _assess(self, tenant, scope, state, now):
         filed = instant(state["submissions"][0]["at"]) if state["submissions"] else None
         historical = [e for e in state["evidence"] if e["kind"] == "original_filing_receipt"]
-        if not filed and len(historical) == 1:
+        if len(historical) == 1:
             filed = instant(historical[0]["body"]["received_at"])
         return assess(tenant, scope, state["evidence"], now, filed, self.active_resolver)
 
@@ -301,7 +301,18 @@ class CorrespondenceDesk:
                 elif receipt_chain(state):
                     reply = historical_reply(state, fact, now, propose(body["text"]))
                     reply["sources"] = VENDOR
+                    current = self._assess(tenant, scope, state, now)
+                    if current.procedure:
+                        info = current.procedure
+                        if reply["reason"] in {"component","artifact","unknown"}:
+                            # Prefer the missing contractual items to avoid disclosing
+                            # already filed identifiers mentioned only as context.
+                            reply["requested_fields"] = requested_filing_fields(body["text"], info["missing"])
+                            if reply["requested_fields"]:
+                                reply["reason"] = state["reason"] = "filing_fields"
                     state["replies"].append(reply)
+                    state["cooldown"] = (now + FOLLOW_UP).isoformat()
+                    apply_response_state(state, current)
                     audit(state, now, "claimant", "Linked vendor reply to verified historical receipt.", VENDOR, receipt=body["receipt_id"])
                 else:
                     self._reply(tenant, scope, state, fact, now)
@@ -313,6 +324,13 @@ class CorrespondenceDesk:
         return dict(event_id=event.event_id, digest=digest, received_at=now.isoformat())
 
     def _evidence_arrival(self, tenant, scope, state, now):
+        if receipt_chain(state) and state["replies"]:
+            # A later substantive reply on the same receipt is a conflict; more
+            # evidence cannot implicitly reopen it or restore its approval.
+            if state["replies"][-1].get("reason") != "contradictory_correspondence":
+                current = self._assess(tenant, scope, state, now)
+                apply_response_state(state, current)
+            return
         if state["stage"] in TERMINAL:
             evaluation = self._assess(tenant, scope, state, now).evaluation
             if (state["stage"] in {"AWARDED", "PARTIAL_AWARD_REVIEW"} and evaluation.outcome != Outcome.ELIGIBLE
@@ -411,6 +429,18 @@ class CorrespondenceDesk:
 
     def _packet(self, tenant, claim_id, scope, state, current):
         """Construct local simulator wire data from allowlisted fields only. No incoming body/text is copied."""
+        if receipt_chain(state):
+            material = response_material(state, current)
+            if not material:
+                raise ValueError("A witnessed initial filing and independently substantiated procedural correction are required.")
+            history = current.procedure
+            return dict(tenant=tenant, claim=claim_id, scope=scope.model_dump(), destination="isolated-local-simulator",
+                        purpose="procedural_evidence_only", requested="0.00", subject="SLA Claim", version=current.version,
+                        agreement_id=current.agreement_id, in_reply_to=history["original"], vendor_event=state["replies"][-1]["digest"],
+                        original_receipt_digest=history["original_digest"], filing_cutoff=history["cutoff"], evidence_digest=current.evidence_digest,
+                        authority_digest=fingerprint(_issuers(state)), terms_digest=fingerprint([asdict(c) for c in current.evaluation.clauses]),
+                        artifacts=[dict(kind=e["kind"], digest=e["digest"]) for e in state["evidence"] if e["kind"] != "message"],
+                        **material)
         if current.evaluation.outcome != Outcome.ELIGIBLE:
             raise ValueError("Claim does not pass its current cited eligibility evaluation.")
         facts = [e for e in state["evidence"] if e["kind"] != "message"]
@@ -471,7 +501,12 @@ class CorrespondenceDesk:
 
     def _actions(self, p, scope, state, current, now):
         if (p.role != "reviewer" or not (action := ACTIONS.get(state["stage"]))
-                or current.evaluation.outcome != Outcome.ELIGIBLE or current.cutoff is None or now >= current.cutoff):
+                or current.cutoff is None or now >= current.cutoff):
+            return []
+        if receipt_chain(state):
+            if not action.endswith("response") or not response_material(state, current):
+                return []
+        elif current.evaluation.outcome != Outcome.ELIGIBLE:
             return []
         if action.startswith("submit-") and state["approval"]:
             binding = self._approval_binding(current)
@@ -509,11 +544,15 @@ class CorrespondenceDesk:
                 receipt = dict(id="LOCAL-" + digest[:24], action=action, at=now.isoformat(), digest=digest, packet=packet,
                                requested=packet["requested"], approval=state["approval"],
                                evidence_digests=[a["digest"] for a in packet["artifacts"]], sources=VENDOR)
+                historical = receipt_chain(state)
+                initial = state["submissions"][0]["id"] if state["submissions"] else None
+                if historical:
+                    initial = "HIST-" + fingerprint([p.tenant, scope.model_dump(), historical[0]["body"]["receipt_id"]])
                 reserve_claim(db, tenant=p.tenant, vendor=scope.vendor, account=scope.account,
                               agreement_id=current.agreement_id, agreement_version=current.version, service=scope.service,
-                              month=scope.month, remedy=current.remedy, route="correspondence", case_id=claim_id,
+                              month=scope.month, remedy=current.remedy, route="historical-receipt" if historical else "correspondence", case_id=claim_id,
                               packet_digest=digest, scope=scope.model_dump(), receipt_id=receipt["id"], at=receipt["at"],
-                              initial_receipt_id=state["submissions"][0]["id"] if state["submissions"] else None)
+                              initial_receipt_id=initial)
                 state["submissions"].append(receipt)
                 state["approval"] = None
                 state["stage"] = "AWAITING_VENDOR"
@@ -576,6 +615,6 @@ class CorrespondenceDesk:
                     evidence=evidence, timeline=state["timeline"], submissions=submitted, replies=replies, approval=state["approval"],
                     actions=actions, state_sha256=fingerprint([scope.model_dump(),state]),
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
-                    requested_artifact=state.get("requested_artifact"),
+                    requested_artifact=state.get("requested_artifact"), historical_procedure=current.procedure,
                     policy_dispatchable=False, ledger=ledger,
                     financials=[dict(label=k.replace("_", " ").title(), value=scope.currency + " " + v, sources=SOURCES) for k,v in ledger.items()])
