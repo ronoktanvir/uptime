@@ -352,3 +352,25 @@ def test_subcent_claim_above_ceiling_still_requires_next_cent_of_authority():
     with localcontext() as context:
         context.prec = 3
         assert mandates.claim_preview("approve-claim",scope,packet).max_amount_cents == 1001
+
+
+def test_default_fixture_tenant_cannot_use_broad_local_authority_in_sandbox(tmp_path):
+    db = tmp_path/"sandbox.db"
+    key = generate_reviewer_key()
+    enroll(db, USER, key, mode="sandbox")
+    auth = Authority(db, "sandbox",False,True,None,None,DEFAULT_ORIGIN)
+    app = app_for(auth,None)
+    with local(app) as client:
+        reviewer = ReviewerClient(client,DEFAULT_ORIGIN,USER,key)
+        assert reviewer.post(ROUTE,{}).status_code == 403
+        assert client.get("/api/auth/context").json()["mode"] == "sandbox"
+
+
+def test_fixture_hmac_cannot_coexist_with_an_ed25519_source_registry(tmp_path):
+    from test_source_config_v4 import setup
+    from uptime.source_config import SourceConfig, load_private
+    path, db, _, _ = setup(tmp_path)
+    grants = load_private(path, SourceConfig).credentials("replay",DEFAULT_ORIGIN,"bears")
+    grants["hmac.fixture"] = "a"*64
+    with pytest.raises(ValueError, match="HMAC"):
+        Authority(db,"replay",False,True,None,grants,DEFAULT_ORIGIN)

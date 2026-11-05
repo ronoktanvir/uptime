@@ -2,7 +2,7 @@
 
 An offline administrator enrolls a named P-256 reviewer in one tenant's installation. The database assigns a random persistent workspace ID. A separate offline administrator registers an independently verified Ed25519 issuer public key, and any supported native actions and single Ramp business in its remit. A signature establishes possession of an enrolled key. Deployment records and tests cannot establish legal signing power or actual human review.
 
-All local mutations for a non-default tenant require a current mandate. The default fixture tenant supports local reviewer simulation behind the deployment interlock. Every native dispatch requires a mandate for both the local POST and the exact provider effect, a sandbox-mode named reviewer, a fresh reviewer proof, and the separate operating controls in the workflow adapter. Financial approval or rejection is outside the native allowlist.
+Every sandbox installation and every non-default tenant require a current mandate for local reviewer mutations. The default fixture tenant supports broad local reviewer simulation only in replay mode behind the deployment interlock. Every native dispatch requires a mandate for both the local POST and the exact provider effect, a sandbox-mode named reviewer, a fresh reviewer proof, and the separate operating controls in the workflow adapter. Financial approval or rejection is outside the native allowlist.
 
 ## Operator boundary
 

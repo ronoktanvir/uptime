@@ -183,6 +183,9 @@ class Authority:
             if identity in identities:
                 raise ValueError("Inbound sources require independent keys")
             identities.add(identity)
+        if self.services and any(isinstance(key, SourceGrant) for key in self.services.values()) and any(
+                isinstance(key, str) for key in self.services.values()):
+            raise ValueError("A public-verifier installation cannot enable the fixture HMAC channel")
         if rehearsal != bool(rehearsal_secret) or (rehearsal and len(rehearsal_secret) < 32):
             raise ValueError("Only a scripted replay can use a private rehearsal credential")
         bind_workspace(path, mode, rehearsal, tenant)
@@ -307,7 +310,8 @@ class Authority:
                 raise HTTPException(403, "Scripted actions require the isolated fixture tenant")
             return principal
         try:
-            claimed = mandates.claim(self.path, principal, path, body_hash, self.instance, required=self.tenant != TENANT)
+            fixture_replay = self.mode == "replay" and self.tenant == TENANT
+            claimed = mandates.claim(self.path, principal, path, body_hash, self.instance, required=not fixture_replay)
         except PermissionError as exc:
             raise HTTPException(403, str(exc)) from None
         if claimed:

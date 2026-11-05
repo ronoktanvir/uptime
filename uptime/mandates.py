@@ -104,7 +104,7 @@ def claim_preview(action, scope, packet):
 def check_claim_decision(principal, action, scope, packet, db):
     decision = getattr(principal, "claim_decision", None)
     if decision is None:
-        if principal.tenant == "bears":
+        if principal.tenant == "bears" and not getattr(principal, "mandate_id", None):
             return
         raise PermissionError(DENIED)
     recheck_financial_mandate(db, principal)
@@ -152,7 +152,7 @@ def check_credit_decision(db, principal, actual):
     """Check the exact authorized allocation and both mutable ledger versions under the SQL write lock."""
     decision = getattr(principal, "credit_decision", None)
     if decision is None:
-        if principal.tenant == "bears":
+        if principal.tenant == "bears" and not getattr(principal, "mandate_id", None):
             return
         raise PermissionError(DENIED)
     recheck_financial_mandate(db, principal)
