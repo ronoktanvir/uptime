@@ -1,0 +1,11 @@
+{
+  "commit": "3449bbe",
+  "command": "uv run --locked pytest --basetemp /Users/ronoktanvir/.local/share/uptime-engineering/tasks/pytest69-full",
+  "result": "2971 passed, 1 warning in 201.33s (0:03:21)",
+  "exit_code": 0,
+  "log_sha256": "d7c171399abbe7967e24db30e3044d482b8fbcdd8333cb9522ffdddf77a5796b",
+  "log_reference": "W/receipts/phase69-framing-001.log",
+  "warning": "Existing Starlette/httpx deprecation",
+  "native_write_verified": false,
+  "unseen_reply_score_changed": false
+}

@@ -1,0 +1,57 @@
+{
+  "checked_at": "2026-11-05T23:37:05.685661+00:00",
+  "code_commit": "3449bbe",
+  "association_status": "ONE_BILL_READ_VERIFIED",
+  "bill_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+  "business_id": "1569e402-460e-4952-adad-9df27db628a0",
+  "association_receipt_sha256": "0c2f26b9765a3bb273a6a8bba5d3cb7b5d6d409da63008302da1aec957f4d055",
+  "capture_checksum": "048d5b2f471f2b41072cae7a212624d5ba702dc20297a0993715ce596fa9c0e1",
+  "capture_file_sha256": "90ade69af105c9e39870eb9e6b4c7a88bedf3bc965764b33489b0427721d26ad",
+  "resources": {
+    "bills": {
+      "status": "COMPLETE",
+      "complete": true,
+      "count": 6
+    },
+    "vendors": {
+      "status": "TRUNCATED",
+      "complete": false,
+      "count": 12
+    },
+    "transactions": {
+      "status": "TRUNCATED",
+      "complete": false,
+      "count": 12
+    },
+    "agreements": {
+      "status": "EMPTY",
+      "complete": true,
+      "count": 0
+    },
+    "purchase_orders": {
+      "status": "TRUNCATED",
+      "complete": false,
+      "count": 12
+    },
+    "credits": {
+      "status": "EMPTY",
+      "complete": true,
+      "count": 0
+    },
+    "approvals": {
+      "status": "TRUNCATED",
+      "complete": false,
+      "count": 11
+    },
+    "comments": {
+      "status": "EMPTY",
+      "complete": true,
+      "count": 0
+    }
+  },
+  "write_attempted": false,
+  "browser_reobserved_this_run": false,
+  "browser_url_basis": "Exact previously observed bill URL preserved in the prior connection receipt; current API read only.",
+  "native_recovery": "UNVERIFIED",
+  "raw_records_committed": false
+}

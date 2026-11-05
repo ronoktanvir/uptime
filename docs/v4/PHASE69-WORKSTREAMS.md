@@ -2,6 +2,10 @@
 
 Base `4f44767` preserves the passing Northwind application and its source-linked CI receipts. The user authorized continued implementation, frequent focused GitHub updates, and actual Claude Code Opus 5.5 coding delegation. No strategic workstream was removed.
 
+First verified increment: `3449bbe` rejects ambiguous model results and mismatched model/session identity. Full regression produced **2,971 passed, 1 warning in 201.33s**. The proposed CLI structured profile was refused after its actual probe exposed an internal tool; no exception or automatic fallback was added. [Decision 69](decisions/ADR-0069-public-model-framing.md) · [Test receipt](evidence/verification-3449bbe.json)
+
+The same previously observed Ramp bill and business were read successfully again. The fresh bounded capture contains six complete bills, sampled vendors/transactions/POs/approvals, and empty completed agreement, credit and comment lists. This is new read evidence, not write or recovery proof. Raw captures remain outside Git. [Read receipt](evidence/native-demo-read-20261105.json)
+
 | Owner / branch | Concrete deliverable | Dependency and acceptance |
 |---|---|---|
 | Root / `v4/integration`, decision 69 | Evaluate opt-in structured proposal transport; integrate and verify workstream commits | Actual Opus criticism first. No tool-policy weakening or runtime customer enablement. Preserve all earlier failed measurements. |
