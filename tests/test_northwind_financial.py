@@ -214,7 +214,7 @@ def test_ordinary_registry_test_lifecycle_and_export_keep_step_variant(tmp_path)
     state=registry.submit_tests(path,principal,'cloud',registry.TestSubmission(revision=state['revision'],tests=controls),governing_fees=fee_contexts(package))
     for operation in ('approve','activate'):
         action=next(a['id'] for a in state['actions'] if a['operation']==operation)
-        state=registry.act(path,principal,'cloud',action)
+        state=registry.act(path,principal,'cloud',action,governing_fees=fee_contexts(package))
     actual=registry.dispatch(path,principal,'cloud',package['months'][0]['facts'],governing_fee=fee_contexts(package)[0])
     assert actual['amount']=='2400.00'
     assert 'tiers' not in registry.get_vendor(path,principal,'cloud')['manifest']
