@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-05T03:39:40.671790+00:00",
+  "updated_at": "2026-11-05T04:26:37.834409+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8765",
   "headline": "Uptime engineering progress",
@@ -7,15 +7,15 @@
   "evidence": [
     {
       "label": "Frozen regression",
-      "value": "2,118 + 34",
-      "detail": "Python and JavaScript checks passed at b6666b4.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-b6666b4.json"
+      "value": "2,187 + 34",
+      "detail": "Python and JavaScript checks passed at 38bca3e. The progress graph also passed CI.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-38bca3e.json"
     },
     {
       "label": "Independent audit",
       "value": "118 / 118",
       "detail": "Same source passes. Original V3 failed 45 of 118.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-b6666b4.json"
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-38bca3e.json"
     },
     {
       "label": "Live Ramp context",
@@ -331,14 +331,14 @@
       "title": "Ground filing fields in signed sources",
       "stream": "Disputes",
       "status": "active",
-      "summary": "Source-reference fix integrated; independent replay pending",
-      "detail": "Reviewed correction92b1ca1 accepts exact signed source IDs and matching fee rows, while rejecting absent, ambiguous, injected and reversed evidence. Worker281 scoped and33 focused tests passed. The unchanged independent cohorts are the next acceptance check.",
+      "summary": "Independent replay isolates remaining plan-reference defect",
+      "detail": "The service and fee fixes passed their focused tests, but the same frozen additive cohort still records 0/7 denial dispositions. Independent socket diagnosis confirms all seven packets fail the plan field. A signed source-to-plan correction is under Opus54 review and negative testing.",
       "owner": "Dispute engineering",
       "depends_on": [
         "disputes",
         "adapter"
       ],
-      "next_action": "Integrate the reviewed source-reference correction and rerun untouched frozen cases.",
+      "next_action": "Integrate the reviewed plan correction and rerun the unchanged cohorts over real sockets.",
       "links": []
     },
     {
@@ -365,14 +365,14 @@
       "id": "grammar",
       "title": "Additional contract families",
       "stream": "Onboarding",
-      "status": "todo",
-      "summary": "A third independently chosen source remains refused",
-      "detail": "Some new public clauses still fall outside the finite compiler grammar. Previously studied sources can demonstrate remediation. Universal unseen-vendor support remains unverified.",
+      "status": "active",
+      "summary": "Correcting extraction hints and explaining refused authority",
+      "detail": "The third independently chosen source remains refused. A wrapped no-minimum-duration clause exposes inconsistent whitespace handling. A separate proposed verification-authority category correctly remains unsupported. The onboarding owner is implementing only reviewed generic corrections and safe source-linked explanations.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Extend only source-grounded typed semantics and test newly independent documents.",
+      "next_action": "Complete Opus55 review, generic negative tests and normal intake diagnostics. Preserve all original refusals.",
       "links": []
     },
     {
@@ -415,8 +415,8 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "2,118 Python + 34 JavaScript checks pass",
-      "detail": "Source b6666b4 completed a stable full regression with no failed or skipped tests. The same source passes the independent 118-assertion V3 comparison. Later source changes still need a new run.",
+      "summary": "2,187 Python + 34 JavaScript checks pass",
+      "detail": "Root ran a detached source-stable checkout of 38bca3e. All 2,187 Python checks, 34 JavaScript checks and 118 independent audit assertions passed. These results bind that source. Subsequent changes require fresh runs.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
@@ -435,8 +435,8 @@
       "title": "GitHub CI verification",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "GitHub workflow passed on b6666b4",
-      "detail": "Hosted Python/browser, JavaScript, rehearsal and secret-check steps completed successfully after the full-history checkout correction. Later code changes require another hosted run.",
+      "summary": "GitHub workflow passed on 38bca3e",
+      "detail": "Workflow41963124265 passed 2,187 Python tests, browser/server requirements, JavaScript tests, progress graph checks, rehearsal and secret scanning on 38bca3e.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
@@ -476,7 +476,7 @@
       "stream": "Application",
       "status": "done",
       "summary": "Local graph, task details and status filters verified",
-      "detail": "Dependency-free localhost dashboard with 26 task nodes, actual dependency edges, owners, blockers and evidence links. Root verified filters, search, node details, expanded graph and mobile layout. Eleven HTTP confinement tests and graph checks pass. Maintainers update the timestamped snapshot after verification.",
+      "detail": "Dependency-free localhost dashboard with task nodes, actual dependency edges, owners, blockers and evidence links. Root verified filters, search, node details, expanded graph and mobile layout. Eleven HTTP confinement tests and graph checks pass. Maintainers update the timestamped snapshot after verification.",
       "owner": "Dashboard engineering",
       "depends_on": [
         "github"
@@ -517,9 +517,36 @@
       ],
       "next_action": "Finish unblocked verification while the human-owned Ramp and evidence prerequisites remain visible.",
       "links": []
+    },
+    {
+      "id": "contextual_guide",
+      "title": "Interactive contextual AI guide",
+      "stream": "Application",
+      "status": "todo",
+      "summary": "Current explanations are deterministic and evidence-linked",
+      "detail": "The existing guide assembles local explanations from a reviewed investigation plan. Ongoing private-contract LLM conversation and unrestricted evidence investigation require implementation, authorized data handling and independent evaluation. This is a separate remaining product capability.",
+      "owner": "Application and security engineering",
+      "depends_on": [
+        "security",
+        "companion",
+        "adapter"
+      ],
+      "links": [
+        {
+          "label": "Capability matrix",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/CAPABILITIES.md"
+        }
+      ],
+      "next_action": "Define a bounded contextual conversation using existing evidence and permission gates, then obtain the required architecture review and test it."
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-05T04:26:37.834409+00:00",
+      "title": "Hosted verification and root audit passed",
+      "detail": "38bca3e passed 2,187 Python tests, 34 JavaScript tests and 118 audit assertions. The independent cohort separately exposed the remaining plan-reference defect.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/41963124265"
+    },
     {
       "at": "2026-11-05T03:39:40.671790+00:00",
       "title": "Dependency dashboard verified locally",

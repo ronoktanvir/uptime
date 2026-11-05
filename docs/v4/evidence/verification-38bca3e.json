@@ -1,0 +1,57 @@
+{
+  "description": "Source-bound fields from completed root verification. Host paths and private inputs omitted.",
+  "regression": {
+    "generated_at": "2026-11-05T03:56:42.874366+00:00",
+    "node": {
+      "collected": 34,
+      "collection_sha256": "c6d12c942ee1798e3d93edab93ed208c4e97f56b0e8562b8d2cf23d600e9c869",
+      "counts": {
+        "passed": 34
+      },
+      "exit_code": 0,
+      "files": [
+        "web/app.test.cjs",
+        "web/browser-contract.test.cjs",
+        "web/ramp_ui.test.cjs",
+        "web/v4_ui.test.cjs"
+      ]
+    },
+    "pytest": {
+      "collected": 2187,
+      "collection_sha256": "b17f158e7b2713b42c4634492f7ae0de9c16b369138eab9ea15778f88c349497",
+      "counts": {
+        "passed": 2187
+      },
+      "exit_code": 0
+    },
+    "runner_sha256": "c946c87c1fc7aeb5baf52ec3762c1f73d941bc525163da71864e93c9450a9bab",
+    "schema": "uptime-full-regression/1",
+    "source": {
+      "commit": "38bca3e2f2d4e1d691cd022d60d21c62b12013da",
+      "manifest_sha256": "b4be903ba4a707d7bc274e7d6b5241ceca2f90f768b49b15cedba686e32d953f"
+    },
+    "source_stable": true
+  },
+  "audit": {
+    "schema": "uptime-v4-independent-audit-gate-v2",
+    "generated_at": "2026-11-05T03:49:42.336693+00:00",
+    "source": {
+      "commit": "38bca3e2f2d4e1d691cd022d60d21c62b12013da",
+      "product_source_sha256": "fc70e5978625c53ef9c075349f68586f0112951db86633e80be6df5c6a49a7f8",
+      "changed_tracked_paths": []
+    },
+    "baseline_commit": "18afaa6433284dc582d38c02b797dc4e688892f1",
+    "counts": {
+      "PASS": 118
+    },
+    "baseline_verified": true,
+    "source_stable": true,
+    "driver_stable": true,
+    "release_pass": true
+  },
+  "original_receipt_sha256": {
+    "regression": "620c411f16b85da1c5916bcb2abda1cc423b55fa5d8dfb6d37c537f95634cc3c",
+    "audit": "8bba50801f5132adc3b6f903be88065182c4b08c2c952564b3c6ef1c1dcc94fd"
+  },
+  "github_run": "https://github.com/ronoktanvir/uptime/actions/runs/41963124265"
+}
