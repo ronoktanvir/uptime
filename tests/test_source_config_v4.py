@@ -232,7 +232,7 @@ def test_trusted_custom_tenant_binds_named_reviewer_and_service_signature(tmp_pa
         return {"tenant":p.tenant, "key":p.source_key_id, "grant":p.source_grant_id}
     with local(app) as client:
         reviewer = ReviewerClient(client, DEFAULT_ORIGIN, "source.operator", key)
-        assert reviewer.post("/api/probe-action", {}).json() == {"tenant":"north-co"}
+        assert reviewer.post("/api/probe-action", {}).status_code == 403  # A named reviewer also needs an exact mandate.
         assert client.get("/api/auth/context").json()["tenant"] == "north-co"
         raw = raw_event()
         wrong_tenant = source.model_copy(update={"tenant":"south-co"})
@@ -240,3 +240,35 @@ def test_trusted_custom_tenant_binds_named_reviewer_and_service_signature(tmp_pa
         result = client.post(EVENTS, content=raw, headers=signed(client, source, raw)).json()
         assert result["tenant"] == "north-co" and result["key"].startswith("ed25519-sha256:")
         assert len(result["grant"]) == 64
+
+
+def test_running_source_registry_observes_rotation_revocation_and_invalid_config(tmp_path):
+    from uptime.source_config import SourceRegistry
+    path, db, old, human = setup(tmp_path)
+    registry = SourceRegistry(path, "replay", DEFAULT_ORIGIN, "bears")
+    app = create_app(db, approvals_enabled=True, service_credentials=registry)
+    registry.config.bind(app.state.correspondence)
+    raw = raw_event()
+    with local(app) as client:
+        reviewer = ReviewerClient(client, DEFAULT_ORIGIN, "source.operator", human)
+        assert reviewer.post("/api/correspondence/claims", {"claim_id":CLAIM, "scope":SCOPE.model_dump()}).status_code == 200
+        old_headers = signed(client, old, raw)
+        fresh_file = tmp_path/"next-key.json"
+        update_source(path, "rotate", old.subject, sender_path=fresh_file)
+        fresh = load_private(fresh_file, SenderCredential)
+        assert client.post(EVENTS, content=raw, headers=old_headers).status_code == 403
+        assert client.post(EVENTS, content=raw, headers=signed(client, fresh, raw)).status_code == 200
+        before_revocation = signed(client, fresh, raw)
+        update_source(path, "revoke", old.subject)
+        assert client.post(EVENTS, content=raw, headers=before_revocation).status_code == 403
+        path.write_text("{malformed")
+        assert client.post(EVENTS, content=raw, headers=signed(client, fresh, raw)).status_code == 403
+
+
+def test_installation_checks_source_audience_even_with_misconfigured_embedding(tmp_path):
+    from uptime.auth import Authority
+    registry = tmp_path/"server-config.json"
+    init_config(registry, "replay", DEFAULT_ORIGIN, "tenant-b")
+    grants = load_private(registry, SourceConfig).credentials("replay", DEFAULT_ORIGIN, "tenant-b")
+    with pytest.raises(ValueError, match="audience"):
+        Authority(tmp_path/"auth.db", "replay", False, True, None, grants, DEFAULT_ORIGIN, "tenant-a")

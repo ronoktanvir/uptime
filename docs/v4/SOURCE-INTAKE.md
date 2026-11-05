@@ -60,7 +60,7 @@ The client checks the local event schema and its grant, retrieves the current in
 
 ## Rotation and revocation
 
-Stop the running launcher before changing grants. A running process uses the configuration it loaded at startup. Rotation creates a fresh credential file. Revocation removes the public grant. Relaunch the workbench with the resulting config before resuming intake.
+The running launcher reopens and validates the protected public grant file on each delivery. Rotation creates a fresh sender credential and invalidates the old key. Revocation takes effect on subsequent authentication, including for an unused signature made before the change. Missing or invalid configuration closes intake. Relaunch after adding a subject or changing its source or scope so the operator can bind the new subscription.
 
 ```sh
 python scripts/provision_sources.py rotate --config /private/operator/sources.json \
@@ -71,4 +71,4 @@ python scripts/provision_sources.py revoke --config /private/operator/sources.js
 
 Configuration updates take an exclusive filesystem lock and replace the server file atomically. Prior process signatures fail after restart because each process chooses a new instance ID. Persisted event receipts enforce domain idempotency across restarts. Previously recorded evidence remains identifiable by its source at the time of receipt.
 
-This design adopts independent review 23's recommendation for per-source Ed25519 public verification. HMAC remains available to explicitly named local fixture subjects and scripted test embeddings. The launcher provisions only the asymmetric source channel. The operator and local OS control key files, database contents and ownership of the pinned listener. This protocol authenticates the sender to the workbench and assumes the operator controls the local listener.
+HMAC is confined to the default tenant's programmatic replay fixture channel. The launcher provisions only the asymmetric source channel. Named reviewers in additional tenants need an independently issued [reviewer mandate](REVIEWER-MANDATES.md) for each exact action. The operator and local OS control key files, database contents and ownership of the pinned listener. This protocol authenticates the sender to the workbench and assumes the operator controls the local listener.

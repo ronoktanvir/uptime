@@ -73,12 +73,12 @@ def main():
                 parser.exit(1, "Missing V4 release gate. Start in observation mode.\n")
             if not local_release_ready():
                 parser.exit(1, "V4 release gate did not verify. Start in observation mode.\n")
-        from uptime.source_config import SourceConfig, load_private
-        sources = load_private(args.source_config, SourceConfig) if args.source_config else None
+        from uptime.source_config import SourceRegistry
+        sources = SourceRegistry(args.source_config, args.mode, base, args.tenant) if args.source_config else None
         app = create_app(args.db, mode=args.mode, origin=base, tenant=args.tenant, approvals_enabled=args.enable_local_approvals,
-                         service_credentials=sources.credentials(args.mode, base, args.tenant) if sources else None)
+                         service_credentials=sources)
         if sources:
-            sources.bind(app.state.correspondence)
+            sources.config.bind(app.state.correspondence)
         if args.open:
             def launch():
                 for _ in range(80):

@@ -4,7 +4,7 @@ Enrollment is an offline operator action. A random P-256 key signs short-lived
 challenges. The server stores only its public key. Private keys stay with the operator.
 This is a single-process loopback prototype.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from hashlib import sha256
 import hmac
 import json
@@ -19,10 +19,11 @@ from urllib.parse import urlsplit
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
+from . import mandates
 from .auth_keys import public_bytes, rehearsal_key, verify_reviewer
 from .contracts import Principal, fingerprint
 from .correspondence_types import Id
-from .source_config import SourceGrant
+from .source_config import SourceGrant, SourceGrants, SourceRegistry
 from .storage import database
 
 TENANT = "bears"
@@ -78,6 +79,7 @@ def bind_workspace(path, mode, rehearsal, tenant=TENANT):
                 raise ValueError("Legacy password authority requires a fresh workspace and offline key enrollment")
         db.execute("CREATE TABLE IF NOT EXISTS authority_user "
                    "(subject TEXT PRIMARY KEY, role TEXT NOT NULL, public_key BLOB NOT NULL UNIQUE)")
+        mandates.setup(db)
 
 
 def enroll(path, subject, credential, role="reviewer", mode="replay", tenant=TENANT):
@@ -90,6 +92,9 @@ def enroll(path, subject, credential, role="reviewer", mode="replay", tenant=TEN
     bind_workspace(path, mode, False, tenant)
     try:
         with database(path) as db, db:
+            db.execute("BEGIN IMMEDIATE")
+            if db.execute("SELECT 1 FROM mandate_issuer WHERE subject=?", (subject,)).fetchone():
+                raise ValueError("A mandate issuer cannot enroll as a reviewer account")
             db.execute("INSERT INTO authority_user VALUES(?,?,?)", (subject, role, public))
     except sqlite3.IntegrityError:
         raise ValueError("Account or public key already enrolled") from None
@@ -134,6 +139,11 @@ class ServicePrincipal(Principal):
     source_grant_id: str
 
 
+@dataclass(frozen=True)
+class AuthorizedReviewer(Principal):
+    native_ticket: str = field(repr=False, compare=False)
+
+
 class Authority:
     def __init__(self, path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant=TENANT):
         self.tenant = tenant
@@ -148,18 +158,23 @@ class Authority:
         self.sessions = {}
         self.challenges = {}
         self.deliveries = {}
-        self.services = dict(service_credentials or {})
+        self.source_registry = service_credentials if isinstance(service_credentials, SourceRegistry) else None
+        if isinstance(service_credentials, (SourceGrants, SourceRegistry)) and service_credentials.audience != (mode, self.origin, tenant):
+            raise ValueError("Source grant audience differs from this installation")
+        self.services = self.source_registry.initial if self.source_registry else dict(service_credentials or {})
         identities = set()
         for subject, key in self.services.items():
             if not NAME.fullmatch(subject):
                 raise ValueError("Inbound services need canonical subjects")
             if isinstance(key, SourceGrant):
+                if not isinstance(service_credentials, (SourceGrants, SourceRegistry)):
+                    raise ValueError("Source grants require an explicitly validated installation audience")
                 if key.subject != subject:
                     raise ValueError("Source identity and grant must match")
                 identity = ("ed25519", key.public_key)
             else:
                 if (not isinstance(key, str) or len(key) < 32 or
-                        not (rehearsal or "fixture" in re.split(r"[._-]", subject))):
+                        mode != "replay" or tenant != TENANT or not (rehearsal or "fixture" in re.split(r"[._-]", subject))):
                     raise ValueError("Shared-key services require a named local fixture or scripted rehearsal")
                 identity = ("fixture", key)
             if identity in identities:
@@ -168,6 +183,7 @@ class Authority:
         if rehearsal != bool(rehearsal_secret) or (rehearsal and len(rehearsal_secret) < 32):
             raise ValueError("Only a scripted replay can use a private rehearsal credential")
         bind_workspace(path, mode, rehearsal, tenant)
+        mandates.remember_source_keys(path, [(s.subject, s.public_key) for s in self.services.values() if isinstance(s, SourceGrant)])
         if rehearsal:
             self.script_account = ("reviewer", public_bytes(rehearsal_key(rehearsal_secret)))
 
@@ -277,16 +293,46 @@ class Authority:
         if principal.role != "reviewer" or request.method != "POST" or request.url.query:
             raise HTTPException(403, "An exact reviewer POST is required")
         path = request.scope["raw_path"].decode("ascii")
-        self.consume(request.headers.get("x-uptime-challenge", ""), request.headers.get("x-uptime-proof", ""),
-                     path, digest(await request.body()), self.session_id(request))
+        body_hash = digest(await request.body())
+        proved, tag = self.consume(request.headers.get("x-uptime-challenge", ""), request.headers.get("x-uptime-proof", ""),
+                                    path, body_hash, self.session_id(request))
+        session = self.sessions.get(self.session_id(request))
+        if not session or proved != principal or session.key_tag != tag:
+            raise HTTPException(403, "Reviewer account changed during authorization")
+        if self.rehearsal:
+            if self.tenant != TENANT:
+                raise HTTPException(403, "Scripted actions require the isolated fixture tenant")
+            return principal
+        try:
+            ticket = mandates.claim(self.path, principal, path, body_hash, self.instance, required=self.tenant != TENANT)
+        except PermissionError as exc:
+            raise HTTPException(403, str(exc)) from None
+        if ticket:
+            return AuthorizedReviewer(principal.tenant, principal.subject, principal.role, ticket)
         return principal
+
+    def authorize_native(self, principal, *, business_id, resource_type, resource_id, action, payload_sha256):
+        """Called at dispatch using the provider-bound IDs and exact bytes of the prepared effect."""
+        self.require_gate()
+        if (self.mode != "sandbox" or self.rehearsal or not isinstance(principal, AuthorizedReviewer)
+                or principal.tenant != self.tenant or principal.role != "reviewer"):
+            raise PermissionError(mandates.DENIED)
+        try:
+            effect = mandates.Effect(business_id=business_id, resource_type=resource_type, resource_id=resource_id,
+                                    action=action, payload_sha256=payload_sha256)
+        except ValueError:
+            raise PermissionError(mandates.DENIED) from None
+        return mandates.consume_native(self.path, principal, self.instance, principal.native_ticket, effect)
 
     async def service(self, request: Request):
         """Authenticate exact raw inbound bytes, consumed once within this service audience."""
         self.require_origin(request)
         self.require_gate()
         subject = request.headers.get("x-uptime-service", "")
-        key = self.services.get(subject)
+        try:
+            key = self.source_registry.lookup(subject) if self.source_registry else self.services.get(subject)
+        except (ValueError, OSError):
+            raise HTTPException(403, "Source configuration is unavailable or invalid") from None
         nonce = request.headers.get("x-uptime-nonce", "")
         stamp = request.headers.get("x-uptime-time", "")
         proof = request.headers.get("x-uptime-proof", "")
@@ -300,6 +346,11 @@ class Authority:
                                   self.mode if isinstance(key, SourceGrant) else None)
         if isinstance(key, SourceGrant):
             valid = key.verify(message, proof) and key.allows(path, body)
+            if valid and self.source_registry and key.public_key != self.services[subject].public_key:
+                try:
+                    mandates.remember_source_keys(self.path, [(subject, key.public_key)])
+                except PermissionError:
+                    raise HTTPException(403, "Source key belongs to a separate authority") from None
             key_id = "ed25519-sha256:" + digest(bytes.fromhex(key.public_key))
             grant_id = fingerprint([self.tenant, self.mode, key.model_dump()])
         else:

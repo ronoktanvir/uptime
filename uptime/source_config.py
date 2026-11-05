@@ -11,7 +11,7 @@ from urllib.parse import urlsplit
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 from .correspondence_types import Delivery, Id, Scope, SOURCE
 
@@ -23,6 +23,20 @@ Mode = Literal["sandbox", "replay"]
 CLAIM = re.compile(r"^inbox-[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
 
 
+def _validated_verifier(key):
+    # libsodium ref10 ge25519_has_small_order enumerates the canonical small-order y coordinates.
+    # The high bit encodes the sign of x. Some Ed25519 backends accept forged signatures for these points.
+    field_prime = 2**255 - 19
+    y = int.from_bytes(bytes.fromhex(key), "little") & (2**255 - 1)
+    order_eight_y = 2707385501144840649318225287225658788936804267575313519463743609750303402022
+    if y >= field_prime or y in {0, 1, field_prime-1, order_eight_y, field_prime-order_eight_y}:
+        raise ValueError("Use a canonical Ed25519 public verifier of nontrivial order")
+    return key
+
+
+EdVerifier = Annotated[Key, AfterValidator(_validated_verifier)]
+
+
 class Strict(BaseModel):
     model_config = ConfigDict(strict=True, frozen=True, extra="forbid", hide_input_in_errors=True)
 
@@ -31,7 +45,7 @@ class SourceGrant(Strict):
     subject: Subject
     source: Source
     scope: Scope
-    public_key: Key
+    public_key: EdVerifier
 
     def verify(self, message, proof):
         if not re.fullmatch(r"[0-9a-f]{128}", proof):
@@ -97,13 +111,38 @@ class SourceConfig(Audience):
     def credentials(self, mode, origin, tenant="bears"):
         if self.mode != mode or self.origin != origin or self.tenant != tenant:
             raise ValueError("Source configuration belongs to a different mode or loopback listener")
-        return {s.subject:s for s in self.services}
+        return SourceGrants(self, mode, origin, tenant)
 
     def bind(self, desk):
         for service in self.services:
             s = service.scope
             desk.provision(self.tenant, s.account, s.vendor, s.contract, s.service, s.component, s.region)
             desk.bind_sender(self.tenant, s.account, service.source, service.subject)
+
+
+class SourceGrants(dict):
+    """Carry the verified audience alongside programmatically injected fixture grants."""
+    def __init__(self, config, mode, origin, tenant):
+        super().__init__((s.subject, s) for s in config.services)
+        self.audience = (mode, origin, tenant)
+
+
+class SourceRegistry:
+    """Recheck the protected verifier file at delivery. New scope bindings require a launch."""
+    def __init__(self, path, mode, origin, tenant):
+        self.path = path
+        self.audience = (mode, origin, tenant)
+        self.config = load_private(path, SourceConfig)
+        self.initial = self.config.credentials(*self.audience)
+
+    def lookup(self, subject):
+        original = self.initial.get(subject)
+        if original is None:
+            return None
+        current = load_private(self.path, SourceConfig).credentials(*self.audience).get(subject)
+        if current and (current.scope, current.source) == (original.scope, original.source):
+            return current
+        return None
 
 
 class SenderCredential(Audience):

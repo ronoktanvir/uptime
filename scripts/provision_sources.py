@@ -50,7 +50,7 @@ def main():
                 scope = Scope.model_validate_json(data)
             update_source(args.config, args.command, args.subject, source=getattr(args, "source", None),
                           scope=scope, sender_path=getattr(args, "credential_file", None))
-            print("Updated local synthetic grant. Relaunch the workbench to load this configuration.")
+            print("Updated local synthetic grant. New source bindings require a relaunch.")
     except ValidationError:
         parser.exit(1, "Invalid source identity, claim scope, or local configuration.\n")
     except (OSError, ValueError) as exc:
