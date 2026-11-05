@@ -379,6 +379,11 @@ class CorrespondenceDesk:
                         state["requested_artifact"] = dict(type=proposal.artifact_type, ref=proposal.reference)
                     state["stage"] = "NEEDS_EVIDENCE"
                     self._evidence_arrival(tenant, scope, state, now)
+                elif (proposal.reason == "downtime" and current.measurement
+                      and current.measurement["downtime_microseconds"] > proposal.downtime_us):
+                    state["vendor_downtime_us"] = proposal.downtime_us
+                    state["stage"] = "RESPONSE_DRAFTED"
+                    audit(state, now, "claimant", "Scoped independent records show more qualifying downtime than the counterparty counted.")
                 elif proposal.reason == "availability" and current.measurement:
                     state["stage"] = "RESPONSE_DRAFTED"
                     audit(state, now, "claimant", "Published threshold and independently measured qualifying downtime contradict the vendor's availability conclusion.")
@@ -426,6 +431,10 @@ class CorrespondenceDesk:
                     raise ValueError("A verified scoped notice record is required to dispute a maintenance exclusion.")
                 packet["argument"] = "The verified maintenance timeline leaves countable downtime under the governing rule."
                 packet["maintenance_evidence"] = notices
+                packet["verified_measurement"] = current.measurement
+            elif (state["reason"] == "downtime" and current.measurement and state.get("vendor_downtime_us") is not None
+                  and current.measurement["downtime_microseconds"] > state["vendor_downtime_us"]):
+                packet["argument"] = "The scoped, exclusion-adjusted measurements exceed the duration cited in the denial."
                 packet["verified_measurement"] = current.measurement
             elif state["reason"] == "availability" and current.measurement:
                 packet["argument"] = "Reconciled qualifying downtime breaches the published availability threshold for this service month."

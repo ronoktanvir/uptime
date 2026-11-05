@@ -428,3 +428,21 @@ def test_narrowed_legacy_grant_cannot_revert_to_subscription_wildcard(env):
     with pytest.raises(PermissionError):
         env.desk.create(REVIEWER, Claim(claim_id="inbox-next-month", scope=env.scope.model_copy(update={"month":"2027-02"})))
     env.send("status")
+
+
+@pytest.mark.parametrize("description,correctable", [
+    ("Our monitors recorded 0.4 hours of downtime, so we decline your claim.", True),
+    ("We counted 1740 seconds of unavailability. Claim denied.", False),
+    ("We observed at least 12 minutes of downtime. Claim denied.", False),
+    ("Your logs recorded 12 minutes of downtime. Claim denied.", False),
+    ("Our logs show 12 minutes of downtime or 33 minutes of outages. Claim denied.", False),
+])
+def test_counterparty_numeric_denial_is_checked_against_scoped_measurement(env, description, correctable):
+    env.file()
+    row = env.message(description)
+    assert row["stage"] == ("RESPONSE_DRAFTED" if correctable else "HUMAN_REVIEW")
+    if correctable:
+        env.act("approve-response")
+        env.now += timedelta(days=1)
+        packet = env.act("submit-response")["submissions"][-1]["packet"]
+        assert packet["verified_measurement"]["downtime_microseconds"] == 29 * 60_000_000

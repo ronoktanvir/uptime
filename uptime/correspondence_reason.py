@@ -11,6 +11,7 @@ class Proposal:
     artifact_type: str | None = None
     reference: str | None = None
     scope_field: str | None = None
+    downtime_us: int | None = None
 
 
 _USD = re.compile(r"(?:\busd\s*|\$\s*)([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?)(?!\w|[.,][0-9])"
@@ -116,6 +117,25 @@ def propose(text: str, *, claimed: Decimal | None = None) -> Proposal:
             artifact_type, target = hits[0] if hits else (None,named)
             found.append(("artifact",(min(target.start(),request.start()),max(target.end(),request.end()))))
     denial = re.search(r"\b(?:deny|denied|declin(?:e|ed)|reject(?:ed)?|refused|ineligible)\b",text)
+    downtime_us = None
+    if denial and not re.search(r"\b(?:if|maybe|uncertain|approximately|at least|more than|over|possibly|could|might|your logs|you claimed|you reported|not)\b", text):
+        # Match a definite quantity attributed to the counterparty itself. The
+        # claimant checks whether its own signed, reconciled interval data exceed
+        # that amount; a vendor-supplied number can never become a ledger operand.
+        near = r"[^.!?;]{0,70}?"
+        duration = r"(?P<quantity>[0-9]{1,8}(?:\.[0-9]{1,6})?)\s*(?P<unit>hours?|minutes?|seconds?)\b"
+        measure = re.compile(
+            r"\b(?:we (?:measured|logged|recorded|counted|observed)|our (?:monitors?|telemetry|records?|logs?|measurements?))\b"
+            + near + duration + near + r"\b(?:downtime|unavailability|outage|interruption)\b")
+        matches = list(measure.finditer(text))
+        if len(matches) == 1 and len(re.findall(r"\b[0-9]+(?:\.[0-9]+)?\s*(?:hours?|minutes?|seconds?)\b",text)) == 1:
+            match = matches[0]
+            scale = {"hour":3_600_000_000,"minute":60_000_000,"second":1_000_000}
+            with localcontext() as ctx:
+                ctx.prec = 50
+                downtime_us = int(Decimal(match["quantity"]) * scale[match["unit"].rstrip("s")])
+            found.append(("downtime",match.span()))
+
     alleged = re.search(r"\b(?:belongs? to|filed (?:for|under)|registered (?:to|under)|associated with)\s+(?:the\s+)?(account|resource|component|invoice)(?:\s+(?:id|identifier))?\s+[#:]?([a-z0-9][a-z0-9._-]{1,75})",text)
     if denial and alleged and re.search(r"[0-9_-]",alleged[2]) and not re.search(r"\b(if|may|might|could|uncertain)\b",text):
         scope_field = "component" if alleged[1]=="resource" else alleged[1]
@@ -137,4 +157,4 @@ def propose(text: str, *, claimed: Decimal | None = None) -> Proposal:
         return Proposal("unknown")
     if reason == "maintenance" and re.search(r"\b(no|not|never|possibly|potential|unclear|unknown|unconfirmed)\b.{0,40}\bmaintenance\b", text):
         return Proposal("unknown")
-    return Proposal(reason, span, artifact_type=artifact_type, reference=reference, scope_field=scope_field)
+    return Proposal(reason, span, artifact_type=artifact_type, reference=reference, scope_field=scope_field, downtime_us=downtime_us)
