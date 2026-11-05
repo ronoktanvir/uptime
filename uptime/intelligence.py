@@ -1,6 +1,7 @@
 """Tool-free public/synthetic model proposals. Runtime questions never leave the process."""
 from hashlib import sha256
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -81,7 +82,7 @@ def model_card():
 def explain(case, question):
     plan=verified_plan()
     text=question.casefold()
-    if any(s in text for s in ("submit","send","approve","activate","next","appeal","file","pay ")):
+    if re.search(r"\b(?:submit|send|approve|activate|next|appeal|file|pay)\b", text):
         intent="next"
     elif any(s in text for s in ("missing","proof","evidence","source","contract","exclusion")):
         intent="proof"

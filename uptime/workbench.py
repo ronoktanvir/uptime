@@ -1,18 +1,18 @@
 """Compose independently verified domain views. This layer never evaluates contract terms."""
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation, localcontext
 from threading import RLock
 
 from . import onboarding, policy
-from .contracts import Source
+from .contracts import Principal, Source, fingerprint
 from .disputes import DisputeDesk
 from .evidence import evidence_summary
 from .intelligence import model_card
 from .pricing import demo_cases as price_cases
 from .other_obligations import demo_cases as other_cases
 from .ramp import FixtureRampProvider, ramp_snapshot
-from .reconciliation import demo_reconciliation
+from .allocations import AllocationLedger, SCOPE_FIELDS, settlement_reconciliation, settlement_actions, usd_cents
 from .storage import (database, initialize, save_cases, stored_cases, settlement_events,
-                      SETTLEMENT_ACTIONS, transition_settlement)
+                      SETTLEMENT_ACTIONS, transition_settlement, case_versions)
 from .twilio import demo_cases as sla_cases
 
 TENANT="bears"
@@ -21,7 +21,111 @@ CUSTOM=[Source.CUSTOMER.value,Source.REPLAY.value]
 
 
 def usd(amount):
-    return f"${Decimal(amount):,.2f}"
+    number = Decimal(amount)
+    # Entitlements can be sub-cent; presentation must not invent rounding authority.
+    places = max(2, -number.normalize().as_tuple().exponent)
+    return f"${number:,.{places}f}"
+
+
+def _sources(groups):
+    return sorted({str(s) for group in groups for s in group})
+
+
+def _sum(values):
+    with localcontext() as context:
+        context.prec=80
+        return format(sum((Decimal(v) for v in values), Decimal("0.00")), "f")
+
+
+def _whole_cents(amount):
+    try:
+        usd_cents(str(amount))
+        return True
+    except (ValueError, InvalidOperation):
+        return False
+
+
+def _unposted(awarded, note):
+    return dict(awarded=awarded, posted="0.00", applied="0.00", outstanding=awarded,
+                unposted=awarded, unapplied_posted="0.00", stage="AWARDED" if Decimal(awarded)>0 else "NONE",
+                sources=SIM, stage_sources=dict(awarded=SIM, posted=[Source.UNAVAILABLE.value],
+                                               applied=[Source.UNAVAILABLE.value]),
+                credit_ids=[], application_ids=[], bill_ids=[], actual_recovery=None, note=note)
+
+
+def _obligation(case):
+    submissions=case.get("submissions", [])
+    if submissions and submissions[0].get("obligation_key"):
+        return submissions[0]["obligation_key"]
+    scope=case.get("scope")
+    if scope:
+        return fingerprint([case["vendor"],scope.get("account"),scope.get("contract"),
+                            scope.get("service"),scope.get("month")])
+    # B's observation snapshot and C's claim can describe the same obligation.
+    for fact in case.get("evidence", []):
+        detail=fact.get("detail")
+        if isinstance(detail, dict) and all(detail.get(k) for k in ("account", "agreement", "product", "month")):
+            return fingerprint([case["vendor"], detail["account"], detail["agreement"], detail["product"],detail["month"]])
+    return case.get("obligation_id") or case["id"]
+
+
+def _metrics(cases):
+    """Stage snapshots, never a sum across stages or alternative estimates.
+
+    A submitted supplement does not create another claim. Stored revisions have
+    already been resolved to their current head; shared economic keys count once.
+    Simulated events remain reportable even in historical/comparison cases.
+    """
+    definitions=[("exposure", "Invoice exposure"), ("estimated", "Estimated credit"),
+                 ("claimed", "Claim filed"), ("awarded", "Vendor awarded"),
+                 ("posted", "Credit recorded"), ("applied", "Applied to bills")]
+    metrics=[]
+    for key,label in definitions:
+        contributions=[]
+        grouped={}
+        ambiguous=False
+        for case in cases:
+            if case.get("currency") != "USD":
+                continue
+            ledger=case.get("ledger", {})
+            if key=="exposure":
+                if case.get("stage")!="PREPAYMENT_REVIEW" or case.get("payment_status")!="pending" or case.get("outcome")!="ELIGIBLE":
+                    continue
+                raw=case.get("amount")
+            elif key=="estimated":
+                if case.get("outcome")!="ELIGIBLE" or case.get("stage")=="PREPAYMENT_REVIEW":
+                    continue
+                raw=ledger.get(key,case.get("amount"))
+            else:
+                raw=ledger.get(key)
+            if raw is None or Decimal(raw)<=0:
+                continue
+            sources=case.get("reconciliation", {}).get("stage_sources", {}).get(key,
+                        case["sources"] if key in {"exposure", "estimated"} else SIM)
+            row=dict(case_id=case["id"], amount=str(raw), sources=sources,
+                     references=case.get("financial_refs", []), obligation_id=_obligation(case))
+            contributions.append(row)
+            old=grouped.get(row["obligation_id"])
+            if old is not None and Decimal(old)!=Decimal(raw):
+                ambiguous=True
+            grouped[row["obligation_id"]]=raw
+        # Seeded evaluations vary assumptions and can be mutually exclusive.
+        # Historical filed/awarded events are activity totals, not projected ROI.
+        alternative=(key in {"estimated", "exposure"} and len(contributions)>1
+                     and any(c["cohort"]=="seeded" for c in cases if c["id"] in {r["case_id"] for r in contributions}))
+        amount=None if ambiguous or alternative else _sum(grouped.values())
+        note=("Alternative or conflicting estimates are nonadditive; inspect each case."
+              if ambiguous or alternative else
+              "Provisional USD estimate only; no filing, prevention or recovery established."
+              if key in {"estimated", "exposure"} else
+              "Total unique recorded simulated activity, including partial awards and comparison cases; not actual customer recovery.")
+        ids=sorted({r["case_id"] for r in contributions})
+        metrics.append(dict(key=key,label=label,value=usd(amount) if amount is not None else "Not additive",
+                            amount=amount,currency="USD",note=note,case_id=ids[0] if len(ids)==1 else None,
+                            case_ids=ids,contributions=contributions,
+                            sources=_sources(r["sources"] for r in contributions) or [Source.UNAVAILABLE.value],
+                            actual_recovery=None))
+    return metrics
 
 
 class Workbench:
@@ -35,7 +139,13 @@ class Workbench:
         self.mutex=RLock()  # Serializes mode changes with dispatch in this single-process sandbox.
         self.desk=DisputeDesk(path)
         self.desk.seed(TENANT)
-        save_cases(path,TENANT,price_cases()+sla_cases()+other_cases())
+        seeds = price_cases()+sla_cases()+other_cases()
+        self.seed_ids = {c["id"] for c in seeds}
+        # Provision missing examples only; restarting must not overwrite a revision.
+        existing = {c["id"] for c in stored_cases(path, TENANT)}
+        save_cases(path,TENANT,[c for c in seeds if c["id"] not in existing])
+        self.seed_ids.update(c["id"] for c in self.desk.cases(Principal(TENANT, "seed-reader", "viewer")))
+        self.allocations = AllocationLedger(path)
 
     def ramp(self):
         data=FixtureRampProvider().snapshot() if self.mode=="replay" else ramp_snapshot()
@@ -55,24 +165,57 @@ class Workbench:
         if Source.RAMP not in data["sources"]:
             return []
         result=[]
-        for bill in data["bills"]:
-            # Fresh imports never inherit the linked synthetic customer's service allocation.
-            missing=["verified governing agreement", "performance date", "service mapping", "units and unit price"]
-            def native_amount(value):
-                if not value or not value.get("currency") or value.get("amount") is None:
-                    return "Amount unavailable"
-                return f'{value["currency"]} {value["amount"]}'
-            currency=(bill.get("amount") or {}).get("currency")
-            facts=[{"label":"Ramp expense line","detail":f'{line["id"]} · observed {native_amount(line.get("amount"))}',
-                    "sources":data["sources"]} for line in bill["lines"]] or [dict(label="Bill lines",detail="No verified line items",sources=data["sources"])]
-            result.append(dict(id="ramp-"+bill["id"],vendor="Ramp sandbox",title=f'{bill["status"].title()} bill · contract check',
+        def native_amount(value):
+            if not isinstance(value, dict) or not value.get("currency") or value.get("amount") is None:
+                return "Amount unavailable"
+            return f'{value["currency"]} {value["amount"]}'
+        for bill in data.get("bills", []):
+            missing=["verified governing agreement", "contract/service mapping"]
+            lines=bill.get("lines") if isinstance(bill.get("lines"), list) else []
+            facts=[]
+            for line in lines:
+                missing_line=[]
+                for field, label in (("quantity", "quantity"), ("unit_price", "unit price"),
+                                     ("service_date", "performance date"), ("sku", "product identity")):
+                    if line.get(field) is None:
+                        missing_line.append(label)
+                if missing_line:
+                    missing.append(f'line {line.get("id", "unknown")}: '+", ".join(missing_line))
+                facts.append(dict(label="Ramp expense line", sources=data["sources"],
+                    detail=f'{line.get("id", "Unknown line")} · observed {native_amount(line.get("amount"))}; '
+                           f'quantity {line.get("quantity")}; unit price {native_amount(line.get("unit_price"))}; '
+                           f'product {line.get("sku")}; service date {line.get("service_date")}; '
+                           f'quantity/rate check {line.get("quantity_rate_check", "UNAVAILABLE")}',
+                    **{k:line.get(k) for k in ("id", "quantity", "unit_price", "sku", "service_date",
+                                             "quantity_rate_check", "accounting_field_selections")}))
+            if not lines:
+                missing.append("itemized lines, quantity, unit price and performance dates")
+                facts.append(dict(label="Bill lines", detail="No verified line items", sources=data["sources"]))
+            status=bill.get("status")
+            status=status if isinstance(status, str) and status in {"OPEN", "PAID", "DRAFT"} else "UNKNOWN"
+            if status == "UNKNOWN":
+                missing.append("recognized bill payment status")
+            capture=data.get("capture_status") or {}
+            trace=["No verified negotiated terms or allocation bind this bill to a customer contract.",
+                   "Missing: "+", ".join(missing)+". The bill total cannot establish an overcharge."]
+            trace.append("Capture freshness: "+str(capture.get("freshness", "UNKNOWN"))+
+                         "; integrity: "+str(capture.get("integrity", "UNKNOWN"))+
+                         "; usable for evaluation: "+str(capture.get("usable_for_evaluation", False))+".")
+            for key in ("age_seconds", "max_age_seconds", "legacy", "reasons", "reason"):
+                if key in capture:
+                    trace.append(f"Capture {key}: {capture[key]}")
+            if any(line.get("quantity_rate_check") == "MISMATCH" for line in lines):
+                trace.append("Observed line quantity × unit price conflicts with the line amount; independent review required.")
+            currency=(bill.get("amount") or {}).get("currency") if isinstance(bill.get("amount"), dict) else None
+            result.append(dict(id="ramp-"+bill["id"],vendor="Ramp sandbox",title=f'{status.title()} bill · contract check',
                  outcome="INSUFFICIENT_EVIDENCE",stage="NEEDS_MAPPING",amount=None,currency=currency,sources=data["sources"],
-                 trace=["No verified negotiated terms or allocation bind this bill to a customer contract.",
-                        "Missing: "+", ".join(missing)+". The bill total cannot establish an overcharge."],
+                 trace=trace, note=data.get("note", "Saved sandbox observation; contract mapping remains unverified."),
                  clauses=[dict(label="Governing agreement unavailable",uri="urn:uptime:missing:governing-agreement")],
-                 evidence=facts,timeline=[dict(at=data["observed_at"],event="Sandbox bill retrieved by provider ID",sources=data["sources"])],
+                 evidence=facts,timeline=[dict(at=data.get("observed_at"),event="Sandbox bill retrieved by provider ID",sources=data["sources"])],
                  financials=[dict(label="Observed bill amount",value=native_amount(bill.get("amount")),sources=data["sources"])],
-                 actions=[],provider_id=bill["id"],provider_uri="https://demo.ramp.com"))
+                 actions=[],provider_id=bill["id"],provider_uri="https://demo.ramp.com", payment_status=status,
+                 provider_identity={k:bill.get(k) for k in ("vendor_id", "entity_id", "account_id", "account_identity")},
+                 provider_lines=lines, capture_status=capture))
         return result
 
     def lab(self, principal, action=None):
@@ -107,7 +250,12 @@ class Workbench:
         events=settlement_events(self.path,principal.tenant,case_id)
         awarded=case["ledger"]["awarded"]
         stage=events[-1]["stage"] if events else ("AWARDED" if Decimal(awarded)>0 else "NONE")
-        rec=demo_reconciliation(awarded,stage,tenant=principal.tenant,case_id=case_id)
+        try:
+            rec=settlement_reconciliation(self.path,principal.tenant,case_id,awarded)
+        except ValueError:
+            if _whole_cents(awarded):
+                raise
+            rec=_unposted(awarded, "Exact sub-cent award requires a verified cent settlement; no posting is permitted.")
         case["reconciliation"]=rec
         case["ledger"].update(posted=rec["posted"], applied=rec["applied"])
         case["financials"]=[dict(label=k.replace("_"," ").title(),value=usd(v),
@@ -118,27 +266,163 @@ class Workbench:
                                           sources=SIM,role="reviewer",stage=e["stage"]))
         if events and not Decimal(case["ledger"]["disputed_remainder"]):
             case["stage"]=stage
-        if Decimal(awarded)>0 and principal.role=="reviewer":
-            previous=events[-1]["stage"] if events else None
-            case["actions"] += [dict(id=k,label=v[2]) for k,v in SETTLEMENT_ACTIONS.items() if v[0]==previous]
+        if (Decimal(awarded)>0 and principal.role=="reviewer"
+                and case["preflight"]["outcome"]=="ELIGIBLE"):
+
+            if _whole_cents(awarded):
+                case["actions"] += settlement_actions(rec["stage"], awarded)
         if principal.role!="reviewer" or self.setting(principal)["mode"]=="OBSERVE":
             case["actions"]=[]
         if case["outcome"]!="ELIGIBLE":
             case["amount"]=None
         return case
 
+    def _inbox_case(self, principal, case_id):
+        inbox=getattr(self, "inbox", None)
+        if inbox is None:
+            return None
+        try:
+            return inbox.case(principal, case_id)
+        except KeyError:
+            return None
+
+    def _correspondence(self, principal, case):
+        # C owns the authoritative status ledger; there is no financial_state field.
+        awarded=case["ledger"]["awarded"]
+        records=self.allocations.list_awards(principal.tenant, case_id=case["id"])
+        case["reconciliations"]=records
+        case["ledger"].update({key: _sum(r[key] for r in records) for key in ("posted", "applied")})
+        case["reconciliation"]=_unposted(awarded, "No scoped credit recorded.")
+        if records:
+            case["reconciliation"].update({key: _sum(r[key] for r in records)
+                                           for key in ("posted", "applied", "outstanding", "unposted", "unapplied_posted")})
+            case["reconciliation"]["stage_sources"]={key: _sources(r["stage_sources"][key] for r in records)
+                                                       for key in ("awarded", "posted", "applied")}
+        if not _whole_cents(awarded):
+            case["reconciliation"]["note"]="Exact sub-cent award cannot be posted or applied."
+        allowed=(case["stage"] in {"AWARDED", "PARTIAL_AWARD_REVIEW"}
+                 and case["preflight"]["outcome"] == "ELIGIBLE" and _whole_cents(awarded)
+                 and Decimal(awarded)>0 and principal.role == "reviewer"
+                 and self.setting(principal)["mode"] != "OBSERVE")
+        if allowed:
+            if not records and self._award_record(case) is not None:
+                case["actions"].append(dict(id="record-credit", label="Record scoped simulated credit"))
+            elif len(records)==1 and self._application_bill(principal, records[0]) is not None:
+                case["actions"].append(dict(id="apply-balance", label="Apply simulated credit to the matched eligible bill"))
+        case["financials"]=[dict(label=k.replace("_", " ").title(),value=usd(v),
+                                sources=case["reconciliation"]["stage_sources"].get(k, CUSTOM if k=="estimated" else SIM))
+                            for k,v in case["ledger"].items()]
+        if principal.role != "reviewer" or self.setting(principal)["mode"] == "OBSERVE":
+            case["actions"]=[]
+        return case
+
+    @staticmethod
+    def _award_record(case):
+        # Only the filed, approved packet and its authenticated award reply supply identity.
+        replies=[r for r in case.get("replies", []) if r.get("reason")=="award"]
+        if len(replies)!=1 or not case.get("submissions"):
+            return None
+        reply=replies[0]
+        submission=next((s for s in case["submissions"] if s["id"]==reply["receipt"]), None)
+        if submission is None or submission["approval"]["digest"]!=submission["digest"]:
+            return None
+        packet=submission["packet"]
+        scope=packet["scope"]
+        if (scope != case["scope"] or packet["tenant"] != case["tenant"]
+                or fingerprint(packet) != submission["digest"]):
+            return None
+        record=dict(vendor_id=scope["vendor"], account_id=scope["account"], product_id=scope["service"],
+                    contract_id=scope["contract"], contract_version=packet["version"], currency=scope["currency"],
+                    id="inbox-award:"+reply["digest"], source_ref="inbox-reply:"+reply["digest"],
+                    memo_ref=reply["event_id"], effective_date=reply["received_at"][:10],
+                    amount=case["ledger"]["awarded"], source=Source.VENDOR.value, confirmed=True)
+        return record if all(record.get(k) for k in SCOPE_FIELDS) else None
+
+    def _application_bill(self, principal, record):
+        if record["unapplied_posted_cents"]<=0 or len(record["credit_ids"])!=1:
+            return None
+        matches=[b for b in self.allocations.list_bills(principal.tenant)
+                 if all(b["scope"][k]==record["scope"][k] for k in SCOPE_FIELDS)
+                 and b["source"] in {Source.CUSTOMER.value, Source.REPLAY.value}
+                 and b["remaining_eligible_cents"]>=record["unapplied_posted_cents"]]
+        # Multiple eligible bills need an explicit selection; the generic action carries no bill ID.
+        return matches[0] if len(matches)==1 else None
+
+    def _settle_inbox(self, principal, case, action):
+        if action not in {a["id"] for a in case["actions"]}:
+            # An exact completed action may be retried, but never create another record.
+            if action=="record-credit" and case.get("reconciliations"):
+                return
+            if action=="apply-balance" and any(r["stage"]=="APPLIED" for r in case.get("reconciliations", [])):
+                return
+            raise ValueError("No authorized scoped settlement action is available.")
+        if action=="record-credit":
+            award=self._award_record(case)
+            credit={**award, "id":"inbox-credit:"+award["id"], "source_ref":"inbox-credit:"+award["source_ref"],
+                    "award_id":award["id"], "source":Source.REPLAY.value}
+            self.allocations.ingest(principal.tenant, case["id"], award, credits=[credit])
+        elif action=="apply-balance":
+            record=case["reconciliations"][0]
+            bill=self._application_bill(principal, record)
+            if bill is None:
+                raise ValueError("An unambiguous existing scoped eligible bill is required.")
+            ident="inbox-application:"+fingerprint([record["award_id"], bill["id"]])
+            self.allocations.apply(principal.tenant, dict(id=ident, source_ref=ident,
+                credit_id=record["credit_ids"][0], bill_id=bill["id"], source=Source.REPLAY.value,
+                amount_cents=record["unapplied_posted_cents"],
+                effective_date=max(record["effective_date"], bill["effective_date"])))
+
+    def _present(self, case, *, versions=None):
+        case=dict(case)
+        case["cohort"]="seeded" if case["id"] in self.seed_ids else "portfolio"
+        case.setdefault("note", "Seeded historical/comparison simulation; estimates are not additive portfolio value."
+                        if case["cohort"]=="seeded" else "Entered workspace record; source labels determine whether facts are simulated or observed.")
+        refs=[]
+        for submission in case.get("submissions", []):
+            refs.append(dict(kind="filing", id=submission["id"], digest=submission.get("digest"),
+                             sources=submission.get("sources", SIM)))
+        for reply in case.get("replies", []):
+            refs.append(dict(kind="vendor_response", id=reply.get("event_id") or reply.get("receipt"),
+                             digest=reply.get("digest"), sources=reply.get("sources", SIM)))
+        for rec in case.get("reconciliations", [case.get("reconciliation", {})]):
+            for field in ("award_id", "memo_ref", "source_ref", "credit_ids", "application_ids", "bill_ids"):
+                value=rec.get(field)
+                for ident in value if isinstance(value, list) else [value] if value else []:
+                    refs.append(dict(kind=field, id=ident, sources=rec.get("sources", SIM)))
+        if case.get("provider_id"):
+            refs.append(dict(kind="provider_bill", id=case["provider_id"], sources=case["sources"]))
+        if versions:
+            case["versions"]=[{k:r[k] for k in ("revision", "digest", "previous_digest", "observed_at")} for r in versions]
+            case["revision"]=versions[-1]["revision"]
+            refs.append(dict(kind="evaluation", id=versions[-1]["digest"], sources=case["sources"]))
+        case["financial_refs"]=refs
+        return case
+
     def case(self, principal, case_id):
-        if case_id.startswith("dispute-"):
-            return self.dispute(principal,case_id)
-        for case in stored_cases(self.path,principal.tenant)+self.pricing_probe(principal):
+        inbox=self._inbox_case(principal, case_id)
+        if inbox is not None:
+            return self._present(self._correspondence(principal, inbox))
+        if any(c["id"]==case_id for c in self.desk.cases(principal)):
+            return self._present(self.dispute(principal,case_id))
+        for case in stored_cases(self.path,principal.tenant):
             if case["id"]==case_id:
-                return case
+                return self._present(case, versions=case_versions(self.path,principal.tenant,case_id))
+        for case in self.pricing_probe(principal):
+            if case["id"]==case_id:
+                return self._present(case)
         raise KeyError(case_id)
 
     def act(self, principal, case_id, action):
         with self.mutex:
             self.check_write(principal)
-            if not case_id.startswith("dispute-"):
+            inbox=self._inbox_case(principal, case_id)
+            if inbox is not None:
+                if action in SETTLEMENT_ACTIONS:
+                    self._settle_inbox(principal,self._correspondence(principal,inbox),action)
+                else:
+                    self.inbox.act(principal,case_id,action)
+                return self.case(principal,case_id)
+            if not any(c["id"]==case_id for c in self.desk.cases(principal)):
                 self.case(principal,case_id)
                 raise KeyError("No such action on an observation")
             if action in SETTLEMENT_ACTIONS:
@@ -150,34 +434,34 @@ class Workbench:
                 new_approval=previous=="DRAFTED" and case["stage"]=="CLAIM_APPROVED" and action=="approve-claim"
                 if self.mode=="replay" and new_approval and policy.dispatch_allowed(case,self.setting(principal)):
                     self.desk.act(principal,case_id,"submit-claim")
-            return self.dispute(principal,case_id)
+            return self.case(principal,case_id)
 
     def dashboard(self, principal):
-        stored=stored_cases(self.path,principal.tenant)
-        cases=stored+[self.dispute(principal,c["id"]) for c in self.desk.cases(principal)]+self.pricing_probe(principal)
-        focus=next(c for c in cases if c["id"]=="dispute-cure")
-        # Refusals and alternative simulations are controls, not additional portfolio value.
-        ledger=focus["ledger"]
-        price=next((c for c in stored if c["id"].startswith("price-") and c["outcome"]=="ELIGIBLE"
-                    and "pre" in (c["stage"]+" "+c["title"]).casefold()),None)
-        metrics=[dict(label="Invoice exposure",value=usd(price["amount"]) if price else "Not verified",
-                      note="One unpaid synthetic invoice; amendment-aware discrepancy before approval.",
-                      sources=CUSTOM,case_id=price["id"] if price else None)]
-        for key,label,note in [("estimated","Estimated credit","Candidate affected fees."),
-                               ("claimed","Claim filed","Submitted to the simulator."),
-                               ("awarded","Vendor awarded","Confirmed by the simulator."),
-                               ("posted","Credit recorded","Identified simulated credit record."),
-                               ("applied","Applied to bills","Matched simulated bill application.")]:
-            metrics.append(dict(label=label,value=usd(ledger[key]),note=note+" Recovery case: dispute-cure.",
-                                sources=focus["reconciliation"]["stage_sources"].get(key, CUSTOM if key=="estimated" else SIM),case_id=focus["id"]))
-        columns=("id","vendor","title","outcome","stage","amount","currency","sources")
+        cases={c["id"]:self._present(c, versions=case_versions(self.path,principal.tenant,c["id"]))
+               for c in stored_cases(self.path,principal.tenant)}
+        cases.update({c["id"]:self._present(self.dispute(principal,c["id"])) for c in self.desk.cases(principal)})
+        cases.update({c["id"]:self._present(c) for c in self.pricing_probe(principal)})
+        inbox=getattr(self, "inbox", None)
+        if inbox is not None:
+            cases.update({c["id"]:self._present(self._correspondence(principal,c)) for c in inbox.cases(principal)})
+        cases=list(cases.values())
+        columns=("id","vendor","title","outcome","stage","amount","currency","sources","note","cohort",
+                 "financials","financial_refs","revision","payment_status","obligation_id","source_sha256",
+                 "source_received_at","source_currentness")
+        summary=lambda c:{k:c[k] for k in columns if k in c}
+        cohorts={}
+        for key,label in (("portfolio", "Entered portfolio and saved sandbox observations"),
+                          ("seeded", "Seeded historical and comparison simulations")):
+            members=[c for c in cases if c["cohort"]==key]
+            cohorts[key]=dict(label=label, sources=_sources(c["sources"] for c in members) or [Source.UNAVAILABLE.value],
+                             metrics=_metrics(members), cases=[summary(c) for c in members])
         audit=[dict(at=e["at"],event=e["event"],case_id=c["id"],sources=e["sources"])
                for c in cases for e in c.get("timeline",[])]
         ramp=self.ramp()
         return dict(workspace="Bears finance lab",as_of=ramp.get("observed_at") or "Deterministic replay",
-                    role=principal.role,mode=self.mode,metrics=metrics,
-                    cases=[{k:c[k] for k in columns} for c in cases],
-                    audit=sorted(audit,key=lambda e:e["at"],reverse=True)[:24],ramp=ramp,
+                    role=principal.role,mode=self.mode,metrics=_metrics(cases), cohorts=cohorts,
+                    cases=[summary(c) for c in cases],
+                    audit=sorted(audit,key=lambda e:e["at"] or "",reverse=True)[:24],ramp=ramp,
                     real_recovery="No verified customer recovery",actual_applied=None)
 
     def integrations(self, principal):
