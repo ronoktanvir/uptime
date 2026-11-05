@@ -112,6 +112,24 @@ def definitions(manifest):
             row = {'role':role, 'label':label, 'phrase':phrase, 'opaque':binding is not None, 'spans':spans}
             row['id'] = fingerprint({'source':manifest['document']['sha256'], **row})
             rows.append(row)
+    if manifest.get('fee_exclusions'):
+        # A nonmatching excluded category is not evidence of inclusion. The
+        # already-supported fee-basis operator supplies the source anchor for
+        # an explicit positive category review; no new fee grammar is inferred.
+        effect = 'service_fee' if manifest.get('service_fee') else 'fee_basis'
+        citations = [c for c in manifest['citations'] if effect in c.get('propositions',{})]
+        spans=[]
+        for citation in citations:
+            if sha256(citation['quote'].encode()).hexdigest()!=citation['block_sha256']:
+                raise SemanticBindingRequired('Source citation integrity requires review.')
+            span={k:citation[k] for k in ('start','end','quote','block_sha256')}
+            span['block']=citation['id']
+            span['id']=fingerprint({'source':manifest['document']['sha256'],'role':'fee_inclusions',**span})
+            spans.append(span)
+        row={'role':'fee_inclusions','label':effect,'phrase':'Reviewed included charge categories under the cited fee basis',
+             'opaque':False,'spans':spans}
+        row['id']=fingerprint({'source':manifest['document']['sha256'],**row})
+        rows.append(row)
     return rows
 
 
@@ -191,6 +209,9 @@ def review_record(manifest, overlay, source_text, tenant, reviewer, submitted, a
     if ({v for role,v in collisions if role == 'provider_causes'} &
             {v for role,v in collisions if role == 'exclusions'}):
         raise SemanticBindingRequired('The same causal literal cannot establish both inclusion and exclusion.')
+    if ({v for role,v in collisions if role == 'fee_inclusions'} &
+            {v for role,v in collisions if role == 'fee_exclusions'}):
+        raise SemanticBindingRequired('The same fee literal cannot establish both inclusion and exclusion.')
     return {'protocol':PROTOCOL, 'tenant':tenant, 'reviewer':reviewer, 'reviewed_at':at,
             'source_sha256':needed['source_sha256'], 'manifest_sha256':needed['manifest_sha256'],
             'overlay_sha256':needed['overlay_sha256'], 'dependency_sha256':needed['dependency_sha256'],

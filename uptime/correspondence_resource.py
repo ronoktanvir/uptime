@@ -40,7 +40,8 @@ def _aggregate_fee_refs(words, manifest, overlay, event, bindings):
     lines = set()
     for row in event["body"]["content"].get("lines", []):
         categories = bindings.targets('fee_exclusions', row['category']) if bindings else frozenset()
-        recurring = row["ref"] == overlay["fee_line_ref"] and row["kind"] == "recurring_subscription" and not categories
+        inclusion = not excluded or bindings and bindings.targets('fee_inclusions',row['category'])
+        recurring = row["ref"] == overlay["fee_line_ref"] and row["kind"] == "recurring_subscription" and not categories and inclusion
         if (not description and (recurring or categories)
                 or recurring_request and recurring
                 or description and not recurring_request and categories & matches):

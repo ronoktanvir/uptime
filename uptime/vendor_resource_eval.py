@@ -6,7 +6,6 @@ import re
 from .contracts import Outcome, fingerprint
 from .twilio import _merge, _subtract
 from .vendor_eval import rate_for, usd_estimate
-from .vendor_resource_terms import norm
 from .vendor_terms import MAX_PERCENT
 
 FACTS = {'tenant','agreement','account','product','plan','resource_id','month','received_at','monitor_source',
@@ -130,6 +129,18 @@ def source_labels(manifest,key,bindings):
     if not isinstance(bindings,BindingContext):
         raise SemanticBindingRequired('Reviewed literal meaning is required.')
     return {value for label in manifest.get(key,[]) for value in bindings.representations(key,label)}
+
+
+def excluded_fee(manifest,raw,bindings):
+    if not manifest.get('fee_exclusions'):
+        return False
+    from .vendor_bindings import literal
+    category=literal(raw)
+    if category in source_labels(manifest,'fee_exclusions',bindings):
+        return True
+    if not bindings.targets('fee_inclusions',category):
+        raise Gap('Fee category has no reviewed included or excluded meaning.')
+    return False
 
 
 def scoped_records(facts, overlay, key):
@@ -278,8 +289,7 @@ def fees(facts,overlay,manifest,bindings):
         cents=row.get('amount_cents')
         if row.get('currency')!='USD' or type(cents) is not int or not 0<=cents<=10**15:
             raise Gap('Invalid currency or amount on an affected service line.')
-        from .vendor_bindings import literal
-        if row.get('category') and literal(row['category']) in source_labels(manifest,'fee_exclusions',bindings):
+        if excluded_fee(manifest,row.get('category'),bindings):
             continue
         refund = 0
         if 'subtract_fee_refunds' in settlements:
@@ -358,7 +368,7 @@ def check_submission(facts, overlay, manifest, received, cutoff, inclusive,bindi
             return {}
         result = {}
         for key,value in raw.items():
-            for target in bindings.targets('request_fields',key):
+            for target in bindings.resolve('request_fields',key):
                 if target in result and result[target] != value:
                     raise Gap('Conflicting literal representations of one filing field.')
                 result[target] = value

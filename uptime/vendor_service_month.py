@@ -158,7 +158,7 @@ def evaluate(manifest, overlay, facts, tenant,*,bindings=None):
         if invoice.get('paid') is not True or invoice.get('currency')!='USD' or not isinstance(invoice.get('lines'),list):
             raise Gap('Paid complete itemized USD subscription invoice required.')
         fees=[]; seen={}
-        excluded=source_labels(manifest,'fee_exclusions',bindings)
+        from .vendor_resource_eval import excluded_fee
         for line in invoice['lines']:
             if not isinstance(line,dict):
                 raise Gap('Invalid itemized service-line evidence.')
@@ -169,7 +169,7 @@ def evaluate(manifest, overlay, facts, tenant,*,bindings=None):
                 continue
             seen[ref]=line
             category=literal(required_ref(line.get('category')))
-            if category in excluded:
+            if excluded_fee(manifest,category,bindings):
                 continue
             if line.get('kind')!='recurring_subscription' or ref!=overlay['fee_line_ref']:
                 raise Gap('Unclassified service charge or unmatched recurring fee.')
@@ -189,7 +189,7 @@ def evaluate(manifest, overlay, facts, tenant,*,bindings=None):
             raise Gap('Malformed claim contents.')
         supplied = {}
         for raw,value in fields.items():
-            for key in bindings.targets('request_fields',raw) if bindings else ():
+            for key in bindings.resolve('request_fields',raw) if bindings else ():
                 if key in supplied and supplied[key] != value:
                     raise Gap('Conflicting literal representations of one filing field.')
                 supplied[key] = value

@@ -17,7 +17,9 @@ def review_submission(manifest, overlay=OVERLAY, source=None):
         'block_reviews':[dict(block=b['block'],block_sha256=b['block_sha256'],effects=b['effects'],
                               conditions_and_overrides='Explicit synthetic fixture review: all stated conditions mapped; no unresolved override.')
                          for b in requirements['blocks']],
-        'bindings':[dict(definition_id=d['id'],span_id=d['spans'][0]['id'],literals=[d['spans'][0]['quote']])
+        'bindings':[dict(definition_id=d['id'],span_id=d['spans'][0]['id'],
+                         literals=['subscription'] if d['role']=='fee_inclusions' and d['label']=='service_fee'
+                         else [d['spans'][0]['quote']])
                     for d in requirements['definitions']]}
 
 
@@ -226,3 +228,28 @@ def test_registry_binding_is_named_append_only_and_does_not_replace_final_approv
     with database(path) as db:
         assert list(db.execute('SELECT payload FROM v4_vendor_artifact ORDER BY version')) == original
         assert db.execute('SELECT count(*) FROM v4_vendor_semantic_review').fetchone()[0] == 1
+
+
+@pytest.mark.parametrize('category',['unclassified charge','Subscription','subscription_fee','compass_installation_charges'])
+def test_unknown_fee_category_is_not_included_by_failing_to_match_an_exclusion(category):
+    from test_vendor_service_month import facts,manifest,run,record
+    data=facts()
+    assert run(data)['amount']=='20.99'
+    data['service_invoice']['content']['lines'][0]['category']=category
+    data['service_invoice']=record('new-category',data['service_invoice']['content'])
+    actual=run(data,manifest())
+    assert actual['amount'] is None and actual['outcome']=='INSUFFICIENT_EVIDENCE'
+
+
+def test_unknown_filing_literal_strips_already_computed_monetary_intermediates():
+    from uptime.vendor_eval import evaluate
+    from uptime.vendor_terms import Overlay,bind_overlay
+    from test_vendor_resource import FACTS
+    manifest=compiled()
+    overlay=bind_overlay(manifest,Overlay(**OVERLAY))
+    context=reviewed_context(manifest,overlay)
+    facts=deepcopy(FACTS)
+    facts['filing_proof']['fields']['log_references']=facts['filing_proof']['fields'].pop('log references')
+    result=evaluate(manifest,overlay,facts,'weather-tenant',bindings=context)
+    assert result['amount'] is None and result['semantic_binding_status']=='REVIEW_REQUIRED'
+    assert not {'service_estimate','remaining_estimate','rate_units','affected_fee_cents'} & result.keys()
