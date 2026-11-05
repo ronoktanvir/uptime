@@ -6,3 +6,4 @@ Northwind Cloud — Order Form NW-2026-001
 5. SLA and filing. The attached Service Level Agreement defines completed shortfall increments and final-cent rounding. Claims must be received during the 30 full calendar days following the final day of the service month, inclusive through the last instant of day 30. A draft timestamp is not a filing receipt.
 6. Governing date. The fee is chosen by the service period, not the invoice issue date. An unsplit line crossing an amendment-effective boundary requires complete allocation before pricing.
 7. Signature record. The scenario signature date is December 15, 2025 at 15:00 UTC. The accompanying local signature specimen binds these bytes and the typed pricing input; it is not an external certificate or evidence of real-party execution.
+8. Rate schedule. The complete fixed monthly schedule in order-monthly-rate.txt forms part of this order, including its explicit billing timing.

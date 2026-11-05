@@ -189,7 +189,7 @@ class FeeRegistry:
         rates=[r for r in version.rates if r.product==scope['service']] if version else []
         if len(rates)!=1 or rates[0].fixed_monthly is None:
             raise ValueError('The governing contract must explicitly fix one monthly subscription unit.')
-        result=evaluate_price(entry.agreement,entry.invoice)
+        result=evaluate_price(entry.agreement,entry.invoice,as_of=as_of)
         matches=[x for x in result.lines if x.line_id==entry.fee_line_id and x.product==scope['service']]
         if result.overcharge is None or len(matches)!=1 or matches[0].expected is None:
             raise ValueError('Complete governing fee pricing is unresolved.')

@@ -2,19 +2,20 @@
   "schema": "northwind-authored-inputs/1",
   "tenant": "bears",
   "input_sha256": {
-    "order-form.txt": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
-    "amendment-2026-03.txt": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "order-form.txt": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+    "amendment-2026-03.txt": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
     "document.json": "2ec3e3332bb73525100f50389d53f33d6ca07a3af0f9a4cdcd61727dcbc62fa7",
     "overlay.json": "e341b986908b5011c7514d8ab1eaa6f78113d9f4fd93062027d165ae22004c1b",
-    "agreement.json": "f916435977155971ea6945a517edfd2c39945812169ba964c980a701a2a49b0b",
-    "invoices.json": "929ab9227711447d458ae34f1ab6f4dbdf0f03567f35cb65b54cbaa94355e185",
+    "agreement.json": "3db0e39f776f4ff4ed884eaa45c808835ae1e4b68cd94621769cd151e345b8cc",
+    "invoices.json": "436510c0264375759091b4063a24afd5ecb67654f3b30577956c3f5dee2a9bfc",
     "usage.json": "c703d35a67c836f759f1c1d3065b0173c48538fbc610b245ea1c245358720366",
-    "citations.json": "9057f072aa1fa372b0c981e36481facc394c3ca7ddeec01b18f50ead7512a36f",
-    "signatures.json": "8ecb28081b275e2317668601bf5130a823db9d90b55596a73f7421a9ec24ff68",
+    "citations.json": "77648e89a3afa57c23f74b98390215498562bbb6ce8c0d4c14a14d5367f5a7e5",
+    "signatures.json": "317c70873dd6ca25337d46cdee493572f184a6d9e85be9549c30bc251fdfb39c",
     "january-resource-log.txt": "d6286805ecba90c66fbeeb7da036b731734efdc951aa95c29fea8e9fefc413f4",
     "supplements.json": "de51cc326dbc6ff9452cc1034e654f23d7572b04f670b79b7dba24b1cf688eec",
     "correspondence.json": "d26efd2ca52a4bc3dc1ad162efd362fc2c2a829e2d2842882cc36de009f26423",
-    "order-monthly-rate.txt": "77fbd2378fb7475979cda3a5a54c5280953ec26410fe72f6f98594444b5b14e5",
-    "amendment-monthly-rate.txt": "6667e899c409de21b00ba125ca0c7e1de507ff144ce7bac514a77c3aa47e7fa4"
+    "order-monthly-rate.txt": "a68183fcd6e51710dd3fdfb616766badafbb0c51f439dc0e5cb58191fbf5ab93",
+    "amendment-monthly-rate.txt": "08fdd4121142a2d935f97edf672a50cbd8cab9b4d83ce6153d62a4cd9506feb0",
+    "settlement_invoice.json": "e7d8e732e34a5e1f0e53a9b6a953a95c1595cb583cfd812e9276663334ad5bb7"
   }
 }

@@ -1,0 +1,43 @@
+{
+  "month": "2026-04",
+  "observed_at": "2026-04-01T09:00:00Z",
+  "invoice": {
+    "id": "NW-2026-04",
+    "customer": "Harborline Analytics",
+    "vendor": "Northwind Cloud",
+    "issued_at": "2026-04-01T00:00:00Z",
+    "payment_status": "pending",
+    "currency": "USD",
+    "total": "11000.00",
+    "lines": [
+      {
+        "id": "cloud-hosting-monthly",
+        "product": "Cloud Hosting",
+        "quantity": "1",
+        "unit": "service-month",
+        "start": "2026-04-01T00:00:00Z",
+        "end": "2026-05-01T00:00:00Z",
+        "net": "11000.00",
+        "tax": "0.00",
+        "allocation_ref": "subscription-ledger-2026-04",
+        "allocation_complete": true
+      }
+    ]
+  },
+  "opening_capacity": {
+    "invoice_id": "NW-2026-04",
+    "account": "harborline-001",
+    "vendor": "Northwind Cloud",
+    "contract": "NW-2026-001",
+    "product": "Cloud Hosting",
+    "currency": "USD",
+    "amount": "11000.00",
+    "payment_status": "unpaid",
+    "source_ref": "northwind-april-opening-balance",
+    "issued_at": "2026-04-01T00:00:00Z",
+    "service_start": "2026-04-01T00:00:00Z",
+    "service_end": "2026-05-01T00:00:00Z",
+    "effective_at": "2026-04-01T00:00:00Z",
+    "known_at": "2026-04-01T09:00:00Z"
+  }
+}

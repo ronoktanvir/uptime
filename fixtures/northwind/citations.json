@@ -2,7 +2,7 @@
   {
     "id": "order-form.txt:1",
     "source_file": "order-form.txt",
-    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
     "start": 0,
     "end": 40,
     "quote": "Northwind Cloud \u2014 Order Form NW-2026-001",
@@ -11,7 +11,7 @@
   {
     "id": "order-form.txt:2",
     "source_file": "order-form.txt",
-    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
     "start": 41,
     "end": 231,
     "quote": "1. Parties and term. Provider: Northwind Cloud. Customer: Harborline Analytics. Account: harborline-001. The term covers complete UTC service months from January 1 through December 31, 2026.",
@@ -20,7 +20,7 @@
   {
     "id": "order-form.txt:3",
     "source_file": "order-form.txt",
-    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
     "start": 232,
     "end": 544,
     "quote": "2. Covered subscription. Cloud Hosting on the Business plan is one complete service-month unit. The governing service fee is USD 12,000.00 per complete UTC service month; the maximum payable covered service fee is also USD 12,000.00. There are no usage overage charges or partial-month allocations in this order.",
@@ -29,7 +29,7 @@
   {
     "id": "order-form.txt:4",
     "source_file": "order-form.txt",
-    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
     "start": 545,
     "end": 872,
     "quote": "3. Eligible fees. The SLA credit base is the governing covered monthly service fee after any amendment effective for that service month. An overbilled invoice does not increase that base. Taxes, Premium Support and One-time Setup charges are separate and excluded from the SLA credit base and covered-service price discrepancy.",
@@ -38,7 +38,7 @@
   {
     "id": "order-form.txt:5",
     "source_file": "order-form.txt",
-    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
     "start": 873,
     "end": 1181,
     "quote": "4. Service measurement. Availability uses every elapsed minute in the complete UTC month. Only recorded service unavailability counts as eligible downtime; no maintenance or other exclusions apply under this order. A complete monthly coverage report is required; absent coverage means eligibility is unknown.",
@@ -47,7 +47,7 @@
   {
     "id": "order-form.txt:6",
     "source_file": "order-form.txt",
-    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
     "start": 1182,
     "end": 1493,
     "quote": "5. SLA and filing. The attached Service Level Agreement defines completed shortfall increments and final-cent rounding. Claims must be received during the 30 full calendar days following the final day of the service month, inclusive through the last instant of day 30. A draft timestamp is not a filing receipt.",
@@ -56,7 +56,7 @@
   {
     "id": "order-form.txt:7",
     "source_file": "order-form.txt",
-    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
     "start": 1494,
     "end": 1683,
     "quote": "6. Governing date. The fee is chosen by the service period, not the invoice issue date. An unsplit line crossing an amendment-effective boundary requires complete allocation before pricing.",
@@ -65,16 +65,25 @@
   {
     "id": "order-form.txt:8",
     "source_file": "order-form.txt",
-    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
     "start": 1684,
     "end": 1927,
     "quote": "7. Signature record. The scenario signature date is December 15, 2025 at 15:00 UTC. The accompanying local signature specimen binds these bytes and the typed pricing input; it is not an external certificate or evidence of real-party execution.",
     "quote_sha256": "7681551075370ce16624faeecb4a452084427dd6839a85f8175117007efacff8"
   },
   {
+    "id": "order-form.txt:9",
+    "source_file": "order-form.txt",
+    "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+    "start": 1928,
+    "end": 2072,
+    "quote": "8. Rate schedule. The complete fixed monthly schedule in order-monthly-rate.txt forms part of this order, including its explicit billing timing.",
+    "quote_sha256": "56ddc6bfca6a3b2190c8e58df39cd5a32dff9e38f7addb3fc79a4a4bb572d155"
+  },
+  {
     "id": "amendment-2026-03.txt:1",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
     "start": 0,
     "end": 44,
     "quote": "Northwind Cloud \u2014 Amendment 1 to NW-2026-001",
@@ -83,7 +92,7 @@
   {
     "id": "amendment-2026-03.txt:2",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
     "start": 45,
     "end": 301,
     "quote": "1. Execution and effect. The scenario signatories execute this amendment on February 20, 2026 at 15:00 UTC. It becomes effective for service beginning March 1, 2026 at 00:00 UTC and supersedes the order form monthly service-fee provision from that instant.",
@@ -92,7 +101,7 @@
   {
     "id": "amendment-2026-03.txt:3",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
     "start": 302,
     "end": 699,
     "quote": "2. Governing fee and ceiling. For Cloud Hosting on the Business plan, the governing service fee becomes USD 11,000.00 per complete UTC service month. The maximum payable covered service fee is also USD 11,000.00. This replaces both the USD 12,000.00 monthly fee and its USD 12,000.00 ceiling for March and later service months; it does not replace the fee for February service invoiced on March 1.",
@@ -101,7 +110,7 @@
   {
     "id": "amendment-2026-03.txt:4",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
     "start": 700,
     "end": 979,
     "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
@@ -110,28 +119,55 @@
   {
     "id": "amendment-2026-03.txt:5",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
     "start": 980,
     "end": 1204,
     "quote": "4. Signature record. The accompanying local signature specimen identifies its local issuer and actual creation time separately from the scenario execution date. It establishes no real-party execution or external certificate.",
     "quote_sha256": "7d2443ce6ce8c6e9ae82a2185191f9dd582a15fd6665cc17f0bbb3a5156003e3"
   },
   {
+    "id": "amendment-2026-03.txt:6",
+    "source_file": "amendment-2026-03.txt",
+    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
+    "start": 1205,
+    "end": 1402,
+    "quote": "4. Restated rate schedule. The complete fixed monthly schedule in amendment-monthly-rate.txt forms part of this amendment and expressly restates the billing timing for its governing service months.",
+    "quote_sha256": "5ce6921690984f749982abc7fa5956c80113b22c51db7379e3b12a4abde551f9"
+  },
+  {
     "id": "order-monthly-rate.txt:1",
     "source_file": "order-monthly-rate.txt",
-    "source_sha256": "77fbd2378fb7475979cda3a5a54c5280953ec26410fe72f6f98594444b5b14e5",
+    "source_sha256": "a68183fcd6e51710dd3fdfb616766badafbb0c51f439dc0e5cb58191fbf5ab93",
     "start": 0,
     "end": 186,
     "quote": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 12000.00. Invoice quantity must equal one; taxes are separate and excluded.",
     "quote_sha256": "d4aed21e182265c10a2f9201db146a867e30338a62f232d979ea746b0d9f28e5"
   },
   {
+    "id": "order-monthly-rate.txt:2",
+    "source_file": "order-monthly-rate.txt",
+    "source_sha256": "a68183fcd6e51710dd3fdfb616766badafbb0c51f439dc0e5cb58191fbf5ab93",
+    "start": 187,
+    "end": 357,
+    "quote": "For Cloud Hosting, the fixed monthly subscription may be invoiced exactly at the UTC calendar month's start or after that month ends; the charge does not depend on usage.",
+    "quote_sha256": "3ca34b6f9f1cf50ccbb2058763ea8b321cf2afb93daa3af5141f757226970ce8"
+  },
+  {
     "id": "amendment-monthly-rate.txt:1",
     "source_file": "amendment-monthly-rate.txt",
-    "source_sha256": "6667e899c409de21b00ba125ca0c7e1de507ff144ce7bac514a77c3aa47e7fa4",
+    "source_sha256": "08fdd4121142a2d935f97edf672a50cbd8cab9b4d83ce6153d62a4cd9506feb0",
     "start": 0,
     "end": 186,
     "quote": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 11000.00. Invoice quantity must equal one; taxes are separate and excluded.",
     "quote_sha256": "2b49e9fb72bd1238791f9dcd5d0248c2385dfc68bb6d2f2eccfdc7d8e4edb95c"
+  },
+  {
+    "id": "amendment-monthly-rate.txt:2",
+    "source_file": "amendment-monthly-rate.txt",
+    "source_sha256": "08fdd4121142a2d935f97edf672a50cbd8cab9b4d83ce6153d62a4cd9506feb0",
+    "start": 187,
+    "end": 357,
+    "quote": "For Cloud Hosting, the fixed monthly subscription may be invoiced exactly at the UTC calendar month's start or after that month ends; the charge does not depend on usage.",
+    "quote_sha256": "3ca34b6f9f1cf50ccbb2058763ea8b321cf2afb93daa3af5141f757226970ce8"
   }
 ]
