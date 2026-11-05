@@ -5,7 +5,7 @@
     "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
     "start": 0,
     "end": 40,
-    "quote": "Northwind Cloud — Order Form NW-2026-001",
+    "quote": "Northwind Cloud \u2014 Order Form NW-2026-001",
     "quote_sha256": "830b1d0363a9825364f41823abbdc66cc2e9210052c9f53bffea9afe3592e748"
   },
   {
@@ -77,7 +77,7 @@
     "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
     "start": 0,
     "end": 44,
-    "quote": "Northwind Cloud — Amendment 1 to NW-2026-001",
+    "quote": "Northwind Cloud \u2014 Amendment 1 to NW-2026-001",
     "quote_sha256": "04dbdea8066ebfe3148278300e8a10a19f0207d131d186c0965f57c6da6f6026"
   },
   {
@@ -115,5 +115,23 @@
     "end": 1204,
     "quote": "4. Signature record. The accompanying local signature specimen identifies its local issuer and actual creation time separately from the scenario execution date. It establishes no real-party execution or external certificate.",
     "quote_sha256": "7d2443ce6ce8c6e9ae82a2185191f9dd582a15fd6665cc17f0bbb3a5156003e3"
+  },
+  {
+    "id": "order-monthly-rate.txt:1",
+    "source_file": "order-monthly-rate.txt",
+    "source_sha256": "77fbd2378fb7475979cda3a5a54c5280953ec26410fe72f6f98594444b5b14e5",
+    "start": 0,
+    "end": 186,
+    "quote": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 12000.00. Invoice quantity must equal one; taxes are separate and excluded.",
+    "quote_sha256": "d4aed21e182265c10a2f9201db146a867e30338a62f232d979ea746b0d9f28e5"
+  },
+  {
+    "id": "amendment-monthly-rate.txt:1",
+    "source_file": "amendment-monthly-rate.txt",
+    "source_sha256": "6667e899c409de21b00ba125ca0c7e1de507ff144ce7bac514a77c3aa47e7fa4",
+    "start": 0,
+    "end": 186,
+    "quote": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 11000.00. Invoice quantity must equal one; taxes are separate and excluded.",
+    "quote_sha256": "2b49e9fb72bd1238791f9dcd5d0248c2385dfc68bb6d2f2eccfdc7d8e4edb95c"
   }
 ]

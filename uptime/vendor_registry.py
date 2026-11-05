@@ -344,7 +344,18 @@ def revoke_semantics(path,p,vendor,submission):
         return _view(db,p,vendor,state)
 
 
-def submit_tests(path, p, vendor, submission):
+def _fee_for(contexts,manifest,overlay,facts,tenant):
+    from .governing_fees import require_governing_fee
+    if type(contexts) is not tuple:
+        raise ValueError('Trusted governing-fee contexts must be supplied as an immutable tuple.')
+    matches=[]
+    for context in contexts:
+        try:matches.append(require_governing_fee(context,manifest,overlay,facts,tenant))
+        except (ValueError,TypeError,KeyError):continue
+    return matches[0] if len(matches)==1 else None
+
+
+def submit_tests(path, p, vendor, submission, *, governing_fees=()):
     with transaction(path, p, vendor, write=True, draft=True) as db:
         state = _tail(db, p, vendor)
         if state['revision'] != submission.revision or state['state'] != 'SHADOW':
@@ -367,10 +378,13 @@ def submit_tests(path, p, vendor, submission):
             names.add(test.name)
             outcomes.add(expected['outcome'])
             result = evaluate(artifact['manifest'], artifact['overlay'], test.facts, p.tenant,
-                              bindings=binding_context_db(db,p,vendor,state,artifact))
+                              bindings=binding_context_db(db,p,vendor,state,artifact),
+                              governing_fee=_fee_for(governing_fees,manifest,artifact['overlay'],test.facts,p.tenant))
             actual = {k: result[k] for k in ('outcome', 'amount')}
             rows.append({'name': test.name, 'expected': expected, 'actual': actual, 'passed':
                          actual['outcome'] == expected['outcome'] and actual['amount'] == expected.get('amount')})
+            if result.get('governing_fee_digest'):
+                rows[-1]['governing_fee_digest']=result['governing_fee_digest']
             if manifest.get('formula_grouping_review') and rows[-1]['passed'] and actual['outcome'] == Outcome.ELIGIBLE:
                 total, covered = result['total_microseconds'], result['downtime_microseconds']
                 alternate_rate, _ = rate_for(manifest, manifest['scope']['product'], manifest['scope']['plan'] or '*',
@@ -385,7 +399,7 @@ def submit_tests(path, p, vendor, submission):
         rows.append({'name': 'Generated exact threshold checks', 'passed': all(r['passed'] for r in artifact['generated_tests'])})
         state.update(tests=[t.model_dump() for t in submission.tests], checks=rows, test_author=p.subject, interpretation_reviewer=None)
         state.pop('formula_decision', None)
-        state['suite'] = fingerprint(state['tests'])
+        state['suite'] = fingerprint({'tests':state['tests'],'pricing':[row.get('governing_fee_digest') for row in rows]}) if manifest.get('credit_rule') else fingerprint(state['tests'])
         if state.get('previous_suite') != state['suite']:
             state['previous'] = None
         _event(db, p, vendor, state, 'Executed reviewer-authored scenarios in shadow')
@@ -393,14 +407,14 @@ def submit_tests(path, p, vendor, submission):
 
 
 
-def shadow_preview(path, p, vendor, submission):
+def shadow_preview(path, p, vendor, submission, *, governing_fee=None):
     with transaction(path, p, vendor, draft=True) as db:
         state = _tail(db, p, vendor)
         if state["revision"] != submission.revision or state["state"] != "SHADOW":
             raise ValueError("Preview requires the current shadow revision.")
         artifact = _require_current(db, p, vendor, state["version"])
         result = evaluate(artifact["manifest"], artifact["overlay"], submission.facts, p.tenant,
-                          bindings=binding_context_db(db,p,vendor,state,artifact))
+                          bindings=binding_context_db(db,p,vendor,state,artifact),governing_fee=governing_fee)
         return {"classification":"LOCAL_DRAFT_PREVIEW", "dispatch_authorized":False,
                 "vendor_id":vendor, "revision":state["revision"], "evaluation":result}
 
@@ -443,7 +457,7 @@ def act(path, p, vendor, action):
         return _view(db, p, vendor, state)
 
 
-def dispatch(path, p, vendor, facts):
+def dispatch(path, p, vendor, facts, *, governing_fee=None):
     with transaction(path, p, vendor, write=True) as db:
         state = _tail(db, p, vendor)
         if not state['active_version']:
@@ -451,7 +465,7 @@ def dispatch(path, p, vendor, facts):
         version = state['active_version']
         artifact = _require_current(db,p,vendor,version)
         manifest, overlay = artifact['manifest'], artifact['overlay']
-        result = evaluate(manifest, overlay, facts, p.tenant,bindings=binding_context_db(db,p,vendor,state,artifact))
+        result = evaluate(manifest, overlay, facts, p.tenant,bindings=binding_context_db(db,p,vendor,state,artifact),governing_fee=governing_fee)
         identity = [p.tenant, vendor, overlay['account'], overlay['agreement'], overlay['product'],overlay['plan'],facts.get('month')]
         if 'resource_id' in overlay:
             identity.append(overlay['resource_id'])
@@ -468,7 +482,8 @@ def dispatch(path, p, vendor, facts):
         versions = list(_read_versions(db, p.tenant, case_id))
         if versions:
             saved = versions[-1]['payload']
-            if saved['observation_digest'] == result['observation_digest'] and saved['version'] == version and saved.get('adapter_revision') == state['revision']:
+            if (saved['observation_digest'] == result['observation_digest'] and saved['version'] == version
+                    and saved.get('adapter_revision') == state['revision'] and saved.get('governing_fee_digest')==result.get('governing_fee_digest')):
                 return saved
         at = now()
         doc = manifest['document']
@@ -584,7 +599,7 @@ def resolve_case(path, p, case_id, *, require_active=True):
         return case
 
 
-def evaluate_active_db(db, p, vendor, facts, *, expected_version=None, expected_revision=None):
+def evaluate_active_db(db, p, vendor, facts, *, expected_version=None, expected_revision=None, governing_fee=None):
     """Evaluate with the active tenant-scoped version inside the caller's existing transaction."""
     if not isinstance(p,Principal) or not p.tenant or not p.subject or p.role not in {'viewer','reviewer'}:
         raise PermissionError('Authenticated tenant principal required.')
@@ -595,12 +610,12 @@ def evaluate_active_db(db, p, vendor, facts, *, expected_version=None, expected_
         raise ValueError('Stale or inactive resource adapter binding.')
     artifact=_require_current(db,p,vendor,version)
     manifest,overlay=artifact['manifest'],artifact['overlay']
-    result=evaluate(manifest,overlay,facts,p.tenant,bindings=binding_context_db(db,p,vendor,state,artifact))
+    result=evaluate(manifest,overlay,facts,p.tenant,bindings=binding_context_db(db,p,vendor,state,artifact),governing_fee=governing_fee)
     return dict(result,version=version,semantics_revision=artifact['semantics_revision'],revision=state['revision'],manifest_digest=fingerprint(manifest),
                 source_sha256=manifest['document']['sha256'],overlay_digest=fingerprint(overlay),
                 vendor_id=vendor,agreement=overlay['agreement'],account=overlay['account'],resource_id=overlay.get('resource_id'))
 
 
-def evaluate_active(path,p,vendor,facts,*,expected_version=None,expected_revision=None):
+def evaluate_active(path,p,vendor,facts,*,expected_version=None,expected_revision=None,governing_fee=None):
     with transaction(path,p,vendor) as db:
-        return evaluate_active_db(db,p,vendor,facts,expected_version=expected_version,expected_revision=expected_revision)
+        return evaluate_active_db(db,p,vendor,facts,expected_version=expected_version,expected_revision=expected_revision,governing_fee=governing_fee)

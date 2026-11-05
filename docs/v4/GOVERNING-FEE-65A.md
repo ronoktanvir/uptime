@@ -1,0 +1,15 @@
+# Governing fee server integration
+
+`fixtures.northwind.loader.load_package()` provides immutable authored inputs; `build_fee_registry(package)` registers their typed Agreement/Invoice/Scope entries. It does not mint a source signature, grant or human review.
+
+After existing inbox authentication, call `authenticated_invoice_snapshot(tenant, scope, stored_invoice_event)` and `registry.resolve(snapshot, as_of=trusted_now)`. The stored event must retain `source=billing`, `kind=invoice`, `body`, `digest`, `subject`, `source_key_id`, `source_grant_id` and `received_at`. Scope is the authenticated envelope, never a body-selected lookup key. Missing/ambiguous/mismatching records yield no monetary context.
+
+Pass the resulting opaque object as the keyword `governing_fee` to `vendor_eval.evaluate`, `vendor_registry.evaluate_active_db`, `evaluate_active`, `dispatch` or `shadow_preview`. `submit_tests` accepts a tuple `governing_fees`; exact source/scope matching selects at most one context per case. No JSON route accepts either object. Candidate source/version pins must be recreated under the final integrated dependency hashes.
+
+`vendor_api.make_router(..., governing_fees=registry, trusted_now=clock)` resolves those objects only from existing authenticated tenant inbox records inside the mutation lock. The workflow should create draft cases and deliver their signed billing evidence before submitting positive catalog tests. No new invoice registration endpoint is needed. A configured callable returning cents is rejected.
+
+A positive evaluation exposes `governing_fee_digest`, `governing_pricing_version`, `pricing_as_of`, `provenance_class` and the governing fee. The correspondence adapter includes the fee digest in its assessment/approval dependency version, keeping pricing version separate from SLA remedy version and immutable reservation keys. A missing digest on known zero does not mean unknown availability. Unknown or unpriced positive obligations must not contribute a partial portfolio total.
+
+The context is process-local and nonserializable as authority. Store its digest for audit, then re-resolve. On server configuration replacement call `old_registry.close()` before installing the new registry; stop any old processes holding the prior configuration. This is an internal integrity boundary, not protection from arbitrary malicious Python or proof of external authority.
+
+Current bounds: USD with minor exponent2, a source-defined fixed one-unit complete UTC monthly subscription, one exact invoice line and zero separate tax. Absent/duplicate/split lines, credits, mismatching quantity, changed source, incomplete pricing, unsupported currency and future-known terms refuse. The stable as-of time is the authenticated invoice receipt, bounded by the trusted current clock. Later-known terms require fresh attestation. Advance billing is a separate reviewed implementation increment.
