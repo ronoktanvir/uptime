@@ -2,9 +2,54 @@
 from datetime import timedelta
 import re
 
+from pydantic import TypeAdapter, ValidationError
+
 from .correspondence_artifacts import HISTORICAL, SUPPLEMENTS
-from .correspondence_types import SOURCE, instant
+from .correspondence_types import Id, SOURCE, instant
 from .twilio import calendar_bounds
+
+_WIRE_ID = TypeAdapter(Id)
+_BILLING_WORDS = {"invoice", "charges", "charge", "fees", "fee", "billing", "bill"}
+_FEE_GRAMMAR = _BILLING_WORDS | {"a", "an", "any", "the", "of", "for", "amount", "amounts", "record", "records",
+                                 "evidence", "details", "detail", "affected", "itemized", "paid", "monthly", "line", "lines"}
+
+
+def _record_refs(event):
+    return {event["event_id"], event["body"]["source_ref"]} if event else set()
+
+
+def _fee_description(phrase):
+    return set(re.findall(r"[a-z0-9]+", phrase.casefold())) - _FEE_GRAMMAR
+
+
+def _aggregate_fee_refs(words, manifest, overlay, event):
+    """A named fee requires its present row even when citing the whole invoice.
+
+    The caller already verifies the signed event's scope, plan and commitment.
+    Row categories retain the same exact declared semantics as the evaluator.
+    """
+    if not event:
+        return set()
+    description = words - _FEE_GRAMMAR
+    excluded = {category.casefold(): manifest.get("label_bindings", {}).get("fee_exclusions", {}).get(category, {}).get("phrase", category)
+                for category in manifest.get("fee_exclusions", [])}
+    recurring_request = bool(description & {"subscription", "recurring"}) and description <= {"subscription", "recurring", "service"}
+    matches = {category for category, phrase in excluded.items() if description == _fee_description(phrase)}
+    if description and not recurring_request and len(matches) != 1:
+        return set()
+    lines = set()
+    for row in event["body"]["content"].get("lines", []):
+        category = row["category"].casefold()
+        recurring = row["ref"] == overlay["fee_line_ref"] and row["kind"] == "recurring_subscription" and category not in excluded
+        if (not description and (recurring or category in excluded)
+                or recurring_request and recurring
+                or description and not recurring_request and category in matches):
+            if re.search(r"\b(?:credit\w*|refund\w*|void\w*|revers\w*|cancel\w*)\b", row["kind"], re.I):
+                return set()  # A reversal cannot establish the requested charge.
+            lines.add(row["ref"])
+    if description and len(lines) != 1:
+        return set()  # A specific fee field does not authorize choosing a row.
+    return lines | _record_refs(event) if lines else set()
 
 
 def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
@@ -15,18 +60,22 @@ def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
     status = groups.get("resource_status")
     invoice = groups.get("resource_invoice")
     if manifest.get("aggregate_monitor"):
-        kind = "service_invoice" if words & {"invoice", "charges", "charge", "fees", "billing", "bill"} else "service_monitor"
-        if words & {"invoice", "charges", "charge", "fees", "billing", "bill", "logs", "log", "status", "monitor", "telemetry"}:
-            event = groups.get(kind)
-            if not event:
-                return set()
-            return {event["event_id"], event["body"]["source_ref"]} | {
-                row["ref"] for row in event["body"]["content"].get("lines", []) if row["ref"] == overlay["fee_line_ref"]}
+        if words & _BILLING_WORDS:
+            return _aggregate_fee_refs(words, manifest, overlay, groups.get("service_invoice"))
+        if words & {"logs", "log", "status", "monitor", "telemetry"}:
+            return _record_refs(groups.get("service_monitor"))
         if words & {"service", "product"}:
-            return {scope.service}
+            refs = _record_refs(groups.get("service_monitor")) | _record_refs(groups.get("service_invoice"))
+            # Preserve a previously usable literal ID, but do not invent an ID
+            # from a display Name that the signed public wire cannot carry.
+            try:
+                refs.add(_WIRE_ID.validate_python(scope.service))
+            except ValidationError:
+                pass
+            return refs
         if words & {"plan", "edition"}:
             return {overlay["plan"]}
-    if words & {"invoice", "charges", "charge", "fees", "billing", "bill"}:
+    if words & _BILLING_WORDS:
         if invoice is None:
             return set()
         lines = {r["ref"] for r in fees if r.get("kind") == "resource_service"
