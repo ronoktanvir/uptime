@@ -249,7 +249,8 @@ def resolve_active(path, tenant, scope, events, at, *, governing_fees=None):
                     if len(invoices)==1:
                         governing_fee=governing_fees.resolve(authenticated_invoice_snapshot(tenant,scope,invoices[0]),as_of=at)
             raw = evaluate_active_db(db, Principal(tenant,"local-active-join","viewer"), installation, obs,
-                                     expected_version=state["active_version"], expected_revision=state["revision"],governing_fee=governing_fee)
+                                     expected_version=state["active_version"], expected_revision=state["revision"],governing_fee=governing_fee,
+                                     governing_fees=governing_fees or (),trusted_now=lambda:at)
             if resource:
                 cutoff = exclusive_cutoff(raw)
         except ValueError as error:

@@ -4,8 +4,10 @@ No financial calculation lives here. Local-ledger readback is a local
 self-consistency check, never an external provider or human attestation.
 """
 from copy import deepcopy
+from dataclasses import asdict
 from datetime import UTC, datetime
 from decimal import Decimal
+from hashlib import sha256
 import json
 from pathlib import Path
 import sqlite3
@@ -15,7 +17,7 @@ from uuid import UUID, uuid4, uuid5
 from .contracts import Source, fingerprint
 from .storage import database,stored_cases
 from .auth import SCRIPT
-from .correspondence_types import instant, Delivery, SOURCE
+from .correspondence_types import instant, Delivery, SOURCE, Scope, Claim
 from .vendor_registry import get_vendor
 
 
@@ -163,7 +165,11 @@ class WorkspaceWorkflow:
         self.lock=RLock(); self.failure_point=None
         self.months={row['month']:row for row in self.package['months']}
         self.claim_id=self.claim_ids[self.claim_month]
-        self.bill_id=self.months[self.bill_month]['invoice'].id
+        self.settlement=self.package['settlement']
+        self._settlement_binding=self._settlement_pin()
+        self.settlement_scope=Scope(**self.settlement['scope'])
+        self.bill_claim_id='inbox-bill-'+self.settlement['month']
+        self.bill_id=self.settlement['invoice'].id
         overlay=self.package['overlay']
         scope=self.scopes[self.claim_month]
         if (scope.account!=overlay['account'] or scope.contract!=overlay['agreement']
@@ -191,7 +197,14 @@ class WorkspaceWorkflow:
             db.execute('''CREATE TABLE IF NOT EXISTS workspace_workflow_intent (
                 id TEXT PRIMARY KEY,operation TEXT NOT NULL,expected TEXT NOT NULL,actor TEXT NOT NULL,
                 status TEXT NOT NULL,created_at TEXT NOT NULL,result_ref TEXT,error TEXT)''')
+            db.execute('''CREATE TABLE IF NOT EXISTS workspace_workflow_invoice (
+                id TEXT PRIMARY KEY,payload TEXT NOT NULL,digest TEXT NOT NULL)''')
+            for operation in ('UPDATE','DELETE'):
+                db.execute(f"CREATE TRIGGER IF NOT EXISTS workflow_invoice_no_{operation.lower()} BEFORE {operation} ON workspace_workflow_invoice BEGIN SELECT RAISE(ABORT,'Invoice authority is immutable'); END")
         self.inbox.clock=self.now
+        self.governing_fees=config['governing_fees']
+        self.bench.governing_fees=self.governing_fees
+        self.bench.trusted_now=self.now
         if auth.source_registry is None:
             raise PermissionError('Configured workflow sources require the protected exact-grant registry.')
         auth.source_registry.config.bind(self.inbox)
@@ -214,7 +227,7 @@ class WorkspaceWorkflow:
         require_fixture_workspace(self.bench.path)
 
     def _vendor(self,p,installation):
-        try:return get_vendor(self.bench.path,p,installation)
+        try:return get_vendor(self.bench.path,p,installation,governing_fees=self.governing_fees,trusted_now=self.now)
         except KeyError:return None
 
     def _claim(self,p):
@@ -267,6 +280,17 @@ class WorkspaceWorkflow:
         price_amount=str(price.overcharge) if invoice_known and price.overcharge is not None else None
         try:balance=self.bench.allocations.bill_balance(p.tenant,self.bill_id)
         except KeyError:balance=None
+        bill_view=dict(id=None,original_amount=None,outstanding_amount=None)
+        if balance is not None:
+            with database(self.bench.path) as db:
+                receipt=db.execute('SELECT payload,digest FROM workspace_workflow_invoice WHERE id=?',(self.bill_id,)).fetchone()
+            if not receipt or fingerprint(json.loads(receipt['payload']))!=receipt['digest']:
+                raise ValueError('Eligible invoice has no intact source authority receipt.')
+            proof=json.loads(receipt['payload'])
+            if instant(proof['known_at'])>self.now():raise ValueError('Invoice is not yet available.')
+            bill_view=dict(id=self.bill_id,original_amount=balance['total'],outstanding_amount=balance['remaining_eligible'],
+                **{k:proof[k] for k in ('issued_at','service_start','service_end','known_at','source_sha256',
+                    'governing_pricing_version','award_eligibility_version','sla_source_sha256','source_ref','unchanged_sla')})
         ledger=claim['ledger'] if claim else {}
         reconciliations=claim.get('reconciliations',[]) if claim else []
         records=dict(award=None,credit=None,application=None)
@@ -294,7 +318,7 @@ class WorkspaceWorkflow:
             price_finding=dict(id='pricing-'+fingerprint([invoice.id,self.package_digest]),
                 state=price.stage if price_amount is not None else price.evaluation.outcome.value,
                 amount=price_amount,currency=invoice.currency,reason='; '.join(price.evaluation.trace) if invoice_known else 'The invoice is not yet known.',
-                citations=price_citations),
+                invoice_id=invoice.id,citations=price_citations,credit_applied='0.00'),
             claim=dict(id=self.claim_id,state=claim['stage'] if claim else 'NOT_OPENED',amount=claim['amount'] if claim else None,
                        currency=invoice.currency,receipt_id=claim['submissions'][-1]['id'] if claim and claim['submissions'] else None,
                        eligibility_version=claim['contract_version'] if claim else None,
@@ -305,8 +329,7 @@ class WorkspaceWorkflow:
             ledger=dict(destination=self.provider.destination,estimated=claim['amount'] if claim else None,
                         claimed=ledger.get('claimed','0.00'),awarded=ledger.get('awarded','0.00'),posted=ledger.get('posted','0.00'),
                         applied=ledger.get('applied','0.00'),currency=invoice.currency,record_ids=records,
-                        bill=dict(id=self.bill_id,original_amount=str(invoice.total) if invoice_known else None,
-                                  outstanding_amount=balance['remaining_eligible'] if balance else None)),
+                        unapplied_credit=reconciliations[0]['unapplied_posted'] if len(reconciliations)==1 else '0.00',bill=bill_view),
             audit=audit,onboarding=dict(vendor='CalyxQuay',state=onboarding['state'] if onboarding else 'NOT_INSTALLED',
                 version=onboarding.get('active_version') if onboarding else None,reviewer=reviewer,
                 history=[dict(at=r['at'],event=r['kind'],ref=str(r['revision'])) for r in (onboarding or {}).get('audit',[])],actions=[]),
@@ -320,7 +343,7 @@ class WorkspaceWorkflow:
                     vendor_revision=vendor['revision'] if vendor else None,
                     package=self.package_digest,scope=self.scopes[self.claim_month].model_dump())
 
-    def _next(self,claim):
+    def _next(self,p,claim):
         if not claim:return None
         offered={a['id'] for a in claim['actions']}
         for op,label in (('approve-claim','Approve January claim'),('submit-claim','File January claim')):
@@ -336,16 +359,25 @@ class WorkspaceWorkflow:
                 if supplement['verification_event_id'] not in arrived:
                     return 'receive-verification','Verify supplied log','evidence'
             if 'approve-response' in offered:return 'approve-response','Approve response','claim'
-            if claim['stage']=='RESPONSE_APPROVED':return 'submit-response','Send response','claim'
+            if claim['stage']=='RESPONSE_APPROVED':
+                with database(self.bench.path) as db:
+                    scope,state=self.inbox._read(db,p.tenant,self.claim_id)
+                    at=max(self.now(),instant(state['cooldown']))
+                    current=self.inbox._assess(p.tenant,scope,state,at)
+                    future=self.inbox._actions(p,scope,state,current,at)
+                if 'submit-response' in {row['id'] for row in future}:
+                    return 'submit-response','Send response','claim'
         if any(r['action']=='submit-response' for r in claim['submissions']) and len(claim['replies'])==1:
             return 'receive-award','Receive credit decision','evidence'
         if 'record-credit' in offered:return 'record-credit','Post to Local ledger','ledger'
-        # Existing future-invoice rules do not permit the already-issued March
-        # invoice merely because a later opening-balance observation exists.
+        if claim['ledger']['posted']!='0.00' and claim['ledger']['applied']=='0.00' and claim['preflight']['outcome']=='ELIGIBLE':
+            try:self.bench.allocations.bill_balance(p.tenant,self.bill_id)
+            except KeyError:return 'receive-invoice','Receive next invoice','ledger'
+        if 'apply-balance' in offered:return 'apply-balance','Apply credit to eligible invoice','ledger'
         return None
 
     def _descriptor(self,p,claim):
-        next_step=self._next(claim)
+        next_step=self._next(p,claim)
         if next_step is None:return None
         operation,label,group=next_step
         with database(self.bench.path) as db:
@@ -375,11 +407,112 @@ class WorkspaceWorkflow:
         event=Delivery(event_id=event_id,scope=self.scopes[self.claim_month],body=body)
         return event,instant(known)
 
+    def _invoice_events(self):
+        if self._settlement_pin()!=self._settlement_binding:
+            raise ValueError('The immutable authored invoice configuration changed.')
+        row=self.settlement;scope=self.settlement_scope
+        invoice=row['invoice'];capacity=row['opening_capacity']
+        ref=capacity['source_ref'];content=encoded(capacity);digest=sha256(content.encode()).hexdigest()
+        source_ref='invoice-'+invoice.id
+        descriptor=dict(artifact_ref=ref,artifact_type='invoice_detail',body_sha256=digest,observed_at=row['observed_at'])
+        return [Delivery(event_id=source_ref,scope=scope,body=dict(kind='invoice',lines=[
+                    dict(id=line.id,kind='affected_api',amount=str(line.net)) for line in invoice.lines])),
+                Delivery(event_id=ref,scope=scope,body=dict(kind='artifact',source_ref=ref,content=content,**descriptor)),
+                Delivery(event_id=ref+'-verified',scope=scope,body=dict(kind='billing_verification',
+                    source_ref=ref+'-billing',linked_ref=source_ref,**descriptor))]
+
+    def _settlement_pin(self):
+        row=self.settlement
+        return fingerprint([json.loads(json.dumps(asdict(row['invoice']),default=str)),
+            row['opening_capacity'],row['scope'],row['unchanged_sla'],row['observed_at'],
+            self.package['input_sha256']['settlement_invoice.json']])
+
+    def _invoice_material(self,p,claim):
+        """Conservative future-invoice eligibility; no alternate pricing engine."""
+        from .allocations import usd_cents
+        from .governing_fees import authenticated_invoice_snapshot
+        row=self.settlement;invoice=row['invoice'];opening=row['opening_capacity'];scope=self.settlement_scope
+        if len(invoice.lines)!=1 or len(claim.get('reconciliations',[]))!=1:
+            raise ValueError('One exact invoice and one confirmed posted credit are required.')
+        credit=claim['reconciliations'][0];line=invoice.lines[0]
+        unchanged=row['unchanged_sla']
+        if (unchanged['sla_source_sha256']!=claim['contract_source_sha256']
+                or unchanged['citation'] not in self.package['citations']
+                or unchanged['citation_id']!=unchanged['citation']['id']
+                or any(getattr(scope,k)!=getattr(self.scopes[self.claim_month],k) for k in
+                       ('account','vendor','contract','service','component','region','currency'))
+                or self._vendor(p,self.installation).get('active_version') is None
+                or credit['scope']['contract_version']!=claim['submissions'][0]['packet']['version']):
+            raise ValueError('Unchanged SLA eligibility is not established by the current cited source.')
+        if (opening['invoice_id']!=invoice.id or opening['payment_status']!='unpaid'
+                or invoice.payment_status not in {'pending','unpaid'} or invoice.currency!='USD'
+                or any(opening[k]!=getattr(scope,field) for k,field in
+                    (('account','account'),('vendor','vendor'),('contract','contract'),('product','service'),('currency','currency')))
+                or any(instant(opening[k])!=value for k,value in
+                    (('issued_at',invoice.issued_at),('service_start',line.start),('service_end',line.end)))
+                or instant(opening['effective_at'])!=invoice.issued_at or invoice.issued_at!=line.start
+                or not (invoice.issued_at.date().isoformat()>credit['effective_date']
+                        and instant(row['observed_at'])==instant(opening['known_at'])<=self.now())
+                or usd_cents(opening['amount'])>usd_cents(str(invoice.total))):
+            raise ValueError('Verified unpaid future-invoice dates, capacity or financial scope disagree.')
+        events=self._invoice_events()
+        with database(self.bench.path) as db:
+            stored_scope,state=self.inbox._read(db,p.tenant,self.bill_claim_id)
+        if stored_scope!=scope:raise ValueError('Invoice evidence scope changed.')
+        facts=[]
+        for event in events:
+            body=event.body.model_dump(exclude_unset=True);source=SOURCE[body['kind']]
+            digest=fingerprint([p.tenant,self.bill_claim_id,scope.model_dump(),source,body])
+            matches=[e for e in state['evidence'] if e['event_id']==event.event_id]
+            if (len(matches)!=1 or matches[0]['body']!=body or matches[0]['digest']!=digest
+                    or matches[0]['subject']!=self.senders[(scope.month,source)].subject
+                    or not matches[0].get('source_key_id') or not matches[0].get('source_grant_id')
+                    or instant(matches[0]['known_at'])<instant(opening['known_at'])):
+                raise ValueError('Exact signed invoice/capacity/verifier readback is required.')
+            facts.append(matches[0])
+        if facts[1]['subject']==facts[2]['subject']:
+            raise ValueError('Capacity content and linked billing verification need separate issuers.')
+        context=self.governing_fees.resolve(authenticated_invoice_snapshot(p.tenant,scope,facts[0]),as_of=self.now())
+        basis=dict(source_sha256=self.package['input_sha256']['settlement_invoice.json'],
+            invoice_evidence_digest=facts[0]['digest'],capacity_evidence_digest=facts[1]['digest'],
+            verification_digest=facts[2]['digest'],source_authorities=[{k:f[k] for k in ('subject','source_key_id','source_grant_id')} for f in facts],
+            award_eligibility_version=credit['scope']['contract_version'],sla_source_sha256=unchanged['sla_source_sha256'],
+            unchanged_sla=unchanged,governing_pricing_version=context.governing_pricing_version,governing_fee_digest=context.digest,
+            amount_cents=usd_cents(str(invoice.total)),eligible_cents=usd_cents(opening['amount']),
+            issued_at=invoice.issued_at.isoformat(),service_start=line.start.isoformat(),service_end=line.end.isoformat(),
+            known_at=opening['known_at'],scope=scope.model_dump())
+        source_ref='local-invoice:'+fingerprint(basis)
+        proof=dict(basis,source_ref=source_ref)
+        bill=dict(vendor_id=scope.vendor,account_id=scope.account,product_id=scope.service,contract_id=scope.contract,
+            contract_version=credit['scope']['contract_version'],currency=scope.currency,id=invoice.id,
+            source=Source.REPLAY.value,source_ref=source_ref,amount_cents=basis['amount_cents'],eligible_cents=basis['eligible_cents'],
+            effective_date=invoice.issued_at.date().isoformat())
+        return proof,bill
+
+    async def _receive_invoice(self,p,claim):
+        if self.now()<instant(self.settlement['observed_at']):raise ValueError('The invoice is not yet available.')
+        events=self._invoice_events()
+        self.inbox.create(p,Claim(claim_id=self.bill_claim_id,scope=self.settlement_scope))
+        for index,event in enumerate(events):
+            await self.deliver(self.bill_claim_id,event)
+            if self.failure_point=='after-invoice-source-'+str(index):
+                raise RuntimeError('Injected interruption during invoice source intake.')
+        proof,bill=self._invoice_material(p,claim)
+        raw=encoded(proof);digest=fingerprint(proof)
+        with database(self.bench.path) as db,db:
+            previous=db.execute('SELECT payload,digest FROM workspace_workflow_invoice WHERE id=?',(self.bill_id,)).fetchone()
+            if previous and tuple(previous)!=(raw,digest):raise ValueError('Conflicting invoice authority replay.')
+            db.execute('INSERT OR IGNORE INTO workspace_workflow_invoice VALUES(?,?,?)',(self.bill_id,raw,digest))
+        if self.failure_point=='after-invoice-authority':raise RuntimeError('Injected interruption before capacity intake.')
+        self.bench.allocations.record_bill(p.tenant,bill)
+
     async def deliver(self,claim_id,event):
         """Shared ingress verifier: ordinary fresh signatures, exact scope and role."""
         from fastapi import Request
         from .auth_client import service_headers
-        if claim_id not in self.claim_ids.values() or event.scope!=self.scopes.get(event.scope.month):
+        allowed=(claim_id==self.claim_ids.get(event.scope.month) and event.scope==self.scopes.get(event.scope.month)
+                 or claim_id==self.bill_claim_id and event.scope==self.settlement_scope)
+        if not allowed:
             raise PermissionError('Source delivery is outside the configured workflow.')
         source=SOURCE[event.body.kind]
         sender=self.senders[(event.scope.month,source)]
@@ -397,12 +530,14 @@ class WorkspaceWorkflow:
         return self.inbox.receive(source_principal,claim_id,event)
 
     def _effect(self,p,operation,claim):
+        if operation=='receive-invoice':
+            return dict(at=instant(self.settlement['observed_at']).isoformat(),source_sha256=self.package['input_sha256']['settlement_invoice.json'])
         if operation.startswith('receive-'):
             event,at=self._delivery(operation,claim)
             return dict(event=event.model_dump(exclude_unset=True),at=max(self.now(),at).isoformat())
-        if operation=='record-credit':
+        if operation in {'record-credit','apply-balance'}:
             _,plan=self.bench._settlement_plan(p,claim)
-            return dict(credit=plan['credits'][0],at=self.now().isoformat())
+            return dict(**({'credit':plan['credits'][0]} if operation=='record-credit' else {'application':plan}),at=self.now().isoformat())
         with database(self.bench.path) as db:
             scope,state=self.inbox._read(db,p.tenant,self.claim_id)
             at=max(self.now(),instant(state['cooldown'])) if operation=='submit-response' else self.now()
@@ -411,6 +546,18 @@ class WorkspaceWorkflow:
         return dict(packet_sha256=fingerprint(packet),at=at.isoformat())
 
     def _done(self,p,operation,effect,claim):
+        if operation=='receive-invoice':
+            with database(self.bench.path) as db:
+                row=db.execute('SELECT payload,digest FROM workspace_workflow_invoice WHERE id=?',(self.bill_id,)).fetchone()
+            if row is None:return False
+            proof=json.loads(row['payload'])
+            if fingerprint(proof)!=row['digest'] or proof['source_sha256']!=effect['source_sha256']:
+                raise ValueError('Stored invoice authority no longer matches the intended source.')
+            try:balance=self.bench.allocations.bill_balance(p.tenant,self.bill_id)
+            except KeyError:return False
+            return (balance['scope']['contract_version']==proof['award_eligibility_version']
+                    and balance['amount_cents']==proof['amount_cents'] and balance['eligible_cents']==proof['eligible_cents']
+                    and balance['source_ref']==proof['source_ref'])
         if operation.startswith('receive-'):
             event=effect['event'];body=event['body'];source=SOURCE[body['kind']]
             digest=fingerprint([p.tenant,self.claim_id,event['scope'],source,body])
@@ -419,6 +566,10 @@ class WorkspaceWorkflow:
             credit=effect['credit'];readback=self.provider.read(p.tenant,credit['id'])
             return bool(readback and readback['payload']==credit and fingerprint(credit)==readback['payload_sha256']
                         and any(credit['id'] in r['credit_ids'] for r in claim.get('reconciliations',[])))
+        if operation=='apply-balance':
+            application=effect['application'];readback=self.provider.verified_read(p.tenant,application['id'],'application')
+            return bool(readback and readback['payload']==application
+                        and any(application['id'] in r['application_ids'] for r in claim.get('reconciliations',[])))
         if operation.startswith('approve-'):
             return bool(claim['approval'] and claim['approval']['action']==operation
                         and claim['approval']['digest']==effect['packet_sha256'] and claim['approval']['actor']==p.subject)
@@ -454,7 +605,9 @@ class WorkspaceWorkflow:
             with database(self.bench.path) as db,db:
                 db.execute('UPDATE workspace_workflow SET event_clock=? WHERE id=1',(at.isoformat(),))
             if self.failure_point=='after-clock':raise RuntimeError('Injected workflow interruption after event clock advance.')
-            if operation.startswith('receive-'):
+            if operation=='receive-invoice':
+                await self._receive_invoice(p,claim)
+            elif operation.startswith('receive-'):
                 await self.deliver(self.claim_id,Delivery(**effect['event']))
             else:
                 self.bench.act(p,self.claim_id,operation)

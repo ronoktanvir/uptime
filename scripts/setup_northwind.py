@@ -52,6 +52,7 @@ def prepare(directory,origin):
     if directory.exists():raise ValueError('Select a fresh directory; use --resume for an existing immutable workspace.')
     directory.mkdir(mode=0o700,parents=True)
     package=load_package();scopes,_=source_inputs(package)
+    scopes[package['settlement']['month']]=Scope(**package['settlement']['scope'])
     config=SourceConfig(version=1,channel='LOCAL_SYNTHETIC',tenant='bears',mode='replay',origin=origin,services=[])
     grants=[]
     for month,scope in scopes.items():
@@ -64,6 +65,8 @@ def prepare(directory,origin):
                  package_sha256=fingerprint(package['input_sha256']))
     fd=os.open(directory/'workspace.json',os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
     with os.fdopen(fd,'w') as handle:json.dump(private,handle);handle.flush();os.fsync(handle.fileno())
+    from uptime.auth_keys import rehearsal_key,write_credential
+    write_credential(directory/'scripted-reviewer.jwk',rehearsal_key(private['rehearsal_secret']),ROOT)
     return open_workspace(directory)
 
 
@@ -194,10 +197,11 @@ def main():
             actor,_=seed(client,app,private,events)
             projection=checked(client.get('/api/workspace/workflow',headers=actor.headers))
             (args.directory/'initial-projection.json').write_text(json.dumps(projection,indent=2)+'\n')
+    print(json.dumps(dict(directory=str(args.directory),origin=private['origin'],account=SCRIPT,
+                          reviewer_credential_file=str(args.directory/'scripted-reviewer.jwk'))),flush=True)
     if args.serve:
         import uvicorn
         uvicorn.run(app,host='127.0.0.1',port=int(private['origin'].rsplit(':',1)[1]),log_level='warning')
-    else:print(json.dumps(dict(directory=str(args.directory),origin=private['origin'],credential_file='workspace.json')))
 
 
 if __name__=='__main__':main()
