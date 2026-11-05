@@ -7,7 +7,7 @@ import json
 
 from fastapi import Depends
 
-from .contracts import Citation, EvaluationResult, Money, Outcome, Principal, fingerprint
+from .contracts import DraftReviewer, Citation, EvaluationResult, Money, Outcome, Principal, fingerprint
 from .correspondence import CorrespondenceDesk
 from .correspondence_api import make_correspondence_router
 from .correspondence_rules import ActiveRemedy
@@ -276,5 +276,10 @@ def register_v4_routes(app, bench, auth):
             return Principal(p.tenant, p.subject, "viewer")
         return p
 
-    app.include_router(make_router(bench.path, reader, auth.reviewer, bench.check_write, bench.mutex))
+    def vendor_reader(p=Depends(auth.actor)):
+        if p.role == "reviewer" and (not auth.approvals_enabled or bench.setting(p)["mode"] == "OBSERVE"):
+            return DraftReviewer(p.tenant, p.subject, p.role)
+        return p
+
+    app.include_router(make_router(bench.path, vendor_reader, auth.reviewer, bench.check_write, bench.mutex))
     app.include_router(make_correspondence_router(inbox, reader, auth.reviewer, bench.check_write, auth.service))

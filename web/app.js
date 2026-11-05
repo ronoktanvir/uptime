@@ -27,12 +27,24 @@
     const [whole, fraction] = raw.split('.');
     return `${currency === 'USD' ? '$' : `${display(currency)} `}${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${fraction === undefined ? '' : `.${fraction}`}`;
   }
-  if (typeof module !== 'undefined' && module.exports) module.exports = {compareDecimal, money, safeURL};
+  function companionPlan(value) {
+      if (!value || typeof value !== 'object') return value;
+      const {method, path: proposedPath, required_scope, ...rest} = value;
+      return {...rest, server_status:value.status, status:value.object_type === 'bills' ? 'READ_ONLY_PROPOSAL' : 'UNSUPPORTED_ENTITY',
+        delivery:value.delivery, note:'Plan inspection only. No browser dispatch is offered. The installed native binding supports bill comments only; exact independent permission and current provider grants are required.'};
+  }
+  function companionRoute(requested) {
+    if (requested === 'rehearsal') return 'dashboard';
+    if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
+    return ['dashboard','onboarding','lab','regression','advanced','vendors','disputes','policy','integrations'].includes(requested) || requested.startsWith('disputes/') ? requested : 'ramp';
+  }
+  if (typeof module !== 'undefined' && module.exports) module.exports = {compareDecimal, money, safeURL, companionPlan, companionRoute};
   if (typeof document === 'undefined') return;
   const $ = selector => document.querySelector(selector);
   const content = $('#content'), notice = $('#notice'), dialog = $('#inspector');
   let view = 'ramp', generation = 0, caseGeneration = 0, activeCase = null, busy = false;
   let rampCase = null, rampScroll = 0;
+  let companion, companionAssets, signedPage = false, companionAccess = {};
   const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
   const filters = {query: '', status: '', sort: 'value-desc'};
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
@@ -50,11 +62,17 @@
   function empty(text) { return el('p', 'empty', text); }
   function announce(text) { notice.className = 'notice'; notice.textContent = text; }
   async function api(path, payload) {
-    return window.uptimeAPI(path, payload);
+    const data = await window.uptimeAPI(path, payload);
+    // The legacy plan advertises provider paths beyond the mounted bill-only binding.
+    if (payload === undefined && /^\/api\/ramp\/records\//.test(path)) {
+      if (path.endsWith('/workflow')) return companionPlan(data);
+      if (data.native_workflow) return {...data, native_workflow:companionPlan(data.native_workflow)};
+    }
+    return data;
   }
   function account() {
     if (dialog.open) dialog.close();
-    content.replaceChildren(window.uptimeAuth.signInForm(navigate));
+    content.replaceChildren(window.uptimeAuth.signInForm(() => { signedPage = true; navigate(); }));
   }
   function showError(target, error, retry) { target.replaceChildren(add(el('section', 'panel error'), el('h2', '', 'Unable to load this view'), el('p', '', error.message || 'Connection unavailable. Check that the local demo server is running.'), button('Try again', retry, 'quiet'))); }
   function timeline(items, history = false) {
@@ -171,6 +189,10 @@
     const trace = panel('Decision trace'); trace.append(add(el('ol', 'trace'), ...list(data.trace).map(t => el('li', '', t))));
     const history = panel('Case timeline'); history.append(timeline(data.timeline));
     const available = panel('Available actions'); add(available, el('p', 'help', 'Only actions offered by the server appear here. The server verifies this session’s permissions on every request.'), actions(data.actions, `/api/cases/${encodeURIComponent(id)}/actions`, async () => { await openCase(id); await load(); }));
+    if (id.startsWith('inbox-')) {
+      const inbox = el('a','case-link','Inspect correspondence evidence & receipts');
+      inbox.href = '#disputes/' + encodeURIComponent(id); target.append(inbox);
+    }
     add(target, financials, add(el('div', 'section-grid'), clauses, evidence), trace, history, available, guide(id));
   }
   function guide(id) {
@@ -241,9 +263,49 @@
     add(extraction,el('strong','',model.model),el('p','',model.note),el('p','help','Input SHA-256 · '+model.input_digest),sources(model.sources));
     content.replaceChildren(heading('Integrations','Provider observations, evidence sources and verified model provenance.'),bills,add(el('div','section-grid'),feed,extraction));
   }
+  async function advanced() {
+    if (!companionAssets) companionAssets = new Promise((resolve, reject) => {
+      const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/static/v4_style.css'; document.head.append(css);
+      const script = document.createElement('script'); script.src = '/static/v4_ui.js';
+      script.onload = resolve; script.onerror = () => { companionAssets = null; script.remove(); css.remove(); reject(new Error('Companion asset unavailable.')); };
+      document.head.append(script);
+    });
+    await companionAssets;
+    companion ||= window.UptimeV4.create({api, getAccess:() => companionAccess, onCase:openCase,
+      reviewForms:true, onRefresh:load, reloadAfterMutation:true});
+    return companion;
+  }
+  async function loadCompanion(route, token) {
+    const ui = await advanced();
+    const policy = await api('/api/policy');
+    if (token !== generation) return;
+    const session = window.uptimeAuth.session();
+    if (session) $('#account').textContent = 'Sign out · ' + session.subject;
+    companionAccess = {identity:session?.subject, enrollment:policy.role,
+      gate:session?.approvals_enabled === true ? 'Deployment approvals enabled; server rechecks every request' : 'Read-only deployment',
+      canWrite:signedPage && policy.role === 'reviewer' && session?.approvals_enabled === true,
+      canDraft:signedPage && session?.role === 'reviewer' && session?.drafts_enabled === true};
+    if (route === 'vendors' || route === 'disputes') return ui.render(content,route);
+    if (route.startsWith('disputes/')) return ui.inspect(content,decodeURIComponent(route.slice(9)));
+    if (route === 'regression') {
+      const data = await api('/api/dashboard');
+      if (token === generation) return ui.render(content,'portfolio',data.cohorts || {});
+      return;
+    }
+    const data = await api('/api/ramp/workspace');
+    if (token === generation) return ui.render(content,'catalog',data);
+  }
+  // Add companion entry points without replacing the primary Ramp navigation.
+  const nav = document.querySelector('.rail nav');
+  if (nav) for (const [route, name] of [['advanced','Advanced workflows'],['vendors','Vendor intake & versions'],['disputes','Correspondence & disputes'],['lab','V3 onboarding lab'],['regression','Regression comparison']]) {
+    const link = el('a','',name); link.href = '#' + route; link.dataset.view = route; nav.append(link);
+  }
+  // Load responsive companion navigation styles on the primary worklist too.
+  advanced().catch(() => {});
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
-    try { if (route === 'ramp') {
+    try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
+    if (route === 'ramp') {
       if (!ramp) throw new Error('Ramp UI asset unavailable.');
       await ramp.render(content, rampCase);
       if (token === generation) {
@@ -254,7 +316,7 @@
       }
       return;
     }
-    const data = await api(`/api/${route}`); if (token !== generation) return; if (route === 'dashboard') renderDashboard(data); else if (route === 'onboarding') renderOnboarding(data); else if (route === 'policy') renderPolicy(data); else renderIntegrations(data); }
+    const data = await api(`/api/${route === 'lab' ? 'onboarding' : route}`); if (token !== generation) return; if (route === 'dashboard') renderDashboard(data); else if ((route === 'onboarding' || route === 'lab')) renderOnboarding(data); else if (route === 'policy') renderPolicy(data); else renderIntegrations(data); }
     catch (error) { if (token === generation) { if (error.status === 401) account(); else showError(content,error,load); } }
     finally { if (token === generation) content.setAttribute('aria-busy', 'false'); }
   }
@@ -263,12 +325,13 @@
     if (requested === 'workspace') return; // Skip link is an in-page accessibility target.
     if (view === 'ramp' && !rampCase) rampScroll = window.scrollY || 0;
     ramp?.unmount();
+    companion?.unmount(content);
     if (dialog.open) dialog.close();
     rampCase = null;
     if (requested.startsWith('ramp/')) {
       try { rampCase = decodeURIComponent(requested.slice(5)); } catch { rampCase = null; }
     }
-    view = requested === 'rehearsal' ? 'dashboard' : requested === 'ramp' || requested.startsWith('ramp/') ? 'ramp' : ['dashboard','onboarding','policy','integrations'].includes(requested) ? requested : 'ramp';
+    view = companionRoute(requested);
     document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
     if (!content.children.length) content.append(empty('Loading server state…')); announce(''); load();
   }

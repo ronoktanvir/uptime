@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T01:51:17.353287+00:00",
+  "packet_sha256": "b15acdd52885ae1b6e785b90061a6f8c04c1d037fc52b8853de37eb1b9fc086a",
+  "prompt_sha256": "928aabdcf03eb9ddb6d4c166ad2f25264e72d0ada97307b9745ceb55745f12bc",
+  "status": "REVIEWED",
+  "session": "a574e177-f9c1-4d6d-b8d4-de2f8e331003",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** B is reasonable, conditional on falsifiers passing. One caveat: I have no record of \"packet42,\" so treat that attribution as unverified.\n\n**Alternatives:** A creates a real bootstrap deadlock. C collapses the staging/authority boundary. B is the right shape, but its safety rests on the route allowlist, not on intent.\n\n**Strongest objection:** Staged state can become an indirect authority channel. Promotion could later trust candidate-written tests, corpus entries, or artifacts, or a shared cache could poison active evaluations. Then \"untrusted\" is nominal.\n\n**Unsupported claims:**\n- \"Security vectors pass before/after\" has no shown evidence.\n- \"Pure local,\" \"no ambient egress,\" and \"harmless\" are asserted, not demonstrated.\n- \"Read-only viewer remains unable to stage\" is untested.\n\n**Minimal constraints:**\n- Deny-by-default exact route+method grammar.\n- Separate storage namespace and keys per tenant/candidate.\n- Content-addressed, append-only staged objects.\n- Promotion re-runs all tests from trusted sources, never candidate-supplied results.\n- Audit log per stage action.\n\n**Falsification tests:**\n- Sibling origin and role swap must be rejected.\n- Path tricks (encoding, `..`, case, trailing slash, method override) must not reach gated routes.\n- Overwriting tests or evaluations must fail.\n- Writes to active adapter or registry must be impossible.\n- Egress from the sandbox must be blocked at the network layer.\n- Replayed nonce must fail.\n- No financial or dispatch call should appear in traces.\n- Revoking a reviewer must take effect immediately.\n\n**Human authorization:** No blanket confirmation is needed for staging. Humans should approve the allowlist change itself, any public-document byte approvals, and all release, promotion, or financial actions."
+}

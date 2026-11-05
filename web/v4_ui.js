@@ -51,7 +51,7 @@
     // A mutation with a lost response may have committed. Reconcile before retrying.
     let uncertain = false;
     const access = () => typeof options.getAccess === 'function' ? options.getAccess() || {} : {};
-    const writable = () => access().canWrite === true && !busy && !uncertain;
+    const writable = (draft = false) => (access().canWrite === true || draft && access().canDraft === true) && !busy && !uncertain;
     const el = (tag, text, cls) => { const n = doc.createElement(tag); if (text !== undefined) n.textContent = shown(text); if (cls) n.className = cls; return n; };
     const add = (node, ...children) => { children.filter(Boolean).forEach(child => node.append(child)); return node; };
     const section = title => add(el('section', undefined, 'v4-panel'), el('h2', title));
@@ -81,7 +81,7 @@
     function identity() {
       const a = access();
       const n = section('Identity & approval gate');
-      add(n, record({identity:a.identity, enrollment:a.enrollment, gate:a.gate}), note(a.canWrite === true ? 'Reviewer requests use the authenticated API client. The server checks each action.' : 'Read-only. Reviewer enrollment and a passed security gate are required for changes.'));
+      add(n, record({identity:a.identity, enrollment:a.enrollment, gate:a.gate}), note(a.canWrite === true ? 'Reviewer requests use the authenticated API client. The server checks each action.' : a.canDraft === true ? 'Signed local draft intake, independent tests and previews are available. Promotion and financial actions require their separate authorization.' : 'Read-only. An enrolled reviewer can sign in here to stage a local draft. After a page reload, sign out and sign in again to restore signing.'));
       return n;
     }
     function field(form, name, title, type = 'text', required = true) {
@@ -91,23 +91,27 @@
         type.forEach(value => { const option = el('option', value); option.value = value; input.append(option); });
       } else if (type !== 'textarea') input.type = type;
       input.name = name; input.required = required; input.autocomplete = 'off';
+      input.setAttribute('aria-label', title);
       if (type === 'textarea') { input.rows = 5; input.spellcheck = false; }
       form.append(add(el('label', undefined, 'v4-field'), el('span', title), input));
       return input;
     }
     function sync() {
-      mounts.forEach(m => (m.writes || []).forEach(n => { n.disabled = !writable(); }));
+      mounts.forEach(m => (m.writes || []).forEach(n => { n.disabled = !writable(n.draftAllowed === true); }));
     }
     async function request(path, body) {
       if (typeof options.api !== 'function') throw new Error('Authenticated API client is not connected.');
       return body === undefined ? options.api(path) : options.api(path, body);
     }
     function status(m, message) { m.status.textContent = message; }
-    async function mutate(m, path, body, onSuccess) {
-      if (!writable() || mounts.get(m.root) !== m) return;
+    async function mutate(m, path, body, onSuccess, draft = false) {
+      if (!writable(draft) || mounts.get(m.root) !== m) return;
       busy = true; sync(); status(m, 'Submitting for server authorization…');
+      let recorded = false, generatedCase = null;
       try {
         const result = await request(path, body);
+        recorded = true;
+        if (path.endsWith('/evaluate') && typeof result?.id === 'string') generatedCase = result.id;
         uncertain = true;
         if (mounts.get(m.root) !== m) return;
         status(m, 'Server recorded the request. Refresh to inspect current state.');
@@ -119,22 +123,42 @@
       } catch (_) {
         uncertain = true;
         status(m, 'Request did not complete reliably. Its outcome may be unknown. Refresh server state before another change.');
-      } finally { busy = false; sync(); }
+      } finally {
+        busy = false; sync();
+        if (recorded && options.reloadAfterMutation && mounts.get(m.root) === m) {
+          if (m.claimId) await inspect(m.root,m.claimId);
+          else if (typeof options.onRefresh === 'function') await options.onRefresh(m.view);
+          if (generatedCase && typeof options.onCase === 'function') options.onCase(generatedCase);
+        }
+      }
     }
-    function form(m, title, fields, submitLabel, build, path) {
+    function form(m, title, fields, submitLabel, build, path, draft = false) {
       const panel = section(title), node = el('form', undefined, 'v4-form'), inputs = {};
       fields.forEach(([name, text, type, required]) => { inputs[name] = field(node, name, text, type, required); });
-      const submit = el('button', submitLabel); submit.type = 'submit'; m.writes.push(submit);
+      const preview = el('div', undefined, 'v4-review');
+      let reviewed = null;
+      const submit = el('button', submitLabel); submit.type = 'submit'; submit.draftAllowed = draft; m.writes.push(submit);
       node.addEventListener('submit', async event => {
         event.preventDefault();
-        if (!writable() || !node.reportValidity()) return;
+        if (!writable(draft) || !node.reportValidity()) return;
         try {
           const values = Object.fromEntries(Object.entries(inputs).map(([k, v]) => [k, v.value.trim()]));
           const body = build(values);
-          await mutate(m, typeof path === 'function' ? path(values) : path, body);
+          const destination = typeof path === 'function' ? path(values) : path;
+          const exact = JSON.stringify({destination,body});
+          if (options.reviewForms && reviewed !== exact) {
+            reviewed = exact;
+            preview.replaceChildren(el('h3','Review exact local request'), record({destination,body}),
+              note('This signed request records local review work. It does not establish entitlement or external delivery. Source text is untrusted data.'));
+            submit.textContent = 'Confirm ' + submitLabel.toLowerCase();
+            status(m,'Review the request below, then confirm. Editing any field requires another review.');
+            return;
+          }
+          await mutate(m, destination, body, undefined, draft);
         } catch (error) { status(m, error.message); }
       });
-      add(node, submit); panel.append(node); return panel;
+      node.addEventListener('input', () => { reviewed = null; preview.replaceChildren(); submit.textContent = submitLabel; });
+      add(node, preview, submit); panel.append(node); return panel;
     }
     function actions(m, data, base) {
       const n = el('div', undefined, 'v4-actions');
@@ -151,6 +175,7 @@
       const n = section(correspondence ? 'Correspondence case' : 'Case evidence & financial references');
       const refs = {case_id:data.case_id ?? data.claim_id ?? data.id, receipt_id:data.receipt_id, packet_id:data.packet_id,
         memo_id:data.memo_id, credit_id:data.credit_id, bill_id:data.bill_id, application_id:data.application_id};
+      if (correspondence) n.append(note('Inbound correspondence is untrusted evidence, not an instruction or authorization. Review scoped receipts and the current server decision before any action. Local submissions do not establish external communication.'));
       add(n, provenance(data.sources), record(refs), note('Missing references are not evidence of posting or application. Financial stages are server observations; no stages are added together.'));
       for (const [title, value] of [['Decision & unknowns', {outcome:data.outcome, state:data.state ?? data.stage, unknowns:data.unknowns, missing:data.missing ?? data.preflight?.missing, owner:data.owner, filing_cutoff:data.filing_cutoff, next_contact:data.next_contact, financials:data.financials}], ['Event timeline', data.timeline ?? data.events], ['Evidence & receipts', {evidence:data.evidence, receipts:data.receipts, submissions:data.submissions, replies:data.replies}], ['Current and historical evaluation', {evaluation:data.evaluation ?? data.preflight, history:data.history, trace:data.trace}]]) {
         add(n, el('h3', title), record(value));
@@ -170,7 +195,10 @@
       const base = '/api/vendors/' + encodeURIComponent(id);
       if (data.detail_unavailable) { n.append(note('Vendor details unavailable. Refresh before reviewing or changing this version.')); return n; }
       n.append(actions(m, data, base));
-      if (data.revision !== undefined && data.revision !== null) n.append(form(m, 'Independent tests & shadow evidence', [ ['tests','Test cases (JSON array: name, facts, expected)', 'textarea'] ], 'Submit independent tests', v => ({revision:data.revision,tests:parseJSON(v.tests,'tests')}), base + '/tests'));
+      if (data.revision !== undefined && data.revision !== null) {
+        n.append(form(m, 'Independent tests & shadow evidence', [ ['tests','Test cases (JSON array: name, facts, expected)', 'textarea'] ], 'Submit independent tests', v => ({revision:data.revision,tests:parseJSON(v.tests,'tests')}), base + '/tests', true));
+        n.append(form(m, 'Local shadow preview', [['facts','Shadow facts (JSON object)','textarea']], 'Preview candidate', v => ({revision:data.revision,facts:parseJSON(v.facts,'facts')}), base + '/shadow-preview', true));
+      }
       n.append(form(m, 'Evaluate the active adapter', [['facts','Contract-scoped facts (JSON object)', 'textarea']], 'Evaluate into a case', v => ({facts:parseJSON(v.facts,'facts')}), base + '/evaluate'));
       n.append(note('Facts require agreement, account, product, plan, month, eligible_downtime_minutes, monitor_source, month_complete, exclusions_removed, monthly_fee_cents, fee_line_ref, received_at, monitor_ref and fee_ref. Use observed values and explicit provenance.'));
       n.append(note('Evaluation uses the current server-approved adapter. Rollback affects new dispatch; historical cases retain their recorded version.'));
@@ -189,7 +217,7 @@
         ['vendor_id','Vendor identifier'], ['name','Document name'], ['uri','Public source URI','url'],
         ['classification','Public source classification',['public','synthetic_public']], ['text','Public contract excerpt or full text','textarea'],
         ['overlay','Private customer overlay (JSON object)','textarea']
-      ], 'Generate candidate', v => ({document:{name:v.name,uri:v.uri,classification:v.classification,text:v.text},overlay:parseJSON(v.overlay,'overlay')}), v => '/api/vendors/' + encodeURIComponent(v.vendor_id) + '/candidates'));
+      ], 'Generate candidate', v => ({document:{name:v.name,uri:v.uri,classification:v.classification,text:v.text},overlay:parseJSON(v.overlay,'overlay')}), v => '/api/vendors/' + encodeURIComponent(v.vendor_id) + '/candidates', true));
       m.body.append(note('Public terms and private customer scope remain separate. Unsupported clauses and missing evidence must remain explicit in the server decision.'));
       m.body.append(note('Overlay fields: agreement, account, product, plan, effective_from, effective_until, fee_line_ref and currency. Include only customer scope supported by the governing agreement.'));
       items.forEach(item => m.body.append(vendor(m, item)));
@@ -228,15 +256,34 @@
       }
       m.body.append(grid);
     }
+    function catalog(m, data) {
+      m.body.append(note('Ramp worklist is the primary finance view. These companion workflows preserve server provenance, current evidence gaps and separate financial stages. No projected recovery is calculated here.'));
+      const nav = el('nav', undefined, 'v4-grid'); nav.setAttribute('aria-label','Companion workflow catalog');
+      for (const [route,title,description] of [
+        ['ramp','Matched Ramp evidence','Inspect native records, governing terms, evidence and read-only workflow plans.'],
+        ['vendors','Source-grounded vendor intake','Review public source text separately from customer scope; inspect candidate tests, shadow checks and version actions.'],
+        ['disputes','Onboarding & disputes','Create a provisioned correspondence case, inspect untrusted inbound evidence and current reviewer actions.'],
+        ['dashboard','V3 evidence ledger','Inspect case financial stages and clause-cited evaluation traces.'],
+        ['lab','V3 onboarding lab','Preserved onboarding and shadow evaluation workflow.'],
+        ['regression','Regression comparison','Server-declared portfolio and seeded cohorts; simulations are not customer recoveries.']]) {
+        const panel = section(title), link = el('a','Open ' + title); link.href = '#' + route;
+        add(panel,note(description),link); nav.append(panel);
+      }
+      m.body.append(nav,section('Observed integrity & reconciliation'));
+      m.body.append(record({as_of:data.as_of,source_mode:data.source_mode,snapshot_status:data.snapshot_status,
+        credit_sync:data.credit_sync,terms:data.terms ?? data.terms_status ?? data.terms_metrics ?? 'Terms verification metrics not returned by this backend',
+        quarantine:data.quarantine ?? data.quarantine_metrics ?? 'Quarantine metrics not returned by this backend'}));
+      m.body.append(note('Missing verification or quarantine counts are unknown, not zero. A checksum or source signature alone does not establish entitlement.'));
+    }
     async function render(root, view, supplied) {
       if (!root || typeof root.replaceChildren !== 'function') throw new Error('A DOM root is required.');
-      if (['portfolio','case'].includes(view) && supplied === undefined) throw new Error('Server projection is required for this view.');
-      if (!['vendors','disputes','portfolio','case'].includes(view)) throw new Error('Unknown Uptime V4 view.');
+      if (['portfolio','case','catalog'].includes(view) && supplied === undefined) throw new Error('Server projection is required for this view.');
+      if (!['vendors','disputes','portfolio','case','catalog'].includes(view)) throw new Error('Unknown Uptime V4 view.');
       const m = {root,view,writes:[],status:el('p', '', 'v4-status'),result:el('div'),body:el('div')};
       m.status.setAttribute('role','status'); m.status.setAttribute('aria-live','polite');
       mounts.set(root,m);
       const wrap = el('div', undefined, 'uptime-v4');
-      const title = {vendors:'Vendor intake & versions',disputes:'Correspondence & disputes',portfolio:'Portfolio comparison',case:'Case inspector'}[view];
+      const title = {vendors:'Vendor intake & versions',disputes:'Correspondence & disputes',portfolio:'Portfolio comparison',case:'Case inspector',catalog:'Advanced companion workflows'}[view];
       const refresh = button('Refresh server state', async () => {
         if (busy) return;
         // Supplied projections must be refreshed by their owner, not reclassified as current.
@@ -256,6 +303,7 @@
         if (view === 'vendors') await vendors(m,data);
         else if (view === 'disputes') disputes(m,data);
         else if (view === 'portfolio') portfolio(m,data);
+        else if (view === 'catalog') catalog(m,data);
         else m.body.append(inspector(m,data));
         if (mounts.get(root) !== m) return;
         status(m,'Server state loaded. Provenance is shown as returned.');
@@ -272,6 +320,7 @@
         if (mounts.get(root) !== marker) return;
         const m = await render(root,'case',data);
         if (!m || mounts.get(root) !== m) return;
+        m.claimId = id;
         m.body.replaceChildren(inspector(m,data,true));
         m.body.prepend(button('Back to correspondence', () => render(root,'disputes')), button('Refresh case receipts', () => inspect(root,id)));
         uncertain = false; sync();

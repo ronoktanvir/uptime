@@ -73,7 +73,10 @@ def event_in_scope(event, source, scope):
     if event.body.kind == "component":
         return event.body.component_id == scope.component
     # Independently scoped records must corroborate the envelope, including resource-scoped report rows.
-    fields = {**scope.model_dump(), "resource_id":scope.component, "agreement":scope.contract}
+    fields = {**scope.model_dump(), "resource_id":scope.component, "agreement":scope.contract, "product":scope.service}
+    for field, value in event.body.model_dump(exclude_none=True).items():
+        if field in fields and value != fields[field]:
+            return False
     for collection in ("lines", "records", "intervals", "causes", "exclusions"):
         for row in getattr(event.body, collection, []):
             for field, value in row.model_dump(exclude_none=True).items():

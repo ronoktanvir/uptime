@@ -78,6 +78,12 @@ class Principal:
     role: str
 
 
+
+@dataclass(frozen=True)
+class DraftReviewer(Principal):
+    """Authenticated local draft capability, with no publication or financial rights."""
+
+
 def fingerprint(value: object) -> str:
     """Stable for JSON-native, float-free replay fixtures."""
     return sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()

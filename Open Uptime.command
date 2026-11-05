@@ -1,12 +1,25 @@
 #!/bin/zsh
 set -eu
-cd "$(dirname "$0")"
 umask 077
-if ! command -v uv >/dev/null; then
-  echo 'Install uv first, then run this launcher again. See docs/orchestration/RUNBOOK.md.'
+cd "$(dirname "$0")"
+if command -v uv >/dev/null 2>&1; then
+  uptime_uv=$(command -v uv)
+elif [ -x "$HOME/.local/bin/uv" ]; then
+  uptime_uv="$HOME/.local/bin/uv"
+elif [ -x "/opt/homebrew/bin/uv" ]; then
+  uptime_uv=/opt/homebrew/bin/uv
+else
+  printf '%s\n' 'Install uv, then reopen this launcher. See docs/v4/OPERATIONS.md.'
   exit 1
 fi
-env_dir=$(mktemp -d "${TMPDIR:-/tmp}/uptime-launch-env.XXXXXX")
-trap 'rm -rf -- "$env_dir"' EXIT
-export UV_PROJECT_ENVIRONMENT="$env_dir/venv"
-uv run --locked python scripts/serve.py --mode sandbox --open
+uptime_db=${UPTIME_WORKSPACE_DB:-"$HOME/.local/share/uptime/workbench-sandbox.sqlite"}
+uptime_viewer=${UPTIME_VIEWER_KEY:-"$HOME/.config/uptime/ramp-worklist-viewer.json"}
+mkdir -p -- "$(dirname "$uptime_db")" "$(dirname "$uptime_viewer")"
+if [[ ! -e "$uptime_viewer" ]]; then
+  "$uptime_uv" run --locked python scripts/serve.py --mode sandbox --db "$uptime_db" \
+    --enroll ramp.viewer --role viewer --credential-file "$uptime_viewer"
+fi
+printf 'Sign in as ramp.viewer. Select this private viewer file in the local page:\n%s\n' "$uptime_viewer"
+printf '%s\n' 'On macOS press Command-Shift-G in the file chooser to enter its path.'
+printf '%s\n' 'Stop the local server with Control-C. Refresh provider reads separately using docs/v4/OPERATIONS.md.'
+exec "$uptime_uv" run --locked python scripts/serve.py --mode sandbox --db "$uptime_db" --open

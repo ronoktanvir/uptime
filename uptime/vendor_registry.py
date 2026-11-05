@@ -6,7 +6,7 @@ import re
 
 from pydantic import Field, ValidationError
 
-from .contracts import Outcome, Principal, Source, fingerprint
+from .contracts import DraftReviewer, Outcome, Principal, Source, fingerprint
 from .onboarding import _atomic
 from .storage import database, now, persist_case, _read_versions
 from .vendor_eval import evaluate, generated_checks, rate_for
@@ -50,15 +50,31 @@ def _schema(db):
 
 
 @contextmanager
-def transaction(path, principal, vendor=None, *, write=False):
+def transaction(path, principal, vendor=None, *, write=False, draft=False):
     if (not isinstance(principal, Principal) or not principal.tenant or not principal.subject
-            or principal.role not in ('viewer', 'reviewer') or write and principal.role != 'reviewer'):
+            or principal.role not in ('viewer', 'reviewer') or write and principal.role != 'reviewer'
+            or write and isinstance(principal, DraftReviewer) and not draft):
         raise PermissionError('Authenticated tenant reviewer required for vendor mutations.')
     if vendor is not None and not re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,79}', vendor):
         raise ValueError('Invalid vendor catalog identifier.')
     with database(path) as db, _atomic(db):
         _schema(db)
+        if draft and isinstance(principal, DraftReviewer):
+            check_write_draft(db, principal, vendor)
         yield db
+
+
+
+def check_write_draft(db, principal, vendor):
+    if not vendor or principal.role != "reviewer":
+        raise PermissionError("A named vendor draft and enrolled reviewer are required.")
+    rows = db.execute("SELECT payload FROM v4_vendor_event WHERE tenant=? AND vendor=?",
+                      (principal.tenant, vendor)).fetchall()
+    for row in rows:
+        state = json.loads(row[0])
+        if (state["state"] not in {"DRAFT", "VALIDATED", "SHADOW", "QUARANTINED"}
+                or state.get("active_version") or state.get("reviewer")):
+            raise PermissionError("Draft-only access cannot alter a published or approved vendor history.")
 
 
 def _tail(db, p, vendor, required=True):
@@ -137,7 +153,7 @@ def _view(db, p, vendor, state):
     result.update(vendor_id=vendor, audit=audit, actions=[], sources=SOURCES)
     if artifact:
         result.update(artifact)
-    if p.role == 'reviewer':
+    if p.role == 'reviewer' and not isinstance(p, DraftReviewer):
         result['actions'] = [{'id': _key(p, vendor, state, op), 'label': OPS[op], 'operation': op} for op in _actions(state)]
         if artifact and (grouping := artifact['manifest'].get('formula_grouping_review')):
             for action in result['actions']:
@@ -170,7 +186,7 @@ def _fresh(old, vendor):
 
 
 def install(path, p, vendor, body):
-    with transaction(path, p, vendor, write=True) as db:
+    with transaction(path, p, vendor, write=True, draft=True) as db:
         old = _tail(db, p, vendor, required=False)
         state = _fresh(old, vendor)
         try:
@@ -209,7 +225,7 @@ def install(path, p, vendor, body):
 
 
 def submit_tests(path, p, vendor, submission):
-    with transaction(path, p, vendor, write=True) as db:
+    with transaction(path, p, vendor, write=True, draft=True) as db:
         state = _tail(db, p, vendor)
         if state['revision'] != submission.revision or state['state'] != 'SHADOW':
             raise ValueError('Test submission requires the current shadow revision.')
@@ -253,6 +269,18 @@ def submit_tests(path, p, vendor, submission):
             state['previous'] = None
         _event(db, p, vendor, state, 'Executed reviewer-authored scenarios in shadow')
         return _view(db, p, vendor, state)
+
+
+
+def shadow_preview(path, p, vendor, submission):
+    with transaction(path, p, vendor, draft=True) as db:
+        state = _tail(db, p, vendor)
+        if state["revision"] != submission.revision or state["state"] != "SHADOW":
+            raise ValueError("Preview requires the current shadow revision.")
+        artifact = _require_current(db, p, vendor, state["version"])
+        result = evaluate(artifact["manifest"], artifact["overlay"], submission.facts, p.tenant)
+        return {"classification":"LOCAL_DRAFT_PREVIEW", "dispatch_authorized":False,
+                "vendor_id":vendor, "revision":state["revision"], "evaluation":result}
 
 
 def act(path, p, vendor, action):

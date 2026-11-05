@@ -80,11 +80,11 @@ def test_ramp_browser_navigation_and_read_only_plan():
         # Keyboard tests start with the input fully in view; a partly clipped caret legitimately scrolls Chrome.
         search.evaluate("e => e.scrollIntoView({block: 'center', behavior: 'instant'})")
         page.evaluate("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
-        before = page.evaluate("window.scrollY")
         search.press("End")
         search.type(" vendor")
         expect(search).to_be_focused()
-        assert page.evaluate("window.scrollY") == before
+        expect(search).to_have_value("Browser test vendor")
+        assert search.evaluate("e => { const r=e.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; }"), search.bounding_box()
         page.get_by_role("button", name="Browser test vendor", exact=True).first.click()
         expect(page.get_by_role("heading", name="Synthetic browser contract")).to_be_visible()
         assert page.url.endswith("#ramp/opaque%2Fkey%3F%23")

@@ -100,3 +100,72 @@ def test_unpaid_or_unclassified_fee_and_unseen_invoiced_categories_abstain():
     invoice['lines'][1]['category']='unclassified setup'
     data['service_invoice']=record('unclassified',invoice)
     assert run(data)['outcome']=='INSUFFICIENT_EVIDENCE'
+
+
+def test_service_aggregate_signed_api_produces_case_and_rollback(tmp_path, monkeypatch):
+    import json
+    from scripts.film_demo import serve
+    from scripts.rehearse_vendor import exercise
+    from uptime.vendor_model import MODEL
+    from uptime.vendor_resource_terms import public_blocks
+    from uptime.auth import SCRIPT
+    import secrets
+
+    proposal=[{'quote':q,'field':'resource_terms','value':v} for q,v in ROWS]
+    blocks=public_blocks(DOC['text'])
+    raw={'blocks':[{'id':b['id'],'value':r['value']} for b,r in zip(blocks,proposal,strict=True)]}
+    digest=sha256(DOC['text'].encode()).hexdigest()
+    staged={'model':MODEL,'source_sha256':digest,'session':'scripted-test-service-month','at':'2027-02-01T00:00:00Z',
+            'proposal':proposal,'proposal_sha256':fingerprint(proposal),'protocol':'public_block_ids/1',
+            'block_index':[{k:v for k,v in b.items() if k!='text'} for b in blocks],'raw_proposal_sha256':fingerprint(raw)}
+    (tmp_path/(digest+'.json')).write_text(json.dumps(staged))
+    monkeypatch.setenv('UPTIME_PUBLIC_EXTRACTIONS',str(tmp_path))
+    monkeypatch.setenv('UPTIME_MODEL_PROPOSITIONS','1')
+    data=facts()
+    equality=facts()
+    equality['service_monitor']=record('threshold',{'source':'simulated_vendor','unavailable_minutes':504})
+    scenarios=[{'name':'scoped fee control','facts':data,'expected':{'outcome':'ELIGIBLE','amount':'20.99'}},
+               {'name':'exact equality','facts':equality,'expected':{'outcome':'INELIGIBLE'}}]
+    secret=secrets.token_urlsafe(32)
+    with serve(tmp_path/'replay.sqlite',secret) as origin:
+        receipt=exercise(DOC,OVERLAY,scenarios,origin,secret)
+    assert receipt['human_approval'] is False and receipt['authority']==SCRIPT
+    assert receipt['results'][0]['amount']=='20.99'
+    assert receipt['operations'][-2]['operation']=='rolled-back dispatch denied'
+
+
+def test_source_version_required_heading_and_duplicate_zero_boundary_are_accounted():
+    rows=deepcopy(ROWS)
+    rows.insert(0,('Version G7-2028. Fictional source; no real commercial authority.',{'nonmaterial':'Source revision.'}))
+    rows.insert(1,('5. Required evidence',{'nonmaterial':'Section heading.'}))
+    text,term=rows[6]
+    rows[6]=(text+' Availability equal to or above 98.75% earns no credit.',term|{'boundary':'strict_below'})
+    assert manifest(rows)['zero_at_or_above']==98750000
+    rows[6]=(rows[6][0].replace('above 98.75%','above 99%'),rows[6][1])
+    with pytest.raises(ValueError,match='Zero-rate|percentage'):
+        manifest(rows)
+
+
+def test_symbolic_duration_definitions_and_formula_roles_are_enforced():
+    from test_vendor_resource import compiled, extend_source
+    rows=[
+        ('Let A be every elapsed second in the month and B be the unavailable seconds.',
+         {'measurement_symbols': {'total':{'symbol':'A','phrase':'Let A be every elapsed second in the month'},
+                                  'down':{'symbol':'B','phrase':'B be the unavailable seconds'}}}),
+        ('Availability is 100 multiplied by (A minus B) divided by A.',
+         {'interval_measurement':['availability_ratio']}),
+    ]
+    assert compiled(*extend_source(rows))['formula_symbols']=={'total':'A','down':'B'}
+    rows[1]=(rows[1][0].replace('(A minus B) divided by A','(B minus A) divided by B'),rows[1][1])
+    with pytest.raises(ValueError,match='independent duration'):
+        compiled(*extend_source(rows))
+
+
+def test_zero_band_and_monthly_limit_must_match_positive_tiers():
+    from test_vendor_resource import compiled, extend_source
+    rows=[('At least 99 percent earns zero credit.', {'zero_band':{'at_least':'99'}}),
+          ('One credit per month has a maximum of 45 percent.', {'monthly_limit':{'one_per_scope':True,'percent':'45'}})]
+    assert compiled(*extend_source(rows))['monthly_maximum']==45000000
+    rows[1]=(rows[1][0].replace('45','46'),{'monthly_limit':{'one_per_scope':True,'percent':'46'}})
+    with pytest.raises(ValueError,match='ceiling'):
+        compiled(*extend_source(rows))
