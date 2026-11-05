@@ -74,7 +74,14 @@ def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
                 pass
             return refs
         if words & {"plan", "edition"}:
-            return {overlay["plan"]}
+            # These are only the reports consumed by this claim's join, after
+            # both signed plans have been compared exactly with the overlay.
+            refs = _record_refs(groups.get("service_monitor")) | _record_refs(groups.get("service_invoice"))
+            try:
+                refs.add(_WIRE_ID.validate_python(overlay["plan"]))
+            except ValidationError:
+                pass
+            return refs
     if words & _BILLING_WORDS:
         if invoice is None:
             return set()
