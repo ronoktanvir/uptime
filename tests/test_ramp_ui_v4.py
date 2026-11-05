@@ -35,10 +35,12 @@ def test_ramp_browser_navigation_and_read_only_plan():
         if path == "/":
             route.fulfill(body=(ROOT / "web/index.html").read_text(), content_type="text/html",
                           headers={"Content-Security-Policy": csp})
-        elif path.startswith("/static/") and path.rsplit("/", 1)[-1] in {"auth.js", "ramp_ui.js", "app.js", "style.css", "v4_ui.js", "v4_style.css", "favicon.svg"}:
+        elif path.startswith("/static/") and path.rsplit("/", 1)[-1] in {"auth.js", "ramp_ui.js", "workspace_ui.js", "app.js", "style.css", "v4_ui.js", "v4_style.css", "favicon.svg"}:
             file = ROOT / "web" / path.rsplit("/", 1)[-1]
             content_type = "text/javascript" if file.suffix == ".js" else "text/css" if file.suffix == ".css" else "image/svg+xml"
             route.fulfill(body=file.read_text(), content_type=content_type)
+        elif path == "/api/workspace/workflow":
+            route.fulfill(json={"workflow": None})
         elif path == "/api/ramp/workspace":
             route.fulfill(json=workspace)
         elif path.endswith("/workflow"):

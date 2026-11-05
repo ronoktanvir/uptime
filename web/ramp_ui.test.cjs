@@ -38,7 +38,7 @@ test('detail and plan are encoded GETs, never POST; receipt is scoped and unsafe
   const s=setup(path=>path.endsWith('/workflow')?{status:'NO_DISCUSSION_ENDPOINT',delivery:'NOT_SENT'}:{...row,provider_uri:'javascript:bad()',finding_kind:'SYNTHETIC_INVOICE_CAP',evidence:[{label:'<script>bad()</script>',access_token:'OMIT'}]});
   await s.ui.render(s.root,row.id);await click(s.root,'Inspect finding plan');
   assert.deepEqual(s.requests,[['/api/ramp/records/opaque%2Fa%3F%23'],['/api/ramp/records/opaque%2Fa%3F%23/workflow']]);
-  assert.match(s.root.textContent,/SYNTHETIC_INVOICE_CAP/);assert.match(s.root.textContent,/Contract finding/);assert.match(s.root.textContent,/NO_DISCUSSION_ENDPOINT/);assert.match(s.root.textContent,/scoped provider readback/);
+  assert.match(s.root.textContent,/Price cap review/);assert.doesNotMatch(s.root.textContent,/SYNTHETIC_INVOICE_CAP/);assert.match(s.root.textContent,/Contract finding/);assert.match(s.root.textContent,/NO_DISCUSSION_ENDPOINT/);assert.match(s.root.textContent,/scoped provider readback/);
   assert.equal(s.root.all('a').length,0);assert.equal(s.root.all('script').length,0);assert.doesNotMatch(s.root.textContent,/OMIT/);
 });
 test('detail envelope preserves evidence, native projection and provider destination',async()=>{

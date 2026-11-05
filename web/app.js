@@ -35,6 +35,7 @@
   }
   function companionRoute(requested) {
     if (requested === 'rehearsal') return 'dashboard';
+    if (requested === 'records') return 'records';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
     return ['dashboard','onboarding','lab','regression','advanced','vendors','disputes','policy','integrations'].includes(requested) || requested.startsWith('disputes/') ? requested : 'ramp';
   }
@@ -46,6 +47,7 @@
   let rampCase = null, rampScroll = 0;
   let companion, companionAssets, signedPage = false, companionAccess = {};
   const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
+  const workspaceWorkflow = window.UptimeWorkspace?.create({api});
   const filters = {query: '', status: '', sort: 'value-desc'};
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
@@ -305,7 +307,20 @@
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
-    if (route === 'ramp') {
+    if (route === 'ramp' || route === 'records') {
+      if (route === 'ramp' && !rampCase) {
+        const projection = await api('/api/workspace/workflow');
+        if (token !== generation) return;
+        if (!Object.prototype.hasOwnProperty.call(projection, 'workflow')) throw new Error('Workspace workflow response unavailable.');
+        if (projection.workflow !== null) {
+          if (!workspaceWorkflow || !projection.workflow || typeof projection.workflow !== 'object') throw new Error('Workspace workflow unavailable.');
+          await workspaceWorkflow.render(content, projection.workflow);
+          $('#workspace-name').textContent = projection.workflow.company?.name || projection.workflow.company || 'Contract operations';
+          const current = window.uptimeAuth.session();
+          if (current) $('#account').textContent = 'Sign out · ' + current.subject;
+          return;
+        }
+      }
       if (!ramp) throw new Error('Ramp UI asset unavailable.');
       await ramp.render(content, rampCase);
       if (token === generation) {
@@ -325,6 +340,7 @@
     if (requested === 'workspace') return; // Skip link is an in-page accessibility target.
     if (view === 'ramp' && !rampCase) rampScroll = window.scrollY || 0;
     ramp?.unmount();
+    workspaceWorkflow?.unmount();
     companion?.unmount(content);
     if (dialog.open) dialog.close();
     rampCase = null;

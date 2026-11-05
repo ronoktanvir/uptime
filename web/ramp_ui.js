@@ -110,7 +110,7 @@
       const back=button('Back to Ramp worklist', () => onNavigate('ramp'));
       const header=add(el('div',null,'page-head'),add(el('div'),el('h1',c.title || c.vendor || 'Ramp record'),note(`${shown(c.vendor)} · Native ID: ${shown(c.provider_id)} · ${shown(c.provider_object_type)}`)));
       const finding=section('Contract finding');
-      add(finding,sources(c.sources),record({outcome:c.outcome,stage:c.stage,amount:c.amount,currency:c.currency,finding_kind:c.finding_kind,finding_digest:c.finding_digest}));
+      add(finding,sources(c.sources),record({outcome:c.outcome,stage:c.stage,amount:c.amount,currency:c.currency,finding_type:c.finding_kind === 'SYNTHETIC_INVOICE_CAP' ? 'Price cap review' : c.finding_type || 'Contract review',finding_digest:c.finding_digest}));
       const native=section('Native Ramp status');
       add(native,record({native_status:c.native_status,native_approval_status:c.native_approval_status,native_amount:c.native_amount}),nativeLink(response.provider_uri || c.provider_uri));
       const workflow=section('Finding workflow');

@@ -28,7 +28,7 @@ async function setup(unauthorized = false, initialHash = '#dashboard') {
   const item = {id:'case/1',vendor:'<img src=x onerror=alert(1)>',title:'Contract test',stage:'DRAFT',outcome:'ELIGIBLE',amount:'12.00',currency:'USD',sources:source};
   const context = {document:{querySelector:s => nodes[s.slice(1)],querySelectorAll:() => [],createElement:t => new Element(t)}, window:{addEventListener:(k,fn) => window[k]=fn},location,URL,Option:function(label,value){const e=new Element('option');e.textContent=label;e.value=value;return e;},fetch:async(path,options) => {
     requests.push({path,options});
-    let data = path === '/api/ramp/workspace' ? {source_mode:'TEST_ONLY',records:[{...item,provider_id:'native-1',provider_object_type:'bills',native_status:'OPEN'}],resources:[]} : path === '/api/dashboard' ? {workspace:'Test workspace',as_of:'test timestamp',metrics:[{label:'Simulated award',value:'12.00',sources:source}],cases:[item],audit:[{at:'test',event:'Recorded',sources:source}],ramp:{sources:['UNAVAILABLE']}} : path === '/api/onboarding' ? {vendor:'Test vendor',state:'DRAFT',sources:source,checks:[{label:'Golden check',passed:true,detail:'Test result'}],history:['Draft created'],actions:[]} : path === '/api/guide' ? {answer:'Read-only answer',sources:source} : {...item,financials:[],clauses:[{label:'Unsafe link',uri:'javascript:alert(1)'}],evidence:[],trace:['Deterministic trace'],timeline:[],actions:[{id:'approve',label:'Approve draft'}]};
+    let data = path === '/api/workspace/workflow' ? {workflow:null} : path === '/api/ramp/workspace' ? {source_mode:'TEST_ONLY',records:[{...item,provider_id:'native-1',provider_object_type:'bills',native_status:'OPEN'}],resources:[]} : path === '/api/dashboard' ? {workspace:'Test workspace',as_of:'test timestamp',metrics:[{label:'Simulated award',value:'12.00',sources:source}],cases:[item],audit:[{at:'test',event:'Recorded',sources:source}],ramp:{sources:['UNAVAILABLE']}} : path === '/api/onboarding' ? {vendor:'Test vendor',state:'DRAFT',sources:source,checks:[{label:'Golden check',passed:true,detail:'Test result'}],history:['Draft created'],actions:[]} : path === '/api/guide' ? {answer:'Read-only answer',sources:source} : {...item,financials:[],clauses:[{label:'Unsafe link',uri:'javascript:alert(1)'}],evidence:[],trace:['Deterministic trace'],timeline:[],actions:[{id:'approve',label:'Approve draft'}]};
     return {ok:!unauthorized,status:unauthorized?401:200,headers:{get:()=>'application/json'},json:async()=>data};
   }};
   context.window.uptimeAuth = {session:()=>({subject:'test.reader'}), signInForm:()=>{
@@ -79,7 +79,8 @@ test('unauthorized session offers named account login', async () => {
 
 test('default landing is Ramp, deep links encode opaque IDs, explicit rehearsal retains dashboard', async () => {
   const {nodes,requests,location,window}=await setup(false,'');
-  assert.equal(requests[0].path,'/api/ramp/workspace');
+  assert.equal(requests[0].path,'/api/workspace/workflow');
+  assert.equal(requests[1].path,'/api/ramp/workspace');
   assert.match(nodes.content.textContent,/Ramp worklist/);
   await nodes.content.querySelectorAll('button').find(b=>b.className==='case-link').listeners.click();
   await flush();
