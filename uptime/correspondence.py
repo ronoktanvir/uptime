@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import reserve_claim
+from .correspondence_artifacts import approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
 from .correspondence_reason import propose
 from .correspondence_rules import assess, confirmed_maintenance
 from .correspondence_types import Claim, Delivery, SOURCE, Scope, instant
@@ -47,6 +48,13 @@ def remainder(claimed, awarded):
     with localcontext() as context:
         context.prec = 50
         return money(Decimal(claimed) - Decimal(awarded))
+
+
+def _issuers(state):
+    # Keep named issuers and public key identifiers in the approval record;
+    # the outbound packet contains only the commitment to these local records.
+    return [{k: e.get(k) for k in ("event_id", "source", "subject", "source_key_id", "source_grant_id", "digest")}
+            for e in state["evidence"]]
 
 
 def authorize(p, write=False):
@@ -119,7 +127,10 @@ class CorrespondenceDesk:
                 raise PermissionError("No verified account and agreement binding matches this scope.")
             # The covered API monthly credit is a single economic obligation.
             # Invoice, incident, claim and component aliases cannot create a second filing.
-            obligation = fingerprint([p.tenant, scope.vendor, scope.account, scope.contract, scope.service, scope.month, "availability"])
+            draft_key = [p.tenant, scope.vendor, scope.account, scope.contract, scope.service, scope.month, "availability"]
+            if scope.vendor.casefold() != "twilio":
+                draft_key.append(scope.component)
+            obligation = fingerprint(draft_key)
             duplicate = db.execute("SELECT id,scope FROM inbox_claim WHERE tenant=? AND (obligation=? OR id=?)",
                                    (p.tenant, obligation, claim.claim_id)).fetchone()
             if duplicate:
@@ -156,9 +167,9 @@ class CorrespondenceDesk:
                                 (p.tenant, p.subject, event.scope.account)).fetchone()
             if not sender:
                 raise PermissionError("Service has no source grant on this account.")
-            return self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p.subject)
+            return self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p)
 
-    def _receive(self, db, tenant, account, source, claim_id, event, subject):
+    def _receive(self, db, tenant, account, source, claim_id, event, principal):
         if source != SOURCE[event.body.kind] or account != event.scope.account or observe_only(db, tenant):
             raise PermissionError("Source cannot deliver this evidence.")
         scope, state = self._read(db, tenant, claim_id)
@@ -173,6 +184,7 @@ class CorrespondenceDesk:
                 raise ValueError("Delivery identity was reused with different content.")
             return dict(event_id=event.event_id, digest=digest, received_at=previous["received"])
         now = self._now()
+        validate_arrival(body, now)
         if any(e["digest"] == digest for e in state["evidence"]):
             audit(state, now, source, "Recorded an identical-content delivery alias.", digest=digest)
         else:
@@ -186,10 +198,11 @@ class CorrespondenceDesk:
                 if not state["submissions"] or body["receipt_id"] != state["submissions"][-1]["id"]:
                     raise ValueError("Correspondence does not refer to the current local submission.")
 
-            fact = dict(event_id=event.event_id, source=source, subject=subject, kind=body["kind"], digest=digest,
+            fact = dict(event_id=event.event_id, source=source, subject=principal.subject, kind=body["kind"], digest=digest,
+                        source_key_id=getattr(principal, "source_key_id", None), source_grant_id=getattr(principal, "source_grant_id", None),
                         received_at=now.isoformat(), known_at=now.isoformat(), body=body)
             state["evidence"].append(fact)
-            audit(state, now, subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
+            audit(state, now, principal.subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
                   event_id=event.event_id, digest=digest)
             if body["kind"] == "message":
                 if any(r["receipt"] == body["receipt_id"] for r in state["replies"]):
@@ -225,6 +238,12 @@ class CorrespondenceDesk:
         if state["reason"] == "maintenance" and confirmed_maintenance(scope, state["evidence"]) and evaluation.outcome == Outcome.INELIGIBLE:
             state["stage"] = "DENIAL_ACCEPTED"
             audit(state, now, "claimant", "Customer notice independently confirms timely scheduled maintenance. Closed without further contact.")
+        elif state["reason"] == "artifact" and state["stage"] in {"NEEDS_EVIDENCE","RESPONSE_DRAFTED"}:
+            if evaluation.outcome != Outcome.ELIGIBLE or _artifact_conflict(state):
+                state["stage"] = "HUMAN_REVIEW"
+            elif approved_artifact(state):
+                state["stage"] = "RESPONSE_DRAFTED"
+                audit(state, now, "claimant", "A newly acquired artifact matches the requested proof and independent verification.")
         elif state["reason"] == "component" and state["stage"] in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED"}:
             initial = set(state["submissions"][0]["evidence_digests"])
             if evaluation.outcome != Outcome.ELIGIBLE:
@@ -255,7 +274,13 @@ class CorrespondenceDesk:
                     state["awarded"] = money(awarded)
                     state["stage"] = "AWARDED" if awarded == requested else "PARTIAL_AWARD_REVIEW"
             elif len(state["submissions"]) == 1:
-                if proposal.reason == "component":
+                if proposal.reason == "scope_error" and getattr(scope, proposal.scope_field) != proposal.reference:
+                    state["scope_correction"] = dict(field=proposal.scope_field, cited_id=proposal.reference)
+                    state["stage"] = "RESPONSE_DRAFTED"
+                    audit(state, now, "claimant", "The vendor named an identifier that contradicts both the filed packet and authenticated source scope.")
+                elif proposal.reason in {"component","artifact"}:
+                    if proposal.reason == "artifact":
+                        state["requested_artifact"] = dict(type=proposal.artifact_type, ref=proposal.reference)
                     state["stage"] = "NEEDS_EVIDENCE"
                     self._evidence_arrival(tenant, scope, state, now)
                 elif proposal.reason == "time_bar" and filed_at < current.cutoff:
@@ -274,9 +299,11 @@ class CorrespondenceDesk:
         request = money(current.evaluation.amount.amount)
         packet = dict(tenant=tenant, claim=claim_id, scope=scope.model_dump(), destination="isolated-local-simulator",
                       subject="SLA Claim", version=current.version, requested=request, evidence_digest=current.evidence_digest,
-                      agreement_id=current.agreement_id,
+                      agreement_id=current.agreement_id, authority_digest=fingerprint(_issuers(state)),
                       filing_cutoff=current.cutoff.isoformat(), terms_digest=fingerprint([asdict(c) for c in current.evaluation.clauses]),
                       artifacts=[dict(kind=e["kind"], digest=e["digest"]) for e in facts])
+        if current.filing_material:
+            packet["filing_material"] = current.filing_material
         if state["submissions"]:
             original = state["submissions"][0]
             if current.evaluation.amount.amount != Decimal(original["requested"]):
@@ -285,6 +312,15 @@ class CorrespondenceDesk:
             packet["vendor_event"] = state["replies"][-1]["digest"]
             if state["reason"] == "component" and any(e["kind"] == "component" and e["digest"] not in original["evidence_digests"] for e in facts):
                 packet["argument"] = "New authenticated customer component evidence identifies the affected service."
+            elif state["reason"] == "artifact" and (disclosure := approved_artifact(state)):
+                packet["argument"] = "The requested scoped artifact is independently verified against the filed source records."
+                packet["disclosed_artifact"] = disclosure
+            elif state["reason"] == "scope_error" and state.get("scope_correction"):
+                correction = state["scope_correction"]
+                if getattr(scope, correction["field"]) == correction["cited_id"] or original["packet"]["scope"] != scope.model_dump():
+                    raise ValueError("The vendor scope assertion is not contradicted by this filing.")
+                packet["argument"] = "Authenticated sources and the original filing establish the scoped identifier."
+                packet["verified_scope_field"] = correction["field"]
             elif state["reason"] == "time_bar" and instant(original["at"]) < current.cutoff:
                 packet["argument"] = "The dated original receipt predates the verified filing cutoff."
             else:
@@ -326,7 +362,8 @@ class CorrespondenceDesk:
             digest = fingerprint(packet)
             if action.startswith("approve-"):
                 state["approval"] = dict(action=action, actor=p.subject, at=now.isoformat(), digest=digest,
-                                         binding=self._approval_binding(current))
+                                         binding=self._approval_binding(current),
+                                         evidence_authorities=_issuers(state))
                 state["stage"] = "CLAIM_APPROVED" if action == "approve-claim" else "RESPONSE_APPROVED"
                 audit(state, now, p.subject, "Approved exact local packet.", digest=digest)
             else:
@@ -337,7 +374,7 @@ class CorrespondenceDesk:
                                evidence_digests=[a["digest"] for a in packet["artifacts"]], sources=VENDOR)
                 reserve_claim(db, tenant=p.tenant, vendor=scope.vendor, account=scope.account,
                               agreement_id=current.agreement_id, agreement_version=current.version, service=scope.service,
-                              month=scope.month, remedy="availability", route="correspondence", case_id=claim_id,
+                              month=scope.month, remedy=current.remedy, route="correspondence", case_id=claim_id,
                               packet_digest=digest, scope=scope.model_dump(), receipt_id=receipt["id"], at=receipt["at"],
                               initial_receipt_id=state["submissions"][0]["id"] if state["submissions"] else None)
                 state["submissions"].append(receipt)
@@ -376,6 +413,11 @@ class CorrespondenceDesk:
         evidence = [dict(label=e["kind"], detail=e["event_id"] + " · " + e["source"], digest=e["digest"],
                          received_at=e["received_at"], known_at=e.get("known_at", e["received_at"]), sources=VENDOR if e["source"] == "vendor" else SOURCES)
                     for e in state["evidence"]]
+        for item, fact in zip(evidence, state["evidence"]):
+            body = fact["body"]
+            item.update({k:body[k] for k in ("source_ref","observed_at","artifact_ref","artifact_type","body_sha256","linked_ref") if k in body})
+            item["available_at"] = fact["known_at"] if "known_at" in fact else fact["received_at"]
+            item["issuer"] = fact.get("subject",fact["source"])
         replies = [{**r, "text": next(e["body"]["text"] for e in state["evidence"] if e["digest"] == r["digest"])} for r in state["replies"]]
         return dict(id=claim_id, title="Claim correspondence · " + scope.invoice, vendor=scope.vendor,
                     mode="LOCAL_SIMULATOR", policy="ASSISTED", tenant=p.tenant, scope=scope.model_dump(), stage=stage,
@@ -386,5 +428,6 @@ class CorrespondenceDesk:
                     evidence=evidence, timeline=state["timeline"], submissions=submitted, replies=replies, approval=state["approval"],
                     actions=[] if observe_only(db, p.tenant) else self._actions(p, scope, state, current, now),
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
+                    requested_artifact=state.get("requested_artifact"),
                     policy_dispatchable=False, ledger=ledger,
                     financials=[dict(label=k.replace("_", " ").title(), value=scope.currency + " " + v, sources=SOURCES) for k,v in ledger.items()])

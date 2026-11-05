@@ -15,15 +15,41 @@ from .correspondence_types import SOURCE, instant
 from .storage import database
 from .twilio import calendar_bounds
 from .vendor_api import make_router
-from .vendor_eval import evaluate
+from .vendor_registry import evaluate_active_db
+from .correspondence_resource import exclusive_cutoff, join_resource
+from .correspondence_artifacts import SUPPLEMENTS
 from .vendor_terms import candidate_version
+
+
+def _economics(manifest, overlay):
+    if manifest["family"] == "resource-month/1":
+        fields = ("family","period","scope","symptoms","provider_causes","exclusions","fee_basis","fee_exclusions",
+                  "rounding","filing","cycle_calendar_month","submission_channel","request_fields","remedy")
+        semantics = {k:manifest.get(k) for k in fields}
+        semantics["tiers"] = [(t["below_units"],t["credit_units"]) for t in manifest["tiers"]]
+        semantics["override"] = overlay.get("override",{}).get("filing_days")
+        semantics["private_mappings"] = [overlay.get(k) for k in ("symptom_aliases","cause_aliases","public_plan","public_product")]
+        return fingerprint(semantics)
+    tiers = sorted((t["below_units"], t["credit_units"]) for t in manifest["tiers"]
+                   if t["product"] == overlay["product"] and t["plan"] == overlay["plan"])
+    filing_days = overlay.get("override", {}).get("filing_days", manifest["filing_days"])
+    return fingerprint([manifest["family"], manifest["period"], manifest["remedy"], overlay["plan"], tiers, filing_days])
+
+
+def _period(manifest, overlay):
+    return (max(manifest["effective"][0], overlay["effective_from"]),
+            min(manifest["effective"][1] or overlay["effective_until"], overlay["effective_until"]))
 
 
 def _active_publication(db, tenant, scope):
     """Read the committed ACTIVE slot without attempting a nested write reservation."""
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name='v4_vendor_event'").fetchone():
         return None
-    rows = db.execute("""SELECT e.payload, a.version, a.payload FROM v4_vendor_event e
+    first, following = calendar_bounds(instant(scope.month + "-01T00:00:00Z").date(), "UTC")
+    month_start = first.date().isoformat()
+    month_last = (following - timedelta(days=1)).date().isoformat()
+    lookup = (tenant, scope.vendor, scope.account, scope.contract, scope.service)
+    rows = db.execute("""SELECT e.vendor, e.payload, a.version, a.payload FROM v4_vendor_event e
         JOIN v4_vendor_artifact a ON a.tenant=e.tenant AND a.vendor=e.vendor
           AND a.version=json_extract(e.payload, '$.active_version')
         WHERE e.tenant=? AND e.revision=(SELECT max(v.revision) FROM v4_vendor_event v
@@ -31,20 +57,51 @@ def _active_publication(db, tenant, scope):
           AND json_extract(a.payload, '$.manifest.vendor')=?
           AND json_extract(a.payload, '$.overlay.account')=?
           AND json_extract(a.payload, '$.overlay.agreement')=?
-          AND json_extract(a.payload, '$.overlay.product')=? LIMIT 2""",
-        (tenant, scope.vendor, scope.account, scope.contract, scope.service)).fetchall()
-    if len(rows) != 1:
+          AND json_extract(a.payload, '$.overlay.product')=?""", lookup)
+    matches = []
+    for installation, state_json, version, artifact_json in rows:
+        artifact = json.loads(artifact_json)
+        if artifact["overlay"].get("resource_id",scope.component) != scope.component:
+            continue
+        if artifact["manifest"].get("family") not in {"monthly-availability/1","resource-month/1"}:
+            return None
+        left, right = _period(artifact["manifest"], artifact["overlay"])
+        if left <= month_last and right >= month_start:
+            if left > month_start or right < month_last:
+                return None
+            matches.append((installation, json.loads(state_json), version, artifact))
+    if len(matches) != 1:
         return None
-    state_json, version, artifact_json = tuple(rows[0])
-    state, artifact = json.loads(state_json), json.loads(artifact_json)
+    installation, state, version, artifact = matches[0]
     manifest, overlay = artifact["manifest"], artifact["overlay"]
     if (candidate_version(manifest, overlay, artifact["extraction"]) != version
             or manifest["document"]["sha256"] != sha256(artifact["source_text"].encode()).hexdigest()
-            or manifest["family"] != "monthly-availability/1"
-            or manifest["period"] != "utc_calendar_month" or manifest["remedy"] != "affected_monthly_fees_future_invoice"
+            or (manifest["family"] == "monthly-availability/1" and
+                (manifest["period"] != "utc_calendar_month" or manifest["remedy"] != "affected_monthly_fees_future_invoice"))
             or state["active_version"] != version or overlay["currency"] != scope.currency):
         return None
-    return state, manifest, overlay
+    # A later publication may assert different terms for a month already
+    # covered by an earlier activated agreement. This family has no amendment
+    # precedence interpreter, so overlapping material revisions cannot be chosen.
+    history = db.execute("""SELECT DISTINCT a.payload FROM v4_vendor_artifact a
+        JOIN v4_vendor_event e ON a.tenant=e.tenant AND a.vendor=e.vendor
+          AND json_extract(e.payload,'$.active_version')=a.version
+        WHERE a.tenant=? AND json_extract(a.payload,'$.manifest.vendor')=?
+          AND json_extract(a.payload,'$.overlay.account')=? AND json_extract(a.payload,'$.overlay.agreement')=?
+          AND json_extract(a.payload,'$.overlay.product')=? AND a.version!=?""", (*lookup, version))
+    for row in history:
+        prior = json.loads(row[0])
+        old_manifest, old_overlay = prior["manifest"], prior["overlay"]
+        if old_overlay.get("resource_id",scope.component) != scope.component:
+            continue
+        if old_manifest.get("family") != manifest["family"]:
+            return None
+        left, right = _period(old_manifest, old_overlay)
+        if left <= month_last and right >= month_start and (
+                old_manifest["family"] != manifest["family"] or _economics(old_manifest, old_overlay) != _economics(manifest, overlay)
+                or old_overlay["fee_line_ref"] != overlay["fee_line_ref"]):
+            return None
+    return installation, state, manifest, overlay
 
 
 def _joined_observation(scope, events, overlay, received_at):
@@ -52,13 +109,15 @@ def _joined_observation(scope, events, overlay, received_at):
     by_kind = {}
     for event in events:
         kind = event["kind"]
+        if kind in SUPPLEMENTS:
+            continue
         if SOURCE.get(kind) != event["source"] or kind in by_kind:
             raise ValueError("Conflicting evidence or an unverified source role requires review.")
         by_kind[kind] = event
-    for kind in ("status", "impact", "invoice"):
+    for kind in ("status", "impact", "invoice", "coverage"):
         if kind not in by_kind:
             raise ValueError(f"Awaiting independent {kind} evidence.")
-    if "notice" in by_kind:
+    if by_kind.keys() - {"status","impact","invoice","component","coverage"}:
         raise ValueError("The published rule does not establish how this maintenance notice affects the claim.")
     status, impact, invoice = (by_kind[k]["body"] for k in ("status", "impact", "invoice"))
     start, end = instant(status["start"]), instant(status["end"])
@@ -72,6 +131,12 @@ def _joined_observation(scope, events, overlay, received_at):
         raise ValueError("The component record does not match the account binding.")
     if impact["exclusion"] != "none":
         raise ValueError("Customer attribution does not establish exclusion-adjusted downtime under this contract.")
+    eligible_minutes = (end-start)//timedelta(minutes=1) if impact["affected"] else 0
+    coverage = by_kind["coverage"]["body"]
+    if (instant(coverage["start"]) != first or instant(coverage["end"]) != following or not coverage["complete"]
+            or not coverage["exclusions_removed"] or coverage["incident_ids"] != [scope.incident]
+            or coverage["total_eligible_minutes"] != eligible_minutes):
+        raise ValueError("Signed monthly coverage, exclusions and countable downtime do not reconcile to this incident.")
     lines = invoice["lines"]
     if len({line["id"] for line in lines}) != len(lines):
         raise ValueError("Duplicate invoice line references cannot establish the affected fee.")
@@ -84,9 +149,9 @@ def _joined_observation(scope, events, overlay, received_at):
         context.prec = 50
         cents = int(Decimal(basis[0]["amount"]) * 100)
     return dict(agreement=scope.contract, account=scope.account, product=scope.service, plan=overlay["plan"],
-                month=scope.month, eligible_downtime_minutes=(end-start)//timedelta(minutes=1) if impact["affected"] else 0,
+                month=scope.month, eligible_downtime_minutes=eligible_minutes,
                 monitor_source="simulated_vendor", monitor_month=scope.month, monitor_ref=by_kind["status"]["digest"],
-                month_complete=True, exclusions_removed=True, monthly_fee_cents=cents, fee_line_ref=basis[0]["id"],
+                month_complete=coverage["complete"], exclusions_removed=coverage["exclusions_removed"], monthly_fee_cents=cents, fee_line_ref=basis[0]["id"],
                 fee_month=scope.month, fee_ref=by_kind["invoice"]["digest"], received_at=received_at.isoformat())
 
 
@@ -111,24 +176,40 @@ def resolve_active(path, tenant, scope, events, at):
         binding = _active_publication(db, tenant, scope)
         if binding is None:
             return None
-        state, manifest, overlay = binding
+        installation, state, manifest, overlay = binding
         filed = _filed_at(db, tenant, scope, at)
-    _, following = calendar_bounds(instant(scope.month + "-01T00:00:00Z").date(), "UTC")
-    days = overlay.get("override", {}).get("filing_days", manifest["filing_days"])
-    cutoff = following + timedelta(days=days)
+        resource = manifest["family"] == "resource-month/1"
+        filing = raw = gap = cutoff = None
+        try:
+            if resource:
+                obs, filing = join_resource(scope, events, manifest, overlay, filed)
+            else:
+                _, following = calendar_bounds(instant(scope.month+"-01T00:00:00Z").date(), "UTC")
+                cutoff = following + timedelta(days=overlay.get("override",{}).get("filing_days",manifest["filing_days"]))
+                obs = _joined_observation(scope, events, overlay, filed)
+            raw = evaluate_active_db(db, Principal(tenant,"local-active-join","viewer"), installation, obs,
+                                     expected_version=state["active_version"], expected_revision=state["revision"])
+            if resource:
+                cutoff = exclusive_cutoff(raw)
+        except ValueError as error:
+            gap = str(error)
     publication = state["active_version"]
     cited = tuple(Citation(manifest["document"]["name"], publication,
                            f"Clause {c['id']} (active revision {state['revision']})", manifest["document"]["uri"])
                   for c in manifest["citations"] if c["field"] != "heading")
+    dates = _period(manifest, overlay)
+    cited += (Citation("Authorized scope", publication, f"Governing period {dates[0]} through {dates[1]}", "urn:uptime:scope"),)
+    for e in events:
+        issuer = fingerprint([e["subject"], e.get("source_key_id"), e.get("source_grant_id")])
+        cited += (Citation("Authenticated " + e["source"] + " · " + e["subject"], e["digest"],
+                           e["event_id"] + " known " + e.get("known_at", e["received_at"]) + " · signer " + issuer,
+                           "urn:uptime:inbox-evidence"),)
     if overlay.get("override"):
         cited += (Citation(overlay["override"]["source_ref"], fingerprint(overlay["override"]),
                            "Signed filing-window override", "urn:uptime:private:filing-amendment"),)
-    try:
-        obs = _joined_observation(scope, events, overlay, filed)
-    except ValueError as error:
-        result = EvaluationResult(Outcome.MISSING, cited, (str(error),), (str(error),))
+    if gap:
+        result = EvaluationResult(Outcome.MISSING, cited, (gap,), (gap,))
     else:
-        raw = evaluate(manifest, overlay, obs, tenant)
         amount = Money(Decimal(raw["amount"])) if raw["amount"] is not None else None
         if amount is not None and amount.amount == 0:
             result = EvaluationResult(Outcome.INELIGIBLE, cited, ("The mapped fee line yields no positive contractual amount.",))
@@ -136,11 +217,10 @@ def resolve_active(path, tenant, scope, events, at):
             result = EvaluationResult(Outcome(raw["outcome"]), cited, tuple(raw["trace"]), tuple(raw["missing"]), amount)
     # The economic key describes governing rules for this month. Reformatting
     # or reissuing the same terms must not mint another monthly obligation.
-    tiers = sorted((t["below_units"], t["credit_units"]) for t in manifest["tiers"]
-                   if t["product"] == scope.service and t["plan"] == overlay["plan"])
-    controlling = fingerprint([manifest["family"], manifest["period"], manifest["remedy"], overlay["plan"], tiers, days])
+    controlling = _economics(manifest, overlay)
     return ActiveRemedy(tenant, scope, fingerprint([[e["source"], e["digest"]] for e in events]),
-                        controlling, cutoff, result, agreement_id=manifest["agreement"])
+                        controlling, cutoff, result, agreement_id=manifest.get("agreement") or overlay["agreement"],
+                        remedy="resource-month/"+scope.component if resource else "availability", filing_material=filing)
 
 
 def register_v4_routes(app, bench, auth):
