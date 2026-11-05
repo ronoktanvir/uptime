@@ -7,6 +7,7 @@ import re
 from pydantic import Field, ValidationError
 
 from .contracts import DraftReviewer, Outcome, Principal, Source, fingerprint
+from .claim_identity import claim_key, vendor_economic_identity
 from .onboarding import _atomic
 from .storage import database, now, persist_case, _read_versions
 from .vendor_eval import evaluate, generated_checks, rate_for
@@ -334,8 +335,14 @@ def dispatch(path, p, vendor, facts):
             identity.append(overlay['resource_id'])
         if manifest.get('subscription') and overlay.get('subscription_record'):
             identity.append(overlay['subscription_record']['region'])
-        obligation = fingerprint(identity)
-        case_id = 'availability-' + obligation
+        # Case IDs retain their installation-specific history. Financial grouping
+        # uses the contract's economic unit shared with filing reservations.
+        case_id = 'availability-' + fingerprint(identity)
+        try:
+            economic_identity = vendor_economic_identity(p.tenant, manifest, overlay, facts.get('month'), version)
+        except (KeyError, ValueError, TypeError):
+            economic_identity = None  # An invalid observation can still be retained as a refusal.
+        obligation = claim_key(**economic_identity) if economic_identity else None
         versions = list(_read_versions(db, p.tenant, case_id))
         if versions:
             saved = versions[-1]['payload']
@@ -361,7 +368,8 @@ def dispatch(path, p, vendor, facts):
                                (p.tenant,vendor,version)).fetchone()
             received_at=receipt[0] if receipt else None
         case = dict(result, id=case_id, vendor=manifest['vendor'], vendor_id=vendor, title='Monthly availability · ' + overlay['product'],
-                    stage='EVALUATED', version=version, semantics_revision=artifact['semantics_revision'], obligation_id=obligation, sources=SOURCES, clauses=clauses,
+                    stage='EVALUATED', version=version, semantics_revision=artifact['semantics_revision'], obligation_id=obligation,
+                    economic_identity=economic_identity, sources=SOURCES, clauses=clauses,
                     source_sha256=doc['sha256'], source_received_at=received_at,
                     source_currentness='Version supplied at intake; current external terms unverified',
                     agreement=overlay['agreement'], account=overlay['account'], adapter_revision=state['revision'],
@@ -381,6 +389,40 @@ def active_binding(path, p, vendor):
         artifact = _require_current(db,p,vendor,state['active_version'])
         return {'semantics_revision':artifact['semantics_revision'],'version': state['active_version'], 'revision': state['revision'],
                 'manifest': artifact['manifest'], 'overlay': artifact['overlay']}
+
+
+def historical_economic_identity(path, tenant, case):
+    """Project an old evaluation using its exact archived contract and observations.
+
+    Current activation and evaluator code cannot rewrite historical scope. The
+    immutable snapshot and archived artifact must agree before grouping money.
+    """
+    if not case.get('vendor_id') or not case['id'].startswith('availability-'):
+        return None
+    with database(path) as db:
+        if not db.execute("SELECT 1 FROM sqlite_master WHERE name='v4_vendor_artifact'").fetchone():
+            return None
+        row = db.execute('SELECT payload FROM v4_vendor_artifact WHERE tenant=? AND vendor=? AND version=?',
+                         (tenant, case['vendor_id'], case['version'])).fetchone()
+    if row is None:
+        raise ValueError('Historical evaluation has no bound contract artifact.')
+    artifact = json.loads(row[0])
+    manifest, overlay = artifact['manifest'], artifact['overlay']
+    archived_version = fingerprint({k:artifact[k] for k in ('manifest','overlay','extraction','semantics_revision')})
+    if (archived_version != case['version'] or manifest['vendor'] != case['vendor']
+            or overlay['account'] != case['account'] or overlay['agreement'] != case['agreement']
+            or sha256(artifact['source_text'].encode()).hexdigest() != manifest['document']['sha256']):
+        raise ValueError('Historical evaluation and contract identity disagree.')
+    observations = [e['detail'] for e in case.get('evidence', []) if isinstance(e.get('detail'), dict)
+                    and fingerprint(e['detail']) == case.get('observation_digest')]
+    if len(observations) != 1:
+        raise ValueError('Historical evaluation has no exact bound observation.')
+    try:
+        return vendor_economic_identity(tenant, manifest, overlay, observations[0].get('month'), case['version'])
+    except (KeyError, ValueError, TypeError):
+        if case.get('outcome') == Outcome.ELIGIBLE.value:
+            raise ValueError('Eligible historical evaluation has unresolved economic scope.')
+        return None
 
 
 def resolve_case(path, p, case_id, *, require_active=True):
