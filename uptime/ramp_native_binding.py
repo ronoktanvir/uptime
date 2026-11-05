@@ -209,7 +209,6 @@ class NativeBinding:
             raise WorkflowError("Invalid public native operator configuration") from None
         uuid_text(self.config.business_id)
         self.lock, self._grant, self._report = RLock(), None, None
-        self._guard()
         reviewers = {}
         for name, key in self.config.reviewers.items():
             if not NAME.fullmatch(name) or set(key) != {"kty", "crv", "x", "y"}:
@@ -220,6 +219,10 @@ class NativeBinding:
             reviewers[name] = WorkflowReviewer(public, simulation_only=False)
         if not reviewers:
             raise WorkflowError("At least one locally provisioned reviewer public key is required")
+        realm = mandates.describe(auth.path, next(iter(reviewers)))["workspace_id"]
+        self.installation = {"workspace_id": realm, "tenant": self.config.tenant, "business_id": self.config.business_id,
+                             "config_sha256": sha256(self._config_bytes).hexdigest()}
+        self._guard()
         self.outbox_path = self.config_path.with_suffix(".outbox.sqlite3")
         if self.outbox_path.resolve() == Path(auth.path).resolve():
             raise WorkflowError("Native outbox must be separate from the authority database")
@@ -227,6 +230,7 @@ class NativeBinding:
             self._check_outbox()
         self.flow = RampWorkflow(self.outbox_path, tenant=auth.tenant, business_id=self.config.business_id,
                                  finding_resolver=self._finding, reviewers=reviewers, clock=clock)
+        auth.native_gate = self._release_ready
 
     def _check_outbox(self):
         p = self.outbox_path
@@ -234,9 +238,11 @@ class NativeBinding:
                 or p.stat().st_uid != os.getuid() or p.stat().st_nlink != 1):
             raise WorkflowError("Native outbox custody is not protected")
 
+    def _release_ready(self):
+        return gates.native_install_ready(self.installation)
+
     def _guard(self):
-        if (self.auth.mode != "sandbox" or self.auth.rehearsal or not self.auth.approvals_enabled
-                or not gates.local_release_ready() or self.config.tenant != self.auth.tenant
+        if (self.auth.mode != "sandbox" or self.auth.rehearsal or not self._release_ready() or self.config.tenant != self.auth.tenant
                 or self.workspace.tenant != self.auth.tenant or self.workspace.mode != "sandbox"):
             raise WorkflowError("Explicit sandbox installation and current security release gate required")
         if _protected_bytes(self.config_path) != self._config_bytes:
