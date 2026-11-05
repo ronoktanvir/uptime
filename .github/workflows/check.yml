@@ -1,10 +1,15 @@
 name: Verify offline workbench
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   replay:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked --python 3.13
       - run: uv run --locked python -m playwright install --with-deps chromium
