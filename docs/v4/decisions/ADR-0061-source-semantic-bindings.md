@@ -1,0 +1,13 @@
+# ADR 0061 — Source meaning and literal evidence bindings
+
+Root approved implementation after reading actual Opus61 session `810d983e-8841-43a8-8d6f-6a98861177bf` and the local recommendation. The [packet](packets/61-source-meaning-and-observation-bindings.md), [review](reviews/61-source-meaning-and-observation-bindings.json), original frozen cases and separately dated addendum remain unchanged.
+
+Remove opaque-label/raw-literal union matching. A trusted server context must identify exact reviewed literal representations by evidence role before affected monetary evaluation. A named pre-pricing semantic review covers the complete source, exact source occurrences, conditions and overrides, evidence representations, scope and dependency digest. Missing or stale meaning yields an unresolved result with no monetary estimate, including test actuals, correspondence and current totals. Show a nonmonetary deadline only when its existing supported operator establishes it.
+
+Keep signed scalar evidence and historical receipts unchanged. Typed reference envelopes are deferred and must later address downgrade behavior with the correspondence owner. There is no new Unicode equivalence, adapter/family exemption, automatic authority from tests or prior approvals, or second-reviewer requirement. A future automatic path would require a separately reviewed whole-block grammar and full source coverage; token-boundary matching alone does not establish meaning.
+
+Bindings are separate from final approval and tests. They pin source, definitions, role, literal equivalence, scope and relevant implementation dependencies. Test submission cannot mint or silently change them. Final approval and dispatch recheck current authority. A change or revocation invalidates current capability without rewriting filed packets, snapshots, reservations or economic identity.
+
+Opus61 preferred evaluator-local binding enforcement before wire redesign; root adopted that ordering. Additional reviewer-count policy and generalized Unicode normalization were not adopted. The suggested store epoch is not sufficient if an old binary ignores it: implementation must exercise an actual older build against its migration/startup boundary and report running-process or deployment limits. No live database migration is authorized by this engineering record.
+
+Implementation and validation are staged in reviewable commits. The foundation introduces source occurrence definitions, strict literal matching and privately sealed contexts. It does not by itself enable the lifecycle or claim complete containment until all consumers are connected and the preregistered integration tests pass.
