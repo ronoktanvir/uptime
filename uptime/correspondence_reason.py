@@ -22,6 +22,9 @@ def propose(text: str) -> Proposal:
     if re.search(r"\b(ignore|override|execute|credentials?|password|secret|token|system prompt|wire transfer|instructions?|disregard|hypothetical|hypothetically|quoted|forwarded)\b|[<>{}\"“”]|https?://", text):
         return Proposal("unknown")
     reasons = {
+        "availability": (r"\b(?:availability|uptime|service levels?|service records?)\b[^.!?]{0,60}"
+                         r"\b(?:meets?|met|satisf(?:ies|ied)|exceeds?|exceeded|at or above|above)\b[^.!?]{0,40}"
+                         r"\b(?:commitment|threshold|target|guarantee|guaranteed level|minimum)\b"),
         "maintenance": r"\b(maintenance|planned (?:work|downtime)|scheduled (?:work|downtime))\b",
         "time_bar": r"\b(too late|out of time|time.barred|untimely|late (?:submission|filing|claim)|missed (?:the |our )?(?:deadline|window)|(?:deadline|window|period) (?:has |had |was )?(?:closed|elapsed|expired|passed)|(?:after|outside|beyond) (?:the |our )?(?:filing |submission |claim |30.day )?(?:deadline|window|period)|(?:submitted|received|filed) late)\b",
     }
@@ -91,6 +94,12 @@ def propose(text: str) -> Proposal:
     if len(found) != 1 or len(found) == 1 and found[0][0] == "award":
         return Proposal("unknown")
     reason, span = found[0]
+    if reason in {"availability", "time_bar", "maintenance"} and re.search(
+            r"\b(?:whether|unless|possibly|uncertain|unsure|could|might|hypothetical|perhaps|investigating|"
+            r"not|never|didn't|wasn't|isn't|haven't)\b", text):
+        return Proposal("unknown")
+    if reason in {"artifact", "component"} and re.search(r"\b(?:no longer|do not send|don't send|unnecessary|already have)\b", text):
+        return Proposal("unknown")
     if reason == "maintenance" and re.search(r"\b(no|not|never|possibly|potential|unclear|unknown|unconfirmed)\b.{0,40}\bmaintenance\b", text):
         return Proposal("unknown")
     return Proposal(reason, span, artifact_type=artifact_type, reference=reference, scope_field=scope_field)

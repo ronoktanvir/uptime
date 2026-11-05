@@ -220,9 +220,18 @@ def resolve_active(path, tenant, scope, events, at):
     # The economic key describes governing rules for this month. Reformatting
     # or reissuing the same terms must not mint another monthly obligation.
     controlling = _economics(manifest, overlay)
+    measurement = None
+    if result.outcome == Outcome.ELIGIBLE:
+        if resource:
+            measurement = {k:raw[k] for k in ("downtime_microseconds","total_microseconds")}
+        else:
+            first, following = calendar_bounds(instant(scope.month + "-01T00:00:00Z").date(), "UTC")
+            measurement = dict(downtime_microseconds=obs["eligible_downtime_minutes"] * 60_000_000,
+                               total_microseconds=(following-first)//timedelta(microseconds=1))
     return ActiveRemedy(tenant, scope, fingerprint([[e["source"], e["digest"]] for e in events]),
                         controlling, cutoff, result, agreement_id=manifest.get("agreement") or overlay["agreement"],
-                        remedy="resource-month/"+scope.component if resource else "availability", filing_material=filing)
+                        remedy="resource-month/"+scope.component if resource else "availability", filing_material=filing,
+                        measurement=measurement)
 
 
 def register_v4_routes(app, bench, auth):

@@ -267,3 +267,16 @@ def test_scoped_customer_finding_and_pinned_terms_control_active_filing(env, tmp
         assert content not in json.dumps(packet)
     else:
         assert not env.read()["actions"]
+
+
+def test_availability_denial_rebuttal_contains_independently_measured_countable_time(env, tmp_path, monkeypatch):
+    initial = setup_filed(env, tmp_path, monkeypatch)
+    row = message(env, initial, "Our measured availability exceeded the contractual target. We decline the claim.")
+    assert row["stage"] == "RESPONSE_DRAFTED"
+    assert len(row["submissions"]) == 1 and row["ledger"]["awarded"] == "0.00"
+    env.action("approve-response")
+    env.now += timedelta(days=1)
+    packet = env.action("submit-response")["submissions"][1]["packet"]
+    assert packet["verified_measurement"] == dict(downtime_microseconds=433*60_000_000,
+                                                   total_microseconds=30*86400*1_000_000)
+    assert packet["in_reply_to"] == initial["id"]
