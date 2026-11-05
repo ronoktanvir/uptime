@@ -74,7 +74,7 @@
     if (dialog.open) dialog.close();
     content.replaceChildren(window.uptimeAuth.signInForm(() => { signedPage = true; navigate(); }));
   }
-  function showError(target, error, retry) { target.replaceChildren(add(el('section', 'panel error'), el('h2', '', 'Unable to load this view'), el('p', '', error.message || 'Connection unavailable. Check that the local demo server is running.'), button('Try again', retry, 'quiet'))); }
+  function showError(target, error, retry) { target.replaceChildren(add(el('section', 'panel error'), el('h2', '', 'Unable to load this view'), el('p', '', error.message || 'Connection unavailable. Check that the server is running.'), button('Try again', retry, 'quiet'))); }
   function timeline(items, history = false) {
     const node = el('ol', 'activity');
     list(items).forEach(item => { const row = el('li'); if (typeof item === 'string') add(row, el('span', '', item), sources([])); else add(row, el('time', '', item.at), el('span', '', item.event), item.case_id ? el('div', 'help', `Case ${item.case_id}`) : null, sources(item.sources)); node.append(row); });
@@ -93,7 +93,7 @@
   }
   function renderDashboard(data) {
     const head = heading('Evidence ledger', 'Unpaid invoice exposure and the current recovery case. Each figure belongs to a separate financial stage.');
-    head.append(el('div', 'as-of', `${data.mode === "replay" ? "Offline replay" : "Sandbox capture · " + display(data.as_of)}`));
+    head.append(el('div', 'as-of', `Updated ${display(data.as_of)}`));
     const metrics = el('section', 'metrics'); metrics.setAttribute('aria-label', 'Financial stages');
     list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', metric.label), el('div', 'metric-value', metric.value), el('p', '', metric.note), sources(metric.sources))));
     if (!metrics.children.length) metrics.append(empty('No financial metrics returned.'));
@@ -115,7 +115,7 @@
     }
     search.addEventListener('input', () => { filters.query = search.value; rows(); }); status.addEventListener('change', () => { filters.status = status.value; rows(); }); sort.addEventListener('change', () => { filters.sort = sort.value; rows(); });
     add(ledger, add(el('div', 'ledger-head'), el('h2', '', 'Case ledger'), controls, count), add(el('div', 'table-scroll'), table)); rows();
-    const audit = panel('Activity & provenance'); audit.append(timeline(data.audit));
+    const audit = panel('Activity'); audit.append(timeline(data.audit));
     const ramp = panel('Ramp connection'); ramp.append(record(data.ramp || {status: 'Not provided'}));
     const current = window.uptimeAuth.session();
     if (current) $('#account').textContent = 'Sign out · ' + current.subject;
@@ -236,7 +236,7 @@
     const history=panel('Policy changes');
     if (!list(data.history).length) history.append(empty('Default assisted mode. No policy changes recorded.'));
     else history.append(timeline(data.history.map(r=>({at:r.at,event:r.actor+' selected '+r.mode+' · USD '+r.cap,sources:data.sources}))));
-    content.replaceChildren(heading('Policies','Role: '+data.role+'. Only local simulated work is eligible for automation.'),rules,history);
+    content.replaceChildren(heading('Policies','Role: '+data.role+'. Review the execution scope and approval requirements.'),rules,history);
   }
 
   function renderIntegrations(data) {
@@ -245,7 +245,7 @@
     add(bills,el('p','',ramp.note),sources(ramp.sources));
     if (ramp.observed_at) bills.append(el('p','help','Retrieved '+ramp.observed_at));
     if (ramp.ui_url) {
-      const link=el('a','case-link','Open Ramp sandbox'); link.href='https://demo.ramp.com'; link.target='_blank';link.rel='noopener noreferrer';bills.append(link);
+      const link=el('a','case-link','Open Ramp'); link.href='https://demo.ramp.com'; link.target='_blank';link.rel='noopener noreferrer';bills.append(link);
     }
     for (const [name,obj] of Object.entries(ramp.capabilities || {})) {
       bills.append(el('p','help',name+' · '+(obj.state || 'checked')+' · granted '+(list(obj.granted).join(', ') || 'none')));
@@ -261,7 +261,7 @@
     list(publicData.items).slice(0,3).forEach(item=>add(feed,add(el('div','record'),el('strong','',item.label),el('p','help',item.detail),el('p','help',item.ref))));
     const extraction=panel('Verified model run');
     add(extraction,el('strong','',model.model),el('p','',model.note),el('p','help','Input SHA-256 · '+model.input_digest),sources(model.sources));
-    content.replaceChildren(heading('Integrations','Provider observations, evidence sources and verified model provenance.'),bills,add(el('div','section-grid'),feed,extraction));
+    content.replaceChildren(heading('Integrations','Connected records, evidence sources and model verification.'),bills,add(el('div','section-grid'),feed,extraction));
   }
   async function advanced() {
     if (!companionAssets) companionAssets = new Promise((resolve, reject) => {
@@ -297,7 +297,7 @@
   }
   // Add companion entry points without replacing the primary Ramp navigation.
   const nav = document.querySelector('.rail nav');
-  if (nav) for (const [route, name] of [['advanced','Advanced workflows'],['vendors','Vendor intake & versions'],['disputes','Correspondence & disputes'],['lab','V3 onboarding lab'],['regression','Regression comparison']]) {
+  if (nav) for (const [route, name] of [['advanced','Advanced workflows'],['vendors','Vendor intake & versions'],['disputes','Correspondence & disputes'],['lab','Onboarding lab'],['regression','Regression comparison']]) {
     const link = el('a','',name); link.href = '#' + route; link.dataset.view = route; nav.append(link);
   }
   // Load responsive companion navigation styles on the primary worklist too.
@@ -310,7 +310,7 @@
       await ramp.render(content, rampCase);
       if (token === generation) {
         window.scrollTo?.({top:rampCase ? 0 : rampScroll, behavior:'instant'});
-        $('#workspace-name').textContent = 'Ramp sandbox · Uptime evidence';
+        $('#workspace-name').textContent = 'Contract operations';
         const current = window.uptimeAuth.session();
         if (current) $('#account').textContent = 'Sign out · ' + current.subject;
       }

@@ -261,15 +261,15 @@
       m.body.append(grid);
     }
     function catalog(m, data) {
-      m.body.append(note('Ramp worklist is the primary finance view. These companion workflows preserve server provenance, current evidence gaps and separate financial stages. No projected recovery is calculated here.'));
+      m.body.append(note('Review vendor terms, correspondence and financial reconciliation.'));
       const nav = el('nav', undefined, 'v4-grid'); nav.setAttribute('aria-label','Companion workflow catalog');
       for (const [route,title,description] of [
         ['ramp','Matched Ramp evidence','Inspect native records, governing terms, evidence and read-only workflow plans.'],
         ['vendors','Source-grounded vendor intake','Review public source text separately from customer scope; inspect candidate tests, shadow checks and version actions.'],
         ['disputes','Onboarding & disputes','Create a provisioned correspondence case, inspect untrusted inbound evidence and current reviewer actions.'],
-        ['dashboard','V3 evidence ledger','Inspect case financial stages and clause-cited evaluation traces.'],
-        ['lab','V3 onboarding lab','Preserved onboarding and shadow evaluation workflow.'],
-        ['regression','Regression comparison','Server-declared portfolio and seeded cohorts; simulations are not customer recoveries.']]) {
+        ['dashboard','Evidence ledger','Inspect case financial stages and clause-cited evaluation traces.'],
+        ['lab','Onboarding lab','Preserved onboarding and shadow evaluation workflow.'],
+        ['regression','Regression comparison','Compare the portfolio with a separate reference cohort.']]) {
         const panel = section(title), link = el('a','Open ' + title); link.href = '#' + route;
         add(panel,note(description),link); nav.append(panel);
       }
@@ -310,7 +310,7 @@
         else if (view === 'catalog') catalog(m,data);
         else m.body.append(inspector(m,data));
         if (mounts.get(root) !== m) return;
-        status(m,'Server state loaded. Provenance is shown as returned.');
+        status(m,'');
       } catch (_) { status(m,'State unavailable. Check identity, enrollment and the API connection, then refresh. Changes remain unavailable in this view.'); }
       sync();
       return m;

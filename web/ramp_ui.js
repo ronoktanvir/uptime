@@ -52,28 +52,28 @@
     function nativeLink(uri) {
       const url = providerURL(uri);
       if (!url) return note('Native destination unavailable. No provider URL has been verified.');
-      const link = el('a', 'Open record in Ramp sandbox', 'ramp-native-link'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; return link;
+      const link = el('a', 'Open record in Ramp', 'ramp-native-link'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; return link;
     }
     function loadError(root, error, retry) {
       if (error.status === 401) throw error;
       root.replaceChildren(add(section('Ramp state unavailable'), note('The authenticated server could not return this record. No delivery or financial outcome is inferred.'), button('Try again', retry)));
     }
     function worklist(root, data) {
-      const head = add(el('div', null, 'page-head'), add(el('div'), el('h1', 'Ramp worklist'), note('Review Ramp financial records with Uptime evidence. Native status remains owned by Ramp.')),
-        el('div', `${shown(data.source_mode)} · As of ${shown(data.as_of)} · Freshness: ${shown(data.snapshot_status?.freshness)}`, 'as-of'));
-      const coverage = section('Snapshot coverage');
-      add(coverage, record(data.snapshot_status), note('A saved or stale observation is not a live balance. Incomplete and truncated resources cannot establish portfolio totals.'));
+      const head = add(el('div', null, 'page-head'), add(el('div'), el('h1', 'Ramp worklist'), note('Review bills, contract findings and supporting evidence.')),
+        el('div', `Updated ${shown(data.as_of)} · ${shown(data.snapshot_status?.freshness)}`, 'as-of'));
+      const coverage = add(el('details', null, 'panel ramp-details'), el('summary', 'Record coverage'));
+      add(coverage, record(data.snapshot_status));
       const resources = el('div', null, 'ramp-resources');
       list(data.resources).forEach(r => resources.append(add(el('article', null, 'ramp-resource'), el('h3', r.name), el('span', r.status, 'pill'), note(`Records: ${shown(r.count)} · Complete: ${r.complete === true ? 'yes' : r.complete === false ? 'no' : 'unknown'}`), record(r.issues))));
       add(coverage, resources);
       const ledger = section('Financial records'), controls = el('div', null, 'filters');
       const select = el('select'); select.setAttribute('aria-label', 'Record filter');
-      [['unpaid','Unpaid bills'],['bills','All bills'],['transactions','Transactions'],['purchase_orders','Purchase orders'],['hypothetical','Hypothetical scenarios'],['all','All records']].forEach(([value,label]) => { const o = el('option', label); o.value=value; select.append(o); }); select.value = filters.kind;
+      [['unpaid','Unpaid bills'],['bills','All bills'],['transactions','Transactions'],['purchase_orders','Purchase orders'],['hypothetical','Contract scenarios'],['all','All records']].forEach(([value,label]) => { const o = el('option', label); o.value=value; select.append(o); }); select.value = filters.kind;
       const search = el('input'); search.type='search'; search.value=filters.query; search.placeholder='Vendor, title or native ID'; search.setAttribute('aria-label','Search Ramp records');
       add(controls, add(el('label','Show'),select), add(el('label','Search'),search));
       const count = note(''); count.setAttribute('aria-live','polite');
       const table = el('table'), body = el('tbody');
-      add(table, add(el('thead'), add(el('tr'), ...['Record / native ID','Native status','Ramp amount','Finding / sources','Finding amount'].map(t => { const n=el('th',t); n.scope='col'; return n; }))),body);
+      add(table, add(el('thead'), add(el('tr'), ...['Record / native ID','Native status','Ramp amount','Contract finding','Finding amount'].map(t => { const n=el('th',t); n.scope='col'; return n; }))),body);
       const previous = button('Previous page', () => { filters.page--; rows(); });
       const next = button('Next page', () => { filters.page++; rows(); });
       function rows() {
@@ -82,12 +82,11 @@
         body.replaceChildren();
         selected.slice(filters.page*25,filters.page*25+25).forEach(r => {
           const link=button(r.vendor || r.title || r.id, () => onNavigate('ramp/'+encodeURIComponent(r.id)), 'case-link');
-          const label=hypothetical(r) ? 'Hypothetical / simulated finding' : 'Recorded provider observation';
           body.append(add(el('tr'), add(el('td'), link, el('div',r.title,'case-subtitle'), note(`${shown(r.provider_object_type)} · Native ID: ${shown(r.provider_id)}`)),
             add(el('td'), el('span',shown(r.native_status),'pill'), note(`Approval: ${shown(r.native_approval_status)}`)),
             add(el('td'), el('strong',r.native_amount?.amount != null ? `${shown(r.native_amount.currency)} ${shown(r.native_amount.amount)}` : 'Amount unavailable')),
-            add(el('td'), el('strong',label), note(`${shown(r.outcome)} · ${shown(r.stage)}`), sources(r.sources)),
-            add(el('td'), el('span',r.amount == null ? 'Not determined' : `${shown(r.currency)} ${shown(r.amount)}`), note('Not cash recovered'))));
+            add(el('td'), el('strong',shown(r.outcome)), note(shown(r.stage)), sources(r.sources)),
+            add(el('td'), el('span',r.amount == null ? 'Not determined' : `${shown(r.currency)} ${shown(r.amount)}`))));
         });
         if (!selected.length) { const td=el('td','No matching records. Choose All records to inspect other types or unknown statuses.','empty'); td.colSpan=5; body.append(add(el('tr'),td)); }
         count.textContent=`${selected.length} of ${list(data.records).length} records · Page ${filters.page+1} of ${pages} · Up to 25 rows per page`;
@@ -96,27 +95,26 @@
       select.addEventListener('change', () => { filters.kind=select.value; filters.page=0; rows(); });
       search.addEventListener('input', () => { filters.query=search.value; filters.page=0; rows(); });
       add(ledger, controls, count, add(el('div',null,'table-scroll'),table), add(el('div',null,'actions'), previous,next)); rows();
-      const authority=section('Agreements & permission');
+      const authority=add(el('details', null, 'panel ramp-details'), el('summary', 'Agreements & permission'));
       add(authority, note('No verified agreement or action grant is established by this worklist. Inspect each case’s evidence and current server plan. A provider record or hypothetical cap does not establish legal entitlement.'),
         record({comment:data.writeback?.comment,blank_canvas:data.writeback?.blank_canvas,scope_receipt_at:data.writeback?.scope_receipt_at}),
         note('Delivery receipts apply only to their exact object, operation and authoritative readback. Accepted delivery does not prove approval execution or cash recovery.'));
       const gaps = list(data.resources).filter(r => r.complete !== true);
       const warning = gaps.length ? note('Incomplete resource coverage: ' + gaps.map(r => `${shown(r.name)} (${shown(r.status)})`).join(', ') + '. Listed records are not a complete portfolio.') : null;
       root.replaceChildren(head, ...(warning ? [warning] : []), ledger, coverage, authority,
-        details('Credit reconciliation · recorded amounts, not cash recovery',data.credit_sync),
-        details('Writeback evidence · informational only',data.writeback),note(data.portfolio_note || 'No portfolio note returned.'));
+        details('Credit reconciliation',data.credit_sync),
+        details('Writeback evidence',data.writeback),note(data.portfolio_note || 'No portfolio note returned.'));
     }
     function detail(root, response, id, token) {
       const c=response.case || response;
       const back=button('Back to Ramp worklist', () => onNavigate('ramp'));
       const header=add(el('div',null,'page-head'),add(el('div'),el('h1',c.title || c.vendor || 'Ramp record'),note(`${shown(c.vendor)} · Native ID: ${shown(c.provider_id)} · ${shown(c.provider_object_type)}`)));
-      const finding=section(hypothetical(c) ? 'Hypothetical scenario · not verified entitlement' : 'Recorded finding · inspect supporting evidence');
-      add(finding,sources(c.sources),record({outcome:c.outcome,stage:c.stage,amount:c.amount,currency:c.currency,finding_kind:c.finding_kind,finding_digest:c.finding_digest}),
-        note('Finding amounts are not recorded cash. Synthetic agreements, simulated awards and real financial observations remain separate.'));
+      const finding=section('Contract finding');
+      add(finding,sources(c.sources),record({outcome:c.outcome,stage:c.stage,amount:c.amount,currency:c.currency,finding_kind:c.finding_kind,finding_digest:c.finding_digest}));
       const native=section('Native Ramp status');
       add(native,record({native_status:c.native_status,native_approval_status:c.native_approval_status,native_amount:c.native_amount}),nativeLink(response.provider_uri || c.provider_uri));
-      const workflow=section('Native informational workflow');
-      add(workflow,note('Inspect the proposed finding or the server’s no-op explanation. This control only reads a plan; it does not publish a comment or execute an approval.'),
+      const workflow=section('Finding workflow');
+      add(workflow,note('Inspect the current plan and its permission requirements.'),
         note('An accepted receipt is authoritative only for its scoped provider readback. It is not proof of a payment, entitlement or recovered cash.'));
       const plan=el('div'); plan.setAttribute('aria-live','polite');
       const inspect=button('Inspect finding plan',async () => {
@@ -133,8 +131,8 @@
         details('Deterministic trace',c.trace),
         details('Governing terms & scenario', {clauses:c.clauses,agreement:c.agreement,agreements:c.agreements,scenario:c.scenario,cap:c.cap,evaluation:c.evaluation,limitations:c.limitations}),
         details('Native workflow & scoped receipts',response.native_workflow ?? c.native_workflow ?? {status:'Not provided; inspect the current plan.'}),
-        details('Compact redacted provider projection',response.native_projection ?? c.native_projection ?? {status:'Not provided'}),
-        details('Financial stages & provenance', {financials:c.financials,actual_recovery:c.actual_recovery,actual_money_prevented:c.actual_money_prevented,data_provenance:c.data_provenance,observed_at:c.observed_at,snapshot_status:c.snapshot_status,mode:c.mode}));
+        details('Ramp record fields',response.native_projection ?? c.native_projection ?? {status:'Not provided'}),
+        details('Financial stages & source references', {financials:c.financials,actual_recovery:c.actual_recovery,actual_money_prevented:c.actual_money_prevented,data_provenance:c.data_provenance,observed_at:c.observed_at,snapshot_status:c.snapshot_status,mode:c.mode}));
     }
     async function render(root, id) {
       const token=++epoch;

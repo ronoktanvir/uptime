@@ -93,7 +93,7 @@ def test_ramp_browser_navigation_and_read_only_plan():
         assert page.url.endswith("#ramp/opaque%2Fkey%3F%23")
         page.get_by_role("button", name="Inspect finding plan").click()
         expect(page.get_by_text("NOT_SENT", exact=True)).to_be_visible()
-        expect(page.get_by_role("link", name="Open record in Ramp sandbox")).to_have_attribute("href", "https://demo.ramp.com/bills/native-test-id")
+        expect(page.get_by_role("link", name="Open record in Ramp")).to_have_attribute("href", "https://demo.ramp.com/bills/native-test-id")
         page.get_by_role("button", name="Back to Ramp worklist").click()
         expect(page.get_by_role("heading", name="Ramp worklist", exact=True)).to_be_visible()
         expect(page.get_by_label("Search Ramp records")).to_have_value("Browser test vendor")

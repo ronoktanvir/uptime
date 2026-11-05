@@ -37,3 +37,6 @@
 /* The expanded portal navigation must remain reachable in short desktop windows. */
 .rail{overflow-y:auto}
 .rail nav,.rail .brand,.rail .rail-foot{flex-shrink:0}
+
+.uptime-v4 .v4-source{border:0;border-radius:0;padding:0;background:transparent;color:var(--muted,#5c6478)}
+.uptime-v4 .v4-sources{gap:4px 10px}.uptime-v4 .v4-source+.v4-source::before{content:"·";margin-right:10px}

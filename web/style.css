@@ -14,3 +14,6 @@
 
 /* Ramp companion worklist: provider records with evidence, not an embedded provider UI. */
 .rail nav a small{font-size:10px;opacity:.8}.ramp-resources{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}.ramp-resource{border:1px solid var(--line);padding:16px;border-radius:6px;min-width:0}.ramp-resource h3{overflow-wrap:anywhere}.ramp-details summary{cursor:pointer;color:var(--ink);font-weight:600}.ramp-native-link{display:inline-block;margin:12px 0;font-weight:600}.ramp-details .record{max-width:100%}.ramp-details{overflow-wrap:anywhere}#content{overflow-anchor:none}.panel td .help{max-width:36ch}.panel td .sources{max-width:32ch}
+
+/* Source references are ordinary audit text rather than environment badges. */
+.sources{gap:4px 10px}.source{border:0;border-radius:0;padding:0;background:transparent;color:var(--muted);font-size:11px;letter-spacing:0}.sources .source+.source::before{content:"·";margin-right:10px}
