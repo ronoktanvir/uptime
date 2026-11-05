@@ -182,6 +182,10 @@
       }
       add(n, details('Complete server case record', data));
       if (correspondence) {
+        if (typeof data.interpretation_review_url === 'string' && /^\/static\/interpretation\.html\?claim=inbox-[a-zA-Z0-9._-]+$/.test(data.interpretation_review_url)) {
+          const review = el('a', 'Review unfamiliar vendor wording'); review.href = data.interpretation_review_url;
+          n.append(review, note('The review page uses your enrolled identity. Meaning review alone cannot file, close a denial or change money.'));
+        }
         const id = data.claim_id ?? data.id;
         if (typeof id === 'string' && id) n.append(actions(m, data, '/api/correspondence/claims/' + encodeURIComponent(id)));
       }

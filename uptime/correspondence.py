@@ -411,6 +411,11 @@ class CorrespondenceDesk:
     def _reply(self, tenant, scope, state, fact, now):
         requested = Decimal(state["submissions"][0]["requested"])
         proposal = propose(fact["body"]["text"], claimed=requested, scope_month=scope.month)
+        self._reply_proposal(tenant, scope, state, fact, now, proposal)
+
+    def _reply_proposal(self, tenant, scope, state, fact, now, proposal):
+        """Normal parser dispatch; the reviewed bridge uses only a detached preview copy."""
+        requested = Decimal(state["submissions"][0]["requested"])
         state["reason"] = proposal.reason
         reply = dict(reason=proposal.reason, span=proposal.span, event_id=fact["event_id"], digest=fact["digest"],
                      receipt=fact["body"]["receipt_id"], received_at=now.isoformat(), sources=VENDOR)
@@ -665,6 +670,8 @@ class CorrespondenceDesk:
                     clauses=[dict(label=c.document + " " + c.version + " " + c.section, uri=c.uri) for c in evaluation.clauses],
                     evidence=evidence, timeline=state["timeline"], submissions=submitted, replies=replies, approval=state["approval"],
                     actions=actions, state_sha256=fingerprint([scope.model_dump(),state]),
+                    interpretation_review_url=("/static/interpretation.html?claim=" + claim_id
+                        if stage == "HUMAN_REVIEW" and replies and replies[-1]["reason"] == "unknown" else None),
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
                     requested_artifact=state.get("requested_artifact"), historical_procedure=current.procedure,
                     obligation_id=obligation_id, policy_dispatchable=False, ledger=ledger,
