@@ -19,9 +19,11 @@ from uptime.server import create_app
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--tenant", default="bears", help="Trusted tenant for this local database")
     parser.add_argument("--mode", choices=["sandbox", "replay"], default="sandbox")
     parser.add_argument("--db", type=Path, default=Path("runtime/workbench-v4.sqlite"))
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--source-config", type=Path, help="Protected offline LOCAL_SYNTHETIC source grants")
     parser.add_argument("--open", action="store_true", help="Open the local sign-in page")
     parser.add_argument("--enroll", metavar="ACCOUNT", help="Provision a named account offline and exit")
     keys = parser.add_mutually_exclusive_group()
@@ -47,7 +49,7 @@ def main():
                 credential = json.loads(args.public_key.read_text())
                 if not isinstance(credential, dict) or "d" in credential:
                     raise ValueError("--public-key requires a public JWK without private key material")
-            enroll(args.db, args.enroll, credential, args.role, args.mode)
+            enroll(args.db, args.enroll, credential, args.role, args.mode, args.tenant)
         except (ValueError, OSError) as exc:
             if created is not None:
                 created.unlink(missing_ok=True)
@@ -71,8 +73,12 @@ def main():
                 parser.exit(1, "Missing V4 release gate. Start in observation mode.\n")
             if not local_release_ready():
                 parser.exit(1, "V4 release gate did not verify. Start in observation mode.\n")
-        app = create_app(args.db, mode=args.mode, origin=base,
-                         approvals_enabled=args.enable_local_approvals)
+        from uptime.source_config import SourceConfig, load_private
+        sources = load_private(args.source_config, SourceConfig) if args.source_config else None
+        app = create_app(args.db, mode=args.mode, origin=base, tenant=args.tenant, approvals_enabled=args.enable_local_approvals,
+                         service_credentials=sources.credentials(args.mode, base, args.tenant) if sources else None)
+        if sources:
+            sources.bind(app.state.correspondence)
         if args.open:
             def launch():
                 for _ in range(80):
