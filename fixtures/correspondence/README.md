@@ -99,3 +99,9 @@ python -m pytest -q tests/test_correspondence.py tests/test_correspondence_api.p
 ~~~
 
 The tests cover known and later maintenance, independently delivered component cures, ambiguous and hostile text, false time-bar replies, partial awards, exact sub-cent amounts, wrong account/component/invoice scope, contradictory evidence, duplicate content and delivery IDs, concurrent filing, cross-route aliases, restart, observation-only policy and active-publication invalidation. The API tests inject trusted dependencies. Full request-HMAC verification belongs to the integrated server security suite.
+
+## Operator grants and registration
+
+A configured source key is bound both by its HTTP ingress grant and by the inbox to an exact tenant, account, vendor, contract, service, resource, region, invoice, incident, service month and currency. The reviewer can open an intake only for an operator-provisioned scope. Registration of an invented invoice or incident therefore cannot reserve a legitimate monthly claim. The legacy embedded four-argument source-binding API pins the account's sole subscription at registration. It refuses ambiguous accounts, and adding a second subscription does not expand an existing grant. Old unambiguous account grants migrate on first open. An operator must assign exact scopes for ambiguous legacy accounts before further delivery.
+
+The mounted correspondence and resource integration tests use the reserved scripted reviewer in a temporary rehearsal database. Their local receipts demonstrate simulated decisions. They confer no commercial authorization.
