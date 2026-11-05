@@ -222,7 +222,7 @@ def _bill(snapshot, ident):
 
 def _verified(db, packet, signature, directory, realm, snapshot, at):
     if (packet.workspace_id != realm or packet.capture_digest != snapshot["checksum"] or
-            not instant(snapshot["completed_at"]).timestamp()-1 < packet.issued_at <= at.timestamp() < packet.expires_at or
+            not int(instant(snapshot["completed_at"]).timestamp()) <= packet.issued_at <= at.timestamp() < packet.expires_at or
             packet.evaluator_sha256 != evaluator_digest()):
         raise EvidenceError("Packet capture, clock, installation or evaluator binding is obsolete")
     row = db.execute("SELECT registration FROM price_finance_key WHERE subject=? AND revoked=0",(packet.issuer,)).fetchone()
@@ -334,6 +334,8 @@ class RampTermsStore:
 
     def resolve(self, tenant, business_id, snapshot):
         rows, omitted = [], []
+        if not self.path.is_file():
+            return (),[{"reason":"Installed workspace unavailable"}]
         try:
             with database(self.path) as db:
                 db.execute("BEGIN")

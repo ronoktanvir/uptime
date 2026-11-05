@@ -226,3 +226,44 @@ def test_missing_itemization_cannot_be_replaced_by_asserted_terms(tmp_path,custo
         store.install(packet,signer.sign(packet.signing_bytes()),directory)
     rows=evaluate_snapshot(newer,bindings=store.bindings(TENANT,BIZ,newer))
     assert next(c for c in rows if c["provider_id"]==BILL)["amount"] is None
+
+
+def test_signed_amendment_and_exact_native_purchase_order_line(tmp_path,custody):
+    from test_ramp_findings_v4 import SyntheticReader, BILL as LINKED_BILL, PO as LINKED_PO
+    db, ws, _=custody
+    store,_,signer,base,directory=package(tmp_path,custody)
+    observation=sync_records(SyntheticReader(),include_unlinked_purchase_orders=True)
+    ws.import_observation(observation,BIZ)
+    info=store.describe(TENANT,BIZ,LINKED_BILL)
+    # This DTO uses a different synthetic provider business fixture: derive *its* party and line IDs.
+    key=FinanceKey(subject=base.issuer,public_key=signer.public_key().public_bytes_raw().hex(),tenant=TENANT,
+                   workspace_id=info["workspace_id"],business_id=BIZ,vendor_id=info["vendor_id"],entity_id=info["entity_id"],mode=base.mode)
+    store.register(key)
+    values=base.model_dump()
+    values.update(bill_id=LINKED_BILL,capture_digest=observation["checksum"],bill_digest=info["bill_digest"],
+                  issued_at=int(time()),vendor_id=info["vendor_id"],entity_id=info["entity_id"])
+    values["versions"][0]["signatories"]=[info["vendor_id"],info["entity_id"]]
+    new=deepcopy(values["versions"][0])
+    new.update(version="amended",supersedes=values["versions"][0]["version"],effective_at="2026-10-01T00:00:00Z",
+               signed_at="2026-09-24T00:00:00Z",contract_sha256=blob(directory,b"Private synthetic signed amendment."))
+    new["rates"][0]["tiers"]=[{"upper":"5","rate":"10"},{"upper":None,"rate":"6"}]
+    values["versions"].append(new)
+    po=info["purchase_orders"][0]
+    values["mappings"][0].update(line_id=info["lines"][0]["id"],line_digest=info["lines"][0]["sha256"],
+                                 purchase_order_id=LINKED_PO,purchase_order_line_id=po["lines"][0]["id"],
+                                 purchase_order_line_digest=po["lines"][0]["sha256"],quantity_source="ATTESTED_FULL_PO_LINE")
+    good=TermsPacket.model_validate(values)
+    values["mappings"][0]["purchase_order_line_digest"]="a"*64
+    bad=TermsPacket.model_validate(values)
+    with pytest.raises(EvidenceError):
+        store.install(bad,signer.sign(bad.signing_bytes()),directory)
+    store.install(good,signer.sign(good.signing_bytes()),directory)
+    rows=evaluate_snapshot(observation,bindings=store.bindings(TENANT,BIZ,observation))
+    row=next(c for c in rows if c["provider_id"]==LINKED_BILL and c["provider_object_type"]=="bills")
+    assert row["amount"]=="40.00" and row["line_findings"][0]["version"]=="amended"
+
+
+def test_read_missing_installation_leaves_no_database(tmp_path):
+    path=tmp_path/"absent.sqlite"
+    bindings,omissions=RampTermsStore(path).resolve(TENANT,BIZ,{})
+    assert not bindings and omissions and not path.exists()
