@@ -204,7 +204,7 @@ def test_native_grant_must_be_separate_and_match_exact_installation(bundle):
     installation={"workspace_id":"realm","tenant":"tenant","business_id":"business","config_sha256":"c"*64}
     kwargs={"root":b.root,"trust_path":b.trust,"grant_path":b.native}
     assert b.ready() and not g.native_install_ready(installation,**kwargs)
-    bind={**installation,"release_sha256":g.digest(g.canonical(b.review)),"environment":"sandbox","action":"bill.comment.create"}
+    bind={**installation,"release_sha256":g.digest(g.canonical(b.record)),"environment":"sandbox","action":"bill.comment.create"}
     grant={"schema":"uptime-native-release/1","source":b.source,"binding":bind,"proof":b.proof(g.NATIVE,bind)}
     write(b.native,grant)
     b.native.chmod(0o600)
@@ -218,3 +218,24 @@ def test_native_grant_must_be_separate_and_match_exact_installation(bundle):
 
 def test_missing_protected_registration_cannot_authorize_running_checkout(tmp_path):
     assert not g.release_status(trust_path=tmp_path/"absent.json")["ready"]
+
+
+
+def test_native_grant_cannot_survive_replacement_of_review_proof(bundle):
+    b = bundle
+    installation = {"workspace_id":"realm","tenant":"tenant","business_id":"business","config_sha256":"c"*64}
+    bind = {**installation, "release_sha256":g.digest(g.canonical(b.record)),
+            "environment":"sandbox", "action":"bill.comment.create"}
+    write(b.native, {"schema":"uptime-native-release/1", "source":b.source, "binding":bind,
+                     "proof":b.proof(g.NATIVE, bind)})
+    b.native.chmod(0o600)
+    kwargs = {"root":b.root, "trust_path":b.trust, "grant_path":b.native}
+    assert g.native_install_ready(installation, **kwargs)
+    b.now += 1
+    b.record[g.REVIEW] = b.proof(g.REVIEW, b.review)
+    # Review still follows the gate signatures.
+    for role, entry in b.record["gates"].items():
+        entry["proof"] = b.proof(role, entry["sha256"])
+    write(b.receipt, b.record)
+    assert b.ready()
+    assert not g.native_install_ready(installation, **kwargs)

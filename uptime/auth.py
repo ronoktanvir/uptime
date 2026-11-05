@@ -21,7 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from . import mandates
 from .auth_keys import public_bytes, rehearsal_key, verify_reviewer
-from .contracts import Principal, fingerprint
+from .contracts import DraftReviewer, Principal, fingerprint
 from .correspondence_types import Id
 from .source_config import SourceGrant, SourceGrants, SourceRegistry
 from .storage import database
@@ -232,7 +232,13 @@ class Authority:
                 f"{request.url.scheme}://{request.headers.get('host', '')}" != self.origin):
             raise HTTPException(403, "Exact local origin required")
 
+    @staticmethod
+    def draft_path(path):
+        return bool(re.fullmatch(r"/api/vendors/[a-z0-9][a-z0-9_-]{0,79}/(?:candidates|tests|shadow-preview)", path))
+
     def require_gate(self, path=""):
+        if self.draft_path(path):
+            return
         if path.startswith("/api/ramp/native/") and self.native_gate is not None:
             if self.native_gate():
                 return
@@ -291,7 +297,8 @@ class Authority:
                 raise HTTPException(429, "Too many active sessions")
             self.sessions[digest(token.encode())] = Session(principal, time()+3600, tag)
         return {"token": token, "subject": principal.subject, "role": principal.role,
-                "rehearsal": self.rehearsal, "approvals_enabled": self.approvals_enabled}
+                "rehearsal": self.rehearsal, "approvals_enabled": self.approvals_enabled,
+                "drafts_enabled": principal.role == "reviewer"}
 
     def logout(self, request: Request):
         with self.lock:
@@ -311,6 +318,8 @@ class Authority:
         session = self.sessions.get(self.session_id(request))
         if not session or proved != principal or session.key_tag != tag:
             raise HTTPException(403, "Reviewer account changed during authorization")
+        if self.draft_path(path) and (not self.approvals_enabled or (self.local_gate is not None and not self.local_gate())):
+            return DraftReviewer(principal.tenant, principal.subject, principal.role)
         if self.rehearsal:
             if self.tenant != TENANT:
                 raise HTTPException(403, "Scripted actions require the isolated fixture tenant")

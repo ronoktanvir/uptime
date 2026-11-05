@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .ramp import RampError
 from .ramp_webhooks import strict_json
-from .source_config import _check_file, _protected_path
+from .source_config import _check_file, _protected_path, _validated_verifier
 
 ROOT = Path(__file__).resolve().parents[1]
 RECEIPT = ROOT / "docs/v4/evidence/release_attestation.json"
@@ -99,6 +99,7 @@ def _policy(path):
     for role, reg in roles.items():
         require(set(reg) == {"subject", "public_key", "actor_type"} and reg["actor_type"] == ACTORS[role]
                 and re.fullmatch(r"[A-Za-z0-9_.@-]{3,128}", reg["subject"]) and HEX.fullmatch(reg["public_key"]))
+        _validated_verifier(reg["public_key"])
     require(len({r["subject"] for r in roles.values()}) == len(roles)
             and len({r["public_key"] for r in roles.values()}) == len(roles))
     return policy
@@ -270,7 +271,7 @@ def _bundle(root, receipt, policy, at):
     review = {"scope":"local-simulation", "gates":hashes}
     _verify(REVIEW, policy, source, review, record[REVIEW], at)
     require(all(record[REVIEW]["issued_at"] >= entry["proof"]["issued_at"] for entry in record["gates"].values()))
-    return source, digest(canonical(review))
+    return source, digest(canonical(record))
 
 
 def release_status(root=ROOT, receipt=None, *, trust_path=None):
