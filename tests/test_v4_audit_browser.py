@@ -138,18 +138,34 @@ def browser_sibling_origin():
                                     browser_attack_attempted=True, sibling_cookie_exposed=False, replay_denied=True, state_unchanged=True)
                     rows = [observation('W-browser-sibling-origin', observed, expected)]
                     try:
-                        for label in ('Submit to vendor simulator', 'Record simulated credit',
-                                      'Apply part to a simulated bill', 'Apply the remaining simulated balance'):
-                            if not page.locator('dialog').is_visible():
-                                page.locator('tr').filter(has=page.get_by_text(case_id, exact=True)).get_by_role('button').click()
-                            with page.expect_response(lambda r: r.request.method=='POST' and '/actions/' in r.url) as changed:
-                                page.get_by_role('button', name=label, exact=True).click()
-                            if changed.value.status!=200:
-                                raise RuntimeError('PositiveReconciliationUIRejected')
-                        page.locator('#case-content').get_by_text('No actions are available in the current server state.', exact=True).wait_for()
-                        rendered = page.locator('#case-content').inner_text()
-                        case = read_case()
-                        rec = case['reconciliation']
+                        # Establish the financial state through the application's exposed actions.
+                        # Browser action authorization was exercised above. The question here is
+                        # whether the rendered case exposes the actual receipt / credit / application.
+                        for label in ("Submit to vendor simulator", "Record simulated credit",
+                                      "Apply part to a simulated bill", "Apply the remaining simulated balance"):
+                            offers=[action for action in read_case()["actions"] if action["label"]==label]
+                            if len(offers)!=1:
+                                raise RuntimeError("ExpectedFinancialActionUnavailable")
+                            target=path+"/actions/"+offers[0]["id"]
+                            if modern:
+                                changed=page.evaluate("(path) => window.uptimeAPI(path, {})",target)
+                            else:
+                                sent=context.request.post(base+target,data={},headers={"Origin":base,"X-Uptime-Action":"1"})
+                                if sent.status!=200:
+                                    raise RuntimeError("PositiveReconciliationRejected")
+                                changed=sent.json()
+                            if changed["id"]!=case_id:
+                                raise RuntimeError("DifferentCaseReturned")
+                        case=read_case()
+                        rec=case["reconciliation"]
+                        from decimal import Decimal
+                        if Decimal(rec["applied"])<=0 or not all(rec[k+"_ids"] for k in ("credit","bill","application")):
+                            raise RuntimeError("MissingPositiveFinancialControl")
+                        if page.locator("dialog").is_visible():
+                            page.locator("#close-inspector").click()
+                        page.locator("tr").filter(has=page.get_by_text(case_id,exact=True)).get_by_role("button").click()
+                        page.locator("#case-content").get_by_role("heading",name="Financial stages",exact=True).wait_for()
+                        rendered=page.locator("#case-content").inner_text()
                         joins = {'receipt': bool(case['submissions']) and case['submissions'][0]['id'] in rendered,
                                  **{k: bool(rec[k+'_ids']) and all(i in rendered for i in rec[k+'_ids'])
                                     for k in ('credit','bill','application')}}

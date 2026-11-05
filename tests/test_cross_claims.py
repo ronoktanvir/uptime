@@ -33,12 +33,13 @@ def setup(path):
                   service=dossier["product"], component="synthetic-component", region=dossier["region"],
                   invoice="independent-invoice-ref", incident="independent-incident-ref", currency="USD", month=dossier["month"])
     inbox.provision(P.tenant, scope.account, scope.vendor, scope.contract, scope.service, scope.component, scope.region)
+    for role in ("status", "customer", "billing", "vendor"):
+        inbox.bind_sender(P.tenant, scope.account, role, "synthetic-" + role, scope=scope)
     inbox.create(P, Claim(claim_id=INBOX, scope=scope))
     for source, body in (
         ("status", dict(kind="status", start=dossier["start"], end=dossier["end"])),
         ("customer", dict(kind="impact", start=dossier["start"], end=dossier["end"], affected=True, exclusion="none")),
         ("billing", dict(kind="invoice", lines=[dict(id="synthetic-fee", kind="affected_api", amount="417.30")]))):
-        inbox.bind_sender(P.tenant, scope.account, source, "synthetic-" + source)
         inbox.receive(Principal(P.tenant, "synthetic-" + source, "service"), INBOX,
                       Delivery(event_id=body["kind"], scope=scope, body=body))
     legacy.act(P, LEGACY, "approve-claim")

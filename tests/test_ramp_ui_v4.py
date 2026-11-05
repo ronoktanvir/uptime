@@ -77,6 +77,9 @@ def test_ramp_browser_navigation_and_read_only_plan():
         # Returning to the filter must keep it focused, with no fragment or document navigation.
         search = page.get_by_label("Search Ramp records")
         search.fill("Browser test")
+        # Keyboard tests start with the input fully in view; a partly clipped caret legitimately scrolls Chrome.
+        search.evaluate("e => e.scrollIntoView({block: 'center', behavior: 'instant'})")
+        page.evaluate("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
         before = page.evaluate("window.scrollY")
         search.press("End")
         search.type(" vendor")

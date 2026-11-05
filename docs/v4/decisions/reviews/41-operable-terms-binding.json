@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:41:38.800932+00:00",
+  "packet_sha256": "129eaaeede339b9bb70cd9c0d867b86154999696e12a4c1762032c3f4ac0dce4",
+  "prompt_sha256": "3013b2e1679fd43c039f16784ed72e1b555d66d3b16fb8172045a2d96648d556",
+  "status": "REVIEWED",
+  "session": "11cd4b75-d20d-4853-84ff-9f7e640ae6ee",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The direction (strict source-bound binding) is right, but the design is over-specified relative to the evidence: zero agreements and zero measured lines mean nothing here is yet falsifiable.\n\n**Alternatives:** Name/amount assertion is unsafe because it fabricates contracts. A Python-only interface is honest but hides the gap. The best interim step is to expose the evaluator, render every bill as \"UNBOUND: no agreement evidence,\" and emit no money findings.\n\n**Strongest objection:** Ed25519 finance attestation proves only that someone in finance signed a file. It does not prove the underlying agreement is authentic, current, or the only live rate card. The signing key sits beside the protected paths, so a local compromise can spoof the attestation.\n\n**Unsupported claims:**\n- \"Potentially operational\" is asserted without evidence.\n- Compounding amendments are assumed to be ordered and non-conflicting.\n- Draft amendments are assumed to be distinguishable from signed ones.\n\n**Falsification tests:**\n- Two overlapping rate cards must refuse.\n- A replayed binding against a new capture or digest must fail.\n- A cross-tenant digest must fail.\n- An expired or unsigned amendment must be excluded.\n- Duplicate line mappings must refuse.\n- A missing record must yield no inferred case.\n- Egress must stay at zero bytes.\n\n**Retention:** Keep the original agreement bytes, the amendment chain, the attestation, the public-key provenance, and the evaluator version hash. That set must reproduce the result byte for byte.\n\n**Human authorization:**\n- Key provisioning by someone independent of engineering.\n- Approval of the installation-specific binding step.\n- Separate native approval for each published money finding."
+}

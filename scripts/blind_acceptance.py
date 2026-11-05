@@ -331,7 +331,7 @@ def listener(scope, at):
         else:
             desk.provision("bears", *(scope[k] for k in ("account", "vendor", "contract", "service", "component", "region")))
             for role, subject in subjects.items():
-                desk.bind_sender("bears", scope["account"], role, subject)
+                desk.bind_sender("bears", scope["account"], role, subject, scope=Scope.model_validate(scope))
         server = uvicorn.Server(uvicorn.Config(app, log_config=None, log_level="critical", access_log=False))
         thread = Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
         thread.start()
