@@ -1,5 +1,7 @@
 """Reviewed operator-staged model propositions for account/resource-month availability."""
 from collections import Counter
+from contextlib import contextmanager
+from copy import deepcopy
 from datetime import date, datetime
 from hashlib import sha256
 import re
@@ -229,7 +231,35 @@ def validate_material_coverage(quote, values):
         raise ValueError('Proposed evidence category has no supporting source wording.')
 
 
+@contextmanager
+def _diagnostic(issues, manifest, block, field=None):
+    if issues is None:
+        yield
+        return
+    before = deepcopy(manifest)
+    try:
+        yield
+    except (KeyError, TypeError, ValueError, OverflowError) as exc:
+        manifest.clear()
+        manifest.update(before)
+        issues.append({'block': block, 'field': field, 'reason': str(exc)})
+
+
+def diagnose_resource(document, clauses):
+    """Evaluate every independent source block/field without ever returning an adapter."""
+    issues = []
+    try:
+        _compile_resource(document, clauses, issues)
+    except (KeyError, TypeError, ValueError, OverflowError) as exc:
+        issues.append({'block': None, 'field': None, 'reason': str(exc)})
+    return issues
+
+
 def compile_resource(document, clauses):
+    return _compile_resource(document, clauses, None)
+
+
+def _compile_resource(document, clauses, issues):
     _validate_document(document)
     spans = _clauses(document.text, [c['quote'] for c in clauses])
     manifest = {'family': FAMILY, 'document': {'name':document.name, 'uri':document.uri,
@@ -242,184 +272,186 @@ def compile_resource(document, clauses):
     all_text = document.text.casefold()
     columns = None
     for index, (row, (start,end,quote)) in enumerate(zip(clauses,spans,strict=True),1):
-        values = row['value']
-        header=_tier_columns(quote)
-        if header is not None:
-            columns=header
-        elif '|' not in quote:
-            columns=None
-        if row['field'] != 'resource_terms' or not isinstance(values,dict) or not values or set(values)-fields or 'unsupported' in values:
-            raise ValueError(f'Unsupported material in resource clause {index}.')
-        require_operative_mapping(quote, values)
-        validate_material_coverage(quote, values)
-        if re.search(r'\b(?:conflict|inconsisten\w*)\b',quote,re.I) and 'precedence' not in values:
-            raise ValueError(f'Material conflict rule unresolved in clause {index}.')
-        if re.search(r'(?:terminat|suspend|suspension|restrict|breach|non.complian|fail(?:ure)? to (?:comply|abide))',quote,re.I) and re.search(r'(?:account|agreement|terms|customer|access)',quote,re.I) and 'account_conditions' not in values:
-            raise ValueError(f'Account/compliance condition requires a typed local evidence predicate at clause {index}.')
-        if re.search(r'\b(?:other|additional) (?:terms|conditions|requirements).{0,50}(?:apply|govern)|'
-                     r'\b(?:meaning|meanings|definitions?) (?:given|assigned|specified|set forth|provided) (?:in|by)|'
-                     r'\b(?:capitalized|undefined) terms.{0,60}(?:meanings?|defined) .{0,50}agreement',quote,re.I):
-            raise ValueError(f'External terms or definitions unresolved in clause {index}.')
-        if re.search(r'incorporat(?:ed|es) by reference|subject to (?:section|clause|article|the .*?terms)|'
-                     r'(?:as (?:defined|set forth|described)|governed) (?:in|by) (?:section|the .*?agreement|our .*?terms)',quote,re.I):
-            raise ValueError(f'Unresolved governing reference in resource clause {index}.')
-        if (re.search(r'\b(?:excluded|excludes?|excluding|unless|except(?:ions?)?)\b',quote,re.I)
-                and not {'exclusions','fee_exclusions','account_conditions','maintenance'} & values.keys()):
-            raise ValueError(f'Unmapped exclusion or condition in clause {index}.')
-        if re.search(r'\b(?:capped at|up to|aggregate cap|total cap|at our discretion|sole discretion)\b',quote,re.I):
-            raise ValueError(f'Unsupported discretionary amount or cap in clause {index}.')
-        citation = {'id':index,'start':start,'end':end,'quote':quote,'field':'resource_terms','propositions':values,
-                    'block_sha256':sha256(quote.encode()).hexdigest()}
-        manifest['citations'].append(citation)
-        lower = quote.casefold()
-        for key,value in values.items():
-            if key in OPERATORS:
-                try:
-                    apply_operator(manifest, key, value, quote)
-                except (TypeError, ValueError) as exc:
-                    raise ValueError(f'Block {index} field {key}: {exc}') from None
-                continue
-            if key == 'nonmaterial':
-                ordinary_heading = bool(re.fullmatch(r'(?:section\s+)?[0-9]+(?:\.[0-9]+)*[.) :]+[a-z][a-z /-]{1,55}',lower.strip()))
-                if len(values)==1 and re.search(r'[0-9]',lower) and not ordinary_heading:
-                    raise ValueError('Numerical source condition lacks an operative mapping.')
-                material_text = lower.replace('%', '') if header is not None and not re.search(r'\d', lower) else lower
-                if (not isinstance(value,str) or not value.strip() or len(value)>300 or
-                        len(values)==1 and re.search(r'[%≤≥]|\b(?:shall|must|unless|except|subject to|required|within|refund|exclusive|cap|eligible|only|not|provided that|excludes?)\b',material_text)):
-                    raise ValueError('Material source labeled nonoperative.')
-                continue
-            if key in lists:
-                if not isinstance(value,list) or not value:
-                    raise ValueError(f'Ungrounded {key} labels.')
-                labels=manifest.setdefault(key,[])
-                for item in value:
-                    if isinstance(item,str) and grounded(item,quote):
-                        label=item
-                    elif (isinstance(item,dict) and set(item)=={'label','phrase'} and isinstance(item['label'],str)
-                          and re.fullmatch(r'[a-z][a-z0-9_]{0,63}',item['label']) and isinstance(item['phrase'],str)
-                          and 0<len(item['phrase'])<=256 and item['phrase'] in quote):
-                        label=item['label']
-                        bindings=manifest.setdefault('label_bindings',{}).setdefault(key,{})
-                        old=bindings.get(label)
-                        if old and old['phrase']!=item['phrase']:
-                            raise ValueError('Conflicting definitions for the same stable source operator.')
-                        bindings[label]={'phrase':item['phrase'],'block':index,'block_sha256':citation['block_sha256']}
-                    else:
-                        raise ValueError(f'Ungrounded {key} labels.')
-                    if label not in labels:
-                        labels.append(label)
-                continue
-            if key == 'precedence':
-                if not isinstance(value,dict) or set(value)!={'op','phrase','scope'} or value['op']!='this_sla_controls_conflicts_in_scope':
-                    raise ValueError('Unsupported precedence operator.')
-                phrase,scope=value['phrase'],value['scope']
-                if (not isinstance(phrase,str) or not isinstance(scope,str) or not scope.strip()
-                        or phrase not in quote or scope not in quote
-                        or not re.search(r'conflict|inconsisten',quote,re.I)
-                        or not re.search(r'(?:this|these) (?:sla|service level agreement|schedule|agreement|terms)'
-                                         r"(?:’s|'s| terms| provisions)?(?: will| shall| must)? (?:control|govern|prevail|takes? precedence)",phrase,re.I)
-                        or not re.search(r'solely|only|limited to|with (?:respect|regard) to|subject matter|to the extent',quote,re.I)
-                        or not re.search(r'uptime|availability|service level|service credit|subject matter|\bSLA\b',scope,re.I)
-                        or re.search(r'(?:all|other) (?:commercial|contractual) (?:matters|terms)|unless|except',scope,re.I)):
-                    raise ValueError('Source does not establish a limited controlling-document conflict rule.')
-            if key == 'account_conditions':
-                if not isinstance(value,list) or not value:
-                    raise ValueError('Expected source-defined account condition list.')
-                for condition in value:
-                    if not isinstance(condition,dict) or set(condition)!={'op','effect','phrase'}:
-                        raise ValueError('Invalid account condition proposition.')
-                    op,effect,phrase=condition['op'],condition['effect'],condition['phrase']
-                    language={'account_restriction':r'suspen|restrict|terminat|disabled|blocked|good standing',
-                              'contract_noncompliance':r'breach|non.complian|compl(?:y|iance)|violat|abid'}
-                    if (not isinstance(op,str) or op not in language or not isinstance(phrase,str) or not phrase or phrase not in quote
-                            or not re.search(language[op],phrase,re.I)
-                            or effect not in ('causal_intervals','filing_precondition')):
-                        raise ValueError('Ungrounded account condition or effect.')
-                    if effect=='causal_intervals' and not re.search(r'caus|result|attribut|due to|aris|stemming from',quote,re.I):
-                        raise ValueError('Source does not establish an interval-specific causal exclusion.')
-                    if effect=='filing_precondition' and (not re.search(r'claim|request|eligib|entitl',quote,re.I)
-                            or re.search(r'downtime|unavailability|outage',phrase,re.I) and re.search(r'caus|result|due to',quote,re.I)):
-                        raise ValueError('Cannot turn a causal exclusion into a global filing bar.')
-                    previous=manifest.setdefault('account_conditions',[])
-                    if any(c['op']==op and c!=condition for c in previous):
-                        raise ValueError('Conflicting account condition predicates.')
-                    if condition not in previous:
-                        previous.append(condition)
-                continue
-            if key == 'evidence':
-                if not value:
-                    raise ValueError('Empty resource evidence condition.')
-                manifest.setdefault(key,[]).extend(v for v in value if v not in manifest.get(key,[]))
-                continue
-            if key == 'tiers':
-                if not isinstance(value,list) or not value:
-                    raise ValueError('Missing tier values.')
-                tier_quote = _tier_quote(quote, columns)
-                accounted = Counter()
-                for tier in value:
-                    if not isinstance(tier,dict) or set(tier)-{'below','credit','at_least'} or not {'below','credit'}<=set(tier):
-                        raise ValueError('Malformed resource tier.')
-                    if not all(isinstance(tier[k],str) for k in ('below','credit')):
-                        raise ValueError('Expected decimal percent tokens.')
-                    upper,rate = percent_units(tier['below']),percent_units(tier['credit'])
-                    numbers=[_quoted_units(t[1]) for t in _PERCENT_TOKEN.finditer(tier_quote)]
-                    if upper not in numbers or rate not in numbers or not _source_pair(tier_quote,upper,rate,columns):
-                        raise ValueError('Credit tier values absent from cited source.')
-                    floor = tier.get('at_least')
-                    if floor is not None:
-                        if not isinstance(floor,str):
-                            raise ValueError('Invalid explicit band lower bound.')
-                        floor = 0 if re.fullmatch(r'0(?:\.0+)?',floor) else percent_units(floor)
-                        if floor not in numbers or not _inclusive_floor(tier_quote, floor):
-                            raise ValueError('Uncited tier lower bound.')
-                    if re.search(r'(?:at most|no more than|less than or equal to|≤|<=)\s*'+re.escape(tier['below'])+r'\s*(?:%|percent)',lower):
-                        raise ValueError('Inclusive upper tier is unsupported.')
-                    accounted.update([upper, rate])
-                    if floor is not None:
-                        accounted.update([floor])
-                    manifest['tiers'].append(dict(below_units=upper,credit_units=rate,citation=index,floor=floor))
-                if accounted != Counter(_quoted_units(m[1]) for m in _PERCENT_TOKEN.finditer(tier_quote)):
-                    raise ValueError('Every percentage in a resource tier block must map to a threshold, floor or credit.')
-                continue
-            if key in manifest and manifest[key] != value:
-                raise ValueError(f'Conflicting {key} propositions.')
-            if key in {'vendor','agreement','submission_channel'} and not grounded(value,quote):
-                raise ValueError(f'Ungrounded resource {key}.')
-            if key == 'effective':
-                if (not isinstance(value,list) or len(value)!=2 or not value[0]
-                        or not all(isinstance(v,str) and source_date(v,quote) for v in value if v is not None)
-                        or value[1] and value[1]<value[0]):
-                    raise ValueError('Ungrounded source effective dates.')
-            if key == 'scope':
-                if (not isinstance(value,dict) or set(value)!={'product','plan'} or not grounded(value['product'],quote)
-                        or value['plan'] is not None and not grounded(value['plan'],quote)):
-                    raise ValueError('Ungrounded public product/plan scope.')
-            if key == 'period' and (value not in {'resource_utc_calendar_month','resource_billing_month','resource_calendar_month'}
-                    or 'month' not in lower and 'billing cycle' not in lower
-                    or value=='resource_utc_calendar_month' and not any('utc' in sentence and 'month' in sentence
-                        and not re.search(r'claims?|credit requests?|deadline|submission',sentence)
-                        for sentence in re.split(r'[.;\n]',lower))):
-                raise ValueError('Unsupported resource month denominator.')
-            if key == 'boundary' and (value!='strict_below' or not re.search(r'below|lower than|less than|<|equal|threshold|at or above',lower)):
-                raise ValueError('Uncited strict availability boundary.')
-            if key == 'fee_basis' and (value != 'affected_resource_fees'
-                    or not re.search(r'fees?|charges?|spend|billed|rental|subscription cost|amount (?:paid|payable)', lower)
-                    or not re.search(r'\b(?:affected|impacted|unavailable|qualifying|same|corresponding)\b', lower)
-                    or re.search(r'(?:all|aggregate|total) (?:account|tenant|customer|unaffected) (?:fees?|charges?|spend)', lower)):
-                raise ValueError('Ungrounded affected-resource fee basis.')
-            if key=='rounding' and (value!='nearest_cent_half_up' or 'cent' not in lower
-                    or not re.search(r'half.{0,15}up|(?:ties|halves|half.a.cent).{0,35}(?:up|higher)',lower)):
-                raise ValueError('Unconfirmed half-up cent rounding.')
-            if key=='filing':
-                validate_filing(value,quote)
-            if key=='cycle_calendar_month' and (value is not True or not re.search(r'billing cycle',lower) or 'calendar month' not in lower):
-                raise ValueError('Unsupported inferred billing calendar.')
-            if key=='remedy' and (value!='future_noncash_credit' or 'credit' not in lower
-                    or not re.search(r'\b(?:future|next|subsequent|following)\b',lower)
-                    or not re.search(r'invoice|bill|service (?:fee|charge|credit)',lower)
-                    or re.search(r'(?:option|elect|choose|exchange|redeem).{0,35}\bcash\b',lower)):
-                raise ValueError('Unconfirmed future credit remedy.')
-            manifest[key]=value
+        with _diagnostic(issues, manifest, index):
+            values = row['value']
+            header=_tier_columns(quote)
+            if header is not None:
+                columns=header
+            elif '|' not in quote:
+                columns=None
+            if row['field'] != 'resource_terms' or not isinstance(values,dict) or not values or set(values)-fields or 'unsupported' in values:
+                raise ValueError(f'Unsupported material in resource clause {index}.')
+            require_operative_mapping(quote, values)
+            validate_material_coverage(quote, values)
+            if re.search(r'\b(?:conflict|inconsisten\w*)\b',quote,re.I) and 'precedence' not in values:
+                raise ValueError(f'Material conflict rule unresolved in clause {index}.')
+            if re.search(r'(?:terminat|suspend|suspension|restrict|breach|non.complian|fail(?:ure)? to (?:comply|abide))',quote,re.I) and re.search(r'(?:account|agreement|terms|customer|access)',quote,re.I) and 'account_conditions' not in values:
+                raise ValueError(f'Account/compliance condition requires a typed local evidence predicate at clause {index}.')
+            if re.search(r'\b(?:other|additional) (?:terms|conditions|requirements).{0,50}(?:apply|govern)|'
+                         r'\b(?:meaning|meanings|definitions?) (?:given|assigned|specified|set forth|provided) (?:in|by)|'
+                         r'\b(?:capitalized|undefined) terms.{0,60}(?:meanings?|defined) .{0,50}agreement',quote,re.I):
+                raise ValueError(f'External terms or definitions unresolved in clause {index}.')
+            if re.search(r'incorporat(?:ed|es) by reference|subject to (?:section|clause|article|the .*?terms)|'
+                         r'(?:as (?:defined|set forth|described)|governed) (?:in|by) (?:section|the .*?agreement|our .*?terms)',quote,re.I):
+                raise ValueError(f'Unresolved governing reference in resource clause {index}.')
+            if (re.search(r'\b(?:excluded|excludes?|excluding|unless|except(?:ions?)?)\b',quote,re.I)
+                    and not {'exclusions','fee_exclusions','account_conditions','maintenance'} & values.keys()):
+                raise ValueError(f'Unmapped exclusion or condition in clause {index}.')
+            if re.search(r'\b(?:capped at|up to|aggregate cap|total cap|at our discretion|sole discretion)\b',quote,re.I):
+                raise ValueError(f'Unsupported discretionary amount or cap in clause {index}.')
+            citation = {'id':index,'start':start,'end':end,'quote':quote,'field':'resource_terms','propositions':values,
+                        'block_sha256':sha256(quote.encode()).hexdigest()}
+            manifest['citations'].append(citation)
+            lower = quote.casefold()
+            for key,value in values.items():
+                with _diagnostic(issues, manifest, index, key):
+                    if key in OPERATORS:
+                        try:
+                            apply_operator(manifest, key, value, quote)
+                        except (TypeError, ValueError) as exc:
+                            raise ValueError(f'Block {index} field {key}: {exc}') from None
+                        continue
+                    if key == 'nonmaterial':
+                        ordinary_heading = bool(re.fullmatch(r'(?:section\s+)?[0-9]+(?:\.[0-9]+)*[.) :]+[a-z][a-z /-]{1,55}',lower.strip()))
+                        if len(values)==1 and re.search(r'[0-9]',lower) and not ordinary_heading:
+                            raise ValueError('Numerical source condition lacks an operative mapping.')
+                        material_text = lower.replace('%', '') if header is not None and not re.search(r'\d', lower) else lower
+                        if (not isinstance(value,str) or not value.strip() or len(value)>300 or
+                                len(values)==1 and re.search(r'[%≤≥]|\b(?:shall|must|unless|except|subject to|required|within|refund|exclusive|cap|eligible|only|not|provided that|excludes?)\b',material_text)):
+                            raise ValueError('Material source labeled nonoperative.')
+                        continue
+                    if key in lists:
+                        if not isinstance(value,list) or not value:
+                            raise ValueError(f'Ungrounded {key} labels.')
+                        labels=manifest.setdefault(key,[])
+                        for item in value:
+                            if isinstance(item,str) and grounded(item,quote):
+                                label=item
+                            elif (isinstance(item,dict) and set(item)=={'label','phrase'} and isinstance(item['label'],str)
+                                  and re.fullmatch(r'[a-z][a-z0-9_]{0,63}',item['label']) and isinstance(item['phrase'],str)
+                                  and 0<len(item['phrase'])<=256 and item['phrase'] in quote):
+                                label=item['label']
+                                bindings=manifest.setdefault('label_bindings',{}).setdefault(key,{})
+                                old=bindings.get(label)
+                                if old and old['phrase']!=item['phrase']:
+                                    raise ValueError('Conflicting definitions for the same stable source operator.')
+                                bindings[label]={'phrase':item['phrase'],'block':index,'block_sha256':citation['block_sha256']}
+                            else:
+                                raise ValueError(f'Ungrounded {key} labels.')
+                            if label not in labels:
+                                labels.append(label)
+                        continue
+                    if key == 'precedence':
+                        if not isinstance(value,dict) or set(value)!={'op','phrase','scope'} or value['op']!='this_sla_controls_conflicts_in_scope':
+                            raise ValueError('Unsupported precedence operator.')
+                        phrase,scope=value['phrase'],value['scope']
+                        if (not isinstance(phrase,str) or not isinstance(scope,str) or not scope.strip()
+                                or phrase not in quote or scope not in quote
+                                or not re.search(r'conflict|inconsisten',quote,re.I)
+                                or not re.search(r'(?:this|these) (?:sla|service level agreement|schedule|agreement|terms)'
+                                                 r"(?:’s|'s| terms| provisions)?(?: will| shall| must)? (?:control|govern|prevail|takes? precedence)",phrase,re.I)
+                                or not re.search(r'solely|only|limited to|with (?:respect|regard) to|subject matter|to the extent',quote,re.I)
+                                or not re.search(r'uptime|availability|service level|service credit|subject matter|\bSLA\b',scope,re.I)
+                                or re.search(r'(?:all|other) (?:commercial|contractual) (?:matters|terms)|unless|except',scope,re.I)):
+                            raise ValueError('Source does not establish a limited controlling-document conflict rule.')
+                    if key == 'account_conditions':
+                        if not isinstance(value,list) or not value:
+                            raise ValueError('Expected source-defined account condition list.')
+                        for condition in value:
+                            if not isinstance(condition,dict) or set(condition)!={'op','effect','phrase'}:
+                                raise ValueError('Invalid account condition proposition.')
+                            op,effect,phrase=condition['op'],condition['effect'],condition['phrase']
+                            language={'account_restriction':r'suspen|restrict|terminat|disabled|blocked|good standing',
+                                      'contract_noncompliance':r'breach|non.complian|compl(?:y|iance)|violat|abid'}
+                            if (not isinstance(op,str) or op not in language or not isinstance(phrase,str) or not phrase or phrase not in quote
+                                    or not re.search(language[op],phrase,re.I)
+                                    or effect not in ('causal_intervals','filing_precondition')):
+                                raise ValueError('Ungrounded account condition or effect.')
+                            if effect=='causal_intervals' and not re.search(r'caus|result|attribut|due to|aris|stemming from',quote,re.I):
+                                raise ValueError('Source does not establish an interval-specific causal exclusion.')
+                            if effect=='filing_precondition' and (not re.search(r'claim|request|eligib|entitl',quote,re.I)
+                                    or re.search(r'downtime|unavailability|outage',phrase,re.I) and re.search(r'caus|result|due to',quote,re.I)):
+                                raise ValueError('Cannot turn a causal exclusion into a global filing bar.')
+                            previous=manifest.setdefault('account_conditions',[])
+                            if any(c['op']==op and c!=condition for c in previous):
+                                raise ValueError('Conflicting account condition predicates.')
+                            if condition not in previous:
+                                previous.append(condition)
+                        continue
+                    if key == 'evidence':
+                        if not value:
+                            raise ValueError('Empty resource evidence condition.')
+                        manifest.setdefault(key,[]).extend(v for v in value if v not in manifest.get(key,[]))
+                        continue
+                    if key == 'tiers':
+                        if not isinstance(value,list) or not value:
+                            raise ValueError('Missing tier values.')
+                        tier_quote = _tier_quote(quote, columns)
+                        accounted = Counter()
+                        for tier in value:
+                            if not isinstance(tier,dict) or set(tier)-{'below','credit','at_least'} or not {'below','credit'}<=set(tier):
+                                raise ValueError('Malformed resource tier.')
+                            if not all(isinstance(tier[k],str) for k in ('below','credit')):
+                                raise ValueError('Expected decimal percent tokens.')
+                            upper,rate = percent_units(tier['below']),percent_units(tier['credit'])
+                            numbers=[_quoted_units(t[1]) for t in _PERCENT_TOKEN.finditer(tier_quote)]
+                            if upper not in numbers or rate not in numbers or not _source_pair(tier_quote,upper,rate,columns):
+                                raise ValueError('Credit tier values absent from cited source.')
+                            floor = tier.get('at_least')
+                            if floor is not None:
+                                if not isinstance(floor,str):
+                                    raise ValueError('Invalid explicit band lower bound.')
+                                floor = 0 if re.fullmatch(r'0(?:\.0+)?',floor) else percent_units(floor)
+                                if floor not in numbers or not _inclusive_floor(tier_quote, floor):
+                                    raise ValueError('Uncited tier lower bound.')
+                            if re.search(r'(?:at most|no more than|less than or equal to|≤|<=)\s*'+re.escape(tier['below'])+r'\s*(?:%|percent)',lower):
+                                raise ValueError('Inclusive upper tier is unsupported.')
+                            accounted.update([upper, rate])
+                            if floor is not None:
+                                accounted.update([floor])
+                            manifest['tiers'].append(dict(below_units=upper,credit_units=rate,citation=index,floor=floor))
+                        if accounted != Counter(_quoted_units(m[1]) for m in _PERCENT_TOKEN.finditer(tier_quote)):
+                            raise ValueError('Every percentage in a resource tier block must map to a threshold, floor or credit.')
+                        continue
+                    if key in manifest and manifest[key] != value:
+                        raise ValueError(f'Conflicting {key} propositions.')
+                    if key in {'vendor','agreement','submission_channel'} and not grounded(value,quote):
+                        raise ValueError(f'Ungrounded resource {key}.')
+                    if key == 'effective':
+                        if (not isinstance(value,list) or len(value)!=2 or not value[0]
+                                or not all(isinstance(v,str) and source_date(v,quote) for v in value if v is not None)
+                                or value[1] and value[1]<value[0]):
+                            raise ValueError('Ungrounded source effective dates.')
+                    if key == 'scope':
+                        if (not isinstance(value,dict) or set(value)!={'product','plan'} or not grounded(value['product'],quote)
+                                or value['plan'] is not None and not grounded(value['plan'],quote)):
+                            raise ValueError('Ungrounded public product/plan scope.')
+                    if key == 'period' and (value not in {'resource_utc_calendar_month','resource_billing_month','resource_calendar_month'}
+                            or 'month' not in lower and 'billing cycle' not in lower
+                            or value=='resource_utc_calendar_month' and not any('utc' in sentence and 'month' in sentence
+                                and not re.search(r'claims?|credit requests?|deadline|submission',sentence)
+                                for sentence in re.split(r'[.;\n]',lower))):
+                        raise ValueError('Unsupported resource month denominator.')
+                    if key == 'boundary' and (value!='strict_below' or not re.search(r'below|lower than|less than|<|equal|threshold|at or above',lower)):
+                        raise ValueError('Uncited strict availability boundary.')
+                    if key == 'fee_basis' and (value != 'affected_resource_fees'
+                            or not re.search(r'fees?|charges?|spend|billed|rental|subscription cost|amount (?:paid|payable)', lower)
+                            or not re.search(r'\b(?:affected|impacted|unavailable|qualifying|same|corresponding)\b', lower)
+                            or re.search(r'(?:all|aggregate|total) (?:account|tenant|customer|unaffected) (?:fees?|charges?|spend)', lower)):
+                        raise ValueError('Ungrounded affected-resource fee basis.')
+                    if key=='rounding' and (value!='nearest_cent_half_up' or 'cent' not in lower
+                            or not re.search(r'half.{0,15}up|(?:ties|halves|half.a.cent).{0,35}(?:up|higher)',lower)):
+                        raise ValueError('Unconfirmed half-up cent rounding.')
+                    if key=='filing':
+                        validate_filing(value,quote)
+                    if key=='cycle_calendar_month' and (value is not True or not re.search(r'billing cycle',lower) or 'calendar month' not in lower):
+                        raise ValueError('Unsupported inferred billing calendar.')
+                    if key=='remedy' and (value!='future_noncash_credit' or 'credit' not in lower
+                            or not re.search(r'\b(?:future|next|subsequent|following)\b',lower)
+                            or not re.search(r'invoice|bill|service (?:fee|charge|credit)',lower)
+                            or re.search(r'(?:option|elect|choose|exchange|redeem).{0,35}\bcash\b',lower)):
+                        raise ValueError('Unconfirmed future credit remedy.')
+                    manifest[key]=value
     required={'vendor','effective','scope','period','symptoms','provider_causes','fee_basis','filing','remedy','evidence'}
     if required-set(manifest) or not manifest['tiers']:
         raise ValueError('Incomplete resource-month source propositions: '+', '.join(sorted(required-set(manifest))))
@@ -443,7 +475,7 @@ def compile_resource(document, clauses):
             raise ValueError('Overlapping, missing or conflicting resource credit bands.')
         lower,previous=tier['below_units'],tier['credit_units']
         tier.update(product=manifest['scope']['product'],plan=manifest['scope']['plan'] or '*')
-    return manifest
+    return manifest if issues is None else None
 
 
 def public_blocks(text):
