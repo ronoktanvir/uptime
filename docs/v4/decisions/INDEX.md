@@ -81,5 +81,7 @@ The earlier table preserves its inspected-source status. The following decisions
 - [51 — Private GitHub engineering repository](ADR-0051-private-github-repository.md)
 - [52 — Signed source references for filing fields](ADR-0052-grounded-filing-references.md)
 - [53 — Local engineering dependency dashboard](ADR-0053-read-only-progress-dashboard.md)
+- [54 — Signed plan references within the filing join](ADR-0054-signed-plan-reference-completion.md)
+- [55 — Onboarding operator consistency and public diagnostics](ADR-0055-onboarding-operator-consistency.md)
 
 Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.
