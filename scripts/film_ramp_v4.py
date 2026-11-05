@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import copy
+from hashlib import sha256
+import os
+from unittest.mock import patch
 from decimal import Decimal
 import json
 from pathlib import Path
@@ -18,6 +22,9 @@ from scripts.browser_replay import local_connections_only, allowed_browser_url
 
 # Explicit public designation, never choose a bill because its amount looks useful.
 BINDING = ROOT / 'fixtures/ramp/native-cap-binding.json'
+PUBLIC_DIGEST = '697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1'
+EXTRACTIONS = ROOT / 'docs/v4/evidence/public-extractions'
+VENDOR = 'calyxquay-film-draft'
 DURATIONS = (8, 12, 10, 7, 7, 10, 12, 12, 8, 10, 7, 7, 10)
 
 
@@ -52,6 +59,59 @@ def boundaries(workspace, bill, cap, designation):
         require(resources[name]['count'] > 0, 'Required provider context absent: ' + name)
     for name in ('agreements', 'credits'):
         require(resources[name]['status'] == 'EMPTY' and resources[name]['count'] == 0, 'Missing-evidence narration no longer matches capture')
+
+
+def public_intake():
+    """Only accepted public bytes; never load a private overlay or evaluation oracle."""
+    from uptime.vendor_model import staged_extraction
+    from uptime.vendor_terms import Document
+    scope = json.loads((ROOT/'prospective/public-scope.json').read_text())
+    text = (ROOT/'prospective/public/calyxquay-beacon-cache-sla.txt').read_text()
+    require(sha256(text.encode()).hexdigest() == scope['approved_utf8_sha256'] == PUBLIC_DIGEST,
+            'Approved public source binding changed')
+    require((EXTRACTIONS/(PUBLIC_DIGEST+'.json')).is_file(), 'Accepted public extraction missing')
+    document = dict(name='CalyxQuay synthetic public agreement',
+                    uri='urn:synthetic:public:calyxquay:2031-04', classification='synthetic_public', text=text)
+    manifest, extraction = staged_extraction(Document.model_validate(document))
+    require(extraction.get('model') == 'claude-opus-5-5' and extraction.get('session') ==
+            '609751b5-43c2-4ddf-947d-799f6e5431ec', 'Accepted extraction provenance changed')
+    overlay = dict(agreement='Editor authored CalyxQuay demo', public_agreement=manifest['agreement'],
+                   account='Editor authored synthetic account', product=manifest['scope']['product'],
+                   plan=manifest['scope']['plan'], effective_from=manifest['effective'][0],
+                   effective_until=manifest['effective'][1], fee_line_ref='editor-demo-subscription', currency='USD')
+    return dict(document=document, overlay=overlay), manifest, extraction
+
+
+def demo_controls(overlay, manifest):
+    """Editorial controls from public schema, not an independent held-out test suite."""
+    from uptime.contracts import fingerprint
+    scope = {k: overlay[k] for k in ('agreement','account','product','plan')}
+    scope['month'] = '2031-04'
+    def record(ref, content):
+        return dict(scope, ref=ref, verified=True, complete=True, recorded_at='2031-05-02T00:00:00Z',
+                    content=content, content_sha256=fingerprint(content))
+    facts = dict(scope, fee_line_ref=overlay['fee_line_ref'],
+        service_monitor=record('editor-synthetic-status', dict(source='simulated_vendor', unavailable_minutes=60)),
+        service_invoice=record('editor-synthetic-invoice', dict(paid=True, currency='USD', lines=[
+            dict(ref=overlay['fee_line_ref'], category='subscription', kind='recurring_subscription', amount_cents=10000),
+            dict(ref='editor-coaching', category='operator coaching fees', amount_cents=5000)])),
+        filing_proof=dict(scope, verified=True, ref='editor-synthetic-receipt', received_at='2031-05-15T00:00:00Z',
+            fields={key:'Editor-authored synthetic '+key for key in manifest.get('request_fields', [])}))
+    missing = copy.deepcopy(facts)
+    del missing['service_monitor']
+    late = copy.deepcopy(facts)
+    late['filing_proof']['received_at'] = '2031-05-15T00:00:01Z'
+    return facts, [dict(name='Editor demo: '+name, facts=value, expected=expected) for name,value,expected in (
+        ('60 minutes; 12 percent of USD 100, coaching excluded', facts, dict(outcome='ELIGIBLE', amount='12.00')),
+        ('missing status remains unknown', missing, dict(outcome='INSUFFICIENT_EVIDENCE')),
+        ('one second late refused', late, dict(outcome='INELIGIBLE')))]
+
+
+def draft_boundaries(state, extraction):
+    require(state['state'] == 'SHADOW' and state['active_version'] is None and state['reviewer'] is None
+            and state.get('interpretation_reviewer') is None, 'Draft acquired approval or activation')
+    require(state['extraction'] == extraction, 'Draft extraction provenance mismatch')
+    require(state['checks'] and all(row['passed'] for row in state['checks']), 'Editorial controls failed')
 
 
 class RampDirector(Director):
@@ -159,12 +219,31 @@ class RampDirector(Director):
         self.focus(self.page.get_by_role('heading', name='Decision trace', exact=True))
         self.capture('Partial simulated application', 'Only USD 50 is applied in this synthetic replay.',
                      'Disputed, awarded, recorded, and applied remain separate measures.', applied)
-        self.view('onboarding')
-        lab = self.get('/api/onboarding')
-        require(lab['state'] == 'SHADOW' and lab['reviewer'] is None and all(c['passed'] for c in lab['checks']), 'Shadow checks missing')
-        self.focus(self.page.locator('.lab-state'), 30)
-        self.capture('Shadow onboarding', 'Vendor onboarding remains in shadow with its visible checks.',
-                     'All reviewer actions were scripted locally. No actual customer recovery is shown.', {'sources':['DETERMINISTIC_REPLAY']})
+        self.view('vendors')
+        intake, manifest, extraction = public_intake()
+        prefix = '/api/vendors/' + VENDOR
+        def post(path, body):
+            return self.page.evaluate('([path,body]) => window.uptimeAPI(path,body)', [path, body])
+        state = post(prefix+'/candidates', intake)
+        require(state['state'] == 'SHADOW', 'Public draft intake rejected')
+        facts, tests = demo_controls(intake['overlay'], manifest)
+        state = post(prefix+'/tests', dict(revision=state['revision'], tests=tests))
+        draft_boundaries(state, extraction)
+        preview = post(prefix+'/shadow-preview', dict(revision=state['revision'], facts=facts))
+        require(preview['classification'] == 'LOCAL_DRAFT_PREVIEW' and preview['dispatch_authorized'] is False
+                and preview['evaluation']['amount'] == '12.00', 'Draft preview boundary changed')
+        self.view('vendors')
+        self.expand('Rules, overlay, tests and reviewer versions')
+        self.page.get_by_text(extraction['session'], exact=False).first.wait_for()
+        self.focus(self.page.get_by_text(extraction['session'], exact=False).first, 180)
+        self.onboarding = dict(vendor_id=VENDOR, state=state['state'], version=state['version'],
+            source_sha256=PUBLIC_DIGEST, extraction=extraction, human_approval='PENDING',
+            controls='EDITOR_AUTHORED_SYNTHETIC_NOT_HELD_OUT', preview=preview,
+            model_called_during_film=False)
+        self.capture('GENERAL onboarding / human approval pending',
+                     'CalyxQuay: recorded Opus extraction becomes a new declarative SHADOW draft.',
+                     'Editor-authored synthetic controls. Human approval pending; no model call here.',
+                     {'sources':state['sources'], 'stage':'SHADOW'})
         require(sum(s.seconds for s in self.shots) == 120, 'Timeline must total 120 seconds')
 
 
@@ -181,7 +260,7 @@ def record(args):
         secret = secrets.token_urlsafe(32)
         credential = write_credential(work/'reviewer.json', rehearsal_key(secret), ROOT)
         failures = []
-        with local_connections_only(), serve(work/'replay.sqlite', secret) as origin, sync_playwright() as pw:
+        with patch.dict(os.environ, {'UPTIME_PUBLIC_EXTRACTIONS': str(EXTRACTIONS), 'UPTIME_MODEL_PROPOSITIONS': '1'}), local_connections_only(), serve(work/'replay.sqlite', secret) as origin, sync_playwright() as pw:
             options = {'headless': True, 'args': ['--disable-background-networking', '--disable-sync']}
             if args.browser:
                 options['executable_path'] = str(args.browser.resolve())
@@ -219,6 +298,7 @@ def record(args):
         evidence = {'status':'browser_checked' if args.check else 'rendered_and_probed',
                     'duration_s':120, 'checked_native_id':director.checked_id,
                     'capture_digest':director.capture_digest, 'scenes':director.evidence,
+                    'onboarding':director.onboarding,
                     'reviewer_origin':'disposable scripted-test-reviewer',
                     'copy_origin':'editorial captions; UI text is literal application output',
                     'network':'loopback only; no provider API calls', 'external_writes':0,
