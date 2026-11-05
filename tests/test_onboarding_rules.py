@@ -112,3 +112,14 @@ def test_timely_filing_survives_blocked_or_unconfirmed_issuance(standing, issuan
     result = evaluate(R, TEST_VIEWER, fixture('overlay'), fixture('observations') | {'good_standing': standing})
     assert result.outcome == Outcome.ELIGIBLE and result.amount.amount == Decimal('120.00')
     assert result.filing_status == 'TIMELY' and result.issuance_status == issuance
+
+
+@pytest.mark.parametrize('fee', ['0.00', '0.01'])
+def test_timely_jira_claim_cannot_pursue_zero_modeled_credit(fee):
+    facts = fixture('observations') | {'monthly_fee': fee}
+    result = evaluate(R, TEST_VIEWER, fixture('overlay'), facts)
+    assert result.outcome == Outcome.INELIGIBLE and result.amount is None
+    assert result.filing_status == 'TIMELY' and result.issuance_status == 'NO_POSITIVE_CREDIT'
+    assert 'no positive credit' in result.trace[0]
+    positive = evaluate(R, TEST_VIEWER, fixture('overlay'), facts | {'monthly_fee': '0.05'})
+    assert positive.outcome == Outcome.ELIGIBLE and str(positive.amount.amount) == '0.01'

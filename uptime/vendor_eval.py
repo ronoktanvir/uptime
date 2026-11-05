@@ -43,6 +43,9 @@ def usd_estimate(fee_cents, credit_units):
 
 
 def evaluate(manifest, overlay, facts, tenant):
+    if manifest['family'] == 'resource-month/1':
+        from .vendor_resource_eval import evaluate_resource
+        return evaluate_resource(manifest,overlay,facts,tenant)
     if facts.get('tenant', tenant) != tenant:
         raise PermissionError('Tenant mismatch.')
     if set(facts) - FACT_FIELDS:
@@ -106,6 +109,10 @@ def evaluate(manifest, overlay, facts, tenant):
     message = f'{minutes - down}/{minutes} UTC minutes available. Exact comparison gives {rate}/{PERCENT_SCALE}% credit.'
     if not rate:
         return stop(Outcome.INELIGIBLE, message)
+    if fee == 0:
+        base['issuance_status']='NO_POSITIVE_CREDIT'
+        base['service_estimate']='0.00'
+        return stop(Outcome.INELIGIBLE,'Verified zero affected fee produces no claimable service credit.')
     base['issuance_status'] = 'FUTURE_INVOICE_CREDIT_UNCONFIRMED'
     return base | {'outcome': Outcome.ELIGIBLE.value, 'amount': usd_estimate(fee, rate),
                    'tier_citation': citation, 'rate_units': rate,

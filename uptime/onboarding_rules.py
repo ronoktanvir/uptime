@@ -236,6 +236,10 @@ def evaluate(template, principal, overlay, facts):
         return missing('Appendix B', 'verified affected product-month fee allocation')
     with localcontext(Context(prec=40)):
         amount = (Decimal(fee) * rate / 100).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    if amount == 0:
+        return result(Outcome.INELIGIBLE, 'Appendix B / §2.2',
+                      trace + f' The verified USD fee {fee} produces no positive credit at modeled cent precision.',
+                      filing='TIMELY', issuance='NO_POSITIVE_CREDIT')
     standing = facts.get('good_standing')
     issuance = ('CONDITIONAL_ON_VENDOR_REVIEW' if standing is True else
                 'BLOCKED_ACCOUNT_STANDING' if standing is False else 'ACCOUNT_STANDING_UNKNOWN')

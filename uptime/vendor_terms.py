@@ -6,6 +6,7 @@ join wrapped sentences, but cannot introduce values, code or unsupported terms.
 from datetime import date
 from hashlib import sha256
 import re
+from pathlib import Path
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -37,6 +38,22 @@ class FilingOverride(Strict):
     quote: str = Field(min_length=1, max_length=512)
 
 
+class BillingPeriod(Strict):
+    kind: str
+    source_ref: str
+    quote: str
+
+
+class GoverningTerms(Strict):
+    verified: bool
+    agreement: str
+    source_sha256: str
+    effective_from: str
+    source_ref: str
+    evidence_sha256: str
+    unamended_terms: list[str]
+
+
 class Overlay(Strict):
     agreement: str
     account: str
@@ -47,6 +64,15 @@ class Overlay(Strict):
     fee_line_ref: str
     currency: str
     override: FilingOverride | None = None
+    resource_id: str | None = None
+    billing_period: BillingPeriod | None = None
+    governing_terms: GoverningTerms | None = None
+    public_product: str | None = None
+    public_plan: str | None = None
+    public_agreement: str | None = None
+    resource_label: str | None = None
+    symptom_aliases: dict[str, str] | None = None
+    cause_aliases: dict[str, str] | None = None
 
 
 class Intake(Strict):
@@ -225,12 +251,45 @@ def compile_terms(document, *, segments=None):
 
 
 def bind_overlay(manifest, overlay):
-    if overlay.agreement != manifest['agreement'] or overlay.currency != 'USD':
+    resource = manifest['family'] == 'resource-month/1'
+    scoped = (overlay.public_agreement or overlay.agreement, overlay.public_product or overlay.product,
+              overlay.public_plan or overlay.plan)
+    if not resource and any(getattr(overlay,k) is not None for k in
+                            ('resource_id','billing_period','governing_terms','public_product','public_plan','public_agreement','resource_label','symptom_aliases','cause_aliases')):
+        raise ValueError('Resource mappings require a resource-month contract.')
+    if overlay.currency != 'USD' or manifest['agreement'] is not None and scoped[0] != manifest['agreement']:
         raise ValueError('Unsupported agreement or fee currency.')
     for value in (overlay.agreement, overlay.product, overlay.plan, overlay.account, overlay.fee_line_ref):
         if not _match(NAME, value):
             raise ValueError('Missing or ambiguous overlay binding.')
-    if (overlay.product, overlay.plan) not in {(t['product'], t['plan']) for t in manifest['tiers']}:
+    if resource:
+        from .vendor_resource_terms import norm
+        if 'precedence' in manifest or overlay.governing_terms is not None:
+            attestation=overlay.governing_terms
+            required={'scope','measurement','exclusions','tiers','fee_basis','rounding','filing','remedy'}
+            if (attestation is None or not attestation.verified or attestation.agreement!=overlay.agreement
+                    or attestation.source_sha256!=manifest['document']['sha256'] or attestation.effective_from!=manifest['effective'][0]
+                    or not _match(NAME,attestation.source_ref) or not re.fullmatch('[a-f0-9]{64}',attestation.evidence_sha256)
+                    or set(attestation.unamended_terms)!=required or len(attestation.unamended_terms)!=len(required)
+                    or overlay.override is not None):
+                raise ValueError('Referenced governing terms require verified local source, effective date and unamended economics.')
+
+        if manifest['period'] != 'resource_utc_calendar_month' or overlay.billing_period is not None:
+            period=overlay.billing_period
+            if (period is None or period.kind!='utc_calendar_month' or not _match(NAME,period.source_ref)
+                    or 'utc' not in period.quote.casefold() or 'calendar month' not in period.quote.casefold()
+                    or re.search(r'\b(?:not|unless|rolling|except|local time|pending|unconfirmed)\b',period.quote,re.I)):
+                raise ValueError('Public clock requires cited private UTC calendar-month billing coverage.')
+        if not overlay.resource_id or not _match(NAME, overlay.resource_id):
+            raise ValueError('Resource contract requires a tenant/account resource identifier.')
+        for aliases, labels in [(overlay.symptom_aliases, manifest['symptoms']),
+                                (overlay.cause_aliases, manifest['provider_causes'] + manifest['exclusions'])]:
+            if aliases and any(not norm(key) or value not in labels for key,value in aliases.items()):
+                raise ValueError('Private observation aliases must map to cited service definitions.')
+        if overlay.override and manifest['filing']['kind'] != 'calendar_days':
+            raise ValueError('A calendar-day override cannot implicitly replace billing cycles.')
+    if (scoped[1], scoped[2]) not in {(t['product'],t['plan']) for t in manifest['tiers']} and not (
+            resource and manifest['scope']=={'product':scoped[1], 'plan':None}):
         raise ValueError('Product or plan has no published tier.')
     first, last = date.fromisoformat(overlay.effective_from), date.fromisoformat(overlay.effective_until)
     if not re.fullmatch(DAY, overlay.effective_from) or not re.fullmatch(DAY, overlay.effective_until) or first > last:
@@ -245,8 +304,28 @@ def bind_overlay(manifest, overlay):
     return overlay.model_dump(exclude_none=True)
 
 
+# A reviewed artifact is coupled to the actual source installed in this process.
+# A comment-only change can conservatively require fresh review. Historical receipts stay readable.
+_COMMON_SEMANTIC_FILES = ('contracts.py','vendor_terms.py','vendor_eval.py','vendor_model.py','vendor_registry.py')
+_PROFILE_FILES = {REVISION: _COMMON_SEMANTIC_FILES,
+                  'resource-month/1': _COMMON_SEMANTIC_FILES + ('vendor_resource_terms.py','vendor_resource_eval.py','twilio.py')}
+SEMANTICS_REVISIONS = {
+    family: fingerprint({'protocol':'reviewed-semantics/1','family':family,'files':{
+        name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in files}})
+    for family,files in _PROFILE_FILES.items()
+}
+
+
+def semantics_revision(manifest):
+    revision=SEMANTICS_REVISIONS.get(manifest['family'])
+    if not revision:
+        raise ValueError('Unsupported evaluator family.')
+    return revision
+
+
 def candidate_version(manifest, overlay, extraction):
-    return fingerprint({'manifest': manifest, 'overlay': overlay, 'extraction': extraction})
+    return fingerprint({'manifest': manifest, 'overlay': overlay, 'extraction': extraction,
+                        'semantics_revision':semantics_revision(manifest)})
 
 
 def compile_propositions(document, clauses):
