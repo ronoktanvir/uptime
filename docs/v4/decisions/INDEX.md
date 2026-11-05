@@ -86,5 +86,6 @@ The earlier table preserves its inspected-source status. The following decisions
 - [56 — Bounded vendor-response coverage](ADR-0056-bounded-vendor-response-coverage.md)
 - [57 — Bind the visible Ramp demo to its own installation](ADR-0057-native-demo-installation-identity.md)
 - [58 — Bounded source-label whitespace equivalence](ADR-0058-bounded-source-label-whitespace.md)
+- [64 — A coherent financial walkthrough with ordinary product views](ADR-0064-clean-walkthrough.md)
 
 Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.
