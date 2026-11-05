@@ -147,7 +147,7 @@ class Installation:
         monkeypatch.setenv("RAMP_BASE_URL", native.ORIGIN)
         self.protocol = Protocol()
         self.workspace = Workspace(self.protocol)
-        monkeypatch.setattr(native.gates, "local_release_ready", lambda: True)
+        monkeypatch.setattr(native.gates, "native_install_ready", lambda installation: True)
         monkeypatch.setattr(native, "_client", lambda: httpx.Client(transport=httpx.MockTransport(self.protocol), trust_env=False))
         self.app = FastAPI()
         self.auth.register(self.app)
@@ -266,7 +266,7 @@ def test_default_registration_disabled_and_gate_blocks_registration(installed, m
     app = FastAPI()
     assert native.register_native_binding(app, workspace=i.workspace, auth=i.auth) is None
     assert not any(r.path.startswith(native.PREFIX) for r in app.routes)
-    monkeypatch.setattr(native.gates, "local_release_ready", lambda: False)
+    monkeypatch.setattr(native.gates, "native_install_ready", lambda installation: False)
     with pytest.raises(native.WorkflowError):
         native.register_native_binding(app, workspace=i.workspace, auth=i.auth, config_path=i.config_path)
     assert i.protocol.calls == []
@@ -368,7 +368,7 @@ def test_recomputes_at_final_wire_boundary_after_discussion_read(installed, monk
         if change == "finding": i.workspace.finding["finding_digest"] = "0"*64
         if change == "native": i.protocol.record["approval_status"] = "APPROVED"
         if change == "business": i.protocol.business = OTHER
-        if change == "gate": monkeypatch.setattr(native.gates, "local_release_ready", lambda: False)
+        if change == "gate": monkeypatch.setattr(native.gates, "native_install_ready", lambda installation: False)
         if change == "config": i.config["enabled"] = False; i.write_config()
         if change == "during-final-bill":
             i.protocol.after_bill = lambda: i.workspace.finding.update(finding_digest="0"*64)
@@ -530,3 +530,12 @@ def test_grant_expiry_or_refresh_requires_new_preparation(installed, change):
         assert i.post(native.PREFIX+"/preflight", {}).status_code == 200
     assert i.execute(plan).status_code == 409
     assert not i.protocol.posts
+
+
+def test_native_install_enables_only_native_review_when_global_actions_disabled(installed):
+    i = installed
+    i.auth.approvals_enabled = False
+    assert i.post(native.PREFIX+"/preflight", {}).status_code == 200
+    assert i.operator.client.post("/api/auth/challenge", json={
+        "subject": USER, "path": "/api/policy", "body_sha256": "a"*64}, headers=i.operator.headers).status_code == 403
+    assert i.protocol.posts == []

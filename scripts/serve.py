@@ -68,6 +68,8 @@ def main():
         listener.listen()
         base = f"http://127.0.0.1:{listener.getsockname()[1]}"
         if args.enable_local_approvals:
+            if args.mode != "replay" or args.native_config is not None:
+                parser.exit(1, "Local release approval requires replay mode without a native configuration.\n")
             try:
                 from uptime.gates import local_release_ready
             except ImportError:
@@ -78,6 +80,8 @@ def main():
         sources = SourceRegistry(args.source_config, args.mode, base, args.tenant) if args.source_config else None
         app = create_app(args.db, mode=args.mode, origin=base, tenant=args.tenant, approvals_enabled=args.enable_local_approvals,
                          service_credentials=sources, native_config=args.native_config)
+        if args.enable_local_approvals:
+            app.state.auth.local_gate = local_release_ready
         if sources:
             sources.config.bind(app.state.correspondence)
         if args.open:

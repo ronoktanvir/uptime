@@ -6,16 +6,7 @@ The implementation uses `RampWorkflow` and `ScopedSandboxWorkflowProvider.post_c
 
 ## Root registration and configuration
 
-Root owns `uptime/server.py`, `scripts/serve.py`, and `uptime/ramp_workspace.py`; this change does not edit them. Add an explicit optional `native_config: Path | None = None` application argument and launcher `--native-config` option, passing the operator's value through unchanged. After creating the existing `Authority` and registering the Ramp workspace:
-
-```python
-from uptime.ramp_native_binding import register_native_binding
-
-register_native_binding(app, workspace=ramp_workspace, auth=auth,
-                        config_path=native_config)
-```
-
-Use the existing workspace and Authority instances. Do not also mount `register_ramp_workflow()` with a live provider. With `config_path=None`, this function installs no routes, creates no HTTP client and reads no credentials. An explicit config still requires sandbox mode, a named non-rehearsal Authority, approvals enabled, matching tenant, enrolled reviewer public keys, and `gates.local_release_ready()`. The release gate is rechecked before each action and at dispatch; its local release attestation does not grant external commercial authority. Root should call `app.state.native_binding.close()` on shutdown when configured.
+Run the loopback launcher with `--mode sandbox --tenant TENANT --db DB --native-config PRIVATE_CONFIG` for an authorized native installation. The launcher mounts native routes only for an explicit protected configuration. A current separately signed native release binds the database realm, business, tested source and exact configuration bytes. Global approvals stay disabled. See [release evidence](RELEASE-EVIDENCE.md) for the independent release and installation proof formats. The binding rechecks both proofs at dispatch and still requires the per-action issuer mandate and reviewer proof.
 
 The operator provisions an absolute physical JSON path outside the repository, in an owner-only directory (0700) and a regular owner-only file (0600). Symlinks and hard-linked files are rejected. Example shape, with actual locally verified public values substituted:
 
