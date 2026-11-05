@@ -53,7 +53,7 @@ def procedure(scope, events, manifest, overlay):
     from .vendor_resource_eval import deadline
     groups = {}
     relevant = HISTORICAL | {"filing_material","request_evidence","resource_invoice","resource_status",
-                             "resource_attribution","billing_calendar"}
+                             "resource_attribution","billing_calendar","customer_telemetry","provider_telemetry","custodian_attestation","portal_response_receipt"}
     for event in events:
         kind = event["kind"]
         if kind not in relevant:
@@ -73,8 +73,36 @@ def procedure(scope, events, manifest, overlay):
     if not channel or original["body"]["submitted_to"] != channel or instant(original["body"]["received_at"]) < following:
         raise ValueError("Historical receipt does not establish the reviewed destination or completed service period.")
     expected = set(manifest.get("request_fields", []))
+    if manifest.get("subscription"):
+        from .vendor_resource_scopes import subscription
+        subscription(dict(region=scope.region), overlay, manifest, first, following)
+    received = {}
+    initial_fields = {field["name"] for field in original["body"]["fields"]}
+    if manifest.get("cure_clock") and not set(manifest["cure_clock"]["initial_fields"]) <= initial_fields:
+        raise ValueError("Required original ticket fields were missing at the initial deadline.")
+    response = groups.get("portal_response_receipt")
+    response_cutoff = None
+    if manifest.get("cure_clock"):
+        if response:
+            from .vendor_resource_scopes import supplement_clock
+            original_body, reply = original["body"], response["body"]
+            if reply["original_ref"] != original_body["receipt_id"]:
+                raise ValueError("Portal response belongs to a different original filing.")
+            identity = dict(account=scope.account, agreement=scope.contract, product=scope.service, region=scope.region,
+                            resource_id=scope.component, month=scope.month)
+            verified = dict(**identity, verified=True, ref=reply["source_ref"], ticket_id=reply["ticket_id"],
+                            kind=reply["response_kind"], delivered_at=reply["delivered_at"])
+            proof = dict(ticket_id=original_body.get("ticket_id"), ref=original_body["receipt_id"], response_receipt=verified)
+            followup = dict(ticket_id=proof["ticket_id"], response_ref=reply["source_ref"], received_at=reply["delivered_at"])
+            value, inclusive = supplement_clock(dict(region=scope.region,month=scope.month), overlay, manifest, proof,
+                                                 followup, instant(original_body["received_at"]))
+            response_cutoff = (value + timedelta(microseconds=int(inclusive))).isoformat()
+        elif supplement:
+            raise ValueError("Portal supplement requires the separate response-delivery receipt.")
     received = {}
     for event in filter(None, (original, supplement)):
+        if len({f["name"] for f in event["body"]["fields"]}) != len(event["body"]["fields"]):
+            raise ValueError("A receipt contains repeated field names.")
         for field in event["body"]["fields"]:
             name, refs = field["name"], field["refs"]
             if name not in expected or name in received and received[name] != refs:
@@ -99,6 +127,21 @@ def procedure(scope, events, manifest, overlay):
             if cause and any(cause[k] != row[k] for k in ("start","end","resource_id")):
                 raise ValueError("Customer attribution conflicts with the status incident.")
             intervals.append(dict(row, cause=cause["cause"] if cause else ""))
+        for kind in ("customer_telemetry","provider_telemetry"):
+            report = groups.get(kind)
+            if report:
+                body = report["body"]
+                if any(r["account"] != scope.account or r["product"] != scope.service or r["region"] != scope.region
+                       or r["resource_id"] != scope.component or instant(r["end"]) > instant(body["observed_at"])
+                       or not first <= instant(r["start"]) < instant(r["end"]) <= following for r in body["records"]):
+                    raise ValueError("Monitor records do not support the filing's source scope.")
+                if kind == "customer_telemetry" and manifest.get("telemetry",{}).get("custodian"):
+                    custody = groups.get("custodian_attestation")
+                    if (not custody or custody["subject"] == report["subject"]
+                            or custody["body"]["monitor_ref"] != body["source_ref"]
+                            or custody["body"]["source_id"] != body["source_id"]
+                            or instant(custody["body"]["observed_at"]) < instant(body["observed_at"])):
+                        raise ValueError("Customer logs require the signed independent custodian.")
         invoice = groups.get("resource_invoice",{}).get("body",{})
         fees = invoice.get("lines", [])
         if any(r["resource_id"] != scope.component or r["currency"] != scope.currency or r["month"] != scope.month for r in fees):
@@ -111,7 +154,9 @@ def procedure(scope, events, manifest, overlay):
                 available[name] = refs
     return dict(original=original["body"]["receipt_id"], original_digest=original["digest"], filed_at=original["body"]["received_at"],
                 last=(supplement or original)["body"]["receipt_id"], supplemented=bool(supplement), channel=channel,
-                cutoff=cutoff.isoformat(), can_supplement=manifest.get("supplement") == "same_filing_deadline",
+                cutoff=cutoff.isoformat(), response_cutoff=response_cutoff, response_ref=response["body"]["source_ref"] if response else None,
+                response_message_ref=response["body"]["message_ref"] if response else None,
+                ticket_id=original["body"].get("ticket_id"), can_supplement=bool(response_cutoff) or manifest.get("supplement") == "same_filing_deadline",
                 missing=sorted(expected - received.keys()), available=available,
                 source_digests=sorted(e["digest"] for e in groups.values()))
 
@@ -123,7 +168,8 @@ def response_material(state, current):
             or not info["can_supplement"] or instant(info["filed_at"]) >= instant(info["cutoff"])):
         return None
     reply = state["replies"][-1]
-    if reply["receipt"] != info["last"]:
+    if (reply["receipt"] != info["last"]
+            or info.get("response_cutoff") and info["response_message_ref"] != reply["event_id"]):
         return None
     if reply["reason"] == "time_bar":
         return dict(argument="The independently authenticated original filing receipt predates the published cutoff.",
@@ -137,6 +183,13 @@ def response_material(state, current):
 
 def apply_response_state(state, current):
     reply = state["replies"][-1]
+    if current.procedure and reply["reason"] in {"component", "artifact", "unknown"}:
+        from .correspondence_reason import requested_filing_fields
+        message = next(e["body"]["text"] for e in state["evidence"] if e["digest"] == reply["digest"])
+        requested = requested_filing_fields(message, current.procedure["missing"])
+        if requested:
+            reply.update(reason="filing_fields", requested_fields=requested)
+            state["reason"] = "filing_fields"
     state["approval"] = None
     if state["submissions"] or not current.procedure:
         state["stage"] = "HUMAN_REVIEW"

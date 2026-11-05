@@ -41,7 +41,12 @@ def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
         aliases = overlay.get("cause_aliases", {})
         return {r["ref"] for r in intervals if aliases.get(r.get("cause"), r.get("cause", "")).casefold() in causes}
     if words & {"logs", "log", "timestamps", "times", "intervals", "timeline", "telemetry"}:
-        return {r["ref"] for r in intervals} | ({status["event_id"], status["body"]["source_ref"]} if status else set())
+        refs = {r["ref"] for r in intervals} | ({status["event_id"], status["body"]["source_ref"]} if status else set())
+        for kind in ("customer_telemetry","provider_telemetry"):
+            event = groups.get(kind)
+            if event:
+                refs.update(r["ref"] for r in event["body"]["records"])
+        return refs
     if words & {"month", "period"}:
         return {scope.month}
     if words & {"account", "tenant", "subscriber"}:
@@ -90,30 +95,12 @@ def append_monthly_reports(facts, groups, manifest, scope, following):
                            account=scope.account, resource_id=scope.component, month=scope.month, records=report["records"])
 
 
-def join_resource(scope, events, manifest, overlay, filed, receipts=()):
-    groups = {}
-    for event in events:
-        kind = event["kind"]
-        if kind in SUPPLEMENTS:
-            continue
-        if SOURCE.get(kind) != event["source"] or kind in groups:
-            raise ValueError("Conflicting or unauthenticated resource evidence.")
-        groups[kind] = event
-    required = {"resource_status","resource_attribution","resource_invoice"}
-    if missing := required - groups.keys():
-        raise ValueError("Awaiting signed " + ", ".join(sorted(missing)) + ".")
-    if groups.keys() - required - HISTORICAL - {"billing_calendar","filing_material","request_evidence","account_conditions","maintenance_evidence","prior_credit_evidence"}:
-        raise ValueError("Evidence outside the active resource profile requires review.")
-    if overlay["resource_id"] != scope.component:
-        raise ValueError("Resource differs from the reviewed customer and contract mapping.")
-    status, attribution, invoice = (groups[k]["body"] for k in ("resource_status","resource_attribution","resource_invoice"))
-    first, following = calendar_bounds(instant(scope.month+"-01T00:00:00Z").date(), "UTC")
+def incident_reports(scope, groups, first, following):
+    status, attribution = (groups[k]["body"] for k in ("resource_status","resource_attribution"))
     for report in (status, attribution):
         if (not report["complete"] or instant(report["start"]) != first or instant(report["end"]) != following
                 or instant(report["observed_at"]) < following):
             raise ValueError("Each signed resource report must attest the completed service month.")
-    if instant(invoice["observed_at"]) < following:
-        raise ValueError("An invoice observed before month end cannot attest complete monthly charges.")
     by_ref = {r["ref"]:r for r in attribution["causes"]}
     if len(by_ref) != len(attribution["causes"]) or len({r["ref"] for r in status["intervals"]}) != len(status["intervals"]):
         raise ValueError("Duplicate or conflicting resource observation identities.")
@@ -133,17 +120,80 @@ def join_resource(scope, events, manifest, overlay, filed, receipts=()):
                 or instant(row["end"]) > instant(attribution["observed_at"])):
             raise ValueError("An exclusion is outside the scoped resource or observation clock.")
         exclusions.append({**row, "account":scope.account})
+    return dict(monitor_source="simulated_vendor", monitor_ref=groups["resource_status"]["digest"],
+                month_complete=True, intervals=intervals, exclusions=exclusions)
+
+
+def dual_reports(scope, groups, manifest, first, following):
+    identity = dict(account=scope.account, product=scope.service, region=scope.region, resource_id=scope.component)
+    audience = dict(**identity, agreement=scope.contract, month=scope.month)
+    facts = dict(region=scope.region, intervals=[], exclusions=[])
+    customer, provider = (groups[k] for k in ("customer_telemetry","provider_telemetry"))
+    if customer["subject"] == provider["subject"]:
+        raise ValueError("The two telemetry reports require independent signing identities.")
+    for event in (customer, provider):
+        body = event["body"]
+        if (not body["complete"] or instant(body["start"]) != first or instant(body["end"]) != following
+                or instant(body["observed_at"]) < following):
+            raise ValueError("Each independent monitor must attest the complete service month.")
+        for row in body["records"]:
+            if (any(row[k] != value for k,value in identity.items()) or instant(row["start"]) >= instant(row["end"])
+                    or instant(row["end"]) > instant(body["observed_at"])):
+                raise ValueError("Unscoped, reversed, or future monitor observation.")
+        facts[event["kind"]] = dict(**audience, verified=True, complete=True, ref=body["source_ref"], source_id=body["source_id"],
+                                    records=body["records"], no_events_verified=body.get("no_events_verified",False))
+    body = customer["body"]
+    if manifest.get("exclusions") and not body.get("exclusions_complete"):
+        raise ValueError("Customer must attest the relevant cause exclusions before pricing the intersecting monitors.")
+    for row in body.get("exclusions", []):
+        if row["resource_id"] != scope.component or instant(row["end"]) > instant(body["observed_at"]):
+            raise ValueError("Unverified exclusion scope or timing.")
+        facts["exclusions"].append(dict(row, **audience, verified=True))
+    if manifest["telemetry"].get("custodian"):
+        custodian = groups.get("custodian_attestation")
+        if (not custodian or custodian["subject"] in {customer["subject"], provider["subject"]}
+                or custodian["body"]["source_id"] != body["source_id"] or custodian["body"]["monitor_ref"] != body["source_ref"]
+                or instant(custodian["body"]["observed_at"]) < instant(body["observed_at"])):
+            raise ValueError("A separately signed custodian attestation must identify the actual customer monitoring system and report.")
+        facts["customer_telemetry"]["custodian"] = dict(**identity, verified=True, signed=True,
+                                                        source_id=body["source_id"], ref=custodian["body"]["source_ref"])
+    return facts
+
+
+def join_resource(scope, events, manifest, overlay, filed, receipts=()):
+    groups = {}
+    for event in events:
+        kind = event["kind"]
+        if kind in SUPPLEMENTS:
+            continue
+        if SOURCE.get(kind) != event["source"] or kind in groups:
+            raise ValueError("Conflicting or unauthenticated resource evidence.")
+        groups[kind] = event
+    dual = bool(manifest.get("telemetry"))
+    required = {"customer_telemetry","provider_telemetry","resource_invoice"} if dual else {"resource_status","resource_attribution","resource_invoice"}
+    if missing := required - groups.keys():
+        raise ValueError("Awaiting signed " + ", ".join(sorted(missing)) + ".")
+    if groups.keys() - required - HISTORICAL - {"billing_calendar","filing_material","request_evidence","custodian_attestation","portal_response_receipt","account_conditions","maintenance_evidence","prior_credit_evidence"}:
+        raise ValueError("Evidence outside the active resource profile requires review.")
+    if overlay["resource_id"] != scope.component:
+        raise ValueError("Resource differs from the reviewed customer and contract mapping.")
+    first, following = calendar_bounds(instant(scope.month+"-01T00:00:00Z").date(), "UTC")
+    telemetry = dual_reports(scope, groups, manifest, first, following) if dual else incident_reports(scope, groups, first, following)
+    intervals = telemetry["intervals"]
+    invoice = groups["resource_invoice"]["body"]
+    if instant(invoice["observed_at"]) < following:
+        raise ValueError("An invoice observed before month end cannot attest complete monthly charges.")
     fees = []
     for row in invoice["lines"]:
         if manifest.get("fee_exclusions") and row["kind"] == "resource_service" and not row.get("category"):
             raise ValueError("A cited fee exclusion requires classified resource-service charges.")
-        if row["resource_id"] != scope.component or row["month"] != scope.month or row["currency"] != scope.currency:
+        if (row["resource_id"] != scope.component or row["month"] != scope.month or row["currency"] != scope.currency
+                or row.get("region",scope.region) != scope.region or row.get("product",scope.service) != scope.service):
             raise ValueError("An itemized charge contradicts the scoped resource, month or currency.")
         fees.append({**row, "account":scope.account})
     facts = dict(agreement=scope.contract, account=scope.account, product=scope.service, plan=overlay["plan"],
                  resource_id=scope.component, month=scope.month, received_at=filed.isoformat(),
-                 monitor_source="simulated_vendor",monitor_ref=groups["resource_status"]["digest"],
-                 month_complete=status["complete"] and attribution["complete"],intervals=intervals,exclusions=exclusions,
+                 **telemetry,
                  fee_lines=fees, fee_line_ref=overlay["fee_line_ref"],itemized_complete=invoice["itemized_complete"],
                  fee_ref=groups["resource_invoice"]["digest"])
     append_monthly_reports(facts, groups, manifest, scope, following)
@@ -202,22 +252,24 @@ def join_resource(scope, events, manifest, overlay, filed, receipts=()):
                     raise ValueError("Receipt contents and prior customer filing material do not agree.")
                 return dict(verified=True, ref=item["receipt_id"], submitted_to=channel,
                             fields={name:", ".join(refs) for name,refs in listed.items()},
-                            account=scope.account, resource_id=scope.component)
+                            account=scope.account, resource_id=scope.component, agreement=scope.contract, product=scope.service,
+                            region=scope.region, month=scope.month, ticket_id=item.get("ticket_id"), received_at=item["received_at"])
             facts["filing_proof"] = corroborate(initial)
             facts["received_at"] = initial["body"]["received_at"]
             if followup := groups.get("supplement_filing_receipt"):
                 item = followup["body"]
                 facts["filing_proof"]["supplements"] = [dict(corroborate(followup), original_ref=item["original_ref"],
-                    month=scope.month, agreement=scope.contract, received_at=item["received_at"])]
+                    month=scope.month, agreement=scope.contract, received_at=item["received_at"], response_ref=item.get("response_ref"))]
         if historical and receipts:
             response = receipts[0]
             packet = response["packet"]
             if followup or packet.get("in_reply_to") != initial["body"]["receipt_id"]:
                 raise ValueError("Competing follow-ups or a mismatched original require review.")
-            if manifest.get("supplement") and (response_material := packet.get("filing_material")):
+            if (manifest.get("supplement") or manifest.get("cure_clock")) and (response_material := packet.get("filing_material")):
                 facts["filing_proof"]["supplements"] = [dict(verified=True, ref=response["id"], original_ref=packet["in_reply_to"],
                     month=scope.month, agreement=scope.contract, received_at=response["at"], account=scope.account,
-                    resource_id=scope.component, submitted_to=response_material["channel"],
+                    resource_id=scope.component, product=scope.service, region=scope.region, submitted_to=response_material["channel"],
+                    ticket_id=packet.get("ticket_id"), response_ref=packet.get("response_ref"),
                     fields={k:", ".join(v) for k,v in response_material["fields"].items()})]
         if receipts and not historical:
             original = receipts[0]
@@ -234,6 +286,18 @@ def join_resource(scope, events, manifest, overlay, filed, receipts=()):
                     verified=True, ref=response["id"], original_ref=original["id"], agreement=scope.contract,
                     account=scope.account, resource_id=scope.component, month=scope.month, received_at=response["at"],
                     submitted_to=response_material["channel"], fields={k:", ".join(v) for k,v in response_material["fields"].items()})]
+    if manifest.get("original_receipt") and not groups.get("original_filing_receipt"):
+        raise ValueError("A separately signed provider portal arrival receipt is required for this contract.")
+    if portal := groups.get("portal_response_receipt"):
+        item = portal["body"]
+        original = groups.get("original_filing_receipt")
+        if (not original or item["original_ref"] != original["body"]["receipt_id"]
+                or item["ticket_id"] != original["body"].get("ticket_id")
+                or instant(item["delivered_at"]) < instant(original["body"]["received_at"])):
+            raise ValueError("The provider response does not belong to the original ticket and chronology.")
+        facts["filing_proof"]["response_receipt"] = dict(verified=True, ref=item["source_ref"], account=scope.account,
+            agreement=scope.contract, product=scope.service, region=scope.region, resource_id=scope.component,
+            month=scope.month, ticket_id=item["ticket_id"], kind=item["response_kind"], delivered_at=item["delivered_at"])
     return facts, filing
 
 

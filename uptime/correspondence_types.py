@@ -154,6 +154,49 @@ class ResourceLine(Strict):
     gross_cents: int | None = Field(default=None, ge=0, le=10**15)
     discount_cents: int | None = Field(default=None, ge=0, le=10**15)
     discount_ref: Id | None = None
+    product: Name | None = None
+    region: Id | None = None
+    recurring: bool | None = None
+    payment_state: Literal["paid","voided","unpaid"] | None = None
+    refund_ref: Id | None = None
+    refund_cents: int | None = Field(default=None, ge=0, le=10**15)
+
+
+class MonitorRow(Interval):
+    ref: Id
+    account: Id
+    product: Name
+    region: Id
+    resource_id: Id
+    status: Name
+
+
+class MonitorReport(Report, Interval):
+    source_id: Id
+    complete: bool
+    no_events_verified: bool = False
+    records: list[MonitorRow] = Field(max_length=300)
+
+
+class ProviderTelemetry(MonitorReport):
+    kind: Literal["provider_telemetry"]
+
+
+class ExcludedSpan(Cause):
+    sole_cause: bool | None = None
+    root_cause_ref: Id | None = None
+
+
+class CustomerTelemetry(MonitorReport):
+    kind: Literal["customer_telemetry"]
+    exclusions_complete: bool = False
+    exclusions: list[ExcludedSpan] = Field(default_factory=list, max_length=300)
+
+
+class CustodianAttestation(Report):
+    kind: Literal["custodian_attestation"]
+    source_id: Id
+    monitor_ref: Id
 
 
 class ResourceInvoice(Report):
@@ -236,6 +279,8 @@ class HistoricalReceipt(Report):
     kind: Literal["original_filing_receipt", "supplement_filing_receipt"]
     receipt_id: Id
     original_ref: Id | None = None
+    ticket_id: Id | None = None
+    response_ref: Id | None = None
     received_at: Annotated[str, StringConstraints(max_length=40)]
     submitted_to: Annotated[str, StringConstraints(min_length=1, max_length=200)]
     fields: list[FilingField] = Field(max_length=32)
@@ -243,6 +288,20 @@ class HistoricalReceipt(Report):
     @field_validator("received_at")
     @classmethod
     def filing_time(cls, value):
+        return instant(value).isoformat()
+
+
+class PortalResponse(Report):
+    kind: Literal["portal_response_receipt"]
+    response_kind: Literal["evidence_request","denial"]
+    original_ref: Id
+    ticket_id: Id
+    message_ref: Id
+    delivered_at: Annotated[str, StringConstraints(max_length=40)]
+
+    @field_validator("delivered_at")
+    @classmethod
+    def delivery_time(cls, value):
         return instant(value).isoformat()
 
 
@@ -302,7 +361,8 @@ class Delivery(Strict):
     event_id: Id
     scope: Scope
     body: Annotated[Status | Coverage | Impact | Component | Notice | Invoice | Message | ResourceStatus
-                    | ResourceAttribution | ResourceInvoice | BillingCalendar | FilingMaterial | RequestEvidence | HistoricalReceipt | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification, Field(discriminator="kind")]
+                    | ResourceAttribution | ResourceInvoice | BillingCalendar | ProviderTelemetry | CustomerTelemetry | CustodianAttestation | PortalResponse
+                    | FilingMaterial | RequestEvidence | HistoricalReceipt | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification, Field(discriminator="kind")]
 
 
 class Empty(Strict):
@@ -310,6 +370,7 @@ class Empty(Strict):
 
 
 SOURCE = dict(status="status", coverage="status", impact="customer", component="customer", notice="customer",
-              invoice="billing", message="vendor", original_filing_receipt="vendor", supplement_filing_receipt="vendor", resource_status="status", resource_attribution="customer",
+              invoice="billing", message="vendor", original_filing_receipt="vendor", supplement_filing_receipt="vendor", resource_status="status", resource_attribution="customer", customer_telemetry="customer", provider_telemetry="status",
+              custodian_attestation="customer", portal_response_receipt="vendor",
               resource_invoice="billing", billing_calendar="billing", maintenance_evidence="customer", prior_credit_evidence="billing", account_conditions="customer", filing_material="customer", request_evidence="customer", artifact="customer",
               status_verification="status", billing_verification="billing")

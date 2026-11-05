@@ -13,6 +13,8 @@ def validate_arrival(body, now):
         raise ValueError("A source report cannot be known before it is observed.")
     if body["kind"] in {"resource_status","resource_attribution"} and instant(body["observed_at"]) < instant(body["end"]):
         raise ValueError("A completed measurement cannot be observed before the reporting period ends.")
+    if body["kind"] == "portal_response_receipt" and instant(body["delivered_at"]) > instant(body["observed_at"]):
+        raise ValueError("A verified portal response cannot be observed before it was delivered.")
     if body["kind"] in HISTORICAL:
         if (instant(body["received_at"]) > instant(body["observed_at"])
                 or (body["kind"] == "supplement_filing_receipt") != bool(body.get("original_ref"))

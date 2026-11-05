@@ -166,7 +166,7 @@ def requested_filing_fields(text, names):
     if (not re.search(r"\b(?:need|missing|lack|provide|document|prove|send|supply|attach|furnish|require|show|demonstrate|without)\w*\b", lowered)
             or re.search(r"\b(?:ignore|override|execute|credentials?|password|secret|token|instructions?|disregard|quoted|hypothetical|already|unnecessary)\b|[<>{}\"“”]|https?://", lowered)):
         return []
-    classes = ({"month","period"}, {"resource","station","endpoint","component"}, {"interval","intervals","timestamps","logs","journal"},
+    classes = ({"month","period"}, {"resource","station","endpoint","component"}, {"interval","intervals","timestamps","log","logs","journal"},
                {"controller","attribution","cause"}, {"valid","validation"}, {"bill","billing","invoice","charge","fees"})
     words = set(re.findall(r"[a-z]+", lowered))
     result = []

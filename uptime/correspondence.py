@@ -437,7 +437,8 @@ class CorrespondenceDesk:
             return dict(tenant=tenant, claim=claim_id, scope=scope.model_dump(), destination="isolated-local-simulator",
                         purpose="procedural_evidence_only", requested="0.00", subject="SLA Claim", version=current.version,
                         agreement_id=current.agreement_id, in_reply_to=history["original"], vendor_event=state["replies"][-1]["digest"],
-                        original_receipt_digest=history["original_digest"], filing_cutoff=history["cutoff"], evidence_digest=current.evidence_digest,
+                        original_receipt_digest=history["original_digest"], filing_cutoff=history["response_cutoff"] or history["cutoff"],
+                        ticket_id=history["ticket_id"], response_ref=history["response_ref"], evidence_digest=current.evidence_digest,
                         authority_digest=fingerprint(_issuers(state)), terms_digest=fingerprint([asdict(c) for c in current.evaluation.clauses]),
                         artifacts=[dict(kind=e["kind"], digest=e["digest"]) for e in state["evidence"] if e["kind"] != "message"],
                         **material)
@@ -494,14 +495,15 @@ class CorrespondenceDesk:
         # Include the current packet contract so durable pre-upgrade approvals
         # return to review instead of repeatedly failing on a new wire digest.
         return fingerprint(["correspondence-packet/2", current.agreement_id, current.version,
-                            current.measurement, current.filing_material,
+                            current.measurement, current.filing_material, current.procedure,
                             current.cutoff.isoformat() if current.cutoff else None,
                             current.evidence_digest, money(current.evaluation.amount.amount) if current.evaluation.amount else None,
                             [asdict(c) for c in current.evaluation.clauses]])
 
     def _actions(self, p, scope, state, current, now):
+        cutoff = instant(current.procedure["response_cutoff"]) if current.procedure and current.procedure.get("response_cutoff") else current.cutoff
         if (p.role != "reviewer" or not (action := ACTIONS.get(state["stage"]))
-                or current.cutoff is None or now >= current.cutoff):
+                or cutoff is None or now >= cutoff):
             return []
         if receipt_chain(state):
             if not action.endswith("response") or not response_material(state, current):
@@ -558,7 +560,9 @@ class CorrespondenceDesk:
                 state["stage"] = "AWAITING_VENDOR"
                 audit(state, now, p.subject, "Filed approved packet in the isolated local outbox.", VENDOR, receipt=receipt["id"])
             self._save(db, p.tenant, claim_id, state)
-            return self._view(db, p, claim_id)
+        # The active resolver reads durable submission receipts on a separate
+        # connection. Render only after this transaction has committed them.
+        return self.case(p, claim_id)
 
     def case(self, p, claim_id):
         authorize(p)
