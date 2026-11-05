@@ -4,12 +4,14 @@ import json
 import os
 from contextlib import contextmanager
 import secrets
+import subprocess
+import sys
 
 import pytest
 
 from scripts.blind_acceptance import (BoundaryError, Fixture, artifact_transport, bound_account, compact_case,
     compare_case, compare_gold, compare_terms, digest, general_control, local_path, money_check,
-    select_records, write_receipt)
+    project_input_selectors, select_records, write_receipt)
 
 
 def test_unknown_unavailable_and_wrong_money_are_distinct():
@@ -62,6 +64,21 @@ def test_gold_phase_guard_and_explicit_selector_projection(tmp_path):
     assert set(plan[0]) == {"id", "as_of", "input_artifact_ids", "input_correspondence_ids"}
     fixture.seal_observations([{"available": False}])
     assert fixture.gold()["cases"][0]["expected"]["amount"] == "3.14"
+
+
+def test_input_projection_does_not_decode_expected_values(monkeypatch):
+    load = json.loads
+    decoded = []
+    def spy(raw, **kwargs):
+        decoded.append(raw)
+        return load(raw, **kwargs)
+    raw = json.dumps({"terms": {"secret": "harness-gold-marker"}, "cases": [{"id": "case-a", "as_of": "2028-01-01T00:00:00Z",
+        "input_artifact_ids": ["item-a"], "input_correspondence_ids": [],
+        "expected": {"amount": "harness-gold-marker", "nested": [1, {"quote": '\\"}'}]}}]}).encode()
+    monkeypatch.setattr(json, "loads", spy)
+    result = project_input_selectors(raw)
+    assert result[0]["input_artifact_ids"] == ["item-a"]
+    assert all("harness-gold-marker" not in token for token in decoded)
 
 
 def test_external_case_plan_is_pinned_and_cannot_contain_expectations(tmp_path):
@@ -227,3 +244,16 @@ def test_quarantined_case_still_attempts_signed_denial_and_general_control(monke
     assert "NO_READY_DENIAL_REFUSED" in observed["fail_codes"]
     assert observed["generality"]["delivered_count"] == 1
     assert observed["calculation_available"] is False
+
+
+def test_private_runtime_drops_buffered_output_before_restoring_descriptors():
+    program = """from scripts.blind_acceptance import quiet_runtime
+import sys
+with quiet_runtime():
+    print('harness-private-marker', end='')
+    print('harness-error-marker', file=sys.stderr, end='')
+print('SAFE')
+"""
+    child = subprocess.run([sys.executable, "-c", program], capture_output=True, text=True, check=True,
+                           cwd=Path(__file__).resolve().parents[1])
+    assert child.stdout == "SAFE\n" and child.stderr == ""

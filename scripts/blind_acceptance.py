@@ -102,6 +102,86 @@ STAGES = {"DRAFTED", "NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "RESPONSE_APPROVED", 
           "CLAIM_APPROVED", "AWAITING_NOTICE"}
 
 
+def project_input_selectors(raw):
+    """Decode input values only; skip all gold value tokens without decoding them."""
+    text = raw.decode("utf-8")
+
+    def space(pos):
+        while pos < len(text) and text[pos].isspace():
+            pos += 1
+        return pos
+
+    def end(pos):
+        pos = space(pos)
+        if text[pos] == '"':
+            pos += 1
+            while pos < len(text):
+                if text[pos] == "\\":
+                    pos += 2
+                elif text[pos] == '"':
+                    return pos + 1
+                else:
+                    pos += 1
+        elif text[pos] in "[{":
+            close = "]" if text[pos] == "[" else "}"
+            pos += 1
+            while space(pos) < len(text):
+                pos = space(pos)
+                if text[pos] == close:
+                    return pos + 1
+                if text[pos] in ",:":
+                    pos += 1
+                else:
+                    pos = end(pos)
+        else:
+            start = pos
+            while pos < len(text) and text[pos] not in ",]} \t\r\n":
+                pos += 1
+            if pos > start:
+                return pos
+        raise BoundaryError("CASE_PLAN_JSON_INVALID")
+
+    def members(pos):
+        pos = space(pos)
+        if text[pos] != "{":
+            raise BoundaryError("CASE_PLAN_JSON_INVALID")
+        pos += 1
+        seen = set()
+        while text[space(pos)] != "}":
+            pos = space(pos)
+            stop = end(pos)
+            key = json.loads(text[pos:stop])
+            if not isinstance(key, str) or key in seen or text[space(stop)] != ":":
+                raise BoundaryError("CASE_PLAN_JSON_INVALID")
+            seen.add(key)
+            start = space(space(stop) + 1)
+            stop = end(start)
+            yield key, start, stop
+            pos = space(stop)
+            if text[pos] == ",":
+                pos += 1
+            elif text[pos] != "}":
+                raise BoundaryError("CASE_PLAN_JSON_INVALID")
+
+    plans = None
+    for key, left, right in members(0):
+        if key != "cases":
+            continue
+        if text[left] != "[":
+            raise BoundaryError("CASE_PLAN_JSON_INVALID")
+        plans, pos = [], space(left + 1)
+        while text[pos] != "]":
+            plans.append({key: json.loads(text[start:stop]) for key, start, stop in members(pos) if key in INPUT_KEYS})
+            pos = space(end(pos))
+            if text[pos] == ",":
+                pos = space(pos + 1)
+            elif text[pos] != "]":
+                raise BoundaryError("CASE_PLAN_JSON_INVALID")
+    if plans is None:
+        raise BoundaryError("CASE_PLAN_INCOMPLETE")
+    return plans
+
+
 def git_bytes(source, *args):
     result = subprocess.run(["git", "-C", str(source), *args], capture_output=True, check=False)
     if result.returncode:
@@ -158,9 +238,7 @@ class Fixture:
                 raise BoundaryError("INPUT_PLAN_CONTAINS_NONINPUT_FIELDS")
         elif allow_input_projection:
             # Explicit operator opt-in: project input fields, discard expected fields.
-            data = read_json(self.path("expected"))
-            rows = [{k: v for k, v in row.items() if k in INPUT_KEYS} for row in data["cases"]]
-            del data
+            rows = project_input_selectors(self.path("expected").read_bytes())
         else:
             raise BoundaryError("INPUT_PLAN_REQUIRED")
         if not rows or len({row["id"] for row in rows}) != len(rows):
@@ -194,6 +272,8 @@ def snapshot_source(source):
 @contextmanager
 def quiet_runtime():
     """Drop product output at the OS descriptor layer, including server threads."""
+    sys.stdout.flush()
+    sys.stderr.flush()
     saved = [os.dup(fd) for fd in (1, 2)]
     previous = logging.root.manager.disable
     try:
@@ -203,6 +283,9 @@ def quiet_runtime():
             logging.disable(logging.CRITICAL)
             yield
     finally:
+        # Buffered Python writes must be discarded before the descriptors return.
+        sys.stdout.flush()
+        sys.stderr.flush()
         logging.disable(previous)
         for fd, backup in zip((1, 2), saved):
             os.dup2(backup, fd)
@@ -517,7 +600,11 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
         observed.update(input_sha256=digest({"plan": plan, "evidence": selected, "messages": messages}),
                         available_evidence_count=len(selected), future_evidence_count=len(future),
                         available_correspondence_count=len(messages), future_correspondence_count=len(future_messages))
-        account, authorized = bound_account(accounts, overlay, plan)
+        controls = [r for r in selected if r["kind"] == "scope_control"]
+        target = dict(plan)
+        if len(controls) == 1 and "account_id" not in target and "resource_id" not in target:
+            target.update({key: controls[0][key] for key in ("account_id", "resource_id")})
+        account, authorized = bound_account(accounts, overlay, target)
         observed["scope_authorized"] = authorized
         authorized_account, _ = bound_account(accounts, overlay, {})
         intake = fresh_intake(public, overlay, authorized_account, selected)
@@ -537,7 +624,9 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             observed["operations"] = transport.operations
             prefix = "/api/vendors/blind-frozen"
             state = transport.post(prefix + "/candidates", intake, "frozen_intake")
-            observed["candidate_state"] = state.get("state") if state else "UNAVAILABLE"
+            candidate = state.get("state") if state else "UNAVAILABLE"
+            observed["candidate_state"] = candidate if candidate in {
+                "DRAFT", "VALIDATED", "SHADOW", "APPROVED", "ACTIVE", "QUARANTINED", "REVOKED", "UNAVAILABLE"} else "UNMAPPED"
             observed["candidate_sha256"] = digest(state) if state else None
             if state and state.get("manifest") and term_observations is not None:
                 term_observations.append(state["manifest"])
