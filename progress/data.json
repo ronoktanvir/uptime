@@ -339,7 +339,12 @@
         "adapter"
       ],
       "next_action": "Integrate the reviewed plan correction and rerun the unchanged cohorts over real sockets.",
-      "links": []
+      "links": [
+        {
+          "label": "Independent socket diagnosis",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/INDEPENDENT-SOCKET-DIAGNOSIS.md"
+        }
+      ]
     },
     {
       "id": "holdout",
@@ -425,6 +430,10 @@
       "next_action": "Repeat on the final source after the newly discovered filing correction.",
       "links": [
         {
+          "label": "Frozen source-bound verification",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-38bca3e.json"
+        },
+        {
           "label": "Verified source",
           "url": "https://github.com/ronoktanvir/uptime/commit/b6666b4"
         }
@@ -445,8 +454,8 @@
       "next_action": "Rerun on the final integrated source.",
       "links": [
         {
-          "label": "Successful workflow",
-          "url": "https://github.com/ronoktanvir/uptime/actions/runs/41959566243"
+          "label": "Completed GitHub workflow",
+          "url": "https://github.com/ronoktanvir/uptime/actions/runs/41963124265"
         }
       ]
     },
