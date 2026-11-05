@@ -95,6 +95,7 @@ def summarize(evaluations, denials, protocol, *, active, workbench, fatal=None):
                                                    for status in row.get("evidence_http_statuses", [])),
         "activation_observed": active,
         "workbench_evaluation_cases": workbench,
+        "workbench_correspondence_cases": sum(row.get("workbench_readback") is True for row in denials),
         "fatal": fatal,
         "all_green": bool(complete and evidence_complete and active and not fatal
                           and workbench >= expected["workbench_cases_min"]
@@ -324,6 +325,8 @@ def correspondence_probe(client, reviewer, app, config, senders, case, denial, g
                              journal, "independent-signed-denial")
     detail = client.get(prefix, headers=reviewer.headers)
     state = journal.record("correspondence-after-denial", detail)
+    workbench_response = client.get("/api/cases/" + claim_id, headers=reviewer.headers)
+    workbench_case = journal.record("new-correspondence-workbench-readback", workbench_response)
     measured = response.status_code == 200 and bool(submissions) and bool(state.get("replies"))
     stages = {"accept_denial": {"DENIAL_ACCEPTED"}, "cure_missing_evidence": {"RESPONSE_DRAFTED", "RESPONSE_APPROVED"},
               "escalate": {"HUMAN_REVIEW"}}
@@ -334,6 +337,8 @@ def correspondence_probe(client, reviewer, app, config, senders, case, denial, g
             "real_local_submission": bool(submissions), "evidence_http_statuses": evidence_statuses,
             "blocked_reason": None if measured else "No classifiable reply through normal signed HTTP",
             "projection_limit": "Monthly totals do not establish specific outage start/end times; none invented",
+            "workbench_http_status": workbench_response.status_code,
+            "workbench_readback": workbench_response.status_code == 200 and workbench_case.get("id") == claim_id,
             "new_correspondence_case": detail.status_code == 200}
 
 
