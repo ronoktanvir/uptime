@@ -167,7 +167,8 @@ def _case(snapshot, resource, row, at, fresh):
                 finding_kind="UNBOUND_RECORD", actual_recovery=None, actual_money_prevented=None, publishable=False,
                 data_provenance={"classification": "PROVIDER_OBSERVATION", "capture_digest": snapshot["checksum"],
                                  "record_digest": fingerprint(row), "observed_at": snapshot["observed_at"],
-                                 "evaluated_at": at.isoformat(), "freshness": "FRESH" if fresh else "STALE_OR_FUTURE",
+                                 "evaluated_at": at.isoformat(),
+                                 "freshness": "FRESH" if fresh else "FUTURE" if at < instant(snapshot["completed_at"]) else "STALE",
                                  "resource_status": snapshot["resources"][resource]["status"],
                                  "resource_complete": snapshot["resources"][resource]["complete"], "evaluator": VERSION},
                 trace=["Provider financial state is preserved; spend, PO metadata and agreement metadata alone establish no entitlement."],
@@ -196,11 +197,12 @@ def _context(case, row, snapshot):
         if po.get("vendor_id") != vendor_id:
             case["missing"].append("Linked PO vendor identity conflicts with the bill.")
         else:
-            po_lines = {line["id"]: line for line in po.get("lines") or []}
+            po_lines = {line["id"]: line for line in po.get("lines") or [] if line["id"] is not None}
             for line in row.get("lines") or []:
                 target = po_lines.get(line.get("purchase_order_line_item_id"))
                 left, right = line.get("amount"), target.get("amount") if target else None
-                if left and right and left["currency"] == right["currency"]:
+                if (left and right and left["amount"] is not None and right["amount"] is not None
+                        and left["currency"] == right["currency"]):
                     delta = _money(left) - _money(right)
                     case["line_findings"].append({"line_id": line["id"], "purchase_order_line_id": target["id"],
                         "kind": "PO_LINE_AMOUNT_COMPARISON", "billed": left["amount"], "po_amount": right["amount"],
@@ -291,7 +293,9 @@ def _bound_invoice(snapshot, row, binding):
             _require(po is not None and po.get("vendor_id") == row.get("vendor_id")
                      and po.get("entity_id") == row.get("entity_id"), "Verified PO parties must match the bill.")
             _require(not po.get("archived_at"), "Archived PO requires renewed evidence review.")
-            _require(line.get("purchase_order_line_item_id") == m.purchase_order_line_id, "Native bill/PO line association mismatch.")
+            _require(m.purchase_order_line_id is not None
+                     and line.get("purchase_order_line_item_id") == m.purchase_order_line_id,
+                     "Native bill/PO line association mismatch.")
             quantity_line = next((p for p in po.get("lines") or [] if p["id"] == m.purchase_order_line_id), None)
             _require(quantity_line is not None and line_digest(quantity_line) == m.purchase_order_line_digest,
                      "PO line evidence digest mismatch.")
@@ -410,7 +414,12 @@ def evaluate_snapshot(snapshot: dict, *, as_of: datetime | None = None,
             if key in keyed:
                 _price(case, snapshot, row, keyed[key], fresh)
             case["workflow_recommendation"] = _workflow(case)
-            case["finding_digest"] = fingerprint(case)
+            # Read time is audit metadata, not a changed finding. Preserve the
+            # capture, freshness state, binding and complete decision in the hash
+            # so a time-dependent refusal still invalidates a previous finding.
+            stable = {**case, "data_provenance": {
+                k: v for k, v in case["data_provenance"].items() if k != "evaluated_at"}}
+            case["finding_digest"] = fingerprint(stable)
             cases.append(case)
     if set(keyed) - seen:
         raise ValueError("Binding target is absent from readable provider records")
