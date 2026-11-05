@@ -93,7 +93,8 @@ def _metrics(cases):
                     continue
                 raw=case.get("amount")
             elif key=="estimated":
-                if case.get("outcome")!="ELIGIBLE" or case.get("stage")=="PREPAYMENT_REVIEW":
+                if (case.get("preflight", {}).get("outcome", case.get("outcome"))!="ELIGIBLE"
+                        or case.get("stage")=="PREPAYMENT_REVIEW"):
                     continue
                 raw=ledger.get(key,case.get("amount"))
             else:
@@ -113,14 +114,16 @@ def _metrics(cases):
         # Historical filed/awarded events are activity totals, not projected ROI.
         alternative=(key in {"estimated", "exposure"} and len(contributions)>1
                      and any(c["cohort"]=="seeded" for c in cases if c["id"] in {r["case_id"] for r in contributions}))
-        amount=None if ambiguous or alternative else _sum(grouped.values())
-        note=("Alternative or conflicting estimates are nonadditive; inspect each case."
+        unknown=key in {"estimated", "exposure"} and not contributions
+        amount=None if ambiguous or alternative or unknown else _sum(grouped.values())
+        note=("No verified eligible estimate is available; absence of evidence does not establish zero exposure."
+              if unknown else "Alternative or conflicting estimates are nonadditive; inspect each case."
               if ambiguous or alternative else
               "Provisional USD estimate only; no filing, prevention or recovery established."
               if key in {"estimated", "exposure"} else
               "Total unique recorded simulated activity, including partial awards and comparison cases; not actual customer recovery.")
         ids=sorted({r["case_id"] for r in contributions})
-        metrics.append(dict(key=key,label=label,value=usd(amount) if amount is not None else "Not additive",
+        metrics.append(dict(key=key,label=label,value=usd(amount) if amount is not None else "Not verified" if unknown else "Not additive",
                             amount=amount,currency="USD",note=note,case_id=ids[0] if len(ids)==1 else None,
                             case_ids=ids,contributions=contributions,
                             sources=_sources(r["sources"] for r in contributions) or [Source.UNAVAILABLE.value],
@@ -152,6 +155,8 @@ class Workbench:
         if self.mode=="sandbox" and Source.RAMP in data["sources"]:
             data["sources"]=list(dict.fromkeys([*data["sources"],Source.REPLAY.value]))
             data["note"]="Saved live sandbox read. Refresh from the operator CLI to fetch a newer observation."
+        elif self.mode=="sandbox":
+            data["note"]="Saved sandbox observation is unavailable or invalid. No provider request was made."
         else:
             data["note"]="Offline synthetic provider. No Ramp request is made in replay."
         return data
@@ -268,7 +273,6 @@ class Workbench:
             case["stage"]=stage
         if (Decimal(awarded)>0 and principal.role=="reviewer"
                 and case["preflight"]["outcome"]=="ELIGIBLE"):
-
             if _whole_cents(awarded):
                 case["actions"] += settlement_actions(rec["stage"], awarded)
         if principal.role!="reviewer" or self.setting(principal)["mode"]=="OBSERVE":
@@ -296,8 +300,14 @@ class Workbench:
         if records:
             case["reconciliation"].update({key: _sum(r[key] for r in records)
                                            for key in ("posted", "applied", "outstanding", "unposted", "unapplied_posted")})
-            case["reconciliation"]["stage_sources"]={key: _sources(r["stage_sources"][key] for r in records)
-                                                       for key in ("awarded", "posted", "applied")}
+            rec=case["reconciliation"]
+            rec["stage_sources"]={key: _sources(r["stage_sources"][key] for r in records)
+                                  for key in ("awarded", "posted", "applied")}
+            rec["sources"]=_sources(r["sources"] for r in records)
+            rec["stage"]=("APPLIED" if Decimal(rec["applied"])==Decimal(awarded)
+                          else "PARTIALLY_APPLIED" if Decimal(rec["applied"])>0
+                          else "POSTED" if Decimal(rec["posted"])>0 else "AWARDED")
+            rec["note"]="Persistent scoped simulation records; actual customer recovery remains unknown."
         if not _whole_cents(awarded):
             case["reconciliation"]["note"]="Exact sub-cent award cannot be posted or applied."
         allowed=(case["stage"] in {"AWARDED", "PARTIAL_AWARD_REVIEW"}
@@ -305,9 +315,13 @@ class Workbench:
                  and Decimal(awarded)>0 and principal.role == "reviewer"
                  and self.setting(principal)["mode"] != "OBSERVE")
         if allowed:
-            if not records and self._award_record(case) is not None:
+            award_record=self._award_record(case)
+            if not records and award_record is not None:
                 case["actions"].append(dict(id="record-credit", label="Record scoped simulated credit"))
-            elif len(records)==1 and self._application_bill(principal, records[0]) is not None:
+            elif (len(records)==1 and Decimal(records[0]["awarded"])==Decimal(awarded)
+                  and award_record is not None
+                  and all(records[0]["scope"][k]==award_record[k] for k in SCOPE_FIELDS)
+                  and self._application_bill(principal, records[0]) is not None):
                 case["actions"].append(dict(id="apply-balance", label="Apply simulated credit to the matched eligible bill"))
         case["financials"]=[dict(label=k.replace("_", " ").title(),value=usd(v),
                                 sources=case["reconciliation"]["stage_sources"].get(k, CUSTOM if k=="estimated" else SIM))
@@ -388,7 +402,10 @@ class Workbench:
             for field in ("award_id", "memo_ref", "source_ref", "credit_ids", "application_ids", "bill_ids"):
                 value=rec.get(field)
                 for ident in value if isinstance(value, list) else [value] if value else []:
-                    refs.append(dict(kind=field, id=ident, sources=rec.get("sources", SIM)))
+                    stage={"award_id":"awarded", "memo_ref":"awarded", "source_ref":"awarded",
+                           "credit_ids":"posted", "application_ids":"applied", "bill_ids":"applied"}[field]
+                    refs.append(dict(kind=field, id=ident,
+                                     sources=rec.get("stage_sources", {}).get(stage, rec.get("sources", SIM))))
         if case.get("provider_id"):
             refs.append(dict(kind="provider_bill", id=case["provider_id"], sources=case["sources"]))
         if versions:
@@ -427,6 +444,9 @@ class Workbench:
                 raise KeyError("No such action on an observation")
             if action in SETTLEMENT_ACTIONS:
                 case=self.dispute(principal,case_id)
+                completed={e["action"] for e in settlement_events(self.path,principal.tenant,case_id)}
+                if action not in completed and action not in {a["id"] for a in case["actions"]}:
+                    raise ValueError("No authorized settlement action is available.")
                 transition_settlement(self.path,principal,case_id,action,case["ledger"]["awarded"])
             else:
                 previous=self.desk.case(principal,case_id)["stage"]

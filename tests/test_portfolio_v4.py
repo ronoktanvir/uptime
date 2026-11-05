@@ -87,7 +87,10 @@ def award(bench, ident, amount="10.00"):
 
 
 def test_cohorts_revision_heads_and_restart(bench):
-    assert not bench.dashboard(P)["cohorts"]["portfolio"]["cases"]
+    initial=bench.dashboard(P)
+    assert not initial["cohorts"]["portfolio"]["cases"]
+    assert metric(initial,"exposure","portfolio")["value"]=="Not verified"
+    assert metric(initial,"estimated","portfolio")["amount"] is None
     save_cases(bench.path, P.tenant, [entered()])
     save_cases(bench.path, P.tenant, [entered(amount="25.00")])
     # A revised seeded example is preserved as well, instead of reset at startup.
@@ -142,6 +145,7 @@ def test_correspondence_credit_requires_scoped_existing_eligible_bill(bench):
     assert {a["id"] for a in row["actions"]}=={"record-credit"}
     row=bench.act(P,ident,"record-credit")
     assert row["ledger"]["posted"]=="6.00" and row["ledger"]["applied"]=="0.00"
+    assert row["reconciliation"]["stage"]=="POSTED"
     assert not row["actions"] and not bench.allocations.list_bills(P.tenant)
     record=bench.allocations.list_awards(P.tenant,case_id=ident)[0]
     assert record["scope"]["account_id"]==SCOPE.account
@@ -158,6 +162,7 @@ def test_correspondence_credit_requires_scoped_existing_eligible_bill(bench):
     row=bench.act(P,ident,"apply-balance")
     assert row["ledger"]["applied"]=="6.00" and row["stage"]=="PARTIAL_AWARD_REVIEW"
     assert row["reconciliations"][0]["bill_ids"]==["verified-bill"]
+    assert row["reconciliation"]["stage"]=="APPLIED"
     assert bench.allocations.bill_balance(P.tenant,"verified-bill")["remaining_eligible"]=="4.00"
     before=bench.allocations.history(P.tenant)
     bench.act(P,ident,"record-credit"); bench.act(P,ident,"apply-balance")
@@ -176,6 +181,7 @@ def test_subcent_candidate_can_file_but_cannot_post(bench):
     bench.act(P,ident,"approve-claim")
     row=bench.act(P,ident,"submit-claim")
     assert row["ledger"]["claimed"]=="0.001"
+    assert metric(bench.dashboard(P),"estimated","portfolio")["amount"]=="0.001"
     with pytest.raises(ValueError):
         bench.act(P,ident,"record-credit")
     assert not bench.allocations.list_awards(P.tenant)
@@ -260,3 +266,84 @@ def test_normal_entrypoints_attach_inbox_and_preserve_signed_actions(tmp_path):
         assert signer.post("/api/policy",dict(mode="OBSERVE",cap="0.00")).status_code==200
         assert not client.get(url).json()["actions"]
         assert signer.post(url+"/actions/record-credit",{}).status_code==403
+
+
+def test_nonprimary_legacy_partial_award_contributes_to_activity(bench):
+    bench.act(P,"dispute-partial","approve-claim")
+    partial=bench.act(P,"dispute-partial","submit-claim")
+    assert partial["stage"]=="PARTIAL_AWARD_REVIEW"
+    ident=inbox(bench)
+    entered_award=award(bench,ident,"6.00")
+    row=metric(bench.dashboard(P),"awarded")
+    assert Decimal(row["amount"])==Decimal(partial["ledger"]["awarded"])+Decimal(entered_award["ledger"]["awarded"])
+    assert set(row["case_ids"])=={"dispute-partial",ident}
+    bench.act(P,"dispute-partial","record-credit")
+    assert metric(bench.dashboard(P),"posted")["amount"]==partial["ledger"]["awarded"]
+
+
+def test_later_contradiction_preserves_recorded_award_but_freezes_application(bench):
+    ident=inbox(bench)
+    award(bench,ident,"6.00")
+    row=bench.act(P,ident,"record-credit")
+    record=row["reconciliations"][0]
+    bench.allocations.record_bill(P.tenant,dict(record["scope"],id="eligible",source_ref="eligible",
+        source=Source.CUSTOMER.value,amount_cents=600,eligible_cents=600,effective_date="2026-11-03"))
+    bench.inbox.receive(Principal(P.tenant,"customer-test","service"),ident,
+        Delivery(event_id="contradictory-impact",scope=SCOPE,body={**BODIES["impact"],"affected":False}))
+    row=bench.case(P,ident)
+    assert row["stage"]=="HUMAN_REVIEW" and row["actions"]==[]
+    assert row["ledger"]["awarded"]==row["ledger"]["posted"]=="6.00"
+    with pytest.raises(ValueError):
+        bench.act(P,ident,"apply-balance")
+    assert bench.allocations.reconcile(P.tenant,record["award_id"])["applied"]=="0.00"
+
+
+def test_normal_vendor_intake_exposes_latest_case_revision(tmp_path):
+    # Hand-computed independent inputs: June has 43,200 minutes; 109 lost minutes
+    # exceed 0.25%, while exactly 108 do not. 12.5% of $100 is $12.50.
+    source="""Synthetic public test contract
+Vendor: Portfolio Cloud
+Agreement: PORTFOLIO-TEST
+Effective: 2026-01-01 through 2026-12-31
+Availability is measured over each UTC calendar month.
+| Product | Plan | Monthly uptime below | Service credit |
+| --- | --- | --- | --- |
+| Compute Tables | Team | 98% | 50% |
+| Compute Tables | Team | 99.75% | 12.5% |
+Claims must be received within 12 calendar days after month end.
+Service credits apply to affected monthly fees on a future invoice."""
+    doc=dict(name="Portfolio synthetic SLA",uri="urn:synthetic:portfolio-sla",classification="synthetic_public",text=source)
+    overlay=dict(account="portfolio-account",agreement="PORTFOLIO-TEST",product="Compute Tables",plan="Team",currency="USD",
+                 effective_from="2026-01-01",effective_until="2026-12-31",fee_line_ref="portfolio-fee")
+    facts=dict(account=overlay["account"],agreement=overlay["agreement"],product=overlay["product"],plan="Team",month="2026-06",
+               eligible_downtime_minutes=109,monitor_source="simulated_vendor",month_complete=True,exclusions_removed=True,
+               monthly_fee_cents=10000,fee_line_ref="portfolio-fee",monitor_ref="synthetic-monitor",fee_ref="synthetic-fee",
+               received_at="2026-07-12T23:59:59Z")
+    rows=[dict(name="breach",facts=facts,expected=dict(outcome="ELIGIBLE",amount="12.50")),
+          dict(name="equality",facts={**facts,"eligible_downtime_minutes":108},expected=dict(outcome="INELIGIBLE")),
+          dict(name="public-only",facts={**facts,"monitor_source":"public_status"},expected=dict(outcome="INSUFFICIENT_EVIDENCE"))]
+    secret=secrets.token_urlsafe(36)
+    app=create_app(tmp_path/"vendor.db",mode="replay",rehearsal=True,rehearsal_secret=secret,approvals_enabled=True)
+    with TestClient(app,base_url=DEFAULT_ORIGIN,client=("127.0.0.1",50000)) as client:
+        signer=ReviewerClient(client,DEFAULT_ORIGIN,SCRIPT,secret)
+        client.headers.update(signer.headers)
+        base="/api/vendors/portfolio-cloud"
+        def post(url,body):
+            response=signer.post(url,body)
+            assert response.status_code==200,response.text
+            return response.json()
+        state=post(base+"/candidates",dict(document=doc,overlay=overlay))
+        state=post(base+"/tests",dict(revision=state["revision"],tests=rows))
+        for operation in ("approve","activate"):
+            action=next(a["id"] for a in state["actions"] if a["operation"]==operation)
+            state=post(base+"/actions/"+action,{})
+        case=post(base+"/evaluate",dict(facts=facts))
+        assert case["amount"]=="12.50"
+        post(base+"/evaluate",dict(facts={**facts,"monthly_fee_cents":20000,"fee_ref":"synthetic-fee-revision"}))
+        detail=client.get("/api/cases/"+case["id"]).json()
+        assert detail["amount"]=="25.00" and detail["revision"]==2
+        assert len(detail["versions"])==2 and detail["financial_refs"]
+        dashboard=client.get("/api/dashboard").json()
+        assert [c["id"] for c in dashboard["cohorts"]["portfolio"]["cases"]]==[case["id"]]
+        assert metric(dashboard,"estimated","portfolio")["amount"]=="25.00"
+        assert metric(dashboard,"claimed","portfolio")["amount"]=="0.00"
