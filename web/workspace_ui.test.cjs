@@ -54,3 +54,10 @@ test('invoice periods and source usage details preserve server observations and 
  assert.equal(s.root.all('tbody')[0].all('tr')[0].children[2].textContent,'Not determined');
  assert.equal(data.months[0].amount,null);assert.equal(data.months[0].evidence[0].value,null);
 });
+
+test('application invoice comes only from current projection and pricing failures remain visible without classification prefix',async()=>{
+ const data={...projection,months:projection.months.map(m=>({...m,amount:null})),price_finding:{...projection.price_finding,amount:null,state:'UNSUPPORTED_RULE',reason:'Synthetic invoice only; no live Ramp bill bound.; Future performance requires separate advance-billing rules.'},ledger:{...projection.ledger,applied:'2400.00',bill:{id:'NW-2026-04',issued_at:'2026-04-01',service_start:'2026-04-01',service_end:'2026-05-01',original_amount:'11000.00',outstanding_amount:'8600.00'}}};
+ const s=setup(()=>({workflow:data}));await s.ui.render(s.root);
+ for(const value of ['NW-2026-04','2026-04-01','2026-05-01','$11,000.00','$8,600.00','Future performance requires separate advance-billing rules.'])assert.ok(s.root.textContent.includes(value),value);
+ assert.doesNotMatch(s.root.textContent,/synthetic|9,600/ig);assert.ok(data.months.every(m=>m.amount===null));assert.equal(data.price_finding.amount,null);
+});

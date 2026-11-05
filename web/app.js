@@ -229,7 +229,10 @@
   }
   function renderOnboarding(data) {
     const overview = panel(display(data.vendor)); add(overview, el('div', 'lab-state', display(data.state)), el('p', 'help', `Version ${display(data.version)}`), sources(data.sources), actions(data.actions, '/api/onboarding/actions', load));
-    const checks = panel('Validation & shadow checks'); list(data.checks).forEach(check => { const passed = check.passed === true; add(checks, add(el('div', 'check'), el('span', passed ? 'pill valid' : 'pill pending', passed ? 'Passed' : check.passed === false ? 'Not passed' : 'Pending'), el('strong', '', check.label), el('p', '', check.detail), check.sources ? sources(check.sources) : null)); }); if (!list(data.checks).length) checks.append(empty('No validation results returned.'));
+    const checks = panel('Validation & shadow checks');
+    if (data.checks_status) checks.append(add(el('div','record'),el('strong','','Current verification'),badge(data.checks_status)));
+    if (list(data.recorded_checks).length) { const previous=el('details','record'); add(previous,el('summary','','Recorded checks'),record(data.recorded_checks)); checks.append(previous); }
+    list(data.checks).forEach(check => { const passed = check.passed === true; add(checks, add(el('div', 'check'), el('span', passed ? 'pill valid' : 'pill pending', passed ? 'Passed' : check.passed === false ? 'Not passed' : 'Pending'), el('strong', '', check.label), el('p', '', check.detail), check.sources ? sources(check.sources) : null)); }); if (!list(data.checks).length) checks.append(empty('No validation results returned.'));
     const history = panel('Candidate history'); add(history, el('p', 'help', 'Each transition is recorded against the candidate version and reviewer.'), timeline(data.audit || data.history, true));
     const terms=panel('Governing sources');terms.append(el('p','',data.scope || 'Candidate scope unavailable.'));
     list(data.clauses).forEach(c=>{

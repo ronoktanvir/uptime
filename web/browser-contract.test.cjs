@@ -21,14 +21,14 @@ class Element {
   focus() {}
 }
 const flush = () => new Promise(resolve => setImmediate(resolve));
-async function setup(unauthorized = false, initialHash = '#dashboard', workflowResponse = {workflow:null}, workflowStatus = 200) {
+async function setup(unauthorized = false, initialHash = '#dashboard', workflowResponse = {workflow:null}, workflowStatus = 200, onboardingResponse = null) {
   const nodes = Object.fromEntries(['content','notice','inspector','case-content','workspace-name','account','refresh','close-inspector'].map(id => [id,new Element('div')]));
   const requests = [], window = {}, location = {hash:initialHash};
   const source = ['SYNTHETIC_CUSTOMER','SIMULATED_VENDOR'];
   const item = {id:'case/1',vendor:'<img src=x onerror=alert(1)>',title:'Contract test',stage:'DRAFT',outcome:'ELIGIBLE',amount:'12.00',currency:'USD',sources:source};
   const context = {document:{querySelector:s => nodes[s.slice(1)],querySelectorAll:() => [],createElement:t => new Element(t)}, window:{addEventListener:(k,fn) => window[k]=fn},location,URL,Option:function(label,value){const e=new Element('option');e.textContent=label;e.value=value;return e;},fetch:async(path,options) => {
     requests.push({path,options});
-    let data = path === '/api/workspace/workflow' ? workflowResponse : path === '/api/ramp/workspace' ? {source_mode:'TEST_ONLY',records:[{...item,provider_id:'native-1',provider_object_type:'bills',native_status:'OPEN'}],resources:[]} : path === '/api/dashboard' ? {workspace:'Test workspace',as_of:'test timestamp',metrics:[{label:'Simulated award',value:'12.00',sources:source}],cases:[item],audit:[{at:'test',event:'Recorded',sources:source}],ramp:{sources:['UNAVAILABLE']}} : path === '/api/onboarding' ? {vendor:'Test vendor',state:'DRAFT',sources:source,checks:[{label:'Golden check',passed:true,detail:'Test result'}],history:['Draft created'],actions:[]} : path === '/api/guide' ? {answer:'Read-only answer',sources:source} : {...item,financials:[],clauses:[{label:'Unsafe link',uri:'javascript:alert(1)'}],evidence:[],trace:['Deterministic trace'],timeline:[],actions:[{id:'approve',label:'Approve draft'}]};
+    let data = path === '/api/workspace/workflow' ? workflowResponse : path === '/api/ramp/workspace' ? {source_mode:'TEST_ONLY',records:[{...item,provider_id:'native-1',provider_object_type:'bills',native_status:'OPEN'}],resources:[]} : path === '/api/dashboard' ? {workspace:'Test workspace',as_of:'test timestamp',metrics:[{label:'Simulated award',value:'12.00',sources:source}],cases:[item],audit:[{at:'test',event:'Recorded',sources:source}],ramp:{sources:['UNAVAILABLE']}} : path === '/api/onboarding' ? onboardingResponse || {vendor:'Test vendor',state:'DRAFT',sources:source,checks:[{label:'Golden check',passed:true,detail:'Test result'}],history:['Draft created'],actions:[]} : path === '/api/guide' ? {answer:'Read-only answer',sources:source} : {...item,financials:[],clauses:[{label:'Unsafe link',uri:'javascript:alert(1)'}],evidence:[],trace:['Deterministic trace'],timeline:[],actions:[{id:'approve',label:'Approve draft'}]};
     const status=unauthorized ? 401 : path === '/api/workspace/workflow' ? workflowStatus : 200;
     return {ok:status===200,status,headers:{get:()=>'application/json'},json:async()=>data};
   }};
@@ -117,4 +117,12 @@ test('workflow authorization and server errors never silently fall back to nativ
     assert.equal(s.requests.length,1);
     assert.equal(s.requests[0].path,'/api/workspace/workflow');
   }
+});
+
+test('stale reviewer authority keeps recorded checks separate from current verification',async()=>{
+ const s=await setup(false,'#onboarding',{workflow:null},200,{vendor:'CalyxQuay',state:'REVIEW_REQUIRED',checks_status:'REVIEW_REQUIRED',checks:[],recorded_checks:[{label:'Prior shadow check',passed:true}],actions:[]});
+ assert.match(s.nodes.content.textContent,/Current verification/);assert.match(s.nodes.content.textContent,/REVIEW_REQUIRED/);assert.match(s.nodes.content.textContent,/No validation results returned/);
+ assert.equal(s.nodes.content.querySelectorAll('span').filter(n=>n.className==='pill valid').length,0);
+ const history=s.nodes.content.querySelectorAll('details').find(n=>n.textContent.includes('Recorded checks'));
+ assert.ok(history);assert.match(history.textContent,/Prior shadow check/);assert.notEqual(history.open,true);
 });

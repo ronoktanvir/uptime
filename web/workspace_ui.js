@@ -5,6 +5,7 @@
   const text = value => value == null || value === '' ? 'Not provided' : String(value);
   const names = {ELIGIBLE:'Eligible', INELIGIBLE:'Ineligible', INSUFFICIENT_EVIDENCE:'Needs evidence', UNKNOWN:'Needs evidence',
     SCRIPTED_REVIEWER:'Scripted reviewer', SCRIPTED:'Scripted reviewer', LOCAL_LEDGER:'Local ledger'};
+  const reason = value => text(value).replace(/^Synthetic invoice only; no live Ramp bill bound\.;?\s*/, '');
   const state = value => names[value] || text(value).replaceAll('_', ' ').toLowerCase();
   function money(value, currency = 'USD') {
     if (value == null || value === '') return 'Not determined';
@@ -76,9 +77,9 @@
       list(data.months).forEach(month=>body.append(add(el('tr'),el('td',month.month),el('td',state(month.outcome)),el('td',money(month.amount,month.currency || currency)),monthEvidence(month))));
       add(monthly,add(el('div',null,'table-scroll'),table));
       const price=data.price_finding || {}, pricing=panel('March price review');
-      add(pricing,fields([['Finding','Price cap review'],['Exposure',money(price.amount,price.currency || currency)],['Status',state(price.state)]]),note(price.reason),citations(price.citations));
+      add(pricing,fields([['Finding','Price cap review'],['Exposure',money(price.amount,price.currency || currency)],['Status',state(price.state)]]),note(reason(price.reason)),citations(price.citations));
       const bill=ledger.bill || {}, billing=panel('Bill reconciliation');
-      add(billing,fields([['Destination',ledger.destination],['Bill reference',bill.id],['Original bill',money(bill.original_amount,currency)],['Outstanding balance',money(bill.outstanding_amount,currency)],['Receipt reference',claim.receipt_id],['Award reference',ledger.record_ids?.award],['Credit reference',ledger.record_ids?.credit],['Application reference',ledger.record_ids?.application]]));
+      add(billing,fields([['Destination',ledger.destination],['Bill reference',bill.id],['Invoice issued',bill.issued_at],['Service starts',bill.service_start],['Service ends',bill.service_end],['Original bill',money(bill.original_amount,currency)],['Outstanding balance',money(bill.outstanding_amount,currency)],['Receipt reference',claim.receipt_id],['Award reference',ledger.record_ids?.award],['Credit reference',ledger.record_ids?.credit],['Application reference',ledger.record_ids?.application]]));
       const detail=add(el('details',null,'panel ramp-details'),el('summary','Agreement & review record'));
       add(detail,fields([['Agreement',agreement.title],['Version',agreement.version],['Document reference',agreement.ref],['Reviewer',reviewer.name],['Principal',reviewer.principal],['Role',reviewer.role],['Authority kind',state(reviewer.authority_kind)]]),citations(agreement.citations));
       const onboarding=data.onboarding || {}, expansion=panel(onboarding.vendor ? onboarding.vendor+' contract coverage' : 'Vendor coverage');
