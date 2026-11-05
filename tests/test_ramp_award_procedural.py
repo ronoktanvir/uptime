@@ -13,12 +13,16 @@ def exercise(folder, damage):
         SandboxApp, Office, scope, install_resource, deliver_resource, timedelta, AttributionError)
     from uptime.claim_identity import TABLE
     from uptime.storage import database
+    from test_vendor_semantic_bindings import review_submission
 
     sc, claim = scope(), "inbox-native-history"
     env = SandboxApp(folder/"native.sqlite",sc)
     extension = [("An incomplete claim may supplement its missing fields by the same deadline.",
                   {"supplement":"same_filing_deadline"})]
-    install_resource(env,folder,"native-history",extra_terms=extension)
+    # Explicit public fixture review; historical filing and financial assertions
+    # below remain unchanged. This never represents an actual human decision.
+    install_resource(env,folder,"native-history",extra_terms=extension,
+        semantic_review=lambda state, text: review_submission(state['manifest'], state['overlay'], text))
     url = "/api/correspondence/claims/"+claim
     env.post("/api/correspondence/claims",{"claim_id":claim,"scope":sc})
     deliver_resource(env,claim,sc)

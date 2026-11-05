@@ -87,6 +87,7 @@ The earlier table preserves its inspected-source status. The following decisions
 - [57 — Bind the visible Ramp demo to its own installation](ADR-0057-native-demo-installation-identity.md)
 - [58 — Bounded source-label whitespace equivalence](ADR-0058-bounded-source-label-whitespace.md)
 - [60 — Source-locked interpretation and independent authority](../OPUS60-INTERPRETATION-RECOMMENDATION.md)
+- [61 — Explicit source meaning before monetary evaluation](ADR-0061-source-semantic-bindings.md)
 - [62 — Public model transport, measured refusals and limitations](../DECISION62-PUBLIC-TRANSPORT.md)
 - [64 — A coherent financial walkthrough with ordinary product views](ADR-0064-clean-walkthrough.md)
 
