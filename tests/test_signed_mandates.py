@@ -343,3 +343,12 @@ def test_custom_tenant_signed_source_to_exact_credit_and_bill(tmp_path):
         result = user.post(apply_path,{})
         assert result.status_code == 200, result.text
         assert read()["ledger"]["applied"] == "6.00"
+
+
+def test_subcent_claim_above_ceiling_still_requires_next_cent_of_authority():
+    from decimal import localcontext
+    scope={"currency":"USD"}
+    packet={"claim":"inbox-cap","scope":scope,"requested":"10.000000000000000000000000000001"}
+    with localcontext() as context:
+        context.prec = 3
+        assert mandates.claim_preview("approve-claim",scope,packet).max_amount_cents == 1001

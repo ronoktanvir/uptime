@@ -1,6 +1,6 @@
 """Offline trust roots and single-use reviewer mandates for an exact local request and optional native effect."""
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_CEILING
+from decimal import Decimal, ROUND_CEILING, localcontext
 from hashlib import sha256
 import json
 import re
@@ -93,9 +93,12 @@ def claim_preview(action, scope, packet):
     amount = Decimal(packet["requested"])
     if not amount.is_finite() or amount < 0 or packet["scope"] != scope:
         raise ValueError("Invalid claim amount or scope")
+    with localcontext() as context:
+        context.prec = max(context.prec, len(amount.as_tuple().digits) + 2)
+        required_cents = int((amount * 100).to_integral_value(rounding=ROUND_CEILING))
     return ClaimDecision(claim_id=packet["claim"], action=action, scope_sha256=fingerprint(scope),
                          packet_sha256=fingerprint(packet), currency=scope["currency"],
-                         max_amount_cents=int((amount*100).to_integral_value(rounding=ROUND_CEILING)))
+                         max_amount_cents=required_cents)
 
 
 def check_claim_decision(principal, action, scope, packet, db):
