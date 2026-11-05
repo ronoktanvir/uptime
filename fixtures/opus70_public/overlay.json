@@ -1,0 +1,10 @@
+{
+  "agreement": "ACC-2026-17",
+  "account": "clearwater-001",
+  "product": "Queue Relay",
+  "plan": "Scale",
+  "effective_from": "2026-01-01",
+  "effective_until": "2026-12-31",
+  "fee_line_ref": "queue-monthly",
+  "currency": "USD"
+}

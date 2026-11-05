@@ -1,0 +1,12 @@
+{
+  "classification": "authored_public_preimplementation",
+  "inputs": {
+    "README.md": "3e854cd62efc7939d66585252a4a25a447f3ba23a4ae359ed091bbd2312cb108",
+    "before.json": "d251ce17038a5771ace7adf1bcb0ed974644430c0d012b0f9e3dbd9f3152c11a",
+    "controls.json": "2a6e8ba7c24ae85a71adc6809881a581a0dd9da92416594bfb1e353d819eb567",
+    "document.json": "f2215ed76ae656adb1beb82fb3f914522eacc2118e4f5243cc65eaad55d3446a",
+    "overlay.json": "042a71e9b755f26e094fab7a2320fddce5f191d75fd477b0d4142826a559d96d",
+    "pricing.json": "9acfca15c507741057f820c12856d4bbc4ad1e2042709f058b2d235d9d85f7e9",
+    "proposal.authored.json": "dcd213ea6d85e3a186c8389e92253ae0a06531208d4f569602e992478727fe30"
+  }
+}

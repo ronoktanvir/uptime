@@ -1,0 +1,19 @@
+{
+  "status": "REJECTED_BEFORE_CHANGE",
+  "reason": "Proposed value does not match its independently interpreted source span.",
+  "source_sha256": "ee180cf751326c965bda4b1a4dd2fa58389cdf7e1618c1750c83dc806c887bfa",
+  "compiler_credit_rule": {
+    "kind": "completed_steps",
+    "product": "Queue Relay",
+    "plan": "Scale",
+    "citation": 6,
+    "target_units": 99800000,
+    "step_units": 200000,
+    "credit_units": 7500000,
+    "cap_units": 30000000
+  },
+  "prompt_fields_missing": [
+    "credit_rule",
+    "credit_rounding"
+  ]
+}

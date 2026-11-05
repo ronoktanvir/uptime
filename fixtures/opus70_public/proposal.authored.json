@@ -1,0 +1,58 @@
+[
+  {
+    "quote": "Service Level Agreement",
+    "field": "heading",
+    "value": null
+  },
+  {
+    "quote": "Vendor: Aster Cove Compute",
+    "field": "vendor",
+    "value": "Aster Cove Compute"
+  },
+  {
+    "quote": "Agreement: ACC-2026-17",
+    "field": "agreement",
+    "value": "ACC-2026-17"
+  },
+  {
+    "quote": "Effective: 2026-01-01 through 2026-12-31",
+    "field": "effective",
+    "value": [
+      "2026-01-01",
+      "2026-12-31"
+    ]
+  },
+  {
+    "quote": "Availability is measured over each UTC calendar month.",
+    "field": "period",
+    "value": "utc_calendar_month"
+  },
+  {
+    "quote": "For Queue Relay on the Scale plan, the monthly uptime target is 99.8%; each completed 0.2 percentage point of shortfall below the target earns a 7.5% service credit, capped at 30%.",
+    "field": "credit_rule",
+    "value": {
+      "kind": "completed_steps",
+      "product": "Queue Relay",
+      "plan": "Scale",
+      "target": "99.8",
+      "step": "0.2",
+      "credit": "7.5",
+      "cap": "30"
+    }
+  },
+  {
+    "quote": "Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.",
+    "field": "credit_rounding",
+    "value": "nearest_cent_half_up"
+  },
+  {
+    "quote": "Claims must be received within 21 calendar days after month end.",
+    "field": "filing_days",
+    "value": 21
+  },
+  {
+    "quote": "Service credits apply to affected monthly fees on a future invoice.",
+    "field": "remedy",
+    "value": "affected_monthly_fees_future_invoice"
+  }
+]
