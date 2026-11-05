@@ -1,0 +1,164 @@
+{
+  "source_pin": "14c343d4f215388eac88e4c5cc7bc4d16917341e",
+  "executed_head": "14c343d4f215388eac88e4c5cc7bc4d16917341e",
+  "executed_tree": "ce6ee3bea1ad2e84f938a4bbc7c849609ef2817d",
+  "original_artifacts": {
+    "scripts/independent_final_review_probes.py": "16f071557f95b9fd93c850a123e51a497d53a4aa1ba772923ad6363aaec3b202",
+    "docs/v4/INDEPENDENT-FINAL-REVIEW.md": "9633e9089125d051ad1bfc6a20e9287efe1dab80d76443a4c972b07f6adedf6f"
+  },
+  "results": {
+    "verify_resources": [
+      {
+        "case": "equal",
+        "credits": [
+          "12.51",
+          "12.51"
+        ],
+        "distinct_obligations": 2,
+        "portfolio_estimated": "25.02",
+        "portfolio_claimed": "25.02",
+        "estimate_contributions": 4
+      },
+      {
+        "case": "unequal",
+        "credits": [
+          "12.51",
+          "25.01"
+        ],
+        "distinct_obligations": 2,
+        "portfolio_estimated": "37.52",
+        "portfolio_claimed": "0.00",
+        "estimate_contributions": 2
+      },
+      {
+        "case": "equal_alias",
+        "distinct_obligations": 1,
+        "portfolio_estimated": "12.51",
+        "display": "$12.51"
+      },
+      {
+        "case": "conflicting_alias",
+        "distinct_obligations": 1,
+        "portfolio_estimated": null,
+        "display": "Not additive"
+      }
+    ],
+    "verify_regions": {
+      "independent_regions": [
+        {
+          "region": "North",
+          "estimate": "15.03",
+          "intake_http": 200,
+          "same_scope_alias_http": 409,
+          "obligation_id": "adc5dae918825b18abcce04c343a1d8e16e07e7cf7712eee3e268d37ed4479f9"
+        },
+        {
+          "region": "South",
+          "estimate": "15.03",
+          "intake_http": 200,
+          "same_scope_alias_http": 409,
+          "obligation_id": "d3982355f4af6b911754b8c5f4bbef1b4a011e2cbe3dee6ab1ec307e4cd726b2"
+        }
+      ],
+      "portfolio_estimated": "30.06",
+      "nonregional_alias_http": 409
+    },
+    "verify_denials": [
+      {
+        "case": "factual",
+        "signed_text": "We denied your claim because we measured 5 minutes of downtime.",
+        "stage": "RESPONSE_DRAFTED",
+        "reason": "downtime",
+        "offered_actions": [
+          "approve-response"
+        ]
+      },
+      {
+        "case": "closing",
+        "signed_text": "We denied your claim because we measured 5 minutes of downtime. Thank you for your patience. Best regards.",
+        "stage": "RESPONSE_DRAFTED",
+        "reason": "downtime",
+        "offered_actions": [
+          "approve-response"
+        ]
+      },
+      {
+        "case": "waiver",
+        "signed_text": "We denied your claim because we measured 5 minutes of downtime. You waived all service credit claims in a separate settlement agreement.",
+        "stage": "HUMAN_REVIEW",
+        "reason": "unknown",
+        "offered_actions": []
+      },
+      {
+        "case": "unknown_condition",
+        "signed_text": "We denied your claim because we measured 5 minutes of downtime. A separate licensing covenant suspends your entitlement pending arbitration.",
+        "stage": "HUMAN_REVIEW",
+        "reason": "unknown",
+        "offered_actions": []
+      }
+    ],
+    "verify_native_lifecycle": {
+      "original_intake": "ACCEPTED_CURRENT_VERSION_AND_SOURCE",
+      "contract_version": "2fa3449b73c3e477f1b1a56482077cc9ca518501425a15216a4a1f3b708764ab",
+      "contract_source_sha256": "4b71f8478646e0c3c97df2ec375a84bc81fe3c27fb0e7661a9a54feacecfd03b",
+      "before_active": 1,
+      "after_active": 1,
+      "after_stage": "RAMP_APPLIED_ATTRIBUTED",
+      "subsequent_award": "VERIFIED_AWARD",
+      "post_response_native_binding": "ATTRIBUTED_OBSERVATION",
+      "response_requested": "0.00",
+      "retained_original_and_custody": "UNCHANGED",
+      "restart": "BOUND",
+      "actual_recovered_cash": null,
+      "corruption_controls": [
+        {
+          "damage": "nonzero_procedural",
+          "active_bindings": 0,
+          "issues": [
+            "INVALID_PROCEDURAL_RESPONSE"
+          ],
+          "award_refusal": "INVALID_PROCEDURAL_RESPONSE"
+        },
+        {
+          "damage": "wrong_predecessor",
+          "active_bindings": 0,
+          "issues": [
+            "INVALID_PROCEDURAL_RESPONSE"
+          ],
+          "award_refusal": "INVALID_PROCEDURAL_RESPONSE"
+        },
+        {
+          "damage": "altered_original",
+          "active_bindings": 0,
+          "issues": [
+            "EXTERNAL_RECEIPT_CONFLICT"
+          ],
+          "award_refusal": "EXTERNAL_RECEIPT_CONFLICT"
+        },
+        {
+          "damage": "unreserved_response",
+          "active_bindings": 0,
+          "issues": [
+            "CANONICAL_PROCEDURAL_RESPONSE_REQUIRED"
+          ],
+          "award_refusal": "CANONICAL_PROCEDURAL_RESPONSE_REQUIRED"
+        },
+        {
+          "damage": "second_local_initial",
+          "active_bindings": 0,
+          "issues": [
+            "INVALID_PROCEDURAL_RESPONSE"
+          ],
+          "award_refusal": "INVALID_PROCEDURAL_RESPONSE"
+        }
+      ],
+      "other_controls": [
+        "substituted custody digest rejected",
+        "one-minor-unit overallocation rejected",
+        "canonical reservation SQL rewrite rejected"
+      ],
+      "fixture_provenance": "GENERATED TEST INPUT ONLY; ACTUAL_NATIVE is the exercised verifier mode, not a real Ramp observation"
+    }
+  },
+  "status": "PASS"
+}
