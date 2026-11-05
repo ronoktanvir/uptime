@@ -1,5 +1,4 @@
 """A witnessed original and zero-dollar response keep their canonical reservation during backfill."""
-from copy import deepcopy
 from datetime import timedelta
 import json
 import sqlite3
@@ -13,7 +12,7 @@ from test_claim_identity import BASE
 from test_correspondence_resource import env, install, reports, deliver
 
 
-def historical_db():
+def historical_db(*, requested="0.00", purpose="procedural_evidence_only"):
     db = sqlite3.connect(":memory:")
     db.execute("BEGIN IMMEDIATE")
     scope = {"vendor":"Example","account":"buyer","contract":"terms","service":"API","component":"station",
@@ -27,10 +26,10 @@ def historical_db():
     first = identity | {"receipt_id":"HIST-"+original_digest,"packet_digest":original_digest}
     reserve_claim(db,**first)
     packet = {"tenant":BASE["tenant"],"claim":"historical","scope":scope,"agreement_id":"terms","version":"v1",
-              "purpose":"procedural_evidence_only","requested":"0.00","in_reply_to":"vendor-original",
+              "purpose":purpose,"requested":requested,"in_reply_to":"vendor-original",
               "original_receipt_digest":original["digest"]}
     receipt = {"id":"LOCAL-response","action":"submit-response","packet":packet,"at":BASE["at"],
-               "digest":fingerprint(packet),"approval":{"digest":fingerprint(packet)},"requested":"0.00"}
+               "digest":fingerprint(packet),"approval":{"digest":fingerprint(packet)},"requested":requested}
     reserve_claim(db,**(identity | {"receipt_id":receipt["id"],"packet_digest":receipt["digest"],
                                    "initial_receipt_id":first["receipt_id"]}))
     state = {"submissions":[receipt],"evidence":[original]}
@@ -50,6 +49,19 @@ def test_unrelated_reservations_preserve_historical_owner_and_never_mint_a_secon
         for change in ({"route":"correspondence"},{"case_id":"financial-copy"},{"agreement_version":"new-version"}):
             with pytest.raises(ValueError):
                 reserve_claim(db,**(identity | change | {"receipt_id":"financial-copy","packet_digest":fingerprint({"request":"12.00"})}))
+
+
+
+@pytest.mark.parametrize("requested,purpose", [("0.01","procedural_evidence_only"), ("12.00","procedural_evidence_only"),
+                                               ("0.00","financial_claim")])
+def test_matching_approved_packet_and_reservation_cannot_uplift_a_procedural_response(requested,purpose):
+    db,identity,state = historical_db(requested=requested,purpose=purpose)
+    with db:
+        packet = state["submissions"][0]["packet"]
+        assert db.execute(f"SELECT packet_digest FROM {TABLE} WHERE step='supplement'").fetchone()[0] == fingerprint(packet)
+        with pytest.raises(ValueError,match="procedural"):
+            reserve_claim(db,**BASE)
+        assert db.execute(f"SELECT count(*) FROM {TABLE} WHERE route='legacy'").fetchone()[0] == 0
 
 
 @pytest.mark.parametrize("damage", ["request","receipt_request","purpose","reply","original_digest","original_source","original_id",
