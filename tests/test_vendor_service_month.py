@@ -100,3 +100,35 @@ def test_unpaid_or_unclassified_fee_and_unseen_invoiced_categories_abstain():
     invoice['lines'][1]['category']='unclassified setup'
     data['service_invoice']=record('unclassified',invoice)
     assert run(data)['outcome']=='INSUFFICIENT_EVIDENCE'
+
+
+def test_service_aggregate_signed_api_produces_case_and_rollback(tmp_path, monkeypatch):
+    import json
+    from scripts.film_demo import serve
+    from scripts.rehearse_vendor import exercise
+    from uptime.vendor_model import MODEL
+    from uptime.vendor_resource_terms import public_blocks
+    from uptime.auth import SCRIPT
+    import secrets
+
+    proposal=[{'quote':q,'field':'resource_terms','value':v} for q,v in ROWS]
+    blocks=public_blocks(DOC['text'])
+    raw={'blocks':[{'id':b['id'],'value':r['value']} for b,r in zip(blocks,proposal,strict=True)]}
+    digest=sha256(DOC['text'].encode()).hexdigest()
+    staged={'model':MODEL,'source_sha256':digest,'session':'scripted-test-service-month','at':'2027-02-01T00:00:00Z',
+            'proposal':proposal,'proposal_sha256':fingerprint(proposal),'protocol':'public_block_ids/1',
+            'block_index':[{k:v for k,v in b.items() if k!='text'} for b in blocks],'raw_proposal_sha256':fingerprint(raw)}
+    (tmp_path/(digest+'.json')).write_text(json.dumps(staged))
+    monkeypatch.setenv('UPTIME_PUBLIC_EXTRACTIONS',str(tmp_path))
+    monkeypatch.setenv('UPTIME_MODEL_PROPOSITIONS','1')
+    data=facts()
+    equality=facts()
+    equality['service_monitor']=record('threshold',{'source':'simulated_vendor','unavailable_minutes':504})
+    scenarios=[{'name':'scoped fee control','facts':data,'expected':{'outcome':'ELIGIBLE','amount':'20.99'}},
+               {'name':'exact equality','facts':equality,'expected':{'outcome':'INELIGIBLE'}}]
+    secret=secrets.token_urlsafe(32)
+    with serve(tmp_path/'replay.sqlite',secret) as origin:
+        receipt=exercise(DOC,OVERLAY,scenarios,origin,secret)
+    assert receipt['human_approval'] is False and receipt['authority']==SCRIPT
+    assert receipt['results'][0]['amount']=='20.99'
+    assert receipt['operations'][-2]['operation']=='rolled-back dispatch denied'
