@@ -235,7 +235,8 @@ def test_dynamic_claim_authorization_checks_current_packet_and_amount(tmp_path):
         return JSONResponse({"detail":str(exc)},403)
     @app.post(route)
     def act(p=Depends(authority.reviewer)):
-        mandates.check_claim_decision(p, "approve-claim", scope, packet)
+        with database(db) as conn:
+            mandates.check_claim_decision(p, "approve-claim", scope, packet, conn)
         return {"amount":packet["requested"]}
     preview = mandates.claim_preview("approve-claim",scope,packet)
     with local(app) as client:
@@ -253,3 +254,92 @@ def test_routine_issuer_cannot_promote_vendors_or_change_policy(tmp_path,path):
     _, _, signer = installation(db)
     with pytest.raises(PermissionError):
         mandates.install(db,signed(db,signer,path=path,effect=None))
+
+
+def test_custom_tenant_signed_source_to_exact_credit_and_bill(tmp_path):
+    """Exercise the actual reviewer, inbox, case and allocation routes, including state changes after issuance."""
+    from datetime import UTC, datetime
+    import json
+    from uptime.auth_client import service_headers
+    from uptime.server import create_app
+    from uptime.source_config import SourceConfig, SenderCredential, init_config, load_private, update_source
+    from test_portfolio_v4 import BODIES, SCOPE
+    db = tmp_path/"money.db"
+    human = generate_reviewer_key()
+    enroll(db, USER, human, tenant=TENANT)
+    signer = Ed25519PrivateKey.generate()
+    mandates.register_issuer(db, mandates.Issuer(subject=ISSUER, public_key=signer.public_key().public_bytes_raw().hex(),
+                                                 local_purposes=("workspace","claim-filing","credit-allocation")))
+    config_path = tmp_path/"sources.json"
+    init_config(config_path,"replay",DEFAULT_ORIGIN,TENANT)
+    senders = {}
+    for role in ("customer","billing","status","vendor"):
+        file = tmp_path/(role+".json")
+        update_source(config_path,"add",role+".fixture",source=role,scope=SCOPE,sender_path=file)
+        senders[role] = load_private(file,SenderCredential)
+    config = load_private(config_path,SourceConfig)
+    app = create_app(db,tenant=TENANT,approvals_enabled=True,service_credentials=config.credentials("replay",DEFAULT_ORIGIN,TENANT))
+    app.state.correspondence.clock = lambda:datetime(2026,11,2,12,tzinfo=UTC)
+    config.bind(app.state.correspondence)
+    ident = "inbox-credit-review"
+    inbox = "/api/correspondence/claims/"+ident
+    case_path = "/api/cases/"+ident
+
+    def permit(path, payload, **decisions):
+        raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()
+        mandates.install(db,signed(db,signer,path=path,body_sha256=sha256(raw).hexdigest(),effect=None,**decisions))
+
+    with local(app) as client:
+        user = ReviewerClient(client,DEFAULT_ORIGIN,USER,human)
+        def read():
+            response = client.get(case_path,headers=user.headers)
+            assert response.status_code == 200, response.text
+            return response.json()
+        def send(role, event_id, body):
+            raw = json.dumps({"scope":SCOPE.model_dump(),"event_id":event_id,"body":body}).encode()
+            headers = service_headers(instance=app.state.auth.instance, origin=DEFAULT_ORIGIN,subject=senders[role].subject,
+                                      key=senders[role],path=inbox+"/events",body=raw)
+            result = client.post(inbox+"/events",content=raw,headers=headers)
+            assert result.status_code == 200, result.text
+        payload = {"claim_id":ident,"scope":SCOPE.model_dump()}
+        permit("/api/correspondence/claims",payload)
+        assert user.post("/api/correspondence/claims",payload).status_code == 200
+        for role, kind in [("status","status"),("customer","impact"),("billing","invoice")]:
+            send(role,"fixture-"+kind,BODIES[kind])
+        for operation in ("approve-claim","submit-claim"):
+            offer = read()["actions"][0]
+            assert offer["id"] == operation
+            path = case_path+"/actions/"+operation
+            permit(path,{},claim=offer["mandate_claim"])
+            result = user.post(path,{})
+            assert result.status_code == 200, result.text
+        case = read()
+        send("vendor","fixture-award",dict(kind="message",receipt_id=case["submissions"][0]["id"],
+                                           text="We have approved a service credit of USD 6.00."))
+        record_path = case_path+"/actions/record-credit"
+        offered = read()["actions"][0]["mandate_credit"]
+        assert offered["bill_id"] is None and offered["amount_cents"] == 600
+        for changes in ({"max_amount_cents":599},{"credit_id":"other-credit"},{"contract_version":"wrong-version"}):
+            permit(record_path,{},credit={**offered,**changes})
+            assert user.post(record_path,{}).status_code == 403
+            assert read()["ledger"]["posted"] == "0.00"
+        permit(record_path,{},credit=offered)
+        assert user.post(record_path,{}).status_code == 200
+        record = read()["reconciliations"][0]
+        bill = {**record["scope"], "id":"eligible-bill", "source_ref":"eligible-bill", "source":"SYNTHETIC_CUSTOMER",
+                "amount_cents":1000, "eligible_cents":1000, "effective_date":"2026-11-02"}
+        app.state.bench.allocations.record_bill(TENANT,bill)
+        apply_path = case_path+"/actions/apply-balance"
+        offered = read()["actions"][0]["mandate_credit"]
+        assert offered["bill_id"] == bill["id"] and offered["credit_id"] == record["credit_ids"][0]
+        permit(apply_path,{},credit=offered)
+        # Changing the journal after signature invalidates even a previously correct native bill target.
+        app.state.bench.allocations.record_bill(TENANT,{**bill,"id":"tax-only","source_ref":"tax-only","eligible_cents":0})
+        assert user.post(apply_path,{}).status_code == 403
+        offered = read()["actions"][0]["mandate_credit"]
+        permit(apply_path,{},credit={**offered,"bill_id":"other-bill"})
+        assert user.post(apply_path,{}).status_code == 403
+        permit(apply_path,{},credit=offered)
+        result = user.post(apply_path,{})
+        assert result.status_code == 200, result.text
+        assert read()["ledger"]["applied"] == "6.00"

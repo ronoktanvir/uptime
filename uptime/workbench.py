@@ -4,6 +4,7 @@ from threading import RLock
 
 from . import onboarding, policy
 from .contracts import Principal, Source, fingerprint
+from .mandates import CreditDecision, check_credit_decision
 from .disputes import DisputeDesk
 from .evidence import evidence_summary
 from .intelligence import model_card
@@ -320,10 +321,14 @@ class Workbench:
                  and Decimal(awarded)>0 and principal.role == "reviewer"
                  and self.setting(principal)["mode"] != "OBSERVE")
         if allowed:
-            if not records and self._award_record(case) is not None:
-                case["actions"].append(dict(id="record-credit", label="Record scoped simulated credit"))
-            elif len(records)==1 and self._application_bill(principal, records[0]) is not None:
-                case["actions"].append(dict(id="apply-balance", label="Apply simulated credit to the matched eligible bill"))
+            plan = self._settlement_plan(principal, case)
+            if plan is not None:
+                decision, _ = plan
+                label = "Record scoped simulated credit" if decision.action == "record-credit" else "Apply simulated credit to the matched eligible bill"
+                offer = dict(id=decision.action, label=label)
+                if principal.tenant != TENANT:
+                    offer["mandate_credit"] = decision.model_dump()
+                case["actions"].append(offer)
         case["financials"]=[dict(label=k.replace("_", " ").title(),value=usd(v),
                                 sources=case["reconciliation"]["stage_sources"].get(k, CUSTOM if k=="estimated" else SIM))
                             for k,v in case["ledger"].items()]
@@ -363,6 +368,39 @@ class Workbench:
         # Multiple eligible bills need an explicit selection; the generic action carries no bill ID.
         return matches[0] if len(matches)==1 else None
 
+    def _settlement_plan(self, principal, case):
+        """Compute both the reviewer-visible commitment and exact journal input from the same scoped records."""
+        records = case["reconciliations"]
+        if not records:
+            award = self._award_record(case)
+            if award is None:
+                return None
+            credit = {**award, "id":"inbox-credit:"+award["id"], "source_ref":"inbox-credit:"+award["source_ref"],
+                      "award_id":award["id"], "source":Source.REPLAY.value}
+            plan = {"award":award, "credits":[credit]}
+            amount = usd_cents(award["amount"])
+            target = dict(action="record-credit", contract_version=award["contract_version"], award_id=award["id"],
+                          credit_id=credit["id"], bill_id=None, journal_sequence=self.allocations.head())
+        elif len(records)==1:
+            record = records[0]
+            bill = self._application_bill(principal, record)
+            if bill is None or bill["as_of_sequence"] != record["as_of_sequence"]:
+                return None
+            amount = record["unapplied_posted_cents"]
+            ident = "inbox-application:"+fingerprint([record["award_id"], bill["id"]])
+            plan = dict(id=ident, source_ref=ident, credit_id=record["credit_ids"][0], bill_id=bill["id"],
+                        source=Source.REPLAY.value, amount_cents=amount,
+                        effective_date=max(record["effective_date"],bill["effective_date"]))
+            target = dict(action="apply-balance", contract_version=record["scope"]["contract_version"],
+                          award_id=record["award_id"], credit_id=plan["credit_id"], bill_id=bill["id"],
+                          journal_sequence=record["as_of_sequence"])
+        else:
+            return None
+        decision = CreditDecision(claim_id=case["id"], currency=case["scope"]["currency"],
+                                  scope_sha256=fingerprint(case["scope"]), claim_state_sha256=case["state_sha256"],
+                                  plan_sha256=fingerprint(plan), amount_cents=amount, max_amount_cents=amount, **target)
+        return decision, plan
+
     def _settle_inbox(self, principal, case, action):
         if action not in {a["id"] for a in case["actions"]}:
             # An exact completed action may be retried, but never create another record.
@@ -371,21 +409,16 @@ class Workbench:
             if action=="apply-balance" and any(r["stage"]=="APPLIED" for r in case.get("reconciliations", [])):
                 return
             raise ValueError("No authorized scoped settlement action is available.")
-        if action=="record-credit":
-            award=self._award_record(case)
-            credit={**award, "id":"inbox-credit:"+award["id"], "source_ref":"inbox-credit:"+award["source_ref"],
-                    "award_id":award["id"], "source":Source.REPLAY.value}
-            self.allocations.ingest(principal.tenant, case["id"], award, credits=[credit])
-        elif action=="apply-balance":
-            record=case["reconciliations"][0]
-            bill=self._application_bill(principal, record)
-            if bill is None:
-                raise ValueError("An unambiguous existing scoped eligible bill is required.")
-            ident="inbox-application:"+fingerprint([record["award_id"], bill["id"]])
-            self.allocations.apply(principal.tenant, dict(id=ident, source_ref=ident,
-                credit_id=record["credit_ids"][0], bill_id=bill["id"], source=Source.REPLAY.value,
-                amount_cents=record["unapplied_posted_cents"],
-                effective_date=max(record["effective_date"], bill["effective_date"])))
+        resolved = self._settlement_plan(principal, case)
+        if resolved is None or resolved[0].action != action:
+            raise ValueError("Current scoped records cannot justify this allocation")
+        decision, plan = resolved
+        def verify(db):
+            check_credit_decision(db, principal, decision)
+        if action == "record-credit":
+            self.allocations.ingest(principal.tenant, case["id"], **plan, check_authority=verify)
+        else:
+            self.allocations.apply(principal.tenant, plan, check_authority=verify)
 
     def _present(self, case, *, versions=None):
         case=dict(case)

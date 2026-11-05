@@ -141,8 +141,10 @@ class ServicePrincipal(Principal):
 
 @dataclass(frozen=True)
 class AuthorizedReviewer(Principal):
+    mandate_id: str
     native_ticket: str | None = field(repr=False, compare=False)
     claim_decision: mandates.ClaimDecision | None = field(repr=False, compare=False)
+    credit_decision: mandates.CreditDecision | None = field(repr=False, compare=False)
 
 
 class Authority:
@@ -309,7 +311,8 @@ class Authority:
         except PermissionError as exc:
             raise HTTPException(403, str(exc)) from None
         if claimed:
-            return AuthorizedReviewer(principal.tenant, principal.subject, principal.role, claimed.ticket, claimed.claim_decision)
+            return AuthorizedReviewer(principal.tenant, principal.subject, principal.role, claimed.mandate_id,
+                                      claimed.ticket, claimed.claim_decision, claimed.credit_decision)
         return principal
 
     def authorize_native(self, principal, *, business_id, resource_type, resource_id, action, payload_sha256):

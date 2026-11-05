@@ -413,7 +413,7 @@ class CorrespondenceDesk:
             if action not in {a["id"] for a in self._actions(p, scope, state, current, now)}:
                 raise ValueError("Action unavailable for the current policy, filing window, evidence and stage.")
             packet = self._packet(p.tenant, claim_id, scope, state, current)
-            check_claim_decision(p, action, scope.model_dump(), packet)
+            check_claim_decision(p, action, scope.model_dump(), packet, db)
             digest = fingerprint(packet)
             if action.startswith("approve-"):
                 state["approval"] = dict(action=action, actor=p.subject, at=now.isoformat(), digest=digest,
@@ -489,7 +489,7 @@ class CorrespondenceDesk:
                     missing=list(evaluation.missing), clauses=[asdict(c) for c in evaluation.clauses]),
                     clauses=[dict(label=c.document + " " + c.version + " " + c.section, uri=c.uri) for c in evaluation.clauses],
                     evidence=evidence, timeline=state["timeline"], submissions=submitted, replies=replies, approval=state["approval"],
-                    actions=actions,
+                    actions=actions, state_sha256=fingerprint([scope.model_dump(),state]),
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
                     requested_artifact=state.get("requested_artifact"),
                     policy_dispatchable=False, ledger=ledger,
