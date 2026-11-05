@@ -1,0 +1,16 @@
+{
+  "schema": "uptime-synthetic-invoice-cap/1",
+  "terms_id": "synthetic-gross-invoice-usd800-v1",
+  "source": "SYNTHETIC_CUSTOMER",
+  "label": "Constructed rehearsal terms; not a customer agreement",
+  "clause": "Maximum USD 800.00 for the entire individually designated invoice, inclusive of all taxes and fees. Applies by invoice issued date in UTC, not usage or performance date.",
+  "basis": "ENTIRE_INVOICE_INCLUSIVE_TAX_AND_FEES",
+  "date_basis": "INVOICE_ISSUED_DATE_UTC",
+  "cap": {"amount": "800.00", "currency": "USD", "amount_minor": 80000, "minor_unit_conversion_rate": 100},
+  "effective_from": "2026-01-01",
+  "effective_until": "2027-01-01",
+  "revision": 1,
+  "supersedes": null,
+  "superseded_by": null,
+  "amendments": []
+}
