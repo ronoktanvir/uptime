@@ -434,6 +434,10 @@ def test_broader_propositions_are_opt_in_and_require_interpretation_acceptance(a
     assert [a['operation'] for a in shadow['actions']] == ['interpret']
     accepted = transition(c, shadow, 'interpret')
     assert accepted['interpretation_reviewer'] == REVIEWER.subject
+    revised = run_suite(c, accepted, scenarios + [scenarios[0] | {'name': 'reviewed control'}])
+    assert revised['interpretation_reviewer'] is None
+    assert [a['operation'] for a in revised['actions']] == ['interpret']
+    accepted = transition(c, revised, 'interpret')
     active = transition(c, transition(c, accepted, 'approve'), 'activate')
     assert active['active_version']
     assert c.post(V + '/evaluate', json={'facts': facts}).json()['amount'] == '15.00'
@@ -557,3 +561,11 @@ def test_zero_effective_fee_preserves_timely_filing_and_no_positive_issuance():
     assert r['filing_status']=='TIMELY' and r['issuance_status']=='NO_POSITIVE_CREDIT'
     tiny=evaluate(m,OVERLAY,FACTS|{'monthly_fee_cents':1},REVIEWER.tenant)
     assert tiny['outcome']=='ELIGIBLE' and tiny['amount']=='0.00125'
+
+
+def test_guarded_table_rates_follow_named_columns():
+    document, clauses = proposition_document()
+    row = next(c for c in clauses if c['field'] == 'tier')
+    row['value'].update(below='15', credit='99.9')
+    with pytest.raises(ValueError, match='columns'):
+        validate_proposal(Document(**document), clauses, allow_propositions=True)

@@ -1,9 +1,35 @@
 """Join independently signed monthly resource telemetry, customer cause attribution and charges."""
 from datetime import timedelta
+import re
 
 from .correspondence_artifacts import SUPPLEMENTS
 from .correspondence_types import SOURCE, instant
 from .twilio import calendar_bounds
+
+
+def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
+    # Ground source-defined labels using the reviewed clause, not a user-supplied
+    # field type. Keep log, billing and identity evidence in separate namespaces.
+    label = manifest.get("label_bindings", {}).get("request_fields", {}).get(name, {}).get("phrase", name)
+    words = set(re.findall(r"[a-z0-9]+", label.casefold()))
+    status = groups["resource_status"]
+    invoice = groups["resource_invoice"]
+    matches = []
+    if words & {"logs", "log", "timestamps", "times", "intervals", "timeline", "telemetry"}:
+        matches.append({status["event_id"], status["body"]["source_ref"], *(r["ref"] for r in intervals)})
+    if words & {"invoice", "charges", "fees", "billing", "bill"}:
+        matches.append({scope.invoice, invoice["event_id"], invoice["body"]["source_ref"], *(r["ref"] for r in fees)})
+    if words & {"account", "tenant", "subscriber"}:
+        matches.append({scope.account})
+    if words & {"incident", "outage", "ticket"}:
+        matches.append({scope.incident})
+    if words & {"region", "location"}:
+        matches.append({scope.region})
+    resource_words = {"resource", "station", "component", "endpoint", "instance", "cluster", "zone"}
+    resource_words.update(str(overlay.get("resource_label", "")).casefold().split())
+    if words & resource_words:
+        matches.append({scope.component})
+    return matches[0] if len(matches) == 1 else set()
 
 
 def join_resource(scope, events, manifest, overlay, filed):
@@ -18,7 +44,7 @@ def join_resource(scope, events, manifest, overlay, filed):
     required = {"resource_status","resource_attribution","resource_invoice"}
     if missing := required - groups.keys():
         raise ValueError("Awaiting signed " + ", ".join(sorted(missing)) + ".")
-    if groups.keys() - required - {"billing_calendar","filing_material"}:
+    if groups.keys() - required - {"billing_calendar","filing_material","account_conditions"}:
         raise ValueError("Evidence outside the active resource profile requires review.")
     if overlay["resource_id"] != scope.component:
         raise ValueError("Resource differs from the reviewed customer and contract mapping.")
@@ -62,6 +88,20 @@ def join_resource(scope, events, manifest, overlay, filed):
                  month_complete=status["complete"] and attribution["complete"],intervals=intervals,exclusions=exclusions,
                  fee_lines=fees, fee_line_ref=overlay["fee_line_ref"],itemized_complete=invoice["itemized_complete"],
                  fee_ref=groups["resource_invoice"]["digest"])
+    if "account_conditions" in groups:
+        report = groups["account_conditions"]["body"]
+        required = {c["op"] for c in manifest.get("account_conditions", [])}
+        supplied = [c["op"] for c in report["findings"]]
+        if set(supplied) != required or len(supplied) != len(required) or instant(report["observed_at"]) < following:
+            raise ValueError("Account condition findings must cover each published predicate and complete service month.")
+        facts["condition_evidence"] = []
+        for finding in report["findings"]:
+            row = dict(agreement=scope.contract, account=scope.account, resource_id=scope.component, month=scope.month,
+                       verified=True, **{k:finding[k] for k in ("op","ref","finding","affected_refs")})
+            terms = finding.get("reviewed_terms")
+            if terms:
+                row.update(terms_reviewed=True, terms_ref=terms["ref"], terms_sha256=terms["sha256"])
+            facts["condition_evidence"].append(row)
     if "billing_calendar" in groups:
         cycles = groups["billing_calendar"]["body"]["cycles"]
         if len({r["ref"] for r in cycles}) != len(cycles):
@@ -76,14 +116,13 @@ def join_resource(scope, events, manifest, overlay, filed):
         channel = manifest.get("submission_channel")
         if channel and body["channel"] != channel:
             raise ValueError("The local packet channel differs from the reviewed contract.")
-        refs = {scope.component,scope.account,scope.invoice,scope.incident}
-        refs.update(e["event_id"] for e in groups.values() if e is not material)
-        refs.update(e["body"]["source_ref"] for e in groups.values() if e is not material)
-        refs.update(r["ref"] for r in intervals+exclusions+fees)
         fields = {r["name"]:r["refs"] for r in body["fields"]}
-        if (set(fields) != set(manifest.get("request_fields", [])) or len(fields) != len(body["fields"])
-                or any(set(values)-refs for values in fields.values())):
-            raise ValueError("Every required field must reference a verified resource, source or line in this case.")
+        if (set(fields) != set(manifest.get("request_fields", [])) or len(fields) != len(body["fields"])):
+            raise ValueError("Every required filing field must appear exactly once.")
+        for name, values in fields.items():
+            allowed = filing_refs(name, manifest, overlay, scope, groups, intervals, fees)
+            if not allowed or len(values) != len(set(values)) or set(values) - allowed:
+                raise ValueError("Filing field references must match the kind of scoped evidence its clause requires.")
         # This is a checked prospective local packet. The inbox records actual
         # submission only after approval; no provider receipt is synthesized.
         filing = dict(channel=channel, fields=fields, material_digest=material["digest"])

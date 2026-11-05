@@ -332,3 +332,53 @@ def test_stable_service_predicate_identifier_requires_literal_source_grounding()
     proposal[4]['value']['symptoms'][0]['phrase']='silent data distortion'
     with pytest.raises(ValueError):
         compiled(proposal=proposal)
+
+
+def test_omitting_an_entire_payout_band_and_reversing_filing_endpoint_fail_closed():
+    omitted = deepcopy(PROPOSAL)
+    omitted[7]['value']['tiers'].pop()
+    with pytest.raises(ValueError, match='Every percentage'):
+        compiled(proposal=omitted)
+    wrong_endpoint = deepcopy(PROPOSAL)
+    wrong_endpoint[9]['value']['filing']['endpoint'] = 'exclusive'
+    with pytest.raises(ValueError, match='clock comparator'):
+        compiled(proposal=wrong_endpoint)
+
+
+@pytest.mark.parametrize(('text', 'mislabeled'), [
+    ('The customer must prepay a filing fee.', {'evidence': ['account_records']}),
+    ('Submit itemized fees only if the customer purchases priority support.', {'evidence': ['itemized_fees']}),
+    ('Public notices appear on our portal.', {'evidence': ['resource_intervals']}),
+    ('Round the result to the nearest dollar.', {'nonmaterial': 'Example calculation.'}),
+    ('Credit claims expire after a year.', {'evidence': ['request_contents']}),
+    ('Cloud support costs 9% of monthly fees.', {'fee_basis': 'affected_resource_fees'}),
+    ('The claim has a deadline of two billing cycles following month end.', {'evidence': ['request_contents']}),
+])
+def test_unmapped_conditions_cannot_hide_behind_a_valid_proposition(text, mislabeled):
+    document, proposal = extend_source([(text, mislabeled)])
+    with pytest.raises(ValueError):
+        compiled(document, proposal)
+
+
+@pytest.mark.parametrize(('source_index', 'changes'), [
+    (9, {'count': 18}),
+    (9, {'utc_time': None, 'endpoint': 'whole_day'}),
+])
+def test_clock_and_calendar_day_have_distinct_source_bindings(source_index, changes):
+    proposal = deepcopy(PROPOSAL)
+    proposal[source_index]['value']['filing'].update(changes)
+    with pytest.raises(ValueError):
+        compiled(proposal=proposal)
+
+
+@pytest.mark.parametrize(('index', 'source'), [
+    (6, 'Submit scoped account logs with interval timestamps and itemized charges. Compute credit on all account fees.'),
+    (11, 'After verification, Copper Mesa will issue a noncash credit on a past invoice.'),
+    (11, 'After verification, choose a future invoice credit or cash.'),
+])
+def test_fee_aggregation_and_payment_redemption_cannot_change_silently(index, source):
+    proposal = deepcopy(PROPOSAL)
+    text = DOC['text'].replace(proposal[index]['quote'], source)
+    proposal[index]['quote'] = source
+    with pytest.raises(ValueError):
+        compiled(DOC | {'text': text}, proposal)

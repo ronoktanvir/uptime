@@ -182,6 +182,25 @@ ArtifactType = Literal["resource_log", "invoice_detail", "scope_mapping"]
 Digest = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 
 
+class ReviewedTerms(Strict):
+    ref: Id
+    sha256: Digest
+    content: Annotated[str, StringConstraints(min_length=1, max_length=10000)]
+
+
+class AccountFinding(Strict):
+    op: Literal["account_restriction", "contract_noncompliance"]
+    ref: Id
+    finding: Literal["clear", "applies", "unresolved"]
+    affected_refs: list[Id] = Field(max_length=300)
+    reviewed_terms: ReviewedTerms | None = None
+
+
+class AccountConditions(Report):
+    kind: Literal["account_conditions"]
+    findings: list[AccountFinding] = Field(min_length=1, max_length=2)
+
+
 class ArtifactDescriptor(Report):
     artifact_ref: Id
     artifact_type: ArtifactType
@@ -208,7 +227,7 @@ class Delivery(Strict):
     event_id: Id
     scope: Scope
     body: Annotated[Status | Coverage | Impact | Component | Notice | Invoice | Message | ResourceStatus
-                    | ResourceAttribution | ResourceInvoice | BillingCalendar | FilingMaterial | Artifact | Verification, Field(discriminator="kind")]
+                    | ResourceAttribution | ResourceInvoice | BillingCalendar | FilingMaterial | AccountConditions | Artifact | Verification, Field(discriminator="kind")]
 
 
 class Empty(Strict):
@@ -217,5 +236,5 @@ class Empty(Strict):
 
 SOURCE = dict(status="status", coverage="status", impact="customer", component="customer", notice="customer",
               invoice="billing", message="vendor", resource_status="status", resource_attribution="customer",
-              resource_invoice="billing", billing_calendar="billing", filing_material="customer", artifact="customer",
+              resource_invoice="billing", billing_calendar="billing", account_conditions="customer", filing_material="customer", artifact="customer",
               status_verification="status", billing_verification="billing")

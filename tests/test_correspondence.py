@@ -363,3 +363,25 @@ def test_independent_vendor_rejects_unregistered_and_cross_tenant_packet(env):
     packet = initial["packet"]
     assert propose(adjudicate({**packet,"tenant":"other"}, record, env.now)).reason == "unknown"
     assert propose(adjudicate({**packet,"artifacts":packet["artifacts"] + [{"kind":"component","digest":"0"*64}]}, record, env.now)).reason == "unknown"
+
+
+@pytest.mark.parametrize("text", [
+    "You approved a service credit of USD 48.50.",
+    "We approved a service credit of USD 48.50 for account DIFFERENT-78.",
+    "Another customer was approved for a credit of USD 48.50.",
+    "We approved a credit of USD 48.50. Your request was USD 230.00.",
+    "We approved a credit of USD 48.50. The remaining USD 20.00 is denied.",
+    "This is a sample. We approved a credit of USD 48.50.",
+])
+def test_award_amount_and_attribution_must_reconcile_to_original_filing(env, text):
+    env.file()
+    row = env.message(text)
+    assert row["stage"] == "HUMAN_REVIEW" and row["ledger"]["awarded"] == "0.00"
+
+
+def test_independently_labelled_award_requested_and_denied_parts_reconcile(env):
+    env.file()
+    result = env.message("Your original claim was USD 62.13. A service credit of USD 48.50 has been granted. "
+                         "The remaining USD 13.63 is denied.")
+    assert result["stage"] == "PARTIAL_AWARD_REVIEW"
+    assert result["ledger"]["awarded"] == "48.50" and result["ledger"]["disputed_remainder"] == "13.63"

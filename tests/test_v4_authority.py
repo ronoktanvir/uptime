@@ -122,7 +122,7 @@ def test_scripted_identity_can_never_sign_in_to_normal_viewer_or_reviewer(tmp_pa
 
 def test_inbound_service_proofs_bind_subject_exact_bytes_runtime_and_one_delivery(tmp_path):
     db, path = tmp_path/"inbound.db", "/api/v4/test-inbound"
-    keys = {"vendor.one":secrets.token_urlsafe(32), "vendor.two":secrets.token_urlsafe(32)}
+    keys = {"fixture.vendor.one":secrets.token_urlsafe(32), "fixture.vendor.two":secrets.token_urlsafe(32)}
     payload = json.dumps({"sender":"forged", "receipt":"synthetic"}).encode()
 
     def new():
@@ -135,12 +135,12 @@ def test_inbound_service_proofs_bind_subject_exact_bytes_runtime_and_one_deliver
     app = new()
     def signed():
         return service_headers(instance=app.state.auth.instance, origin=DEFAULT_ORIGIN,
-                               subject="vendor.one", key=keys["vendor.one"], path=path, body=payload)
+                               subject="fixture.vendor.one", key=keys["fixture.vendor.one"], path=path, body=payload)
     with client_for(app) as client:
         headers = signed()
         assert client.post(path, content=payload+b" ", headers=headers).status_code == 403
-        assert client.post(path, content=payload, headers={**headers,"X-Uptime-Service":"vendor.two"}).status_code == 403
-        assert client.post(path, content=payload, headers=headers).json() == {"subject":"vendor.one","role":"service"}
+        assert client.post(path, content=payload, headers={**headers,"X-Uptime-Service":"fixture.vendor.two"}).status_code == 403
+        assert client.post(path, content=payload, headers=headers).json() == {"subject":"fixture.vendor.one","role":"service"}
         assert client.post(path, content=payload, headers=headers).status_code == 403
         assert client.post(TARGET, content=payload, headers=signed()).status_code in (401,403)
         old = signed()
@@ -270,3 +270,66 @@ def test_cli_enrollment_creates_private_key_and_authenticates_normal_account(tmp
     assert duplicate.returncode != 0
     assert not unused.exists()
     assert json.loads(key_path.read_text()) == key
+
+
+def test_malleable_signatures_share_one_consumed_challenge(tmp_path):
+    from uptime.auth_keys import P256_ORDER
+    app, credential = human_app(tmp_path/"signed.db", enabled=True)
+    with client_for(app) as client:
+        signer = ReviewerClient(client, DEFAULT_ORIGIN, "case.reviewer", credential)
+        prepared = signer.prepare(TARGET, {})
+        signature_hex = prepared["headers"]["X-Uptime-Proof"]
+        r, s = signature_hex[:64], int(signature_hex[64:],16)
+        high = max(s, P256_ORDER-s)
+        prepared["headers"]["X-Uptime-Proof"] = r + f"{high:064x}"
+        assert client.post(TARGET, **prepared).status_code == 200
+        prepared["headers"]["X-Uptime-Proof"] = r + f"{P256_ORDER-high:064x}"
+        assert client.post(TARGET, **prepared).status_code == 403
+
+
+def test_malformed_es256_components_and_der_are_rejected(tmp_path):
+    from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
+    from uptime.auth_keys import P256_ORDER
+    app, credential = human_app(tmp_path/"invalid-encoding.db", enabled=True)
+    with client_for(app) as client:
+        signer = ReviewerClient(client, DEFAULT_ORIGIN, "case.reviewer", credential)
+        for invalid in [b"", b"\0"*63, bytes(64), P256_ORDER.to_bytes(32,"big")+bytes(31)+b"\1",
+                        bytes(31)+b"\1"+P256_ORDER.to_bytes(32,"big"), encode_dss_signature(1,1)]:
+            prepared = signer.prepare(TARGET, {})
+            prepared["headers"]["X-Uptime-Proof"] = invalid.hex()
+            assert client.post(TARGET, **prepared).status_code == 403
+        assert client.get("/api/cases/dispute-cure", headers=signer.headers).json()["stage"] == "DRAFTED"
+
+
+def test_fifty_simultaneous_presentations_of_one_review_proof_authorize_once(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+    app, credential = human_app(tmp_path/"concurrent-key.db", enabled=True)
+    with client_for(app) as client:
+        signer = ReviewerClient(client, DEFAULT_ORIGIN, "case.reviewer", credential)
+        prepared = signer.prepare(TARGET, {})
+        ready = Barrier(50)
+        def submit(_):
+            ready.wait(timeout=10)
+            return client.post(TARGET, **prepared).status_code
+        with ThreadPoolExecutor(max_workers=50) as pool:
+            results = list(pool.map(submit, range(50)))
+    assert sorted(results) == [200] + [403]*49
+
+
+def test_private_reviewer_export_refuses_dangling_and_parent_symlinks(tmp_path):
+    from uptime.auth_keys import write_credential
+    repo = tmp_path/"repository"
+    repo.mkdir()
+    target = tmp_path/"not-created.json"
+    alias = tmp_path/"key-link.json"
+    alias.symlink_to(target)
+    with pytest.raises(ValueError, match="without symlinks"):
+        write_credential(alias, generate_reviewer_key(), repo)
+    real_dir = tmp_path/"keys"
+    real_dir.mkdir()
+    path_alias = tmp_path/"key-dir-link"
+    path_alias.symlink_to(real_dir, target_is_directory=True)
+    with pytest.raises(ValueError, match="without symlinks"):
+        write_credential(path_alias/"not-created.json", generate_reviewer_key(), repo)
+    assert not target.exists() and not list(real_dir.iterdir())

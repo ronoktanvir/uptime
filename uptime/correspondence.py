@@ -306,14 +306,14 @@ class CorrespondenceDesk:
                 audit(state, now, "claimant", "Drafted one supplemental packet using newly acquired matching component evidence.")
 
     def _reply(self, tenant, scope, state, fact, now):
-        proposal = propose(fact["body"]["text"])
+        requested = Decimal(state["submissions"][0]["requested"])
+        proposal = propose(fact["body"]["text"], claimed=requested)
         state["reason"] = proposal.reason
         reply = dict(reason=proposal.reason, span=proposal.span, event_id=fact["event_id"], digest=fact["digest"],
                      receipt=fact["body"]["receipt_id"], received_at=now.isoformat(), sources=VENDOR)
         state["replies"].append(reply)
         state["stage"] = "HUMAN_REVIEW"
         current = self._assess(tenant, scope, state, now)
-        requested = Decimal(state["submissions"][0]["requested"])
         filed_at = instant(state["submissions"][0]["at"])
         if proposal.reason == "maintenance":
             if confirmed_maintenance(scope, state["evidence"]) and current.evaluation.outcome == Outcome.INELIGIBLE:
@@ -336,6 +336,9 @@ class CorrespondenceDesk:
                         state["requested_artifact"] = dict(type=proposal.artifact_type, ref=proposal.reference)
                     state["stage"] = "NEEDS_EVIDENCE"
                     self._evidence_arrival(tenant, scope, state, now)
+                elif proposal.reason == "availability" and current.measurement:
+                    state["stage"] = "RESPONSE_DRAFTED"
+                    audit(state, now, "claimant", "Published threshold and independently measured qualifying downtime contradict the vendor's availability conclusion.")
                 elif proposal.reason == "time_bar" and filed_at < current.cutoff:
                     state["stage"] = "RESPONSE_DRAFTED"
                     audit(state, now, "claimant", "The original local receipt predates the filing cutoff; drafted a receipt-backed correction.")
@@ -374,6 +377,9 @@ class CorrespondenceDesk:
                     raise ValueError("The vendor scope assertion is not contradicted by this filing.")
                 packet["argument"] = "Authenticated sources and the original filing establish the scoped identifier."
                 packet["verified_scope_field"] = correction["field"]
+            elif state["reason"] == "availability" and current.measurement:
+                packet["argument"] = "Reconciled qualifying downtime breaches the published availability threshold for this service month."
+                packet["verified_measurement"] = current.measurement
             elif state["reason"] == "time_bar" and instant(original["at"]) < current.cutoff:
                 packet["argument"] = "The dated original receipt predates the verified filing cutoff."
             else:

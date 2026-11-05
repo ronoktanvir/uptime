@@ -12,6 +12,11 @@ def validate_arrival(body, now):
         raise ValueError("A source report cannot be known before it is observed.")
     if body["kind"] in {"resource_status","resource_attribution"} and instant(body["observed_at"]) < instant(body["end"]):
         raise ValueError("A completed measurement cannot be observed before the reporting period ends.")
+    if body["kind"] == "account_conditions":
+        for finding in body["findings"]:
+            terms = finding.get("reviewed_terms")
+            if terms and sha256(terms["content"].encode()).hexdigest() != terms["sha256"]:
+                raise ValueError("Referenced local terms bytes disagree with the signed content digest.")
     if body["kind"] == "artifact" and sha256(body["content"].encode()).hexdigest() != body["body_sha256"]:
         raise ValueError("Local artifact bytes do not match their declared content digest.")
     if body["kind"] in {"status_verification","billing_verification"} and VERIFY[body["artifact_type"]] != body["kind"]:

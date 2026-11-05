@@ -98,6 +98,8 @@ def write_credential(path, credential, repository):
     if not Path(path).is_absolute():
         raise ValueError("Select an absolute credential-file path outside the repository")
     target = Path(path).resolve()
+    if target != Path(path):
+        raise ValueError("Select a physical credential-file path without symlinks or traversal")
     if target.is_relative_to(Path(repository).resolve()):
         raise ValueError("Store reviewer credentials outside the repository")
     private_key(credential)

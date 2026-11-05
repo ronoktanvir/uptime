@@ -231,7 +231,7 @@ def submit_tests(path, p, vendor, submission):
         rows.append({'name': 'Independent positive and refusal coverage', 'passed':
                      Outcome.ELIGIBLE in outcomes and bool(outcomes - {Outcome.ELIGIBLE})})
         rows.append({'name': 'Generated exact threshold checks', 'passed': all(r['passed'] for r in artifact['generated_tests'])})
-        state.update(tests=[t.model_dump() for t in submission.tests], checks=rows, test_author=p.subject)
+        state.update(tests=[t.model_dump() for t in submission.tests], checks=rows, test_author=p.subject, interpretation_reviewer=None)
         state['suite'] = fingerprint(state['tests'])
         if state.get('previous_suite') != state['suite']:
             state['previous'] = None
@@ -253,7 +253,7 @@ def act(path, p, vendor, action):
             if state.get('interpretation_required') and state.get('interpretation_reviewer') != p.subject:
                 raise PermissionError('The approving reviewer must accept the cited source interpretation.')
             state.update(state='APPROVED', reviewer=p.subject,
-                         reviewer_kind='scripted_test' if 'test' in p.subject.lower() else 'authenticated_reviewer')
+                         reviewer_kind='scripted_test' if p.subject.startswith('scripted-') else 'authenticated_reviewer')
         elif op == 'activate':
             if state['reviewer'] != p.subject:
                 raise PermissionError('Activation requires the same authenticated approving reviewer.')

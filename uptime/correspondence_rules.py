@@ -26,6 +26,7 @@ class ActiveRemedy:
     agreement_id: str = ""
     remedy: str = "availability"
     filing_material: dict | None = None
+    measurement: dict | None = None
 
 
 Resolver = Callable[[str, Scope, tuple[dict, ...], datetime], ActiveRemedy | None]
@@ -40,6 +41,7 @@ class Assessment:
     agreement_id: str = "twilio-apis"
     remedy: str = "availability"
     filing_material: dict | None = None
+    measurement: dict | None = None
 
 
 def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = None):
@@ -63,8 +65,8 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
             return stop(Outcome.UNSUPPORTED, "No ACTIVE evaluation and remedy terms match this tenant, scope and evidence.")
         if active.cutoff is not None and (filed or at) >= active.cutoff:
             return Assessment(EvaluationResult(Outcome.INELIGIBLE, active.evaluation.clauses, ("Verified filing window closed.",)),
-                              active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material)
-        return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material)
+                              active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement)
+        return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement)
 
     month = datetime.strptime(scope.month, "%Y-%m").date()
     first, following = twilio.calendar_bounds(month, "UTC")
@@ -134,7 +136,13 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
         twilio.Plan.BASE, scope.contract, coverage, status_coverage, (interval,), tuple(fees), True,
         invoice["digest"], at, scope.contract, currency=scope.currency, submitted_at=filed,
         submission_ref="local-receipt" if filed else "")
-    return Assessment(twilio.evaluate(data), cutoff, version, digest)
+    result = twilio.evaluate(data)
+    measurement = None
+    if result.outcome == Outcome.ELIGIBLE:
+        # This tight profile admits one verified, fully in-month qualifying incident.
+        measurement = dict(downtime_microseconds=(end-start)//timedelta(microseconds=1),
+                           total_microseconds=(following-first)//timedelta(microseconds=1))
+    return Assessment(result, cutoff, version, digest, measurement=measurement)
 
 
 def confirmed_maintenance(scope, events):

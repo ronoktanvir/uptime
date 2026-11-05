@@ -4,7 +4,8 @@ import secrets
 from time import time
 
 from .auth_keys import rehearsal_key, reviewer_signature
-from .auth import SCRIPT, digest, service_message, signature, valid_origin
+from .source_config import SenderCredential
+from .auth import SCRIPT, TENANT, digest, service_message, signature, valid_origin
 
 
 def action_headers(origin):
@@ -39,8 +40,15 @@ class ReviewerClient:
         return self.client.post(path, **self.prepare(path, payload))
 
 
-def service_headers(*, instance, origin, subject, key, path, body):
+def service_headers(*, instance, origin, subject, key, path, body, tenant=TENANT):
     stamp, nonce = str(int(time())), secrets.token_urlsafe(32)
-    message = service_message(instance, origin, subject, path, body, stamp, nonce)
+    if isinstance(key, SenderCredential):
+        if key.subject != subject or key.origin != origin:
+            raise ValueError("Sender credential belongs to a different subject or listener")
+        message = service_message(instance, origin, subject, path, body, stamp, nonce, key.tenant, key.mode)
+        proof = key.sign(message)
+    else:
+        message = service_message(instance, origin, subject, path, body, stamp, nonce, tenant)
+        proof = signature(key.encode(), message)
     return {**action_headers(origin), "X-Uptime-Service": subject, "X-Uptime-Time": stamp,
-            "X-Uptime-Nonce": nonce, "X-Uptime-Proof": signature(key.encode(), message)}
+            "X-Uptime-Nonce": nonce, "X-Uptime-Proof": proof}
