@@ -35,6 +35,14 @@ def filing(tmp_path, monkeypatch, request):
     env.create()
     rows = deepcopy(ROWS) + [("Send the claim to " + CHANNEL + ". Include service, subscription fee and any compass installation charge.",
                              {"submission_channel":CHANNEL, "request_fields":FIELDS})]
+    plan_field = getattr(request, "param", None) in {"plan", "spaced-plan"}
+    plan = "Marine Plus" if getattr(request, "param", None) == "spaced-plan" else OVERLAY["plan"]
+    if plan != OVERLAY["plan"]:
+        rows[1] = ("The Compass Feed service uses the Marine Plus plan.",
+                   {"scope":{"product":"Compass Feed", "plan":plan}})
+    if plan_field:
+        rows[-1] = ("Send the claim to " + CHANNEL + ". Include service, plan, subscription fee and any compass installation charge.",
+                    {"submission_channel":CHANNEL, "request_fields":[*FIELDS, "plan"]})
     if getattr(request, "param", None) == "ambiguous-categories":
         rows[6] = ("Exclude compass installation charges and compass installation fees.",
                    {"fee_exclusions":["compass installation charges", "compass installation fees"]})
@@ -48,10 +56,15 @@ def filing(tmp_path, monkeypatch, request):
     monkeypatch.setenv("UPTIME_PUBLIC_EXTRACTIONS", str(tmp_path))
     monkeypatch.setenv("UPTIME_MODEL_PROPOSITIONS", "1")
     prefix = "/api/vendors/filing-reference-control"
-    state = env.post(prefix + "/candidates", dict(document=document, overlay=OVERLAY))
+    state = env.post(prefix + "/candidates", dict(document=document, overlay=OVERLAY | {"plan":plan}))
     assert state["state"] == "SHADOW", state
     positive = facts()
+    positive["plan"] = plan
+    for kind in ("service_invoice", "service_monitor", "filing_proof"):
+        positive[kind]["plan"] = plan
     positive["filing_proof"]["fields"] = {k:", ".join(v) for k, v in REFERENCES.items()}
+    if plan_field:
+        positive["filing_proof"]["fields"]["plan"] = "invoice-7"
     negative = deepcopy(positive)
     negative["service_monitor"]["content"]["unavailable_minutes"] = 504
     negative["service_monitor"]["content_sha256"] = fingerprint(negative["service_monitor"]["content"])
