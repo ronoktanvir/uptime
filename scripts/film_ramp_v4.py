@@ -234,7 +234,7 @@ class RampDirector(Director):
         self.view('vendors')
         self.expand('Rules, overlay, tests and reviewer versions')
         self.page.get_by_text(extraction['session'], exact=False).first.wait_for()
-        self.focus(self.page.get_by_text(extraction['session'], exact=False).first, 180)
+        self.focus(self.page.get_by_role('heading', name=state['vendor'], exact=True), 84)
         self.onboarding = dict(vendor_id=VENDOR, state=state['state'], version=state['version'],
             source_sha256=PUBLIC_DIGEST, extraction=extraction, human_approval='PENDING',
             controls='EDITOR_AUTHORED_SYNTHETIC_NOT_HELD_OUT', preview=preview,
