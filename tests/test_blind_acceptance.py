@@ -134,6 +134,7 @@ def test_billing_joins_signed_allocation_and_never_invents_credit_history():
     from scripts.blind_mapping import event_plan, invoice_report
     source = dict(id="invoice-a", invoice_id="invoice-a", kind="invoice", account_id="account-a", source_locator="invoice-a",
                   available_at="2028-02-01T00:00:00Z", currency="USD", previously_granted_credit="2.50",
+                  period_start="2028-01-01T00:00:00Z", period_end_exclusive="2028-02-01T00:00:00Z", total="45.75",
                   lines=[dict(line_id="gross-a", resource_id="resource-a", type="monthly_recurring", amount="50.00"),
                          dict(line_id="discount-a", resource_id=None, type="allocated_discount", amount="-4.25")])
     mapping = dict(id="mapping-a", kind="billing_resource_attestation", account_id="account-a", resource_id="resource-a",
@@ -143,6 +144,9 @@ def test_billing_joins_signed_allocation_and_never_invents_credit_history():
     assert invoice_report(source, None, scope) is None
     assert invoice_report(source, mapping | {"resource_id": "unrelated"}, scope) is None
     assert invoice_report(source, mapping | {"net_recurring": "45.74"}, scope) is None
+    assert invoice_report(source, mapping, scope)["itemized_complete"] is True
+    assert invoice_report(source | {"total": "99.00"}, mapping, scope)["itemized_complete"] is False
+    assert invoice_report(source | {"period_end_exclusive": "2028-01-30T00:00:00Z"}, mapping, scope)["itemized_complete"] is False
     events, gaps = event_plan([source, mapping], scope, {"prior_credit": "subtract_issued_same_resource_month"})
     body = next(e["body"] for e in events if e["body"]["kind"] == "resource_invoice")
     assert body["lines"][0]["amount_cents"] == 4575

@@ -106,6 +106,8 @@ def promotion_scenarios(public, manifest, overlay):
 
 
 def cents(value):
+    if not isinstance(value, str) or not re.fullmatch(r"-?\d+(?:\.\d+)?", value):
+        raise ValueError("MONEY_ENCODING_INVALID")
     result = Decimal(value) * 100
     if result != result.to_integral_value():
         raise ValueError("SUBCENT_INPUT_UNREPRESENTABLE")
@@ -129,8 +131,15 @@ def invoice_report(invoice, mapping, scope):
     net, gross_cents, discount_cents = cents(mapping["net_recurring"]), cents(gross["amount"]), -cents(discount["amount"])
     if not 0 <= discount_cents <= gross_cents or gross_cents-discount_cents != net:
         return None
+    first = datetime.fromisoformat(scope["month"] + "-01").replace(tzinfo=UTC)
+    following = first + timedelta(days=monthrange(first.year, first.month)[1])
+    complete = (invoice.get("period_start") is not None and invoice.get("period_end_exclusive") is not None
+        and datetime.fromisoformat(invoice["period_start"]) == first
+        and datetime.fromisoformat(invoice["period_end_exclusive"]) == following
+        and invoice.get("total") is not None and sum(cents(r["amount"]) for r in invoice["lines"]) == cents(invoice["total"])
+        and sum(r["type"] == "monthly_recurring" and r.get("resource_id") == scope["component"] for r in invoice["lines"]) == 1)
     return dict(kind="resource_invoice", source_ref=mapping["source_locator"], observed_at=mapping["available_at"],
-                itemized_complete=True, lines=[dict(ref=gross["line_id"], resource_id=scope["component"],
+                itemized_complete=complete, lines=[dict(ref=gross["line_id"], resource_id=scope["component"],
                 month=scope["month"], currency=invoice["currency"], kind="resource_service", category="monthly_recurring",
                 fee_line_ref=gross["line_id"], amount_cents=net, gross_cents=gross_cents, discount_cents=discount_cents,
                 discount_ref=discount["line_id"])])
@@ -219,6 +228,8 @@ def event_plan(records, scope, manifest):
         body = invoice_report(invoice, mapping, scope)
         if body:
             enqueue("billing", body, [invoice, mapping])
+            if not body["itemized_complete"]:
+                gaps.add("COMPLETE_RESOURCE_BILLING_STATEMENT_MISSING")
         else:
             gaps.add("SCOPED_NET_BILLING_MAPPING_MISSING")
             # Preserve identifiable positive lines while refusing a complete net base.
