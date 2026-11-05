@@ -62,3 +62,25 @@ def test_all_green_requires_every_evidence_delivery_as_well_as_semantic_matches(
     assert not summarize(rows, [denial])["all_green"]
     denial["evidence_http_statuses"] = [200] * 6
     assert summarize(rows, [denial])["all_green"]
+
+
+def test_observer_requires_intact_seal_before_opening_any_oracle(tmp_path, monkeypatch):
+    import pytest
+    calls = []
+    monkeypatch.setattr(witness, 'read_json', lambda p: calls.append(str(p)) or {})
+    with pytest.raises(KeyError):
+        witness.compare_sealed(tmp_path, tmp_path)
+    assert calls == [str(tmp_path / 'seal.json')]
+
+
+def test_tampered_observation_refused_before_oracle(tmp_path, monkeypatch):
+    import pytest
+    witness.save(tmp_path / 'observations.json', {'private': 'new disposable scenario'})
+    witness.seal(tmp_path, ['observations.json'])
+    (tmp_path / 'observations.json').write_text('{}')
+    opened = []
+    read = witness.read_json
+    monkeypatch.setattr(witness, 'read_json', lambda p: opened.append(str(p)) or read(p))
+    with pytest.raises(ValueError, match='Sealed observation changed'):
+        witness.compare_sealed(tmp_path, tmp_path)
+    assert not any('/gold/' in p for p in opened)
