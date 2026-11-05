@@ -72,11 +72,11 @@ def event_in_scope(event, source, scope):
         return False
     if event.body.kind == "component":
         return event.body.component_id == scope.component
-    if event.body.kind == "invoice":
-        # Explicit line scope may corroborate its envelope; it cannot cross the sender's grant.
-        fields = scope.model_dump()
-        for line in event.body.lines:
-            for field, value in line.model_dump(exclude_none=True).items():
+    # Independently scoped records must corroborate the envelope, including resource-scoped report rows.
+    fields = {**scope.model_dump(), "resource_id":scope.component, "agreement":scope.contract}
+    for collection in ("lines", "records", "intervals", "causes", "exclusions"):
+        for row in getattr(event.body, collection, []):
+            for field, value in row.model_dump(exclude_none=True).items():
                 if field in fields and value != fields[field]:
                     return False
     return True

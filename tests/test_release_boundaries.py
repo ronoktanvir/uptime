@@ -95,7 +95,24 @@ def test_automated_mode_requires_separate_scoped_approval(tmp_path,cap,expected)
 
 
 def test_no_automation_in_sandbox_and_native_currency(tmp_path,monkeypatch):
-    client,app,_=login(tmp_path,mode="sandbox")
+    import json
+    from uuid import uuid4
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from uptime import mandates
+
+    client,app,db=login(tmp_path,mode="sandbox")
+    assert configure(client,"POLICY_AUTOMATED").status_code==403
+    # Reach the business rule with a fresh, exact, independently issued test mandate.
+    signer = Ed25519PrivateKey.generate()
+    issuer = mandates.Issuer(subject="policy.fixture", public_key=signer.public_key().public_bytes_raw().hex(),
+                             local_purposes=("policy-change",))
+    mandates.register_issuer(db, issuer)
+    at = int(time.time())
+    body = json.dumps({"mode":"POLICY_AUTOMATED","cap":"100.00"}, separators=(",", ":")).encode()
+    mandate = mandates.Mandate(**mandates.describe(db, "qa.reviewer"), schema_version="uptime-reviewer-mandate/1",
+                               mandate_id=str(uuid4()), issuer=issuer.subject, valid_from=at-1, valid_until=at+60,
+                               path="/api/policy", body_sha256=digest(body))
+    mandates.install(db, mandates.SignedMandate(mandate=mandate, signature=signer.sign(mandate.signing_bytes()).hex()))
     assert configure(client,"POLICY_AUTOMATED").status_code==409
     captured={"sources":["LIVE_RAMP_SANDBOX","DETERMINISTIC_REPLAY"],"observed_at":"2026-11-01T00:00:00Z",
               "bills":[{"id":"qa-eur","status":"OPEN","approval_status":"PENDING",

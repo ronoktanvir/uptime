@@ -272,3 +272,29 @@ def test_installation_checks_source_audience_even_with_misconfigured_embedding(t
     grants = load_private(registry, SourceConfig).credentials("replay", DEFAULT_ORIGIN, "tenant-b")
     with pytest.raises(ValueError, match="audience"):
         Authority(tmp_path/"auth.db", "replay", False, True, None, grants, DEFAULT_ORIGIN, "tenant-a")
+
+
+def test_grant_validates_every_nested_resource_and_invoice_line(tmp_path):
+    path, _, sender, _ = setup(tmp_path)
+    grant = load_private(path, SourceConfig).services[0]
+    window = {"start":"2026-10-08T01:00:00Z","end":"2026-10-08T02:00:00Z"}
+    report = {"source_ref":"report","observed_at":"2026-10-31T23:59:59Z"}
+    def allows(role,body):
+        raw=json.dumps({"event_id":"event.rows","scope":SCOPE.model_dump(),"body":body}).encode()
+        return grant.model_copy(update={"source":role}).allows(EVENTS,raw)
+    status={"kind":"resource_status",**window,**report,"complete":True,"intervals":[
+        {**window,"ref":"row","resource_id":SCOPE.component,"symptom":"down"}]}
+    assert allows("status",status)
+    status["intervals"][0]["resource_id"]="other"
+    assert not allows("status",status)
+    att={"kind":"resource_attribution",**window,**report,"complete":True,
+         "causes":[{**window,"ref":"row","resource_id":SCOPE.component,"cause":"vendor"}],"exclusions":[]}
+    assert allows("customer",att)
+    att["exclusions"]=[{**att["causes"][0],"resource_id":"other"}]
+    assert not allows("customer",att)
+    invoice={"kind":"resource_invoice",**report,"itemized_complete":True,"lines":[
+        {"ref":"entry","resource_id":SCOPE.component,"month":SCOPE.month,"currency":"USD","kind":"resource_service","amount_cents":10}]}
+    assert allows("billing",invoice)
+    for field,value in [("resource_id","other"),("month","2026-09"),("currency","EUR")]:
+        other={**invoice,"lines":[{**invoice["lines"][0],field:value}]}
+        assert not allows("billing",other)

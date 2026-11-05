@@ -141,7 +141,10 @@ class ServicePrincipal(Principal):
 
 @dataclass(frozen=True)
 class AuthorizedReviewer(Principal):
-    native_ticket: str = field(repr=False, compare=False)
+    mandate_id: str
+    native_ticket: str | None = field(repr=False, compare=False)
+    claim_decision: mandates.ClaimDecision | None = field(repr=False, compare=False)
+    credit_decision: mandates.CreditDecision | None = field(repr=False, compare=False)
 
 
 class Authority:
@@ -180,6 +183,9 @@ class Authority:
             if identity in identities:
                 raise ValueError("Inbound sources require independent keys")
             identities.add(identity)
+        if self.services and any(isinstance(key, SourceGrant) for key in self.services.values()) and any(
+                isinstance(key, str) for key in self.services.values()):
+            raise ValueError("A public-verifier installation cannot enable the fixture HMAC channel")
         if rehearsal != bool(rehearsal_secret) or (rehearsal and len(rehearsal_secret) < 32):
             raise ValueError("Only a scripted replay can use a private rehearsal credential")
         bind_workspace(path, mode, rehearsal, tenant)
@@ -304,11 +310,13 @@ class Authority:
                 raise HTTPException(403, "Scripted actions require the isolated fixture tenant")
             return principal
         try:
-            ticket = mandates.claim(self.path, principal, path, body_hash, self.instance, required=self.tenant != TENANT)
+            fixture_replay = self.mode == "replay" and self.tenant == TENANT
+            claimed = mandates.claim(self.path, principal, path, body_hash, self.instance, required=not fixture_replay)
         except PermissionError as exc:
             raise HTTPException(403, str(exc)) from None
-        if ticket:
-            return AuthorizedReviewer(principal.tenant, principal.subject, principal.role, ticket)
+        if claimed:
+            return AuthorizedReviewer(principal.tenant, principal.subject, principal.role, claimed.mandate_id,
+                                      claimed.ticket, claimed.claim_decision, claimed.credit_decision)
         return principal
 
     def authorize_native(self, principal, *, business_id, resource_type, resource_id, action, payload_sha256):

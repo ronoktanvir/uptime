@@ -6,6 +6,7 @@ from decimal import Decimal, localcontext
 import json
 from pathlib import Path
 
+from .mandates import check_claim_decision, claim_preview
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import reserve_claim
 from .correspondence_artifacts import approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
@@ -418,6 +419,7 @@ class CorrespondenceDesk:
             if action not in {a["id"] for a in self._actions(p, scope, state, current, now)}:
                 raise ValueError("Action unavailable for the current policy, filing window, evidence and stage.")
             packet = self._packet(p.tenant, claim_id, scope, state, current)
+            check_claim_decision(p, action, scope.model_dump(), packet, db)
             digest = fingerprint(packet)
             if action.startswith("approve-"):
                 state["approval"] = dict(action=action, actor=p.subject, at=now.isoformat(), digest=digest,
@@ -478,6 +480,14 @@ class CorrespondenceDesk:
             item["available_at"] = fact["known_at"] if "known_at" in fact else fact["received_at"]
             item["issuer"] = fact.get("subject",fact["source"])
         replies = [{**r, "text": next(e["body"]["text"] for e in state["evidence"] if e["digest"] == r["digest"])} for r in state["replies"]]
+        actions = [] if observe_only(db, p.tenant) else self._actions(p, scope, state, current, now)
+        if p.tenant != "bears" and actions:
+            try:
+                packet = self._packet(p.tenant, claim_id, scope, state, current)
+                for offer in actions:
+                    offer["mandate_claim"] = claim_preview(offer["id"], scope.model_dump(), packet).model_dump()
+            except ValueError:
+                actions = []
         return dict(id=claim_id, title="Claim correspondence · " + scope.invoice, vendor=scope.vendor,
                     mode="LOCAL_SIMULATOR", policy="ASSISTED", tenant=p.tenant, scope=scope.model_dump(), stage=stage,
                     outcome=outcome, amount=amount, currency=scope.currency, sources=SOURCES + [Source.VENDOR.value],
@@ -485,7 +495,7 @@ class CorrespondenceDesk:
                     missing=list(evaluation.missing), clauses=[asdict(c) for c in evaluation.clauses]),
                     clauses=[dict(label=c.document + " " + c.version + " " + c.section, uri=c.uri) for c in evaluation.clauses],
                     evidence=evidence, timeline=state["timeline"], submissions=submitted, replies=replies, approval=state["approval"],
-                    actions=[] if observe_only(db, p.tenant) else self._actions(p, scope, state, current, now),
+                    actions=actions, state_sha256=fingerprint([scope.model_dump(),state]),
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
                     requested_artifact=state.get("requested_artifact"),
                     policy_dispatchable=False, ledger=ledger,
