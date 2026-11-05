@@ -231,6 +231,12 @@ class WorkspaceWorkflow:
         return [dict(label=c.get('label') or c.get('section') or c.get('document') or 'Source document',
                      ref=c.get('uri') or c.get('ref') or c.get('source_sha256') or '') for c in rows]
 
+    def _document_citations(self,version):
+        source=next(row for row in self.package['pricing_agreement_input']['versions'] if row['id']==version.id)
+        return [dict(label=version.citation.document+' · '+row['id'],ref=version.citation.uri,
+                     **{k:row[k] for k in ('quote','source_sha256','quote_sha256','start','end')})
+                for row in self.package['citations'] if row['source_file']==source['source_file']]
+
     def _month_views(self,p):
         saved=stored_cases(self.bench.path,p.tenant)
         result=[]
@@ -272,10 +278,15 @@ class WorkspaceWorkflow:
         if posted and not self.provider.verified_read(p.tenant,records['credit'],'credit'):
             raise ValueError('A posted local credit has no matching provider readback.')
         reviewer=dict(name='Dana Reyes',role='Contract reviewer',authority_kind='SCRIPTED_REVIEWER',principal=SCRIPT)
+        versions=[v for v in self.package['pricing_agreement'].versions if v.signed_at and v.signed_at<=self.now()]
         documents=[dict(title=v.citation.document,ref=v.citation.uri,version=v.id,effective_at=v.effective_at.isoformat(),
-                        description=v.citation.section) for v in self.package['pricing_agreement'].versions if v.signed_at and v.signed_at<=self.now()]
+                        description=v.citation.section,citations=self._document_citations(v),
+                        source_sha256=self._document_citations(v)[0]['source_sha256']) for v in versions]
+        cited_versions={c.version for c in price.evaluation.clauses}
+        price_citations=[citation for v in versions if v.id in cited_versions for citation in self._document_citations(v)]
         audit=[dict(at=r['at'],event=r['event'],ref=r.get('event_id',r.get('digest',''))) for r in (claim or {}).get('timeline',[])]
-        projection=dict(company={'name':self.package['pricing_agreement'].customer},
+        projection=dict(workspace_instance=self.instance,source_package_sha256=fingerprint(self.package['input_sha256']),
+            company={'name':self.package['pricing_agreement'].customer},
             vendor=self.package['manifest']['vendor'],as_of=self.now().isoformat(),
             contract=dict(title=self.package['document']['name'],version=contract.get('active_version') if contract else None,
                           ref=self.package['document']['uri'],summary=self.package['document']['text'],documents=documents),
@@ -283,7 +294,7 @@ class WorkspaceWorkflow:
             price_finding=dict(id='pricing-'+fingerprint([invoice.id,self.package_digest]),
                 state=price.stage if price_amount is not None else price.evaluation.outcome.value,
                 amount=price_amount,currency=invoice.currency,reason='; '.join(price.evaluation.trace) if invoice_known else 'The invoice is not yet known.',
-                citations=self._citations([dict(document=c.document,section=c.section,uri=c.uri) for c in price.evaluation.clauses])),
+                citations=price_citations),
             claim=dict(id=self.claim_id,state=claim['stage'] if claim else 'NOT_OPENED',amount=claim['amount'] if claim else None,
                        currency=invoice.currency,receipt_id=claim['submissions'][-1]['id'] if claim and claim['submissions'] else None,
                        eligibility_version=claim['contract_version'] if claim else None,

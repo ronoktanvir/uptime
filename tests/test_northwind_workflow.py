@@ -27,6 +27,10 @@ def test_public_signed_setup_and_scripted_calyx_history_preserve_unknowns(tmp_pa
         actor,state=setup.seed(client,app,private,events)
         value=setup.checked(client.get('/api/workspace/workflow',headers=actor.headers))['workflow']
         assert value['company']['name']=='Harborline Analytics' and value['vendor']=='Northwind Cloud'
+        from hashlib import sha256
+        amendment=next(d for d in value['contract']['documents'] if d['version']=='amendment-v2')
+        assert any('USD 11,000.00' in row['quote'] for row in amendment['citations'])
+        assert all(sha256(row['quote'].encode()).hexdigest()==row['quote_sha256'] and row['source_sha256']==amendment['source_sha256'] for row in amendment['citations'])
         assert value['reviewer']['principal']==SCRIPT and value['reviewer']['authority_kind']=='SCRIPTED_REVIEWER'
         assert value['onboarding']['state']=='ACTIVE'
         assert any(row['event']=='Roll back activation' for row in value['onboarding']['history'])
