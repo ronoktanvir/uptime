@@ -62,6 +62,15 @@ def grounded(value, quote):
     return isinstance(value, str) and 0 < len(value) <= 160 and bool(norm(value)) and norm(value) in norm(quote)
 
 
+def stable_phrase_grounded(phrase, quote):
+    """Compare bounded label text within one source block, preserving raw provenance."""
+    if (not isinstance(phrase, str) or not 0 < len(phrase) <= 256
+            or any(c.isspace() and c not in ' \t\n\r\u00a0' for c in phrase)):
+        return False
+    normalized = normalize_source_block(phrase)
+    return bool(normalized) and normalized in normalize_source_block(quote)
+
+
 def source_date(value, quote):
     d = date.fromisoformat(value)
     choices = [value]
@@ -371,8 +380,8 @@ def _compile_resource(document, clauses, issues):
                             if isinstance(item,str) and grounded(item,quote):
                                 label=item
                             elif (isinstance(item,dict) and set(item)=={'label','phrase'} and isinstance(item['label'],str)
-                                  and re.fullmatch(r'[a-z][a-z0-9_]{0,63}',item['label']) and isinstance(item['phrase'],str)
-                                  and 0<len(item['phrase'])<=256 and item['phrase'] in quote):
+                                  and re.fullmatch(r'[a-z][a-z0-9_]{0,63}',item['label'])
+                                  and stable_phrase_grounded(item['phrase'],quote)):
                                 label=item['label']
                                 bindings=manifest.setdefault('label_bindings',{}).setdefault(key,{})
                                 old=bindings.get(label)
