@@ -110,12 +110,11 @@ class RejectedProposal(ValueError):
                          f'source_sha256={digest}; proposal_sha256={self.receipt["raw_proposal_sha256"]}')
 
 
-def save_rejection(receipt, directory):
-    digest=fingerprint(receipt)
-    folder=directory/'rejections'/receipt['source_sha256']
+def _save_immutable_json(value, folder):
+    digest=fingerprint(value)
     folder.mkdir(parents=True,exist_ok=True)
     path=folder/(digest+'.json')
-    data=json.dumps(receipt,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()
+    data=json.dumps(value,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()
     with NamedTemporaryFile(dir=folder,delete=False) as temp:
         tmp=Path(temp.name)
         temp.write(data)
@@ -131,6 +130,10 @@ def save_rejection(receipt, directory):
     finally:
         tmp.unlink()
     return path
+
+
+def save_rejection(receipt, directory):
+    return _save_immutable_json(receipt, directory/'rejections'/receipt['source_sha256'])
 
 
 def replay_rejection(document,path,approved_digest):
@@ -225,13 +228,21 @@ def main():
     parser.add_argument('--approved-sha256', required=True)
     parser.add_argument('--output-dir',type=Path)
     parser.add_argument('--replay-rejection',type=Path,help='Revalidate a rejected public receipt offline; no candidate is written')
+    parser.add_argument('--diagnostic-output-dir',type=Path,help='Explicitly export a verified public diagnostic attachment during offline rejection replay')
     parser.add_argument('--profile', choices=['monthly','resource-month'], default='monthly')
     parser.add_argument('--allow-propositions', action='store_true', help='Opt into guarded propositions with mandatory human interpretation review')
     args = parser.parse_args()
     document = Document.model_validate_json(args.document.read_bytes())
     if args.replay_rejection:
+        if args.diagnostic_output_dir:
+            from .vendor_public_diagnostics import create_attachment, publish_attachment
+            attachment = create_attachment(document, args.replay_rejection, args.approved_sha256)
+            print(publish_attachment(document, attachment, args.diagnostic_output_dir))
+            return
         print(json.dumps(replay_rejection(document,args.replay_rejection,args.approved_sha256),indent=2))
         return
+    if args.diagnostic_output_dir:
+        parser.error('--diagnostic-output-dir requires --replay-rejection')
     if args.output_dir is None:
         parser.error('--output-dir required for staged public extraction')
     try:
