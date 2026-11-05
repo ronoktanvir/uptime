@@ -54,6 +54,21 @@ class GoverningTerms(Strict):
     unamended_terms: list[str]
 
 
+class SubscriptionRecord(Strict):
+    verified: bool
+    signed: bool
+    ref: str
+    account: str
+    agreement: str
+    product: str
+    plan: str
+    region: str
+    contract_version: str
+    active_from: str
+    active_until: str
+    subscription_type: str
+
+
 class Overlay(Strict):
     agreement: str
     account: str
@@ -71,6 +86,7 @@ class Overlay(Strict):
     public_plan: str | None = None
     public_agreement: str | None = None
     resource_label: str | None = None
+    subscription_record: SubscriptionRecord | None = None
     symptom_aliases: dict[str, str] | None = None
     cause_aliases: dict[str, str] | None = None
 
@@ -255,7 +271,7 @@ def bind_overlay(manifest, overlay):
     scoped = (overlay.public_agreement or overlay.agreement, overlay.public_product or overlay.product,
               overlay.public_plan or overlay.plan)
     if not resource and any(getattr(overlay,k) is not None for k in
-                            ('resource_id','billing_period','governing_terms','public_product','public_plan','public_agreement','resource_label','symptom_aliases','cause_aliases')):
+                            ('resource_id','billing_period','governing_terms','public_product','public_plan','public_agreement','resource_label','subscription_record','symptom_aliases','cause_aliases')):
         raise ValueError('Resource mappings require a resource-month contract.')
     if overlay.currency != 'USD' or manifest['agreement'] is not None and scoped[0] != manifest['agreement']:
         raise ValueError('Unsupported agreement or fee currency.')
@@ -308,7 +324,7 @@ def bind_overlay(manifest, overlay):
 # A comment-only change can conservatively require fresh review. Historical receipts stay readable.
 _COMMON_SEMANTIC_FILES = ('contracts.py','vendor_terms.py','vendor_eval.py','vendor_model.py','vendor_registry.py')
 _PROFILE_FILES = {REVISION: _COMMON_SEMANTIC_FILES,
-                  'resource-month/1': _COMMON_SEMANTIC_FILES + ('vendor_resource_terms.py','vendor_resource_eval.py','vendor_resource_operators.py','twilio.py')}
+                  'resource-month/1': _COMMON_SEMANTIC_FILES + ('vendor_resource_terms.py','vendor_resource_eval.py','vendor_resource_operators.py','vendor_resource_predicates.py','vendor_resource_scopes.py','twilio.py')}
 SEMANTICS_REVISIONS = {
     family: fingerprint({'protocol':'reviewed-semantics/1','family':family,'files':{
         name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in files}})

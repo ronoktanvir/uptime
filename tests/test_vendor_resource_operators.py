@@ -242,3 +242,29 @@ def test_claimant_proof_never_establishes_issuer_verification():
     assert 'verification' not in compiled(doc, standalone)['evidence']
     with pytest.raises(ValueError, match='verification'):
         compiled(*extend_source([('Include the station identifier in the claim.', row[1] | {'request_fields':['station identifier']})]))
+
+
+def test_reflow_joins_only_continuations_and_old_receipts_preserve_their_source_index():
+    from uptime.vendor_resource_terms import public_blocks, project_blocks
+    source = ('## 4. Measurement\r\n\r\nThe period includes the exact duration of every\r\n'
+              'qualifying interruption in this station month.\r\n'
+              '| Availability below | Credit |\r\n| 99% | 10% |\r\n\r\nEnd note.')
+    old = public_blocks(source)
+    new = public_blocks(source, protocol='public_block_ids/2')
+    assert len(old) == 6 and len(new) == 5
+    assert new[1]['text'] == source[new[1]['start']:new[1]['end']]
+    assert '\r\nqualifying interruption' in new[1]['text']
+    response = {'blocks': [{'id': b['id'], 'value': {'nonmaterial': 'test only'}} for b in old]}
+    rows, _ = project_blocks(source, response)
+    assert [row['quote'] for row in rows] == [b['text'] for b in old]
+    with pytest.raises(ValueError):
+        project_blocks(source, response, protocol='public_block_ids/2')
+
+
+def test_markdown_numbered_headings_and_public_processing_notes_do_not_waive_conditions():
+    ok = [('## 2. Service measurement', {'nonmaterial': 'Section heading.'}),
+          ('Public-only model extraction of this fictional document is authorized.', {'nonmaterial': 'Source provenance.'})]
+    assert compiled(*extend_source(ok))
+    for text in ('## 4. Claims must be approved', 'Public-only model extraction is authorized. Credits only cover weekday outages.'):
+        with pytest.raises(ValueError):
+            compiled(*extend_source([(text, {'nonmaterial': 'Heading or source note.'})]))
