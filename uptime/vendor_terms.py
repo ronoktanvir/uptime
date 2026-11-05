@@ -132,6 +132,15 @@ TIER = (
     rf'(?:monthly )?(?:availability|uptime) (?:below|less than|under) (?P<below>{NUMBER})% '
     rf'(?:earns|qualifies for|results in|receives) (?:a |an )?(?P<rate>{NUMBER})% (?:service )?credit'
 )
+COMPLETED_STEPS = (
+    rf'For (?P<product>{NAME}) on the (?P<plan>{NAME}) plan, the monthly uptime target is (?P<target>{NUMBER})%; '
+    rf'each completed (?P<step>{NUMBER}) percentage point of shortfall below the target earns a '
+    rf'(?P<credit>{NUMBER})% service credit, capped at (?P<cap>{NUMBER})%'
+)
+STEP_ROUNDING = (
+    r'Round the resulting service credit once to the nearest cent, with half cents rounded up; '
+    r'do not round availability or shortfall before counting completed increments'
+)
 TABLE_HEADERS = (
     {'product', 'service', 'covered product'}, {'plan', 'subscription plan'},
     {'monthly availability below', 'monthly uptime below', 'availability below', 'uptime below',
@@ -240,6 +249,13 @@ def compile_terms(document, *, segments=None):
             atom('period', 'utc_calendar_month', c)
         elif m := _match(TIER, clause):
             tier(m['product'], m['plan'], m['below'], m['rate'], c)
+        elif m := _match(COMPLETED_STEPS, clause):
+            from .credit_steps import validate
+            rule=dict(kind='completed_steps',product=m['product'],plan=m['plan'],citation=c['id'],
+                      **{name+'_units':percent_units(m[name]) for name in ('target','step','credit','cap')})
+            atom('credit_rule',validate(rule),c)
+        elif _match(STEP_ROUNDING, clause):
+            atom('credit_rounding','nearest_cent_half_up',c)
         elif m := _match(FILING, clause):
             if not 1 <= int(m[1]) <= 365:
                 raise ValueError('Filing window outside supported interval.')
@@ -251,8 +267,18 @@ def compile_terms(document, *, segments=None):
             c['field'] = 'heading'
         else:
             raise ValueError(f'Unsupported source language at clause {c["id"]}.')
-    if document.text[cursor:].strip() or seen != {'vendor', 'agreement', 'effective', 'period', 'filing_days', 'remedy'}:
+    required={'vendor', 'agreement', 'effective', 'period', 'filing_days', 'remedy'}
+    if 'credit_rule' in manifest:
+        required |= {'credit_rule','credit_rounding'}
+    if document.text[cursor:].strip() or seen != required:
         raise ValueError('Document lacks complete, unambiguous source coverage.')
+    if 'credit_rule' in manifest:
+        if manifest['tiers']:
+            raise ValueError('Tier and completed-step rules cannot share one scope.')
+        del manifest['tiers']  # A tier-only reader must refuse, never infer zero.
+        from .credit_steps import from_manifest
+        from_manifest(manifest)
+        return manifest
     if not manifest['tiers']:
         raise ValueError('At least one source-cited credit tier is required.')
     manifest['tiers'].sort(key=lambda t: (t['product'], t['plan'], t['below_units']))
@@ -307,7 +333,10 @@ def bind_overlay(manifest, overlay):
             raise ValueError('Unsupported private amendment to the fixed service-month profile.')
         if overlay.override and manifest['filing']['kind'] != 'calendar_days':
             raise ValueError('A calendar-day override cannot implicitly replace billing cycles.')
-    if (scoped[1], scoped[2]) not in {(t['product'],t['plan']) for t in manifest['tiers']} and not (
+    from .credit_steps import from_manifest
+    rule=from_manifest(manifest)
+    scopes={(rule['product'],rule['plan'])} if rule else {(t['product'],t['plan']) for t in manifest['tiers']}
+    if (scoped[1], scoped[2]) not in scopes and not (
             resource and manifest['scope']=={'product':scoped[1], 'plan':None}):
         raise ValueError('Product or plan has no published tier.')
     first, last = date.fromisoformat(overlay.effective_from), date.fromisoformat(overlay.effective_until)
@@ -329,7 +358,7 @@ def bind_overlay(manifest, overlay):
 
 # A reviewed artifact is coupled to the actual source installed in this process.
 # A comment-only change can conservatively require fresh review. Historical receipts stay readable.
-_COMMON_SEMANTIC_FILES = ('contracts.py','vendor_terms.py','vendor_eval.py','vendor_model.py','vendor_registry.py','claim_identity.py')
+_COMMON_SEMANTIC_FILES = ('contracts.py','vendor_terms.py','vendor_eval.py','vendor_model.py','vendor_registry.py','claim_identity.py','credit_steps.py','pricing.py','pricing_terms.py','governing_fees.py')
 _PROFILE_FILES = {REVISION: _COMMON_SEMANTIC_FILES,
                   'resource-month/1': _COMMON_SEMANTIC_FILES + ('vendor_bindings.py','vendor_resource_terms.py','vendor_resource_eval.py','vendor_resource_operators.py','vendor_resource_predicates.py','vendor_resource_scopes.py','vendor_service_month.py','twilio.py')}
 SEMANTICS_REVISIONS = {

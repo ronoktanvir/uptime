@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from decimal import Decimal, ROUND_HALF_UP, localcontext
 
 from uptime.contracts import Citation, EvaluationResult, Money, Outcome, Source
+from uptime.pricing_terms import FixedMonthlyTerms, validate_fixed_monthly
 
 
 ZERO = Decimal("0.00")
@@ -34,6 +35,7 @@ class Rate:
     mode: str = "graduated"
     quantity_scope: str = "complete_performance_slice"
     boundary: str = "upper_inclusive"
+    fixed_monthly: FixedMonthlyTerms | None = None
 
 
 @dataclass(frozen=True)
@@ -270,6 +272,13 @@ def _validate_agreement(agreement: Agreement):
             _require(rate.mode == "graduated" and rate.quantity_scope == "complete_performance_slice"
                      and rate.boundary == "upper_inclusive", "Tier mode, allocation scope or threshold boundaries unsupported", Outcome.UNSUPPORTED)
             _require(isinstance(rate.tiers, tuple) and bool(rate.tiers), "Immutable tiers required")
+            if rate.fixed_monthly is not None:
+                _require(len(rate.tiers)==1 and rate.tiers[0].upper is None and rate.unit=='service-month',
+                         'Fixed monthly pricing requires one flat subscription rate', Outcome.UNSUPPORTED)
+                try:
+                    validate_fixed_monthly(rate.fixed_monthly,product=rate.product,version=version.id,rate=rate.tiers[0].rate)
+                except ValueError as error:
+                    raise PricingInputError(Outcome.UNSUPPORTED,str(error)) from error
             lower = ZERO
             for index, tier in enumerate(rate.tiers):
                 _require(_number(tier.rate) and tier.rate >= 0, "Finite nonnegative decimal rate required")
@@ -347,6 +356,15 @@ def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str], findings
             _require(line.unit == rate.unit, f"Line {line.id}: quantity unit missing or conflicting")
             _require(_number(line.quantity) and line.quantity > 0 and line.quantity == line.quantity.to_integral_value(),
                      f"Line {line.id}: positive whole-unit decimal quantity required")
+            if rate.fixed_monthly is not None:
+                from calendar import monthrange
+                first=_instant(line.start);last=_instant(line.end)
+                _require(first.day==1 and first.hour==first.minute==first.second==first.microsecond==0
+                         and (last-first).days==monthrange(first.year,first.month)[1]
+                         and last.day==1 and last.hour==last.minute==last.second==last.microsecond==0
+                         and line.start.utcoffset().total_seconds()==line.end.utcoffset().total_seconds()==0
+                         and line.quantity==rate.fixed_monthly.quantity==Decimal(1),
+                         'Fixed monthly pricing requires exactly one complete UTC calendar-month unit', Outcome.UNSUPPORTED)
             _require(line.allocation_complete is True and _canonical(line.allocation_ref),
                      f"Line {line.id}: complete performance-slice quantity allocation required")
             _require(not any(other.id != line.id and other.allocation_ref == line.allocation_ref

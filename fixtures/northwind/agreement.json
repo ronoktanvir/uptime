@@ -1,0 +1,110 @@
+{
+  "id": "NW-2026-001",
+  "customer": "Harborline Analytics",
+  "vendor": "Northwind Cloud",
+  "expires_at": "2027-01-01T00:00:00Z",
+  "versions": [
+    {
+      "id": "order-v1",
+      "effective_at": "2026-01-01T00:00:00Z",
+      "signed_at": "2025-12-15T15:00:00Z",
+      "signatories": [
+        "Northwind Cloud",
+        "Harborline Analytics"
+      ],
+      "supersedes": null,
+      "rates": [
+        {
+          "product": "Cloud Hosting",
+          "unit": "service-month",
+          "tiers": [
+            {
+              "upper": null,
+              "rate": "12000.00"
+            }
+          ],
+          "mode": "graduated",
+          "quantity_scope": "complete_performance_slice",
+          "boundary": "upper_inclusive",
+          "fixed_monthly": {
+            "source_text": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 12000.00. Invoice quantity must equal one; taxes are separate and excluded.\n",
+            "source_file": "order-monthly-rate.txt",
+            "source_sha256": "77fbd2378fb7475979cda3a5a54c5280953ec26410fe72f6f98594444b5b14e5",
+            "citation": {
+              "document": "Order Form NW-2026-001 monthly rate schedule",
+              "version": "order-v1",
+              "section": "Complete fixed monthly rate schedule",
+              "uri": "urn:northwind:NW-2026-001:order-monthly-rate.txt"
+            }
+          }
+        }
+      ],
+      "excluded_products": [
+        "Premium Support",
+        "One-time Setup"
+      ],
+      "citation": {
+        "document": "Order Form NW-2026-001",
+        "version": "order-v1",
+        "section": "2 Covered subscription; 3 Eligible fees; 6 Governing date",
+        "uri": "urn:northwind:NW-2026-001:order-form.txt"
+      },
+      "currency": "USD",
+      "tax_treatment": "separate_excluded",
+      "rounding": "line_half_up_cent",
+      "source_file": "order-form.txt",
+      "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8"
+    },
+    {
+      "id": "amendment-v2",
+      "effective_at": "2026-03-01T00:00:00Z",
+      "signed_at": "2026-02-20T15:00:00Z",
+      "signatories": [
+        "Northwind Cloud",
+        "Harborline Analytics"
+      ],
+      "supersedes": "order-v1",
+      "rates": [
+        {
+          "product": "Cloud Hosting",
+          "unit": "service-month",
+          "tiers": [
+            {
+              "upper": null,
+              "rate": "11000.00"
+            }
+          ],
+          "mode": "graduated",
+          "quantity_scope": "complete_performance_slice",
+          "boundary": "upper_inclusive",
+          "fixed_monthly": {
+            "source_text": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 11000.00. Invoice quantity must equal one; taxes are separate and excluded.\n",
+            "source_file": "amendment-monthly-rate.txt",
+            "source_sha256": "6667e899c409de21b00ba125ca0c7e1de507ff144ce7bac514a77c3aa47e7fa4",
+            "citation": {
+              "document": "Amendment 1 to NW-2026-001 monthly rate schedule",
+              "version": "amendment-v2",
+              "section": "Complete fixed monthly rate schedule",
+              "uri": "urn:northwind:NW-2026-001:amendment-monthly-rate.txt"
+            }
+          }
+        }
+      ],
+      "excluded_products": [
+        "Premium Support",
+        "One-time Setup"
+      ],
+      "citation": {
+        "document": "Amendment 1 to NW-2026-001",
+        "version": "amendment-v2",
+        "section": "1 Execution and effect; 2 Governing fee and ceiling",
+        "uri": "urn:northwind:NW-2026-001:amendment-2026-03.txt"
+      },
+      "currency": "USD",
+      "tax_treatment": "separate_excluded",
+      "rounding": "line_half_up_cent",
+      "source_file": "amendment-2026-03.txt",
+      "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7"
+    }
+  ]
+}

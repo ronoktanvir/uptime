@@ -1,0 +1,10 @@
+{
+  "agreement": "NW-2026-001",
+  "account": "harborline-001",
+  "product": "Cloud Hosting",
+  "plan": "Business",
+  "effective_from": "2026-01-01",
+  "effective_until": "2026-12-31",
+  "fee_line_ref": "cloud-hosting-monthly",
+  "currency": "USD"
+}
