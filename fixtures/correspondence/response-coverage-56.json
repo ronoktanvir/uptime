@@ -1,0 +1,352 @@
+{
+  "protocol": "public-response-coverage-preregistration/1",
+  "base": "877f427",
+  "authority": "SCRIPTED_TEST_ONLY",
+  "created_at": "2026-11-05T04:42:26.350659+00:00",
+  "description": "New public synthetic templates created after a mechanism-only diagnosis. No private cohort or gold inspected. Expectations require same-scope server context and independent source authority; no financial action follows from parser output alone.",
+  "cases": [
+    {
+      "id": "availability_decimal_prefix",
+      "text": "For February 2027, our measured availability was 99.6%, above the 99.4% commitment. We denied your claim.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "availability"
+      }
+    },
+    {
+      "id": "availability_decimal_inline",
+      "text": "Your claim was denied because monthly availability of 99.6% met the 99.4% threshold for 2027-02.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "availability"
+      }
+    },
+    {
+      "id": "availability_target_subject",
+      "text": "The 99.4% service availability target was met for the service month. Claim denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "availability"
+      }
+    },
+    {
+      "id": "availability_period_suffix",
+      "text": "We denied your claim. Availability was at or above the applicable target during February 2027.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "availability"
+      }
+    },
+    {
+      "id": "availability_existing_control",
+      "text": "Service availability met the threshold. Claim denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "availability"
+      }
+    },
+    {
+      "id": "wrong_period",
+      "text": "For March 2027, our measured availability was 99.6%, above the 99.4% commitment. Claim denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "underspecified_period",
+      "text": "For February, availability met the threshold. Claim denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "availability_conditional",
+      "text": "If availability was 99.6%, it met the commitment. Claim denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "availability_quoted",
+      "text": "The quoted statement says \"availability met the threshold\". Claim denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "availability_settlement",
+      "text": "Availability met the threshold. You waived all credit claims in a separate settlement.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "availability_unmatched_subject",
+      "text": "Availability met the threshold for another service. Claim denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "invalid_percentage",
+      "text": "Availability was 101%, above the commitment. Claim denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "late_bound_inline_pronoun",
+      "text": "We declined your claim because it was received after the filing deadline.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "time_bar"
+      }
+    },
+    {
+      "id": "late_bound_prior_claim",
+      "text": "Your claim was received. It arrived after the filing deadline.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "time_bar"
+      }
+    },
+    {
+      "id": "late_unbound_pronoun",
+      "text": "It was received after the filing deadline.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "late_wrong_antecedent",
+      "text": "The invoice was received. It arrived after the filing deadline.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "late_conditional",
+      "text": "We denied your claim because it might have arrived after the deadline.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "late_extra_legal_clause",
+      "text": "We declined your claim because it arrived after the deadline; the agreement was terminated.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "missing_and_same_request",
+      "text": "The itemized invoice detail is missing. Please provide the itemized invoice detail.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "artifact",
+        "artifact_type": "invoice_detail",
+        "reference": null
+      }
+    },
+    {
+      "id": "missing_and_bound_document",
+      "text": "The itemized invoice, document BILL-204, is missing. Please provide that document.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "artifact",
+        "artifact_type": "invoice_detail",
+        "reference": "BILL-204"
+      }
+    },
+    {
+      "id": "missing_not_received",
+      "text": "We have not received the itemized invoice detail. Please provide the itemized invoice detail.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "artifact",
+        "artifact_type": "invoice_detail",
+        "reference": null
+      }
+    },
+    {
+      "id": "artifact_type_conflict",
+      "text": "The itemized invoice detail is missing. Please provide the service log.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "artifact_ref_conflict",
+      "text": "Document BILL-204 is missing. Please provide document BILL-205.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "artifact_negated_missing",
+      "text": "The itemized invoice detail is not missing. Please provide it.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "artifact_settlement_condition",
+      "text": "Please provide invoice detail if you accept our settlement.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "award_compound_remainder",
+      "text": "We have approved a partial service credit of USD 24.00, and the remaining USD 13.50 is denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "award",
+        "amount": "24.00"
+      }
+    },
+    {
+      "id": "award_claim_prefix",
+      "text": "Of your USD 37.50 claim, we approve a service credit of USD 24.00 and decline the remaining USD 13.50.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "award",
+        "amount": "24.00"
+      }
+    },
+    {
+      "id": "award_separate_remainder",
+      "text": "We approved a service credit of USD 24.00 against your requested USD 37.50. We declined the remainder of USD 13.50.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "award",
+        "amount": "24.00"
+      }
+    },
+    {
+      "id": "award_bad_remainder",
+      "text": "We approved a partial service credit of USD 24.00, and the remaining USD 13.51 is denied.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "award_bad_requested",
+      "text": "Of your USD 37.51 claim, we approve a service credit of USD 24.00 and decline the remaining USD 13.50.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "award_other_currency",
+      "text": "We approved a service credit of USD 24.00 and denied the remaining EUR 13.50.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "award_waiver",
+      "text": "We approved a service credit of USD 24.00. This requires a waiver of all remaining claims.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "award_conditional",
+      "text": "We may approve a service credit of USD 24.00 and deny the remaining USD 13.50.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "award_unrelated_amount",
+      "text": "We approved a service credit of USD 24.00. Your annual subscription costs USD 400.00.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "award_extra_precision",
+      "text": "We approved a service credit of USD 24.001.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "award_over_claim",
+      "text": "We approved a service credit of USD 38.00.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "id": "award_existing_control",
+      "text": "You requested USD 37.50. We approved a service credit of USD 24.00. We denied the remaining USD 13.50.",
+      "scope_month": "2027-02",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "award",
+        "amount": "24.00"
+      }
+    }
+  ]
+}

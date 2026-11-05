@@ -331,7 +331,7 @@ class CorrespondenceDesk:
                         digest=digest, receipt=body["receipt_id"], received_at=now.isoformat(), sources=VENDOR))
                     audit(state, now, "claimant", "Additional substantive vendor correspondence requires review.", VENDOR)
                 elif receipt_chain(state):
-                    reply = historical_reply(state, fact, now, propose(body["text"]))
+                    reply = historical_reply(state, fact, now, propose(body["text"], scope_month=scope.month))
                     reply["sources"] = VENDOR
                     current = self._assess(tenant, scope, state, now)
                     if current.procedure:
@@ -410,7 +410,7 @@ class CorrespondenceDesk:
 
     def _reply(self, tenant, scope, state, fact, now):
         requested = Decimal(state["submissions"][0]["requested"])
-        proposal = propose(fact["body"]["text"], claimed=requested)
+        proposal = propose(fact["body"]["text"], claimed=requested, scope_month=scope.month)
         state["reason"] = proposal.reason
         reply = dict(reason=proposal.reason, span=proposal.span, event_id=fact["event_id"], digest=fact["digest"],
                      receipt=fact["body"]["receipt_id"], received_at=now.isoformat(), sources=VENDOR)

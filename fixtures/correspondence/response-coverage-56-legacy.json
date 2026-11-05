@@ -1,0 +1,201 @@
+{
+  "base": "877f427",
+  "source_hashes": {
+    "correspondence_reason.py": "43cc4d3d851456367b4e871d02cdb084700d26a4e87c1affef0acfb9fce6bc43",
+    "correspondence_language.py": "29e9142f70687902e32ddf7d43cb0be4cb10208ac7dc28da2ca72fa2db33c832"
+  },
+  "cases": [
+    {
+      "text": "Service availability met the threshold. Claim denied.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "availability",
+        "span": [
+          8,
+          38
+        ],
+        "amount": null,
+        "artifact_type": null,
+        "reference": null,
+        "scope_field": null,
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "Your filing arrived after the deadline.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "time_bar",
+        "span": [
+          20,
+          38
+        ],
+        "amount": null,
+        "artifact_type": null,
+        "reference": null,
+        "scope_field": null,
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "Please provide the affected endpoint.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "component",
+        "span": [
+          7,
+          36
+        ],
+        "amount": null,
+        "artifact_type": null,
+        "reference": null,
+        "scope_field": null,
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "We need attachment SH-355.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "artifact",
+        "span": [
+          3,
+          26
+        ],
+        "amount": null,
+        "artifact_type": null,
+        "reference": "SH-355",
+        "scope_field": null,
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "We lack the itemized invoice. Please supply record FE-21.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "artifact",
+        "span": [
+          3,
+          28
+        ],
+        "amount": null,
+        "artifact_type": "invoice_detail",
+        "reference": "FE-21",
+        "scope_field": null,
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "The outage coincided with previously announced maintenance.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "maintenance",
+        "span": [
+          47,
+          58
+        ],
+        "amount": null,
+        "artifact_type": null,
+        "reference": null,
+        "scope_field": null,
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "We denied your claim because we measured 5 minutes of downtime.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "downtime",
+        "span": [
+          29,
+          62
+        ],
+        "amount": null,
+        "artifact_type": null,
+        "reference": null,
+        "scope_field": null,
+        "downtime_us": 300000000
+      }
+    },
+    {
+      "text": "Your claim was denied. The invoice belongs to account AC-991.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "scope_error",
+        "span": [
+          15,
+          61
+        ],
+        "amount": null,
+        "artifact_type": null,
+        "reference": "AC-991",
+        "scope_field": "account",
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "We approved a partial service credit of USD 24.00.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "award",
+        "span": [
+          0,
+          50
+        ],
+        "amount": "24.00",
+        "artifact_type": null,
+        "reference": null,
+        "scope_field": null,
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "You claimed USD 37.50. We approved a service credit of USD 24.00.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "award",
+        "span": [
+          0,
+          65
+        ],
+        "amount": "24.00",
+        "artifact_type": null,
+        "reference": null,
+        "scope_field": null,
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "We approved a service credit of USD 24.00 against the requested USD 37.50.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "award",
+        "span": [
+          0,
+          74
+        ],
+        "amount": "24.00",
+        "artifact_type": null,
+        "reference": null,
+        "scope_field": null,
+        "downtime_us": null
+      }
+    },
+    {
+      "text": "You requested USD 37.50. We approved a service credit of USD 24.00. We denied the remaining USD 13.50.",
+      "claimed": "37.50",
+      "expected": {
+        "reason": "award",
+        "span": [
+          0,
+          102
+        ],
+        "amount": "24.00",
+        "artifact_type": null,
+        "reference": null,
+        "scope_field": null,
+        "downtime_us": null
+      }
+    }
+  ]
+}

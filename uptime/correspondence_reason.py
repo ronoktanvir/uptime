@@ -3,7 +3,7 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal, localcontext
 
-from .correspondence_language import complete_explanation
+from .correspondence_language import complete_explanation, interpret_factual, response_clauses
 
 @dataclass(frozen=True)
 class Proposal:
@@ -30,8 +30,8 @@ _AWARD = re.compile(
     r"(?: (?:against|of|from) (?:the |your )?(?:requested|claimed) (?P<requested>v[0-9]+))?"
 )
 _REQUESTED = re.compile(r"(?:(?:you (?:requested|claimed))|(?:(?:your|the) (?:original )?(?:claim|request) (?:was|totaled|totalled|is for))) (v[0-9]+)")
-_REMAINDER = re.compile(r"(?:we (?:denied|decline|declined) the remaining (v[0-9]+)"
-                        r"|the remaining (v[0-9]+) (?:is|was) (?:denied|declined|disputed))")
+_REMAINDER = re.compile(r"(?:we (?:deny|denied|decline|declined|reject|rejected) the (?:remaining |remainder (?:of )?)(v[0-9]+)"
+                        r"|the (?:remaining |remainder (?:of )?)(v[0-9]+) (?:is|was) (?:denied|declined|disputed|rejected))")
 
 
 def award_proposal(text, values, claimed):
@@ -50,7 +50,26 @@ def award_proposal(text, values, claimed):
         chunks.extend((text[last:value.start()], marker))
         last = value.end()
     chunks.append(text[last:])
-    clauses = re.split(r"\s*[.;!\n]+\s*", "".join(chunks).strip())
+    clauses = []
+    for clause in response_clauses("".join(chunks).strip()):
+        # A conjunction is accepted only as one grant plus its stated remainder.
+        # The optional prefix contributes a separate, conserved claimed role.
+        prefix = re.fullmatch(r"of your (v[0-9]+) claim, (.+)", clause)
+        body = prefix[2] if prefix else clause
+        conjunction = re.fullmatch(r"(.+?),? and (.+)", body)
+        if conjunction:
+            grant, remaining = conjunction[1], conjunction[2]
+            if re.match(r"(?:deny|denied|decline|declined|reject|rejected) ", remaining):
+                remaining = "we " + remaining
+            if not _AWARD.fullmatch(grant) or not _REMAINDER.fullmatch(remaining):
+                return Proposal("unknown")
+            if prefix:
+                clauses.append("you claimed " + prefix[1])
+            clauses.extend((grant, remaining))
+        elif prefix:
+            return Proposal("unknown")
+        else:
+            clauses.append(clause)
     awarded = requested = remainder = None
     for clause in filter(None, clauses):
         if grant := _AWARD.fullmatch(clause):
@@ -71,7 +90,8 @@ def award_proposal(text, values, claimed):
             remainder = amounts[rem[1] or rem[2]]
         else:
             return Proposal("unknown")
-    if awarded is None or awarded <= 0 or requested is not None and claimed != requested:
+    if (awarded is None or awarded <= 0 or claimed is not None and awarded > claimed
+            or requested is not None and claimed != requested):
         return Proposal("unknown")
     with localcontext() as context:
         context.prec = 50
@@ -80,19 +100,12 @@ def award_proposal(text, values, claimed):
     return Proposal("award", (0, len(text)), format(awarded, ".2f"))
 
 
-# Each cue needs both a subject and a predicate. Ambiguous compound replies,
-# imperatives about system behavior, conditional offers and unsupported units
-# cannot authorize a follow-up or a financial entry.
-def propose(text: str, *, claimed: Decimal | None = None) -> Proposal:
-    source = text
-    text = text.translate(str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"))
-    if re.search(r"\b(ignore|override|execute|credentials?|password|secret|token|system prompt|wire transfer|instructions?|disregard|hypothetical|hypothetically|quoted|forwarded)\b|[<>{}\"“”]|https?://", text):
-        return Proposal("unknown")
+def _presentation_span(text, interpretation):
+    """Preserve old display spans; these cues cannot admit or reject a reply."""
     reasons = {
         "availability": (r"\b(?:availability|uptime|service levels?|service records?)\b[^.!?]{0,60}"
                          r"\b(?:meets?|met|satisf(?:ies|ied)|exceeds?|exceeded|at or above|above)\b[^.!?]{0,40}"
                          r"\b(?:commitment|threshold|target|guarantee|guaranteed level|minimum)\b"),
-        "maintenance": r"\b(maintenance|planned (?:work|downtime)|scheduled (?:work|downtime))\b",
         "time_bar": r"\b(too late|out of time|time.barred|untimely|late (?:submission|filing|claim)|missed (?:the |our )?(?:deadline|window)|(?:deadline|window|period) (?:has |had |was )?(?:closed|elapsed|expired|passed)|(?:after|outside|beyond) (?:the |our )?(?:filing |submission |claim |30.day )?(?:deadline|window|period)|(?:submitted|received|filed) late)\b",
     }
     found = [(reason, m.span()) for reason, pattern in reasons.items() if (m := re.search(pattern, text))]
@@ -100,24 +113,47 @@ def propose(text: str, *, claimed: Decimal | None = None) -> Proposal:
     request = re.search(r"\b(need(?:ed)?|missing|lack(?:s|ing)?|provide|send|supply|attach|furnish|share|forward|submit|awaiting|require(?:s|d)?|identify|confirm|cannot verify|unable to verify|which|without|does not (?:identify|show)|did not (?:identify|include))\b", text)
     # Observable artifact classes and explicit references can be resolved by a
     # signed source. Natural language only proposes which proof to look up.
-    artifact_type = reference = scope_field = None
+    artifact_type = reference = None
     if request:
         classes = {"resource_log":r"\b(?:logs?|logbook|incident journal|telemetry extract|network trace)\b",
                    "invoice_detail":r"\b(?:itemi[sz]ed (?:invoice|charges|fees|statement)|invoice (?:detail|line|breakdown)|fee breakdown|charge breakdown)\b",
                    "scope_mapping":r"\b(?:account mapping|resource mapping|ownership record|account linkage)\b"}
         labels = r"\b(?:document|record|attachment|artifact|log|invoice)(?:\s+(?:reference|id|number))?\s+[#:]?([a-z0-9][a-z0-9._-]{1,75})"
         refs = [m for m in re.finditer(labels,text) if re.search(r"[a-z]",m[1]) and re.search(r"[0-9_-]",m[1])]
-        if len({m[1].rstrip(".") for m in refs}) > 1:
-            return Proposal("unknown")
         named = refs[0] if refs else None
         if named:
-            reference = source[named.start(1):named.end(1)].rstrip(".")
+            reference = named[1].rstrip(".")
         hits = [(kind, match) for kind, pattern in classes.items() if (match := re.search(pattern,text))]
-        if len(hits)>1:
-            return Proposal("unknown")
         if hits or reference:
             artifact_type, target = hits[0] if hits else (None,named)
             found.append(("artifact",(min(target.start(),request.start()),max(target.end(),request.end()))))
+    if component and request and not (artifact_type or reference):
+        found.append(("component", (min(component.start(), request.start()), max(component.end(), request.end()))))
+    spans = [span for reason, span in found if reason == interpretation.reason]
+    return spans[0] if len(spans) == 1 else (0, len(text))
+
+
+# Each cue needs both a subject and a predicate. Ambiguous compound replies,
+# imperatives about system behavior, conditional offers and unsupported units
+# cannot authorize a follow-up or a financial entry.
+def propose(text: str, *, claimed: Decimal | None = None, scope_month: str | None = None) -> Proposal:
+    source = text
+    text = text.translate(str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"))
+    if re.search(r"\b(ignore|override|execute|credentials?|password|secret|token|system prompt|wire transfer|instructions?|disregard|hypothetical|hypothetically|quoted|forwarded)\b|[<>{}\"“”]|https?://", text):
+        return Proposal("unknown")
+    values = list(_USD.finditer(text))
+    if values:
+        return award_proposal(text, values, claimed)
+    parsed = interpret_factual(source, scope_month=scope_month)
+    if parsed:
+        return Proposal(parsed.reason, _presentation_span(text, parsed),
+                        artifact_type=parsed.artifact_type, reference=parsed.reference)
+    # Existing independent families retain their complete whole-reply grammar.
+    found = []
+    maintenance = re.search(r"\b(maintenance|planned (?:work|downtime)|scheduled (?:work|downtime))\b", text)
+    if maintenance:
+        found.append(("maintenance", maintenance.span()))
+    reference = scope_field = None
     denial = re.search(r"\b(?:deny|denied|declin(?:e|ed)|reject(?:ed)?|refused|ineligible)\b",text)
     downtime_us = None
     if denial and not re.search(r"\b(?:if|maybe|uncertain|approximately|at least|more than|over|possibly|could|might|your logs|you claimed|you reported|not)\b", text):
@@ -143,25 +179,18 @@ def propose(text: str, *, claimed: Decimal | None = None) -> Proposal:
         scope_field = "component" if alleged[1]=="resource" else alleged[1]
         reference = source[alleged.start(2):alleged.end(2)].rstrip(".")
         found.append(("scope_error",(min(denial.start(),alleged.start()),max(denial.end(),alleged.end()))))
-    if component and request and not (artifact_type or reference) and not re.search(r"\b(no|not|never)\b.{0,50}\b(component|endpoint|needed|required)\b", text):
-        found.append(("component", (min(component.start(), request.start()), max(component.end(), request.end()))))
-    values = list(_USD.finditer(text))
-    if values:
-        return Proposal("unknown") if found else award_proposal(text, values, claimed)
     if len(found) != 1:
         return Proposal("unknown")
     reason, span = found[0]
-    if reason in {"availability", "time_bar", "maintenance"} and re.search(
+    if reason == "maintenance" and re.search(
             r"\b(?:whether|unless|possibly|uncertain|unsure|could|might|hypothetical|perhaps|investigating|"
             r"not|never|didn't|wasn't|isn't|haven't)\b", text):
-        return Proposal("unknown")
-    if reason in {"artifact", "component"} and re.search(r"\b(?:no longer|do not send|don't send|unnecessary|already have)\b", text):
         return Proposal("unknown")
     if reason == "maintenance" and re.search(r"\b(no|not|never|possibly|potential|unclear|unknown|unconfirmed)\b.{0,40}\bmaintenance\b", text):
         return Proposal("unknown")
     if not complete_explanation(source, reason):
         return Proposal("unknown")
-    return Proposal(reason, span, artifact_type=artifact_type, reference=reference, scope_field=scope_field, downtime_us=downtime_us)
+    return Proposal(reason, span, reference=reference, scope_field=scope_field, downtime_us=downtime_us)
 
 
 def requested_filing_fields(text, names):
