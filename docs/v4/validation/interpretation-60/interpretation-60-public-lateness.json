@@ -1,0 +1,9 @@
+{
+  "case": "lateness_paraphrase",
+  "request_sha256": "9f5d8a9d9d94b6aaeb4dfdbc11f869f9de735f6af45206e578081111aba3e958",
+  "status": "REFUSED",
+  "authority": "proposal_only",
+  "scope": "self-authored public synthetic; not independent coverage or human review",
+  "error": "ValueError",
+  "detail": "The public proposal provider failed; no retry was attempted."
+}

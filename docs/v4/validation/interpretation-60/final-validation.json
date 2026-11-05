@@ -1,0 +1,43 @@
+{
+  "source_sha256": {
+    "uptime/correspondence.py": "a49baadb9572d0c55bedf2d3c3c0679679b1086bfe4975ed41256c565576a085",
+    "uptime/correspondence_api.py": "dbb182a852c47291061248a23aed5988019846e7857b6f7a1a7c90649ba24e99",
+    "uptime/correspondence_interpretation.py": "92b655f73142db363e52726ef55be742adca84b4618963fafe933597e964f3d9",
+    "uptime/correspondence_review.py": "204e28df815bb1094c87a57b1ba3ffd6914f56bcef4c46bdd8f80a61dc3e3acf",
+    "uptime/correspondence_model.py": "aefd7d71a4c52507fd88d33dfb304c570c074de68586c8fe9796059ea5f0166b",
+    "uptime/correspondence_model_transport.py": "bfee8881def469d7e459aaf3ea9b52d7816614eac260a5b99b56199b76f94fcb",
+    "web/interpretation.js": "fcb2bc1bd7ba1f8bd05cb19b2df14b90f05fdc6fd801fffd0ef1f3a0d16bc4f7",
+    "web/interpretation.css": "5777fbd2ea3cabbbf7e04942729c63760c6543b689bb3a727c2bce56f389c408",
+    "web/interpretation.html": "16bc760737cc8cd076ca527bb0d99bb0d953a1faaa1d34a5121d2ccfae4f0132",
+    "tests/test_correspondence_interpretation.py": "b8769e6de49ffe47e534da719e4fcf44b4cc8b38f5bbc3d41eea678dfff5b52f",
+    "tests/test_correspondence_interpretation_ui.py": "5ffe6a95eada376d8637e49c8880c251a85f9cba1b2c829dd0c5685eb0530171",
+    "tests/test_correspondence_model_transport.py": "3f4ca7acbc6769db8a8503c4a11f4046c1d51a758af7c4dd96a2c88d64c26d13",
+    "fixtures/correspondence/interpretation-60-public.json": "2c6823200964cf69a5802c6244d83af59fb0507f4817f133c8010369524ae8c8",
+    "fixtures/correspondence/interpretation-60-review.json": "7b0b8f9b68bd3df49ef03d6a419e60190de6f049805aad16892be1fd951e9749",
+    "fixtures/correspondence/interpretation-60-model-manifest.json": "1ce7422e569cb820a364f1f1f107fdf8c24a64241bff8358583157992abae8bd",
+    "fixtures/correspondence/interpretation-60-model-manifest-v2.json": "2db2784b4573843709b406cb157ff93bea21b78f72abfbca5e9f68a92fc902bb"
+  },
+  "tests": {
+    "pytest_passed": 456,
+    "node_passed": 6,
+    "browser_required": true,
+    "mutations_detected": 9,
+    "mutations_total": 9
+  },
+  "log_sha256": {
+    "dispute60-final-frozen-004.log": "1f5ccd5d16e4d29a7dcc693357fac8a7137497bf1936efcc11b6df81edece741",
+    "dispute60-node-001.log": "cdf1e4c15e6c812adf06bb625858dc9347e738d34084dcd8fa6e964eb6aa03e0"
+  },
+  "mutations_sha256": "77b8176299bb6fa017e9e6520abcaf52b9e597deaaf21eb3d144d9bb2ac7967d",
+  "public_proposals": {
+    "at_initial_measurement_valid": 1,
+    "after_complete_proposition_coverage_valid": 0,
+    "total": 4,
+    "compatible_without_correction": 0
+  },
+  "human_review_study": "NOT_RUN",
+  "private_supported_result_preserved": "0/50",
+  "private_review_abstention_preserved": "50/50",
+  "no_existing_tests_changed": true,
+  "notes": "Focused branch tests only; root runs full integration suite after merge. No private evaluator inputs inspected; no real vendor or financial actions."
+}

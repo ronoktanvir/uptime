@@ -1,0 +1,11 @@
+{
+  "schema": "uptime-public-model-disclosure/1",
+  "fixture_sha256": "2c6823200964cf69a5802c6244d83af59fb0507f4817f133c8010369524ae8c8",
+  "requests": {
+    "availability_paraphrase": "51daf71b5328b18ea04e7cd2a0784ed78dcaaa81f3132776d9183d9a66ebbd23",
+    "lateness_paraphrase": "9f5d8a9d9d94b6aaeb4dfdbc11f869f9de735f6af45206e578081111aba3e958",
+    "invoice_paraphrase": "61b9b2556fb4a463785f2cb80ee80c3910d539dd4e57f7a20ec280edb5058a3b",
+    "award_paraphrase": "1759ffe0a03d3eacefd930c8364d8435996d5d51f3905e96a3500d0320e7542e"
+  },
+  "scope": "Root-authorized public engineering experiment only; no private evaluator or customer text."
+}

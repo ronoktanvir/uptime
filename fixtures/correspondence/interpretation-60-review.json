@@ -1,0 +1,292 @@
+{
+  "schema": "uptime-interpretation-public-falsifiers/1",
+  "provenance": "Post-Opus60 preregistration; public synthetics before implementation; deterministic variations, not independent evaluation. Original 32-case corpus retained.",
+  "cases": [
+    {
+      "id": "variable_award_1",
+      "context": {
+        "scope_month": "2027-11",
+        "currency": "USD",
+        "local_filed_requested": "18.40"
+      },
+      "text": "Against your USD 18.40 claim, a service credit of USD 6.13 is now approved; the unapproved remainder is USD 12.27.",
+      "expected_proposal_family": "award"
+    },
+    {
+      "id": "variable_wrong_claim_1",
+      "context": {
+        "scope_month": "2027-11",
+        "currency": "USD",
+        "local_filed_requested": "18.40"
+      },
+      "text": "Your claim was USD 18.41. A service credit of USD 6.13 is now approved; the unapproved remainder is USD 12.27.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_award_2",
+      "context": {
+        "scope_month": "2028-02",
+        "currency": "USD",
+        "local_filed_requested": "46.25"
+      },
+      "text": "Against your USD 46.25 claim, a service credit of USD 15.41 is now approved; the unapproved remainder is USD 30.84.",
+      "expected_proposal_family": "award"
+    },
+    {
+      "id": "variable_wrong_claim_2",
+      "context": {
+        "scope_month": "2028-02",
+        "currency": "USD",
+        "local_filed_requested": "46.25"
+      },
+      "text": "Your claim was USD 46.26. A service credit of USD 15.41 is now approved; the unapproved remainder is USD 30.84.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_award_3",
+      "context": {
+        "scope_month": "2028-04",
+        "currency": "USD",
+        "local_filed_requested": "52.70"
+      },
+      "text": "Against your USD 52.70 claim, a service credit of USD 17.56 is now approved; the unapproved remainder is USD 35.14.",
+      "expected_proposal_family": "award"
+    },
+    {
+      "id": "variable_wrong_claim_3",
+      "context": {
+        "scope_month": "2028-04",
+        "currency": "USD",
+        "local_filed_requested": "52.70"
+      },
+      "text": "Your claim was USD 52.71. A service credit of USD 17.56 is now approved; the unapproved remainder is USD 35.14.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_award_4",
+      "context": {
+        "scope_month": "2028-12",
+        "currency": "USD",
+        "local_filed_requested": "83.15"
+      },
+      "text": "Against your USD 83.15 claim, a service credit of USD 27.71 is now approved; the unapproved remainder is USD 55.44.",
+      "expected_proposal_family": "award"
+    },
+    {
+      "id": "variable_wrong_claim_4",
+      "context": {
+        "scope_month": "2028-12",
+        "currency": "USD",
+        "local_filed_requested": "83.15"
+      },
+      "text": "Your claim was USD 83.16. A service credit of USD 27.71 is now approved; the unapproved remainder is USD 55.44.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_award_5",
+      "context": {
+        "scope_month": "2029-01",
+        "currency": "USD",
+        "local_filed_requested": "125.00"
+      },
+      "text": "Against your USD 125.00 claim, a service credit of USD 41.66 is now approved; the unapproved remainder is USD 83.34.",
+      "expected_proposal_family": "award"
+    },
+    {
+      "id": "variable_wrong_claim_5",
+      "context": {
+        "scope_month": "2029-01",
+        "currency": "USD",
+        "local_filed_requested": "125.00"
+      },
+      "text": "Your claim was USD 125.01. A service credit of USD 41.66 is now approved; the unapproved remainder is USD 83.34.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_award_6",
+      "context": {
+        "scope_month": "2027-11",
+        "currency": "USD",
+        "local_filed_requested": "4625.00"
+      },
+      "text": "Against your USD 4625.00 claim, a service credit of USD 1541.66 is now approved; the unapproved remainder is USD 3083.34.",
+      "expected_proposal_family": "award"
+    },
+    {
+      "id": "variable_wrong_claim_6",
+      "context": {
+        "scope_month": "2027-11",
+        "currency": "USD",
+        "local_filed_requested": "4625.00"
+      },
+      "text": "Your claim was USD 4625.01. A service credit of USD 1541.66 is now approved; the unapproved remainder is USD 3083.34.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_award_7",
+      "context": {
+        "scope_month": "2028-02",
+        "currency": "USD",
+        "local_filed_requested": "0.45"
+      },
+      "text": "Against your USD 0.45 claim, a service credit of USD 0.15 is now approved; the unapproved remainder is USD 0.30.",
+      "expected_proposal_family": "award"
+    },
+    {
+      "id": "variable_wrong_claim_7",
+      "context": {
+        "scope_month": "2028-02",
+        "currency": "USD",
+        "local_filed_requested": "0.45"
+      },
+      "text": "Your claim was USD 0.46. A service credit of USD 0.15 is now approved; the unapproved remainder is USD 0.30.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_award_8",
+      "context": {
+        "scope_month": "2028-04",
+        "currency": "USD",
+        "local_filed_requested": "250.01"
+      },
+      "text": "Against your USD 250.01 claim, a service credit of USD 83.33 is now approved; the unapproved remainder is USD 166.68.",
+      "expected_proposal_family": "award"
+    },
+    {
+      "id": "variable_wrong_claim_8",
+      "context": {
+        "scope_month": "2028-04",
+        "currency": "USD",
+        "local_filed_requested": "250.01"
+      },
+      "text": "Your claim was USD 250.02. A service credit of USD 83.33 is now approved; the unapproved remainder is USD 166.68.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_period_1",
+      "context": {
+        "scope_month": "2027-11",
+        "currency": "USD",
+        "local_filed_requested": "18.40"
+      },
+      "text": "For 2027-11, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "availability"
+    },
+    {
+      "id": "variable_wrong_period_1",
+      "context": {
+        "scope_month": "2027-11",
+        "currency": "USD",
+        "local_filed_requested": "18.40"
+      },
+      "text": "For 2028-02, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_period_2",
+      "context": {
+        "scope_month": "2028-02",
+        "currency": "USD",
+        "local_filed_requested": "46.25"
+      },
+      "text": "For 2028-02, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "availability"
+    },
+    {
+      "id": "variable_wrong_period_2",
+      "context": {
+        "scope_month": "2028-02",
+        "currency": "USD",
+        "local_filed_requested": "46.25"
+      },
+      "text": "For 2028-04, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_period_3",
+      "context": {
+        "scope_month": "2028-04",
+        "currency": "USD",
+        "local_filed_requested": "52.70"
+      },
+      "text": "For 2028-04, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "availability"
+    },
+    {
+      "id": "variable_wrong_period_3",
+      "context": {
+        "scope_month": "2028-04",
+        "currency": "USD",
+        "local_filed_requested": "52.70"
+      },
+      "text": "For 2028-12, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_period_4",
+      "context": {
+        "scope_month": "2028-12",
+        "currency": "USD",
+        "local_filed_requested": "83.15"
+      },
+      "text": "For 2028-12, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "availability"
+    },
+    {
+      "id": "variable_wrong_period_4",
+      "context": {
+        "scope_month": "2028-12",
+        "currency": "USD",
+        "local_filed_requested": "83.15"
+      },
+      "text": "For 2029-01, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "unsupported"
+    },
+    {
+      "id": "variable_period_5",
+      "context": {
+        "scope_month": "2029-01",
+        "currency": "USD",
+        "local_filed_requested": "125.00"
+      },
+      "text": "For 2029-01, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "availability"
+    },
+    {
+      "id": "variable_wrong_period_5",
+      "context": {
+        "scope_month": "2029-01",
+        "currency": "USD",
+        "local_filed_requested": "125.00"
+      },
+      "text": "For 2027-11, the promised uptime level was attained; this is the basis of our refusal.",
+      "expected_proposal_family": "unsupported"
+    }
+  ],
+  "review_protocol": {
+    "proposed_arms": [
+      "manual blind key-slot entry without any model proposal",
+      "blind key-slot entry, then model proposal with mandatory difference reconciliation",
+      "model-first proposal shown only in separately approved reviewer study"
+    ],
+    "seeded_wrong_proposal_fraction": "20%-30%",
+    "seeded_errors": [
+      "negation",
+      "conditionality",
+      "quotation/attribution",
+      "wrong period",
+      "partial/full amount",
+      "unknown objection mislabeled courtesy",
+      "bidi or zero-width rendering"
+    ],
+    "money_false_attest_policy": "Any observed unsafe attestation blocks an unattended money-changing policy; no claim of a statistically established zero error rate.",
+    "required_measurements": [
+      "false-attestation by family and seeded error",
+      "missed unsupported segments",
+      "review time",
+      "completed separately authorized workflow",
+      "provider usage and latency"
+    ],
+    "status": "NOT_RUN; no synthetic agent decision may be presented as a real human reviewer study"
+  }
+}
