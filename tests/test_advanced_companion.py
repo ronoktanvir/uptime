@@ -115,7 +115,7 @@ def test_viewer_and_disabled_gate_are_read_only(portal):
         page.evaluate('() => window.uptimeAuth.signOut()')
     app.state.auth.approvals_enabled = False
     login(page, origin, key)
-    assert page.get_by_role('button', name='Generate candidate', exact=True).is_disabled()
+    assert page.get_by_role('button', name='Generate candidate', exact=True).is_enabled()
 
 
 def test_source_audit_preserves_boundaries():

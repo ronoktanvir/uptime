@@ -283,7 +283,8 @@
     if (session) $('#account').textContent = 'Sign out · ' + session.subject;
     companionAccess = {identity:session?.subject, enrollment:policy.role,
       gate:session?.approvals_enabled === true ? 'Deployment approvals enabled; server rechecks every request' : 'Read-only deployment',
-      canWrite:signedPage && policy.role === 'reviewer' && session?.approvals_enabled === true};
+      canWrite:signedPage && policy.role === 'reviewer' && session?.approvals_enabled === true,
+      canDraft:signedPage && session?.role === 'reviewer' && session?.drafts_enabled === true};
     if (route === 'vendors' || route === 'disputes') return ui.render(content,route);
     if (route.startsWith('disputes/')) return ui.inspect(content,decodeURIComponent(route.slice(9)));
     if (route === 'regression') {

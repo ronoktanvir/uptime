@@ -51,7 +51,7 @@
     // A mutation with a lost response may have committed. Reconcile before retrying.
     let uncertain = false;
     const access = () => typeof options.getAccess === 'function' ? options.getAccess() || {} : {};
-    const writable = () => access().canWrite === true && !busy && !uncertain;
+    const writable = (draft = false) => (access().canWrite === true || draft && access().canDraft === true) && !busy && !uncertain;
     const el = (tag, text, cls) => { const n = doc.createElement(tag); if (text !== undefined) n.textContent = shown(text); if (cls) n.className = cls; return n; };
     const add = (node, ...children) => { children.filter(Boolean).forEach(child => node.append(child)); return node; };
     const section = title => add(el('section', undefined, 'v4-panel'), el('h2', title));
@@ -81,7 +81,7 @@
     function identity() {
       const a = access();
       const n = section('Identity & approval gate');
-      add(n, record({identity:a.identity, enrollment:a.enrollment, gate:a.gate}), note(a.canWrite === true ? 'Reviewer requests use the authenticated API client. The server checks each action.' : 'Read-only. Sign in from this page with an enrolled reviewer account and an enabled deployment gate to make changes. After a page reload, sign out and sign in again to restore signing.'));
+      add(n, record({identity:a.identity, enrollment:a.enrollment, gate:a.gate}), note(a.canWrite === true ? 'Reviewer requests use the authenticated API client. The server checks each action.' : a.canDraft === true ? 'Signed local draft intake, independent tests and previews are available. Promotion and financial actions require their separate authorization.' : 'Read-only. An enrolled reviewer can sign in here to stage a local draft. After a page reload, sign out and sign in again to restore signing.'));
       return n;
     }
     function field(form, name, title, type = 'text', required = true) {
@@ -97,15 +97,15 @@
       return input;
     }
     function sync() {
-      mounts.forEach(m => (m.writes || []).forEach(n => { n.disabled = !writable(); }));
+      mounts.forEach(m => (m.writes || []).forEach(n => { n.disabled = !writable(n.draftAllowed === true); }));
     }
     async function request(path, body) {
       if (typeof options.api !== 'function') throw new Error('Authenticated API client is not connected.');
       return body === undefined ? options.api(path) : options.api(path, body);
     }
     function status(m, message) { m.status.textContent = message; }
-    async function mutate(m, path, body, onSuccess) {
-      if (!writable() || mounts.get(m.root) !== m) return;
+    async function mutate(m, path, body, onSuccess, draft = false) {
+      if (!writable(draft) || mounts.get(m.root) !== m) return;
       busy = true; sync(); status(m, 'Submitting for server authorization…');
       let recorded = false, generatedCase = null;
       try {
@@ -132,15 +132,15 @@
         }
       }
     }
-    function form(m, title, fields, submitLabel, build, path) {
+    function form(m, title, fields, submitLabel, build, path, draft = false) {
       const panel = section(title), node = el('form', undefined, 'v4-form'), inputs = {};
       fields.forEach(([name, text, type, required]) => { inputs[name] = field(node, name, text, type, required); });
       const preview = el('div', undefined, 'v4-review');
       let reviewed = null;
-      const submit = el('button', submitLabel); submit.type = 'submit'; m.writes.push(submit);
+      const submit = el('button', submitLabel); submit.type = 'submit'; submit.draftAllowed = draft; m.writes.push(submit);
       node.addEventListener('submit', async event => {
         event.preventDefault();
-        if (!writable() || !node.reportValidity()) return;
+        if (!writable(draft) || !node.reportValidity()) return;
         try {
           const values = Object.fromEntries(Object.entries(inputs).map(([k, v]) => [k, v.value.trim()]));
           const body = build(values);
@@ -154,7 +154,7 @@
             status(m,'Review the request below, then confirm. Editing any field requires another review.');
             return;
           }
-          await mutate(m, destination, body);
+          await mutate(m, destination, body, undefined, draft);
         } catch (error) { status(m, error.message); }
       });
       node.addEventListener('input', () => { reviewed = null; preview.replaceChildren(); submit.textContent = submitLabel; });
@@ -195,7 +195,10 @@
       const base = '/api/vendors/' + encodeURIComponent(id);
       if (data.detail_unavailable) { n.append(note('Vendor details unavailable. Refresh before reviewing or changing this version.')); return n; }
       n.append(actions(m, data, base));
-      if (data.revision !== undefined && data.revision !== null) n.append(form(m, 'Independent tests & shadow evidence', [ ['tests','Test cases (JSON array: name, facts, expected)', 'textarea'] ], 'Submit independent tests', v => ({revision:data.revision,tests:parseJSON(v.tests,'tests')}), base + '/tests'));
+      if (data.revision !== undefined && data.revision !== null) {
+        n.append(form(m, 'Independent tests & shadow evidence', [ ['tests','Test cases (JSON array: name, facts, expected)', 'textarea'] ], 'Submit independent tests', v => ({revision:data.revision,tests:parseJSON(v.tests,'tests')}), base + '/tests', true));
+        n.append(form(m, 'Local shadow preview', [['facts','Shadow facts (JSON object)','textarea']], 'Preview candidate', v => ({revision:data.revision,facts:parseJSON(v.facts,'facts')}), base + '/shadow-preview', true));
+      }
       n.append(form(m, 'Evaluate the active adapter', [['facts','Contract-scoped facts (JSON object)', 'textarea']], 'Evaluate into a case', v => ({facts:parseJSON(v.facts,'facts')}), base + '/evaluate'));
       n.append(note('Facts require agreement, account, product, plan, month, eligible_downtime_minutes, monitor_source, month_complete, exclusions_removed, monthly_fee_cents, fee_line_ref, received_at, monitor_ref and fee_ref. Use observed values and explicit provenance.'));
       n.append(note('Evaluation uses the current server-approved adapter. Rollback affects new dispatch; historical cases retain their recorded version.'));
@@ -214,7 +217,7 @@
         ['vendor_id','Vendor identifier'], ['name','Document name'], ['uri','Public source URI','url'],
         ['classification','Public source classification',['public','synthetic_public']], ['text','Public contract excerpt or full text','textarea'],
         ['overlay','Private customer overlay (JSON object)','textarea']
-      ], 'Generate candidate', v => ({document:{name:v.name,uri:v.uri,classification:v.classification,text:v.text},overlay:parseJSON(v.overlay,'overlay')}), v => '/api/vendors/' + encodeURIComponent(v.vendor_id) + '/candidates'));
+      ], 'Generate candidate', v => ({document:{name:v.name,uri:v.uri,classification:v.classification,text:v.text},overlay:parseJSON(v.overlay,'overlay')}), v => '/api/vendors/' + encodeURIComponent(v.vendor_id) + '/candidates', true));
       m.body.append(note('Public terms and private customer scope remain separate. Unsupported clauses and missing evidence must remain explicit in the server decision.'));
       m.body.append(note('Overlay fields: agreement, account, product, plan, effective_from, effective_until, fee_line_ref and currency. Include only customer scope supported by the governing agreement.'));
       items.forEach(item => m.body.append(vendor(m, item)));
