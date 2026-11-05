@@ -7,7 +7,7 @@ import re
 from pydantic import Field, ValidationError
 
 from .contracts import DraftReviewer, Outcome, Principal, Source, fingerprint
-from .claim_identity import claim_key, vendor_economic_identity
+from .claim_identity import EconomicScopeReviewRequired, claim_key, vendor_economic_identity
 from .onboarding import _atomic
 from .storage import database, now, persist_case, _read_versions
 from .vendor_eval import evaluate, generated_checks, rate_for
@@ -419,6 +419,8 @@ def historical_economic_identity(path, tenant, case):
         raise ValueError('Historical evaluation has no exact bound observation.')
     try:
         return vendor_economic_identity(tenant, manifest, overlay, observations[0].get('month'), case['version'])
+    except EconomicScopeReviewRequired:
+        raise
     except (KeyError, ValueError, TypeError):
         if case.get('outcome') == Outcome.ELIGIBLE.value:
             raise ValueError('Eligible historical evaluation has unresolved economic scope.')

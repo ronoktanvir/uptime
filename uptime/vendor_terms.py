@@ -320,7 +320,11 @@ def bind_overlay(manifest, overlay):
         match = _match(FILING, override.quote.strip().removesuffix('.'))
         if not match or int(match[1]) != override.filing_days or not _match(NAME, override.source_ref):
             raise ValueError('Private filing amendment must cite the matching contract clause.')
-    return overlay.model_dump(exclude_none=True)
+    bound = overlay.model_dump(exclude_none=True)
+    if resource:
+        from .claim_identity import resource_remedy
+        resource_remedy(manifest, bound)
+    return bound
 
 
 # A reviewed artifact is coupled to the actual source installed in this process.
