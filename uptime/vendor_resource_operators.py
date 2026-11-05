@@ -115,7 +115,13 @@ _MONTH_CLIP = re.compile(
     r'\bcount(?:s|ed)? only\b.{0,38}\b(?:during|within|inside)\b.{0,22}\bmonth\b', re.I)
 
 
+def normalize_source_block(quote):
+    """Canonical whitespace for interpretation, retaining original source elsewhere."""
+    return ' '.join(quote.split())
+
+
 def interval_options(quote):
+    quote = normalize_source_block(quote)
     options = [name for name, patterns in _MEASURES.items() if _cites(patterns, quote)]
     if _MONTH_CLIP.search(quote):
         options.append('clip_to_month')

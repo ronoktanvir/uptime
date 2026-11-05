@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 from hashlib import sha256
 import re
 
-from .vendor_resource_operators import OPERATORS, PROMPT as OPERATOR_PROMPT, apply_operator, require_operative_mapping
+from .vendor_resource_operators import OPERATORS, PROMPT as OPERATOR_PROMPT, apply_operator, require_operative_mapping, normalize_source_block
 from .vendor_terms import _clauses, _validate_document, percent_units, MAX_PERCENT, NUMBER
 
 FAMILY = 'resource-month/1'
@@ -286,7 +286,7 @@ def _compile_resource(document, clauses, issues):
     all_text = document.text.casefold()
     columns = None
     for index, (row, (start,end,original)) in enumerate(zip(clauses,spans,strict=True),1):
-        quote = ' '.join(original.split())
+        quote = normalize_source_block(original)
         with _diagnostic(issues, manifest, index):
             values = row['value']
             header=_tier_columns(quote)
