@@ -120,3 +120,42 @@ def test_new_terms_cannot_be_silently_dropped_or_mislabeled(index):
     rows[index] = rows[index][0], {'nonmaterial': 'Notes.'}
     with pytest.raises(ValueError):
         compiled(*extend_source(rows))
+
+
+def test_reversed_table_columns_with_header_units_and_explicit_floors():
+    from test_vendor_resource import DOC, PROPOSAL
+
+    rows = [(' | Credit rate (% of fees) | Availability (%) |', {'nonmaterial': 'Table header.'}),
+            ('| 45 | < 98 |', {'tiers': [{'below': '98', 'credit': '45', 'at_least': None}]}),
+            ('| 12.5 | 98 ≤ uptime < 99 |', {'tiers': [{'below': '99', 'credit': '12.5', 'at_least': '98'}]})]
+    def compile_rows(rows):
+        proposal = deepcopy(PROPOSAL)
+        old = proposal[7]['quote']
+        proposal[7:8] = [{'quote': text.strip(), 'field': 'resource_terms', 'value': value} for text, value in rows]
+        document = DOC | {'text': DOC['text'].replace(old, '\n'.join(text.strip() for text, _ in rows))}
+        return compiled(document, proposal)
+
+    manifest = compile_rows(rows)
+    assert [(r['below_units'], r['credit_units']) for r in manifest['tiers']] == [(98000000, 45000000), (99000000, 12500000)]
+    bad_lower = list(rows)
+    bad_lower[2] = (rows[2][0].replace('≤', '<'), rows[2][1])
+    with pytest.raises(ValueError):
+        compile_rows(bad_lower)
+    bad_header = list(rows)
+    bad_header[0] = ('| Credit rate | Availability |', rows[0][1])
+    with pytest.raises(ValueError):
+        compile_rows(bad_header)
+
+
+def test_block_local_options_prevent_a_contextual_effect_on_scope_only_text():
+    from uptime.vendor_resource_operators import interval_options
+    from uptime.vendor_resource_terms import validate_filing
+
+    assert interval_options('This schedule covers a single observation station each month.') == []
+    assert set(interval_options('Count overlapping outages once and retain fractional minutes of elapsed time.')) == {
+        'union_overlaps', 'exact_elapsed'}
+    wrongly_attached = [('This schedule covers north and south stations each month.', {'interval_measurement': ['exact_elapsed']})]
+    with pytest.raises(ValueError, match='Block .* field interval_measurement'):
+        compiled(*extend_source(wrongly_attached))
+    policy = {'kind': 'billing_cycles', 'count': 2, 'utc_time': None, 'endpoint': 'whole_cycle'}
+    validate_filing(policy, 'Requests are due by the close of the second full billing cycle after the service month.')
