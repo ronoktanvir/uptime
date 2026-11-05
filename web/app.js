@@ -16,6 +16,8 @@
       'Synthetic customer evidence':'Customer evidence','Synthetic status documentation and customer mapping':'Status documentation and account mapping',
       'Synthetic gross invoice cap rehearsal':'Invoice cap review','Candidate future-service credit (synthetic, unsubmitted)':'Estimated future-service credit',
       'Simulated award':'Awarded credit',
+      'Record scoped simulated credit':'Record scoped credit','Apply simulated credit to the matched eligible bill':'Apply credit to the matched eligible bill',
+      'Total unique recorded simulated activity, including partial awards and comparison cases; not actual customer recovery.':'Recorded activity at this financial stage.',
       'Deterministic synthetic fixture evaluated; nothing submitted':'Deterministic evaluation completed',
       'Replay clock advanced to the first permitted follow-up time.':'Follow-up eligibility time updated.'};
     return names[raw] || raw.replace(/^Synthetic fee line:/,'Fee line:').replace(/^Synthetic signatures:/,'Agreement version:').replace(/^Synthetic invoice issued;/,'Invoice issued;');
@@ -118,7 +120,7 @@
     const head = heading('Evidence ledger', 'Unpaid invoice exposure and the current recovery case. Each figure belongs to a separate financial stage.');
     head.append(el('div', 'as-of', `Updated ${display(data.as_of)}`));
     const metrics = el('section', 'metrics'); metrics.setAttribute('aria-label', 'Financial stages');
-    list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', presentationLabel(metric.label)), el('div', 'metric-value', metric.value), el('p', '', metric.note), sources(metric.sources))));
+    list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', presentationLabel(metric.label)), el('div', 'metric-value', metric.value), el('p', '', presentationLabel(metric.note)), sources(metric.sources))));
     if (!metrics.children.length) metrics.append(empty('No financial metrics returned.'));
     const ledger = el('section', 'panel ledger'), controls = el('div', 'filters');
     const search = el('input'); search.type = 'search'; search.placeholder = 'Vendor or case'; search.value = filters.query;
