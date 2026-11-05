@@ -84,5 +84,6 @@ The earlier table preserves its inspected-source status. The following decisions
 - [54 — Signed plan references within the filing join](ADR-0054-signed-plan-reference-completion.md)
 - [55 — Onboarding operator consistency and public diagnostics](ADR-0055-onboarding-operator-consistency.md)
 - [56 — Bounded vendor-response coverage](ADR-0056-bounded-vendor-response-coverage.md)
+- [57 — Bind the visible Ramp demo to its own installation](ADR-0057-native-demo-installation-identity.md)
 
 Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.

@@ -1,5 +1,9 @@
 """Prove the sandbox installation identity without retaining the business profile or tokens."""
 from urllib.parse import urlencode
+from datetime import UTC, datetime
+from hashlib import sha256
+import json
+import re
 from .ramp import RampError, Token, SCOPE, uuid_text
 
 DISCOVERY_SCOPES = frozenset({
@@ -33,3 +37,34 @@ def current_business(provider):
     # No business names, addresses, tax records or contact fields are retained.
     response = provider._http("GET", "business", {"Authorization": "Bearer " + token.value})
     return uuid_text(response.get("id"))
+
+
+def browser_bill_id(url):
+    """Only the exact native bill route observed through the supported Ramp UI."""
+    match = re.fullmatch(r'https://demo[.]ramp[.]com/bill-pay/bills/list/([0-9a-f-]{36})', url) if isinstance(url, str) else None
+    if match is None:
+        raise RampError('Exact observed sandbox bill URL required')
+    return uuid_text(match[1])
+
+
+def verify_browser_bill(provider, url):
+    """Read-only one-object association. A caller-supplied URL is not browser attestation."""
+    from .ramp_records import sanitize_bill
+    ident = browser_bill_id(url)  # Reject destination confusion before any network operation.
+    business = current_business(provider)
+    token = provider.token({'bills:read'})
+    if not token.exact:
+        raise RampError('Exact bills:read grant required')
+    record = provider.request(token, 'GET', 'bills/'+ident)
+    if not isinstance(record, dict) or record.get('id') != ident:
+        raise RampError('Browser bill does not match the API response')
+    projection = sanitize_bill(record)
+    digest = sha256(json.dumps(projection, sort_keys=True, separators=(',',':'), allow_nan=False).encode()).hexdigest()
+    return {'schema':'uptime-ramp-browser-association/1', 'status':'ONE_BILL_READ_VERIFIED',
+            'observed_at':datetime.now(UTC).isoformat(), 'origin':'https://demo-api.ramp.com',
+            'business_id':business, 'bill_id':ident, 'browser_url':url,
+            'browser_url_source':'OPERATOR_SUPPLIED_OBSERVED_URL', 'bill_record_sha256':digest,
+            'client_id_sha256':getattr(provider,'client_fingerprint',None),
+            'verified_read_scopes':['business:read','bills:read'],
+            'write_attempted':False, 'inventory_comparison':False,
+            'note':'Local observation receipt; no provider signature, write authority or recovered money.'}
