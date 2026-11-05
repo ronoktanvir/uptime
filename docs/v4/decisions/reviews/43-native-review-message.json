@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:57:23.150191+00:00",
+  "packet_sha256": "90e7810040c3278067b42ebf78594e302831595e4472a5e4dfc44575a640c408",
+  "prompt_sha256": "d2dfdfd3144e17d5be7a7e5e9b239beb437aa54c1c08c3f60c04d7f76ce937bb",
+  "status": "REVIEWED",
+  "session": "e690a4c1-f845-4663-a001-58577a327665",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound direction, but only the unbound template is justified today. The observed bill has no signed terms, and the constructed cap must never drive output.\n\n**Alternatives:**\n- **Free-text summary:** Rejected. It leaks amounts and terms, and it opens an injection path.\n- **Hashes only:** Easy to audit, but the approver gets no reason to act.\n- **Two fixed templates:** The right middle ground, at the cost of rigidity and some template maintenance.\n\n**Strongest objection:** \"Review contracted unit pricing\" reads as an implied overcharge claim. It also rests on a single operator's attestation. \"Checked provenance\" is not defined: who checks it, against what, and is it independent of the operator?\n\n**Unsupported claims:**\n- The controller \"can post.\" The sandbox lacks a write OAuth grant.\n- Templates \"expose nothing.\" Which template is chosen reveals whether a binding exists.\n- Ramp thread fields can carry a UUID and digest natively. This is unverified.\n\n**Required constraints:**\n- Both templates are fixed and byte-pinned, with no interpolation.\n- Re-check tenant/account, bill ID, version and amount digest, and terms validity (not revoked, expired or disputed) at sign time and again at the write boundary.\n- Each approval is single-use and bound to bill, tenant and digest.\n- Use an idempotency key, keep the outbox and reconcile it.\n- Zero-difference or ambiguous cases fall back to the unbound template.\n- Money fields stay null.\n\n**Falsification tests:**\n- Revoke terms between signing and POST: the post must abort.\n- Replay an approval on another bill or tenant: it must be rejected.\n- Mutate the bill after signing: it must be rejected.\n- Drop the reply: there must be no duplicate post.\n- Put injection text in the vendor name: it must not appear in output.\n\n**Human authorization needed:** A Ramp admin must grant write scope, and a named owner must approve live posting and the attestation policy."
+}

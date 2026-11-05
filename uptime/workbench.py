@@ -461,6 +461,12 @@ class Workbench:
 
     def case(self, principal, case_id):
         self.require_tenant(principal)
+        workspace=getattr(self,"native_workspace",None)
+        if workspace and case_id.startswith(("ramp-","rehearsal-cap-")):
+            try:
+                return self._present(workspace.detail(case_id))
+            except KeyError:
+                pass
         inbox=self._inbox_case(principal, case_id)
         if inbox is not None:
             return self._present(self._correspondence(principal, inbox))

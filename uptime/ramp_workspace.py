@@ -1,16 +1,18 @@
 """The companion workbench reads verified Ramp observations. Only the operator imports new records."""
 import json
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 
 from fastapi import Depends
 
 from .contracts import Source, fingerprint
-from .storage import database, persist_case
+from .storage import case_versions, database, persist_case
 from .ramp import ORIGIN, RampError, uuid_text
 from .ramp_records import load_snapshot, _validate_snapshot
 from .ramp_findings import evaluate_snapshot
 from .ramp_credit_sync import RampCreditSync
+from .ramp_terms_store import RampTermsStore
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGED = ROOT / "fixtures/ramp/native-observed.json"
@@ -56,7 +58,7 @@ def credit_observation(snapshot):
 
 
 class RampWorkspace:
-    def __init__(self, bench):
+    def __init__(self, bench, *, award_office=None):
         self.bench=bench
         self.path=bench.path
         self.tenant=bench.tenant
@@ -69,6 +71,17 @@ class RampWorkspace:
                 status TEXT NOT NULL CHECK(status IN ('pending','ready')),
                 PRIMARY KEY(tenant,digest))""")
         self.credits=RampCreditSync(self.path)
+        self.terms = RampTermsStore(self.path)
+        self.native_binding = None
+        self.awards = None
+        if award_office is not None:
+            from .ramp_award_attribution import AwardAttributionStore, load_office_config
+            config = load_office_config(award_office)
+            _, custody, business = self._observation()
+            if (self.mode != "sandbox" or custody != "operator_import" or
+                    (config.tenant, config.business_id) != (self.tenant, business)):
+                raise ValueError("Award verification office must match the installed sandbox business")
+            self.awards = AwardAttributionStore(self.path, config)
 
     def import_observation(self, snapshot, business_id):
         """Publish an import after the idempotent credit projection succeeds. Retrying resumes an interrupted import."""
@@ -128,12 +141,23 @@ class RampWorkspace:
         fresh=timedelta(0)<=as_of-observed<=timedelta(hours=24)
         status={"integrity":"CHECKSUM_VERIFIED","freshness":"HISTORICAL_REPLAY" if self.mode=="replay" else "FRESH" if fresh else "STALE",
                 "custody":custody,"external_writes":False}
-        rows=evaluate_snapshot(snapshot,as_of=as_of)
+        bindings, omissions = self._bindings(snapshot, custody, business)
+        rows=evaluate_snapshot(snapshot,bindings=bindings,as_of=as_of)
+        simulated = {b.object_id for b in bindings if b.terms_mode == "SYNTHETIC_NEGOTIATED"}
+        if simulated:
+            rows.extend(r for r in evaluate_snapshot(snapshot,as_of=as_of)
+                        if r["provider_object_type"] == "bills" and r["provider_id"] in simulated)
+        status["price_terms"]={"verified_bindings":len(bindings),"omissions":omissions}
         for row in rows:
             row.update(workspace_tenant=self.tenant,business_id=business,capture_mode=custody,mode=self.mode,
                        observed_at=snapshot["observed_at"],actual_recovery=None)
             row["sources"]=list(dict.fromkeys([*row["sources"],Source.REPLAY.value]))
         return dict(snapshot,status=status),rows,custody,business
+
+    def _bindings(self, snapshot, custody, business):
+        if self.mode != "sandbox" or custody != "operator_import" or business is None:
+            return (), []
+        return self.terms.resolve(self.tenant, business, snapshot)
 
     def record_for_native(self,object_type,object_id):
         snapshot,custody,business = self._observation()
@@ -145,6 +169,19 @@ class RampWorkspace:
         completed=datetime.fromisoformat(snapshot["completed_at"])
         if not observed <= completed <= now <= observed+timedelta(hours=24):
             raise PermissionError("Capture expired or after the decision clock")
+        bindings, _ = self._bindings(snapshot, custody, business)
+        actual = tuple(b for b in bindings if b.object_id == object_id and b.terms_mode == "OPERATOR_ATTESTED")
+        if actual:
+            reviewed = next((r for r in evaluate_snapshot(snapshot, bindings=actual, as_of=now)
+                             if r["provider_object_type"] == object_type and r["provider_id"] == object_id), None)
+            if (reviewed and reviewed["data_provenance"]["classification"] == "PROVIDER_WITH_OPERATOR_EVIDENCE"
+                    and reviewed["native_status"] == "OPEN" and reviewed["outcome"] == "ELIGIBLE"
+                    and reviewed["amount"] is not None and Decimal(reviewed["amount"]) > 0):
+                return dict(reviewed, workspace_tenant=self.tenant,business_id=business,observed_at=snapshot["observed_at"],
+                            capture_mode=custody, native_review_reason="ATTESTED_PRICE_EXCEPTION",
+                            price_outcome="PRICE_EXCEPTION", terms_provenance={
+                                "mode":"OPERATOR_ATTESTED","integrity":"VERIFIED","operator_context_verified":True,
+                                "digest":actual[0].terms_evidence_digest})
         rows=evaluate_snapshot(snapshot, as_of=completed)
         for record in rows:
             if record["provider_object_type"]==object_type and record["provider_id"]==object_id:
@@ -152,7 +189,7 @@ class RampWorkspace:
                         or record["data_provenance"]["classification"] != "PROVIDER_OBSERVATION"):
                     raise PermissionError("Native informational review requires a factual observation")
                 return dict(record, workspace_tenant=self.tenant,business_id=business,observed_at=snapshot["observed_at"],
-                            finding_kind="NATIVE_OBSERVATION", capture_mode=custody)
+                            finding_kind="NATIVE_OBSERVATION", capture_mode=custody, native_review_reason="EVIDENCE_REQUIRED")
         raise KeyError(object_id)
 
     def _cap_case(self,snapshot):
@@ -199,6 +236,17 @@ class RampWorkspace:
             projection={"id":case["provider_id"],"kind":"bill","amount":case["native_amount"]}
         case["native_projection"]=projection
         case["native_workflow"]=self._plan(case)
+        native_case_id=f"ramp-{case['provider_object_type']}-{case['provider_id']}"
+        revisions=(case_versions(self.path,self.tenant,native_case_id)
+                   if snapshot["status"]["custody"]=="operator_import" else [])
+        case["native_audit"]={
+            "capture_digest":snapshot["checksum"],"observed_at":snapshot["observed_at"],
+            "custody":snapshot["status"]["custody"],
+            "record_digest":record_digest,
+            "calculation_digest":case.get("finding_digest"),
+            "terms_binding_digest":provenance.get("binding_digest") if isinstance(provenance,dict) else None,
+            "import_revisions":[{"revision":r["revision"],"digest":r["digest"]} for r in revisions],
+        }
         return case
 
     def workflow(self,case_id):
@@ -209,21 +257,24 @@ class RampWorkspace:
         obj=case["provider_object_type"]
         destination=case["provider_id"]
         supported=obj in {"bills","draft-bills","transactions"}
-        simulated=case.get("finding_kind")=="SYNTHETIC_INVOICE_CAP"
+        simulated=Source.CUSTOMER.value in case.get("sources",[])
+        enabled_surface=obj=="bills" and not simulated
         return {"object_type":obj,"object_id":destination,"finding_digest":case.get("finding_digest"),
                 "method":"POST" if supported else None,"path":f"/developer/v1/comments/{obj}/{destination}" if supported else None,
-                "status":"SIMULATION_ONLY" if simulated else "REVIEW_REQUIRED" if supported else "NO_DISCUSSION_ENDPOINT",
+                "status":"SIMULATION_ONLY" if simulated else "REVIEW_REQUIRED" if enabled_surface else "SUPPORTED_PROVIDER_ONLY" if supported else "NO_DISCUSSION_ENDPOINT",
                 "required_scope":("transactions:write" if obj=="transactions" else "bills:write") if supported else None,
                 "delivery":"NOT_SENT","approval_trigger_instance_id":None,"sources":case["sources"],
                 "note":"A signed exact-object decision and current provider grant are required to publish. A native comment supplies review evidence.",
                 "actual_money_prevented":None,"actual_recovery":None}
 
     def overview(self):
-        snapshot,rows,custody,_=self._view()
+        snapshot,rows,custody,business=self._view()
         cap=self._cap_case(snapshot)
         if cap:
             rows=[cap,*rows]
         state=self.credits.summary(self.tenant)
+        attribution=(self.awards.summary(self.tenant,business) if self.awards else
+                     {"status":"NO_VERIFICATION_OFFICE","actual_recovery":None,"external_writes":False})
         receipt=json.loads(PROOF.read_text()) if PROOF.exists() and self.tenant=="bears" else {}
         grants=receipt.get("scope_grants",{})
         return dict(source_mode="UNAVAILABLE" if snapshot is None else "REPLAY_OF_RAMP_SANDBOX" if self.mode=="replay" else "SAVED_RAMP_SANDBOX_READ",
@@ -231,7 +282,9 @@ class RampWorkspace:
                     resources=[dict(name=name,status=r["status"],complete=r["complete"],count=len(r["records"]),issues=r["issues"])
                                for name,r in (snapshot or {}).get("resources",{}).items()],
                     records=[{k:c.get(k) for k in COLUMNS} for c in rows],
-                    credit_sync={"journal":state,"captured_credits":len(snapshot["resources"]["credits"]["records"]) if snapshot else None,
+                    credit_sync={"journal":state,"captured_credits":len(snapshot["resources"]["credits"]["records"])
+                                 if snapshot and snapshot["resources"]["credits"]["status"] in {"COMPLETE","EMPTY","PARTIAL","TRUNCATED"} else None,
+                                 "verified_award_attribution":attribution,
                                  "attributable_real_recovery":None},
                     writeback={"scope_receipt_at":receipt.get("observed_at"),"comment":grants.get("bills:write","NOT_MEASURED"),
                                "blank_canvas":grants.get("blank_canvas:write","NOT_MEASURED"),"mode":"requires exact reviewed permission",
@@ -239,8 +292,8 @@ class RampWorkspace:
                     portfolio_note="Ramp records own financial status. Separate Uptime evidence and hypothetical findings carry their source labels.")
 
 
-def register_ramp_workspace(app,bench,auth):
-    workspace=RampWorkspace(bench)
+def register_ramp_workspace(app,bench,auth,*,award_office=None):
+    workspace=RampWorkspace(bench,award_office=award_office)
     app.state.ramp_workspace=bench.native_workspace=workspace
 
     @app.get("/api/ramp/workspace")

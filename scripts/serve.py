@@ -24,6 +24,7 @@ def main():
     parser.add_argument("--db", type=Path, default=Path("runtime/workbench-v4.sqlite"))
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--native-config", type=Path, help="Optional protected installation-specific native workflow config")
+    parser.add_argument("--award-office", type=Path, help="Protected verification office for provider-confirmed awards and credit attribution")
     parser.add_argument("--source-config", type=Path, help="Protected offline LOCAL_SYNTHETIC source grants")
     parser.add_argument("--open", action="store_true", help="Open the local sign-in page")
     parser.add_argument("--enroll", metavar="ACCOUNT", help="Provision a named account offline and exit")
@@ -77,7 +78,7 @@ def main():
         from uptime.source_config import SourceRegistry
         sources = SourceRegistry(args.source_config, args.mode, base, args.tenant) if args.source_config else None
         app = create_app(args.db, mode=args.mode, origin=base, tenant=args.tenant, approvals_enabled=args.enable_local_approvals,
-                         service_credentials=sources, native_config=args.native_config)
+                         service_credentials=sources, native_config=args.native_config, award_office=args.award_office)
         if sources:
             sources.config.bind(app.state.correspondence)
         if args.open:

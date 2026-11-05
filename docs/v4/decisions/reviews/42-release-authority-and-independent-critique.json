@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:55:51.943103+00:00",
+  "packet_sha256": "086d2d29d76122e94cf6b5e17ec808b886addb9d429eb8d86a3fe997b54991c5",
+  "prompt_sha256": "f277084cca5b6fecc13a112e0da72a63f52edd8f19a22936721f8099b7e20a9a",
+  "status": "REVIEWED",
+  "session": "3ad587d9-dc08-4fc7-8eab-9af2fbb16edf",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Release controls.** Today's check has a trivial false pass: any `{\"executed\":true}` under a PASS label. B closes the schema gap but leaves three: receipts not bound to the tested build digest, replay of stale receipts, and self-generated \"independent\" evidence. Choose B now; C only matters with multiple operators. Falsifiers:\n\n- Flip one app byte after the receipts are made.\n- Submit a minimal executed-only file.\n- Replay old receipts.\n- Submit schema-valid receipts with failing counts.\n- Swap the holdout set.\n\nAll must fail. \"Passed after retries\" is not a pass; report attempt counts. A refusal is not positive evidence. With no witness, four-green stays unclaimed.\n\n**Ramp.** The demo misleads if viewers infer write capability, money movement, real credits, or production behavior. The synthetic cap over a real bill invites confusion; label it in the UI. Open bugs:\n\n- Freshness gap between read and write (TOCTOU)\n- Currency and rounding in reciprocal amounts\n- Comment-template injection\n- Outbox idempotency under retry\n- Blank Canvas mixed up with authorization\n\nCertify read-only capture and digest binding only. Do not certify writes, publishing, or credits.\n\n**Dispute receipts.** Linking strengthens provenance only if the vendor's signing key is enrolled out-of-band. Otherwise forged replies inherit a genuine filing's credibility. Until then, reject external historical cases.\n\n**Unsupported claims:** \"independently issued/endorsed/witnessed\" (by whom?) and \"prior reviews recorded\" (no artifacts).\n\n**Human authorization needed:** release sign-off, any write grant, vendor-key enrollment."
+}
