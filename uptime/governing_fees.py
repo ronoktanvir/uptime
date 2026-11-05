@@ -136,8 +136,11 @@ class FeeRegistry:
             identity=(entry.tenant,scope.account,scope.vendor,scope.contract,scope.service,entry.plan,scope.month,entry.fee_line_id)
             if identity in financial:
                 raise ValueError('Duplicate or overlapping fixed monthly fee registrations are ambiguous.')
+            key=_scope_key(entry.tenant,scope)
+            if key in indexed:
+                raise ValueError('Duplicate authenticated lookup scope is ambiguous regardless of plan or fee line.')
             financial.add(identity);ids.add(entry.entry_id)
-            indexed[_scope_key(entry.tenant,scope)]=entry
+            indexed[key]=entry
         self._entries=MappingProxyType(indexed)
         self._digests=MappingProxyType({key:fingerprint(_canonical(value)) for key,value in indexed.items()})
         self._dependency=dependency_digest();self._active=True
@@ -189,7 +192,7 @@ class FeeRegistry:
         rates=[r for r in version.rates if r.product==scope['service']] if version else []
         if len(rates)!=1 or rates[0].fixed_monthly is None:
             raise ValueError('The governing contract must explicitly fix one monthly subscription unit.')
-        result=evaluate_price(entry.agreement,entry.invoice)
+        result=evaluate_price(entry.agreement,entry.invoice,as_of=as_of)
         matches=[x for x in result.lines if x.line_id==entry.fee_line_id and x.product==scope['service']]
         if result.overcharge is None or len(matches)!=1 or matches[0].expected is None:
             raise ValueError('Complete governing fee pricing is unresolved.')
@@ -252,3 +255,31 @@ def require_governing_fee(context,manifest,overlay,facts,tenant):
             !=(manifest['vendor'],overlay['agreement'],overlay['account'],overlay['product'],overlay['plan'],overlay['fee_line_ref'],facts.get('month'))):
         raise ValueError('Governing fee context scope or source interpretation does not match this evaluation.')
     return context
+
+
+class GoverningFeeRequired(ValueError):
+    """Current pricing authority is absent; archived artifacts remain readable."""
+
+
+def current_contexts(path,tenant,authority=(),trusted_now=None):
+    """Explicit application-owned authority only; no path/global authority cache."""
+    if type(authority) is FeeRegistry:
+        clock=trusted_now or (lambda:datetime.now(UTC))
+        return authority.contexts_from_inbox(path,tenant,as_of=clock())
+    if type(authority) is not tuple:
+        raise TypeError('Explicit FeeRegistry or tuple of current issued contexts is required.')
+    return authority
+
+
+def context_for_digest(path,tenant,digest,manifest,overlay,facts,authority=(),trusted_now=None):
+    if not isinstance(digest,str) or not _DIGEST.fullmatch(digest):
+        raise GoverningFeeRequired('Current governing-fee authority is required.')
+    matches=[]
+    for context in current_contexts(path,tenant,authority,trusted_now):
+        if getattr(context,'digest',None)!=digest:
+            continue
+        try:matches.append(require_governing_fee(context,manifest,overlay,facts,tenant))
+        except (ValueError,TypeError,KeyError):continue
+    if len(matches)!=1:
+        raise GoverningFeeRequired('Recorded governing-fee evidence is absent, ambiguous or no longer current.')
+    return matches[0]

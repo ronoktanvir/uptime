@@ -44,3 +44,21 @@ def test_signature_specimen_is_integrity_only_and_source_tampering_refuses(tmp_p
     copied=tmp_path/'package';shutil.copytree(ROOT,copied)
     (copied/'order-form.txt').write_text((copied/'order-form.txt').read_text().replace('12,000.00','13,000.00'))
     with pytest.raises(ValueError,match='input changed'):verify_package(copied)
+
+
+def test_settlement_cites_unchanged_sla_and_authored_memo_has_one_identity():
+    from fixtures.northwind.loader import build_fee_registry
+    package=load_package();settlement=package['settlement'];unchanged=settlement['unchanged_sla']
+    assert unchanged['sla_source_sha256']==package['manifest']['document']['sha256']
+    assert unchanged['citation_id']=='amendment-2026-03.txt:4'
+    assert unchanged['citation']['quote'].startswith('3. Unchanged terms.')
+    assert 'completed-step SLA credits' in unchanged['citation']['quote']
+    assert package['correspondence']['credit_decision']['event_id']==package['correspondence']['credit_decision']['credit_id']=='NW-CM-2026-01'
+    assert package['correspondence']['credit_decision']['known_at']=='2026-03-02T13:00:00Z'
+    assert len(build_fee_registry(package)._entries)==4
+    assert [r['month'] for r in package['months']]==['2026-01','2026-02','2026-03']
+    quotes=settlement['source_quotes']
+    assert any('USD 11000.00' in q['quote'] for q in quotes['pricing'])
+    assert any('invoiced exactly' in q['quote'] for q in quotes['pricing'])
+    assert any('each completed 0.1' in q['quote'] for q in quotes['sla'])
+    assert '5. Restated rate schedule.' in (ROOT/'amendment-2026-03.txt').read_text()

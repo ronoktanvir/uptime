@@ -34,7 +34,7 @@ def test_public_signed_setup_and_scripted_calyx_history_preserve_unknowns(tmp_pa
         assert value['reviewer']['principal']==SCRIPT and value['reviewer']['authority_kind']=='SCRIPTED_REVIEWER'
         assert value['onboarding']['state']=='ACTIVE'
         assert any(row['event']=='Roll back activation' for row in value['onboarding']['history'])
-        assert value['price_finding']['amount'] is None
+        assert value['price_finding']['amount']=='1000.00'
         assert value['ledger']['posted']==value['ledger']['applied']=='0.00'
         assert value['next_actions'][0]['label']=='Approve January claim' and value['connection']['receipt_status']=='NOT_POSTED'
         assert [(m['outcome'],m['amount']) for m in value['months']]==[('ELIGIBLE','2400.00'),('INELIGIBLE',None),('INSUFFICIENT_EVIDENCE',None)]
@@ -77,7 +77,8 @@ def test_real_services_complete_denial_cure_award_and_idempotent_post(tmp_path):
         assert stages==['CLAIM_APPROVED','AWAITING_VENDOR','NEEDS_EVIDENCE','NEEDS_EVIDENCE','RESPONSE_DRAFTED',
                         'RESPONSE_APPROVED','AWAITING_VENDOR','AWARDED','AWARDED']
         assert after['ledger']['claimed']==after['ledger']['awarded']==after['ledger']['posted']=='2400.00'
-        assert after['ledger']['applied']=='0.00' and after['next_actions']==[]
+        assert after['ledger']['applied']=='0.00' and after['next_actions'][0]['label']=='Receive next invoice'
+        assert after['ledger']['bill']['id'] is None
         assert after['connection']['receipt_status']=='VERIFIED_LOCAL_READBACK'
         assert after['ledger']['record_ids']['credit'].startswith('local-ledger:')
         claim=app.state.bench.case(Principal('bears',SCRIPT,'reviewer'),'inbox-northwind-2026-01')
@@ -92,7 +93,7 @@ def test_real_services_complete_denial_cure_award_and_idempotent_post(tmp_path):
     finally:client.close()
 
 
-@pytest.mark.parametrize('position',[0,1,2,3,4,5,6,7,8])
+@pytest.mark.parametrize('position',[0,1,2,3,4,5,6,7,8,9,10])
 def test_restart_after_each_domain_effect_completes_same_intent_without_second_effect(tmp_path,position):
     app,client,actor,private=seeded(tmp_path)
     try:
@@ -108,6 +109,100 @@ def test_restart_after_each_domain_effect_completes_same_intent_without_second_e
             result=setup.checked(reviewer.post('/api/workspace/workflow/actions/'+offer['id'],{}))
             assert setup.checked(reviewer.post('/api/workspace/workflow/actions/'+offer['id'],{}))==result
     finally:client.close()
+
+
+def test_april_only_application_preserves_march_exposure_and_distinct_versions(tmp_path):
+    from uptime.storage import database
+    app,client,actor,_=seeded(tmp_path)
+    try:
+        for _ in range(9):advance(client,actor)
+        before=read(client,actor)
+        assert before['as_of'].startswith('2026-03-02') and before['ledger']['bill']['id'] is None
+        with database(app.state.bench.path) as db:
+            assert db.execute('SELECT 1 FROM inbox_claim WHERE id=?',(app.state.workflow.bill_claim_id,)).fetchone() is None
+        received=advance(client,actor)
+        bill=received['ledger']['bill']
+        assert received['as_of'].startswith('2026-04-01')
+        assert bill['id']=='NW-2026-04' and bill['original_amount']==bill['outstanding_amount']=='11000.00'
+        assert bill['issued_at']==bill['service_start']=='2026-04-01T00:00:00+00:00'
+        assert bill['governing_pricing_version']=='amendment-v2'
+        assert bill['award_eligibility_version']==before['claim']['eligibility_version']
+        final=advance(client,actor)
+        assert final['ledger']['applied']=='2400.00' and final['ledger']['bill']['outstanding_amount']=='8600.00'
+        assert final['ledger']['unapplied_credit']=='0.00' and final['next_actions']==[]
+        assert final['price_finding']['amount']=='1000.00' and final['price_finding']['credit_applied']=='0.00'
+        with pytest.raises(KeyError):app.state.bench.allocations.bill_balance('bears','NW-2026-03')
+    finally:client.close()
+
+
+@pytest.mark.parametrize('point',['after-clock','after-invoice-source-0','after-invoice-source-1','after-invoice-source-2','after-invoice-authority'])
+def test_april_intake_interruption_resumes_without_duplicate_capacity(tmp_path,point):
+    app,client,actor,private=seeded(tmp_path)
+    try:
+        for _ in range(9):advance(client,actor)
+        offer=read(client,actor)['next_actions'][0]
+        app.state.workflow.failure_point=point
+        assert actor.post('/api/workspace/workflow/actions/'+offer['id'],{}).status_code==500
+        with pytest.raises(KeyError):app.state.bench.allocations.bill_balance('bears','NW-2026-04')
+        client.close()
+        new,_,_=setup.open_workspace(tmp_path/'owned')
+        with TestClient(new,base_url=DEFAULT_ORIGIN,client=('127.0.0.1',1234)) as second:
+            reviewer=ReviewerClient(second,DEFAULT_ORIGIN,SCRIPT,private['rehearsal_secret'])
+            result=setup.checked(reviewer.post('/api/workspace/workflow/actions/'+offer['id'],{}))['workflow']
+            assert result['ledger']['bill']['outstanding_amount']=='11000.00'
+            assert setup.checked(reviewer.post('/api/workspace/workflow/actions/'+offer['id'],{}))['workflow']==result
+            assert advance(second,reviewer)['ledger']['bill']['outstanding_amount']=='8600.00'
+    finally:client.close()
+
+
+@pytest.mark.parametrize('field,value',[('account','other'),('currency','EUR'),('source_ref','unbound'),('issued_at','2026-03-01T00:00:00Z')])
+def test_changed_scope_currency_reference_or_date_cannot_create_capacity(tmp_path,field,value):
+    app,client,actor,_=seeded(tmp_path)
+    try:
+        for _ in range(9):advance(client,actor)
+        offer=read(client,actor)['next_actions'][0]
+        app.state.workflow.settlement['opening_capacity'][field]=value
+        assert actor.post('/api/workspace/workflow/actions/'+offer['id'],{}).status_code==409
+        assert app.state.bench.allocations.list_bills('bears')==[]
+    finally:client.close()
+
+
+def test_missing_independent_capacity_verification_cannot_create_bill(tmp_path,monkeypatch):
+    app,client,actor,_=seeded(tmp_path)
+    try:
+        for _ in range(9):advance(client,actor)
+        deliver=app.state.workflow.deliver
+        async def omit(claim,event):
+            return None if event.body.kind=='billing_verification' else await deliver(claim,event)
+        monkeypatch.setattr(app.state.workflow,'deliver',omit)
+        offer=read(client,actor)['next_actions'][0]
+        assert actor.post('/api/workspace/workflow/actions/'+offer['id'],{}).status_code==409
+        assert app.state.bench.allocations.list_bills('bears')==[]
+    finally:client.close()
+
+
+def test_live_fee_revocation_removes_case_estimate_and_existing_response_action(tmp_path):
+    app,client,actor,_=seeded(tmp_path)
+    try:
+        for _ in range(6):advance(client,actor)
+        old=read(client,actor)['next_actions'][0]
+        app.state.workflow.governing_fees.close()
+        value=read(client,actor)
+        assert value['next_actions']==[] and value['months'][0]['amount'] is None
+        assert actor.post('/api/workspace/workflow/actions/'+old['id'],{}).status_code==409
+    finally:client.close()
+
+
+def test_browser_jwk_is_same_scripted_identity_and_private_file(tmp_path):
+    import stat
+    from uptime.auth_keys import public_bytes,rehearsal_key
+    app,private,_=setup.prepare(tmp_path/'browser',DEFAULT_ORIGIN)
+    path=tmp_path/'browser'/'scripted-reviewer.jwk'
+    key=json.loads(path.read_text())
+    assert stat.S_IMODE(path.stat().st_mode)==0o600 and key['uptime_rehearsal'] is True
+    assert public_bytes(key)==public_bytes(rehearsal_key(private['rehearsal_secret']))
+    with TestClient(app,base_url=DEFAULT_ORIGIN,client=('127.0.0.1',1234)) as client:
+        assert ReviewerClient(client,DEFAULT_ORIGIN,SCRIPT,key)
 
 
 def test_crash_after_clock_advance_resumes_without_backdating_or_reusing_prior_action(tmp_path):

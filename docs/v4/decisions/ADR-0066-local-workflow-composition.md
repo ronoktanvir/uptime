@@ -35,3 +35,15 @@ The first provider increment `24dbed1` passes 15 focused controls: exact UUID re
 This walkthrough cannot establish real governing customer terms, actual human promotion, independent external credit evidence, or native Ramp write/readback/application. Their historical gates remain separate. No human accuracy, independent-review or screenshot truthfulness study is inferred from scripted test success.
 
 Rollback removes only the configured local workspace/provider files after preserving its receipts. Existing customer workspaces, V3 history, private corpora and live proof records are untouched.
+
+## Completed composition and Decision68 correction
+
+The implemented service path uses an application-owned FeeRegistry and trusted event clock. Current catalog controls, approval/activation, saved case projections and correspondence re-resolve the already authenticated invoice evidence. Fee registry closure removes current monetary estimates/actions while immutable history remains. The exact fee context digest enters the correspondence approval version; the governing pricing version remains a separate field.
+
+Decision68 selects a separate April1 invoice instead of applying to the existing March invoice. The allocation date guard is unchanged. The fixed receive-next-invoice intent advances monotonically to the authored availability, creates the exact April source scope, and receives the invoice, an invoice-detail artifact containing the opening capacity, and a linked billing verification under distinct customer/billing keys. Exact hashes, roles, full scope, link, chronology, original source and unchanged-SLA citation are checked before capacity intake. Partial source writes and capacity intake resume under the same intent and immutable IDs. No April metadata is exposed by the workflow before availability.
+
+The ledger uses the original awarded SLA eligibility version because the cited authored amendment explicitly preserves the SLA/remedy; it separately retains April's pricing amendment version, invoice/source hash and original issue/service/known dates. April11000 minus applied2400 leaves8600. March's1000 exposure is unresolved and receives no allocation. This bounded case does not define a general legal meaning for every use of “future invoice.”
+
+The fixture setup now creates a0600 browser P-256 JWK derived from the existing rehearsal key. Its marker and actual principal remain scripted-test-reviewer. Dana Reyes remains only a display alias; no human account is enrolled. Setup finishes before serving requests, and the public extraction opt-in is restored immediately after the accepted CalyxQuay installation.
+
+Final focused evidence:86 passing tests, plus11 actual socket actions with duplicate-response and separate GET readback equality. The public socket receipt is retained under `docs/v4/validation/northwind/final-socket.json`. Root performs the complete integration suite and browser verification. These results establish local service/ledger execution and recovery, not real-party authority, actual provider issuance, external model generalization or native Ramp recovery.

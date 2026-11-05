@@ -27,9 +27,9 @@
           "quantity_scope": "complete_performance_slice",
           "boundary": "upper_inclusive",
           "fixed_monthly": {
-            "source_text": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 12000.00. Invoice quantity must equal one; taxes are separate and excluded.\n",
+            "source_text": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 12000.00. Invoice quantity must equal one; taxes are separate and excluded.\nFor Cloud Hosting, the fixed monthly subscription may be invoiced exactly at the UTC calendar month's start or after that month ends; the charge does not depend on usage.\n",
             "source_file": "order-monthly-rate.txt",
-            "source_sha256": "77fbd2378fb7475979cda3a5a54c5280953ec26410fe72f6f98594444b5b14e5",
+            "source_sha256": "a68183fcd6e51710dd3fdfb616766badafbb0c51f439dc0e5cb58191fbf5ab93",
             "citation": {
               "document": "Order Form NW-2026-001 monthly rate schedule",
               "version": "order-v1",
@@ -53,7 +53,7 @@
       "tax_treatment": "separate_excluded",
       "rounding": "line_half_up_cent",
       "source_file": "order-form.txt",
-      "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8"
+      "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7"
     },
     {
       "id": "amendment-v2",
@@ -78,9 +78,9 @@
           "quantity_scope": "complete_performance_slice",
           "boundary": "upper_inclusive",
           "fixed_monthly": {
-            "source_text": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 11000.00. Invoice quantity must equal one; taxes are separate and excluded.\n",
+            "source_text": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 11000.00. Invoice quantity must equal one; taxes are separate and excluded.\nFor Cloud Hosting, the fixed monthly subscription may be invoiced exactly at the UTC calendar month's start or after that month ends; the charge does not depend on usage.\n",
             "source_file": "amendment-monthly-rate.txt",
-            "source_sha256": "6667e899c409de21b00ba125ca0c7e1de507ff144ce7bac514a77c3aa47e7fa4",
+            "source_sha256": "08fdd4121142a2d935f97edf672a50cbd8cab9b4d83ce6153d62a4cd9506feb0",
             "citation": {
               "document": "Amendment 1 to NW-2026-001 monthly rate schedule",
               "version": "amendment-v2",
@@ -104,7 +104,7 @@
       "tax_treatment": "separate_excluded",
       "rounding": "line_half_up_cent",
       "source_file": "amendment-2026-03.txt",
-      "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7"
+      "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6"
     }
   ]
 }

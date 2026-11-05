@@ -42,3 +42,17 @@ The intermediate merge d90286b full run retained2,828 passes and9 failures. The 
 The projection retains exact original governing quote text, offsets, quote digest and full source digest under contract documents and price citations. The signed setup test verifies the11000 amendment quote and digest without normalizing source bytes. This targeted control passed.
 
 `scripts/rehearse_northwind.py` sends only empty authenticated action bodies over actual loopback HTTP. It verifies the server's mode/tenant/origin, database instance and package digest, repeats each action with a fresh proof to check idempotency, and separately GETs the resulting state. The first real-socket run completed all9 actions through2400 locally posted; all9 duplicate responses and readbacks matched. Receipt: `W/receipts/northwind-socket-posted-001.json`. Application remains0 and March outstanding capacity remainsunknown. This intermediate receipt predates the final current-fee repair and April settlement input; it is not the final walkthrough or native Ramp proof. The owned server was stopped afterward.
+
+## Final66/68 integration
+
+No pre-66 assertion changed in this final increment. Exact updates to newly added66 tests:
+
+- `test_public_signed_setup_and_scripted_calyx_history_preserve_unknowns`: March price now expects1000.00 after approved advance pricing; March SLA remains unknown/null. January remains2400, February ineligible/null. Added raw quote digest checks.
+- `test_real_services_complete_denial_cure_award_and_idempotent_post`: after posting, expects the newly available Receive next invoice operation instead of the earlier temporary end state; asserts no April bill is visible yet.
+- `test_restart_after_each_domain_effect_completes_same_intent_without_second_effect`: extends positions0–8 to0–10, adding invoice receipt and application crash recovery.
+
+Added April-only balance/version/non-netting, five interruptions between clock/source/authority/capacity stages, changed scope/currency/reference/date refusal, missing linked verifier refusal, live governing-fee revocation, and owner-only browser JWK identity tests. The repaired registry and trusted clock are explicitly forwarded through catalog/current views, Workbench and correspondence resolution. No global authority cache is used.
+
+Final focused run: **86 passed**, one dependency deprecation warning,69.99s; `W/receipts/northwind-final-focused-001.log`. Final actual socket run completed **11/11 actions**, all duplicate-click responses and independent GET readbacks equal. The retained public [socket receipt](validation/northwind/final-socket.json) shows January2400 claimed/awarded/posted/applied, April11000 original/8600 remaining, unapplied credit0, March1000 exposure still unresolved and March credit allocation0. April's issued date, service start and capacity date are April1; the server exposes no April invoice before the receive action. Each financial stage is separate, not additive.
+
+Both real-socket servers owned by this workstream were stopped after verification. Root owns the final mandatory integration-wide suite and browser click-through. Scripted authority and Local ledger receipts are not real-human or native Ramp proof. The final setup output change prints only account/path/listener metadata before serving; no key bytes or rehearsal secret are printed.
