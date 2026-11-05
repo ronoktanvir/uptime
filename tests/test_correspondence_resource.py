@@ -404,3 +404,25 @@ def test_counterparty_independently_measures_bulletins_and_net_remaining_issuanc
     assert "conflicting records" in adjudicate_resource(packet, replace(vendor, issued_credits_cents=(("x",12),("x",13))), filed_at)
     covered = replace(vendor, bulletins=(("2026-06-05T00:00:00Z","2026-06-05T10:50:00Z","2026-06-04T22:00:00Z"),))
     assert "meet the contract threshold" in adjudicate_resource(packet, covered, filed_at)
+
+
+def test_replies_are_bound_to_latest_observed_filing_and_exact_predecessor(env, tmp_path, monkeypatch):
+    install_statements(env, tmp_path, monkeypatch)
+    common = dict(observed_at=env.now.isoformat(), submitted_to="claims@example.invalid")
+    original = dict(kind="original_filing_receipt", receipt_id="history-812", source_ref="mail-source-a",
+                    received_at="2026-07-02T10:00:00Z", fields=[], **common)
+    supplement = dict(kind="supplement_filing_receipt", receipt_id="history-823", source_ref="mail-source-b",
+                      original_ref="history-812", received_at="2026-07-03T10:00:00Z", fields=[], **common)
+    deliver(env, [("vendor-fixture", original)])
+    def note(receipt, text="Please supply the incident journal.", event_id="note-A"):
+        return env.source("vendor-fixture", dict(kind="message", text=text, receipt_id=receipt), event_id=event_id)
+    assert note("another-id").status_code == 409
+    assert note("history-812").status_code == 200
+    assert note("history-812").status_code == 200
+    assert len(env.read()["replies"]) == 1 and env.read()["submissions"] == []
+    assert env.source("vendor-fixture", original | {"source_ref":"equivocation"}, event_id="another-original").status_code == 409
+    assert env.source("vendor-fixture", supplement | {"original_ref":"different"}).status_code == 409
+    deliver(env, [("vendor-fixture", supplement)])
+    assert note("history-812", "The filing window expired.", "stale").status_code == 409
+    assert note("history-823", "We approved a service credit of USD 3.00.", "note-B").status_code == 200
+    assert len(env.read()["replies"]) == 2 and env.read()["ledger"]["awarded"] == "0.00"
