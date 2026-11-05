@@ -1,0 +1,9 @@
+Post-score public harness check on candidate 532c8d8e9e3ff08a1759202285bf644b0decf756: 72/72 pass against reviewed public expectations, with 1 documented cross-sentence-pronoun override.
+
+Supported public cases: 18/18 exact passes. Required-review public controls: 54/54 safe abstentions. Unsafe false accepts: 0.
+
+The same direct propose invocation and field serialization were used with each public case's declared Decimal claim amount and scope month. The original public fixture was not changed. The documented late_bound_prior_claim policy override was applied only to scoring.
+
+All original private observations, scores, and seals remain byte-identical. The independent result remains supported coverage 0/50, mandatory-review safe abstention 50/50, and unsafe false accepts 0/50. Public fixture success confirms interface parity; it does not establish private-language coverage.
+
+Observation seal SHA-256: eaceaeb43bfc045a3cf5fd005d27dbdd385602c2ba07f10356308b00e4998acf

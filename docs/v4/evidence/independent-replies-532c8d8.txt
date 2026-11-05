@@ -1,0 +1,15 @@
+Candidate 532c8d8e9e3ff08a1759202285bf644b0decf756 returned unknown for all 100 independent replies. Supported-positive family coverage and exact passes: 0/50. Supported-positive safe abstentions: 50/50. Mandatory-review safe abstentions: 50/50. Unsafe false accepts: 0/50. All 8 labelled metamorphic controls safely abstained.
+
+Coverage by supported family: availability 0/12; late original filing 0/12; artifact requests 0/14; definite awards 0/12. Exact award amount coverage: 0/12. Explicit-reference coverage: 0/14. No observer exceptions, wrong-family outputs, or incorrect extracted fields occurred; every output was unknown with empty fields.
+
+Two separate public harness controls confirmed direct raw string input, Decimal('37.50'), scope_month='2027-02', and the imported archived module path. The late-filing control returned time_bar; the award control returned unknown. The observer therefore can return a supported reason and is not forcing unknown. The 100 private inputs have no shared serialized wrapper, and no text was silently stripped.
+
+The observer ran against an archive of the exact commit with network connections blocked and never consumed gold. All raw observations were sealed before scoring. One private-corpus attempt is preserved. A scoring-file preparation SyntaxError was preserved separately; it caused no gold read or candidate rerun. The public harness controls are separate from the corpus denominator.
+
+This result demonstrates no observed unsafe acceptance but no supported-language coverage. All trusted contexts use February 2027 / USD 37.50, so context generalization is untested. The component family has no positive coverage.
+
+Corpus manifest SHA-256: 1253b8211a992c00ee40ed21b00ccc64207cbfd10d2813aec098026059f0d0b2
+Observation seal SHA-256: e10ab91d85ae521c665143cfceec205b186f502bfa87415b43a829b39bcb91ed
+Source module SHA-256: fb990a30585081b99521b10f274446db9b7e67c51252836be24d3dce8bacae6e
+Source archive SHA-256: 3c25266f5b957046f7d6f66b54d8d69f9ccef6b84569a7192af4c6fb14e8ef72
+Candidate tree: 16e1c963a607ff1858625118ad29b4c3ddae212d

@@ -1,0 +1,71 @@
+{
+  "schema": "uptime-native-connection-public-summary/1",
+  "observed_at": "2026-11-05T06:34:30.089813+00:00",
+  "environment": "LIVE_RAMP_SANDBOX",
+  "source_commit": "797c3d0fa1560291cc99d6a08a7b8bacbbb1d344",
+  "same_browser_bill_read_verified": true,
+  "original_profile_exact_bill_read_http": 404,
+  "different_provider_business_verified": true,
+  "profile_separate": true,
+  "bills_write_grant": {
+    "observed_at": "2026-11-05T06:37:24.865674+00:00",
+    "requested": "bills:write",
+    "granted": [
+      "bills:write"
+    ],
+    "scope_reported": true,
+    "exact": true,
+    "writes_attempted": false
+  },
+  "capture_sha256": "67f0c9b50391d5b5624930e50b70c9e44ffa2ca93cd8609cb99fa11b7d2657d8",
+  "resources": {
+    "bills": {
+      "status": "COMPLETE",
+      "count": 6,
+      "complete": true
+    },
+    "vendors": {
+      "status": "TRUNCATED",
+      "count": 12,
+      "complete": false
+    },
+    "transactions": {
+      "status": "TRUNCATED",
+      "count": 12,
+      "complete": false
+    },
+    "agreements": {
+      "status": "EMPTY",
+      "count": 0,
+      "complete": true
+    },
+    "purchase_orders": {
+      "status": "TRUNCATED",
+      "count": 12,
+      "complete": false
+    },
+    "credits": {
+      "status": "EMPTY",
+      "count": 0,
+      "complete": true
+    },
+    "approvals": {
+      "status": "TRUNCATED",
+      "count": 11,
+      "complete": false
+    },
+    "comments": {
+      "status": "EMPTY",
+      "count": 0,
+      "complete": true
+    }
+  },
+  "writes_attempted": false,
+  "actual_recovery": null,
+  "receipt_sha256": {
+    "new-profile-association.json": "7ae792d19329348e45e30bc49ae0290057dac66c460453bd2d066df46ac46b78",
+    "old-profile-negative-control.json": "4a4948ef44f258d356d1c231d3b52401c627390fbb5c1de7b5c4c6a27deee051",
+    "new-profile-write-grant.json": "1213afdca2d681af179b305d4169dd8c4c7747e93df3ca9e8ecb0b0bb9adc460",
+    "new-profile-capture.json": "ed81c6952bdd1019addaeba53ffb222d4dc80dd6a1fedd02992b4544b863c53a"
+  }
+}

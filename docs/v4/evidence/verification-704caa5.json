@@ -1,0 +1,18 @@
+{
+  "schema": "uptime-public-verification/1",
+  "commit": "704caa5",
+  "measurement": "POST_MERGE_PYTHON_REGRESSION",
+  "python": {
+    "passed": 2607,
+    "failed": 0,
+    "warnings": 1,
+    "seconds": 164.84,
+    "exit_code": 0,
+    "log_sha256": "1e13096e17b7c2c9e3c8a864626faafb8601dd70b3df2e117c08b0045b582fc2"
+  },
+  "limitations": [
+    "Local regression only; not independent generalization or human approval.",
+    "JavaScript and independent audit results remain separately pinned to 797c3d0."
+  ],
+  "recorded_at": "2026-11-05T06:56:23.332669+00:00"
+}

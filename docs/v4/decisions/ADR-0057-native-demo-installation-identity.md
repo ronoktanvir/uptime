@@ -1,6 +1,6 @@
 # ADR 0057 — Bind the visible Ramp demo to its own installation
 
-Status: implementation in progress; administrator registration and native write proof pending.
+Status: implemented; user-created registration, protected setup, exact browser/API association and write-scope grant verified. Native write proof remains pending.
 
 ## Decision and alternatives
 
@@ -24,6 +24,6 @@ Opus's claim that registration write scopes necessarily appear on every token is
 
 Required new checks: both adapters use the shared loader; unsafe files, JSON and origins fail without secrets; default and explicit profiles remain distinct; process profile changes cannot switch a running writer; exact observed URL/bill and business checks refuse cross-account joins. Existing native tests cover same-thread delivery, unknown outcomes, revocation and no resend. Source-bound results will be added after execution.
 
-The 42 new custody/association tests pass. The initial combined run also passed 135 existing Ramp/native/workspace tests; four new fixture-construction failures were repaired (missing test authentication and entity fields) before the 42-test rerun. These are local protocol/filesystem checks. The actual read-only negative control returned HTTP 404 for the observed UI bill under the unchanged original profile; its private receipt is `receipts/ramp-connection-57/old-profile-negative-control.json`. No positive new-profile association or native write is claimed.
+The 42 new custody/association tests pass. The initial combined run also passed 135 existing Ramp/native/workspace tests; four new fixture-construction failures were repaired (missing test authentication and entity fields) before the 42-test rerun. These are local protocol/filesystem checks. The actual read-only negative control returned HTTP 404 for the observed UI bill under the unchanged original profile; its private receipt is `receipts/ramp-connection-57/old-profile-negative-control.json`. The user subsequently completed registration, approved the seven scopes and approved protected local storage. The new app reads the identical browser bill UUID and returns a different business UUID from the original profile. Its exact `bills:write` token grant is verified. Capture `67f0c9b50391d5b5624930e50b70c9e44ffa2ca93cd8609cb99fa11b7d2657d8` is imported into a separate database and tenant; original data is preserved. The 704caa5 integration passed 2,607 Python tests. These observations establish a new connection, not the historical cause of the original registration mismatch. No native write is claimed. See the [sanitized connection evidence](../evidence/native-demo-connection-20261104.json).
 
 Stop the new installation before removing its profile selection. Keep its database and outbox. Restarting with an incompatible business must fail the existing binding. Do not overwrite the old credential file, reclassify its captures, delete remote comments or resend uncertain writes.

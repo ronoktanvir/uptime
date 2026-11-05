@@ -2,7 +2,7 @@
 
 Ramp owns the bill, transaction, payee, procurement record, approval state and vendor-credit utilization. Uptime maintains the associated contract interpretation, evidence, disputes and reviewer decisions. A finding becomes visible to an approver in Ramp only after a supported write to a specific Ramp object succeeds. The evidence inspector can run independently of that write.
 
-## Observed in this sandbox on November 4, 2026
+## Historical original-application observations, November 4, 2026
 
 The registered app used the client-credentials grant on `demo-api.ramp.com`. The first capture listed six bills and fetched each by its own UUID, including an open, pending USD 840 bill. All six used expense lines without a unit quantity or a unit rate. The list-agreements query completed with zero results. At least five transactions and five purchase orders were readable in the first bounded queries. The active vendor-credit query completed with zero results. The preliminary approval query omitted required entity IDs and returned HTTP 422. The subsequent bounded sync supplied real object IDs and returned eleven approval records. Its other sample counts were six bills, twelve payees, twelve card transactions and twelve purchase orders. Only the bill list and the empty agreement and credit lists completed. The provider also confirmed the sandbox business ID through the business read grant. A token with the right scope alone cannot establish that an object-level operation has succeeded. [Discovery and grants](evidence/ramp-discovery.json)
 
@@ -13,6 +13,8 @@ The app obtained `vendors:read`, `bills:read`, `transactions:read`, `purchase_or
 ### Signed-in demo association check, November 4 local time
 
 The newly signed-in Ramp UI exposed a pending bill with a different UUID from the original credential's pending bill. An exact read using the original app returned HTTP 404; the complete original six-bill list also omitted the UI UUID. The visible Developer Apps view had no app rows. These facts require a separately verified connection and do not diagnose why the registrations differ. The agent prepared the Uptime registration, leaving developer agreement acceptance and credential creation to the administrator. No native comment or draft mutation has been sent. See [demo connection](RAMP-DEMO-CONNECTION.md).
+
+The human subsequently created the app in that signed-in demo, approved the seven requested scopes and authorized protected local credential storage. The new app reads the exact UI bill. Its business UUID differs from the old app's business UUID. An actual token request now returns the exact `bills:write` grant. This corrects the current permission status; it does not retrospectively diagnose whether the old app's omitted grants came from configuration or entitlement. No remote write was attempted under either app. [Current connection evidence](evidence/native-demo-connection-20261104.json)
 
 The signed-in browser advertised WebMCP tools for native page context, tables and unsaved editors. This is an observed browser capability; the earlier absence of a connected standalone Ramp MCP plugin remains a separate fact. The actual observed bill route was `/bill-pay/bills/list/{UUID}`. A new read-only association checker accepts that exact observed route and verifies its UUID through the API, without inventing an ERP deep link.
 

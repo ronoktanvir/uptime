@@ -1,0 +1,38 @@
+{
+  "source_commit": "797c3d0fa1560291cc99d6a08a7b8bacbbb1d344",
+  "source_stable": true,
+  "pytest": {
+    "collected": 2422,
+    "collection_sha256": "6ed747249392cce7687364dcd5e1dfd6bfbcafabba1d761ab992e9320203cb9a",
+    "counts": {
+      "passed": 2422
+    },
+    "exit_code": 0
+  },
+  "node": {
+    "collected": 34,
+    "collection_sha256": "c6d12c942ee1798e3d93edab93ed208c4e97f56b0e8562b8d2cf23d600e9c869",
+    "counts": {
+      "passed": 34
+    },
+    "exit_code": 0,
+    "files": [
+      "web/app.test.cjs",
+      "web/browser-contract.test.cjs",
+      "web/ramp_ui.test.cjs",
+      "web/v4_ui.test.cjs"
+    ]
+  },
+  "audit": {
+    "counts": {
+      "PASS": 118
+    },
+    "release_pass": true,
+    "baseline_verified": true
+  },
+  "receipt_sha256": {
+    "frozen-797c3d0-regression.json": "62a58f4b100aa869f5b4c0a0ead03cf7ceeb303628ef6a731dc7529560922e33",
+    "frozen-797c3d0-audit.json": "6bc65ce625a789f561a58781ca08ca96a1d0932d48d9e15c83472f86390461ef"
+  },
+  "qualification": "Passing these tests does not establish unseen-language generalization, actual human approval, native writeback or production readiness."
+}
