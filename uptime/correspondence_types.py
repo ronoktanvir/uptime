@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_vali
 Id = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$", max_length=96)]
 Name = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9 ._/-]{0,94}[A-Za-z0-9]$|^[A-Za-z0-9]$", max_length=96)]
 Amount = Annotated[str, StringConstraints(pattern=r"^(0|[1-9][0-9]{0,11})(\.[0-9]{1,2})?$", max_length=15)]
+Digest = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 
 
 class Strict(BaseModel):
@@ -205,6 +206,46 @@ class ResourceInvoice(Report):
     lines: list[ResourceLine] = Field(min_length=1, max_length=300)
 
 
+class ServiceRecord(Report):
+    plan: Name
+    complete: bool
+    recorded_at: Annotated[str, StringConstraints(max_length=40)]
+    content_sha256: Digest
+
+    @field_validator("recorded_at")
+    @classmethod
+    def record_time(cls, value):
+        return instant(value).isoformat()
+
+
+class AggregateMonitor(Strict):
+    source: Literal["simulated_vendor"]
+    unavailable_minutes: int = Field(ge=0, le=44640)
+
+
+class ServiceMonitor(ServiceRecord):
+    kind: Literal["service_monitor"]
+    content: AggregateMonitor
+
+
+class ServiceFee(Strict):
+    ref: Id
+    kind: Name
+    category: Name
+    amount_cents: int = Field(ge=0, le=10**15)
+
+
+class PaidServiceInvoice(Strict):
+    currency: Annotated[str, StringConstraints(pattern="^[A-Z]{3}$")]
+    paid: bool
+    lines: list[ServiceFee] = Field(min_length=1, max_length=300)
+
+
+class ServiceInvoice(ServiceRecord):
+    kind: Literal["service_invoice"]
+    content: PaidServiceInvoice
+
+
 class MaintenanceRecord(Interval):
     ref: Id
     account: Id
@@ -312,7 +353,6 @@ class FilingMaterial(Report):
 
 
 ArtifactType = Literal["resource_log", "invoice_detail", "scope_mapping"]
-Digest = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 
 
 class ReviewedTerms(Strict):
@@ -361,7 +401,7 @@ class Delivery(Strict):
     event_id: Id
     scope: Scope
     body: Annotated[Status | Coverage | Impact | Component | Notice | Invoice | Message | ResourceStatus
-                    | ResourceAttribution | ResourceInvoice | BillingCalendar | ProviderTelemetry | CustomerTelemetry | CustodianAttestation | PortalResponse
+                    | ResourceAttribution | ResourceInvoice | ServiceMonitor | ServiceInvoice | BillingCalendar | ProviderTelemetry | CustomerTelemetry | CustodianAttestation | PortalResponse
                     | FilingMaterial | RequestEvidence | HistoricalReceipt | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification, Field(discriminator="kind")]
 
 
@@ -372,5 +412,6 @@ class Empty(Strict):
 SOURCE = dict(status="status", coverage="status", impact="customer", component="customer", notice="customer",
               invoice="billing", message="vendor", original_filing_receipt="vendor", supplement_filing_receipt="vendor", resource_status="status", resource_attribution="customer", customer_telemetry="customer", provider_telemetry="status",
               custodian_attestation="customer", portal_response_receipt="vendor",
+              service_monitor="status", service_invoice="billing",
               resource_invoice="billing", billing_calendar="billing", maintenance_evidence="customer", prior_credit_evidence="billing", account_conditions="customer", filing_material="customer", request_evidence="customer", artifact="customer",
               status_verification="status", billing_verification="billing")

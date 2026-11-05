@@ -199,5 +199,7 @@ def apply_response_state(state, current):
         state["stage"] = "NEEDS_EVIDENCE"
     elif reply["reason"] == "time_bar" and instant(current.procedure["filed_at"]) >= instant(current.procedure["cutoff"]):
         state["stage"] = "DENIAL_ACCEPTED"
+    elif reply["reason"] == "availability" and current.procedure.get("threshold_met"):
+        state["stage"] = "DENIAL_ACCEPTED"
     else:
         state["stage"] = "HUMAN_REVIEW"
