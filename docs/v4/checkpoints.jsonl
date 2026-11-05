@@ -1,0 +1,5 @@
+{"at": "2026-11-05T00:21:01.063761+00:00", "component": "onboarding", "commit": "1668396b91fbc001824c70a0eb47d99b14adc757", "command": "uv run --locked pytest -q", "exit": 1, "last": ["1 failed, 999 passed, 1 warning in 26.82s"]}
+{"at": "2026-11-05T00:23:13.655584+00:00", "component": "dispute", "commit": "940cd4524bc50c549fb2621bb6865ad95e3e9c53", "command": "uv run --locked pytest -q", "exit": 0, "last": ["1029 passed, 1 warning in 32.26s"]}
+{"at": "2026-11-05T00:26:13.077488+00:00", "component": "portfolio", "commit": "0bc8d905a0287fa63b45441ff8dddb828b1dd3d2", "command": "uv run --locked pytest -q", "exit": 0, "last": ["1047 passed, 1 warning in 63.30s (0:01:03)"]}
+{"at": "2026-11-05T00:29:52.694938+00:00", "component": "authenticated-scope", "commit": "8393fc5ef57cf1bb1e1df055b281f79e4ce338bd", "command": "uv run --locked pytest -q", "exit": 1, "last": ["1 failed, 1051 passed, 1 warning in 91.22s (0:01:31)"]}
+{"at": "2026-11-05T00:31:58.980555+00:00", "component": "authority-evidence", "commit": "a52fede043a5a6ed2d8de4c970dbf54fbce73afb", "command": "uv run --locked pytest -q", "exit": 1, "last": ["1 failed, 1124 passed, 1 warning in 97.11s (0:01:37)"]}
