@@ -595,7 +595,9 @@ class CorrespondenceDesk:
                     for e in state["evidence"]]
         for item, fact in zip(evidence, state["evidence"]):
             body = fact["body"]
-            item.update({k:body[k] for k in ("source_ref","observed_at","artifact_ref","artifact_type","body_sha256","linked_ref") if k in body})
+            item.update({k:body[k] for k in ("source_ref","observed_at","recorded_at","content_sha256","source_id","monitor_ref",
+                        "artifact_ref","artifact_type","body_sha256","linked_ref","ticket_id","response_ref",
+                        "original_ref","message_ref","response_kind","delivered_at") if k in body})
             if fact["kind"] in HISTORICAL:
                 item.update({k:body[k] for k in ("receipt_id","original_ref","submitted_to") if k in body})
                 item["filed_at"] = body["received_at"]

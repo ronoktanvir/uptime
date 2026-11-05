@@ -17,6 +17,7 @@ from .twilio import calendar_bounds
 from .vendor_api import make_router
 from .vendor_registry import evaluate_active_db
 from .correspondence_resource import exclusive_cutoff, join_resource
+from .correspondence_service import join_service, service_procedure
 from .correspondence_history import procedure
 from .correspondence_artifacts import HISTORICAL
 from .correspondence_artifacts import SUPPLEMENTS
@@ -29,11 +30,13 @@ def _economics(manifest, overlay):
                   "rounding","filing","cycle_calendar_month","submission_channel","request_fields","remedy",
                   "account_conditions","precedence","label_bindings","maintenance","prior_credit",
                   "supplement","interval_measurement","fee_adjustment","subscription","telemetry",
-                  "original_receipt","cure_clock","fee_settlement","causal_report")
+                  "original_receipt","cure_clock","fee_settlement","causal_report",
+                  "fixed_period","fixed_filing","aggregate_monitor","service_fee","record_integrity","denial_policy")
         semantics = {k:manifest.get(k) for k in fields}
         semantics["tiers"] = [(t["below_units"],t["credit_units"]) for t in manifest["tiers"]]
         semantics["billing_period"] = overlay.get("billing_period", {}).get("kind") if overlay.get("billing_period") else None
         semantics["override"] = overlay.get("override",{}).get("filing_days")
+        semantics["private_plan"] = overlay["plan"]
         semantics["private_mappings"] = [overlay.get(k) for k in ("symptom_aliases","cause_aliases","public_plan","public_product")]
         return fingerprint(semantics)
     tiers = sorted((t["below_units"], t["credit_units"]) for t in manifest["tiers"]
@@ -64,10 +67,12 @@ def _active_publication(db, tenant, scope):
           AND json_extract(a.payload, '$.overlay.account')=?
           AND json_extract(a.payload, '$.overlay.agreement')=?
           AND json_extract(a.payload, '$.overlay.product')=?""", lookup)
+    rows = list(rows)
+    whole_service = any(json.loads(row[3])["manifest"].get("aggregate_monitor") for row in rows)
     matches = []
     for installation, state_json, version, artifact_json in rows:
         artifact = json.loads(artifact_json)
-        if artifact["overlay"].get("resource_id",scope.component) != scope.component:
+        if not whole_service and artifact["overlay"].get("resource_id") and artifact["overlay"]["resource_id"] != scope.component:
             continue
         if artifact["overlay"].get("subscription_record", {}).get("region",scope.region) != scope.region:
             continue
@@ -100,7 +105,8 @@ def _active_publication(db, tenant, scope):
     for row in history:
         prior = json.loads(row[0])
         old_manifest, old_overlay = prior["manifest"], prior["overlay"]
-        if old_overlay.get("resource_id",scope.component) != scope.component:
+        if (not manifest.get("aggregate_monitor") and not old_manifest.get("aggregate_monitor")
+                and old_overlay.get("resource_id") and old_overlay["resource_id"] != scope.component):
             continue
         if old_overlay.get("subscription_record", {}).get("region",scope.region) != scope.region:
             continue
@@ -191,8 +197,9 @@ def resolve_active(path, tenant, scope, events, at):
         receipts = _filing_receipts(db, tenant, scope)
         filed = instant(receipts[0]["at"]) if receipts else at
         resource = manifest["family"] == "resource-month/1"
+        aggregate = bool(manifest.get("aggregate_monitor"))
         filing = raw = gap = cutoff = historical = None
-        if resource and any(e["kind"] in HISTORICAL for e in events):
+        if resource and not aggregate and any(e["kind"] in HISTORICAL for e in events):
             try:
                 # This entry point also rejects stale interpreter semantics before
                 # using a published clause for a nonfinancial procedural response.
@@ -202,7 +209,9 @@ def resolve_active(path, tenant, scope, events, at):
             except ValueError:
                 historical = None
         try:
-            if resource:
+            if aggregate:
+                obs, filing = join_service(scope, events, manifest, overlay, filed, receipts)
+            elif resource:
                 obs, filing = join_resource(scope, events, manifest, overlay, filed, receipts)
             else:
                 _, following = calendar_bounds(instant(scope.month+"-01T00:00:00Z").date(), "UTC")
@@ -214,6 +223,8 @@ def resolve_active(path, tenant, scope, events, at):
                 cutoff = exclusive_cutoff(raw)
         except ValueError as error:
             gap = str(error)
+        if aggregate:
+            historical = service_procedure(events, manifest, raw)
     if not cutoff and historical:
         cutoff = instant(historical["cutoff"])
     publication = state["active_version"]
@@ -251,7 +262,8 @@ def resolve_active(path, tenant, scope, events, at):
                                total_microseconds=(following-first)//timedelta(microseconds=1))
     return ActiveRemedy(tenant, scope, fingerprint([[e["source"], e["digest"]] for e in events]),
                         controlling, cutoff, result, agreement_id=manifest.get("agreement") or overlay["agreement"],
-                        remedy=("resource-month/"+scope.component+("/"+scope.region if manifest.get("subscription") else "")) if resource else "availability", filing_material=filing,
+                        remedy=("resource-month/aggregate-service" if aggregate else
+                                "resource-month/"+scope.component+("/"+scope.region if manifest.get("subscription") else "") if resource else "availability"), filing_material=filing,
                         measurement=measurement, procedure=historical)
 
 

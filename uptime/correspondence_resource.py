@@ -14,6 +14,18 @@ def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
     words = set(re.findall(r"[a-z0-9]+", label.casefold()))
     status = groups.get("resource_status")
     invoice = groups.get("resource_invoice")
+    if manifest.get("aggregate_monitor"):
+        kind = "service_invoice" if words & {"invoice", "charges", "charge", "fees", "billing", "bill"} else "service_monitor"
+        if words & {"invoice", "charges", "charge", "fees", "billing", "bill", "logs", "log", "status", "monitor", "telemetry"}:
+            event = groups.get(kind)
+            if not event:
+                return set()
+            return {event["event_id"], event["body"]["source_ref"]} | {
+                row["ref"] for row in event["body"]["content"].get("lines", []) if row["ref"] == overlay["fee_line_ref"]}
+        if words & {"service", "product"}:
+            return {scope.service}
+        if words & {"plan", "edition"}:
+            return {overlay["plan"]}
     if words & {"invoice", "charges", "charge", "fees", "billing", "bill"}:
         if invoice is None:
             return set()
@@ -37,7 +49,7 @@ def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
                 refs.add(item["ref"])
         return refs
     if words & {"cause", "failure", "attribution"}:
-        causes = {c.casefold() for c in manifest["provider_causes"]}
+        causes = {c.casefold() for c in manifest.get("provider_causes", [])}
         aliases = overlay.get("cause_aliases", {})
         return {r["ref"] for r in intervals if aliases.get(r.get("cause"), r.get("cause", "")).casefold() in causes}
     if words & {"logs", "log", "timestamps", "times", "intervals", "timeline", "telemetry"}:

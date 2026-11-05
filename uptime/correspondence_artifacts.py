@@ -1,6 +1,7 @@
 """Resolve named supplemental evidence against an independent verifier and the original filing."""
 from hashlib import sha256
 
+from .contracts import fingerprint
 from .correspondence_types import instant
 
 HISTORICAL = {"original_filing_receipt", "supplement_filing_receipt"}
@@ -15,6 +16,10 @@ def validate_arrival(body, now):
         raise ValueError("A completed measurement cannot be observed before the reporting period ends.")
     if body["kind"] == "portal_response_receipt" and instant(body["delivered_at"]) > instant(body["observed_at"]):
         raise ValueError("A verified portal response cannot be observed before it was delivered.")
+    if body["kind"] in {"service_monitor", "service_invoice"}:
+        if (instant(body["recorded_at"]) > instant(body["observed_at"])
+                or fingerprint(body["content"]) != body["content_sha256"]):
+            raise ValueError("Aggregate source content and recorded chronology must match its attestation.")
     if body["kind"] in HISTORICAL:
         if (instant(body["received_at"]) > instant(body["observed_at"])
                 or (body["kind"] == "supplement_filing_receipt") != bool(body.get("original_ref"))
@@ -69,11 +74,13 @@ def approved_artifact(state):
     if proof["digest"] in old and item["digest"] in old:
         return None
     link = proof["body"]["linked_ref"]
-    families = {"invoice_detail": {"invoice","resource_invoice"}, "scope_mapping": {"status","resource_status"},
-                "resource_log": {"status","resource_status"}}[body["artifact_type"]]
+    families = {"invoice_detail": {"invoice","resource_invoice","service_invoice"},
+                "scope_mapping": {"status","resource_status","service_monitor","customer_telemetry","provider_telemetry"},
+                "resource_log": {"status","resource_status","service_monitor","customer_telemetry","provider_telemetry"}}[body["artifact_type"]]
     records = [e for e in facts if e["kind"] in families and
                (e["event_id"] == link or e["body"].get("source_ref") == link or
-                any(r.get("ref",r.get("id")) == link for r in e["body"].get("intervals",[]) + e["body"].get("lines",[])))]
+                any(r.get("ref",r.get("id")) == link for r in e["body"].get("intervals",[]) + e["body"].get("lines",[])
+                    + e["body"].get("records",[]) + e["body"].get("content",{}).get("lines",[])))]
     if len(records) != 1:
         return None
     observed = records[0]["body"].get("observed_at") or records[0]["body"].get("end")
