@@ -422,13 +422,16 @@ class AllocationLedger:
         with _connect(self.path) as db:
             return _cutoff(db, None)
 
-    def apply(self, tenant, application, *, check_authority=None):
+    def apply(self, tenant, application, *, check_authority=None, confirm=None):
         with _connect(self.path, write=True) as db:
             if check_authority:
                 check_authority(db)
-            return _apply(db, tenant, application)
+            identity=_apply(db, tenant, application)
+            if confirm:
+                confirm()
+            return identity
 
-    def ingest(self, tenant, case_id, award, credits=(), applications=(), bills=(), *, check_authority=None):
+    def ingest(self, tenant, case_id, award, credits=(), applications=(), bills=(), *, check_authority=None, confirm=None):
         """All-or-nothing fixture intake; persisted bills are shared across every case."""
         with _connect(self.path, write=True) as db:
             if check_authority:
@@ -440,6 +443,8 @@ class AllocationLedger:
                 _record(db, "bill", tenant, row)
             for row in applications:
                 _apply(db, tenant, row)
+            if confirm:
+                confirm()
         return self.reconcile(tenant, ident)
 
     def observe_application(self, tenant, observation):
