@@ -528,3 +528,136 @@ def test_ui_link_and_independent_discovery_fields_are_additive():
         for key in ("ramp_url", "discovery", "reciprocal_bill_ids"):
             po.pop(key)
     _validate_snapshot(seal_snapshot(snapshot))
+
+
+def linked_vendor_reader():
+    reader = Reader()
+    reader.overrides['vendors/' + VENDOR] = copy.deepcopy(reader.rows['vendors'][0])
+    reader.rows['vendors'] = [dict(reader.rows['vendors'][0], id=uid(90))]
+    return reader
+
+
+def test_linked_vendor_priority_shared_budget_and_inventory_truncation():
+    reader = linked_vendor_reader()
+    reader.overrides['vendors'] = page(reader.rows['vendors'],
+        ORIGIN + '/developer/v1/vendors?page_size=10&start=next')
+    snap = sync_records(reader, detail_limit=1)
+    _validate_snapshot(snap)
+    resource = snap['resources']['vendors']
+    assert [r['id'] for r in resource['records']] == [VENDOR]
+    assert resource['coverage']['LINKED_VENDORS']['status'] == 'COMPLETE'
+    assert resource['coverage']['vendors']['list_complete'] is False
+    assert resource['status'] == 'TRUNCATED'
+    assert [c[1] for c in reader.calls if c[1].startswith('vendors/') and c[1].split('/')[-1] in {VENDOR, uid(90)}] == ['vendors/' + VENDOR]
+
+
+@pytest.mark.parametrize('failure', [RampHTTPError(403), RampHTTPError(500), {'id': uid(99)}, {'id': 'not-an-id'}])
+def test_linked_vendor_failure_never_substitutes_list_or_retries(failure):
+    reader = Reader()
+    reader.overrides['vendors/' + VENDOR] = failure
+    snap = sync_records(reader)
+    _validate_snapshot(snap)
+    resource = snap['resources']['vendors']
+    assert resource['records'] == []
+    assert resource['coverage']['LINKED_VENDORS']['details_attempted'] == 1
+    assert resource['coverage']['LINKED_VENDORS']['details_read'] == 0
+    assert resource['coverage']['LINKED_VENDORS']['status'] in {'FORBIDDEN', 'UNAVAILABLE'}
+    assert resource['coverage']['vendors']['detail_complete'] is False
+    assert sum(c[1] == 'vendors/' + VENDOR for c in reader.calls) == 1
+
+
+def test_linked_vendor_partial_failure_preserves_only_verified_ids():
+    reader = linked_vendor_reader()
+    reader.rows['bills'].append(dict(reader.rows['bills'][0], id=uid(88), vendor={'id': uid(89)}))
+    reader.overrides['vendors/' + uid(89)] = RampHTTPError(500)
+    snap = sync_records(reader, detail_limit=2)
+    _validate_snapshot(snap)
+    resource = snap['resources']['vendors']
+    assert [r['id'] for r in resource['records']] == [VENDOR]
+    assert resource['coverage']['LINKED_VENDORS']['status'] == 'PARTIAL'
+    assert resource['coverage']['LINKED_VENDORS']['details_attempted'] == 2
+    assert resource['status'] == 'PARTIAL'
+
+
+@pytest.mark.parametrize('granted,reported', [(set(), True), ({'vendors:read', 'vendors:write'}, True), ({'vendors:read'}, False)])
+def test_linked_vendor_missing_or_inexact_grant_never_reads(granted, reported):
+    reader = Reader()
+    original = reader.token
+    reader.token = lambda scopes: Token('PRIVATE', frozenset(granted), frozenset(scopes), reported) if scopes == {'vendors:read'} else original(scopes)
+    snap = sync_records(reader)
+    _validate_snapshot(snap)
+    assert snap['resources']['bills']['records']
+    assert not any(c[1].startswith('vendors') for c in reader.calls)
+    cov = snap['resources']['vendors']['coverage']['LINKED_VENDORS']
+    assert cov['listed'] == 1 and cov['details_attempted'] == 0
+    assert cov['status'] == 'UNAVAILABLE' and not cov['detail_complete']
+
+
+def test_linked_vendor_duplicate_competing_payload_cannot_override_detail():
+    reader = Reader()
+    reader.overrides['vendors/' + VENDOR] = dict(reader.rows['vendors'][0], is_active=False)
+    reader.rows['vendors'].append(dict(reader.rows['vendors'][0], is_active=True, name='HOSTILE PRIVATE'))
+    snap = sync_records(reader)
+    _validate_snapshot(snap)
+    resource = snap['resources']['vendors']
+    assert len(resource['records']) == 1 and resource['records'][0]['is_active'] is False
+    assert resource['status'] == 'PARTIAL'
+    assert resource['coverage']['LINKED_VENDORS']['status'] == 'COMPLETE'
+    assert sum(c[1] == 'vendors/' + VENDOR for c in reader.calls) == 1
+    assert 'PRIVATE' not in json.dumps(snap)
+
+
+def test_linked_vendor_archived_and_foreign_entity_are_observations_not_authority(tmp_path):
+    reader = Reader()
+    reader.rows['bills'][0]['archived_at'] = DATE
+    reader.rows['vendors'][0].update(default_entity_id=uid(99), parent_vendor_id=uid(98), is_active=False)
+    reader.rows['bills'].append(dict(reader.rows['bills'][0], id=uid(97), entity_id=uid(96)))
+    snap = sync_records(reader)
+    _validate_snapshot(snap)
+    vendor = snap['resources']['vendors']['records'][0]
+    assert vendor['default_entity_id'] == uid(99) and not vendor['is_active']
+    assert {b['entity_id'] for b in snap['resources']['bills']['records'] if b['kind'] == 'bill'} == {ENTITY, uid(96)}
+    assert sum(c[1] == 'vendors/' + VENDOR for c in reader.calls) == 1
+    assert not any(c[1] in {'vendors/' + uid(98), 'vendors/' + uid(99)} for c in reader.calls)
+    target = tmp_path / 'capture.json'
+    target.write_text(json.dumps(snap))
+    loaded = load_snapshot(target, at=datetime.fromisoformat(snap['completed_at']) + timedelta(days=2))
+    assert loaded['snapshot_status']['freshness'] == 'STALE'
+    assert loaded['snapshot_status']['usable_for_evaluation'] is False
+
+
+def test_vendor_inventory_only_option_retains_historical_schema():
+    reader = linked_vendor_reader()
+    snap = sync_records(reader, include_linked_vendors=False)
+    _validate_snapshot(snap)
+    assert set(snap['resources']['vendors']['coverage']) == {'vendors'}
+    assert [r['id'] for r in snap['resources']['vendors']['records']] == [uid(90)]
+    assert not any(c[1] == 'vendors/' + VENDOR for c in reader.calls)
+    with pytest.raises(RampError):
+        sync_records(reader, include_linked_vendors=1)
+
+
+def test_linked_vendor_seventh_reference_is_bounded_and_sample_is_not_inventory():
+    reader = Reader()
+    reader.rows['bills'] = [dict(reader.rows['bills'][0], id=uid(100+i), vendor={'id': uid(200+i)}) for i in range(7)]
+    reader.rows['bills/drafts'] = [dict(reader.rows['bills'][0], id=uid(300), status='DRAFT')]
+    reader.rows['vendors'] = []
+    for i in range(7):
+        reader.overrides['vendors/' + uid(200+i)] = {'id': uid(200+i)}
+    # Seven captured bill references are distinct; drafts consume the same parent budget.
+    snap = sync_records(reader, detail_limit=7)
+    _validate_snapshot(snap)
+    assert len(snap['resources']['vendors']['records']) == 7
+    assert snap['resources']['bills']['status'] == 'TRUNCATED'
+    assert snap['resources']['vendors']['coverage']['LINKED_VENDORS']['parent_scope'] == 'captured_native_records'
+    assert len([c for c in reader.calls if c[1] in {'vendors/' + uid(200+i) for i in range(7)}]) == 7
+    # Unit exercise of the linked phase isolates a smaller vendor budget from parent budget.
+    from uptime.ramp_records import _vendor_capture, _resource, _grant
+    token, grant = _grant(reader, 'vendors:read')
+    resource = _resource(grant)
+    reader.calls.clear()
+    _vendor_capture(reader, token, resource, snap['resources']['bills']['records'], 10, 1, 6)
+    assert resource['coverage']['LINKED_VENDORS']['status'] == 'TRUNCATED'
+    assert resource['coverage']['LINKED_VENDORS']['details_attempted'] == 6
+    assert resource['coverage']['LINKED_VENDORS']['listed'] == 7
+    assert not any(c[1] == 'vendors/' + uid(206) for c in reader.calls)
