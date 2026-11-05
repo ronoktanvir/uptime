@@ -1,4 +1,5 @@
 """Reviewed operator-staged model propositions for account/resource-month availability."""
+from collections import Counter
 from datetime import date, datetime
 from hashlib import sha256
 import re
@@ -78,7 +79,8 @@ def validate_filing(value, quote):
         raise ValueError('Unsupported filing interval.')
     if not re.search(r'claim|request|submit|fil(?:e|ing)|receiv|deadline|notice', quote, re.I):
         raise ValueError('Filing origin lacks a claim or request.')
-    if not re.search(r'month|billing period', quote, re.I):
+    if not re.search(r'(?:after|following|from the end of|subsequent to)\b[^.;]{0,70}\b(?:month|billing period)|'
+                     r'\b(?:month|billing period)[ -]end\b', quote, re.I):
         raise ValueError('Unsupported filing origin.')
     if kind == 'calendar_days':
         if not re.search(r'calendar day', quote, re.I) or endpoint not in {'inclusive','exclusive','whole_day','unclear'}:
@@ -87,6 +89,13 @@ def validate_filing(value, quote):
             if (not isinstance(clock, str) or not re.fullmatch(r'(?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?', clock)
                     or clock not in quote or 'utc' not in quote.casefold() or endpoint not in {'inclusive','exclusive','unclear'}):
                 raise ValueError('Filing cutoff must be a source-grounded UTC clock.')
+            if endpoint != 'unclear':
+                exclusive = bool(re.search(r'\b(?:strictly |earlier than |prior to |before )' + re.escape(clock), quote, re.I))
+                inclusive = bool(re.search(r'\b(?:by|through|no later than|at or before|on or before)\s+' + re.escape(clock), quote, re.I))
+                if inclusive:  # "on or before" contains a bare "before"
+                    exclusive = False
+                if (endpoint == 'inclusive' and not inclusive) or (endpoint == 'exclusive' and not exclusive):
+                    raise ValueError('Filing endpoint does not match the source clock comparator.')
         elif endpoint not in {'whole_day', 'unclear'}:
             raise ValueError('Missing stated filing time.')
     elif kind == 'billing_cycles':
@@ -267,6 +276,7 @@ def compile_resource(document, clauses):
             if key == 'tiers':
                 if not isinstance(value,list) or not value:
                     raise ValueError('Missing tier values.')
+                accounted = Counter()
                 for tier in value:
                     if not isinstance(tier,dict) or set(tier)-{'below','credit','at_least'} or not {'below','credit'}<=set(tier):
                         raise ValueError('Malformed resource tier.')
@@ -285,7 +295,12 @@ def compile_resource(document, clauses):
                             raise ValueError('Uncited tier lower bound.')
                     if re.search(r'(?:at most|no more than|less than or equal to|≤|<=)\s*'+re.escape(tier['below'])+r'\s*(?:%|percent)',lower):
                         raise ValueError('Inclusive upper tier is unsupported.')
+                    accounted.update([upper, rate])
+                    if floor is not None:
+                        accounted.update([floor])
                     manifest['tiers'].append(dict(below_units=upper,credit_units=rate,citation=index,floor=floor))
+                if accounted != Counter(_quoted_units(m[1]) for m in _PERCENT_TOKEN.finditer(quote)):
+                    raise ValueError('Every percentage in a resource tier block must map to a threshold, floor or credit.')
                 continue
             if key in manifest and manifest[key] != value:
                 raise ValueError(f'Conflicting {key} propositions.')

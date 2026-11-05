@@ -332,3 +332,14 @@ def test_stable_service_predicate_identifier_requires_literal_source_grounding()
     proposal[4]['value']['symptoms'][0]['phrase']='silent data distortion'
     with pytest.raises(ValueError):
         compiled(proposal=proposal)
+
+
+def test_omitting_an_entire_payout_band_and_reversing_filing_endpoint_fail_closed():
+    omitted = deepcopy(PROPOSAL)
+    omitted[7]['value']['tiers'].pop()
+    with pytest.raises(ValueError, match='Every percentage'):
+        compiled(proposal=omitted)
+    wrong_endpoint = deepcopy(PROPOSAL)
+    wrong_endpoint[9]['value']['filing']['endpoint'] = 'exclusive'
+    with pytest.raises(ValueError, match='clock comparator'):
+        compiled(proposal=wrong_endpoint)
