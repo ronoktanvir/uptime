@@ -215,6 +215,15 @@ class CorrespondenceDesk:
                     if previous.version and previous.remedy == "resource-month/" + other.component + "/" + other.region:
                         continue
                 raise ValueError("Claim ID or monthly business obligation already exists.")
+            # A safe current tuple can still shadow an older delimiter-bearing
+            # tuple. Never create another draft on an already reserved key.
+            if (scope.vendor.casefold() != "twilio" and current.version and current.agreement_id
+                    and db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (CLAIM_IDENTITY_TABLE,)).fetchone()):
+                key = claim_key(tenant=p.tenant, vendor=scope.vendor, account=scope.account,
+                    agreement_id=current.agreement_id, agreement_version=current.version, service=scope.service,
+                    month=scope.month, remedy=current.remedy)
+                if db.execute(f"SELECT 1 FROM {CLAIM_IDENTITY_TABLE} WHERE obligation=? AND step='initial'", (key,)).fetchone():
+                    raise ValueError("This monthly business obligation is already reserved; manual reconciliation is required.")
             audit(state, now, p.subject, "Opened an assisted local claim intake.")
             db.execute("INSERT INTO inbox_claim VALUES(?,?,?,?,?)",
                        (p.tenant, claim.claim_id, obligation, scope.model_dump_json(), json.dumps(state)))

@@ -22,7 +22,7 @@ ARTIFACT = (
     r"(?:logs?|log references|logbook|incident journal|telemetry extract|network trace|"
     r"invoice(?: detail| line| breakdown)?|charges|fees|statement|fee breakdown|charge breakdown|"
     r"account mapping|resource mapping|ownership record|account linkage|"
-    r"component (?:id|identifier)|endpoint (?:id|identifier)|service (?:id|identifier)|affected api|"
+    r"component(?: id| identifier)?|endpoint(?: id| identifier)?|service (?:id|identifier)|affected api|"
     r"document|record|attachment|artifact)"
     r"(?: (?:reference |id |number )?" + REFERENCE + r")?"
     r"(?:, (?:document|record|attachment|artifact) " + REFERENCE + r")?"

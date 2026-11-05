@@ -21,6 +21,10 @@ from .contracts import fingerprint
 TABLE = "claim_dispatch_identity_v2"
 
 
+class EconomicScopeReviewRequired(ValueError):
+    """A retained legacy key cannot safely represent this measurement tuple."""
+
+
 def _identity(value):
     if (not isinstance(value, str) or not value or value != value.strip()
             or any(unicodedata.category(c).startswith("C") for c in value)):
@@ -64,7 +68,14 @@ def resource_remedy(manifest, overlay):
     if manifest.get("aggregate_monitor"):
         return "resource-month/aggregate-service"
     resource = _identity(overlay["resource_id"])
-    region = _identity(overlay["subscription_record"]["region"]) if manifest.get("subscription") else None
+    record = overlay.get("subscription_record") or {}
+    region = _identity(record.get("region")) if manifest.get("subscription") else None
+    # v2 retained the literal delimiter representation. Minting an escaped key
+    # would bypass an old reservation until a verified alias migration exists.
+    if "/" in resource or region is not None and "/" in region:
+        raise EconomicScopeReviewRequired("The resource/region identifier is ambiguous in the retained economic key; manual reconciliation is required.")
+    if region is None and resource == "aggregate-service":
+        raise EconomicScopeReviewRequired("This resource identifier is reserved for the whole-service aggregate remedy; manual reconciliation is required.")
     return "resource-month/" + resource + ("/" + region if region else "")
 
 

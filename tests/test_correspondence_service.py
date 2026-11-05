@@ -150,17 +150,18 @@ def test_fixed_cutoff_uses_actual_local_receipt_and_whole_service_obligation(ser
     first = service.action("submit-claim")["submissions"][0]
     assert first["at"] == "2027-03-07T00:00:00+00:00"
     assert first["packet"]["filing_cutoff"] == "2027-03-07T00:00:00.000001+00:00"
-    # A component alias is still the same whole-service obligation at dispatch.
+    # A component alias is still the same whole-service obligation. Once filed,
+    # canonical reservation ownership now refuses it before another draft exists.
+    original_id, original_url = service.id, service.url
     service.scope.update(component="another-label", invoice="another-statement")
     service.id = "inbox-component-alias"
     service.url = "/api/correspondence/claims/" + service.id
     service.provision()
-    service.create()
-    for source, body in reports():
-        assert service.source(source, body, event_id="alias-" + body["kind"]).status_code == 200
-    service.action("approve-claim")
-    assert service.human.post(service.url + "/actions/submit-claim", {}).status_code == 409
-    assert service.read()["submissions"] == []
+    response = service.human.post("/api/correspondence/claims", dict(claim_id=service.id, scope=service.scope))
+    assert response.status_code == 409 and "already reserved" in response.text
+    assert service.client.get(service.url, headers=service.human.headers).status_code == 404
+    service.id, service.url = original_id, original_url
+    assert service.read()["submissions"] == [first]
 
 
 @pytest.mark.parametrize("late", [False, True])

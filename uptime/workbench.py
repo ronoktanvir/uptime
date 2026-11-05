@@ -4,7 +4,7 @@ from threading import RLock
 
 from . import onboarding, policy
 from .contracts import Principal, Source, fingerprint
-from .claim_identity import claim_key
+from .claim_identity import EconomicScopeReviewRequired, claim_key
 from .vendor_registry import historical_economic_identity
 from .mandates import CreditDecision, check_credit_decision
 from .disputes import DisputeDesk
@@ -57,6 +57,8 @@ def _unposted(awarded, note):
 
 
 def _obligation(case):
+    if case.get("financial_scope_status") == "REVIEW_REQUIRED":
+        return None
     submissions=case.get("submissions", [])
     if submissions and submissions[0].get("obligation_key"):
         return submissions[0]["obligation_key"]
@@ -89,10 +91,20 @@ def _metrics(cases):
         contributions=[]
         grouped={}
         ambiguous=False
+        unresolved_scope=False
         for case in cases:
             if case.get("currency") != "USD":
                 continue
             ledger=case.get("ledger", {})
+            if case.get("financial_scope_status") == "REVIEW_REQUIRED":
+                raw=(case.get("recorded_amount") if key=="estimated" and case.get("recorded_outcome")=="ELIGIBLE"
+                     else ledger.get(key) if key not in {"estimated", "exposure"} else None)
+                if raw is not None and Decimal(raw)>0:
+                    unresolved_scope=True
+                    contributions.append(dict(case_id=case["id"], amount=None, recorded_amount=str(raw),
+                        sources=case["sources"], references=case.get("financial_refs", []), obligation_id=None,
+                        status="REVIEW_REQUIRED", reason=case["financial_scope_reason"]))
+                continue
             if key=="exposure":
                 if case.get("stage")!="PREPAYMENT_REVIEW" or case.get("payment_status")!="pending" or case.get("outcome")!="ELIGIBLE":
                     continue
@@ -120,17 +132,19 @@ def _metrics(cases):
         alternative=(key in {"estimated", "exposure"} and len(contributions)>1
                      and any(c["cohort"]=="seeded" for c in cases if c["id"] in {r["case_id"] for r in contributions}))
         unknown=key in {"estimated", "exposure"} and not contributions
-        amount=None if ambiguous or alternative or unknown else _sum(grouped.values())
-        note=("No verified eligible estimate is available; absence of evidence does not establish zero exposure."
+        amount=None if unresolved_scope or ambiguous or alternative or unknown else _sum(grouped.values())
+        note=("Historical financial scope requires manual reconciliation; this stage total is unavailable."
+              if unresolved_scope else "No verified eligible estimate is available; absence of evidence does not establish zero exposure."
               if unknown else "Alternative or conflicting estimates are nonadditive; inspect each case."
               if ambiguous or alternative else
               "Provisional USD estimate only; no filing, prevention or recovery established."
               if key in {"estimated", "exposure"} else
               "Total unique recorded simulated activity, including partial awards and comparison cases; not actual customer recovery.")
         ids=sorted({r["case_id"] for r in contributions})
-        metrics.append(dict(key=key,label=label,value=usd(amount) if amount is not None else "Not verified" if unknown else "Not additive",
+        metrics.append(dict(key=key,label=label,value=usd(amount) if amount is not None else "Review required" if unresolved_scope else "Not verified" if unknown else "Not additive",
                             amount=amount,currency="USD",note=note,case_id=ids[0] if len(ids)==1 else None,
                             case_ids=ids,contributions=contributions,
+                            **({"financial_scope_status":"REVIEW_REQUIRED"} if unresolved_scope else {}),
                             sources=_sources(r["sources"] for r in contributions) or [Source.UNAVAILABLE.value],
                             actual_recovery=None))
     return metrics
@@ -437,7 +451,14 @@ class Workbench:
     def _present(self, case, *, versions=None):
         case=dict(case)
         if case.get("vendor_id") and case["id"].startswith("availability-"):
-            identity = historical_economic_identity(self.path, self.tenant, case)
+            try:
+                identity = historical_economic_identity(self.path, self.tenant, case)
+            except EconomicScopeReviewRequired as error:
+                identity = None
+                case.update(financial_scope_status="REVIEW_REQUIRED", financial_scope_reason=str(error),
+                            recorded_stage=case.get("stage"), recorded_outcome=case.get("outcome"),
+                            recorded_amount=case.get("amount"), stage="REVIEW_REQUIRED", outcome="INSUFFICIENT_EVIDENCE",
+                            amount=None, actions=[])
             case["economic_identity"] = identity
             case["obligation_id"] = claim_key(**identity) if identity else None
         case["cohort"]="seeded" if case["id"] in self.seed_ids else "portfolio"
