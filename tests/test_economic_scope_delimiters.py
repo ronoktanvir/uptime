@@ -55,6 +55,7 @@ def test_normal_candidate_intake_quarantines_ambiguous_measurement_identity(tmp_
         assert result["state"] == "QUARANTINED" and result["outcome"] == "UNSUPPORTED_RULE"
         assert result["active_version"] is None and result["actions"] == []
         assert "manual reconciliation" in result["reason"]
+        assert "cell/North" not in result["reason"]
     finally:
         env.client.close()
 

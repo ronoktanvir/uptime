@@ -15,6 +15,8 @@ from .vendor_model import staged_extraction
 from .vendor_terms import Intake, Strict, bind_overlay, candidate_version, semantics_revision
 
 SOURCES = [Source.REPLAY.value, Source.CUSTOMER.value, Source.VENDOR.value]
+SCOPE_REVIEW_REASON = 'Ambiguous economic scope requires manual reconciliation.'
+PUBLIC_QUARANTINE_REASONS = {'Invalid intake schema.', SCOPE_REVIEW_REASON}
 OPS = {'approve': 'Approve reviewed tests', 'activate': 'Activate for local evaluation',
        'rollback': 'Roll back activation', 'interpret': 'Accept source interpretation for this review', 'review': 'Begin fresh review', 'revoke': 'Revoke approval'}
 
@@ -154,7 +156,8 @@ def _view(db, p, vendor, state):
     result.update(vendor_id=vendor, audit=audit, actions=[], sources=SOURCES)
     if state["state"] == "QUARANTINED":
         # Older append-only events may contain exception text from private input.
-        result["reason"] = ("Invalid intake schema." if state.get("reason") == "Invalid intake schema."
+        reason = state.get("reason")
+        result["reason"] = (reason if isinstance(reason, str) and reason in PUBLIC_QUARANTINE_REASONS
                             else "Source or overlay validation failed.")
     if artifact:
         result.update(artifact)
@@ -200,8 +203,13 @@ def install(path, p, vendor, body):
             overlay = bind_overlay(manifest, intake.overlay)
         except (ValueError, OSError, TypeError, OverflowError) as exc:
             # Retain a safe digest and error category, never echo malformed/private raw inputs.
+            reason = 'Source or overlay validation failed.'
+            if isinstance(exc, ValidationError):
+                reason = 'Invalid intake schema.'
+            elif isinstance(exc, EconomicScopeReviewRequired):
+                reason = SCOPE_REVIEW_REASON
             state.update(state='QUARANTINED', outcome=Outcome.UNSUPPORTED.value, rejected_digest=sha256(json.dumps(body, sort_keys=True, allow_nan=True).encode()).hexdigest(),
-                         reason='Invalid intake schema.' if isinstance(exc, ValidationError) else 'Source or overlay validation failed.')
+                         reason=reason)
             if old and old.get('rejected_digest') == state['rejected_digest'] and old['state'] == 'QUARANTINED':
                 return _view(db, p, vendor, old)
             _event(db, p, vendor, state, 'Quarantined intake; dispatch suspended')
