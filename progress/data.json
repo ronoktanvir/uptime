@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-05T06:58:38.029859+00:00",
+  "updated_at": "2026-11-05T08:21:02.113713+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8765",
   "headline": "Uptime engineering progress",
@@ -7,9 +7,9 @@
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "2,607 passed",
-      "detail": "704caa5 passed locally after the whitespace correction. Separate independent measurements expose unresolved generalization and source-meaning gaps.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-704caa5.json"
+      "value": "2,684 passed",
+      "detail": "f83587f integration passed after disk-full setup errors were resolved. This is regression evidence; public model proposals still produced 0/4 fully grounded compatible candidates.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-f83587f.json"
     },
     {
       "label": "Independent audit",
@@ -247,7 +247,7 @@
       "title": "Credit reconciliation & attribution",
       "stream": "Ramp integration",
       "status": "done",
-      "summary": "Award → native credit → applied bill stages",
+      "summary": "Award \u2192 native credit \u2192 applied bill stages",
       "detail": "Implemented native observation joins, independent original-filing and award witnesses, amount/currency bounds and allocation controls. The actual sandbox contains zero credits and the installed workspace has zero awards.",
       "owner": "Reconciliation engineering",
       "depends_on": [
@@ -432,14 +432,14 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "Latest Python: 2,607; earlier audit: 118/118",
-      "detail": "704caa5 passed 2,607 Python tests. Frozen 797c3d0 separately passed 2,422 Python, 34 JavaScript and 118 independent audit assertions. Further semantic remediation needs fresh verification; these counts do not establish useful generalization.",
+      "summary": "2,684 Python tests passed at f83587f",
+      "detail": "Source-locked dispute review and public transport integrated. First run:2677passed7 disk-full setup errors; unchanged source rerun:2684passed1warning146.16s. Earlier independent audit remains pinned to797c3d0.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
         "companion"
       ],
-      "next_action": "Verify each integrated candidate and retain source-linked evidence.",
+      "next_action": "Run the full locked suite after each next merge.",
       "links": [
         {
           "label": "Frozen verification",
@@ -452,14 +452,14 @@
       "title": "GitHub CI verification",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "Previous hosted run passed; new source pending",
-      "detail": "GitHub workflow 41968278163 passed on 09f9eb2. Later local changes require a new hosted workflow; the earlier pass is not attributed to current HEAD.",
+      "summary": "GitHub CI passed on3607b3f",
+      "detail": "Actions run41984831379 completed successfully on3607b3f. Newer local integration has its own passing full test receipt; next push will trigger CI.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
         "regression"
       ],
-      "next_action": "Rerun on the final integrated source.",
+      "next_action": "Verify the new pushed commit\u2019s CI result.",
       "links": [
         {
           "label": "Completed GitHub workflow",
@@ -566,8 +566,8 @@
       "title": "New vendor response coverage",
       "stream": "Disputes",
       "status": "active",
-      "summary": "72 public expectations pass; unseen positives 0/50",
-      "detail": "Independent harness parity passes 72/72 public expectations: 18 supported and 54 review controls. The separately sealed 100-case set recognizes 0/50 valid replies. A manual interpretation bridge with optional constrained model proposals is under implementation; calculations and action authority remain deterministic.",
+      "summary": "Manual interpretation integrated; model coverage unproven",
+      "detail": "Source-locked review and separately authorized response preview are integrated atf83587f. Public model experiment:0/4 fully grounded compatible candidates under final validator. Existing independent0/50 valid replies remains unchanged.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -583,7 +583,7 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/public-reply-harness-532c8d8.txt"
         }
       ],
-      "next_action": "Measure the source-locked review bridge and proposal assistance without fitting private cases."
+      "next_action": "Use reviewed evidence in the continuous Northwind workflow without claiming new blind coverage."
     },
     {
       "id": "source_meaning",
@@ -602,6 +602,28 @@
         {
           "label": "Confirmed semantic-risk evidence",
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/decisions/reviews/58-implementation-and-label-boundary.md"
+        }
+      ]
+    },
+    {
+      "id": "northwind",
+      "title": "Northwind continuous financial walkthrough",
+      "stream": "Integration",
+      "status": "active",
+      "summary": "Contract, exact-step calculation, local ledger and clean UI in parallel",
+      "detail": "Authored Northwind agreement/invoices/usage exercise the existing engines. Actual Ramp proof and actual human promotion remain separate; no fictional event satisfies those gates.",
+      "owner": "Parallel engineering",
+      "depends_on": [
+        "rules",
+        "source_meaning",
+        "response_coverage",
+        "companion"
+      ],
+      "next_action": "Join governing amended fees, signed evidence, CalyxQuay lifecycle and confirmed local credit application; run and verify the continuous flow.",
+      "links": [
+        {
+          "label": "Walkthrough decision",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/decisions/ADR-0064-clean-walkthrough.md"
         }
       ]
     }

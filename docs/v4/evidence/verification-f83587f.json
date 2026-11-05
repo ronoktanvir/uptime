@@ -1,0 +1,22 @@
+{
+  "source_commit": "f83587f7610c68643d5004f035137573fc8bbd11",
+  "command": "uv run --locked pytest --basetemp=<unique owned temporary directory>",
+  "attempts": [
+    {
+      "log": "root-interpretation60-merge-01.log",
+      "sha256": "dded69b9ccc455ff8459187d8d913fa23e3f9b902a4829a8e5cf3c12d564fb01",
+      "result": "2677 passed, 7 errors, 1 warning in 139.57s; disk full during fixture setup",
+      "exit_code": 1
+    },
+    {
+      "log": "root-interpretation60-merge-02.log",
+      "sha256": "ecf2c25a9441cec9d7f7a23bba5a568613a390c0ea6950bdb018b319243474e0",
+      "result": "2684 passed, 1 warning in 146.16s (0:02:26)",
+      "exit_code": 0
+    }
+  ],
+  "source_unchanged_between_attempts": true,
+  "warning": "StarletteDeprecationWarning: httpx with starlette.testclient is deprecated",
+  "production_readiness": false,
+  "private_generalization_remeasured": false
+}
