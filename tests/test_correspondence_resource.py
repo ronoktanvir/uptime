@@ -128,6 +128,14 @@ def test_real_resource_join_and_local_packet(env,tmp_path,monkeypatch):
     assert row["ledger"]["awarded"]=="9.00" and row["ledger"]["disputed_remainder"]=="3.51"
 
 
+def test_region_alias_without_separate_contractual_coverage_cannot_create_another_intake(env, tmp_path, monkeypatch):
+    install(env, tmp_path, monkeypatch)
+    env.scope["region"] = "another-region"
+    env.provision()
+    result = env.human.post("/api/correspondence/claims", dict(claim_id="inbox-region-alias", scope=env.scope))
+    assert result.status_code == 409
+
+
 @pytest.mark.parametrize("fault",["wrong-cause-scope","wrong-fee-resource","unknown-cause","unmapped-packet","incomplete-fees"])
 def test_conflicting_raw_source_stops_before_claim(env,tmp_path,monkeypatch,fault):
     install(env,tmp_path,monkeypatch)

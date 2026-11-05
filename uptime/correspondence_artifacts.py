@@ -21,7 +21,7 @@ def validate_arrival(body, now):
                 or fingerprint(body["content"]) != body["content_sha256"]):
             raise ValueError("Aggregate source content and recorded chronology must match its attestation.")
     if body["kind"] in HISTORICAL:
-        if body["kind"] == "supplement_filing_receipt" and body.get("contract_version") is not None:
+        if body["kind"] == "supplement_filing_receipt" and any(body.get(k) is not None for k in ("contract_version", "contract_source_sha256")):
             raise ValueError("Contract-version provenance belongs to the signed original filing receipt.")
         if (instant(body["received_at"]) > instant(body["observed_at"])
                 or (body["kind"] == "supplement_filing_receipt") != bool(body.get("original_ref"))

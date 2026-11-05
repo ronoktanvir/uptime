@@ -320,6 +320,7 @@ class HistoricalReceipt(Report):
     kind: Literal["original_filing_receipt", "supplement_filing_receipt"]
     receipt_id: Id
     contract_version: Id | None = None
+    contract_source_sha256: Digest | None = None
     original_ref: Id | None = None
     ticket_id: Id | None = None
     response_ref: Id | None = None

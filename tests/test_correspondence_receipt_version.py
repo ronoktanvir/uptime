@@ -26,18 +26,24 @@ def original(version=None):
 
 def test_published_scope_version_is_explicit_and_cannot_be_replaced(env, tmp_path, monkeypatch):
     install(env, tmp_path, monkeypatch)
-    version = env.read()["contract_version"]
+    current = env.read()
+    version, source_hash = current["contract_version"], current["contract_source_sha256"]
     assert isinstance(version, str) and len(version) == 64
+    assert isinstance(source_hash, str) and len(source_hash) == 64
     wrong = env.source("vendor-fixture", original("different-reviewed-version"), event_id="wrong-pin")
     assert wrong.status_code == 409
     assert env.read()["evidence"] == []
-    accepted = env.source("vendor-fixture", original(version), event_id="original-versioned")
+    assert env.source("vendor-fixture", original(version) | {"contract_source_sha256":"0" * 64}, event_id="wrong-source").status_code == 409
+    pinned = original(version) | {"contract_source_sha256":source_hash}
+    accepted = env.source("vendor-fixture", pinned, event_id="original-versioned")
     assert accepted.status_code == 200, accepted.text
     row = env.read()
     assert row["evidence"][0]["contract_version"] == version
-    assert env.source("vendor-fixture", original(version), event_id="repeat-alias").json()["digest"] == accepted.json()["digest"]
+    assert row["evidence"][0]["contract_source_sha256"] == source_hash
+    assert env.source("vendor-fixture", pinned, event_id="repeat-alias").json()["digest"] == accepted.json()["digest"]
     assert env.source("vendor-fixture", original(), event_id="strip-pin").status_code == 409
     assert env.source("vendor-fixture", original("new-version"), event_id="replace-pin").status_code == 409
+    assert env.source("vendor-fixture", original(version), event_id="strip-source-pin").status_code == 409
     assert len(env.read()["evidence"]) == 1
 
 
@@ -64,7 +70,7 @@ def test_signed_public_source_proof_covers_original_pin_and_new_terms_cannot_rep
             reviewed[0], datetime(2026, 7, 10, tzinfo=UTC),
             EvaluationResult(Outcome.MISSING, (Citation("Synthetic fixture terms", reviewed[0], "scope", "urn:fixture:terms"),),
                              ("Synthetic version-binding fixture",), ("Financial evidence absent",)),
-            agreement_id=scope.contract, remedy="resource-month/" + scope.component)
+            agreement_id=scope.contract, remedy="resource-month/" + scope.component, contract_source_sha256="a" * 64)
 
     desk.active_resolver = resolver
     claim_id = "inbox-version-source"
@@ -73,7 +79,8 @@ def test_signed_public_source_proof_covers_original_pin_and_new_terms_cannot_rep
         reviewer = ReviewerClient(client, DEFAULT_ORIGIN, "version-fixture-reviewer", reviewer_key)
         created = reviewer.post("/api/correspondence/claims", dict(claim_id=claim_id, scope=scope.model_dump()))
         assert created.status_code == 200 and created.json()["contract_version"] == reviewed[0]
-        payload = dict(event_id="source-original", scope=scope.model_dump(), body=original(reviewed[0]))
+        pinned = original(reviewed[0]) | {"contract_source_sha256":"a" * 64}
+        payload = dict(event_id="source-original", scope=scope.model_dump(), body=pinned)
         raw = json.dumps(payload).encode()
         path = prefix + "/events"
         def headers(content):
@@ -82,6 +89,8 @@ def test_signed_public_source_proof_covers_original_pin_and_new_terms_cannot_rep
         signed = headers(raw)
         changed = json.dumps(payload | {"body":original("version-two")}).encode()
         assert client.post(path, content=changed, headers=signed).status_code == 403
+        changed = json.dumps(payload | {"body":pinned | {"contract_source_sha256":"b" * 64}}).encode()
+        assert client.post(path, content=changed, headers=headers(raw)).status_code == 403
         assert client.post(path, content=raw, headers=headers(raw)).status_code == 200
         reviewed[0] = "version-two"
         changed = json.dumps(payload | {"event_id":"repinned-original", "body":original(reviewed[0])}).encode()
