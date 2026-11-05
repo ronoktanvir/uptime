@@ -2,7 +2,7 @@
   {
     "kind": "LOCAL_TEST_SIGNATURE",
     "algorithm": "Ed25519",
-    "public_key_base64": "8yTRxysAzJ5xZAbK89CS1REE+CLTUvCQZvAHPfP4jII=",
+    "public_key_base64": "kEEl3s+9Dnam7V03g2Ty7CUXVp9hsv3KlHYOdx6HPYk=",
     "payload": {
       "agreement": "NW-2026-001",
       "version": "order-v1",
@@ -12,18 +12,18 @@
         "Harborline Analytics"
       ],
       "source_file": "order-form.txt",
-      "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
-      "pricing_input_sha256": "f916435977155971ea6945a517edfd2c39945812169ba964c980a701a2a49b0b",
+      "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+      "pricing_input_sha256": "97129dfad2cdabfd0ab23f1ae20eb75cba92385308df25d67b3bcef3c3804370",
       "issuer": "Local fixture author; no external certificate",
-      "created_at": "2026-11-05T08:47:56.199924+00:00"
+      "created_at": "2026-11-05T09:51:20.800029+00:00"
     },
-    "signature_base64": "Y3dSCBorxDJXlTxDp+TZ0Wn5YW+mbrBJ5l8NyoLzAgkXy3r9pLDuKDOlgyGwJENFqiNL/3e19kjNwE12i9CWAA==",
+    "signature_base64": "BYJVt8PWkcDAXLQYQBEdVV5KnzoYwpBxyVwMrBQ8zb2rXjJqDZLMlFJn9Khied88BENA43jS4hpFDmcM0EaBBA==",
     "certificate": null
   },
   {
     "kind": "LOCAL_TEST_SIGNATURE",
     "algorithm": "Ed25519",
-    "public_key_base64": "8yTRxysAzJ5xZAbK89CS1REE+CLTUvCQZvAHPfP4jII=",
+    "public_key_base64": "kEEl3s+9Dnam7V03g2Ty7CUXVp9hsv3KlHYOdx6HPYk=",
     "payload": {
       "agreement": "NW-2026-001",
       "version": "amendment-v2",
@@ -33,12 +33,12 @@
         "Harborline Analytics"
       ],
       "source_file": "amendment-2026-03.txt",
-      "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
-      "pricing_input_sha256": "f916435977155971ea6945a517edfd2c39945812169ba964c980a701a2a49b0b",
+      "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+      "pricing_input_sha256": "97129dfad2cdabfd0ab23f1ae20eb75cba92385308df25d67b3bcef3c3804370",
       "issuer": "Local fixture author; no external certificate",
-      "created_at": "2026-11-05T08:47:56.200478+00:00"
+      "created_at": "2026-11-05T09:51:20.800516+00:00"
     },
-    "signature_base64": "NAEvnEZYlqgBDV/YfJBcYbIBsZMlhimnP7+1tdkVCM0P9iHE2/Yqu2Jhgw1IPCfOlibqM0cpFIj2edQY5gpPAg==",
+    "signature_base64": "OhGWsfaDaxWS64JMkR1tw28gA2dICTJZubkyTVsajbPIJmA3sNdd6rey7hZT7nNCN0hd9R+6FMHXvReFr5dFAw==",
     "certificate": null
   }
 ]

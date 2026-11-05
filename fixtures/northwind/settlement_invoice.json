@@ -1,0 +1,68 @@
+{
+  "month": "2026-04",
+  "observed_at": "2026-04-01T09:00:00Z",
+  "invoice": {
+    "id": "NW-2026-04",
+    "customer": "Harborline Analytics",
+    "vendor": "Northwind Cloud",
+    "issued_at": "2026-04-01T00:00:00Z",
+    "payment_status": "pending",
+    "currency": "USD",
+    "total": "11000.00",
+    "lines": [
+      {
+        "id": "cloud-hosting-monthly",
+        "product": "Cloud Hosting",
+        "quantity": "1",
+        "unit": "service-month",
+        "start": "2026-04-01T00:00:00Z",
+        "end": "2026-05-01T00:00:00Z",
+        "net": "11000.00",
+        "tax": "0.00",
+        "allocation_ref": "subscription-ledger-2026-04",
+        "allocation_complete": true
+      }
+    ]
+  },
+  "opening_capacity": {
+    "invoice_id": "NW-2026-04",
+    "account": "harborline-001",
+    "vendor": "Northwind Cloud",
+    "contract": "NW-2026-001",
+    "product": "Cloud Hosting",
+    "currency": "USD",
+    "amount": "11000.00",
+    "payment_status": "unpaid",
+    "source_ref": "northwind-april-opening-balance",
+    "issued_at": "2026-04-01T00:00:00Z",
+    "service_start": "2026-04-01T00:00:00Z",
+    "service_end": "2026-05-01T00:00:00Z",
+    "effective_at": "2026-04-01T00:00:00Z",
+    "known_at": "2026-04-01T09:00:00Z"
+  },
+  "scope": {
+    "account": "harborline-001",
+    "vendor": "Northwind Cloud",
+    "contract": "NW-2026-001",
+    "service": "Cloud Hosting",
+    "component": "cloud-hosting-primary",
+    "invoice": "NW-2026-04",
+    "incident": "NW-MONTH-2026-04",
+    "currency": "USD",
+    "month": "2026-04",
+    "region": "us-central"
+  },
+  "unchanged_sla": {
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "citation_id": "amendment-2026-03.txt:4",
+    "citation": {
+      "id": "amendment-2026-03.txt:4",
+      "source_file": "amendment-2026-03.txt",
+      "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+      "start": 700,
+      "end": 979,
+      "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+      "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033"
+    }
+  }
+}

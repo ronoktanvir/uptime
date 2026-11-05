@@ -118,7 +118,7 @@ def test_positive_registry_lifecycle_requires_current_context_and_preserves_iden
     assert all(row['passed'] for row in state['checks'])
     for op in ('approve','activate'):
         action=next(a['id'] for a in state['actions'] if a['operation']==op)
-        state=catalog.act(path,actor,'northwind',action)
+        state=catalog.act(path,actor,'northwind',action,governing_fees=(ctx,))
     result=catalog.dispatch(path,actor,'northwind',p['months'][0]['facts'],governing_fee=ctx)
     assert result['amount']=='2400.00'
     missing=catalog.dispatch(path,actor,'northwind',p['months'][0]['facts'])

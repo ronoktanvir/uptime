@@ -7,6 +7,7 @@ from .contracts import Principal, Source, fingerprint
 from .claim_identity import EconomicScopeReviewRequired, claim_key
 from .vendor_registry import historical_economic_identity, require_case_semantics
 from .vendor_bindings import SemanticBindingRequired
+from .governing_fees import GoverningFeeRequired
 from .mandates import CreditDecision, check_credit_decision
 from .disputes import DisputeDesk
 from .evidence import evidence_summary
@@ -30,8 +31,8 @@ REVIEW_OBSERVATION_FIELDS = frozenset({
     'id','vendor','vendor_id','title','version','semantics_revision','obligation_id','economic_identity',
     'sources','clauses','source_sha256','source_received_at','source_currentness','agreement','account',
     'adapter_revision','evidence','timeline','currency','basis','observation_digest','remedy','citations',
-    'claim_cutoff','cutoff_inclusive','deadline_context','recorded_stage','recorded_outcome','recorded_amount',
-    'financial_scope_status','financial_scope_reason','semantic_binding_status',
+    'claim_cutoff','claim_cutoff_exclusive','cutoff_inclusive','deadline_context','recorded_stage','recorded_outcome','recorded_amount',
+    'financial_scope_status','financial_scope_reason','semantic_binding_status','pricing_binding_status',
 })
 
 
@@ -173,8 +174,10 @@ def _metrics(cases):
 
 
 class Workbench:
-    def __init__(self, path, mode, *, tenant=TENANT):
+    def __init__(self, path, mode, *, tenant=TENANT,governing_fees=(),trusted_now=None):
         self.tenant = tenant
+        self.governing_fees=governing_fees
+        self.trusted_now=trusted_now
         self.path=path
         self.mode=mode
         if mode not in {"sandbox","replay"}:
@@ -498,14 +501,17 @@ class Workbench:
             case["economic_identity"] = identity
             case["obligation_id"] = claim_key(**identity) if identity else None
             try:
-                require_case_semantics(self.path, self.tenant, case)
-            except SemanticBindingRequired as error:
+                require_case_semantics(self.path, self.tenant, case,governing_fees=self.governing_fees,trusted_now=self.trusted_now)
+            except (SemanticBindingRequired,GoverningFeeRequired) as error:
                 case.update(financial_scope_status="REVIEW_REQUIRED", financial_scope_reason=str(error),
                             semantic_binding_status="REVIEW_REQUIRED", recorded_stage=case.get("recorded_stage",case.get("stage")),
                             recorded_outcome=case.get("recorded_outcome",case.get("outcome")),
                             recorded_amount=case.get("recorded_amount",case.get("amount")), stage="REVIEW_REQUIRED",
                             outcome="INSUFFICIENT_EVIDENCE", amount=None, actions=[],
                             financials=[dict(label="Current estimate", value="Semantic review required", sources=case.get("sources",[]))])
+                if isinstance(error,GoverningFeeRequired):
+                    case.pop('semantic_binding_status',None)
+                    case['pricing_binding_status']='REVIEW_REQUIRED'
             if case.get('financial_scope_status') == 'REVIEW_REQUIRED':
                 case = review_observation(case)
         case["cohort"]="seeded" if case["id"] in self.seed_ids else "portfolio"

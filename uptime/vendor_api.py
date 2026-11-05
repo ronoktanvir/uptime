@@ -33,23 +33,25 @@ def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=
             elif fn not in {registry.install, registry.submit_tests, registry.shadow_preview}:
                 raise PermissionError("Draft capability cannot authorize this operation.")
             extra={}
+            if fn in {registry.act,registry.dispatch}:
+                extra.update(governing_fees=governing_fees or (),trusted_now=clock)
             if governing_fees is not None and not isinstance(p,DraftReviewer) and fn in {registry.submit_tests,registry.shadow_preview,registry.dispatch}:
                 contexts=governing_fees.contexts_from_inbox(db_path,p.tenant,as_of=clock())
                 if fn is registry.submit_tests:
                     extra['governing_fees']=contexts
                 else:
-                    artifact=registry.get_vendor(db_path,p,args[0])
+                    artifact=registry.get_vendor(db_path,p,args[0],governing_fees=governing_fees or (),trusted_now=clock)
                     facts=args[1].facts if fn is registry.shadow_preview else args[1]
                     extra['governing_fee']=registry._fee_for(contexts,artifact['manifest'],artifact['overlay'],facts,p.tenant)
             return fn(db_path, p, *args,**extra)
 
     @router.get('')
     def catalog(p=Depends(actor)):
-        return registry.catalog(db_path, p)
+        return registry.catalog(db_path, p,governing_fees=governing_fees or (),trusted_now=clock)
 
     @router.get('/{vendor_id}')
     def vendor(vendor_id: str, p=Depends(actor)):
-        return registry.get_vendor(db_path, p, vendor_id)
+        return registry.get_vendor(db_path, p, vendor_id,governing_fees=governing_fees or (),trusted_now=clock)
 
     @router.post('/{vendor_id}/candidates')
     def candidate(vendor_id: str, body: dict, p=Depends(reviewer)):

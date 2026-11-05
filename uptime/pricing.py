@@ -147,6 +147,7 @@ class PricingResult:
     undercharge: Decimal | None
     stage: str
     sources: tuple[Source, ...]
+    provisional_as_of: str | None = None
 
 
 class PricingInputError(ValueError):
@@ -292,7 +293,7 @@ def _validate_agreement(agreement: Agreement):
         previous = version
 
 
-def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str], findings: list[LineFinding]) -> tuple[LineFinding, ...]:
+def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str], findings: list[LineFinding], *, as_of=None) -> tuple[LineFinding, ...]:
     _validate_agreement(agreement)
     _require(invoice.source == Source.CUSTOMER, "Invoice service mapping must be labeled synthetic")
     if invoice.provider:
@@ -304,6 +305,10 @@ def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str], findings
     _require(invoice.customer == agreement.customer and invoice.vendor == agreement.vendor,
              "Invoice parties do not match synthetic agreement", Outcome.INELIGIBLE)
     _require(_canonical(invoice.id) and _aware(invoice.issued_at), "Invoice identity and issue timestamp required")
+    if as_of is not None:
+        _require(_aware(as_of) and _instant(invoice.issued_at)<=_instant(as_of)
+                 and all(_instant(v.signed_at)<=_instant(as_of) for v in agreement.versions),
+                 "Invoice and all supplied versions must be known by the trusted observation time", Outcome.UNSUPPORTED)
     _require(invoice.currency == "USD", "FX/non-USD invoice unsupported", Outcome.UNSUPPORTED)
     _require(invoice.payment_status in ("pending", "paid"), "Payment state unsupported", Outcome.UNSUPPORTED)
     _require(isinstance(invoice.lines, tuple) and bool(invoice.lines), "Itemized invoice required")
@@ -339,7 +344,7 @@ def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str], findings
             _require(_instant(line.start) < _instant(line.end), f"Line {line.id}: nonempty half-open performance interval required")
             _require(_instant(line.start) >= _instant(agreement.versions[0].effective_at) and _instant(line.end) <= _instant(agreement.expires_at),
                      f"Line {line.id}: outside agreement performance period", Outcome.INELIGIBLE)
-            _require(_instant(line.end) <= _instant(invoice.issued_at), f"Line {line.id}: future performance requires separate advance-billing rules", Outcome.UNSUPPORTED)
+            future=_instant(line.end)>_instant(invoice.issued_at)
             version = max((v for v in agreement.versions if _instant(v.effective_at) <= _instant(line.start)), key=lambda v: _instant(v.effective_at))
             _require(not any(_instant(line.start) < _instant(v.effective_at) < _instant(line.end) for v in agreement.versions),
                      f"Line {line.id}: cross-amendment quantity allocation unknown; split with documented complete allocations")
@@ -348,11 +353,19 @@ def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str], findings
                          f"signed {version.signed_at.isoformat()}, effective {version.effective_at.isoformat()}, "
                          f"supersedes {version.supersedes or 'none'}; invoice date does not choose rate.")
             if line.product in version.excluded_products:
+                _require(not future, f"Line {line.id}: future excluded performance unsupported", Outcome.UNSUPPORTED)
                 trace.append(f"Line {line.id}: {line.product} explicitly non-covered; {line.net} USD excluded from discrepancy; tax {line.tax} excluded.")
                 findings.append(LineFinding(line.id, line.product, version.id, line.net, None, None, "NON_COVERED"))
                 continue
             rate = next((r for r in version.rates if r.product == line.product), None)
             _require(rate is not None, f"Line {line.id}: product {line.product} lacks identified contractual scope")
+            if future:
+                _require(rate.fixed_monthly is not None
+                         and rate.fixed_monthly.billing_timing=='fixed_calendar_month_at_start_or_arrears'
+                         and _aware(as_of) and _instant(invoice.issued_at)==_instant(line.start)
+                         and invoice.issued_at.utcoffset().total_seconds()==0,
+                         f"Line {line.id}: future performance requires exact source-backed advance timing and observation time", Outcome.UNSUPPORTED)
+                trace.append(f"Line {line.id}: fixed calendar-month advance fee, provisional as of {_instant(as_of).isoformat()}; no usage or future telemetry inferred.")
             _require(line.unit == rate.unit, f"Line {line.id}: quantity unit missing or conflicting")
             _require(_number(line.quantity) and line.quantity > 0 and line.quantity == line.quantity.to_integral_value(),
                      f"Line {line.id}: positive whole-unit decimal quantity required")
@@ -405,7 +418,7 @@ def _evaluate(agreement: Agreement, invoice: Invoice, trace: list[str], findings
     return tuple(findings)
 
 
-def evaluate_price(agreement: Agreement, invoice: Invoice) -> PricingResult:
+def evaluate_price(agreement: Agreement, invoice: Invoice, *, as_of: datetime | None = None) -> PricingResult:
     """Fail closed for the whole invoice; preserve both discrepancy directions.
 
     ELIGIBLE amounts are provisional overcharge findings, never money prevented,
@@ -425,14 +438,17 @@ def evaluate_price(agreement: Agreement, invoice: Invoice) -> PricingResult:
             if invoice.provider:
                 _validate_binding(invoice.provider, invoice)
                 sources = (Source.RAMP, Source.CUSTOMER)
-            lines = _evaluate(agreement, invoice, trace, findings)
+            lines = _evaluate(agreement, invoice, trace, findings, as_of=as_of)
             over = sum((max(ZERO, line.delta) for line in lines if line.delta is not None), ZERO)
             under = sum((max(ZERO, -line.delta) for line in lines if line.delta is not None), ZERO)
         trace.append(f"Provisional overcharge {over} USD; undercharge {under} USD; no automatic netting. "
                      f"Payment status remains {invoice.payment_status}; prevented, claimed, awarded and recovered amounts are 0.00.")
         outcome = Outcome.ELIGIBLE if over > 0 else Outcome.INELIGIBLE
         evaluation = EvaluationResult(outcome, clauses, tuple(trace), amount=Money(over) if over > 0 else None)
-        return PricingResult(evaluation, lines, over, under, stage, sources)
+        priced={line.line_id for line in lines if line.expected is not None}
+        advance=any(line.id in priced and _instant(line.end)>_instant(invoice.issued_at) for line in invoice.lines)
+        return PricingResult(evaluation, lines, over, under, stage, sources,
+                             _instant(as_of).isoformat() if advance else None)
     except PricingInputError as error:
         trace.append(f"FAIL CLOSED: {error}")
         evaluation = EvaluationResult(error.outcome, clauses, tuple(trace),

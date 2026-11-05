@@ -153,7 +153,7 @@ def binding_context_db(db, p, vendor, state=None, artifact=None):
         return None
 
 
-def _capability(db,p,vendor,state):
+def _capability(db,p,vendor,state,*,governing_fees=(),trusted_now=None):
     """Public capability is derived at read time, including across app restarts/deployments."""
     snapshot=dict(state)
     version=state['version']
@@ -175,6 +175,24 @@ def _capability(db,p,vendor,state):
     if snapshot.get('reinstall_required') or (
             snapshot.get('semantic_binding_status') == 'REVIEW_REQUIRED' and state.get('semantic_binding')):
         snapshot.update(recorded_checks=state.get('checks', []), checks=[], checks_status='REVIEW_REQUIRED')
+    if artifact and artifact['manifest'].get('credit_rule'):
+        from .governing_fees import context_for_digest,GoverningFeeRequired
+        positive=[row for row in state.get('checks',[]) if row.get('actual',{}).get('amount') is not None]
+        current=True
+        path=db.execute('PRAGMA database_list').fetchone()[2]
+        tests={test['name']:test['facts'] for test in state.get('tests',[])}
+        for row in positive:
+            try:
+                context_for_digest(path,p.tenant,row.get('governing_fee_digest'),artifact['manifest'],artifact['overlay'],
+                                   tests.get(row['name'],{}),governing_fees,trusted_now)
+            except GoverningFeeRequired:
+                current=False;break
+        if positive:
+            snapshot['pricing_binding_status']='CURRENT' if current else 'REVIEW_REQUIRED'
+        if positive and not current:
+            snapshot.update(state='REVIEW_REQUIRED',recorded_state=state['state'],active_version=None,
+                recorded_active_version=active,recorded_checks=state.get('checks',[]),checks=[],
+                checks_status='REVIEW_REQUIRED',actions=[])
     return snapshot
 
 
@@ -204,11 +222,11 @@ def _key(p, vendor, state, op):
     return f'{op}~{state["revision"]}~' + fingerprint([p.tenant, p.subject, vendor, state['version'], state['revision'], op])
 
 
-def _view(db, p, vendor, state):
+def _view(db, p, vendor, state, *, governing_fees=(),trusted_now=None):
     artifact = _artifact(db, p, vendor, state['version'])
     audit = [dict(row) for row in db.execute(
         'SELECT revision,kind,actor,at FROM v4_vendor_event WHERE tenant=? AND vendor=? ORDER BY revision', (p.tenant, vendor))]
-    state=_capability(db,p,vendor,state)
+    state=_capability(db,p,vendor,state,governing_fees=governing_fees,trusted_now=trusted_now)
     result = {k: v for k, v in state.items() if k not in {'tests','public_source_document','public_source_diagnostic','public_source_issues'}}
     result.update(vendor_id=vendor, audit=audit, actions=[], sources=SOURCES)
     if state["state"] == "QUARANTINED":
@@ -234,21 +252,21 @@ def _view(db, p, vendor, state):
     return result
 
 
-def catalog(path, p):
+def catalog(path, p, *, governing_fees=(),trusted_now=None):
     with transaction(path, p) as db:
         rows = db.execute("""SELECT e.vendor,e.payload FROM v4_vendor_event e
             WHERE e.tenant=? AND revision=(SELECT MAX(revision) FROM v4_vendor_event v
             WHERE v.vendor=e.vendor AND v.tenant=e.tenant) ORDER BY e.vendor""", (p.tenant,))
         vendors = []
         for vendor, payload in rows:
-            state = _capability(db,p,vendor,json.loads(payload))
+            state = _capability(db,p,vendor,json.loads(payload),governing_fees=governing_fees,trusted_now=trusted_now)
             vendors.append({'vendor_id': vendor, **{key: state[key] for key in ('vendor', 'revision', 'version', 'state', 'active_version')}})
         return {'vendors': vendors}
 
 
-def get_vendor(path, p, vendor):
+def get_vendor(path, p, vendor, *, governing_fees=(),trusted_now=None):
     with transaction(path, p, vendor) as db:
-        return _view(db, p, vendor, _tail(db, p, vendor))
+        return _view(db, p, vendor, _tail(db, p, vendor),governing_fees=governing_fees,trusted_now=trusted_now)
 
 
 def _fresh(old, vendor):
@@ -360,7 +378,9 @@ def _fee_for(contexts,manifest,overlay,facts,tenant):
     return matches[0] if len(matches)==1 else None
 
 
-def submit_tests(path, p, vendor, submission, *, governing_fees=()):
+def submit_tests(path, p, vendor, submission, *, governing_fees=(),trusted_now=None):
+    from .governing_fees import current_contexts
+    governing_fees=current_contexts(path,p.tenant,governing_fees,trusted_now)
     with transaction(path, p, vendor, write=True, draft=True) as db:
         state = _tail(db, p, vendor)
         if state['revision'] != submission.revision or state['state'] != 'SHADOW':
@@ -408,7 +428,7 @@ def submit_tests(path, p, vendor, submission, *, governing_fees=()):
         if state.get('previous_suite') != state['suite']:
             state['previous'] = None
         _event(db, p, vendor, state, 'Executed reviewer-authored scenarios in shadow')
-        return _view(db, p, vendor, state)
+        return _view(db, p, vendor, state,governing_fees=governing_fees,trusted_now=trusted_now)
 
 
 
@@ -424,10 +444,10 @@ def shadow_preview(path, p, vendor, submission, *, governing_fee=None):
                 "vendor_id":vendor, "revision":state["revision"], "evaluation":result}
 
 
-def act(path, p, vendor, action):
+def act(path, p, vendor, action, *, governing_fees=(),trusted_now=None):
     with transaction(path, p, vendor, write=True) as db:
         state = _tail(db, p, vendor)
-        state = _capability(db,p,vendor,state)
+        state = _capability(db,p,vendor,state,governing_fees=governing_fees,trusted_now=trusted_now)
         ops = {_key(p, vendor, state, op): op for op in _actions(state)}
         if action not in ops:
             raise ValueError('Stale or unavailable reviewer action.')
@@ -459,10 +479,10 @@ def act(path, p, vendor, action):
             state.update(state='SHADOW', active_version=None, previous=None, checks=[], tests=[],
                          suite=None, reviewer=None, reviewer_kind=None, test_author=None, interpretation_reviewer=None)
         _event(db, p, vendor, state, OPS[op])
-        return _view(db, p, vendor, state)
+        return _view(db, p, vendor, state,governing_fees=governing_fees,trusted_now=trusted_now)
 
 
-def dispatch(path, p, vendor, facts, *, governing_fee=None):
+def dispatch(path, p, vendor, facts, *, governing_fee=None,governing_fees=(),trusted_now=None):
     with transaction(path, p, vendor, write=True) as db:
         state = _tail(db, p, vendor)
         if not state['active_version']:
@@ -471,6 +491,11 @@ def dispatch(path, p, vendor, facts, *, governing_fee=None):
         artifact = _require_current(db,p,vendor,version)
         manifest, overlay = artifact['manifest'], artifact['overlay']
         result = evaluate(manifest, overlay, facts, p.tenant,bindings=binding_context_db(db,p,vendor,state,artifact),governing_fee=governing_fee)
+        authority=governing_fees or ((governing_fee,) if governing_fee is not None else ())
+        current=_capability(db,p,vendor,state,governing_fees=authority,trusted_now=trusted_now)
+        if result['amount'] is not None and current.get('pricing_binding_status')=='REVIEW_REQUIRED':
+            from .governing_fees import GoverningFeeRequired
+            raise GoverningFeeRequired('Current pricing checks require fresh review before financial dispatch.')
         identity = [p.tenant, vendor, overlay['account'], overlay['agreement'], overlay['product'],overlay['plan'],facts.get('month')]
         if 'resource_id' in overlay:
             identity.append(overlay['resource_id'])
@@ -569,7 +594,7 @@ def historical_economic_identity(path, tenant, case):
         return None
 
 
-def require_case_semantics(path, tenant, case):
+def require_case_semantics(path, tenant, case, *, governing_fees=(),trusted_now=None):
     """Current money requires current authority; never rewrite archived snapshots."""
     if not case.get('vendor_id') or not case['id'].startswith('availability-'):
         return
@@ -579,9 +604,19 @@ def require_case_semantics(path, tenant, case):
         if artifact and vendor_bindings.required(artifact['manifest']):
             context = binding_context_db(db, p, case['vendor_id'], artifact=artifact)
             vendor_bindings.require_context(artifact['manifest'], artifact['overlay'], tenant, context)
+        if artifact and artifact['manifest'].get('credit_rule') and case.get('amount') is not None:
+            from .governing_fees import context_for_digest,GoverningFeeRequired
+            state=_tail(db,p,case['vendor_id'])
+            current=_capability(db,p,case['vendor_id'],state,governing_fees=governing_fees,trusted_now=trusted_now)
+            if current.get('pricing_binding_status')=='REVIEW_REQUIRED':
+                raise GoverningFeeRequired('Current governing-fee checks require review.')
+            observations=[e['detail'] for e in case.get('evidence',[]) if isinstance(e.get('detail'),dict)
+                          and fingerprint(e['detail'])==case.get('observation_digest')]
+            context_for_digest(path,tenant,case.get('governing_fee_digest'),artifact['manifest'],artifact['overlay'],
+                               observations[0] if len(observations)==1 else {},governing_fees,trusted_now)
 
 
-def resolve_case(path, p, case_id, *, require_active=True):
+def resolve_case(path, p, case_id, *, require_active=True,governing_fees=(),trusted_now=None):
     """Resolve a previously dispatched estimate with its bound current agreement; never infer an award."""
     with transaction(path, p) as db:
         versions = list(_read_versions(db, p.tenant, case_id))
@@ -601,10 +636,12 @@ def resolve_case(path, p, case_id, *, require_active=True):
         if require_active:
             vendor_bindings.require_context(artifact['manifest'], artifact['overlay'], p.tenant,
                                            binding_context_db(db,p,case['vendor_id'],state,artifact))
+        if require_active:
+            require_case_semantics(path,p.tenant,case,governing_fees=governing_fees,trusted_now=trusted_now)
         return case
 
 
-def evaluate_active_db(db, p, vendor, facts, *, expected_version=None, expected_revision=None, governing_fee=None):
+def evaluate_active_db(db, p, vendor, facts, *, expected_version=None, expected_revision=None, governing_fee=None,governing_fees=(),trusted_now=None):
     """Evaluate with the active tenant-scoped version inside the caller's existing transaction."""
     if not isinstance(p,Principal) or not p.tenant or not p.subject or p.role not in {'viewer','reviewer'}:
         raise PermissionError('Authenticated tenant principal required.')
@@ -616,11 +653,17 @@ def evaluate_active_db(db, p, vendor, facts, *, expected_version=None, expected_
     artifact=_require_current(db,p,vendor,version)
     manifest,overlay=artifact['manifest'],artifact['overlay']
     result=evaluate(manifest,overlay,facts,p.tenant,bindings=binding_context_db(db,p,vendor,state,artifact),governing_fee=governing_fee)
+    authority=governing_fees or ((governing_fee,) if governing_fee is not None else ())
+    current=_capability(db,p,vendor,state,governing_fees=authority,trusted_now=trusted_now)
+    if result['amount'] is not None and current.get('pricing_binding_status')=='REVIEW_REQUIRED':
+        result={key:value for key,value in result.items() if key not in
+                {'governing_fee_cents','governing_fee_digest','governing_pricing_version','pricing_as_of','service_estimate'}}
+        result.update(outcome=Outcome.MISSING.value,amount=None,trace=['Current governing-fee checks require review.'],missing=['current_pricing_review'])
     return dict(result,version=version,semantics_revision=artifact['semantics_revision'],revision=state['revision'],manifest_digest=fingerprint(manifest),
                 source_sha256=manifest['document']['sha256'],overlay_digest=fingerprint(overlay),
                 vendor_id=vendor,agreement=overlay['agreement'],account=overlay['account'],resource_id=overlay.get('resource_id'))
 
 
-def evaluate_active(path,p,vendor,facts,*,expected_version=None,expected_revision=None,governing_fee=None):
+def evaluate_active(path,p,vendor,facts,*,expected_version=None,expected_revision=None,governing_fee=None,governing_fees=(),trusted_now=None):
     with transaction(path,p,vendor) as db:
-        return evaluate_active_db(db,p,vendor,facts,expected_version=expected_version,expected_revision=expected_revision,governing_fee=governing_fee)
+        return evaluate_active_db(db,p,vendor,facts,expected_version=expected_version,expected_revision=expected_revision,governing_fee=governing_fee,governing_fees=governing_fees,trusted_now=trusted_now)
