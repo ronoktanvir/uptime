@@ -15,7 +15,7 @@ OBSERVED = "2026-07-01T06:00:00Z"
 MONTH = dict(start="2026-06-01T00:00:00Z",end="2026-07-01T00:00:00Z",complete=True)
 
 
-def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, conditions=False, extra_terms=(), shadow=None, expected="12.51", overlay_override=None):
+def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, conditions=False, extra_terms=(), shadow=None, expected="12.51", overlay_override=None, installation="altitude-service"):
     rows=deepcopy(ROWS) + list(extra_terms)
     facts=deepcopy(shadow if shadow is not None else FACTS)
     overlay = deepcopy(overlay_override if overlay_override is not None else OVERLAY)
@@ -46,7 +46,7 @@ def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, condit
     (tmp_path/(digest+".json")).write_text(json.dumps(capture))
     monkeypatch.setenv("UPTIME_PUBLIC_EXTRACTIONS",str(tmp_path))
     monkeypatch.setenv("UPTIME_MODEL_PROPOSITIONS","1")
-    base="/api/vendors/altitude-service"
+    base="/api/vendors/" + installation
     s=env.post(base+"/candidates",dict(document=dict(name="Synthetic station SLA",uri="urn:synthetic:weather",
                     classification="synthetic_public",text=text),overlay=overlay))
     assert s["state"]=="SHADOW",s

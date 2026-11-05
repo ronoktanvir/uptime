@@ -226,7 +226,8 @@ def validate_material_coverage(quote, values):
         raise ValueError('Unsupported conditional eligibility clause.')
     if re.search(r'(?:credits?|claims?|remedy)\b[^.;]{0,48}\b(?:expire[sd]?|expir(?:ation|y)|waiv(?:ed|er))', quote, re.I):
         raise ValueError('Unimplemented credit expiry or waiver.')
-    if re.search(r'\b(?:round(?:ed|ing)?|half.cent)\b', quote, re.I) and not {'rounding','interval_measurement'} & values.keys():
+    inherited_rounding = ('prior_credit' in values and re.search(r'from (?:the )?rounded (?:monthly |service )?credit',quote,re.I))
+    if re.search(r'\b(?:round(?:ed|ing)?|half.cent)\b', quote, re.I) and not inherited_rounding and not {'rounding','interval_measurement'} & values.keys():
         raise ValueError('Rounding instruction requires a typed calculation.')
     if re.search(r'\b(?:claims?|requests?|fil(?:e|ing))\b[^.;]{0,100}\b(?:calendar days?|billing cycles?)\b', quote, re.I) and not {'filing','fixed_filing'} & values.keys():
         raise ValueError('Filing period lacks a source-bound deadline operator.')
@@ -466,7 +467,8 @@ def _compile_resource(document, clauses, issues):
                                 and not re.search(r'claims?|credit requests?|deadline|submission',sentence)
                                 for sentence in re.split(r'[.;\n]',lower))):
                         raise ValueError('Unsupported resource month denominator.')
-                    if key == 'boundary' and (value!='strict_below' or not re.search(r'below|lower than|less than|<|equal|threshold|at or above',lower)):
+                    if key == 'boundary' and (value!='strict_below' or not re.search(r'below|lower than|less than|<|equal|threshold|at or above',lower)
+                            and not ('zero_band' in values and re.search(r'at least|≥|>=',lower))):
                         raise ValueError('Uncited strict availability boundary.')
                     if key == 'fee_basis' and (value != 'affected_resource_fees'
                             or not re.search(r'fees?|charges?|spend|billed|rental|subscription cost|amount (?:paid|payable)', lower)

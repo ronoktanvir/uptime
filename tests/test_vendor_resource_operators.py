@@ -268,3 +268,25 @@ def test_markdown_numbered_headings_and_public_processing_notes_do_not_waive_con
     for text in ('## 4. Claims must be approved', 'Public-only model extraction is authorized. Credits only cover weekday outages.'):
         with pytest.raises(ValueError):
             compiled(*extend_source([(text, {'nonmaterial': 'Heading or source note.'})]))
+
+
+def test_duration_definition_phrase_can_follow_its_source_symbol():
+    rows=[('Let K be every elapsed second in the month and Q the covered outage seconds.',
+           {'measurement_symbols':{'total':{'symbol':'K','phrase':'every elapsed second in the month'},
+                                   'down':{'symbol':'Q','phrase':'the covered outage seconds'}}}),
+          ('Availability is 100 times (K minus Q) divided by K.',{'interval_measurement':['availability_ratio']})]
+    assert compiled(*extend_source(rows))['measurement_symbols']=={'total':'K','down':'Q'}
+    bad=deepcopy(rows)
+    bad[0][1]['measurement_symbols']['down']['symbol']='K'
+    with pytest.raises(ValueError,match='grounded|definitions'):
+        compiled(*extend_source(bad))
+
+
+def test_prior_credit_can_reference_an_already_defined_rounding_step():
+    row=('Subtract prior credit issued for the same station and month from the rounded monthly credit.',
+         {'prior_credit':'subtract_issued_same_resource_month'})
+    assert compiled(*extend_source([row]))['prior_credit']
+    bad=('Round the monthly credit down and subtract prior credit issued for the same station and month.',
+         row[1])
+    with pytest.raises(ValueError,match='typed calculation'):
+        compiled(*extend_source([bad]))
