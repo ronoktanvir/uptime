@@ -1,0 +1,42 @@
+SYNTHETIC PUBLIC AGREEMENT — CalyxQuay Beacon Cache
+Version CQ-2031-04. Fictional test-engineering material; no real vendor or customer.
+
+1. Covered service and monthly period
+CalyxQuay supplies Beacon Cache on the Lantern plan. This agreement covers that
+service for the single monthly period from 2031-04-01T00:00:00Z inclusive to
+2031-05-01T00:00:00Z exclusive. The monthly period is exactly 30 days, or
+43,200 minutes. All times are UTC. There are no other covered services or periods.
+
+2. Availability and credit
+Monthly availability is 100 times (43,200 minus unavailable minutes) divided by
+43,200. If monthly availability is below 99.9%, the customer receives a service
+credit of 12% of eligible monthly service fees. Availability equal to or above
+99.9% earns no credit. There is one threshold and one credit rate.
+
+3. Fee base and exclusion
+Eligible monthly service fees are the Beacon Cache recurring subscription line
+for the covered monthly period on the customer's paid invoice, in USD. Exclude
+operator coaching fees from the credit base. Round the credit to the nearest
+cent, half up. A service credit is not a cash refund.
+
+4. Filing deadline
+The timestamped claim must be filed within 14 days after the monthly period
+ends, no later than 2031-05-15T00:00:00Z. Filing exactly at that timestamp is
+permitted. A claim filed later receives no credit.
+
+5. Required evidence
+A claim must include a verifiable itemized paid invoice identifying the account,
+service, plan, monthly period, subscription fee and any operator coaching fee.
+It must also include a verifiable CalyxQuay status record identifying the account,
+Beacon Cache service, Lantern plan, this monthly period, and unavailable minutes.
+The status record is authoritative for availability. Invoice and status records
+must have source identifiers, recorded timestamps and content hashes. Without
+either required record, entitlement is unknown until that record is supplied.
+The claim's filing timestamp is required. Customer telemetry is not required.
+
+6. Denials and authority
+A denial correctly citing a late filing or availability at or above the threshold
+must be accepted. If a denial requests a missing required record, supply that
+record when available and reassess. If the denial introduces an unexplained
+exception not present here, escalate for review; do not invent an exception or
+send an automatic appeal. This agreement authorizes synthetic testing only.

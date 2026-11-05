@@ -1,0 +1,9 @@
+{
+  "classification": "SYNTHETIC_PUBLIC",
+  "evaluation_role": "IN_FAMILY_COMPARATOR_ONLY",
+  "approved_public_file": "prospective/public/calyxquay-beacon-cache-sla.txt",
+  "approved_utf8_sha256": "697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1",
+  "external_scope": "Only the exact bytes of approved_public_file may be sent to root's public-only extraction provider. This scope metadata, private inputs, customer overlays, gold, HTTP journals and result receipts remain local.",
+  "precedence": "Does not replace previous out-of-family or failed blind evaluations.",
+  "authority": "Synthetic test engineering only; no real vendor communication, money, or human approval."
+}
