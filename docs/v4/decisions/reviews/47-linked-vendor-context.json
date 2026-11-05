@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T02:13:32.801138+00:00",
+  "packet_sha256": "1bb7629c71eadb1a50da45a79ac89a38aaa391f526f06b0b10f8723c67654fb6",
+  "prompt_sha256": "cf58a8ecb22d0af19affc0c93e2f8b9d02944e52ab5dbc7accd7cb7a7b0286ac",
+  "status": "REVIEWED",
+  "session": "95a07ffb-b005-434e-bc60-09338e9c2c35",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** B, but defer names. Safe minimum: B with IDs only, plus coverage markers.\n\n**Alternatives:** A costs nothing but leaves review unresolved. C has unbounded cost and pulls in unrelated vendors. B is bounded at \u22646 GETs, though that bound comes from this sample, not a stated cap.\n\n**Strongest objection:** A protected local sidecar of names is still persisted vendor PII. Engineers will read it, logs and crash dumps may capture it, and the UI will treat it as identity even with \"not authority\" policy. Its \"protected\" status is asserted, not specified (ACL, encryption, retention, deletion).\n\n**Unsupported claims:**\n- That consent covers *storing* names, not just reading them.\n- That the scoped token on a 404 or 403 cannot fall back to a broader scope.\n- That dedup with the list is lossless when the two records diverge.\n- \"Improves accounting review\" has no reviewer evidence behind it.\n\n**Falsification tests:**\n- Readback ID \u2260 requested ID \u2192 reject the record.\n- 404/403 \u2192 explicit \"unresolved\" marker, no retry outside the sandbox.\n- Diff the old captures byte-for-byte after migration.\n- Grep the exports and fixtures for any sidecar field.\n- Check that detail coverage never sets list-complete.\n- Simulate a 7th bill to confirm the cap is enforced.\n\n**Human authorization:**\n- Data-owner or privacy sign-off before any name persistence.\n- Confirmation that the token scope is sandbox-only.\n\n**Recommendation:** Ship B without the sidecar. Show names ephemerally in memory if needed, and revisit persistence after review."
+}

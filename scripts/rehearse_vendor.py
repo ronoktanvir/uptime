@@ -71,7 +71,8 @@ def exercise(document, overlay, scenarios, origin, secret):
             require(case['outcome'] == expected['outcome'] and case['amount'] == expected.get('amount'),
                     'Dispatched result differs from supplied expectation.')
             detail = call(f'workbench case {i}', 'GET', '/api/cases/' + case['id'])
-            require(detail == case, 'Workbench returned a different case.')
+            require(all(detail.get(key) == value for key, value in case.items()),
+                    'Workbench changed a persisted evaluation field.')
             results.append({'scenario_sha256': fingerprint(scenario), 'case_id': case['id'],
                             'outcome': case['outcome'], 'amount': case['amount'], 'currency': case['currency']})
         portfolio = call('portfolio', 'GET', '/api/dashboard')
