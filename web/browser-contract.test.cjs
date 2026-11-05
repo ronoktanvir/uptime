@@ -21,15 +21,16 @@ class Element {
   focus() {}
 }
 const flush = () => new Promise(resolve => setImmediate(resolve));
-async function setup(unauthorized = false, initialHash = '#dashboard') {
+async function setup(unauthorized = false, initialHash = '#dashboard', workflowResponse = {workflow:null}, workflowStatus = 200) {
   const nodes = Object.fromEntries(['content','notice','inspector','case-content','workspace-name','account','refresh','close-inspector'].map(id => [id,new Element('div')]));
   const requests = [], window = {}, location = {hash:initialHash};
   const source = ['SYNTHETIC_CUSTOMER','SIMULATED_VENDOR'];
   const item = {id:'case/1',vendor:'<img src=x onerror=alert(1)>',title:'Contract test',stage:'DRAFT',outcome:'ELIGIBLE',amount:'12.00',currency:'USD',sources:source};
   const context = {document:{querySelector:s => nodes[s.slice(1)],querySelectorAll:() => [],createElement:t => new Element(t)}, window:{addEventListener:(k,fn) => window[k]=fn},location,URL,Option:function(label,value){const e=new Element('option');e.textContent=label;e.value=value;return e;},fetch:async(path,options) => {
     requests.push({path,options});
-    let data = path === '/api/workspace/workflow' ? {workflow:null} : path === '/api/ramp/workspace' ? {source_mode:'TEST_ONLY',records:[{...item,provider_id:'native-1',provider_object_type:'bills',native_status:'OPEN'}],resources:[]} : path === '/api/dashboard' ? {workspace:'Test workspace',as_of:'test timestamp',metrics:[{label:'Simulated award',value:'12.00',sources:source}],cases:[item],audit:[{at:'test',event:'Recorded',sources:source}],ramp:{sources:['UNAVAILABLE']}} : path === '/api/onboarding' ? {vendor:'Test vendor',state:'DRAFT',sources:source,checks:[{label:'Golden check',passed:true,detail:'Test result'}],history:['Draft created'],actions:[]} : path === '/api/guide' ? {answer:'Read-only answer',sources:source} : {...item,financials:[],clauses:[{label:'Unsafe link',uri:'javascript:alert(1)'}],evidence:[],trace:['Deterministic trace'],timeline:[],actions:[{id:'approve',label:'Approve draft'}]};
-    return {ok:!unauthorized,status:unauthorized?401:200,headers:{get:()=>'application/json'},json:async()=>data};
+    let data = path === '/api/workspace/workflow' ? workflowResponse : path === '/api/ramp/workspace' ? {source_mode:'TEST_ONLY',records:[{...item,provider_id:'native-1',provider_object_type:'bills',native_status:'OPEN'}],resources:[]} : path === '/api/dashboard' ? {workspace:'Test workspace',as_of:'test timestamp',metrics:[{label:'Simulated award',value:'12.00',sources:source}],cases:[item],audit:[{at:'test',event:'Recorded',sources:source}],ramp:{sources:['UNAVAILABLE']}} : path === '/api/onboarding' ? {vendor:'Test vendor',state:'DRAFT',sources:source,checks:[{label:'Golden check',passed:true,detail:'Test result'}],history:['Draft created'],actions:[]} : path === '/api/guide' ? {answer:'Read-only answer',sources:source} : {...item,financials:[],clauses:[{label:'Unsafe link',uri:'javascript:alert(1)'}],evidence:[],trace:['Deterministic trace'],timeline:[],actions:[{id:'approve',label:'Approve draft'}]};
+    const status=unauthorized ? 401 : path === '/api/workspace/workflow' ? workflowStatus : 200;
+    return {ok:status===200,status,headers:{get:()=>'application/json'},json:async()=>data};
   }};
   context.window.uptimeAuth = {session:()=>({subject:'test.reader'}), signInForm:()=>{
     const form = new Element('form'); form.textContent='Sign in to Uptime'; return form;
@@ -44,6 +45,7 @@ async function setup(unauthorized = false, initialHash = '#dashboard') {
   context.window.document = context.document;
   context.history = {pushState:(_,__,url)=>{location.hash=url;}};
   vm.runInNewContext(fs.readFileSync(__dirname+'/ramp_ui.js','utf8'),context);
+  vm.runInNewContext(fs.readFileSync(__dirname+'/workspace_ui.js','utf8'),context);
   vm.runInNewContext(fs.readFileSync(__dirname+'/app.js','utf8'),context); await flush(); return {nodes,requests,window,location};
 }
 test('ledger consumes API data, keeps sources exact and treats markup as text', async () => {
@@ -97,4 +99,22 @@ test('Ramp authentication failures reuse named sign-in and skip link does not ch
   const s=await setup(false,'#ramp');const count=s.requests.length;
   s.location.hash='#workspace';s.window.hashchange();await flush();
   assert.equal(s.requests.length,count);assert.match(s.nodes.content.textContent,/Ramp worklist/);
+});
+
+test('configured workspace renders inside the finance shell and keeps native records accessible', async () => {
+  const s=await setup(false,'#ramp',{workflow:{vendor:'Northwind Cloud',company:'Northwind Finance',months:[],ledger:{destination:'Local ledger'},claim:{state:'DRAFT'},next_actions:[]}});
+  assert.match(s.nodes.content.textContent,/Northwind Cloud/);
+  assert.equal(s.nodes['workspace-name'].textContent,'Northwind Finance');
+  assert.equal(s.requests.length,1);
+  s.location.hash='#records';s.window.hashchange();await flush();
+  assert.match(s.nodes.content.textContent,/Ramp worklist/);
+  assert.equal(s.requests[1].path,'/api/ramp/workspace');
+});
+test('workflow authorization and server errors never silently fall back to native records', async () => {
+  for(const status of [403,500]) {
+    const s=await setup(false,'#ramp',{workflow:null},status);
+    assert.match(s.nodes.content.textContent,/Unable to load this view/);
+    assert.equal(s.requests.length,1);
+    assert.equal(s.requests[0].path,'/api/workspace/workflow');
+  }
 });
