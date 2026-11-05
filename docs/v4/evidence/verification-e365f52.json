@@ -1,0 +1,27 @@
+{
+  "source_commit": "e365f529a98f8dd78085d48f962899c7d0dc484b",
+  "command": "uv run --locked pytest --basetemp=<unique owned temporary directory>",
+  "attempts": [
+    {
+      "log": "root-semantic61-merge-01.log",
+      "sha256": "5a72d7dbd7d2d0a4e697a5e33274756fef32247471122e10d051e8dc61346007",
+      "result": "8 failed, 2743 passed, 1 warning in 144.69s",
+      "exit_code": 1
+    },
+    {
+      "log": "root-semantic61-merge-02.log",
+      "sha256": "07f919bedf4fae090d7a81c552188558d162779c2470d8ea21540d700614fa33",
+      "result": "2751 passed, 1 warning in 149.05s",
+      "exit_code": 0
+    },
+    {
+      "log": "root-semantic67-full-01.log",
+      "sha256": "ebadc3143e530cba77d21c40c436a1e4e748da228bc3c2ad035d273280fcef49",
+      "result": "2760 passed, 1 warning in 164.64s",
+      "exit_code": 0
+    }
+  ],
+  "independent_review": "Four new public probes failed at5463bcb despite passing2751regression; preserved and repaired.",
+  "independent_recheck": "13 original/repair tests plus4 additional independent edge checks passed at e365f52",
+  "production_readiness": false
+}

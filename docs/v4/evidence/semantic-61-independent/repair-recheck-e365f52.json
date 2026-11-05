@@ -1,0 +1,55 @@
+{
+  "review": "Independent repair recheck of ADR67 / semantic61 findings",
+  "reviewed_commit": "e365f529a98f8dd78085d48f962899c7d0dc484b",
+  "date": "2026-11-05",
+  "original_review": "/Users/ronoktanvir/.local/share/uptime-engineering/receipts/independent-semantic61-review.json",
+  "result": "The three original findings are resolved in the examined routes. No residual release-blocking bug found in this bounded repair review.",
+  "resolved_findings": [
+    {
+      "id": "F61-1",
+      "status": "RESOLVED",
+      "evidence": "Both original provider/customer collision probes now reject contradictory review records. require_disjoint validates new and stored contexts using literal whitespace normalization; binding_context_db converts stored conflict refusal into unavailable authority. Independent forced-context controls confirm _clocked returns insufficient evidence/null before computing money for both source roles."
+    },
+    {
+      "id": "F61-2",
+      "status": "RESOLVED",
+      "evidence": "Original revoke probe passes. Workbench.review_observation uses a field allowlist, removes monetary/rate intermediates, replaces monetary trace with version/review diagnostics, and retains explicit recorded_amount plus immutable input/history references. Original archived snapshots remain unchanged. Independent re-review/redispatch control restores USD12.51 without recorded-state residue and preserves the prior archived version and obligation ID."
+    },
+    {
+      "id": "F61-3",
+      "status": "RESOLVED",
+      "evidence": "Original stale-dependency probe passes. _capability moves stale results to recorded_checks and empties current checks with checks_status=REVIEW_REQUIRED. State with no prior binding keeps freshly executed unreviewed null observations. Empty current checks cannot authorize approval under _actions."
+    }
+  ],
+  "validation": [
+    {
+      "result": "13 passed, 1 warning in 1.74s",
+      "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-recheck-e365f52/recheck.log",
+      "scope": "Unmodified copy of original four independent probes plus nine root repair test cases"
+    },
+    {
+      "result": "4 passed, 1 warning in 1.74s",
+      "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-recheck-e365f52/edges.log",
+      "scope": "Independent runtime collision refusal for both roles; normalized whitespace collision and source-role separation; re-review/redispatch recovery preserving old history and economic identity"
+    }
+  ],
+  "independent_probe_files": [
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-recheck-e365f52/test_containment_review.py",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-recheck-e365f52/test_recheck_edges.py"
+  ],
+  "new_observations": [
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-recheck-e365f52/revoked-case-observed.json",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-recheck-e365f52/stale-vendor-observed.json"
+  ],
+  "original_failure_evidence_preserved": true,
+  "root_source_modified": false,
+  "residual_findings": [],
+  "limits": [
+    "No independent full-suite rerun; root was running its locked full suite separately.",
+    "No native Ramp operation, network retest, credential access or private holdout/gold inspection.",
+    "The dependency-change check uses an in-process digest mismatch, and the historical conflicting-record control constructs legacy data in a disposable public-fixture database.",
+    "Reviewed literal consistency does not establish the truth of arbitrary human interpretation.",
+    "This bounded result does not establish production readiness, live entitlement, or correctness of unexamined consumers/concurrent read races.",
+    "B65 core/data review is deferred until root supplies forthcoming 65a context integration; no completion claim or missing-join defect is inferred."
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-05T08:21:02.113713+00:00",
+  "updated_at": "2026-11-05T08:53:26.539587+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8765",
   "headline": "Uptime engineering progress",
@@ -7,9 +7,9 @@
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "2,684 passed",
-      "detail": "f83587f integration passed after disk-full setup errors were resolved. This is regression evidence; public model proposals still produced 0/4 fully grounded compatible candidates.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-f83587f.json"
+      "value": "2,760 passed",
+      "detail": "e365f52 passed full regression. Independent review found three semantic containment defects; all original reproductions and four extra edge checks now pass. Historical failed evidence remains.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-e365f52.json"
     },
     {
       "label": "Independent audit",
@@ -432,14 +432,14 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "2,684 Python tests passed at f83587f",
-      "detail": "Source-locked dispute review and public transport integrated. First run:2677passed7 disk-full setup errors; unchanged source rerun:2684passed1warning146.16s. Earlier independent audit remains pinned to797c3d0.",
+      "summary": "2,760 Python tests passed at e365f52",
+      "detail": "Full locked run:2760passed1warning164.64s. Independent semantics review found3defects with4failedprobes at5463bcb; fixes rechecked through13tests plus4newedgecontrols. No production-readiness inference.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
         "companion"
       ],
-      "next_action": "Run the full locked suite after each next merge.",
+      "next_action": "Run locked full regression after each further integration.",
       "links": [
         {
           "label": "Frozen verification",
@@ -452,14 +452,14 @@
       "title": "GitHub CI verification",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "GitHub CI passed on3607b3f",
-      "detail": "Actions run41984831379 completed successfully on3607b3f. Newer local integration has its own passing full test receipt; next push will trigger CI.",
+      "summary": "GitHub CI passed on68571a3",
+      "detail": "Actions run41993894741 completed successfully on68571a3. The latest semantic integration passed its local full suite and independent repair review; next push triggersCI.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
         "regression"
       ],
-      "next_action": "Verify the new pushed commit\u2019s CI result.",
+      "next_action": "Verify CI for the next published checkpoint.",
       "links": [
         {
           "label": "Completed GitHub workflow",
@@ -590,14 +590,14 @@
       "title": "Contract meaning and observation identity",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Confirmed incorrect shadow estimates; containment in progress",
-      "detail": "Public probes reproduce substring polarity, omitted conditions and raw/opaque-label confusion. Opus 61 reviewed role-scoped semantic bindings before monetary evaluation. Quotes and passing self-authored vectors alone cannot establish contractual meaning.",
+      "summary": "Reviewed literal meaning and contradiction guards integrated",
+      "detail": "Named source review now precedes affected money. Revocation removes current derived values; stale checks remain only as recorded history; conflicting positive/nonqualifying telemetry refuses. Actual semantic truth remains a reviewer judgment, not a test-score claim.",
       "owner": "Onboarding and security engineering",
       "depends_on": [
         "adapter",
         "security"
       ],
-      "next_action": "Implement trusted pre-pricing bindings, consumer checks, revocation and migration controls; verify positive cases separately from refusals.",
+      "next_action": "Validate new governing-fee joins independently; retain genuine meaning review for customer terms.",
       "links": [
         {
           "label": "Confirmed semantic-risk evidence",

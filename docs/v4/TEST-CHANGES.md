@@ -5,7 +5,7 @@ This ledger records presentation and fixture changes for the Northwind walkthrou
 | Workstream | Exact test names and reasons | Integration status |
 | --- | --- | --- |
 | Clean finance views | `TEST-CHANGES-UI.md` in the UI branch lists the affected presentation assertions. Root will link it after integration. | Pending |
-| Semantic source bindings | [TEST-CHANGES-61.md](TEST-CHANGES-61.md) lists every changed fixture/assertion, including the public inbox controls, six historical-award parameters and stricter draft-only monetary behavior. | Merged at `aafd093`; first full run had 8 failures. Root corrections pass all 46 affected tests; full rerun pending. |
+| Semantic source bindings | [TEST-CHANGES-61.md](TEST-CHANGES-61.md) lists every changed fixture/assertion, including the public inbox controls, six historical-award parameters and stricter draft-only monetary behavior. | First full run had 8 failures; corrected run2751passed. Independent findings repaired at `e365f52`:2760passed1warning, independent recheck passed. |
 | Dispute interpretation and public model transport | [TEST-CHANGES-60-62.md](TEST-CHANGES-60-62.md) records that no pre-60 test assertion was changed. New tests exercise the added bridge and transport boundaries. | Integrated at `f83587f`; 2,684 passed, 1 warning. First disk-full failure preserved. |
 | Northwind inputs and continuous flow | New fixture and workflow tests are being implemented. No existing expectation has been changed by root at this checkpoint. | Pending |
 
