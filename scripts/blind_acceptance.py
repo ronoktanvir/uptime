@@ -13,6 +13,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from hashlib import sha256
 import json
+import importlib.util
 import logging
 import os
 from pathlib import Path
@@ -25,7 +26,20 @@ from tempfile import TemporaryDirectory
 from threading import Thread
 import time
 
+
+def _load_witness_module(name, filename):
+    """Pin witness helpers beside this runner, independent of --source checkout."""
+    spec = importlib.util.spec_from_file_location(name, Path(__file__).with_name(filename))
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+
+
+_load_witness_module("_blind_acceptance_mapping", "blind_mapping.py")
+_load_witness_module("_blind_acceptance_expectations", "blind_expectations.py")
+
 FREEZE = "9364cd2bf2023adbc1a6f99bc275ac1ae36476ee"
+BOUNDARY_FREEZE = "c33642b"
 FROZEN_MANIFEST = "f0c9cb6e904c36b490387eefd45bc1a9141b4e1faa3bda313f13a7cadd4d1359"
 
 
@@ -97,7 +111,8 @@ def write_receipt(path, receipt):
 def private_receipt(value):
     """Financial operands and private clocks stay in memory; export digests only."""
     sensitive = {"amount", "awarded", "expected_money", "observed_money", "filing_cutoff", "measurement_month",
-                 "expected_value", "observed_value", "supported_credit", "remaining_credit", "eligible_base"}
+                 "expected_value", "observed_value", "supported_credit", "remaining_credit", "eligible_base", "metrics", "contract_cutoff",
+                 "covered_seconds", "excluded_seconds", "unresolved_seconds"}
     if isinstance(value, dict):
         return {key + "_sha256" if key in sensitive else key:
                 digest(child) if key in sensitive else private_receipt(child) for key, child in value.items()}
@@ -183,8 +198,10 @@ def project_input_selectors(raw):
             elif text[pos] != "}":
                 raise BoundaryError("CASE_PLAN_JSON_INVALID")
 
-    plans = None
+    plans, defaults = None, {}
     for key, left, right in members(0):
+        if key in {"default_account_id", "default_resource_id"}:
+            defaults[key.removeprefix("default_")] = json.loads(text[left:right])
         if key != "cases":
             continue
         if text[left] != "[":
@@ -199,6 +216,9 @@ def project_input_selectors(raw):
                 raise BoundaryError("CASE_PLAN_JSON_INVALID")
     if plans is None:
         raise BoundaryError("CASE_PLAN_INCOMPLETE")
+    for plan in plans:
+        for key, value in defaults.items():
+            plan.setdefault(key, value)
     return plans
 
 
@@ -211,11 +231,20 @@ def git_bytes(source, *args):
 
 class Fixture:
     """All private fixture access is local. Gold decoding has a phase guard."""
-    def __init__(self, root, *, pinned_manifest=None):
+    def __init__(self, root, *, pinned_manifest=None, suite="initial"):
         self.root = root.resolve()
         self.schema = read_json(local_path(root, "SCHEMA.json"))
         if self.schema.get("schema_version") != "fresh-blind-1":
             raise BoundaryError("FIXTURE_SCHEMA_UNSUPPORTED")
+        self.suite, self.additional_evidence, self.base_expected = suite, None, None
+        if suite == "boundaries":
+            extension = read_json(local_path(root, "BOUNDARY-SCHEMA.json"))
+            if extension.get("schema_version") != "fresh-blind-boundaries-1" or extension.get("initial_freeze_commit") != FREEZE:
+                raise BoundaryError("BOUNDARY_SCHEMA_UNSUPPORTED")
+            self.base_expected = self.schema["private"]["expected"]["path"]
+            self.additional_evidence = extension["additional_evidence"]
+            self.schema["private"]["expected"]["path"] = extension["additional_expected"]
+            self.schema["hash_manifest"] = extension["manifest"]
         manifest_bytes = local_path(root, self.schema["hash_manifest"]).read_bytes()
         if pinned_manifest is not None and manifest_bytes != pinned_manifest:
             raise BoundaryError("FREEZE_MANIFEST_MISMATCH")
@@ -238,6 +267,8 @@ class Fixture:
                     for k in ("overlay", "accounts", "evidence", "correspondence", "expected")]
         if set(required) - self.hashes.keys():
             raise BoundaryError("MANIFEST_INCOMPLETE")
+        if self.additional_evidence and self.additional_evidence not in self.hashes:
+            raise BoundaryError("MANIFEST_INCOMPLETE")
         self.observed_hash = None
 
     def path(self, kind):
@@ -246,7 +277,10 @@ class Fixture:
         return local_path(self.root, relative)
 
     def rows(self, kind):
-        return [json.loads(line) for line in self.path(kind).read_bytes().splitlines() if line.strip()]
+        paths = [self.path(kind)]
+        if kind == "evidence" and self.additional_evidence:
+            paths.append(local_path(self.root, self.additional_evidence))
+        return [json.loads(line) for path in paths for line in path.read_bytes().splitlines() if line.strip()]
 
     def plan(self, external=None, *, allow_input_projection=False):
         if external:
@@ -270,13 +304,21 @@ class Fixture:
         return rows
 
     def seal_observations(self, observations):
+        self._sealed = json.dumps(observations, sort_keys=True)
         self.observed_hash = digest(observations)
         return self.observed_hash
 
     def gold(self):
         if self.observed_hash is None:
             raise BoundaryError("GOLD_BEFORE_OBSERVATIONS")
-        return read_json(self.path("expected"))
+        result = read_json(self.path("expected"))
+        if self.base_expected:
+            result["terms"] = read_json(local_path(self.root, self.base_expected))["terms"]
+            for case in result["cases"]:
+                for key in ("period_seconds", "eligible_base"):
+                    if key in result:
+                        case.setdefault(key, result[key])
+        return result
 
     def unchanged(self):
         return all(digest(local_path(self.root, name).read_bytes()) == value for name, value in self.hashes.items())
@@ -417,8 +459,11 @@ def compact_case(row):
             "actions_count": len(row.get("actions", [])),
             "awarded": export_money(row.get("ledger", {}).get("awarded")),
             "case_id_sha256": digest(row["id"]) if row.get("id") else None,
-            "outcome_id_sha256": digest([row.get("id"), row.get("version"), row.get("observation_digest")]),
+            "outcome_id_sha256": digest(row["outcome_id"]) if row.get("outcome_id") else None,
+            "outcome_record_sha256": digest([row.get("id"), row.get("version"), row.get("observation_digest"), outcome]),
             "receipt_ids_sha256": [digest(r["id"]) for r in row.get("submissions", [])],
+            "historical_receipt_ids_sha256": [digest(e["receipt_id"]) for e in row.get("evidence", []) if e.get("receipt_id")],
+            "reply_event_ids_sha256": [digest(r["event_id"]) for r in row.get("replies", [])],
             "preflight_outcome": row.get("preflight", {}).get("outcome"),
             "filing_cutoff": row.get("filing_cutoff", row.get("claim_cutoff")),
             "filing_status": row.get("filing_status"),
@@ -428,7 +473,7 @@ def compact_case(row):
 
 def promote_and_exercise(transport, prefix, state, intake):
     """Independently authored public controls; normal actions and case readback."""
-    from scripts.blind_mapping import promotion_scenarios
+    from _blind_acceptance_mapping import promotion_scenarios
     if transport.post(prefix + "/evaluate", {"facts": {}}, "shadow_dispatch_refused") is not None:
         raise BoundaryError("INACTIVE_DISPATCH_ACCEPTED")
     scenarios = promotion_scenarios(intake["document"]["text"].encode(), state["manifest"], intake["overlay"])
@@ -452,9 +497,10 @@ def promote_and_exercise(transport, prefix, state, intake):
         readback = transport.get("/api/cases/" + row["id"], "independent_case_readback")
         passed = (row["outcome"] == scenario["expected"]["outcome"]
                   and row["amount"] == scenario["expected"].get("amount")
-                  and readback is not None and readback.get("id") == row["id"])
+                  and readback is not None and all(readback.get(k) == row.get(k) for k in ("id", "outcome", "amount", "version")))
         result["controls"].append(dict(scenario_sha256=digest(scenario), passed=passed,
                                        observed=compact_case(row), readback_sha256=digest(readback)))
+        transport.last_independent_case = row
     return state, result
 
 
@@ -487,11 +533,11 @@ def fresh_intake(public, overlay, account, artifacts):
     def boundary(value):
         return instant(value + "T00:00:00Z" if re.fullmatch(r"\d{4}-\d\d-\d\d", value) else value)
     last = boundary(overlay["valid_until_exclusive"]) - timedelta(microseconds=1)
-    from scripts.blind_mapping import public_identity
+    from _blind_acceptance_mapping import public_identity
     identity = public_identity(public)
     translated = dict(agreement=overlay["overlay_id"], account=account["account_id"], product=account["service"],
                       plan="Unspecified", resource_id=account["resource_id"], resource_label=account["endpoint"],
-                      currency=invoices[0]["currency"] if len(invoices) == 1 else "XXX",
+                      currency=invoices[0]["currency"] if len(invoices) == 1 else "USD",
                       fee_line_ref=fee_ref, effective_from=boundary(overlay["valid_from"]).date().isoformat(),
                       effective_until=last.date().isoformat())
     if identity.get("agreement"):
@@ -670,6 +716,11 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             observed["candidate_sha256"] = digest(state) if state else None
             if state and state.get("manifest") and term_observations is not None:
                 term_observations.append(state["manifest"] | {"_measurement_month": measured_month})
+            if state and state.get("manifest"):
+                from _blind_acceptance_expectations import term_value
+                observed["contract_channel_sha256"] = digest(state["manifest"].get("submission_channel"))
+                cutoff = term_value(("filing_deadline_inclusive",), state["manifest"] | {"_measurement_month": measured_month})
+                observed["contract_cutoff"] = cutoff.isoformat() if cutoff else None
             if not state or state.get("state") == "QUARANTINED":
                 observed["fail_codes"].append("PUBLIC_EXTRACTION_OR_BINDING_UNSUPPORTED")
             else:
@@ -682,8 +733,11 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             if row is not None:
                 if not authorized:
                     observed["fail_codes"].append("UNAUTHORIZED_SCOPE_ACCEPTED")
-                from scripts.blind_mapping import event_plan
+                from _blind_acceptance_mapping import event_plan
                 events, gaps = event_plan(selected, scope, state["manifest"]) if state and state.get("manifest") else ([], ["ACTIVE_TERMS_UNAVAILABLE"])
+                if state and state.get("manifest"):
+                    from _blind_acceptance_mapping import bounded_input_diagnostic
+                    observed["input_diagnostic"] = bounded_input_diagnostic(selected, scope, state["manifest"])
                 observed["fail_codes"].extend(gaps)
                 observed["deliveries"] = []
                 chronology = [(r, False) for r in events] + [(r, True) for r in messages]
@@ -714,6 +768,8 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
                 transport.clock[0] = instant(plan["as_of"])
                 row = transport.get(path, "blind_observed")
                 observed["observation"] = compact_case(row)
+                from _blind_acceptance_expectations import metrics
+                observed["metrics"] = metrics(row) if row else {}
                 observed["observed_provenance_sha256"] = sorted({digest(str(e[k])) for e in row.get("evidence", [])
                     for k in ("source_ref", "receipt_id", "original_ref", "observed_at", "available_at", "filed_at") if e.get(k)}) if row else []
                 observed["missing_categories"] = missing_categories(row)
@@ -724,6 +780,9 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
                 revoked = transport.post(prefix + "/actions/" + actions[0], {}, "scripted_rollback") if actions else None
                 refused = transport.post(prefix + "/evaluate", {"facts": {}}, "rollback_dispatch_refused")
                 observed["rollback_verified"] = bool(revoked and not revoked.get("active_version") and refused is None)
+                last = getattr(transport, "last_independent_case", None)
+                history = transport.get("/api/cases/" + last["id"], "rollback_history_readback") if last else None
+                observed["rollback_history_verified"] = bool(history and all(history.get(k) == last.get(k) for k in ("id", "outcome", "amount", "version")))
             observed["operations"] = transport.operations
     except Exception as exc:
         observed["fail_codes"].append(exc.args[0] if isinstance(exc, BoundaryError) else "CASE_RUNTIME_UNAVAILABLE")
@@ -766,12 +825,20 @@ def compare_case(expected, observed):
     vendor names, case IDs, text similarity or candidate-generated expectations.
     """
     checks = []
+    from _blind_acceptance_expectations import NUMERIC_FIELDS, decision_check, normalized, numeric_check
     target = observed.get("observation", {})
     payload = {k: v for k, v in expected.items() if k not in INPUT_KEYS | METADATA_FIELDS}
     for path, value in leaves(payload):
         name = path[-1]
         check = {"field_sha256": digest(path), "feature": "unmapped_expectation", "status": "EXPECTATION_UNMAPPED"}
-        if name in MONEY_FIELDS:
+        if name in NUMERIC_FIELDS:
+            check.update(feature="measurement" if "seconds" in name or "availability" in name else "money",
+                         status=numeric_check(name, value, observed), expected_sha256=digest(value))
+            if name == "confirmed_covered_seconds" and value is not None and observed.get("input_diagnostic"):
+                floor = Decimal(observed["input_diagnostic"]["covered_seconds"])
+                check["input_floor_status"] = ("GOLD_BELOW_INPUT_FLOOR" if Decimal(value) < floor else
+                    "FLOOR_MATCH_ONLY" if Decimal(value) == floor else "GOLD_ABOVE_OBSERVED_FLOOR")
+        elif name in MONEY_FIELDS:
             export_money(value)
             check.update(feature="money", status=money_check(value, target.get("amount"),
                          available=observed.get("calculation_available", False)),
@@ -784,6 +851,8 @@ def compare_case(expected, observed):
             if normalized in OUTCOMES:
                 check["status"] = ("UNAVAILABLE" if not target.get("available") else
                                    "PASS" if normalized == target.get("outcome") else "WRONG_DECISION")
+            else:
+                check["feature"], check["status"] = decision_check(value, observed)
         elif name in STAGE_FIELDS:
             check["feature"] = "dispute_stage"
             if value in STAGES:
@@ -794,6 +863,48 @@ def compare_case(expected, observed):
         elif name == "remedy_available" and type(value) is bool:
             check.update(feature="filing_gate", status="UNAVAILABLE" if not observed.get("calculation_available") else
                          "PASS" if value == (target.get("outcome") == "ELIGIBLE") else "WRONG_REMEDY_AVAILABILITY")
+        elif name == "remedy_available":
+            actual = target.get("amount")
+            if target.get("filing_status") in {"OUTSIDE_WINDOW", "LATE_SUPPLEMENT"}:
+                actual = "0.00"
+            check.update(feature="filing_gate", status=money_check(value, actual, available=target.get("available", False)))
+        elif name == "filing_valid":
+            actual = target.get("filing_status")
+            check.update(feature="filing_gate", status="UNAVAILABLE" if actual in {None, "UNDETERMINED"} else
+                         "PASS" if value == (actual == "TIMELY") else "WRONG_FILING_GATE")
+        elif name in {"deadline_inclusive", "required_channel"}:
+            check.update(feature="filing_gate", status="UNAVAILABLE")
+            if name == "deadline_inclusive" and observed.get("contract_cutoff"):
+                check["status"] = "PASS" if instant(value) == instant(observed["contract_cutoff"]) else "WRONG_TIMESTAMP"
+            if name == "required_channel" and observed.get("contract_channel_sha256"):
+                check["status"] = "PASS" if digest(value) == observed["contract_channel_sha256"] else "WRONG_CHANNEL"
+        elif "required_provenance" in path:
+            available = set(observed.get("observed_provenance_sha256", []))
+            for delivery in observed.get("deliveries", []):
+                if delivery.get("accepted"):
+                    available.update(delivery.get("source_ids_sha256", []))
+                    available.update(delivery.get("source_locators_sha256", []))
+            check.update(feature="provenance", status="PASS" if digest(value) in available else "PROVENANCE_NOT_OBSERVED")
+        elif "required_evidence_requests" in path:
+            from _blind_acceptance_expectations import normalized as normalize
+            words = normalize(value)
+            required = "resource_mapping" if "provider" in words and "mapping" in words else "scoped_billing" if "billing" in words else None
+            check.update(feature="evidence_request", status="SEMANTIC_PREDICATE_REVIEW_REQUIRED" if required is None else
+                         "PASS" if required in observed.get("missing_categories", []) else "EVIDENCE_REQUEST_NOT_OBSERVED")
+        elif "must_not" in path:
+            from _blind_acceptance_expectations import normalized as normalize
+            words = normalize(value)
+            check.update(feature="prohibited_behavior", status="SEMANTIC_PREDICATE_REVIEW_REQUIRED")
+            if "cash" in words or "refund" in words or "send" in words or "claim" in words and ("account" in words or "resource" in words):
+                check["status"] = "PASS" if target.get("submissions_count", 0) == 0 else "PROHIBITED_ACTION_OBSERVED"
+            elif "approve" in words and "credit" in words:
+                check["status"] = "PASS" if target.get("awarded") in {None, "0.00"} else "UNSUPPORTED_AWARD"
+            elif "zero" in words and "amount" in words:
+                check["status"] = "PASS" if target.get("amount") is None else "UNKNOWN_COERCED_TO_MONEY"
+            elif "appeal" in words:
+                check["status"] = "PASS" if target.get("stage") not in {"RESPONSE_DRAFTED", "RESPONSE_APPROVED"} else "PROHIBITED_APPEAL_OBSERVED"
+        elif name == "interpretation":
+            check.update(feature="interpretation", status="SEMANTIC_PREDICATE_REVIEW_REQUIRED")
         checks.append(check)
     if not checks:
         checks.append({"feature": "expectation_coverage", "status": "NO_EXPECTATIONS"})
@@ -801,6 +912,7 @@ def compare_case(expected, observed):
 
 
 def compare_terms(expected, manifests):
+    from _blind_acceptance_expectations import term_value, term_equal
     checks = []
     for path, value in leaves(expected):
         check = {"feature": "contract_terms", "field_sha256": digest(path), "status": "UNAVAILABLE"}
@@ -808,14 +920,13 @@ def compare_terms(expected, manifests):
             resolved = []
             try:
                 for manifest in manifests:
-                    current = manifest
-                    for key in path:
-                        current = current[int(key)] if isinstance(current, list) else current[key]
-                    resolved.append(current)
+                    current = term_value(path, manifest)
+                    if current is not None:
+                        resolved.append(current)
             except (KeyError, IndexError, TypeError, ValueError):
                 check["status"] = "TERM_EXPECTATION_UNMAPPED"
             else:
-                check["status"] = "PASS" if all(item == value for item in resolved) else "WRONG_TERM"
+                check["status"] = "UNAVAILABLE" if not resolved else "PASS" if all(term_equal(path, value, item) for item in resolved) else "WRONG_TERM"
         checks.append(check)
     return checks or [{"feature": "contract_terms", "status": "TERMS_EXPECTATIONS_MISSING"}]
 
@@ -837,7 +948,10 @@ def compare_gold(gold, observations, manifests=()):
     # Terms are required even when intake is quarantined. Count every expected
     # leaf, preserving extraction unavailability rather than treating it as zero.
     terms = compare_terms(gold.get("terms", {}), manifests)
-    return {"cases": checks, "terms": terms}
+    global_checks = [{"feature": "global_refusal_control", "field_sha256": digest(["global_refusal_controls", i]),
+                      "predicate_sha256": digest(value), "status": "GLOBAL_CONTROL_REQUIRES_INDEPENDENT_EXECUTION"}
+                     for i, value in enumerate(gold.get("global_refusal_controls", []))]
+    return {"cases": checks, "terms": terms, "global_controls": global_checks}
 
 
 def extraction_provenance(public):
@@ -876,19 +990,32 @@ def run(args):
     source = args.source.resolve()
     sys.path.insert(0, str(source))
     result = {"protocol": "blind-acceptance/2", "transport": TRANSPORT_MODE,
-              "network_proof": TRANSPORT_MODE == "socket", "gate_2_pass": False, "gate_3_pass": False,
+              "network_proof": False, "gate_2_pass": False, "gate_3_pass": False,
               "fail_codes": [], "observations": [], "authority": "SCRIPTED_LOCAL_SYNTHETIC",
               "commercial_authority": False, "at": datetime.now(UTC).isoformat(),
               "runner_sha256": digest(Path(__file__).read_bytes())}
     try:
+        runner_files = {name: digest(Path(__file__).with_name(name).read_bytes()) for name in
+                        ("blind_acceptance.py", "blind_mapping.py", "blind_expectations.py")}
+        result["runner_files_sha256"] = runner_files
         before = snapshot_source(source)
         result["product"] = before
-        fixture = Fixture(args.fixture_root)
-        if fixture.manifest_hash != args.manifest_sha256:
+        suite = getattr(args, "suite", "initial")
+        fixture = Fixture(args.fixture_root, suite=suite)
+        pinned = args.manifest_sha256
+        if not pinned:
+            pinned = FROZEN_MANIFEST if suite == "initial" else digest(git_bytes(source, "show", BOUNDARY_FREEZE + ":fixtures/fresh-blind/BOUNDARY-SHA256SUMS.json"))
+        if fixture.manifest_hash != pinned:
             raise BoundaryError("FIXTURE_NOT_EXPLICITLY_PINNED")
         result["fixture_manifest_sha256"] = fixture.manifest_hash
         result["fixture_files_count"] = len(fixture.hashes)
-        if args.manifest_sha256 == FROZEN_MANIFEST:
+        result["suite"] = suite
+        if suite == "boundaries":
+            result["fixture_freeze"] = git_bytes(source, "rev-parse", BOUNDARY_FREEZE).decode().strip()
+            result["base_fixture_freeze"] = FREEZE
+            if digest(local_path(fixture.root, "SHA256SUMS.json").read_bytes()) != FROZEN_MANIFEST:
+                raise BoundaryError("INITIAL_FREEZE_CHANGED_IN_EXTENSION")
+        elif pinned == FROZEN_MANIFEST:
             frozen = git_bytes(source, "show", FREEZE + ":fixtures/fresh-blind/SHA256SUMS.json")
             if digest(frozen) != fixture.manifest_hash:
                 raise BoundaryError("FROZEN_COMMIT_MISMATCH")
@@ -907,18 +1034,28 @@ def run(args):
         term_observations = []
         for row in plan:
             result["observations"].append(exercise_case(fixture, source, row, overlay, accounts, evidence, correspondence, public, term_observations))
-        result["observations_sha256"] = fixture.seal_observations(result["observations"])
+        result["observations_sha256"] = fixture.seal_observations(dict(cases=result["observations"], manifests=term_observations))
         # This is the only expected-result decoding phase. No observed result can
         # subsequently change, and no gold is sent back to the application.
-        result["comparison"] = compare_gold(fixture.gold(), result["observations"], term_observations)
+        sealed = json.loads(fixture._sealed)
+        result["comparison"] = compare_gold(fixture.gold(), sealed["cases"], sealed["manifests"])
         if not fixture.unchanged():
             raise BoundaryError("FIXTURE_CHANGED_DURING_RUN")
+        if any(digest(Path(__file__).with_name(name).read_bytes()) != sha for name, sha in runner_files.items()):
+            raise BoundaryError("WITNESS_CHANGED_DURING_RUN")
         if before != snapshot_source(source):
             raise BoundaryError("PRODUCT_CHANGED_DURING_RUN")
         statuses = Counter(c["status"] for row in result["comparison"]["cases"] for c in row["checks"])
         statuses.update(c["status"] for c in result["comparison"]["terms"])
+        statuses.update(c["status"] for c in result["comparison"]["global_controls"])
         result["check_counts"] = dict(sorted(statuses.items()))
-        result["fail_codes"] = sorted({code for row in result["observations"] for code in row["fail_codes"]})
+        controls = [control for row in result["observations"] for control in row.get("independent_lifecycle", {}).get("controls", [])]
+        result["independent_check_counts"] = dict(passed=sum(c["passed"] for c in controls), failed=sum(not c["passed"] for c in controls),
+            rollback_passed=sum(row.get("rollback_verified", False) and row.get("rollback_history_verified", False) for row in result["observations"]))
+        if controls and any(not c["passed"] for c in controls):
+            result["fail_codes"].append("INDEPENDENT_READBACK_OR_OUTCOME_FAILED")
+        result["network_proof"] = TRANSPORT_MODE == "socket" and any(row["operations"] for row in result["observations"])
+        result["fail_codes"] = sorted(set(result["fail_codes"]) | {code for row in result["observations"] for code in row["fail_codes"]})
         # Agreement remains blocked until complete terms, financial and dispute
         # observations exist. A safe quarantine is not contract acceptance.
         result["gate_2_pass"] = bool(statuses) and set(statuses) == {"PASS"} and not result["fail_codes"]
@@ -936,7 +1073,8 @@ def main():
     parser.add_argument("--source", type=Path, default=Path.cwd())
     parser.add_argument("--fixture-root", type=Path, required=True)
     parser.add_argument("--receipt", type=Path, required=True)
-    parser.add_argument("--manifest-sha256", default=FROZEN_MANIFEST,
+    parser.add_argument("--suite", choices=("initial", "boundaries"), default="initial")
+    parser.add_argument("--manifest-sha256", default=None,
                         help="Explicit pin required for any different external fixture")
     parser.add_argument("--transport", choices=("socket", "testclient"), default="socket")
     parser.add_argument("--input-plan", type=Path)

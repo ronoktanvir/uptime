@@ -270,3 +270,75 @@ def event_plan(records, scope, manifest):
             body["original_ref"] = originals[0]["id"]
         enqueue("vendor", body, [row], row["id"])
     return sorted(events, key=lambda r: datetime.fromisoformat(r["available_at"])), sorted(gaps)
+
+
+def bounded_input_diagnostic(records, scope, manifest):
+    """Independent local lower-bound arithmetic, explicitly not an app result.
+
+    It cannot establish exact monthly availability, an award, complete exclusions
+    or issued-credit history. No synthetic evidence is sent back to the app.
+    """
+    def words(text):
+        return set(re.findall(r"[a-z]+", text.casefold()))
+
+    def interval(row):
+        return datetime.fromisoformat(row["start"]), datetime.fromisoformat(row["end_exclusive"])
+
+    def seconds(spans):
+        merged = []
+        for start, end in sorted(spans):
+            if start >= end:
+                continue
+            if merged and start <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(end, merged[-1][1]))
+            else:
+                merged.append((start, end))
+        microseconds = sum((b-a)//timedelta(microseconds=1) for a, b in merged)
+        return str(Decimal(microseconds)/1_000_000)
+
+    rows = [r for r in records if r.get("account_id") == scope["account"]]
+    maps = [r for r in rows if r["kind"] == "provider_resource_attestation" and r.get("resource_id") == scope["component"]]
+    probes = [r for r in rows if r["kind"] == "customer_probe" and r.get("resource_id") == scope["component"]
+              and r.get("credentials_valid") is True and r.get("rate_limit_exhausted") is False
+              and r.get("all_valid_enqueue_requests_failed") is True]
+    covered, excluded, unresolved = [], [], []
+    for row in rows:
+        if row["kind"] != "provider_incident":
+            continue
+        resolved = row.get("resource_id") == scope["component"]
+        if row.get("resource_id") is None:
+            matching = [m for m in maps if m.get("incident_id") == row.get("incident_id") and interval(m) == interval(row)]
+            resolved = len(matching) == 1
+        if not resolved:
+            unresolved.append(interval(row))
+            continue
+        cause = words(row.get("cause", ""))
+        if any(words(label) <= cause for label in manifest.get("exclusions", [])):
+            excluded.append(interval(row))
+            continue
+        # This semantic bridge is restricted to the ordinary public controller
+        # failure rule. Other cause families remain ambiguous.
+        provider = any({"provider", "dispatch", "controller"} <= words(label) for label in manifest.get("provider_causes", []))
+        qualifies = provider and {"provider", "dispatch", "controller"} <= cause and bool(cause & {"failed", "failure", "fails"})
+        if not qualifies or row.get("planned_maintenance") is not False:
+            unresolved.append(interval(row))
+            continue
+        left, right = interval(row)
+        if row.get("all_valid_enqueue_requests_failed") is True:
+            covered.append((left, right))
+        else:
+            matches = [p for p in probes if p.get("incident_id") == row.get("incident_id") and p.get("incident_id") is not None
+                       or interval(p) == interval(row)]
+            for probe in matches:
+                a, b = interval(probe)
+                covered.append((max(a, left), min(b, right)))
+            if not matches:
+                unresolved.append((left, right))
+    invoices = [r for r in rows if r["kind"] == "invoice"]
+    billmaps = [r for r in rows if r["kind"] == "billing_resource_attestation" and r.get("resource_id") == scope["component"]]
+    net = invoice_report(invoices[0], billmaps[0], scope) if len(invoices) == len(billmaps) == 1 else None
+    return dict(status="OBSERVED_INTERVAL_FLOOR", product_result=False, exact_month=False,
+                covered_seconds=seconds(covered), excluded_seconds=seconds(excluded), unresolved_seconds=seconds(unresolved),
+                scoped_net_base_supported=net is not None,
+                prior_amount_supported=bool(net and invoices[0].get("previously_granted_credit") == billmaps[0].get("previously_granted_credit")),
+                prior_history_complete=False)
