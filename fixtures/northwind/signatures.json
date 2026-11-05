@@ -1,0 +1,44 @@
+[
+  {
+    "kind": "LOCAL_TEST_SIGNATURE",
+    "algorithm": "Ed25519",
+    "public_key_base64": "Ft2fUq+bILKo7UY32ls+xNCjTuMaUbsakE6fjyh0cJ8=",
+    "payload": {
+      "agreement": "NW-2026-001",
+      "version": "order-v1",
+      "scenario_signed_at": "2025-12-15T15:00:00Z",
+      "scenario_signatories": [
+        "Northwind Cloud",
+        "Harborline Analytics"
+      ],
+      "source_file": "order-form.txt",
+      "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+      "pricing_input_sha256": "d9c26958b39683a39723cb01c9e3dfafafabb4efde48671b52844962262aff3b",
+      "issuer": "Local fixture author; no external certificate",
+      "created_at": "2026-11-05T08:12:21.121949+00:00"
+    },
+    "signature_base64": "WQpxxl2T21gTtSarAzXSvc15OrpKUm3YUZbLJs4JmRHZeO5NeokqqpiK61B+r0TdByZ8NN2w3w2yMapuvUOLAQ==",
+    "certificate": null
+  },
+  {
+    "kind": "LOCAL_TEST_SIGNATURE",
+    "algorithm": "Ed25519",
+    "public_key_base64": "Ft2fUq+bILKo7UY32ls+xNCjTuMaUbsakE6fjyh0cJ8=",
+    "payload": {
+      "agreement": "NW-2026-001",
+      "version": "amendment-v2",
+      "scenario_signed_at": "2026-02-20T15:00:00Z",
+      "scenario_signatories": [
+        "Northwind Cloud",
+        "Harborline Analytics"
+      ],
+      "source_file": "amendment-2026-03.txt",
+      "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+      "pricing_input_sha256": "d9c26958b39683a39723cb01c9e3dfafafabb4efde48671b52844962262aff3b",
+      "issuer": "Local fixture author; no external certificate",
+      "created_at": "2026-11-05T08:12:21.122649+00:00"
+    },
+    "signature_base64": "kNCUBeJipGfJSeEE/WNr+cdFjmgC7mDRQwqLZfcdY/2nQlc1FFmRPKbiFgiJ++9KDfjps1Wi72C9f8/bc3PcBQ==",
+    "certificate": null
+  }
+]

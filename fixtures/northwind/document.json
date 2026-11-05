@@ -1,0 +1,6 @@
+{
+  "name": "Northwind Cloud Service Level Agreement",
+  "classification": "synthetic_public",
+  "uri": "urn:northwind:NW-2026-001:sla",
+  "text": "Service Level Agreement\nVendor: Northwind Cloud\nAgreement: NW-2026-001\nEffective: 2026-01-01 through 2026-12-31\nAvailability is measured over each UTC calendar month.\nFor Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.\nRound the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.\nClaims must be received within 30 calendar days after month end.\nService credits apply to affected monthly fees on a future invoice."
+}
