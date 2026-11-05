@@ -152,6 +152,10 @@ def _view(db, p, vendor, state):
     state=_capability(db,p,vendor,state)
     result = {k: v for k, v in state.items() if k != 'tests'}
     result.update(vendor_id=vendor, audit=audit, actions=[], sources=SOURCES)
+    if state["state"] == "QUARANTINED":
+        # Older append-only events may contain exception text from private input.
+        result["reason"] = ("Invalid intake schema." if state.get("reason") == "Invalid intake schema."
+                            else "Source or overlay validation failed.")
     if artifact:
         result.update(artifact)
     if p.role == 'reviewer' and not isinstance(p, DraftReviewer):
@@ -197,7 +201,7 @@ def install(path, p, vendor, body):
         except (ValueError, OSError, TypeError, OverflowError) as exc:
             # Retain a safe digest and error category, never echo malformed/private raw inputs.
             state.update(state='QUARANTINED', outcome=Outcome.UNSUPPORTED.value, rejected_digest=sha256(json.dumps(body, sort_keys=True, allow_nan=True).encode()).hexdigest(),
-                         reason='Invalid intake schema.' if isinstance(exc, ValidationError) else str(exc)[:240])
+                         reason='Invalid intake schema.' if isinstance(exc, ValidationError) else 'Source or overlay validation failed.')
             if old and old.get('rejected_digest') == state['rejected_digest'] and old['state'] == 'QUARANTINED':
                 return _view(db, p, vendor, old)
             _event(db, p, vendor, state, 'Quarantined intake; dispatch suspended')

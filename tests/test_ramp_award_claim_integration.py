@@ -5,6 +5,7 @@ TEST EVIDENCE. ACTUAL_NATIVE tests exercise a trust protocol; no fixture is a re
 claim, vendor communication, credit, or commercially authorized recovery.
 """
 from datetime import datetime
+from hashlib import sha256
 import json
 import sqlite3
 
@@ -184,7 +185,11 @@ def test_version_is_not_part_of_v2_key_but_is_part_of_filed_packet(tmp_path):
         register(h, claim, wrong, local_contract=local)
 
 
-def historical(h, *, claim="inbox-external", sc=None, receipt="external-original", supplement=False):
+FIXTURE_SOURCE_SHA256 = sha256(b"Synthetic fixture source; no real commercial authority").hexdigest()
+FIXTURE_ECONOMIC_VERSION = fingerprint({"synthetic_economic_rules":"fixture-one"})
+
+
+def historical(h, *, claim="inbox-external", sc=None, receipt="external-original", supplement=False, pin_version=True, pin_source=True):
     sc = sc or scope() | {"remedy": "resource-month/station-1"}
     local = Scope(account=sc["account_id"], vendor=sc["vendor_name"], contract="local-contract", service=sc["service_name"],
                   component="station-1", region="west", invoice="invoice-1", incident="incident-1", currency="USD", month=sc["month"])
@@ -193,7 +198,7 @@ def historical(h, *, claim="inbox-external", sc=None, receipt="external-original
     def resolver(tenant, requested, events, at):
         return ActiveRemedy(tenant, requested, fingerprint([[e["source"],e["digest"]] for e in events]),
             sc["contract_version"], datetime.fromisoformat(later(60)), EvaluationResult(Outcome.MISSING, (Citation("Test fixture", "v1", "scope", "urn:fixture:scope"),), ("Test fixture",), ("No entitlement attested",)),
-            agreement_id=sc["contract_id"], remedy=sc["remedy"])
+            agreement_id=sc["contract_id"], remedy=sc["remedy"], contract_source_sha256=FIXTURE_SOURCE_SHA256)
     desk = CorrespondenceDesk(h.path, clock=lambda: datetime.fromisoformat(later(-10)), active_resolver=resolver)
     tenant = h.config["tenant"]
     desk.provision(tenant, *(getattr(local,k) for k in ("account","vendor","contract","service","component","region")))
@@ -201,6 +206,10 @@ def historical(h, *, claim="inbox-external", sc=None, receipt="external-original
     desk.create(Principal(tenant, "fixture-claimant", "reviewer"), Claim(claim_id=claim, scope=local))
     original = dict(kind="original_filing_receipt", source_ref="test-custody-document", receipt_id=receipt,
                     received_at=later(-30), observed_at=later(-20), submitted_to="https://fixture.invalid/claims", fields=[])
+    if pin_version and not supplement:
+        original["contract_version"] = sc["contract_version"]
+    if pin_source and not supplement:
+        original["contract_source_sha256"] = FIXTURE_SOURCE_SHA256
     body = original if not supplement else original | dict(kind="supplement_filing_receipt", original_ref=receipt, receipt_id="supplement")
     desk.receive(Principal(tenant, "fixture-inbound-vendor", "service"), claim, Delivery(event_id="original", scope=local, body=body))
     return desk, local, sc
@@ -216,10 +225,10 @@ def witness(h, claim="inbox-external", *, mode="ACTUAL_EXTERNAL"):
                 independence_verification=evidence("external-independence"))
 
 
-def external_harness(tmp_path, *, extra=()):
-    sc = scope() | {"remedy":"resource-month/station-1"}
+def external_harness(tmp_path, *, extra=(), pin_version=True, pin_source=True, version=FIXTURE_ECONOMIC_VERSION):
+    sc = scope() | {"remedy":"resource-month/station-1","contract_version":version}
     h = Harness(tmp_path / "db", mode="ACTUAL_NATIVE", extra_scopes=[sc, *extra])
-    desk, local, _ = historical(h, sc=sc)
+    desk, local, _ = historical(h, sc=sc, pin_version=pin_version, pin_source=pin_source)
     return h, desk, local, sc
 
 
@@ -270,7 +279,7 @@ def test_supplement_is_not_an_original_external_filing(tmp_path):
 
 
 def test_original_external_receipt_cannot_fan_out_to_another_account(tmp_path):
-    sc2 = scope() | {"remedy":"resource-month/station-1", "account_id":"another-account"}
+    sc2 = scope() | {"remedy":"resource-month/station-1", "account_id":"another-account", "contract_version":FIXTURE_ECONOMIC_VERSION}
     h, _, local, sc = external_harness(tmp_path, extra=[sc2])
     register(h, "inbox-external", sc, local_contract=local.contract, external=witness(h))
     historical(h, claim="inbox-second", sc=sc2)

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .mandates import check_claim_decision, claim_preview
 from .contracts import Outcome, Source, fingerprint
-from .claim_identity import reserve_claim
+from .claim_identity import TABLE as CLAIM_IDENTITY_TABLE, claim_key, reserve_claim
 from .correspondence_artifacts import HISTORICAL, approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
 from .correspondence_history import apply_response_state, historical_reply, receipt_chain, response_material
 from .correspondence_reason import propose, requested_filing_fields
@@ -185,18 +185,37 @@ class CorrespondenceDesk:
             # The covered API monthly credit is a single economic obligation.
             # Invoice, incident, claim and component aliases cannot create a second filing.
             draft_key = [p.tenant, scope.vendor, scope.account, scope.contract, scope.service, scope.month, "availability"]
-            if scope.vendor.casefold() != "twilio":
-                draft_key.append(scope.component)
-            obligation = fingerprint(draft_key)
-            duplicate = db.execute("SELECT id,scope FROM inbox_claim WHERE tenant=? AND (obligation=? OR id=?)",
-                                   (p.tenant, obligation, claim.claim_id)).fetchone()
-            if duplicate:
-                if duplicate["id"] != claim.claim_id or json.loads(duplicate["scope"]) != scope.model_dump():
-                    raise ValueError("Claim ID or monthly business obligation already exists.")
-                return self._view(db, p, claim.claim_id)
+            identity_fields = ("vendor", "account", "contract", "service", "month")
+            now = self._now()
             state = dict(stage="DRAFTED", evidence=[], replies=[], timeline=[], submissions=[], approval=None,
                          awarded="0.00", reason=None, cooldown=None)
-            audit(state, self._now(), p.subject, "Opened an assisted local claim intake.")
+            regional = False
+            if scope.vendor.casefold() != "twilio":
+                draft_key.append(scope.component)
+                identity_fields += ("component",)
+                current = self._assess(p.tenant, scope, state, now)
+                regional = bool(current.version and current.remedy == "resource-month/" + scope.component + "/" + scope.region)
+                if regional:
+                    draft_key.append(scope.region)
+            obligation = fingerprint(draft_key)
+            candidates = db.execute("SELECT id,scope FROM inbox_claim WHERE tenant=? AND (json_extract(scope,'$.account')=? OR id=?)",
+                                    (p.tenant, scope.account, claim.claim_id))
+            for duplicate in candidates:
+                other = Scope.model_validate_json(duplicate["scope"])
+                if duplicate["id"] == claim.claim_id:
+                    if other != scope:
+                        raise ValueError("Claim ID or monthly business obligation already exists.")
+                    return self._view(db, p, claim.claim_id)
+                if any(getattr(other, field) != getattr(scope, field) for field in identity_fields):
+                    continue
+                # Re-evaluate the actual older draft scope, including rows written
+                # before regional keys existed. Both regions need their own terms.
+                if regional and other.region != scope.region:
+                    previous = self._assess(p.tenant, other, state, now)
+                    if previous.version and previous.remedy == "resource-month/" + other.component + "/" + other.region:
+                        continue
+                raise ValueError("Claim ID or monthly business obligation already exists.")
+            audit(state, now, p.subject, "Opened an assisted local claim intake.")
             db.execute("INSERT INTO inbox_claim VALUES(?,?,?,?,?)",
                        (p.tenant, claim.claim_id, obligation, scope.model_dump_json(), json.dumps(state)))
             return self._view(db, p, claim.claim_id)
@@ -285,6 +304,8 @@ class CorrespondenceDesk:
                     raise ValueError("Historical filing evidence requires an active, reviewed resource-month agreement.")
                 if body.get("contract_version") is not None and body["contract_version"] != current.version:
                     raise ValueError("The signed original contract version differs from the governing scoped terms.")
+                if body.get("contract_source_sha256") is not None and body["contract_source_sha256"] != current.contract_source_sha256:
+                    raise ValueError("The signed original source digest differs from the governing scoped document.")
                 original_id = body.get("original_ref") or body["receipt_id"]
                 identity = fingerprint([tenant, scope.model_dump(), original_id])
                 reserve_claim(db, tenant=tenant, vendor=scope.vendor, account=account, agreement_id=current.agreement_id,
@@ -581,6 +602,17 @@ class CorrespondenceDesk:
         scope, state = self._read(db, p.tenant, claim_id)
         now = self._now()
         current = self._assess(p.tenant, scope, state, now)
+        obligation_id = None
+        if current.version and current.agreement_id:
+            obligation_id = claim_key(tenant=p.tenant, vendor=scope.vendor, account=scope.account,
+                agreement_id=current.agreement_id, agreement_version=current.version, service=scope.service,
+                month=scope.month, remedy=current.remedy)
+        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (CLAIM_IDENTITY_TABLE,)).fetchone():
+            reserved = db.execute(f"SELECT obligation,scope FROM {CLAIM_IDENTITY_TABLE} WHERE case_id=? AND step='initial' "
+                                  "AND route IN ('correspondence','historical-receipt') AND json_extract(identity,'$[0]')=?",
+                                  (claim_id, p.tenant)).fetchall()
+            if reserved:
+                obligation_id = reserved[0]["obligation"] if len(reserved) == 1 and json.loads(reserved[0]["scope"]) == scope.model_dump() else None
         evaluation = current.evaluation
         predicted = money(evaluation.amount.amount) if evaluation.amount else "0.00"
         submitted = state["submissions"]
@@ -601,7 +633,7 @@ class CorrespondenceDesk:
                         "artifact_ref","artifact_type","body_sha256","linked_ref","ticket_id","response_ref",
                         "original_ref","message_ref","response_kind","delivered_at") if k in body})
             if fact["kind"] in HISTORICAL:
-                item.update({k:body[k] for k in ("receipt_id","original_ref","submitted_to","contract_version") if k in body})
+                item.update({k:body[k] for k in ("receipt_id","original_ref","submitted_to","contract_version","contract_source_sha256") if k in body})
                 item["filed_at"] = body["received_at"]
             item["available_at"] = fact["known_at"] if "known_at" in fact else fact["received_at"]
             item["issuer"] = fact.get("subject",fact["source"])
@@ -617,6 +649,7 @@ class CorrespondenceDesk:
         return dict(id=claim_id, title="Claim correspondence · " + scope.invoice, vendor=scope.vendor,
                     mode="LOCAL_SIMULATOR", policy="ASSISTED", tenant=p.tenant, scope=scope.model_dump(), stage=stage,
                     outcome=outcome, amount=amount, currency=scope.currency, contract_version=current.version or None,
+                    contract_source_sha256=current.contract_source_sha256,
                     sources=SOURCES + [Source.VENDOR.value],
                     trace=list(evaluation.trace), preflight=dict(outcome=evaluation.outcome, trace=list(evaluation.trace),
                     missing=list(evaluation.missing), clauses=[asdict(c) for c in evaluation.clauses]),
@@ -625,5 +658,5 @@ class CorrespondenceDesk:
                     actions=actions, state_sha256=fingerprint([scope.model_dump(),state]),
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
                     requested_artifact=state.get("requested_artifact"), historical_procedure=current.procedure,
-                    policy_dispatchable=False, ledger=ledger,
+                    obligation_id=obligation_id, policy_dispatchable=False, ledger=ledger,
                     financials=[dict(label=k.replace("_", " ").title(), value=scope.currency + " " + v, sources=SOURCES) for k,v in ledger.items()])

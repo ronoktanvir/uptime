@@ -264,7 +264,8 @@ def resolve_active(path, tenant, scope, events, at):
     return ActiveRemedy(tenant, scope, fingerprint([[e["source"], e["digest"]] for e in events]),
                         controlling, cutoff, result, agreement_id=manifest.get("agreement") or overlay["agreement"],
                         remedy=resource_remedy(manifest, overlay), filing_material=filing,
-                        measurement=measurement, procedure=historical)
+                        measurement=measurement, procedure=historical,
+                        contract_source_sha256=manifest["document"]["sha256"])
 
 
 def register_v4_routes(app, bench, auth):
