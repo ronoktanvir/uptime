@@ -15,7 +15,7 @@ OBSERVED = "2026-07-01T06:00:00Z"
 MONTH = dict(start="2026-06-01T00:00:00Z",end="2026-07-01T00:00:00Z",complete=True)
 
 
-def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False):
+def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, conditions=False):
     rows=deepcopy(ROWS)
     facts=deepcopy(FACTS)
     overlay = deepcopy(OVERLAY)
@@ -30,6 +30,14 @@ def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False):
     if whole_day:
         rows[9]=("Credit requests must be received by the end of the tenth calendar day after the service month.",
                  {"filing":{"kind":"calendar_days","count":10,"utc_time":None,"endpoint":"whole_day"}})
+    if conditions:
+        rows.append(("Customers in breach of their agreement are ineligible to file a claim.",
+                     {"account_conditions":[dict(op="contract_noncompliance", effect="filing_precondition",
+                                                 phrase="breach of their agreement")]}))
+        facts["condition_evidence"] = [dict(agreement=OVERLAY["agreement"], account=OVERLAY["account"],
+            resource_id=OVERLAY["resource_id"], month="2026-06", verified=True, finding="clear", affected_refs=[],
+            op="contract_noncompliance", ref="status-reviewed", terms_reviewed=True, terms_ref="clause-3",
+            terms_sha256=sha256(b"local customer terms").hexdigest())]
     proposal=[{"quote":quote,"field":"resource_terms","value":v} for quote,v in rows]
     text="\n".join(q for q,_ in rows)
     digest=sha256(text.encode()).hexdigest()
@@ -227,3 +235,35 @@ def test_date_only_contract_keeps_full_last_day_open(env,tmp_path,monkeypatch):
 def test_mixed_attachment_identifiers_escalate(env,tmp_path,monkeypatch):
     rec=setup_filed(env,tmp_path,monkeypatch)
     assert message(env,rec,"Please furnish document AC-111 and attachment AC-112.")["stage"]=="HUMAN_REVIEW"
+
+def test_swapping_existing_resource_and_billing_refs_cannot_satisfy_filing_fields(env, tmp_path, monkeypatch):
+    install(env, tmp_path, monkeypatch)
+    rows = reports()
+    rows[-1][1]["fields"][0]["refs"] = ["line-weather"]
+    rows[-1][1]["fields"][1]["refs"] = [OVERLAY["resource_id"]]
+    deliver(env, rows)
+    assert env.read()["outcome"] == "INSUFFICIENT_EVIDENCE" and not env.read()["actions"]
+
+
+@pytest.mark.parametrize("finding,expected", [("clear", "ELIGIBLE"), ("applies", "INELIGIBLE"),
+                                              ("unresolved", "INSUFFICIENT_EVIDENCE")])
+def test_scoped_customer_finding_and_pinned_terms_control_active_filing(env, tmp_path, monkeypatch, finding, expected):
+    install(env, tmp_path, monkeypatch, conditions=True)
+    deliver(env, reports())
+    assert env.read()["outcome"] == "INSUFFICIENT_EVIDENCE"
+    content = "Local customer terms. PRIVATE-DO-NOT-SEND-1729"
+    terms = dict(ref="governing-packet-17", sha256=sha256(content.encode()).hexdigest(), content=content)
+    record = dict(op="contract_noncompliance", ref="local-finding", finding=finding, affected_refs=[], reviewed_terms=terms)
+    body = dict(kind="account_conditions", observed_at=OBSERVED, source_ref="customer-admin", findings=[record])
+    assert env.source("vendor-fixture", body).status_code == 403
+    bad = deepcopy(body)
+    bad["findings"][0]["reviewed_terms"]["content"] = "different bytes"
+    assert env.source("customer-fixture", bad).status_code == 409
+    deliver(env, [("customer-fixture", body)])
+    assert env.read()["outcome"] == expected
+    if expected == "ELIGIBLE":
+        env.action("approve-claim")
+        packet = env.action("submit-claim")["submissions"][0]["packet"]
+        assert content not in json.dumps(packet)
+    else:
+        assert not env.read()["actions"]

@@ -24,9 +24,11 @@ from .vendor_terms import candidate_version
 def _economics(manifest, overlay):
     if manifest["family"] == "resource-month/1":
         fields = ("family","period","scope","symptoms","provider_causes","exclusions","fee_basis","fee_exclusions",
-                  "rounding","filing","cycle_calendar_month","submission_channel","request_fields","remedy")
+                  "rounding","filing","cycle_calendar_month","submission_channel","request_fields","remedy",
+                  "account_conditions","precedence","label_bindings")
         semantics = {k:manifest.get(k) for k in fields}
         semantics["tiers"] = [(t["below_units"],t["credit_units"]) for t in manifest["tiers"]]
+        semantics["billing_period"] = overlay.get("billing_period", {}).get("kind") if overlay.get("billing_period") else None
         semantics["override"] = overlay.get("override",{}).get("filing_days")
         semantics["private_mappings"] = [overlay.get(k) for k in ("symptom_aliases","cause_aliases","public_plan","public_product")]
         return fingerprint(semantics)
