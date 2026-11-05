@@ -11,8 +11,8 @@ import socket
 import pytest
 
 from uptime.claim_identity import claim_key, resource_remedy, vendor_economic_identity
-from uptime.storage import case_versions, save_cases
-from test_correspondence_resource import install
+from uptime.storage import case_versions, database, save_cases
+from test_correspondence_resource import install, reports
 from test_v4_routes_integration import App
 from test_vendor_resource import FACTS, OVERLAY, compiled
 from test_vendor_resource_scoped import ROW, subscription, facts as regional_facts
@@ -49,10 +49,10 @@ def dispatch(env, tmp_path, monkeypatch, slot, overlay, facts, expected="12.51",
     return env.post(f"/api/vendors/{slot}/evaluate", {"facts":facts})
 
 
-def metric(env):
+def metric(env, key="estimated"):
     response = env.client.get("/api/dashboard", headers=env.human.headers)
     assert response.status_code == 200, response.text
-    return next(m for m in response.json()["cohorts"]["portfolio"]["metrics"] if m["key"] == "estimated")
+    return next(m for m in response.json()["cohorts"]["portfolio"]["metrics"] if m["key"] == key)
 
 
 @pytest.mark.parametrize(("second_fee", "second_credit", "total"), [(10004, "12.51", "25.02"), (20008, "25.01", "37.52")])
@@ -130,3 +130,40 @@ def test_measurement_scope_preserves_whole_service_and_excludes_version_alias():
     aggregate = manifest | {"aggregate_monitor":"authoritative_vendor_minutes"}
     assert resource_remedy(aggregate, OVERLAY) == "resource-month/aggregate-service"
     assert resource_remedy(aggregate, OVERLAY | {"resource_id":"other-resource"}) == resource_remedy(aggregate, OVERLAY)
+
+
+def test_evaluation_and_claim_views_share_one_obligation_before_and_after_filing(env, tmp_path, monkeypatch):
+    import json
+
+    expected_keys = set()
+    for resource in ("station-21", "station-22"):
+        estimate = dispatch(env, tmp_path, monkeypatch, resource, *resource_inputs(resource))
+        env.id = "inbox-" + resource
+        env.url = "/api/correspondence/claims/" + env.id
+        env.scope.update(vendor="Copper Mesa Networks", account=OVERLAY["account"], contract=OVERLAY["agreement"],
+                         service=OVERLAY["product"], component=resource, month="2026-06")
+        env.provision()
+        env.create()
+        # Every exact resource reference in the synthetic signed source is rebound.
+        rows = json.loads(json.dumps(reports()).replace('"station-21"', json.dumps(resource)))
+        for source, body in rows:
+            delivered = env.source(source, body, event_id=env.id + "-" + body["kind"])
+            assert delivered.status_code == 200, delivered.text
+        claim = env.read()
+        assert claim["amount"] == "12.51" and claim["obligation_id"] == estimate["obligation_id"]
+        expected_keys.add(estimate["obligation_id"])
+        assert metric(env)["amount"] == ("12.51" if len(expected_keys) == 1 else "25.02")
+        env.action("approve-claim")
+        filed = env.action("submit-claim")
+        submitted = filed["submissions"][0]
+        assert filed["obligation_id"] == estimate["obligation_id"]
+        with database(env.app.state.bench.path) as db:
+            reservation = db.execute("SELECT obligation FROM claim_dispatch_identity_v2 WHERE receipt_id=?",
+                                     (submitted["id"],)).fetchone()
+        assert reservation["obligation"] == estimate["obligation_id"]
+    result = metric(env)
+    assert len(result["contributions"]) == 4
+    assert {row["obligation_id"] for row in result["contributions"]} == expected_keys
+    assert result["amount"] == metric(env, "claimed")["amount"] == "25.02"
+    assert metric(env, "awarded")["amount"] == "0.00"
+    assert metric(env, "posted")["amount"] == metric(env, "applied")["amount"] == "0.00"
