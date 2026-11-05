@@ -132,3 +132,40 @@ def test_service_aggregate_signed_api_produces_case_and_rollback(tmp_path, monke
     assert receipt['human_approval'] is False and receipt['authority']==SCRIPT
     assert receipt['results'][0]['amount']=='20.99'
     assert receipt['operations'][-2]['operation']=='rolled-back dispatch denied'
+
+
+def test_source_version_required_heading_and_duplicate_zero_boundary_are_accounted():
+    rows=deepcopy(ROWS)
+    rows.insert(0,('Version G7-2028. Fictional source; no real commercial authority.',{'nonmaterial':'Source revision.'}))
+    rows.insert(1,('5. Required evidence',{'nonmaterial':'Section heading.'}))
+    text,term=rows[6]
+    rows[6]=(text+' Availability equal to or above 98.75% earns no credit.',term|{'boundary':'strict_below'})
+    assert manifest(rows)['zero_at_or_above']==98750000
+    rows[6]=(rows[6][0].replace('above 98.75%','above 99%'),rows[6][1])
+    with pytest.raises(ValueError,match='Zero-rate|percentage'):
+        manifest(rows)
+
+
+def test_symbolic_duration_definitions_and_formula_roles_are_enforced():
+    from test_vendor_resource import compiled, extend_source
+    rows=[
+        ('Let A be every elapsed second in the month and B be the unavailable seconds.',
+         {'measurement_symbols': {'total':{'symbol':'A','phrase':'Let A be every elapsed second in the month'},
+                                  'down':{'symbol':'B','phrase':'B be the unavailable seconds'}}}),
+        ('Availability is 100 multiplied by (A minus B) divided by A.',
+         {'interval_measurement':['availability_ratio']}),
+    ]
+    assert compiled(*extend_source(rows))['formula_symbols']=={'total':'A','down':'B'}
+    rows[1]=(rows[1][0].replace('(A minus B) divided by A','(B minus A) divided by B'),rows[1][1])
+    with pytest.raises(ValueError,match='independent duration'):
+        compiled(*extend_source(rows))
+
+
+def test_zero_band_and_monthly_limit_must_match_positive_tiers():
+    from test_vendor_resource import compiled, extend_source
+    rows=[('At least 99 percent earns zero credit.', {'zero_band':{'at_least':'99'}}),
+          ('One credit per month has a maximum of 45 percent.', {'monthly_limit':{'one_per_scope':True,'percent':'45'}})]
+    assert compiled(*extend_source(rows))['monthly_maximum']==45000000
+    rows[1]=(rows[1][0].replace('45','46'),{'monthly_limit':{'one_per_scope':True,'percent':'46'}})
+    with pytest.raises(ValueError,match='ceiling'):
+        compiled(*extend_source(rows))
