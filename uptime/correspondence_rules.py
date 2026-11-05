@@ -81,6 +81,14 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
     for kind in ("impact", "notice", "component"):
         if kind in grouped and any(grouped[kind][0]["body"][k] != status["body"][k] for k in ("start", "end")):
             return stop(Outcome.MISSING, "Evidence disagrees about the affected interval.")
+    if "coverage" in grouped:
+        report = grouped["coverage"][0]["body"]
+        if (instant(report["start"]) != first or instant(report["end"]) != following
+                or not report["complete"] or not report["exclusions_removed"] or report["incident_ids"] != [scope.incident]):
+            return stop(Outcome.MISSING, "The independent month report contradicts the supported incident scope.")
+        if ("notice" not in grouped and impact["body"]["exclusion"] == "none" and
+                timedelta(minutes=report["total_eligible_minutes"]) != (end-start if impact["body"]["affected"] else timedelta())):
+            return stop(Outcome.MISSING, "The month report contradicts customer-attributed downtime.")
     if "component" in grouped and grouped["component"][0]["body"]["component_id"] != scope.component:
         return stop(Outcome.MISSING, "The customer attachment identifies a different component.")
     I = impact["body"]

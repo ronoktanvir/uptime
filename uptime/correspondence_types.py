@@ -52,6 +52,15 @@ class Status(Interval):
     kind: Literal["status"]
 
 
+class Coverage(Interval):
+    """A scoped service source attests the full measurement and its exclusions."""
+    kind: Literal["coverage"]
+    complete: bool
+    exclusions_removed: bool
+    incident_ids: list[Id] = Field(min_length=1, max_length=80)
+    total_eligible_minutes: int = Field(ge=0, le=44640)
+
+
 class Impact(Interval):
     kind: Literal["impact"]
     affected: bool
@@ -105,12 +114,12 @@ class Message(Strict):
 class Delivery(Strict):
     event_id: Id
     scope: Scope
-    body: Annotated[Status | Impact | Component | Notice | Invoice | Message, Field(discriminator="kind")]
+    body: Annotated[Status | Coverage | Impact | Component | Notice | Invoice | Message, Field(discriminator="kind")]
 
 
 class Empty(Strict):
     pass
 
 
-SOURCE = dict(status="status", impact="customer", component="customer", notice="customer",
+SOURCE = dict(status="status", coverage="status", impact="customer", component="customer", notice="customer",
               invoice="billing", message="vendor")

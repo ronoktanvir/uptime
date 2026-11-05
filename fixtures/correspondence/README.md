@@ -2,7 +2,7 @@
 
 The inbox accepts new claim scopes and independently arriving source events through authenticated application routes. It starts with an empty evidence record. A reviewer opens the case, independent service identities deliver evidence, and a reviewer approves the exact local outbound packet. Filing leaves the case awaiting vendor correspondence. Sending a packet does not manufacture the incoming reply.
 
-The first implemented remedy is the ordinary Twilio Messaging API SLA, dated 2026-04-09, with UTC calendar boundaries and a single continuous incident. An operator-provisioned account binding attests the ordinary subscription, supported generally available service and applicable agreement. A signed status event represents the connector's complete monthly single-incident status statement. A billing event represents its complete period-specific invoice allocation. A customer event independently establishes account impact. These are synthetic local source contracts. A live connector needs an equivalent verified coverage attestation before using them.
+The first implemented remedy is the ordinary Twilio Messaging API SLA, dated 2026-04-09, with UTC calendar boundaries and a single continuous incident. An operator-provisioned account binding attests the ordinary subscription, supported generally available service and applicable agreement. A signed status interval supplies a lower bound on downtime for the fixed-rate Twilio branch. Graduated monthly tiers also require a separately signed, reconciled month coverage report. A billing event represents its complete period-specific invoice allocation. A customer event independently establishes account impact. These are synthetic local source contracts. A live connector needs an equivalent verified coverage attestation before using them.
 
 ## Server integration
 
@@ -59,6 +59,7 @@ POST /api/correspondence/claims/{claim_id}/events requires the authenticated, al
 | Kind | Source | Required fields |
 | --- | --- | --- |
 | status | status | start, end |
+| coverage | status | UTC month start and end, boolean complete, boolean exclusions_removed, incident_ids, integer total_eligible_minutes |
 | impact | customer | start, end, boolean affected, exclusion equal to none, unknown or customer |
 | component | customer | start, end, component_id |
 | notice | customer | start, end, issued_at |
@@ -81,9 +82,11 @@ The reserve_claim helper in uptime.claim_identity uses the caller's transaction 
 
 ## Active remedy extension
 
-Other vendors return UNSUPPORTED_RULE unless a trusted server resolver supplies ActiveRemedy. The resolver must re-read a server-persisted ACTIVE publication and its scoped evaluation on every approval or send. It supplies tenant, exact scope, independently recomputed evidence digest, publication version, governing agreement_id, filing cutoff and cited EvaluationResult.
+For an installed monthly-availability/1 vendor, the mounted resolver re-reads the ACTIVE publication and overlay from the server database inside the filing transaction's reserved-write interval. It matches the tenant, published vendor name, account, agreement, product and currency. The complete service month must lie within both governing date ranges. Overlapping previously activated rules with incompatible credit terms or fee mappings require manual resolution.
 
-The inbox checks these bindings and uses the supplied remedy cutoff. It never applies the Twilio threshold, rate or maintenance rule to another vendor. This hook is an integration boundary. It is not evidence that a second vendor's correspondence adjudication has been implemented.
+One authenticated status interval, its matching customer impact, and one complete monthly report must reconcile. The report lists the scoped incident and exclusion-adjusted countable minutes. Its start and end cover the entire UTC month. Missing, incomplete or contradictory coverage blocks the claim. Billing must supply a unique affected line whose ID exactly equals the reviewed overlay's fee_line_ref. The published interpreter computes the estimate and cutoff. The approval binds the governing terms, lifecycle revision, exact source artifacts, identified issuer and available public signing key/grant identifiers. Independent source signers hold the private credentials.
+
+Other remedy families abstain when the signed facts cannot establish their measurement or exclusions. A provider-confirmed award still requires independently delivered correspondence against an existing local filing receipt.
 
 ## Independent verification
 

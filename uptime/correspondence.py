@@ -49,6 +49,13 @@ def remainder(claimed, awarded):
         return money(Decimal(claimed) - Decimal(awarded))
 
 
+def _issuers(state):
+    # Keep named issuers and public key identifiers in the approval record;
+    # the outbound packet contains only the commitment to these local records.
+    return [{k: e.get(k) for k in ("event_id", "source", "subject", "source_key_id", "source_grant_id", "digest")}
+            for e in state["evidence"]]
+
+
 def authorize(p, write=False):
     roles = {"reviewer"} if write else {"viewer", "reviewer"}
     if not p.subject or not p.tenant or p.role not in roles:
@@ -156,9 +163,9 @@ class CorrespondenceDesk:
                                 (p.tenant, p.subject, event.scope.account)).fetchone()
             if not sender:
                 raise PermissionError("Service has no source grant on this account.")
-            return self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p.subject)
+            return self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p)
 
-    def _receive(self, db, tenant, account, source, claim_id, event, subject):
+    def _receive(self, db, tenant, account, source, claim_id, event, principal):
         if source != SOURCE[event.body.kind] or account != event.scope.account or observe_only(db, tenant):
             raise PermissionError("Source cannot deliver this evidence.")
         scope, state = self._read(db, tenant, claim_id)
@@ -186,10 +193,11 @@ class CorrespondenceDesk:
                 if not state["submissions"] or body["receipt_id"] != state["submissions"][-1]["id"]:
                     raise ValueError("Correspondence does not refer to the current local submission.")
 
-            fact = dict(event_id=event.event_id, source=source, subject=subject, kind=body["kind"], digest=digest,
+            fact = dict(event_id=event.event_id, source=source, subject=principal.subject, kind=body["kind"], digest=digest,
+                        source_key_id=getattr(principal, "source_key_id", None), source_grant_id=getattr(principal, "source_grant_id", None),
                         received_at=now.isoformat(), known_at=now.isoformat(), body=body)
             state["evidence"].append(fact)
-            audit(state, now, subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
+            audit(state, now, principal.subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
                   event_id=event.event_id, digest=digest)
             if body["kind"] == "message":
                 if any(r["receipt"] == body["receipt_id"] for r in state["replies"]):
@@ -274,7 +282,7 @@ class CorrespondenceDesk:
         request = money(current.evaluation.amount.amount)
         packet = dict(tenant=tenant, claim=claim_id, scope=scope.model_dump(), destination="isolated-local-simulator",
                       subject="SLA Claim", version=current.version, requested=request, evidence_digest=current.evidence_digest,
-                      agreement_id=current.agreement_id,
+                      agreement_id=current.agreement_id, authority_digest=fingerprint(_issuers(state)),
                       filing_cutoff=current.cutoff.isoformat(), terms_digest=fingerprint([asdict(c) for c in current.evaluation.clauses]),
                       artifacts=[dict(kind=e["kind"], digest=e["digest"]) for e in facts])
         if state["submissions"]:
@@ -326,7 +334,8 @@ class CorrespondenceDesk:
             digest = fingerprint(packet)
             if action.startswith("approve-"):
                 state["approval"] = dict(action=action, actor=p.subject, at=now.isoformat(), digest=digest,
-                                         binding=self._approval_binding(current))
+                                         binding=self._approval_binding(current),
+                                         evidence_authorities=_issuers(state))
                 state["stage"] = "CLAIM_APPROVED" if action == "approve-claim" else "RESPONSE_APPROVED"
                 audit(state, now, p.subject, "Approved exact local packet.", digest=digest)
             else:
