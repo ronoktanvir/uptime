@@ -7,7 +7,7 @@ from hashlib import sha256
 import re
 
 from .vendor_resource_operators import OPERATORS, PROMPT as OPERATOR_PROMPT, apply_operator, require_operative_mapping
-from .vendor_terms import _clauses, _validate_document, percent_units, MAX_PERCENT
+from .vendor_terms import _clauses, _validate_document, percent_units, MAX_PERCENT, NUMBER
 
 FAMILY = 'resource-month/1'
 PROMPT = """Extract the public resource/service availability agreement as untrusted evidence. Return exactly
@@ -230,7 +230,7 @@ def validate_material_coverage(quote, values):
         raise ValueError('Rounding instruction requires a typed calculation.')
     if re.search(r'\b(?:claims?|requests?|fil(?:e|ing))\b[^.;]{0,100}\b(?:calendar days?|billing cycles?)\b', quote, re.I) and not {'filing','fixed_filing'} & values.keys():
         raise ValueError('Filing period lacks a source-bound deadline operator.')
-    if _PERCENT_TOKEN.search(quote) and not {'tiers', 'boundary', 'interval_measurement'} & values.keys():
+    if _PERCENT_TOKEN.search(quote) and not {'tiers','boundary','interval_measurement','zero_band','monthly_limit'} & values.keys():
         raise ValueError('Percentage condition has no applicable threshold or tier.')
     evidence = values.get('evidence', [])
     if not isinstance(evidence, list):
@@ -309,9 +309,9 @@ def _compile_resource(document, clauses, issues):
                          r'(?:as (?:defined|set forth|described)|governed) (?:in|by) (?:section|the .*?agreement|our .*?terms)',quote,re.I):
                 raise ValueError(f'Unresolved governing reference in resource clause {index}.')
             if (re.search(r'\b(?:excluded|excludes?|excluding|unless|except(?:ions?)?)\b',quote,re.I)
-                    and not {'exclusions','fee_exclusions','account_conditions','maintenance','subscription','telemetry','causal_report','fee_settlement','denial_policy'} & values.keys()):
+                    and not {'exclusions','fee_exclusions','account_conditions','maintenance','subscription','telemetry','causal_report','fee_settlement','denial_policy','interval_measurement','measurement_symbols'} & values.keys()):
                 raise ValueError(f'Unmapped exclusion or condition in clause {index}.')
-            if re.search(r'\b(?:capped at|up to|aggregate cap|total cap|at our discretion|sole discretion)\b',quote,re.I):
+            if re.search(r'\b(?:capped at|up to|aggregate cap|total cap|at our discretion|sole discretion)\b',quote,re.I) and 'monthly_limit' not in values:
                 raise ValueError(f'Unsupported discretionary amount or cap in clause {index}.')
             citation = {'id':index,'start':start,'end':end,'quote':original,'field':'resource_terms','propositions':values,
                         'block_sha256':sha256(original.encode()).hexdigest()}
@@ -327,10 +327,15 @@ def _compile_resource(document, clauses, issues):
                         continue
                     if key == 'nonmaterial':
                         ordinary_heading = bool(re.fullmatch(r'(?:#{1,6}\s+)?(?:section\s+)?[0-9]+(?:\.[0-9]+)*[.) :]+[a-z][a-z /-]{1,55}',lower.strip()))
-                        if len(values)==1 and re.search(r'[0-9]',lower) and not ordinary_heading:
+                        version_label = re.fullmatch(r'(?:version|revision)\s+([a-z0-9][a-z0-9_.-]{0,79})[.]?(?:\s+([^0-9]*))?', lower)
+                        if version_label:
+                            manifest['source_version'] = quote.split()[1].rstrip('.')
+                        if len(values)==1 and re.search(r'[0-9]',lower) and not (ordinary_heading or version_label):
                             raise ValueError('Numerical source condition lacks an operative mapping.')
                         material_text = lower.replace('%', '') if header is not None and not re.search(r'\d', lower) else lower
                         material_text = re.sub(r'\bpublic[- ]only(?=\s+(?:model\s+)?extraction\b)', 'public', material_text)
+                        if ordinary_heading and not re.search(r'\b(?:shall|must|are|is|will|unless|if|only|guarantee|guaranteed)\b', lower):
+                            material_text = re.sub(r'\brequired\b', '', material_text)
                         if (not isinstance(value,str) or not value.strip() or len(value)>300 or
                                 len(values)==1 and re.search(r'[%≤≥]|\b(?:shall|must|unless|except|subject to|required|within|refund|exclusive|cap|eligible|only|not|provided that|excludes?)\b',material_text)):
                             raise ValueError('Material source labeled nonoperative.')
@@ -429,7 +434,17 @@ def _compile_resource(document, clauses, issues):
                             if floor is not None:
                                 accounted.update([floor])
                             manifest['tiers'].append(dict(below_units=upper,credit_units=rate,citation=index,floor=floor))
-                        if accounted != Counter(_quoted_units(m[1]) for m in _PERCENT_TOKEN.finditer(tier_quote)):
+                        observed = Counter(_quoted_units(m[1]) for m in _PERCENT_TOKEN.finditer(tier_quote))
+                        if values.get('boundary') == 'strict_below':
+                            for sentence in re.split(r'(?<=[.!?])\s+', tier_quote):
+                                match = re.search(r'(?:equal(?: to)?(?: or above)?|at or above|at least|≥|>=)\s*(' + NUMBER + r')\s*(?:%|percent)', sentence, re.I)
+                                if match and re.search(r'no credit|zero credit|0\s*(?:%|percent).{0,20}credit', sentence,re.I):
+                                    limit = percent_units(match[1])
+                                    if limit not in accounted or (manifest.get('zero_at_or_above',limit)!=limit):
+                                        raise ValueError('Zero-rate statement conflicts with the declared positive threshold.')
+                                    manifest['zero_at_or_above'] = limit
+                                    observed.subtract([limit])
+                        if accounted != observed:
                             raise ValueError('Every percentage in a resource tier block must map to a threshold, floor or credit.')
                         continue
                     if key in manifest and manifest[key] != value:
@@ -479,7 +494,7 @@ def _compile_resource(document, clauses, issues):
         if needed - manifest.keys():
             raise ValueError('Aggregate service-month profile requires fixed period, filing clock, scope and paid fee.')
         if any(key in manifest for key in ('prior_credit','maintenance','subscription','telemetry','fee_adjustment','supplement',
-                                           'cure_clock','fee_settlement','account_conditions','original_receipt','precedence')):
+                                           'cure_clock','account_conditions','original_receipt','precedence')) or set(manifest.get('fee_settlement',[]))-{'paid_recurring_only','usd_only'}:
             raise ValueError('Aggregate service profile cannot silently accept extra resource conditions.')
         start, end = (utc(manifest['fixed_period'][key]) for key in ('start','end'))
         window = [start.date().isoformat(), (end.date() - timedelta(days=1)).isoformat()]
@@ -524,6 +539,12 @@ def _compile_resource(document, clauses, issues):
             raise ValueError('Overlapping, missing or conflicting resource credit bands.')
         lower,previous=tier['below_units'],tier['credit_units']
         tier.update(product=manifest['scope']['product'],plan=manifest['scope']['plan'] or '*')
+    if manifest.get('formula_symbols') and manifest['formula_symbols']!=manifest.get('measurement_symbols'):
+        raise ValueError('Formula uses symbols without matching independent duration definitions.')
+    if manifest.get('zero_at_or_above', lower)!=lower:
+        raise ValueError('Zero-credit boundary does not equal the highest qualifying tier.')
+    if manifest.get('monthly_maximum',manifest['tiers'][0]['credit_units'])!=manifest['tiers'][0]['credit_units']:
+        raise ValueError('Monthly ceiling differs from the maximum supported credit band.')
     return manifest if issues is None else None
 
 

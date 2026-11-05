@@ -151,6 +151,17 @@ def announced_windows(facts, overlay, manifest):
         if row.get('state') == 'confirmed_unannounced' and row.get('announced_at') is None:
             continue
         announced = instant(row.get('announced_at'))
+        if rule.get('customer_delivery'):
+            required_ref(row.get('notice_ref'))
+            if row.get('recipient_account') != overlay['account'] or row.get('delivered_verified') is not True:
+                raise Gap('Account-specific proof of maintenance notice delivery required.')
+            delivered=instant(row.get('delivered_at'))
+            if delivered<announced:
+                raise Gap('Notice delivery predates its announcement.')
+            for key in rule.get('scope',[]):
+                if row.get(key) != (overlay['product'] if key=='product' else facts.get('region')):
+                    raise Gap('Delivered maintenance notice has a different service scope.')
+            announced=delivered
         if row.get('state', 'announced') != 'announced':
             raise Gap('Contradictory maintenance announcement record.')
         if announced < left and left - announced >= lead:
