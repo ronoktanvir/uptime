@@ -77,6 +77,11 @@ class ResourceVendorRecord:
     requested_ref: str
     requested_type: str
     trusted_body_sha256: str
+    # The operator supplies the counterparty's own scoped bulletin and issuance
+    # registers. None for a required register means its evidence is unavailable.
+    maintenance_lead: timedelta | None = None
+    bulletins: tuple[tuple[str, str, str], ...] | None = None  # start, end, announced
+    issued_credits_cents: tuple[tuple[str, int], ...] | None = ()
 
 
 def adjudicate_resource(packet, record: ResourceVendorRecord, filed_at):
@@ -96,10 +101,28 @@ def adjudicate_resource(packet, record: ResourceVendorRecord, filed_at):
         return "We cannot verify the authenticity of the referenced supporting document."
     first = instant(record.scope.month+"-01T00:00:00Z")
     end = first+timedelta(days=calendar.monthrange(first.year,first.month)[1])
+    if filed_at < end:
+        return "We cannot reconcile a completed service month to this filing."
+    exclusions = list(record.excluded_spans)
+    if record.maintenance_lead is not None:
+        if record.bulletins is None or record.maintenance_lead < timedelta():
+            return "Our maintenance bulletin register has not been verified."
+        for left, right, announced in record.bulletins:
+            start, stop, notice = instant(left), instant(right), instant(announced)
+            if start >= stop:
+                return "Our maintenance bulletin register contains inconsistent dates."
+            if notice < start and start - notice >= record.maintenance_lead:
+                exclusions.append((left, right))
+    previous_credits = {}
+    if record.issued_credits_cents is None:
+        return "Our previously issued credit statement requires verification."
+    for credit_id, cents in record.issued_credits_cents:
+        if not credit_id or type(cents) is not int or cents < 0 or previous_credits.setdefault(credit_id, cents) != cents:
+            return "Our previously issued credits contain conflicting records."
     # Independently sweep change points instead of using the claimant's union
     # and subtraction implementation. Exclusions override covered spans.
     changes = {}
-    for group,spans in enumerate((record.outage_spans,record.excluded_spans)):
+    for group,spans in enumerate((record.outage_spans,exclusions)):
         for left,right in spans:
             a,b = max(instant(left),first),min(instant(right),end)
             if a >= b:
@@ -126,6 +149,9 @@ def adjudicate_resource(packet, record: ResourceVendorRecord, filed_at):
         amount = Decimal(fee)*rate/Decimal(10000)
         if record.round_half_up:
             amount=amount.quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
+        amount -= Decimal(sum(previous_credits.values())) / 100
+        if amount <= 0:
+            return "Previously issued credits cover the full amount for this resource and month."
         amount=min(Decimal(packet["requested"]),amount)
         if not amount.is_finite() or amount<=0 or amount!=amount.quantize(Decimal(".01")):
             return "We need to review the settlement precision or fee basis."

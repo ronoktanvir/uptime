@@ -380,3 +380,27 @@ def test_historical_incomplete_filing_and_independently_arriving_supplement(env,
     assert joined["stage"] == "HISTORICAL_FILING" and joined["actions"] == [] and joined["submissions"] == []
     assert joined["ledger"]["claimed"] == joined["ledger"]["awarded"] == "0.00"
     assert env.human.post(env.url + "/actions/approve-claim", {}).status_code == 409
+
+
+def test_counterparty_independently_measures_bulletins_and_net_remaining_issuance():
+    from dataclasses import replace
+    from decimal import Decimal
+    from uptime.correspondence_types import Scope, instant
+    from uptime.correspondence_vendor import ResourceVendorRecord, adjudicate_resource
+
+    scope = Scope(account="buyer-219", vendor="Provider", contract="governing-A", service="API",
+                  component="cell-1", invoice="statement-one", incident="obs-12", currency="USD", month="2026-06", region="east")
+    vendor = ResourceVendorRecord("bears", scope, "public-A", "2026-07-10T18:00:00.000001Z",
+        (("2026-06-05T00:00:00Z","2026-06-05T10:50:00Z"), ("2026-06-05T02:05:00Z","2026-06-05T05:00:00Z")),
+        (), (("net-service",10201), ("support",12299)), frozenset({"net-service"}),
+        ((Decimal(98), Decimal(45)), (Decimal(99), Decimal("12.5"))), True, "ref-284", "resource_log", "a"*64,
+        maintenance_lead=timedelta(hours=2), bulletins=(("2026-06-05T00:30:00Z","2026-06-05T02:30:00Z","2026-06-04T22:30:00Z"),),
+        issued_credits_cents=(("memo-31",231),("memo-31",231)))
+    packet = dict(tenant="bears", scope=scope.model_dump(), agreement_id="public-A", destination="isolated-local-simulator",
+                  requested="999.00", disclosed_artifact=dict(ref="ref-284", type="resource_log", sha256="a"*64))
+    filed_at = instant("2026-07-08T13:00:00Z")
+    assert adjudicate_resource(packet, vendor, filed_at) == "We approved a service credit of USD 10.44."
+    assert "requires verification" in adjudicate_resource(packet, replace(vendor, issued_credits_cents=None), filed_at)
+    assert "conflicting records" in adjudicate_resource(packet, replace(vendor, issued_credits_cents=(("x",12),("x",13))), filed_at)
+    covered = replace(vendor, bulletins=(("2026-06-05T00:00:00Z","2026-06-05T10:50:00Z","2026-06-04T22:00:00Z"),))
+    assert "meet the contract threshold" in adjudicate_resource(packet, covered, filed_at)
