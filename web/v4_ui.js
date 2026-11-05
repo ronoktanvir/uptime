@@ -91,6 +91,7 @@
         type.forEach(value => { const option = el('option', value); option.value = value; input.append(option); });
       } else if (type !== 'textarea') input.type = type;
       input.name = name; input.required = required; input.autocomplete = 'off';
+      input.setAttribute('aria-label', title);
       if (type === 'textarea') { input.rows = 5; input.spellcheck = false; }
       form.append(add(el('label', undefined, 'v4-field'), el('span', title), input));
       return input;

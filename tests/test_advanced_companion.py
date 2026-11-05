@@ -111,7 +111,8 @@ def test_viewer_and_disabled_gate_are_read_only(portal):
     page, origin, key, viewer, app = portal
     login(page, origin, viewer, 'companion-viewer')
     assert page.get_by_role('button', name='Generate candidate', exact=True).is_disabled()
-    page.evaluate('() => window.uptimeAuth.signOut()')
+    with page.expect_navigation(wait_until='domcontentloaded'):
+        page.evaluate('() => window.uptimeAuth.signOut()')
     app.state.auth.approvals_enabled = False
     login(page, origin, key)
     assert page.get_by_role('button', name='Generate candidate', exact=True).is_disabled()

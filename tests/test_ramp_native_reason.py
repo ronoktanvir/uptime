@@ -158,8 +158,6 @@ def test_signed_finance_evidence_resolved_again_at_mounted_wire(installed, monke
     evidence. This exercises the agreed resolver contract without editing ROOT.
     """
     from types import SimpleNamespace
-    from uptime.contracts import fingerprint
-    from uptime.ramp_findings import evaluate_snapshot
     from uptime.ramp_records import sync_records
     from uptime.ramp_workspace import RampWorkspace
     from uptime.storage import initialize
@@ -181,24 +179,7 @@ def test_signed_finance_evidence_resolved_again_at_mounted_wire(installed, monke
     store.register(key)
     store.install(packet, signer.sign(packet.signing_bytes()), directory)
 
-    def resolve(object_type, object_id):
-        bindings, omissions = store.resolve(TENANT, BUSINESS, snapshot)
-        if omissions or len(bindings) != 1 or (object_type, object_id) != ("bills", BILL):
-            raise PermissionError("No current exact signed evidence")
-        binding = bindings[0]
-        if binding.terms_mode != "OPERATOR_ATTESTED" or not binding.signed_terms_attested:
-            raise PermissionError("Actual operator-scoped terms required")
-        finding = next(r for r in evaluate_snapshot(snapshot, bindings=bindings)
-                       if r["provider_object_type"] == "bills" and r["provider_id"] == BILL)
-        assert finding["outcome"] == "ELIGIBLE" and finding["amount"] == "40.00"
-        return dict(finding, workspace_tenant=TENANT, business_id=BUSINESS,
-                    observed_at=snapshot["observed_at"], sources=["LIVE_RAMP_SANDBOX","OPERATOR_ATTESTED_CUSTOMER"],
-                    finding_digest=fingerprint([snapshot["checksum"], binding.terms_evidence_digest, finding["outcome"]]),
-                    native_review_reason="ATTESTED_PRICE_EXCEPTION", terms_provenance={
-                        "mode": "OPERATOR_ATTESTED", "integrity": "VERIFIED", "operator_context_verified": True,
-                        "digest": binding.terms_evidence_digest})
-    i.binding.workspace = SimpleNamespace(tenant=TENANT, mode="sandbox", _observation=workspace._observation,
-                                         record_for_native=resolve)
+    i.binding.workspace = workspace
     plan = i.reviewed()
     if revocation:
         def revoke():
