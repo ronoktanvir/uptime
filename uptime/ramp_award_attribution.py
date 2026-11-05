@@ -10,6 +10,7 @@ from hashlib import sha256
 import json
 import os
 from pathlib import Path
+import re
 import sqlite3
 import stat
 from typing import Annotated, Literal
@@ -610,7 +611,7 @@ class AwardAttributionStore:
             state = json.loads(saved["state"])
             if route == "historical-receipt":
                 originals = [e for e in state["evidence"] if e["kind"] == "original_filing_receipt"]
-                if len(originals) != 1 or state["submissions"]:
+                if len(originals) != 1:
                     fail("ORIGINAL_EXTERNAL_RECEIPT_REQUIRED")
                 fact = originals[0]
                 body = fact["body"]
@@ -626,6 +627,18 @@ class AwardAttributionStore:
                     fail("EXTERNAL_RECEIPT_DELIVERY_REQUIRED")
                 if not _time(body["received_at"]) <= _time(body["observed_at"]) <= _time(fact["received_at"]):
                     fail("EXTERNAL_RECEIPT_TIME_CONFLICT")
+                if state["submissions"]:
+                    if claim_identity.TABLE not in tables:
+                        fail("CANONICAL_PROCEDURAL_RESPONSE_REQUIRED")
+                    for response in state["submissions"]:
+                        reserved = db.execute(f"SELECT obligation,step,route,case_id,scope,packet_digest,receipt_id,at,identity "
+                                              f"FROM {claim_identity.TABLE} WHERE receipt_id=?", (response["id"],)).fetchone()
+                        if reserved is None:
+                            fail("CANONICAL_PROCEDURAL_RESPONSE_REQUIRED")
+                        try:
+                            claim_identity._historical_parent(db, tenant, case, local, state, response, reserved)
+                        except (KeyError, TypeError, IndexError, ValueError):
+                            fail("INVALID_PROCEDURAL_RESPONSE")
                 # The receipt's source-signed contract_version pins its original
                 # reviewed economics. The canonical obligation remains version-free.
                 return None, fact
@@ -793,8 +806,12 @@ class AwardAttributionStore:
             receipt = fact["body"]
             if not receipt.get("contract_version"):
                 fail("ORIGINAL_CONTRACT_VERSION_REQUIRED")
+            if re.fullmatch(r"[a-f0-9]{64}", receipt["contract_version"]) is None:
+                fail("ORIGINAL_CONTRACT_VERSION_DIGEST_REQUIRED")
             if receipt["contract_version"] != s.contract_version:
                 fail("ORIGINAL_CONTRACT_VERSION_CONFLICT")
+            if re.fullmatch(r"[a-f0-9]{64}", receipt.get("contract_source_sha256") or "") is None:
+                fail("ORIGINAL_CONTRACT_SOURCE_REQUIRED")
             if (witness.receipt_id != receipt["receipt_id"] or witness.receipt_sha256 != digest(fact)
                     or witness.received_at != _time(receipt["received_at"])
                     or witness.submitted_to != receipt["submitted_to"]):

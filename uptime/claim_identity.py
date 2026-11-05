@@ -141,12 +141,24 @@ def _historical_parent(db, tenant, case_id, scope, state, receipt, reservation):
         raise ValueError("Historical response requires its single original filing predecessor.")
     original = chain[0]
     packet = receipt["packet"]
-    if (reservation[1] != "supplement" or receipt["action"] != "submit-response"
+    if (reservation[1:3] != ("supplement", "historical-receipt") or receipt["action"] != "submit-response"
             or original["source"] != "vendor" or packet.get("purpose") != "procedural_evidence_only"
             or packet.get("requested") != "0.00" or receipt.get("requested") != "0.00"
             or packet.get("in_reply_to") != original["body"]["receipt_id"]
             or packet.get("original_receipt_digest") != original["digest"]):
         raise ValueError("Historical response does not match its witnessed procedural filing.")
+    if (packet["tenant"] != tenant or packet["claim"] != case_id or packet["scope"] != scope
+            or original["body"].get("contract_version") not in (None, packet["version"])):
+        raise ValueError("Historical response differs from its original scope or governing version.")
+    economic = json.loads(reservation[8])
+    identity = dict(tenant=tenant, vendor=scope["vendor"], account=scope["account"],
+                    agreement_id=packet["agreement_id"], agreement_version=packet["version"],
+                    service=scope["service"], month=scope["month"], remedy=economic[-1])
+    checked = _receipt(receipt, packet)
+    expected = (claim_key(**identity), "supplement", "historical-receipt", case_id, _json(scope),
+                checked["packet_digest"], checked["receipt_id"], _instant(checked["at"]), _json(_economic(**identity)))
+    if tuple(reservation[:7]) + (_instant(reservation[7]), reservation[8]) != expected:
+        raise ValueError("Historical response differs from its approved canonical reservation.")
     digest = fingerprint([tenant, scope, original["body"]["receipt_id"]])
     parent_id = "HIST-" + digest
     parent = db.execute(f"SELECT route,case_id,scope,packet_digest,receipt_id,at,identity FROM {TABLE} "

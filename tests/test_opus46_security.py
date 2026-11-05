@@ -175,6 +175,21 @@ def test_old_unpinned_original_stays_readable_but_cannot_support_actual_attribut
     assert not h.store.history()
 
 
+def test_semantic_pin_without_source_bytes_cannot_support_actual_attribution(tmp_path):
+    h,desk,local,sc = external_harness(tmp_path,pin_source=False)
+    assert h.store.filing_identity("inbox-external")
+    with pytest.raises(AttributionError,match="ORIGINAL_CONTRACT_SOURCE_REQUIRED"):
+        register(h,"inbox-external",sc,local_contract=local.contract,external=witness(h))
+    assert not h.store.history()
+
+
+def test_arbitrary_version_label_is_not_actual_governing_semantic_digest(tmp_path):
+    h,desk,local,sc = external_harness(tmp_path,version="v1")
+    with pytest.raises(AttributionError,match="ORIGINAL_CONTRACT_VERSION_DIGEST_REQUIRED"):
+        register(h,"inbox-external",sc,local_contract=local.contract,external=witness(h))
+    assert not h.store.history()
+
+
 
 def test_preupgrade_quarantine_reason_is_redacted_on_signed_read(draft):
     from uptime.contracts import DraftReviewer
