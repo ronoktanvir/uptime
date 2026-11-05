@@ -23,3 +23,4 @@
 .source-record{margin-top:9px;font-size:11px;color:var(--muted)}.source-record summary{cursor:pointer}.source-record .source{border:0;padding:0;background:transparent}
 
 .workflow-document{border-top:1px solid var(--line);padding-top:20px;margin-top:20px}.workflow-document h3{color:var(--ink)}
+@media(min-width:701px){.rail{overflow-y:auto}.rail nav,.rail .brand,.rail .rail-caption{flex-shrink:0}}

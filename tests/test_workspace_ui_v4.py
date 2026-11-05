@@ -57,6 +57,10 @@ def test_configured_workflow_keeps_evidence_money_and_original_navigation_reacha
         assert "replay" not in page.locator("#content").inner_text().lower()
         for label in ["Vendor contracts", "Correspondence", "Ramp records"]:
             expect(page.get_by_role("link", name=label, exact=True)).to_be_visible()
+        page.set_viewport_size({"width": 1000, "height": 500})
+        integrations = page.get_by_role("link", name="Integrations", exact=True)
+        integrations.scroll_into_view_if_needed()
+        assert integrations.evaluate("e => { const r=e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }")
         page.set_viewport_size({"width": 390, "height": 844})
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         page.get_by_role("link", name="Ramp records", exact=True).click()
