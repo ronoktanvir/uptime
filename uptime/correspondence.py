@@ -155,6 +155,14 @@ class CorrespondenceDesk:
             if existing and existing["source"] != source:
                 raise ValueError("Source roles require independent signers for this account.")
             db.execute("INSERT OR IGNORE INTO inbox_sender VALUES(?,?,?,?)", (tenant, subject, account, source))
+            if exact:
+                # A narrowed operator grant must replace that subject's legacy
+                # wildcard for this subscription, including grants migrated on startup.
+                db.execute("DELETE FROM inbox_sender_scope WHERE tenant=? AND subject=? AND account=? "
+                           "AND subscription=? AND exact_scope=''", (tenant, subject, account, subscription))
+            elif db.execute("SELECT 1 FROM inbox_sender_scope WHERE tenant=? AND subject=? AND account=? "
+                            "AND subscription=? AND exact_scope!='' LIMIT 1", (tenant, subject, account, subscription)).fetchone():
+                raise ValueError("An exact source grant cannot be broadened by the legacy fixture interface.")
             db.execute("INSERT OR IGNORE INTO inbox_sender_scope VALUES(?,?,?,?,?)", (tenant, subject, account, subscription, exact))
 
     def create(self, p, claim: Claim):
@@ -430,7 +438,11 @@ class CorrespondenceDesk:
 
     @staticmethod
     def _approval_binding(current):
-        return fingerprint([current.agreement_id, current.version, current.cutoff.isoformat() if current.cutoff else None,
+        # Include the current packet contract so durable pre-upgrade approvals
+        # return to review instead of repeatedly failing on a new wire digest.
+        return fingerprint(["correspondence-packet/2", current.agreement_id, current.version,
+                            current.measurement, current.filing_material,
+                            current.cutoff.isoformat() if current.cutoff else None,
                             current.evidence_digest, money(current.evaluation.amount.amount) if current.evaluation.amount else None,
                             [asdict(c) for c in current.evaluation.clauses]])
 
