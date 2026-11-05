@@ -86,7 +86,7 @@ For an installed monthly-availability/1 vendor, the mounted resolver re-reads th
 
 One authenticated status interval, its matching customer impact, and one complete monthly report must reconcile. The report lists the scoped incident and exclusion-adjusted countable minutes. Its start and end cover the entire UTC month. Missing, incomplete or contradictory coverage blocks the claim. Billing must supply a unique affected line whose ID exactly equals the reviewed overlay's fee_line_ref. The published interpreter computes the estimate and cutoff. The approval binds the governing terms, lifecycle revision, exact source artifacts, identified issuer and available public signing key/grant identifiers. Independent source signers hold the private credentials.
 
-Other remedy families abstain when the signed facts cannot establish their measurement or exclusions. A provider-confirmed award still requires independently delivered correspondence against an existing local filing receipt.
+The resource-month/1 profile joins separate service symptoms, customer causes/exclusions, itemized fee lines, filing fields and applicable cycle schedules. See [Signed resource evidence and supplemental artifacts](resource-protocol.md) for its exact service ingress bodies. Other remedy families abstain when the signed facts cannot establish their measurement or exclusions. A provider-confirmed award still requires independently delivered correspondence against an existing local filing receipt.
 
 ## Independent verification
 
