@@ -10,6 +10,14 @@ from decimal import Decimal, ROUND_HALF_UP
 import re
 
 
+def wire_ref(value):
+    """Represent an opaque locator losslessly by digest when it is not a wire ID."""
+    from hashlib import sha256
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}", value):
+        return value
+    return "sha256:" + sha256(value.encode()).hexdigest()
+
+
 def public_identity(public):
     """Read the operator-staged public proposal only; intake validates it again."""
     import json
@@ -126,3 +134,139 @@ def invoice_report(invoice, mapping, scope):
                 month=scope["month"], currency=invoice["currency"], kind="resource_service", category="monthly_recurring",
                 amount_cents=net, gross_cents=gross_cents, discount_cents=discount_cents,
                 discount_ref=discount["line_id"])])
+
+
+def event_plan(records, scope, manifest):
+    """Project typed records into supported wires without adding missing proof.
+
+    A report assembled from bounded incidents is explicitly incomplete. Original
+    and supplement references retain the frozen IDs and original receive clocks.
+    Every derived delivery is delayed until all of its source records are known.
+    """
+    from hashlib import sha256
+    from datetime import datetime
+    events, gaps = [], set()
+    by_id = {r["id"]: r for r in records}
+
+    def enqueue(role, body, sources, identifier=None):
+        body["source_ref"] = wire_ref(body["source_ref"])
+        available = max((r["available_at"] for r in sources), key=datetime.fromisoformat)
+        events.append(dict(role=role, body=body, id=identifier or "mapped-" + sha256(
+            (body["kind"] + "|" + "|".join(sorted(r["id"] for r in sources))).encode()).hexdigest()[:40],
+            available_at=available, source_ids=[r["id"] for r in sources],
+            source_locators=[r["source_locator"] for r in sources]))
+
+    scoped = [r for r in records if r.get("account_id") == scope["account"]]
+    mappings = [r for r in scoped if r["kind"] == "provider_resource_attestation"
+                and r.get("resource_id") == scope["component"]]
+    intervals, status_sources = [], []
+    for row in scoped:
+        if row["kind"] != "provider_incident":
+            continue
+        resource = row.get("resource_id")
+        sources = [row]
+        if resource is None:
+            candidates = [m for m in mappings if m.get("incident_id") == row.get("incident_id")
+                          and all(m[k] == row[k] for k in ("start", "end_exclusive"))]
+            if len(candidates) != 1:
+                gaps.add("PROVIDER_RESOURCE_MAPPING_MISSING")
+                continue
+            sources += candidates
+            resource = candidates[0]["resource_id"]
+        if resource != scope["component"]:
+            continue
+        # Provider cause does not itself establish valid customer requests.
+        symptom = manifest["symptoms"][0] if row.get("all_valid_enqueue_requests_failed") is True else "unverified"
+        intervals.append(dict(ref=row.get("incident_id", row["id"]), resource_id=resource,
+                              start=row["start"], end=row["end_exclusive"], symptom=symptom))
+        status_sources.extend(sources)
+    if intervals:
+        body = dict(kind="resource_status", source_ref="bounded-status-" + sha256(
+            "|".join(sorted(r["id"] for r in status_sources)).encode()).hexdigest()[:32],
+            observed_at=max((r["available_at"] for r in status_sources), key=datetime.fromisoformat), complete=False,
+            start=min((r["start"] for r in intervals), key=datetime.fromisoformat),
+            end=max((r["end"] for r in intervals), key=datetime.fromisoformat), intervals=intervals)
+        enqueue("status", body, status_sources)
+        gaps.add("COMPLETE_MONTH_STATUS_MISSING")
+    else:
+        gaps.add("SCOPED_PROVIDER_OBSERVATION_MISSING")
+    probes = [r for r in scoped if r["kind"] == "customer_probe" and r.get("resource_id") == scope["component"]]
+    if probes:
+        causes = [dict(ref=r.get("incident_id", r["id"]), resource_id=scope["component"],
+                       start=r["start"], end=r["end_exclusive"], cause="unverified") for r in probes]
+        enqueue("customer", dict(kind="resource_attribution", source_ref=probes[0]["source_locator"],
+            observed_at=max((r["available_at"] for r in probes), key=datetime.fromisoformat), complete=False,
+            start=min((r["start"] for r in probes), key=datetime.fromisoformat),
+            end=max((r["end_exclusive"] for r in probes), key=datetime.fromisoformat), causes=causes, exclusions=[]), probes)
+        gaps.update({"COMPLETE_MONTH_ATTRIBUTION_MISSING", "CUSTOMER_CAUSE_ATTESTATION_MISSING"})
+    else:
+        gaps.add("CUSTOMER_REQUEST_PROOF_MISSING")
+    invoices = [r for r in scoped if r["kind"] == "invoice"]
+    billmaps = [r for r in scoped if r["kind"] == "billing_resource_attestation" and r.get("resource_id") == scope["component"]]
+    if len(invoices) == 1:
+        invoice = invoices[0]
+        mapping = billmaps[0] if len(billmaps) == 1 else None
+        body = invoice_report(invoice, mapping, scope)
+        if body:
+            enqueue("billing", body, [invoice, mapping])
+        else:
+            gaps.add("SCOPED_NET_BILLING_MAPPING_MISSING")
+            # Preserve identifiable positive lines while refusing a complete net base.
+            lines = [dict(ref=r["line_id"], resource_id=scope["component"], month=scope["month"],
+                          currency=invoice["currency"], kind="resource_service" if r["type"] == "monthly_recurring" else "other",
+                          category=r["type"], amount_cents=cents(r["amount"])) for r in invoice["lines"]
+                     if r.get("resource_id") == scope["component"] and cents(r["amount"]) >= 0]
+            if lines:
+                enqueue("billing", dict(kind="resource_invoice", source_ref=invoice["source_locator"],
+                    observed_at=invoice["available_at"], itemized_complete=False, lines=lines), [invoice])
+        # An aggregate previously granted amount is not an issued-credit ID or a signed history.
+        if manifest.get("prior_credit"):
+            gaps.add("PRIOR_ISSUANCE_IDS_AND_COMPLETE_HISTORY_MISSING")
+    else:
+        gaps.add("SCOPED_BILLING_MISSING")
+    if manifest.get("maintenance"):
+        gaps.add("COMPLETE_MAINTENANCE_HISTORY_MISSING")
+
+    originals = [r for r in scoped if r["kind"] == "historical_customer_filing_receipt"
+                 and r.get("resource_id") == scope["component"]]
+
+    def fields(receipt):
+        attachments = [by_id[r] for r in receipt["attachments"] if r in by_id]
+        result = []
+        for name in manifest.get("request_fields", []):
+            words = set(re.findall(r"[a-z]+", name.casefold()))
+            refs = []
+            if "month" in words and receipt.get("measured_month") == scope["month"]:
+                refs = [scope["month"]]
+            elif words & {"intervals", "timestamps", "logs"}:
+                refs = [r.get("incident_id", r["id"]) for r in attachments if r["kind"] in {"provider_incident", "customer_probe"}]
+            elif words & {"cause", "controller"}:
+                refs = [r["id"] for r in attachments if r["kind"] in {"provider_incident", "provider_resource_attestation"} and r.get("cause")]
+            elif words & {"requests", "valid"}:
+                refs = [r["id"] for r in attachments if r["kind"] == "customer_probe"
+                        and r.get("credentials_valid") is True and r.get("rate_limit_exhausted") is False
+                        and r.get("all_valid_enqueue_requests_failed") is True]
+            elif words & {"billing", "invoice", "charges", "fees"}:
+                refs = [r["recurring_line_id"] for r in attachments if r["kind"] == "billing_resource_attestation"]
+            elif words & {"endpoint", "resource"} and receipt.get("resource_id") == scope["component"]:
+                refs = [scope["component"]]
+            if refs:
+                result.append(dict(name=name, refs=sorted(set(refs))))
+        return result
+
+    for row in scoped:
+        if row["kind"] not in {"historical_customer_filing_receipt", "historical_customer_supplement_receipt"}:
+            continue
+        if row.get("resource_id") != scope["component"]:
+            continue
+        supplement = row["kind"] == "historical_customer_supplement_receipt"
+        if supplement and len(originals) != 1:
+            gaps.add("SUPPLEMENT_ORIGINAL_RECEIPT_MISSING")
+            continue
+        body = dict(kind="supplement_filing_receipt" if supplement else "original_filing_receipt",
+                    source_ref=row["source_locator"], observed_at=row["available_at"], receipt_id=row["id"],
+                    received_at=row["received_at"], submitted_to=row["channel"], fields=fields(row))
+        if supplement:
+            body["original_ref"] = originals[0]["id"]
+        enqueue("vendor", body, [row], row["id"])
+    return sorted(events, key=lambda r: datetime.fromisoformat(r["available_at"])), sorted(gaps)

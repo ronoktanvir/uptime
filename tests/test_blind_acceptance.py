@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-from scripts.blind_acceptance import (BoundaryError, Fixture, artifact_transport, bound_account, compact_case,
+from scripts.blind_acceptance import (BoundaryError, Fixture, bound_account, compact_case,
     compare_case, compare_gold, compare_terms, digest, general_control, local_path, money_check,
     project_input_selectors, select_records, write_receipt)
 
@@ -102,29 +102,53 @@ def test_changed_fixture_never_becomes_new_authorized_input(tmp_path):
 
 
 def test_null_resource_does_not_inherit_claim_scope_or_complete_month():
-    source = dict(kind="provider_incident", account_id="account-a", resource_id=None,
+    from scripts.blind_mapping import event_plan
+    source = dict(id="provider-a", kind="provider_incident", account_id="account-a", resource_id=None,
                   source_locator="source-a", available_at="2028-01-02T00:00:00Z", start="2028-01-01T01:00:00Z",
                   end_exclusive="2028-01-01T01:05:00Z", incident_id="incident-a", all_valid_enqueue_requests_failed=True)
-    role, envelope, body, code = artifact_transport(source, {"account": "account-a", "component": "resource-a"})
-    assert role == "status" and envelope["component"] is None
-    assert body["complete"] is False and body["intervals"][0]["resource_id"] is None
-    assert code == "INCIDENT_IS_NOT_COMPLETE_MONTH"
+    scope = {"account": "account-a", "component": "resource-a"}
+    manifest = {"symptoms": ["requests fail"]}
+    events, gaps = event_plan([source], scope, manifest)
+    assert not events and "PROVIDER_RESOURCE_MAPPING_MISSING" in gaps
+    events, gaps = event_plan([source | {"resource_id": "resource-a"}], scope, manifest)
+    assert events[0]["body"]["complete"] is False
+    assert "COMPLETE_MONTH_STATUS_MISSING" in gaps
 
 
-def test_historical_receipt_is_not_disguised_as_scoped_artifact():
-    source = dict(kind="historical_customer_filing_receipt", account_id="account-a", resource_id="resource-a",
-                  source_locator="source-a", available_at="2028-01-02T00:00:00Z", received_at="2028-01-01T00:00:00Z")
-    role, envelope, body, code = artifact_transport(source, {"account": "account-a", "component": "resource-a"})
-    assert body == source and role == "customer" and code == "HISTORICAL_FILING_UNSUPPORTED"
+def test_historical_receipt_preserves_original_identifier_and_clock():
+    from scripts.blind_mapping import event_plan
+    source = dict(id="original-a", kind="historical_customer_filing_receipt", account_id="account-a", resource_id="resource-a",
+                  source_locator="source-a", available_at="2028-01-02T00:00:00Z", received_at="2028-01-01T00:00:00Z",
+                  channel="claims@example.invalid", attachments=[])
+    supplement = source | {"id": "supplement-a", "kind": "historical_customer_supplement_receipt",
+                           "received_at": "2028-01-02T00:00:00Z"}
+    events, gaps = event_plan([source, supplement], {"account": "account-a", "component": "resource-a"}, {})
+    assert events[0]["role"] == "vendor" and events[0]["body"]["kind"] == "original_filing_receipt"
+    assert events[0]["body"]["receipt_id"] == "original-a"
+    assert events[0]["body"]["received_at"] == source["received_at"]
+    assert events[1]["body"]["original_ref"] == "original-a"
+    assert not any(e["body"]["kind"] == "filing_material" for e in events)
 
 
-def test_billing_preserves_signed_discount_and_prior_credit():
-    source = dict(kind="invoice", account_id="account-a", source_locator="invoice-a",
+def test_billing_joins_signed_allocation_and_never_invents_credit_history():
+    from scripts.blind_mapping import event_plan, invoice_report
+    source = dict(id="invoice-a", invoice_id="invoice-a", kind="invoice", account_id="account-a", source_locator="invoice-a",
                   available_at="2028-02-01T00:00:00Z", currency="USD", previously_granted_credit="2.50",
-                  lines=[dict(line_id="discount-a", resource_id="resource-a", type="allocated_discount", amount="-4.25")])
-    _, _, body, code = artifact_transport(source, {"account": "account-a", "component": "resource-a", "month": "2028-01"})
-    assert body["lines"][0]["amount_cents"] == -425
-    assert body["previously_granted_credit"] == "2.50" and code == "SIGNED_DISCOUNT_AND_PRIOR_CREDIT_UNSUPPORTED"
+                  lines=[dict(line_id="gross-a", resource_id="resource-a", type="monthly_recurring", amount="50.00"),
+                         dict(line_id="discount-a", resource_id=None, type="allocated_discount", amount="-4.25")])
+    mapping = dict(id="mapping-a", kind="billing_resource_attestation", account_id="account-a", resource_id="resource-a",
+                   source_locator="billing-mapping-a", available_at="2028-02-02T00:00:00Z", invoice_id="invoice-a",
+                   recurring_line_id="gross-a", discount_line_id="discount-a", net_recurring="45.75", previously_granted_credit="2.50")
+    scope = {"account": "account-a", "component": "resource-a", "month": "2028-01"}
+    assert invoice_report(source, None, scope) is None
+    assert invoice_report(source, mapping | {"resource_id": "unrelated"}, scope) is None
+    assert invoice_report(source, mapping | {"net_recurring": "45.74"}, scope) is None
+    events, gaps = event_plan([source, mapping], scope, {"prior_credit": "subtract_issued_same_resource_month"})
+    body = next(e["body"] for e in events if e["body"]["kind"] == "resource_invoice")
+    assert body["lines"][0]["amount_cents"] == 4575
+    assert body["lines"][0]["discount_cents"] == 425
+    assert not any(e["body"]["kind"] == "prior_credit_evidence" for e in events)
+    assert "PRIOR_ISSUANCE_IDS_AND_COMPLETE_HISTORY_MISSING" in gaps
 
 
 def test_scope_controls_do_not_gain_consent():

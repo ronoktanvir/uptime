@@ -89,12 +89,32 @@ def select_records(records, selectors, as_of):
 
 def write_receipt(path, receipt):
     """Create-only, private permissions; never overwrite previous observations."""
-    raw = json.dumps(receipt, sort_keys=True, indent=2, allow_nan=False).encode() + b"\n"
+    raw = json.dumps(private_receipt(receipt), sort_keys=True, indent=2, allow_nan=False).encode() + b"\n"
     with open(path, "xb", opener=lambda name, flags: os.open(name, flags, 0o600)) as handle:
         handle.write(raw)
 
 
-INPUT_KEYS = {"id", "account_id", "resource_id", "month", "measured_month", "as_of",
+def private_receipt(value):
+    """Financial operands and private clocks stay in memory; export digests only."""
+    sensitive = {"amount", "awarded", "expected_money", "observed_money", "filing_cutoff", "measurement_month",
+                 "expected_value", "observed_value", "supported_credit", "remaining_credit", "eligible_base"}
+    if isinstance(value, dict):
+        return {key + "_sha256" if key in sensitive else key:
+                digest(child) if key in sensitive else private_receipt(child) for key, child in value.items()}
+    if isinstance(value, list):
+        return [private_receipt(child) for child in value]
+    return value
+
+
+def missing_categories(row):
+    text = " ".join(row.get("preflight", {}).get("missing", [])) if row else ""
+    patterns = {"provider_status": r"resource_status|status record", "customer_attribution": r"resource_attribution|customer cause",
+                "scoped_billing": r"resource_invoice|charges|invoice", "complete_month": r"completed service month|complete month",
+                "filing_material": r"filing material|request fields", "resource_mapping": r"resource|scope"}
+    return [category for category, pattern in patterns.items() if re.search(pattern, text, re.I)]
+
+
+INPUT_KEYS = {"id", "account_id", "resource_id", "requested_account_id", "requested_resource_id", "month", "measured_month", "as_of",
               "input_artifact_ids", "input_correspondence_ids"}
 OUTCOMES = {"ELIGIBLE", "INELIGIBLE", "INSUFFICIENT_EVIDENCE", "UNSUPPORTED_RULE"}
 STAGES = {"EVALUATED", "HISTORICAL_FILING", "DRAFTED", "NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "RESPONSE_APPROVED", "HUMAN_REVIEW",
@@ -485,52 +505,6 @@ def fresh_intake(public, overlay, account, artifacts):
     return {"document": document, "overlay": translated}
 
 
-def artifact_transport(row, scope):
-    """Preserve raw meaning. Unsupported roles/shapes are sent for explicit refusal.
-
-    An incident never becomes a complete monthly report. A pool-level record
-    never acquires the case resource. Historical filing is never new approval.
-    """
-    kind = row["kind"]
-    role = {"provider_incident": "status", "provider_resource_attestation": "status", "invoice": "billing",
-            "billing_resource_attestation": "billing"}.get(kind, "customer")
-    envelope = dict(scope)
-    envelope["account"] = row["account_id"]
-    if "resource_id" in row:
-        envelope["component"] = row["resource_id"]  # including null: never silently repair scope
-    common = dict(source_ref=row["source_locator"], observed_at=row["available_at"])
-    if kind == "provider_incident":
-        body = dict(kind="resource_status", **common, complete=False, start=row["start"], end=row["end_exclusive"],
-                    intervals=[dict(ref=row["incident_id"], resource_id=row.get("resource_id"), start=row["start"],
-                                    end=row["end_exclusive"], symptom="all_valid_enqueue_requests_failed"
-                                    if row.get("all_valid_enqueue_requests_failed") is True else "unverified")])
-        code = "INCIDENT_IS_NOT_COMPLETE_MONTH"
-    elif kind == "invoice":
-        categories = {"monthly_recurring": "resource_service", "tax": "tax", "support": "support", "usage": "other"}
-        lines = []
-        for line in row["lines"]:
-            cents = money(line["amount"]) * 100
-            if cents != cents.to_integral_value():
-                raise BoundaryError("SUBCENT_INPUT_UNREPRESENTABLE")
-            lines.append(dict(ref=line["line_id"], resource_id=line["resource_id"], month=scope["month"],
-                              currency=row["currency"], kind=categories.get(line["type"], line["type"]),
-                              amount_cents=int(cents), category=line["type"]))
-        body = dict(kind="resource_invoice", **common, itemized_complete=True, lines=lines)
-        # Retain material economics rather than dropping unsupported credits/discounts.
-        body["previously_granted_credit"] = row["previously_granted_credit"]
-        code = "SIGNED_DISCOUNT_AND_PRIOR_CREDIT_UNSUPPORTED"
-    else:
-        # No artifact wrapper: the original typed record reaches schema validation.
-        body = dict(row)
-        code = {"customer_probe": "REQUEST_VALIDITY_RECORD_UNSUPPORTED",
-                "provider_resource_attestation": "PROVIDER_SCOPE_ATTESTATION_UNSUPPORTED",
-                "billing_resource_attestation": "BILLING_SCOPE_ATTESTATION_UNSUPPORTED",
-                "historical_customer_filing_receipt": "HISTORICAL_FILING_UNSUPPORTED",
-                "historical_customer_supplement_receipt": "HISTORICAL_SUPPLEMENT_UNSUPPORTED",
-                "scope_control": "SCOPE_CONTROL"}.get(kind, "ARTIFACT_KIND_UNSUPPORTED")
-    return role, envelope, body, code
-
-
 def general_control(source):
     """Read preexisting independent-of-holdout test inputs, without executing tests.
 
@@ -593,7 +567,7 @@ def exercise_general(source, account, messages):
     # Each independently authored message gets its own control; no earlier answer
     # can overwrite another message's observed classification.
     for message in messages:
-        observation = {"message_sha256": digest(message), "fail_codes": []}
+        observation = {"message_sha256": digest(message), "text_sha256": digest(message["text"].encode()), "fail_codes": []}
         try:
             if message["account_id"] != account["account_id"] or message["resource_id"] != account["resource_id"]:
                 raise BoundaryError("GENERAL_MESSAGE_SCOPE_REFUSED")
@@ -655,6 +629,9 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
                         available_correspondence_count=len(messages), future_correspondence_count=len(future_messages))
         controls = [r for r in selected if r["kind"] == "scope_control"]
         target = dict(plan)
+        for key in ("account_id", "resource_id"):
+            if plan.get("requested_" + key):
+                target[key] = plan["requested_" + key]
         if len(controls) == 1 and "account_id" not in target and "resource_id" not in target:
             target.update({key: controls[0][key] for key in ("account_id", "resource_id")})
         account, authorized = bound_account(accounts, overlay, target)
@@ -666,8 +643,17 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
         months = {plan[k] for k in ("month", "measured_month") if plan.get(k)}
         months.update(r["measured_month"] for r in receipts)
         months.update(r["period_start"][:7] for r in invoices)
-        if len(months) != 1:
-            raise BoundaryError("MEASUREMENT_MONTH_UNRESOLVED")
+        if not months:
+            months.update(r["start"][:7] for r in selected if r.get("start"))
+        measured_month = next(iter(months)) if len(months) == 1 else None
+        observed["measurement_month"] = measured_month
+        if measured_month is None:
+            # A diagnostic inbox can still test scope refusal and missing-input
+            # behavior. This placeholder is never an asserted measurement month.
+            months = {plan["as_of"][:7]}
+            observed["diagnostic_month_only"] = True
+            if authorized:
+                observed["fail_codes"].append("MEASUREMENT_MONTH_UNRESOLVED")
         scope = dict(account=authorized_account["account_id"], component=authorized_account["resource_id"],
                      vendor=overlay["provider"], contract=overlay["overlay_id"], service=authorized_account["service"],
                      invoice=invoices[0]["invoice_id"] if len(invoices) == 1 else "unasserted-invoice",
@@ -683,7 +669,7 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
                 "DRAFT", "VALIDATED", "SHADOW", "APPROVED", "ACTIVE", "QUARANTINED", "REVOKED", "UNAVAILABLE"} else "UNMAPPED"
             observed["candidate_sha256"] = digest(state) if state else None
             if state and state.get("manifest") and term_observations is not None:
-                term_observations.append(state["manifest"])
+                term_observations.append(state["manifest"] | {"_measurement_month": measured_month})
             if not state or state.get("state") == "QUARANTINED":
                 observed["fail_codes"].append("PUBLIC_EXTRACTION_OR_BINDING_UNSUPPORTED")
             else:
@@ -696,25 +682,42 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             if row is not None:
                 if not authorized:
                     observed["fail_codes"].append("UNAUTHORIZED_SCOPE_ACCEPTED")
-                chronology = [(r, False) for r in selected] + [(r, True) for r in messages]
+                from scripts.blind_mapping import event_plan
+                events, gaps = event_plan(selected, scope, state["manifest"]) if state and state.get("manifest") else ([], ["ACTIVE_TERMS_UNAVAILABLE"])
+                observed["fail_codes"].extend(gaps)
+                observed["deliveries"] = []
+                chronology = [(r, False) for r in events] + [(r, True) for r in messages]
                 for record, is_message in sorted(chronology, key=lambda pair: instant(pair[0]["available_at"])):
                     if is_message:
-                        # No invented submission: a reply without a runtime
-                        # receipt is attempted and its refusal is recorded.
+                        before_message = transport.get(path, "before_vendor_arrival")
+                        submissions = before_message.get("submissions", []) if before_message else []
+                        historical = [r for r in selected if r["kind"] == "historical_customer_filing_receipt"
+                                      and instant(r["available_at"]) <= instant(record["available_at"])]
+                        receipt_id = submissions[-1]["id"] if submissions else historical[0]["id"] if len(historical) == 1 else "unfiled"
                         envelope = scope | {"account": record["account_id"], "component": record["resource_id"]}
-                        delivered = transport.deliver(path, "vendor", envelope,
-                            dict(kind="message", receipt_id="unfiled", text=record["text"]), record["id"], record["available_at"])
+                        body = dict(kind="message", receipt_id=receipt_id, text=record["text"])
+                        delivered = transport.deliver(path, "vendor", envelope, body, record["id"], record["available_at"])
+                        observed["deliveries"].append(dict(kind="message", input_sha256=digest(record),
+                            text_sha256=digest(record["text"].encode()), receipt_id_sha256=digest(receipt_id),
+                            wire_sha256=digest(body), accepted=delivered is not None))
                         if delivered is None:
-                            observed["fail_codes"].append("NO_READY_DENIAL_REFUSED")
+                            observed["fail_codes"].append("HISTORICAL_REPLY_ROUTE_UNAVAILABLE" if historical else "NO_READY_DENIAL_REFUSED")
                     else:
-                        role, envelope, body, code = artifact_transport(record, scope)
-                        delivered = transport.deliver(path, role, envelope, body, record["id"], record["available_at"])
-                        observed["fail_codes"].append(code)
+                        delivered = transport.deliver(path, record["role"], scope, record["body"], record["id"], record["available_at"])
+                        observed["deliveries"].append(dict(kind=record["body"]["kind"],
+                            source_ids_sha256=[digest(v) for v in record["source_ids"]],
+                            source_locators_sha256=[digest(v) for v in record["source_locators"]],
+                            wire_sha256=digest(record["body"]), event_id_sha256=digest(record["id"]),
+                            accepted=delivered is not None, receipt_sha256=digest(delivered)))
                         if delivered is None:
-                            observed["fail_codes"].append("EVIDENCE_TRANSPORT_REFUSED")
+                            observed["fail_codes"].append("SUPPORTED_EVIDENCE_DELIVERY_REFUSED")
                 transport.clock[0] = instant(plan["as_of"])
                 row = transport.get(path, "blind_observed")
                 observed["observation"] = compact_case(row)
+                observed["observed_provenance_sha256"] = sorted({digest(str(e[k])) for e in row.get("evidence", [])
+                    for k in ("source_ref", "receipt_id", "original_ref", "observed_at", "available_at", "filed_at") if e.get(k)}) if row else []
+                observed["missing_categories"] = missing_categories(row)
+                observed["preflight_trace_sha256"] = digest(row.get("preflight", {})) if row else None
                 observed["calculation_available"] = bool(state and state.get("active_version") and row)
             if state and state.get("active_version"):
                 actions = [a["id"] for a in state["actions"] if a["operation"] == "rollback"]
@@ -724,6 +727,10 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             observed["operations"] = transport.operations
     except Exception as exc:
         observed["fail_codes"].append(exc.args[0] if isinstance(exc, BoundaryError) else "CASE_RUNTIME_UNAVAILABLE")
+        if not isinstance(exc, BoundaryError):
+            import traceback
+            observed["runtime_error"] = {"type": type(exc).__name__, "frames": [
+                {"file": Path(frame.filename).name, "line": frame.lineno} for frame in traceback.extract_tb(exc.__traceback__)]}
         observed.setdefault("calculation_available", False)
     try:
         observed["generality"] = exercise_general(source, account, messages) if authorized else {
