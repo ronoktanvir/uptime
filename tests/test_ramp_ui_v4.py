@@ -35,7 +35,7 @@ def test_ramp_browser_navigation_and_read_only_plan():
         if path == "/":
             route.fulfill(body=(ROOT / "web/index.html").read_text(), content_type="text/html",
                           headers={"Content-Security-Policy": csp})
-        elif path.startswith("/static/") and path.rsplit("/", 1)[-1] in {"auth.js", "ramp_ui.js", "app.js", "style.css", "favicon.svg"}:
+        elif path.startswith("/static/") and path.rsplit("/", 1)[-1] in {"auth.js", "ramp_ui.js", "app.js", "style.css", "v4_ui.js", "v4_style.css", "favicon.svg"}:
             file = ROOT / "web" / path.rsplit("/", 1)[-1]
             content_type = "text/javascript" if file.suffix == ".js" else "text/css" if file.suffix == ".css" else "image/svg+xml"
             route.fulfill(body=file.read_text(), content_type=content_type)
@@ -47,6 +47,8 @@ def test_ramp_browser_navigation_and_read_only_plan():
             route.fulfill(json={**row, "provider_uri": "https://demo.ramp.com/bills/native-test-id", "trace": ["Synthetic test only"]})
         elif path == "/api/dashboard":
             route.fulfill(json={"workspace": "Synthetic rehearsal", "cases": [], "metrics": [], "audit": []})
+        elif path == "/api/policy":
+            route.fulfill(json={"role":"viewer","mode":"OBSERVE"})
         else:
             unexpected.append(path)
             route.abort()
@@ -80,7 +82,8 @@ def test_ramp_browser_navigation_and_read_only_plan():
         # Keyboard tests start with the input fully in view; a partly clipped caret legitimately scrolls Chrome.
         search.evaluate("e => e.scrollIntoView({block: 'center', behavior: 'instant'})")
         page.evaluate("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
-        search.press("End")
+        # macOS End scrolls the document. Place the text caret without a page-navigation key.
+        search.evaluate("e => e.setSelectionRange(e.value.length, e.value.length)")
         search.type(" vendor")
         expect(search).to_be_focused()
         expect(search).to_have_value("Browser test vendor")

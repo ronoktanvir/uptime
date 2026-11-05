@@ -73,7 +73,7 @@
       add(controls, add(el('label','Show'),select), add(el('label','Search'),search));
       const count = note(''); count.setAttribute('aria-live','polite');
       const table = el('table'), body = el('tbody');
-      add(table, add(el('thead'), add(el('tr'), ...['Record / native ID','Native status','Finding / sources','Finding amount'].map(t => { const n=el('th',t); n.scope='col'; return n; }))),body);
+      add(table, add(el('thead'), add(el('tr'), ...['Record / native ID','Native status','Ramp amount','Finding / sources','Finding amount'].map(t => { const n=el('th',t); n.scope='col'; return n; }))),body);
       const previous = button('Previous page', () => { filters.page--; rows(); });
       const next = button('Next page', () => { filters.page++; rows(); });
       function rows() {
@@ -85,10 +85,11 @@
           const label=hypothetical(r) ? 'Hypothetical / simulated finding' : 'Recorded provider observation';
           body.append(add(el('tr'), add(el('td'), link, el('div',r.title,'case-subtitle'), note(`${shown(r.provider_object_type)} · Native ID: ${shown(r.provider_id)}`)),
             add(el('td'), el('span',shown(r.native_status),'pill'), note(`Approval: ${shown(r.native_approval_status)}`)),
+            add(el('td'), el('strong',r.native_amount?.amount != null ? `${shown(r.native_amount.currency)} ${shown(r.native_amount.amount)}` : 'Amount unavailable')),
             add(el('td'), el('strong',label), note(`${shown(r.outcome)} · ${shown(r.stage)}`), sources(r.sources)),
             add(el('td'), el('span',r.amount == null ? 'Not determined' : `${shown(r.currency)} ${shown(r.amount)}`), note('Not cash recovered'))));
         });
-        if (!selected.length) { const td=el('td','No matching records. Choose All records to inspect other types or unknown statuses.','empty'); td.colSpan=4; body.append(add(el('tr'),td)); }
+        if (!selected.length) { const td=el('td','No matching records. Choose All records to inspect other types or unknown statuses.','empty'); td.colSpan=5; body.append(add(el('tr'),td)); }
         count.textContent=`${selected.length} of ${list(data.records).length} records · Page ${filters.page+1} of ${pages} · Up to 25 rows per page`;
         previous.disabled=filters.page===0; next.disabled=filters.page===pages-1;
       }
