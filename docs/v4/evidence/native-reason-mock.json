@@ -1,0 +1,164 @@
+{
+  "generated_at": "2026-11-05T01:04:45.142148+00:00",
+  "provenance": "MOCK_HTTP",
+  "fixture_notice": "Ephemeral local keys and synthetic test documents; no network or live Ramp write.",
+  "cases": [
+    {
+      "case": "EVIDENCE_REQUIRED",
+      "transport_provenance": "MOCK_HTTP",
+      "status": "DELIVERED",
+      "business_id": "10000000-0000-4000-8000-000000000001",
+      "object_id": "20000000-0000-4000-8000-000000000001",
+      "method": "POST",
+      "path": "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001",
+      "reviewed_body": "{\"message\":\"Uptime contract review: price compliance is undetermined. Before approving this bill, obtain the governing signed terms and amendments, and verify itemized charges, service dates, quantities and tax treatment against those terms. No approval, payment instruction, entitlement or realized savings is asserted.\\n[uptime:7f0d5629b3870ed33bd1bf27f7c6cdfe7db89f960d21858a54c93b709862a6df]\",\"message_format\":\"PLAIN_TEXT\"}",
+      "body_sha256": "69aa5c3666e9ce210682932e247430574d8665bdfefe64e46d88dd3697dd7937",
+      "actual_provider_bodies": [
+        "{\"message\":\"Uptime contract review: price compliance is undetermined. Before approving this bill, obtain the governing signed terms and amendments, and verify itemized charges, service dates, quantities and tax treatment against those terms. No approval, payment instruction, entitlement or realized savings is asserted.\\n[uptime:7f0d5629b3870ed33bd1bf27f7c6cdfe7db89f960d21858a54c93b709862a6df]\",\"message_format\":\"PLAIN_TEXT\"}"
+      ],
+      "provider_calls": [
+        [
+          "POST",
+          "/developer/v1/token"
+        ],
+        [
+          "GET",
+          "/developer/v1/business"
+        ],
+        [
+          "GET",
+          "/developer/v1/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/business"
+        ],
+        [
+          "GET",
+          "/developer/v1/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "POST",
+          "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001"
+        ]
+      ],
+      "remote_state": {
+        "message_digest": "5e5d70477a6e47ac0d61dde56433bfba7d535221fc6a69769a055071bf158ace",
+        "verification": "EXACT_DISCUSSION_GET"
+      },
+      "actual_recovery": null,
+      "actual_money_prevented": null
+    },
+    {
+      "case": "ATTESTED_PRICE_EXCEPTION",
+      "transport_provenance": "MOCK_HTTP",
+      "status": "DELIVERED",
+      "business_id": "10000000-0000-4000-8000-000000000001",
+      "object_id": "20000000-0000-4000-8000-000000000001",
+      "method": "POST",
+      "path": "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001",
+      "reviewed_body": "{\"message\":\"Uptime contract review: a deterministic comparison against operator-attested signed terms identified a potential price exception. Before approving this bill, review the governing terms and amendments and the mapped service dates, quantities and tax treatment with the contract owner. This provisional finding depends on operator evidence; it does not establish legal entitlement. No approval, payment instruction, entitlement or realized savings is asserted.\\n[uptime:1dd1ea2e16d3d40c7e47161b1b3895fb8324529d0c7d071715febaac1a45edfb]\",\"message_format\":\"PLAIN_TEXT\"}",
+      "body_sha256": "bed20e1d373e78ef42ec14b3accb7c4c50a23a6ded917be8f45947eb6c2a35f9",
+      "actual_provider_bodies": [
+        "{\"message\":\"Uptime contract review: a deterministic comparison against operator-attested signed terms identified a potential price exception. Before approving this bill, review the governing terms and amendments and the mapped service dates, quantities and tax treatment with the contract owner. This provisional finding depends on operator evidence; it does not establish legal entitlement. No approval, payment instruction, entitlement or realized savings is asserted.\\n[uptime:1dd1ea2e16d3d40c7e47161b1b3895fb8324529d0c7d071715febaac1a45edfb]\",\"message_format\":\"PLAIN_TEXT\"}"
+      ],
+      "provider_calls": [
+        [
+          "POST",
+          "/developer/v1/token"
+        ],
+        [
+          "GET",
+          "/developer/v1/business"
+        ],
+        [
+          "GET",
+          "/developer/v1/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/business"
+        ],
+        [
+          "GET",
+          "/developer/v1/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "POST",
+          "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001"
+        ]
+      ],
+      "remote_state": {
+        "message_digest": "bb1766e91e6413b16c3eacced9714ced556abfdfc72eb82248f70a85e952f850",
+        "verification": "EXACT_DISCUSSION_GET"
+      },
+      "actual_recovery": null,
+      "actual_money_prevented": null
+    },
+    {
+      "case": "REVOKED_PRICE_KEY",
+      "transport_provenance": "MOCK_HTTP",
+      "status": "UNCERTAIN",
+      "business_id": "10000000-0000-4000-8000-000000000001",
+      "object_id": "20000000-0000-4000-8000-000000000001",
+      "method": "POST",
+      "path": "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001",
+      "reviewed_body": "{\"message\":\"Uptime contract review: a deterministic comparison against operator-attested signed terms identified a potential price exception. Before approving this bill, review the governing terms and amendments and the mapped service dates, quantities and tax treatment with the contract owner. This provisional finding depends on operator evidence; it does not establish legal entitlement. No approval, payment instruction, entitlement or realized savings is asserted.\\n[uptime:9b763f7ea4e3311225d89553d1440eeb2e4fbb809f1479e91ce3832e3311a75f]\",\"message_format\":\"PLAIN_TEXT\"}",
+      "body_sha256": "4ef2a685d25edcad7fd990e17bbb6b723209613b0db6f414d8d33be62d74cbcd",
+      "actual_provider_bodies": [],
+      "provider_calls": [
+        [
+          "POST",
+          "/developer/v1/token"
+        ],
+        [
+          "GET",
+          "/developer/v1/business"
+        ],
+        [
+          "GET",
+          "/developer/v1/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/comments/bills/20000000-0000-4000-8000-000000000001"
+        ],
+        [
+          "GET",
+          "/developer/v1/business"
+        ]
+      ],
+      "remote_state": null,
+      "actual_recovery": null,
+      "actual_money_prevented": null
+    }
+  ]
+}

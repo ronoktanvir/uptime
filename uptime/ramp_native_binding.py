@@ -226,7 +226,8 @@ class NativeBinding:
         if self.outbox_path.exists() or self.outbox_path.is_symlink():
             self._check_outbox()
         self.flow = RampWorkflow(self.outbox_path, tenant=auth.tenant, business_id=self.config.business_id,
-                                 finding_resolver=self._finding, reviewers=reviewers, clock=clock)
+                                 finding_resolver=self._finding, reviewers=reviewers, clock=clock,
+                                 native_review_reasons=True)
 
     def _check_outbox(self):
         p = self.outbox_path
@@ -257,13 +258,50 @@ class NativeBinding:
                 or finding.get("provider_id") != object_id or finding.get("business_id") != self.config.business_id
                 or finding.get("workspace_tenant") != self.auth.tenant
                 or finding.get("sources") != ["LIVE_RAMP_SANDBOX"]
-                or finding.get("finding_kind") not in {"NATIVE_OBSERVATION", "UNBOUND_RECORD"}
-                or provenance.get("classification") != "PROVIDER_OBSERVATION"
                 or provenance.get("freshness") != "FRESH"
                 or not re.fullmatch(r"[a-f0-9]{64}", provenance.get("record_digest", ""))):
             raise WorkflowError("An exact factual provider observation is required; synthetic and foreign findings are blocked")
         if not timedelta(0) <= self.clock()-timestamp(finding.get("observed_at")) <= timedelta(hours=24):
             raise WorkflowError("Current actual capture timestamp required")
+        if "native_review_reason" not in finding:
+            if (finding.get("finding_kind") not in {"NATIVE_OBSERVATION", "UNBOUND_RECORD"}
+                    or provenance.get("classification") != "PROVIDER_OBSERVATION"):
+                raise WorkflowError("An exact factual provider observation is required")
+            return finding
+        reason = finding["native_review_reason"]
+        if reason == "EVIDENCE_REQUIRED":
+            if (finding.get("finding_kind") != "NATIVE_OBSERVATION"
+                    or provenance.get("classification") != "PROVIDER_OBSERVATION"
+                    or finding.get("outcome") not in {None, "INSUFFICIENT_EVIDENCE"}
+                    or finding.get("terms_provenance") is not None):
+                raise WorkflowError("Evidence-required reason conflicts with current evidence")
+        elif reason == "ATTESTED_PRICE_EXCEPTION":
+            terms = finding.get("terms_provenance")
+            if (finding.get("finding_kind") != "OPERATOR_PRICE_REVIEW"
+                    or provenance.get("classification") != "PROVIDER_WITH_OPERATOR_EVIDENCE"
+                    or provenance.get("terms_mode") != "OPERATOR_ATTESTED"
+                    or finding.get("outcome") != "ELIGIBLE"
+                    or finding.get("stage") not in {"PREPAYMENT_REVIEW", "RETROSPECTIVE_REVIEW"}
+                    or finding.get("missing") != []
+                    or not isinstance(finding.get("line_findings"), list) or not finding["line_findings"]
+                    or not isinstance(terms, dict) or terms.get("mode") != "OPERATOR_ATTESTED"
+                    or terms.get("integrity") != "VERIFIED" or terms.get("operator_context_verified") is not True
+                    or not isinstance(terms.get("digest"), str)
+                    or not re.fullmatch(r"[a-f0-9]{64}", terms["digest"])
+                    or not isinstance(provenance.get("binding_digest"), str)
+                    or not re.fullmatch(r"[a-f0-9]{64}", provenance["binding_digest"])):
+                raise WorkflowError("Current verified operator-scoped price exception evidence required")
+        else:
+            # INELIGIBLE also covers exclusions and unsupported comparisons. It
+            # cannot establish affirmative compliance or a safe-to-approve bill.
+            raise WorkflowError("Unsupported native review reason")
+        # The trusted workspace recomputes signature, scope, custody, validity and
+        # deterministic outcome. Bind that proof independently of its finding hash.
+        proof = {key: finding.get(key) for key in (
+            "native_review_reason", "terms_provenance", "outcome", "stage", "missing", "line_findings")}
+        proof["data_provenance"] = {key: provenance.get(key) for key in (
+            "classification", "freshness", "record_digest", "binding_digest", "terms_mode")}
+        finding = dict(finding, native_review_digest=digest(proof))
         return finding
 
     def _current_grant(self, grant=None):
@@ -346,15 +384,11 @@ class NativeBinding:
             "Authorization": "Bearer " + grant.token, "Accept": "application/json"})
         if business.get("id") != self._business() or business.get("active") is not True:
             raise WorkflowError("Business changed before publication")
-        if self.flow._finding(plan["object_type"], plan["object_id"]) != {
-                k: plan[k] for k in ("finding_digest", "sources", "observed_at", "simulation_only")}:
-            raise WorkflowError("Finding changed before publication")
+        self.flow._check_finding(plan)
         record = _BoundProvider(self, grant).read_object(plan["object_type"], plan["object_id"])
         if remote_state(record, plan["object_id"]) != plan["expected_remote_state"]:
             raise WorkflowError("Native object changed before publication")
-        if self.flow._finding(plan["object_type"], plan["object_id"]) != {
-                k: plan[k] for k in ("finding_digest", "sources", "observed_at", "simulation_only")}:
-            raise WorkflowError("Finding changed during the final native read")
+        self.flow._check_finding(plan)
 
     def execute(self, action_id, *, principal, review_digest):
         self._guard()

@@ -302,3 +302,17 @@ def test_root_mount_tenant_boundary(setup):
     client = TestClient(app)
     assert client.get(f"/api/ramp/workflow/actions/{plan['id']}").status_code == 403
     assert client.post("/webhooks/ramp", json={}).status_code == 404
+
+
+def test_generic_workflow_ignores_native_reason_extension_and_preserves_bytes(setup):
+    flow, provider, key, findings, _, _ = setup
+    original = flow.prepare_comment("bills", BILL, provider=provider)
+    findings["bills", BILL].update(native_review_reason="ATTESTED_PRICE_EXCEPTION", native_review_digest="b"*64)
+    current = flow.prepare_comment("bills", BILL, provider=provider)
+    assert current == original
+    assert current["body"] == {"message": (
+        f"Uptime informational finding for bills/{BILL}. Finding SHA-256: {FINDING}. "
+        "Evidence requires human review. No approval, payment instruction, entitlement or realized savings is asserted.\n"
+        + current["dedup_marker"]), "message_format": "PLAIN_TEXT"}
+    review(flow, key, current)
+    assert flow.execute(current["id"], provider=provider)["status"] == "DELIVERED"

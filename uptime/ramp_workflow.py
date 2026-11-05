@@ -28,6 +28,17 @@ PROVENANCE = frozenset({"MOCK_HTTP", "LIVE_RAMP_SANDBOX", "SIMULATED_RAMP"})
 CONTEXT_SCOPES = frozenset({"unified_requests:read", "custom_forms:read", "spend_programs:read", "blank_canvas:write"})
 SOURCE_LABELS = frozenset({"LIVE_RAMP_SANDBOX", "LIVE_VENDOR_PUBLIC", "SYNTHETIC_CUSTOMER", "SIMULATED_VENDOR",
                            "DETERMINISTIC_REPLAY", "UNAVAILABLE", "SIMULATED_RAMP"})
+NATIVE_REVIEW_MESSAGES = {
+    "EVIDENCE_REQUIRED": (
+        "Uptime contract review: price compliance is undetermined. Before approving this bill, "
+        "obtain the governing signed terms and amendments, and verify itemized charges, service dates, "
+        "quantities and tax treatment against those terms."),
+    "ATTESTED_PRICE_EXCEPTION": (
+        "Uptime contract review: a deterministic comparison against operator-attested signed terms "
+        "identified a potential price exception. Before approving this bill, review the governing "
+        "terms and amendments and the mapped service dates, quantities and tax treatment with the contract owner. "
+        "This provisional finding depends on operator evidence; it does not establish legal entitlement."),
+}
 
 
 class WorkflowError(RampError):
@@ -197,6 +208,14 @@ class ScopedSandboxWorkflowProvider:
 
 
 def _comment_body(plan):
+    if "native_review_reason" in plan:
+        reason = plan["native_review_reason"]
+        if not isinstance(reason, str) or reason not in NATIVE_REVIEW_MESSAGES or plan["object_type"] != "bills":
+            raise WorkflowError("Unsupported native review reason")
+        _sha(plan.get("native_review_digest"))
+        return {"message": (NATIVE_REVIEW_MESSAGES[reason] + " "
+                            "No approval, payment instruction, entitlement or realized savings is asserted.\n"
+                            + plan["dedup_marker"]), "message_format": "PLAIN_TEXT"}
     return {"message": (f"Uptime informational finding for {plan['object_type']}/{plan['object_id']}. "
                         f"Finding SHA-256: {plan['finding_digest']}. "
                         "Evidence requires human review. No approval, payment instruction, entitlement or realized savings is asserted.\n"
@@ -269,10 +288,13 @@ class WorkflowReviewer:
 
 class RampWorkflow:
     def __init__(self, path, *, tenant, business_id, finding_resolver, reviewers=None, inbox=None,
-                 inspector_origins=(), clock=utcnow):
+                 inspector_origins=(), clock=utcnow, native_review_reasons=False):
         self.path, self.tenant, self.business_id = Path(path), opaque(tenant), uuid_text(business_id)
         self.finding_resolver, self.reviewers, self.inbox = finding_resolver, dict(reviewers or {}), inbox
         self.inspector_origins, self.clock = tuple(sorted(inspector_origins)), clock
+        # Only the native binding opts in, after validating the trusted resolver's
+        # proof. Generic callers and existing outbox plans retain their old bytes.
+        self.native_review_reasons = native_review_reasons
         if inbox and (Path(inbox.path).resolve() != self.path.resolve() or inbox.deployment.tenant != tenant or
                       inbox.deployment.business_id != business_id):
             raise WorkflowError("Webhook and outbox must share the exact tenant, business and database")
@@ -292,7 +314,7 @@ class RampWorkflow:
                 raise WorkflowError("Workflow tenant business binding mismatch")
         self.path.chmod(0o600)
 
-    def _finding(self, object_type, object_id):
+    def _finding(self, object_type, object_id, *, include_native_reason=False):
         try:
             finding = self.finding_resolver(object_type, object_id)
         except (KeyError, LookupError):
@@ -308,10 +330,27 @@ class RampWorkflow:
         sources = finding.get("sources")
         if not isinstance(sources, list) or not sources or any(s not in SOURCE_LABELS for s in sources):
             raise WorkflowError("Explicit finding provenance required")
-        return {"finding_digest": finding["finding_digest"], "sources": sorted(set(sources)),
+        result = {"finding_digest": finding["finding_digest"], "sources": sorted(set(sources)),
                 "observed_at": finding["observed_at"], "simulation_only":
                 bool(set(sources) & {"SYNTHETIC_CUSTOMER", "SIMULATED_RAMP", "SIMULATED_VENDOR"}) or
                 str(finding.get("finding_kind", "")).startswith("SYNTHETIC")}
+        if include_native_reason and "native_review_reason" in finding:
+            reason = finding["native_review_reason"]
+            if (not self.native_review_reasons or object_type != "bills" or
+                    not isinstance(reason, str) or reason not in NATIVE_REVIEW_MESSAGES):
+                raise WorkflowError("Unsupported native review reason")
+            result.update(native_review_reason=reason,
+                          native_review_digest=_sha(finding.get("native_review_digest")))
+        return result
+
+    def _check_finding(self, plan):
+        fields = ["finding_digest", "sources", "observed_at", "simulation_only"]
+        with_reason = "native_review_reason" in plan
+        if with_reason:
+            fields += ["native_review_reason", "native_review_digest"]
+        if self._finding(plan["object_type"], plan["object_id"], include_native_reason=with_reason) != {
+                key: plan[key] for key in fields}:
+            raise WorkflowError("Finding changed after review")
 
     def _provider(self, provider, scopes):
         cap = provider.capabilities()
@@ -331,7 +370,7 @@ class RampWorkflow:
         return self._save(plan)
 
     def _base(self, kind, object_type, object_id, provider, scopes):
-        finding = self._finding(object_type, object_id)
+        finding = self._finding(object_type, object_id, include_native_reason=self.native_review_reasons)
         cap = self._provider(provider, scopes)
         if cap["transport_provenance"] == "LIVE_RAMP_SANDBOX" and finding["simulation_only"]:
             raise WorkflowError("Synthetic findings are simulation-only")
@@ -413,6 +452,8 @@ class RampWorkflow:
 
     def review_message(self, action_id, *, reviewer, expires_at):
         plan = self.get(action_id)
+        if "native_review_reason" in plan:
+            self._check_finding(plan)
         opaque(reviewer)
         if type(expires_at) is not int or not int(self.clock().timestamp()) < expires_at <= int(self.clock().timestamp())+300:
             raise WorkflowError("Review expiry must be within five minutes")
@@ -452,8 +493,7 @@ class RampWorkflow:
     def _preflight(self, plan, provider):
         if self._provider(provider, plan["required_scopes"]) != plan["capabilities"]:
             raise WorkflowError("Provider capabilities changed after review")
-        if self._finding(plan["object_type"], plan["object_id"]) != {k: plan[k] for k in ("finding_digest", "sources", "observed_at", "simulation_only")}:
-            raise WorkflowError("Finding changed after review")
+        self._check_finding(plan)
         if remote_state(provider.read_object(plan["object_type"], plan["object_id"]), plan["object_id"]) != plan["expected_remote_state"]:
             raise WorkflowError("Exact native object changed after review")
         if plan["approval_trigger_instance_id"] and provider.context(plan["trigger"]) != plan["context"]:
