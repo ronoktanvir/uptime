@@ -149,6 +149,7 @@ def test_missing_evidence_and_correct_refusal_never_reserve(tmp_path):
     new_scope = scope.model_copy(update={"account": "no-evidence"})
     inbox.provision(P.tenant, new_scope.account, new_scope.vendor, new_scope.contract,
                     new_scope.service, new_scope.component, new_scope.region)
+    inbox.bind_sender(P.tenant, new_scope.account, "status", "controlled-empty-status", scope=new_scope)
     inbox.create(P, Claim(claim_id="inbox-empty", scope=new_scope))
     assert not inbox.case(P, "inbox-empty")["actions"]
     with pytest.raises(ValueError):
@@ -168,7 +169,6 @@ def test_missing_evidence_and_correct_refusal_never_reserve(tmp_path):
 def test_unknown_vendor_reply_cannot_enable_a_second_route(tmp_path):
     legacy, inbox, scope = setup(tmp_path / "unknown-reply.db")
     original = inbox.act(P, INBOX, "submit-claim")["submissions"][0]
-    inbox.bind_sender(P.tenant, scope.account, "vendor", "synthetic-vendor")
     inbox.receive(Principal(P.tenant, "synthetic-vendor", "service"), INBOX,
                   Delivery(event_id="unrecognized-reply", scope=scope,
                            body=dict(kind="message", receipt_id=original["id"],

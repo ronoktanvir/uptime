@@ -298,6 +298,7 @@ def listener(scope, at):
     import httpx
     import uvicorn
     from uptime.auth import SCRIPT
+    from uptime.correspondence_types import Scope
     from uptime.auth_client import ReviewerClient
     from uptime.server import create_app
     with TemporaryDirectory(prefix="blind-local-") as work, socket.socket() as sock:

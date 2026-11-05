@@ -201,8 +201,9 @@ def inprocess_transport(scope, at):
                          approvals_enabled=True, rehearsal_secret=secret, service_credentials=keys)
         desk = app.state.correspondence
         desk.provision("bears", *(scope[k] for k in ("account", "vendor", "contract", "service", "component", "region")))
+        from uptime.correspondence_types import Scope
         for role, subject in subjects.items():
-            desk.bind_sender("bears", scope["account"], role, subject)
+            desk.bind_sender("bears", scope["account"], role, subject, scope=Scope(**scope))
         clock = [instant(at)]
         desk.clock = lambda: clock[0]
         with TestClient(app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 41000)) as client:
