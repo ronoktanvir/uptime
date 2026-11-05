@@ -4,6 +4,8 @@ from threading import RLock
 
 from . import onboarding, policy
 from .contracts import Principal, Source, fingerprint
+from .claim_identity import claim_key
+from .vendor_registry import historical_economic_identity
 from .mandates import CreditDecision, check_credit_decision
 from .disputes import DisputeDesk
 from .evidence import evidence_summary
@@ -58,6 +60,8 @@ def _obligation(case):
     submissions=case.get("submissions", [])
     if submissions and submissions[0].get("obligation_key"):
         return submissions[0]["obligation_key"]
+    if case.get("obligation_id"):
+        return case["obligation_id"]
     scope=case.get("scope")
     if scope:
         return fingerprint([case["vendor"],scope.get("account"),scope.get("contract"),
@@ -432,6 +436,10 @@ class Workbench:
 
     def _present(self, case, *, versions=None):
         case=dict(case)
+        if case.get("vendor_id") and case["id"].startswith("availability-"):
+            identity = historical_economic_identity(self.path, self.tenant, case)
+            case["economic_identity"] = identity
+            case["obligation_id"] = claim_key(**identity) if identity else None
         case["cohort"]="seeded" if case["id"] in self.seed_ids else "portfolio"
         case.setdefault("note", "Seeded historical/comparison simulation; estimates are not additive portfolio value."
                         if case["cohort"]=="seeded" else "Entered workspace record; source labels determine whether facts are simulated or observed.")

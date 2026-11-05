@@ -15,7 +15,7 @@ OBSERVED = "2026-07-01T06:00:00Z"
 MONTH = dict(start="2026-06-01T00:00:00Z",end="2026-07-01T00:00:00Z",complete=True)
 
 
-def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, conditions=False, extra_terms=(), shadow=None, expected="12.51", overlay_override=None):
+def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, conditions=False, extra_terms=(), shadow=None, expected="12.51", overlay_override=None, installation="altitude-service"):
     rows=deepcopy(ROWS) + list(extra_terms)
     facts=deepcopy(shadow if shadow is not None else FACTS)
     overlay = deepcopy(overlay_override if overlay_override is not None else OVERLAY)
@@ -46,7 +46,7 @@ def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, condit
     (tmp_path/(digest+".json")).write_text(json.dumps(capture))
     monkeypatch.setenv("UPTIME_PUBLIC_EXTRACTIONS",str(tmp_path))
     monkeypatch.setenv("UPTIME_MODEL_PROPOSITIONS","1")
-    base="/api/vendors/altitude-service"
+    base="/api/vendors/" + installation
     s=env.post(base+"/candidates",dict(document=dict(name="Synthetic station SLA",uri="urn:synthetic:weather",
                     classification="synthetic_public",text=text),overlay=overlay))
     assert s["state"]=="SHADOW",s
@@ -126,6 +126,14 @@ def test_real_resource_join_and_local_packet(env,tmp_path,monkeypatch):
     assert rec["packet"]["destination"]=="isolated-local-simulator"
     row=message(env,rec,"We have approved a service credit of USD 9.00.")
     assert row["ledger"]["awarded"]=="9.00" and row["ledger"]["disputed_remainder"]=="3.51"
+
+
+def test_region_alias_without_separate_contractual_coverage_cannot_create_another_intake(env, tmp_path, monkeypatch):
+    install(env, tmp_path, monkeypatch)
+    env.scope["region"] = "another-region"
+    env.provision()
+    result = env.human.post("/api/correspondence/claims", dict(claim_id="inbox-region-alias", scope=env.scope))
+    assert result.status_code == 409
 
 
 @pytest.mark.parametrize("fault",["wrong-cause-scope","wrong-fee-resource","unknown-cause","unmapped-packet","incomplete-fees"])
@@ -284,6 +292,25 @@ def test_availability_denial_rebuttal_contains_independently_measured_countable_
     assert packet["verified_measurement"] == dict(downtime_microseconds=433*60_000_000,
                                                    total_microseconds=30*86400*1_000_000)
     assert packet["in_reply_to"] == initial["id"]
+
+
+@pytest.mark.parametrize("additional,stage", [
+    ("", "RESPONSE_DRAFTED"),
+    (" Thank you for your patience.", "RESPONSE_DRAFTED"),
+    (" You waived all service credit claims in a separate settlement agreement.", "HUMAN_REVIEW"),
+    (" A separate commercial condition prevents this remedy.", "HUMAN_REVIEW"),
+    (" Your subscription was cancelled before this month.", "HUMAN_REVIEW"),
+])
+def test_signed_compound_denial_requires_every_substantive_ground_to_be_understood(env, tmp_path, monkeypatch, additional, stage):
+    initial = setup_filed(env, tmp_path, monkeypatch)
+    text = "We denied your claim because we measured 5 minutes of downtime." + additional
+    row = message(env, initial, text)
+    assert row["stage"] == stage
+    assert row["replies"][-1]["text"] == text
+    if stage == "HUMAN_REVIEW":
+        assert row["replies"][-1]["reason"] == "unknown" and row["actions"] == []
+        assert env.human.post(env.url + "/actions/approve-response", {}).status_code == 409
+    assert len(row["submissions"]) == 1 and row["ledger"]["awarded"] == "0.00"
 
 
 def test_conditional_statements_require_complete_matching_history():

@@ -22,6 +22,7 @@ from .correspondence_history import procedure
 from .correspondence_artifacts import HISTORICAL
 from .correspondence_artifacts import SUPPLEMENTS
 from .vendor_terms import candidate_version
+from .claim_identity import resource_remedy
 
 
 def _economics(manifest, overlay):
@@ -262,8 +263,7 @@ def resolve_active(path, tenant, scope, events, at):
                                total_microseconds=(following-first)//timedelta(microseconds=1))
     return ActiveRemedy(tenant, scope, fingerprint([[e["source"], e["digest"]] for e in events]),
                         controlling, cutoff, result, agreement_id=manifest.get("agreement") or overlay["agreement"],
-                        remedy=("resource-month/aggregate-service" if aggregate else
-                                "resource-month/"+scope.component+("/"+scope.region if manifest.get("subscription") else "") if resource else "availability"), filing_material=filing,
+                        remedy=resource_remedy(manifest, overlay), filing_material=filing,
                         measurement=measurement, procedure=historical,
                         contract_source_sha256=manifest["document"]["sha256"])
 

@@ -113,3 +113,28 @@ def test_incomplete_contradictory_or_expired_evidence_cannot_authorize_cure(regi
     else:
         assert row["actions"] == [], row
     assert row["ledger"]["claimed"] == row["ledger"]["awarded"] == "0.00"
+
+
+def test_distinct_covered_regions_enter_with_shared_evaluation_identity_and_reject_aliases(regional, tmp_path, monkeypatch):
+    from test_vendor_economic_identity import replace_region
+    north_id, north_url = regional.id, regional.url
+    north = regional.read()
+    south_facts = replace_region(facts(), "South")
+    install(regional, tmp_path, monkeypatch, installation="southern-service", extra_terms=ROW,
+            shadow=south_facts, expected="15.03", overlay_override=replace_region(subscription(), "South"))
+    south_eval = regional.post("/api/vendors/southern-service/evaluate", {"facts":south_facts})
+    regional.scope["region"] = "South"
+    regional.id, regional.url = "inbox-southern-region", "/api/correspondence/claims/inbox-southern-region"
+    regional.provision()
+    south = regional.create()
+    assert south["obligation_id"] == south_eval["obligation_id"]
+    assert north["obligation_id"] != south["obligation_id"]
+    assert regional.create()["id"] == south["id"]
+    alias = regional.human.post("/api/correspondence/claims", dict(claim_id="inbox-south-alias", scope=regional.scope))
+    assert alias.status_code == 409
+    regional.scope["region"] = "North"
+    regional.id, regional.url = north_id, north_url
+    # The North draft predates publication and retains its old regionless key.
+    assert regional.create()["id"] == north_id
+    alias = regional.human.post("/api/correspondence/claims", dict(claim_id="inbox-north-alias", scope=regional.scope))
+    assert alias.status_code == 409

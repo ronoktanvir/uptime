@@ -55,6 +55,29 @@ def claim_key(**identity):
     return fingerprint(_economic(**identity))
 
 
+def resource_remedy(manifest, overlay):
+    """Use the supported contract's measurement unit, preserving stored wire keys."""
+    if manifest["family"] == "monthly-availability/1":
+        return "availability"
+    if manifest["family"] != "resource-month/1":
+        raise ValueError("Unsupported economic scope.")
+    if manifest.get("aggregate_monitor"):
+        return "resource-month/aggregate-service"
+    resource = _identity(overlay["resource_id"])
+    region = _identity(overlay["subscription_record"]["region"]) if manifest.get("subscription") else None
+    return "resource-month/" + resource + ("/" + region if region else "")
+
+
+def vendor_economic_identity(tenant, manifest, overlay, month, version):
+    """Resolve a published contract, independent of installation and document version."""
+    identity = dict(tenant=tenant, vendor=manifest["vendor"], account=overlay["account"],
+                    agreement_id=manifest.get("agreement") or overlay["agreement"],
+                    agreement_version=version, service=overlay["product"], month=month,
+                    remedy=resource_remedy(manifest, overlay))
+    _economic(**identity)
+    return identity
+
+
 def _schema(db):
     db.execute(f"""CREATE TABLE IF NOT EXISTS {TABLE} (
         obligation TEXT NOT NULL, step TEXT NOT NULL CHECK(step IN ('initial','supplement')),

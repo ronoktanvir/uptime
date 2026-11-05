@@ -446,3 +446,16 @@ def test_counterparty_numeric_denial_is_checked_against_scoped_measurement(env, 
         env.now += timedelta(days=1)
         packet = env.act("submit-response")["submissions"][-1]["packet"]
         assert packet["verified_measurement"]["downtime_microseconds"] == 29 * 60_000_000
+
+
+@pytest.mark.parametrize("text", [
+    "We denied your claim because we measured 5 minutes of downtime and your separate settlement applies.",
+    "We denied your claim because we measured 5 minutes of downtime; another commercial condition controls.",
+    "We measured 5 minutes of downtime under an amended agreement. Claim denied.",
+    "Your claim arrived outside the filing window. Another contract supersedes this remedy.",
+    "Please supply the missing logs. Your subscription was terminated.",
+])
+def test_recognized_cue_cannot_hide_additional_material_language(text):
+    from uptime.correspondence_reason import requested_filing_fields
+    assert propose(text).reason == "unknown"
+    assert requested_filing_fields(text, ["log references"]) == []
