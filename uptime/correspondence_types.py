@@ -150,12 +150,53 @@ class ResourceLine(Strict):
     amount_cents: int = Field(ge=0, le=10**15)
     fee_line_ref: Id | None = None
     category: Name | None = None
+    amount_basis: Literal["net_after_discounts"] | None = None
+    gross_cents: int | None = Field(default=None, ge=0, le=10**15)
+    discount_cents: int | None = Field(default=None, ge=0, le=10**15)
+    discount_ref: Id | None = None
 
 
 class ResourceInvoice(Report):
     kind: Literal["resource_invoice"]
     itemized_complete: bool
     lines: list[ResourceLine] = Field(min_length=1, max_length=300)
+
+
+class MaintenanceRecord(Interval):
+    ref: Id
+    account: Id
+    resource_id: Id
+    state: Literal["announced", "confirmed_unannounced"] = "announced"
+    announced_at: Annotated[str, StringConstraints(max_length=40)] | None = None
+
+    @field_validator("announced_at")
+    @classmethod
+    def announcement_time(cls, value):
+        return instant(value).isoformat() if value is not None else None
+
+
+class MaintenanceEvidence(Report):
+    kind: Literal["maintenance_evidence"]
+    complete: bool
+    records: list[MaintenanceRecord] = Field(max_length=300)
+
+
+class IssuedCredit(Strict):
+    ref: Id
+    credit_id: Id
+    agreement: Id
+    account: Id
+    resource_id: Id
+    month: Annotated[str, StringConstraints(pattern=r"^20[0-9]{2}-(0[1-9]|1[0-2])$")]
+    currency: Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
+    amount_cents: int = Field(ge=0, le=10**15)
+    state: Literal["issued"]
+
+
+class PriorCreditEvidence(Report):
+    kind: Literal["prior_credit_evidence"]
+    complete: bool
+    records: list[IssuedCredit] = Field(max_length=300)
 
 
 class Cycle(Interval):
@@ -220,6 +261,7 @@ class Verification(ArtifactDescriptor):
 class Message(Strict):
     kind: Literal["message"]
     receipt_id: Id
+    credit_id: Id | None = None
     text: Annotated[str, StringConstraints(min_length=1, max_length=3000)]
 
 
@@ -227,7 +269,7 @@ class Delivery(Strict):
     event_id: Id
     scope: Scope
     body: Annotated[Status | Coverage | Impact | Component | Notice | Invoice | Message | ResourceStatus
-                    | ResourceAttribution | ResourceInvoice | BillingCalendar | FilingMaterial | AccountConditions | Artifact | Verification, Field(discriminator="kind")]
+                    | ResourceAttribution | ResourceInvoice | BillingCalendar | FilingMaterial | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification, Field(discriminator="kind")]
 
 
 class Empty(Strict):
@@ -236,5 +278,5 @@ class Empty(Strict):
 
 SOURCE = dict(status="status", coverage="status", impact="customer", component="customer", notice="customer",
               invoice="billing", message="vendor", resource_status="status", resource_attribution="customer",
-              resource_invoice="billing", billing_calendar="billing", account_conditions="customer", filing_material="customer", artifact="customer",
+              resource_invoice="billing", billing_calendar="billing", maintenance_evidence="customer", prior_credit_evidence="billing", account_conditions="customer", filing_material="customer", artifact="customer",
               status_verification="status", billing_verification="billing")

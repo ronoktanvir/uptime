@@ -288,9 +288,8 @@ class CorrespondenceDesk:
         if not state["submissions"]:
             return
         evaluation = self._assess(tenant, scope, state, now).evaluation
-        if state["reason"] == "maintenance" and confirmed_maintenance(scope, state["evidence"]) and evaluation.outcome == Outcome.INELIGIBLE:
-            state["stage"] = "DENIAL_ACCEPTED"
-            audit(state, now, "claimant", "Customer notice independently confirms timely scheduled maintenance. Closed without further contact.")
+        if state["reason"] == "maintenance":
+            self._maintenance(scope, state, evaluation, now)
         elif state["reason"] == "artifact" and state["stage"] in {"NEEDS_EVIDENCE","RESPONSE_DRAFTED"}:
             if evaluation.outcome != Outcome.ELIGIBLE or _artifact_conflict(state):
                 state["stage"] = "HUMAN_REVIEW"
@@ -305,6 +304,21 @@ class CorrespondenceDesk:
                 state["stage"] = "RESPONSE_DRAFTED"
                 audit(state, now, "claimant", "Drafted one supplemental packet using newly acquired matching component evidence.")
 
+    @staticmethod
+    def _maintenance(scope, state, evaluation, now):
+        reports = [e for e in state["evidence"] if e["kind"] in {"notice", "maintenance_evidence"}]
+        if confirmed_maintenance(scope, state["evidence"]) and evaluation.outcome == Outcome.INELIGIBLE:
+            state["stage"] = "DENIAL_ACCEPTED"
+            audit(state, now, "claimant", "A timely, independently authenticated notice covers the scoped interruption.")
+        elif not reports:
+            state["stage"] = "AWAITING_NOTICE"
+        elif (len(state["submissions"]) == 1 and evaluation.outcome == Outcome.ELIGIBLE
+              and evaluation.amount.amount == Decimal(state["submissions"][0]["requested"])):
+            state["stage"] = "RESPONSE_DRAFTED"
+            audit(state, now, "claimant", "The independent notice and incident records leave qualifying downtime after the governing exclusion.")
+        else:
+            state["stage"] = "HUMAN_REVIEW"
+
     def _reply(self, tenant, scope, state, fact, now):
         requested = Decimal(state["submissions"][0]["requested"])
         proposal = propose(fact["body"]["text"], claimed=requested)
@@ -316,14 +330,18 @@ class CorrespondenceDesk:
         current = self._assess(tenant, scope, state, now)
         filed_at = instant(state["submissions"][0]["at"])
         if proposal.reason == "maintenance":
-            if confirmed_maintenance(scope, state["evidence"]) and current.evaluation.outcome == Outcome.INELIGIBLE:
-                state["stage"] = "DENIAL_ACCEPTED"
-            elif not any(e["kind"] == "notice" for e in state["evidence"]):
-                state["stage"] = "AWAITING_NOTICE"
+            self._maintenance(scope, state, current.evaluation, now)
         elif current.evaluation.outcome == Outcome.ELIGIBLE and current.evaluation.amount.amount == requested:
             if proposal.reason == "award":
                 awarded = Decimal(proposal.amount)
-                if 0 < awarded <= requested:
+                previous_ids = {row["credit_id"] for e in state["evidence"] if e["kind"] == "prior_credit_evidence"
+                                for row in e["body"]["records"]}
+                credit_id = fact["body"].get("credit_id")
+                if previous_ids and (not credit_id or credit_id in previous_ids):
+                    audit(state, now, "claimant", "The billing statement already lists prior issuances. A distinct credit ID is required to book an additional award.")
+                elif 0 < awarded <= requested:
+                    if credit_id:
+                        reply["credit_id"] = credit_id
                     state["awarded"] = money(awarded)
                     state["stage"] = "AWARDED" if awarded == requested else "PARTIAL_AWARD_REVIEW"
             elif len(state["submissions"]) == 1:
@@ -342,7 +360,7 @@ class CorrespondenceDesk:
                 elif proposal.reason == "time_bar" and filed_at < current.cutoff:
                     state["stage"] = "RESPONSE_DRAFTED"
                     audit(state, now, "claimant", "The original local receipt predates the filing cutoff; drafted a receipt-backed correction.")
-        if state["stage"] in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED"}:
+        if state["stage"] in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "AWAITING_NOTICE"}:
             state["cooldown"] = (now + FOLLOW_UP).isoformat()
         audit(state, now, "claimant", "Evaluated vendor correspondence: " + state["stage"] + ".", VENDOR,
               proposal=proposal.reason, receipt=fact["body"]["receipt_id"])
@@ -377,6 +395,13 @@ class CorrespondenceDesk:
                     raise ValueError("The vendor scope assertion is not contradicted by this filing.")
                 packet["argument"] = "Authenticated sources and the original filing establish the scoped identifier."
                 packet["verified_scope_field"] = correction["field"]
+            elif state["reason"] == "maintenance" and current.measurement:
+                notices = [e["digest"] for e in facts if e["kind"] in {"notice", "maintenance_evidence"}]
+                if not notices:
+                    raise ValueError("A verified scoped notice record is required to dispute a maintenance exclusion.")
+                packet["argument"] = "The verified maintenance timeline leaves countable downtime under the governing rule."
+                packet["maintenance_evidence"] = notices
+                packet["verified_measurement"] = current.measurement
             elif state["reason"] == "availability" and current.measurement:
                 packet["argument"] = "Reconciled qualifying downtime breaches the published availability threshold for this service month."
                 packet["verified_measurement"] = current.measurement

@@ -385,3 +385,16 @@ def test_independently_labelled_award_requested_and_denied_parts_reconcile(env):
                          "The remaining USD 13.63 is denied.")
     assert result["stage"] == "PARTIAL_AWARD_REVIEW"
     assert result["ledger"]["awarded"] == "48.50" and result["ledger"]["disputed_remainder"] == "13.63"
+
+
+def test_later_authenticated_short_notice_can_rebut_a_mistaken_maintenance_denial(env):
+    original = env.file()
+    assert env.message("We decline this claim because the incident was scheduled maintenance.")["stage"] == "AWAITING_NOTICE"
+    late_notice = dict(BODIES["notice"], issued_at=BODIES["status"]["start"])
+    env.send("notice", data=late_notice)
+    assert env.get()["stage"] == "RESPONSE_DRAFTED"
+    env.act("approve-response")
+    env.now += timedelta(days=1)
+    response = env.act("submit-response")["submissions"][1]["packet"]
+    assert response["in_reply_to"] == original["id"]
+    assert response["maintenance_evidence"] and response["verified_measurement"]["downtime_microseconds"] > 0

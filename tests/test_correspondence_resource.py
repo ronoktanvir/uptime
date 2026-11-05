@@ -280,3 +280,28 @@ def test_availability_denial_rebuttal_contains_independently_measured_countable_
     assert packet["verified_measurement"] == dict(downtime_microseconds=433*60_000_000,
                                                    total_microseconds=30*86400*1_000_000)
     assert packet["in_reply_to"] == initial["id"]
+
+
+def test_conditional_statements_require_complete_matching_history():
+    from uptime.correspondence_resource import append_monthly_reports
+    from uptime.correspondence_types import Scope, instant
+
+    scope = Scope.model_validate(dict(account="account-71", vendor="Utility", contract="terms-a",
+        service="Network", component="station-21", invoice="inv-1", incident="n1",
+        currency="USD", month="2026-06", region="east"))
+    credit = dict(ref="bill-line-2", credit_id="credit-17", agreement=scope.contract, account=scope.account,
+                  resource_id=scope.component, month=scope.month, currency=scope.currency, amount_cents=180, state="issued")
+    notice = dict(ref="advisory-4", account=scope.account, resource_id=scope.component,
+                  start="2026-06-17T01:00:00Z", end="2026-06-17T04:00:00Z", announced_at="2026-06-15T01:00:00Z")
+    report = dict(complete=True, observed_at=OBSERVED, source_ref="private-op")
+    groups = dict(maintenance_evidence=dict(body=report | {"records":[notice]}),
+                  prior_credit_evidence=dict(body=report | {"records":[credit]}))
+    manifest = dict(maintenance={"basis":"within_announced_window"}, prior_credit="subtract_issued_same_resource_month")
+    facts = {}
+    append_monthly_reports(facts, groups, manifest, scope, instant(MONTH["end"]))
+    assert facts["maintenance_evidence"]["records"] == [notice]
+    assert facts["prior_credit_evidence"]["records"] == [credit]
+    for bad in [[credit | {"account":"other"}], [credit, credit | {"ref": "alias"}]]:
+        groups["prior_credit_evidence"]["body"]["records"] = bad
+        with pytest.raises(ValueError):
+            append_monthly_reports({}, groups, manifest, scope, instant(MONTH["end"]))
