@@ -264,7 +264,8 @@ def resolve_active(path, tenant, scope, events, at):
                         controlling, cutoff, result, agreement_id=manifest.get("agreement") or overlay["agreement"],
                         remedy=("resource-month/aggregate-service" if aggregate else
                                 "resource-month/"+scope.component+("/"+scope.region if manifest.get("subscription") else "") if resource else "availability"), filing_material=filing,
-                        measurement=measurement, procedure=historical)
+                        measurement=measurement, procedure=historical,
+                        contract_source_sha256=manifest["document"]["sha256"])
 
 
 def register_v4_routes(app, bench, auth):
