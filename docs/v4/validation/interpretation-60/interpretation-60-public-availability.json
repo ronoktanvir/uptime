@@ -1,0 +1,9 @@
+{
+  "case": "availability_paraphrase",
+  "request_sha256": "51daf71b5328b18ea04e7cd2a0784ed78dcaaa81f3132776d9183d9a66ebbd23",
+  "status": "REFUSED",
+  "authority": "proposal_only",
+  "scope": "self-authored public synthetic; not independent coverage or human review",
+  "error": "ValueError",
+  "detail": "The public proposal provider failed; no retry was attempted."
+}
