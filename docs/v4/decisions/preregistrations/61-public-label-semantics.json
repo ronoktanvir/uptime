@@ -1,0 +1,48 @@
+{
+  "schema": "public-adversarial-preregistration/1",
+  "decision": 61,
+  "classification": "synthetic_public",
+  "implementation_status": "preregistered_before_production_changes",
+  "author": "onboarding engineering agent; not an independent heldout evaluator",
+  "base": "Ordinary synthetic DOC/PROPOSAL/FACTS/OVERLAY in tests/test_vendor_resource.py; replace only the indicated public clause/proposal and observation fields.",
+  "global_requirements": [
+    "No source, historical proposal, approval, event, signed observation or monetary receipt is rewritten.",
+    "Unresolved semantic binding never returns an eligible monetary estimate, including shadow preview and test actuals.",
+    "Opaque references cannot be obtained by normalizing raw text, spaces, underscores, case or punctuation.",
+    "Source definitions are bound to source digest, role, exact original span and namespace; evidence and named binding decisions must identify the same definition and version.",
+    "Identity/version migration never creates a second economic entitlement or changes an original dispatch reservation.",
+    "All authored fixtures are public synthetic inputs; no private heldout cases or oracles are used."
+  ],
+  "source_cases": [
+    {"id":"mid_token_polarity", "quote":"Downtime means unavailable samples caused by instrument gateway failure.", "field":"symptoms", "items":[{"label":"available_samples","phrase":"available samples"}], "observed_symptom":"available samples", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"plain_string_mid_token", "quote":"Downtime means unavailable samples caused by instrument gateway failure.", "field":"symptoms", "items":["available samples"], "observed_symptom":"available samples", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"explicit_negation", "quote":"Downtime never means successful samples; instrument gateway failure must cause rejected samples.", "field":"symptoms", "items":[{"label":"event_a","phrase":"successful samples"}], "observed_symptom":"successful samples", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"truncated_negation", "quote":"Successful samples do not qualify as downtime caused by instrument gateway failure.", "field":"symptoms", "items":[{"label":"event_a","phrase":"Successful samples"}], "observed_symptom":"Successful samples", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"qualification_outside_fragment", "quote":"Rejected samples caused by instrument gateway failure count as downtime only when authenticated requests fail.", "field":"symptoms", "items":[{"label":"event_a","phrase":"Rejected samples"}], "observed_symptom":"Rejected samples", "extra_evidence":"No authentication or request-failure evidence supplied.", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"quoted_nonoperative_definition", "quote":"The example 'successful samples count as downtime' is illustrative and nonoperative. Instrument gateway failure establishes actual responsibility.", "field":"symptoms", "items":[{"label":"event_a","phrase":"successful samples"}], "observed_symptom":"successful samples", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"reordered_words", "quote":"Downtime means rejected samples caused by instrument gateway failure.", "field":"symptoms", "items":[{"label":"event_a","phrase":"samples rejected"}], "observed_symptom":"samples rejected", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"foreign_block_definition", "quote":"Downtime means rejected samples caused by instrument gateway failure.", "field":"symptoms", "items":[{"label":"event_a","phrase":"lost acknowledgments"}], "observed_symptom":"lost acknowledgments", "extra_evidence":"Phrase appears only in another separately cited block.", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"contrary_alias_raw_spaces", "quote":"Downtime means rejected samples caused by instrument gateway failure.", "field":"symptoms", "items":[{"label":"failed_samples","phrase":"rejected samples"},{"label":"successful_samples","phrase":"rejected samples"}], "observed_symptom":"successful samples", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"opaque_alias_raw_exact_identifier", "quote":"Downtime means rejected samples caused by instrument gateway failure.", "field":"symptoms", "items":[{"label":"event_a","phrase":"rejected samples"}], "observed_symptom":"event_a", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"negated_responsibility", "quote":"Rejected samples are downtime. Instrument gateway failure does not establish provider responsibility.", "field":"provider_causes", "items":[{"label":"cause_a","phrase":"Instrument gateway failure"}], "observed_symptom":"rejected samples", "observed_cause":"Instrument gateway failure", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"negated_exclusion", "quote":"Customer cable damage is not an excluded cause.", "field":"exclusions", "items":[{"label":"cause_a","phrase":"Customer cable damage"}], "observed_exclusion":"Customer cable damage", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"negated_fee_exclusion", "quote":"Support charges are not excluded from the affected monthly fee.", "field":"fee_exclusions", "items":[{"label":"support_cost","phrase":"Support charges"}], "observed_fee_category":"Support charges", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"same_phrase_multiple_roles", "quote":"The phrase service event appears here without defining whether it is qualifying downtime or an excluded cause.", "field":"symptoms", "items":[{"label":"event_a","phrase":"service event"}], "observed_symptom":"service event", "extra_evidence":"The same definition is also proposed under exclusions.", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"duplicate_occurrence_ambiguous_span", "quote":"'Rejected samples' is an illustrative example. Rejected samples caused by instrument gateway failure define downtime.", "field":"symptoms", "items":[{"label":"event_a","phrase":"Rejected samples"}], "observed_symptom":"Rejected samples", "extra_evidence":"No original occurrence span supplied; no silent first-match selection allowed.", "expected":"REFUSE_OR_REVIEW_WITHOUT_AMOUNT"},
+    {"id":"valid_literal_after_binding_review", "quote":"Downtime means rejected samples caused by instrument gateway failure.", "field":"symptoms", "items":["rejected samples"], "observed_symptom":"rejected samples", "extra_evidence":"Current exact operative source definition and literal evidence binding accepted by named reviewer; ordinary positive fixture otherwise unchanged.", "expected":"ELIGIBLE_12_51_AFTER_REQUIRED_REVIEW"},
+    {"id":"neutral_opaque_reference_after_binding_review", "quote":"Downtime means rejected samples caused by instrument gateway failure.", "field":"symptoms", "items":[{"label":"event_a","phrase":"rejected samples"}], "observed_symptom":"Explicit typed reference to reviewed symptom definition with correct source digest; not a raw string.", "extra_evidence":"Reference is in scoped independently signed monitor evidence and matches the named accepted binding/version.", "expected":"ELIGIBLE_12_51_AFTER_REQUIRED_REVIEW"},
+    {"id":"wrapped_exact_source_definition", "quote":"Downtime means rejected\nsamples caused by instrument gateway failure.", "field":"symptoms", "items":[{"label":"event_a","phrase":"rejected\nsamples"}], "observed_symptom":"rejected samples", "extra_evidence":"Named current literal binding permits the established whitespace equivalence and preserves original span/hash.", "expected":"ELIGIBLE_12_51_AFTER_REQUIRED_REVIEW"}
+  ],
+  "reference_and_gate_cases": [
+    {"id":"wrong_source_digest", "change":"Typed definition reference points to a different public source digest.", "expected":"NO_AMOUNT"},
+    {"id":"wrong_role_namespace", "change":"Customer symptom reference points to an exclusion, fee or filing-field definition.", "expected":"NO_AMOUNT"},
+    {"id":"wrong_scope_or_signer", "change":"Reference originates from another tenant/account/resource or an unbound source role.", "expected":"NO_AMOUNT"},
+    {"id":"stale_semantic_review", "change":"Named binding review belongs to old source, compiler, definition set or overlay version.", "expected":"NO_AMOUNT"},
+    {"id":"raw_and_reference_conflict", "change":"Envelope contains raw successful observation and a failure-definition reference without a reviewed mapping.", "expected":"NO_AMOUNT"},
+    {"id":"private_alias_not_self_authorizing", "change":"Legacy symptom_aliases maps successful samples to event_a but lacks a current explicit reviewed binding.", "expected":"NO_AMOUNT"},
+    {"id":"tests_cannot_establish_authority", "change":"A self-confirming positive and an unrelated refusal pass numerical tests; no semantic binding review exists.", "expected":"NO_AMOUNT_AND_NO_ACTIVATION"},
+    {"id":"review_bootstrap", "change":"No monetary preview exists yet; named reviewer can inspect exact source/proposed bindings without inventing passing monetary tests.", "expected":"SOURCE_BINDING_REVIEW_AVAILABLE_WITHOUT_APPROVAL_OR_ACTIVATION"},
+    {"id":"legacy_immutable_migration", "change":"Old accepted artifacts, observations, estimates and dispatch receipts use ambiguous raw aliases.", "expected":"BYTES_UNCHANGED_AND_CURRENT_REVIEW_REQUIRED_UNTIL_EXPLICIT_REBINDING"},
+    {"id":"economic_identity_preserved", "change":"A corrected source/evidence binding creates a new candidate version for the same account/resource/region/month.", "expected":"ONE_ECONOMIC_ENTITLEMENT_OR_AMBIGUITY_REFUSAL_WITHOUT_REKEYING_ORIGINAL_RECEIPTS"}
+  ]
+}
