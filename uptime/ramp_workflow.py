@@ -26,7 +26,7 @@ COMMENT_TYPES = frozenset({"bills", "draft-bills", "transactions"})
 METADATA_STATUSES = frozenset({"Review pending", "Evidence available", "Needs evidence", "Human review required"})
 PROVENANCE = frozenset({"MOCK_HTTP", "LIVE_RAMP_SANDBOX", "SIMULATED_RAMP"})
 CONTEXT_SCOPES = frozenset({"unified_requests:read", "custom_forms:read", "spend_programs:read", "blank_canvas:write"})
-SOURCE_LABELS = frozenset({"LIVE_RAMP_SANDBOX", "LIVE_VENDOR_PUBLIC", "SYNTHETIC_CUSTOMER", "SIMULATED_VENDOR",
+SOURCE_LABELS = frozenset({"LIVE_RAMP_SANDBOX", "LIVE_VENDOR_PUBLIC", "OPERATOR_ATTESTED_CUSTOMER", "SYNTHETIC_CUSTOMER", "SIMULATED_VENDOR",
                            "DETERMINISTIC_REPLAY", "UNAVAILABLE", "SIMULATED_RAMP"})
 NATIVE_REVIEW_MESSAGES = {
     "EVIDENCE_REQUIRED": (

@@ -260,10 +260,13 @@ class NativeBinding:
         self._business()
         finding = self.workspace.record_for_native(object_type, object_id)
         provenance = finding.get("data_provenance", {})
+        expected_sources = (["LIVE_RAMP_SANDBOX", "OPERATOR_ATTESTED_CUSTOMER"]
+                            if finding.get("native_review_reason") == "ATTESTED_PRICE_EXCEPTION"
+                            else ["LIVE_RAMP_SANDBOX"])
         if (object_type != "bills" or finding.get("provider_object_type") != object_type
                 or finding.get("provider_id") != object_id or finding.get("business_id") != self.config.business_id
                 or finding.get("workspace_tenant") != self.auth.tenant
-                or finding.get("sources") != ["LIVE_RAMP_SANDBOX"]
+                or finding.get("sources") != expected_sources
                 or provenance.get("freshness") != "FRESH"
                 or not re.fullmatch(r"[a-f0-9]{64}", provenance.get("record_digest", ""))):
             raise WorkflowError("An exact factual provider observation is required; synthetic and foreign findings are blocked")

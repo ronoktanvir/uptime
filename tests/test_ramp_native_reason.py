@@ -24,6 +24,7 @@ def reason(i, value="EVIDENCE_REQUIRED"):
     f = i.workspace.finding
     f["native_review_reason"] = value
     if value == "ATTESTED_PRICE_EXCEPTION":
+        f["sources"] = ["LIVE_RAMP_SANDBOX", "OPERATOR_ATTESTED_CUSTOMER"]
         f.update(finding_kind="OPERATOR_PRICE_REVIEW", outcome="ELIGIBLE", stage="PREPAYMENT_REVIEW", missing=[],
                  line_findings=[{"line_id": OTHER, "billed": "120.00", "expected": "80.00", "delta": "40.00"}],
                  terms_provenance={"mode": "OPERATOR_ATTESTED", "integrity": "VERIFIED", "digest": "a"*64,
@@ -191,7 +192,7 @@ def test_signed_finance_evidence_resolved_again_at_mounted_wire(installed, monke
                        if r["provider_object_type"] == "bills" and r["provider_id"] == BILL)
         assert finding["outcome"] == "ELIGIBLE" and finding["amount"] == "40.00"
         return dict(finding, workspace_tenant=TENANT, business_id=BUSINESS,
-                    observed_at=snapshot["observed_at"], sources=["LIVE_RAMP_SANDBOX"],
+                    observed_at=snapshot["observed_at"], sources=["LIVE_RAMP_SANDBOX","OPERATOR_ATTESTED_CUSTOMER"],
                     finding_digest=fingerprint([snapshot["checksum"], binding.terms_evidence_digest, finding["outcome"]]),
                     native_review_reason="ATTESTED_PRICE_EXCEPTION", terms_provenance={
                         "mode": "OPERATOR_ATTESTED", "integrity": "VERIFIED", "operator_context_verified": True,
