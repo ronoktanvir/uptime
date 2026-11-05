@@ -4,10 +4,16 @@ The central release criterion is a claim whose terms, evidence, authority and na
 
 ## Required before a live native demonstration
 
-1. **External permission.** The most recent scope exchange reports no `bills:write` grant. A Ramp administrator must verify the developer application's allowed scopes and any product restrictions. Client-credential token evidence alone cannot distinguish those causes. After the grant changes, use the exact reviewed sandbox bill comment, same-thread read-back and durable receipt. A user CLI profile carries its own permissions and needs legitimate consent.
+1. **Exact native action and release authority.** The new app is verified against the same browser bill and has an exact `bills:write` token grant. The original app's grant omission remains historical and its configuration cause unproven. No actual write has been attempted. A fixed nonfinancial connection note is being prepared separately for exact human policy/action approval; it must not bypass or certify the unreleased financial routes. Any native delivery needs same-thread API readback, visible UI confirmation and a durable receipt.
 2. **Actual terms and useful line evidence.** The observed bill inventory contains no usable signed agreement or complete quantities. Signed operator bindings can exercise a supported real contract once the human supplies and attests its source chain. The $800 constructed cap was chosen against a known $840 bill. It measures a hypothetical discrepancy.
 3. **Native workflow setup.** Bill comments require a scoped review. Blank Canvas additionally requires product access, a configured step, a matching trigger and registered public HTTPS webhook reception. Exact entity types matter. The current configured runtime supports informational bill discussion as its first write target.
 4. **Verified award/credit evidence.** The sandbox supplies no vendor credit. A genuine vendor award must enter under separately registered source and finance authority, and its native posting/application must match. Neither filing nor a simulator's award is a recovery receipt.
+
+## Confirmed correctness defect versus missing generalization
+
+Source-label matching is a confirmed correctness defect: independent public reproductions obtain an incorrect USD 12.51 shadow estimate from substring polarity, negated or qualified clauses and opaque identifiers interpreted as raw observations. Passing self-authored shadow vectors does not establish source meaning. Decision 61 requires trusted role-scoped semantic bindings before affected monetary evaluation; exact quoted spans alone are insufficient. Activation gates contain deployment but do not make the estimate correct.
+
+Unseen reply coverage is missing functionality: the sealed 100-reply evaluation recognizes 0/50 supported responses and safely abstains on 50/50 mandatory-review cases. The same harness passes 72/72 separately preserved public expectations. A manual source-locked interpretation bridge with constrained optional LLM proposals is under implementation in decision 60. Its review throughput and human error rate are not yet measured. No private examples are supplied for parser fitting.
 
 ## Product generalization
 
@@ -27,7 +33,7 @@ The release validator now checks substantive report content and source identity.
 
 ## Next parallel workstreams
 
-- **Ramp workflow engineering** owns the actual authorized comment/read-back and subsequently a configured Blank Canvas trigger. It needs the administrator's verified scopes.
+- **Ramp workflow engineering** owns the actual authorized comment/read-back and subsequently a configured Blank Canvas trigger. The scopes are now verified; exact action authority and workflow configuration remain.
 - **Onboarding generalization** owns remaining typed grammar, novel private evaluation cases, reviewable versioned candidates and human promotion.
 - **Adversarial disputes** owns unseen denial interpretation, new authorized evidence, ambiguity escalation and durable source receipt joins.
 - **Security and financial correctness** owns exact authorization, cross-route duplicate obligations, claim-credit schema joins, negative cases and concurrency.

@@ -1,8 +1,10 @@
 # Connect the demo that is actually open in Ramp
 
-The browser session inspected on November 4, 2026 and the original API credentials do not expose the same pending bill UUID. The original app's direct read of the browser bill returned HTTP 404. Its complete bill list also omitted that UUID. This establishes an exact-object access mismatch, not the reason for the different registrations. The signed-in Developer Apps view displayed “Create your first app.” No app was created by the agent, no credentials were replaced and no write was attempted.
+The signed-in Ramp demo is now connected through its own Uptime app. The user completed registration and agreement acceptance, approved six read scopes plus `bills:write`, and authorized owner-only local credential storage. The new app reads the exact bill UUID observed in the browser. Its provider business UUID differs from the original app's business UUID. A singleton `bills:write` request returns the exact grant; no native write has been attempted.
 
-The prepared Uptime registration needs the administrator to review and accept [Ramp's Developer Terms](https://ramp.com/legal/developer-terms/developer-terms/api-agreement). The current browser URL is `https://demo.ramp.com/settings/ramp-developer/apps`. Existing captures remain associated with the original API business; they must never be relabelled as the newly opened demo.
+The original credentials returned HTTP 404 for that browser bill, and their complete bill inventory omitted it. That is an exact-object mismatch across two observed businesses, not a diagnosed history of their registrations. The original credentials, database and captures remain intact. The new capture is bound to a separate database and tenant. [Sanitized current proof](evidence/native-demo-connection-20261104.json)
+
+The instructions below reproduce protected setup for an authorized installation; the current user's registration and scope approvals are already complete.
 
 ## Separate credential profile
 
