@@ -13,3 +13,7 @@ The price amendment explicitly changes the governing monthly fee to USD 11,000 a
 Independent numerical correction to the advisor: 89 minutes of January downtime produces zero completed increments, because the shortfall below 99.9% is less than 0.1 percentage point; 90 minutes produces one. Tests use exact integer vectors, including final-cent ties and a different vendor/product/plan/parameter set. A nonmultiple cap uses `min(completed_steps × step_credit, cap)` without rounding the cap to a step.
 
 This remains a bounded authored grammar, not evidence of independent model generalization. Alternate “started step”, part-step, unsupported condition and dollar-cap prose refuse. Expanding supported phrasing requires a separate decision. Local signature specimens, scripted approvals and workflow receipts never establish real execution by a party, actual human approval or native provider verification.
+
+## Core freeze before decision 65a
+
+The first implementation commit includes exact primitive/compiler/export/generated checks and a fail-closed monetary boundary. Positive completed-step credit cannot consume a flat billed-fee assertion: it returns `INSUFFICIENT_EVIDENCE` with `governing_fee_context` until the independently reviewed pricing join exists. This commit does not establish complete step-contract dispatch. The separate public decision 65a addresses trusted governing-fee inputs and source-grounded fixed-month advance billing. Focused core plus legacy catalog validation: 79 passed; no existing tests or expected answers changed.
