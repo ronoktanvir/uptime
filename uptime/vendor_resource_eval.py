@@ -397,6 +397,9 @@ def issuance(facts,overlay,amount):
 
 
 def evaluate_resource(manifest,overlay,facts,tenant):
+    if manifest.get('aggregate_monitor'):
+        from .vendor_service_month import evaluate
+        return evaluate(manifest, overlay, facts, tenant)
     if facts.get('tenant',tenant)!=tenant:
         raise PermissionError('Tenant mismatch.')
     base={'currency':'USD','amount':None,'trace':[],'missing':[],'filing_status':'UNDETERMINED',
