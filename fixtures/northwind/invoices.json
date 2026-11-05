@@ -1,0 +1,89 @@
+[
+  {
+    "month": "2026-01",
+    "invoice": {
+      "id": "NW-2026-01",
+      "customer": "Harborline Analytics",
+      "vendor": "Northwind Cloud",
+      "issued_at": "2026-02-01T09:00:00Z",
+      "payment_status": "paid",
+      "currency": "USD",
+      "total": "12000.00",
+      "lines": [
+        {
+          "id": "cloud-hosting-monthly",
+          "product": "Cloud Hosting",
+          "quantity": "1",
+          "unit": "service-month",
+          "start": "2026-01-01T00:00:00Z",
+          "end": "2026-02-01T00:00:00Z",
+          "net": "12000.00",
+          "tax": "0.00",
+          "allocation_ref": "subscription-ledger-2026-01",
+          "allocation_complete": true
+        }
+      ]
+    },
+    "receipt_ref": "local-filing-specimen-2026-01",
+    "received_at": "2026-03-01T12:00:00Z",
+    "tax_note": "Explicit zero separately itemized tax; no non-covered charge was billed in this period."
+  },
+  {
+    "month": "2026-02",
+    "invoice": {
+      "id": "NW-2026-02",
+      "customer": "Harborline Analytics",
+      "vendor": "Northwind Cloud",
+      "issued_at": "2026-03-01T09:00:00Z",
+      "payment_status": "paid",
+      "currency": "USD",
+      "total": "12000.00",
+      "lines": [
+        {
+          "id": "cloud-hosting-monthly",
+          "product": "Cloud Hosting",
+          "quantity": "1",
+          "unit": "service-month",
+          "start": "2026-02-01T00:00:00Z",
+          "end": "2026-03-01T00:00:00Z",
+          "net": "12000.00",
+          "tax": "0.00",
+          "allocation_ref": "subscription-ledger-2026-02",
+          "allocation_complete": true
+        }
+      ]
+    },
+    "receipt_ref": "local-filing-specimen-2026-02",
+    "received_at": "2026-03-01T12:00:00Z",
+    "tax_note": "Explicit zero separately itemized tax; no non-covered charge was billed in this period."
+  },
+  {
+    "month": "2026-03",
+    "invoice": {
+      "id": "NW-2026-03",
+      "customer": "Harborline Analytics",
+      "vendor": "Northwind Cloud",
+      "issued_at": "2026-03-01T09:00:00Z",
+      "payment_status": "pending",
+      "currency": "USD",
+      "total": "12000.00",
+      "lines": [
+        {
+          "id": "cloud-hosting-monthly",
+          "product": "Cloud Hosting",
+          "quantity": "1",
+          "unit": "service-month",
+          "start": "2026-03-01T00:00:00Z",
+          "end": "2026-04-01T00:00:00Z",
+          "net": "12000.00",
+          "tax": "0.00",
+          "allocation_ref": "subscription-ledger-2026-03",
+          "allocation_complete": true
+        }
+      ]
+    },
+    "receipt_ref": "local-filing-specimen-2026-03",
+    "received_at": "2026-03-01T12:00:00Z",
+    "tax_note": "Explicit zero separately itemized tax; no non-covered charge was billed in this period."
+  }
+]

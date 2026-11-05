@@ -6,7 +6,6 @@ import re
 from .contracts import Outcome, fingerprint
 from .twilio import _merge, _subtract
 from .vendor_eval import rate_for, usd_estimate
-from .vendor_resource_terms import norm
 from .vendor_terms import MAX_PERCENT
 
 FACTS = {'tenant','agreement','account','product','plan','resource_id','month','received_at','monitor_source',
@@ -123,8 +122,25 @@ def condition_evidence(facts,overlay,manifest):
     return excluded_refs,blocked
 
 
-def source_labels(manifest,key):
-    return {norm(v) for v in manifest[key]} | {norm(v['phrase']) for v in manifest.get('label_bindings',{}).get(key,{}).values()}
+def source_labels(manifest,key,bindings):
+    if not manifest.get(key):
+        return set()
+    from .vendor_bindings import BindingContext, SemanticBindingRequired
+    if not isinstance(bindings,BindingContext):
+        raise SemanticBindingRequired('Reviewed literal meaning is required.')
+    return {value for label in manifest.get(key,[]) for value in bindings.representations(key,label)}
+
+
+def excluded_fee(manifest,raw,bindings):
+    if not manifest.get('fee_exclusions'):
+        return False
+    from .vendor_bindings import literal
+    category=literal(raw)
+    if category in source_labels(manifest,'fee_exclusions',bindings):
+        return True
+    if not bindings.targets('fee_inclusions',category):
+        raise Gap('Fee category has no reviewed included or excluded meaning.')
+    return False
 
 
 def scoped_records(facts, overlay, key):
@@ -187,15 +203,14 @@ def prior_credit_cents(facts, overlay, manifest):
     return sum(credits.values())
 
 
-def measured(facts,overlay,manifest,start,end,excluded_refs):
+def measured(facts,overlay,manifest,start,end,excluded_refs,bindings):
     if facts.get('monitor_source') not in ('simulated_vendor','synthetic_customer') or facts.get('month_complete') is not True:
         raise Gap('Complete account-specific resource evidence required; a public incident is context alone.')
     required_ref(facts.get('monitor_ref'))
-    symptoms=source_labels(manifest,'symptoms')
-    providers=source_labels(manifest,'provider_causes')
-    exclusions=source_labels(manifest,'exclusions')
-    s_alias=overlay.get('symptom_aliases',{})
-    c_alias=overlay.get('cause_aliases',{})
+    from .vendor_bindings import literal
+    symptoms=source_labels(manifest,'symptoms',bindings)
+    providers=source_labels(manifest,'provider_causes',bindings)
+    exclusions=source_labels(manifest,'exclusions',bindings)
     included,excluded=[],[]
     windows = announced_windows(facts, overlay, manifest)
     maintenance = manifest.get('maintenance', {})
@@ -218,19 +233,19 @@ def measured(facts,overlay,manifest,start,end,excluded_refs):
                 excluded.append((left,right))
                 continue
             cause=required_ref(row.get('cause'))
-            cause=norm(c_alias.get(cause,cause))
+            cause=literal(cause)
             if cause in exclusions:
                 excluded.append((left,right))
                 continue
             if key=='exclusions':
                 raise Gap('Excluded interval lacks a source-defined excluded cause.')
             symptom=required_ref(row.get('symptom'))
-            symptom=norm(s_alias.get(symptom,symptom))
+            symptom=literal(symptom)
             if symptom in {'unknown','unverified','unconfirmed'}:
                 raise Gap('Unverified service symptom.')
             if symptom not in symptoms:
-                continue
-            if cause_specific and cause == norm(maintenance['cause']):
+                raise Gap('Observed service symptom has no reviewed literal meaning.')
+            if cause_specific and bindings.targets('maintenance_cause',cause):
                 included.extend(_subtract([(left, right)], windows))
             elif cause in providers:
                 included.append((left, right))
@@ -241,7 +256,7 @@ def measured(facts,overlay,manifest,start,end,excluded_refs):
     return sum(micros(right-left) for left,right in _subtract(_merge(included),excluded))
 
 
-def fees(facts,overlay,manifest):
+def fees(facts,overlay,manifest,bindings):
     if facts.get('itemized_complete') is not True:
         raise Gap('An itemized complete affected-resource fee statement is required.')
     included=[]
@@ -274,7 +289,7 @@ def fees(facts,overlay,manifest):
         cents=row.get('amount_cents')
         if row.get('currency')!='USD' or type(cents) is not int or not 0<=cents<=10**15:
             raise Gap('Invalid currency or amount on an affected service line.')
-        if norm(row.get('category','')) in source_labels(manifest,'fee_exclusions'):
+        if excluded_fee(manifest,row.get('category'),bindings):
             continue
         refund = 0
         if 'subtract_fee_refunds' in settlements:
@@ -331,7 +346,7 @@ def deadline(facts,overlay,manifest,end):
     return cursor,False
 
 
-def check_submission(facts, overlay, manifest, received, cutoff, inclusive):
+def check_submission(facts, overlay, manifest, received, cutoff, inclusive,bindings):
     items = manifest.get('request_fields', [])
     channel = manifest.get('submission_channel')
     if not items and not channel and not manifest.get('supplement') and not manifest.get('cure_clock') and not manifest.get('original_receipt'):
@@ -348,6 +363,17 @@ def check_submission(facts, overlay, manifest, received, cutoff, inclusive):
     values = proof.get('fields', {})
     if not isinstance(values, dict):
         raise Gap('Malformed request fields.')
+    def bound_fields(raw):
+        if bindings is None:
+            return {}
+        result = {}
+        for key,value in raw.items():
+            for target in bindings.resolve('request_fields',key):
+                if target in result and result[target] != value:
+                    raise Gap('Conflicting literal representations of one filing field.')
+                result[target] = value
+        return result
+    values = bound_fields(values)
     if manifest.get('cure_clock') and not all(isinstance(values.get(k), str) and values[k].strip()
             for k in manifest['cure_clock']['initial_fields']):
         raise Gap('Required identity fields must appear on the timely original portal filing.')
@@ -373,6 +399,7 @@ def check_submission(facts, overlay, manifest, received, cutoff, inclusive):
         additions = row.get('fields')
         if not isinstance(additions, dict) or not additions:
             raise Gap('Supplement contains no verified request items.')
+        additions = bound_fields(additions)
         item_cutoff, item_inclusive = (supplement_clock(facts, overlay, manifest, proof, row, received)
                                        if manifest.get('cure_clock') else (cutoff, inclusive))
         for key, value in additions.items():
@@ -407,15 +434,20 @@ def issuance(facts,overlay,amount):
     return 'SIMULATED_FUTURE_CREDIT_VERIFIED'
 
 
-def evaluate_resource(manifest,overlay,facts,tenant):
-    if manifest.get('aggregate_monitor'):
-        from .vendor_service_month import evaluate
-        return evaluate(manifest, overlay, facts, tenant)
+def evaluate_resource(manifest,overlay,facts,tenant,*,bindings=None):
     if facts.get('tenant',tenant)!=tenant:
         raise PermissionError('Tenant mismatch.')
     base={'currency':'USD','amount':None,'trace':[],'missing':[],'filing_status':'UNDETERMINED',
           'issuance_status':'NOT_ESTABLISHED','basis':fingerprint(overlay),'observation_digest':fingerprint(facts),
           'remedy':manifest['remedy'],'citations':[c['id'] for c in manifest['citations']]}
+    from .vendor_bindings import require_context, SemanticBindingRequired
+    try:
+        bindings = require_context(manifest,overlay,tenant,bindings)
+    except SemanticBindingRequired as exc:
+        return unresolved_semantics(manifest,overlay,facts,base,str(exc))
+    if manifest.get('aggregate_monitor'):
+        from .vendor_service_month import evaluate
+        return evaluate(manifest, overlay, facts, tenant,bindings=bindings)
     try:
         if set(facts)-FACTS:
             raise Gap('Unexpected or precomputed resource observation fields.')
@@ -431,9 +463,9 @@ def evaluate_resource(manifest,overlay,facts,tenant):
         if manifest.get('telemetry'):
             if excluded_refs or manifest.get('maintenance', {}).get('basis') == 'caused_within_announced_window':
                 raise Unsupported('Additional cause-specific conditions require independent incident attribution.')
-            down = dual_downtime(facts, overlay, manifest, start, end, region, announced_windows(facts, overlay, manifest))
+            down = dual_downtime(facts, overlay, manifest, start, end, region, announced_windows(facts, overlay, manifest),bindings)
         else:
-            down=measured(facts,overlay,manifest,start,end,excluded_refs)
+            down=measured(facts,overlay,manifest,start,end,excluded_refs,bindings)
         total=micros(end-start)
         rate,citation=rate_for(manifest,manifest['scope']['product'],manifest['scope']['plan'] or '*',total-down,total)
         base.update(downtime_microseconds=down,total_microseconds=total,rate_units=rate,tier_citation=citation,
@@ -445,7 +477,7 @@ def evaluate_resource(manifest,overlay,facts,tenant):
             base['filing_status']='BLOCKED_ACCOUNT_CONDITION'
             base['trace'].append('Verified source-defined filing precondition failed: '+', '.join(blocked))
             return base|{'outcome':Outcome.INELIGIBLE.value}
-        fee=fees(facts,overlay,manifest)
+        fee=fees(facts,overlay,manifest,bindings)
         amount=usd_estimate(fee,rate)
         if manifest.get('rounding')=='nearest_cent_half_up':
             cents=(2*fee*rate+MAX_PERCENT)//(2*MAX_PERCENT)
@@ -470,7 +502,7 @@ def evaluate_resource(manifest,overlay,facts,tenant):
             base.update(filing_status='OUTSIDE_WINDOW')
             base['trace'].append('Receipt outside the governing filing window.')
             return base|{'outcome':Outcome.INELIGIBLE.value}
-        if not check_submission(facts, overlay, manifest, received, cutoff, inclusive):
+        if not check_submission(facts, overlay, manifest, received, cutoff, inclusive,bindings):
             base['trace'].append('The required supplement arrived after the original filing deadline.')
             return base | {'outcome': Outcome.INELIGIBLE.value, 'filing_status': 'LATE_SUPPLEMENT'}
         if amount=='0.00':
@@ -482,3 +514,27 @@ def evaluate_resource(manifest,overlay,facts,tenant):
         return base|{'outcome':Outcome.MISSING.value,'trace':base['trace']+[str(exc)],'missing':[str(exc)]}
     except (Unsupported,OverflowError) as exc:
         return base|{'outcome':Outcome.UNSUPPORTED.value,'trace':base['trace']+[str(exc)]}
+    except SemanticBindingRequired as exc:
+        return unresolved_semantics(manifest,overlay,facts,base,str(exc))
+
+
+def unresolved_semantics(manifest,overlay,facts,base,reason):
+    """No monetary intermediate escapes an absent, stale or revoked binding."""
+    result = {key:value for key,value in base.items() if key not in
+              {'amount','service_estimate','remaining_estimate','affected_fee_cents','rate_units','prior_issued_cents'}}
+    result.update(outcome=Outcome.MISSING.value,amount=None,semantic_binding_status='REVIEW_REQUIRED',
+                  trace=[reason],missing=['Reviewed source and evidence semantic binding'],issuance_status='NOT_ESTABLISHED')
+    try:
+        if all(facts.get(key)==overlay[key] for key in ('account','agreement','product','plan')):
+            if manifest.get('fixed_filing'):
+                cutoff=manifest['fixed_filing']['at']
+                inclusive=manifest['fixed_filing']['endpoint']=='inclusive'
+            else:
+                _,end=month_bounds(facts.get('month'))
+                stamp,inclusive=deadline(facts,overlay,manifest,end)
+                cutoff=stamp.isoformat()
+            result.update(claim_cutoff=cutoff,cutoff_inclusive=inclusive,
+                          deadline_context='Published clock; source meaning remains under review.')
+    except (ValueError,TypeError,KeyError,OverflowError):
+        pass
+    return result

@@ -1,0 +1,119 @@
+[
+  {
+    "id": "order-form.txt:1",
+    "source_file": "order-form.txt",
+    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "start": 0,
+    "end": 40,
+    "quote": "Northwind Cloud — Order Form NW-2026-001",
+    "quote_sha256": "830b1d0363a9825364f41823abbdc66cc2e9210052c9f53bffea9afe3592e748"
+  },
+  {
+    "id": "order-form.txt:2",
+    "source_file": "order-form.txt",
+    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "start": 41,
+    "end": 231,
+    "quote": "1. Parties and term. Provider: Northwind Cloud. Customer: Harborline Analytics. Account: harborline-001. The term covers complete UTC service months from January 1 through December 31, 2026.",
+    "quote_sha256": "2e628f0b450b0f49514f6c0fb2bc6dc1893fe68eaa11367088c68e8e239c4a52"
+  },
+  {
+    "id": "order-form.txt:3",
+    "source_file": "order-form.txt",
+    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "start": 232,
+    "end": 544,
+    "quote": "2. Covered subscription. Cloud Hosting on the Business plan is one complete service-month unit. The governing service fee is USD 12,000.00 per complete UTC service month; the maximum payable covered service fee is also USD 12,000.00. There are no usage overage charges or partial-month allocations in this order.",
+    "quote_sha256": "047584ae18b634621e72ffb2edbf726e42306be68f48c903697c63a4941a3d9b"
+  },
+  {
+    "id": "order-form.txt:4",
+    "source_file": "order-form.txt",
+    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "start": 545,
+    "end": 872,
+    "quote": "3. Eligible fees. The SLA credit base is the governing covered monthly service fee after any amendment effective for that service month. An overbilled invoice does not increase that base. Taxes, Premium Support and One-time Setup charges are separate and excluded from the SLA credit base and covered-service price discrepancy.",
+    "quote_sha256": "b746423eba5e59c20d62d4c7b19597dd5a967a4f03f2f7b8f3b5b13887ef51ea"
+  },
+  {
+    "id": "order-form.txt:5",
+    "source_file": "order-form.txt",
+    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "start": 873,
+    "end": 1181,
+    "quote": "4. Service measurement. Availability uses every elapsed minute in the complete UTC month. Only recorded service unavailability counts as eligible downtime; no maintenance or other exclusions apply under this order. A complete monthly coverage report is required; absent coverage means eligibility is unknown.",
+    "quote_sha256": "ade6497dc46265a1d6b36772e3bf3b6dd3e207ba3ef3e76ff4ee26d0853c547a"
+  },
+  {
+    "id": "order-form.txt:6",
+    "source_file": "order-form.txt",
+    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "start": 1182,
+    "end": 1493,
+    "quote": "5. SLA and filing. The attached Service Level Agreement defines completed shortfall increments and final-cent rounding. Claims must be received during the 30 full calendar days following the final day of the service month, inclusive through the last instant of day 30. A draft timestamp is not a filing receipt.",
+    "quote_sha256": "3b219536283c97a9302c53b644facfaf7d48030bab250f67443dd0e8b8f6cbc7"
+  },
+  {
+    "id": "order-form.txt:7",
+    "source_file": "order-form.txt",
+    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "start": 1494,
+    "end": 1683,
+    "quote": "6. Governing date. The fee is chosen by the service period, not the invoice issue date. An unsplit line crossing an amendment-effective boundary requires complete allocation before pricing.",
+    "quote_sha256": "bbaa6047457aaf4250f6892795c29ac5746ac20b8123d9ca59e53fa0b7a5d31f"
+  },
+  {
+    "id": "order-form.txt:8",
+    "source_file": "order-form.txt",
+    "source_sha256": "88f05b085734979d37ebbb7dcf38f886f335d78b8905d3fa2349a49e362098a8",
+    "start": 1684,
+    "end": 1927,
+    "quote": "7. Signature record. The scenario signature date is December 15, 2025 at 15:00 UTC. The accompanying local signature specimen binds these bytes and the typed pricing input; it is not an external certificate or evidence of real-party execution.",
+    "quote_sha256": "7681551075370ce16624faeecb4a452084427dd6839a85f8175117007efacff8"
+  },
+  {
+    "id": "amendment-2026-03.txt:1",
+    "source_file": "amendment-2026-03.txt",
+    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "start": 0,
+    "end": 44,
+    "quote": "Northwind Cloud — Amendment 1 to NW-2026-001",
+    "quote_sha256": "04dbdea8066ebfe3148278300e8a10a19f0207d131d186c0965f57c6da6f6026"
+  },
+  {
+    "id": "amendment-2026-03.txt:2",
+    "source_file": "amendment-2026-03.txt",
+    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "start": 45,
+    "end": 301,
+    "quote": "1. Execution and effect. The scenario signatories execute this amendment on February 20, 2026 at 15:00 UTC. It becomes effective for service beginning March 1, 2026 at 00:00 UTC and supersedes the order form monthly service-fee provision from that instant.",
+    "quote_sha256": "81fe56dfa01d095abb7c6cd2da263e6e621995cf4cf2119e2f8ae0bfc43946b8"
+  },
+  {
+    "id": "amendment-2026-03.txt:3",
+    "source_file": "amendment-2026-03.txt",
+    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "start": 302,
+    "end": 699,
+    "quote": "2. Governing fee and ceiling. For Cloud Hosting on the Business plan, the governing service fee becomes USD 11,000.00 per complete UTC service month. The maximum payable covered service fee is also USD 11,000.00. This replaces both the USD 12,000.00 monthly fee and its USD 12,000.00 ceiling for March and later service months; it does not replace the fee for February service invoiced on March 1.",
+    "quote_sha256": "8fb48882919c541ee3d5eb5e03378d8314c3fec314a0f51f9d7f7ea78fe5c51d"
+  },
+  {
+    "id": "amendment-2026-03.txt:4",
+    "source_file": "amendment-2026-03.txt",
+    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "start": 700,
+    "end": 979,
+    "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+    "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033"
+  },
+  {
+    "id": "amendment-2026-03.txt:5",
+    "source_file": "amendment-2026-03.txt",
+    "source_sha256": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
+    "start": 980,
+    "end": 1204,
+    "quote": "4. Signature record. The accompanying local signature specimen identifies its local issuer and actual creation time separately from the scenario execution date. It establishes no real-party execution or external certificate.",
+    "quote_sha256": "7d2443ce6ce8c6e9ae82a2185191f9dd582a15fd6665cc17f0bbb3a5156003e3"
+  }
+]

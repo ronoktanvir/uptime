@@ -208,6 +208,9 @@ def test_ungrouped_text_requires_case_distinction_and_explicit_recorded_formula_
     path = tmp_path / 'sandbox.sqlite'
     initialize(path)
     shadow = registry.install(path, P, 'instruments', {'document': doc, 'overlay': OVERLAY})
+    from test_vendor_semantic_bindings import review_submission
+    shadow = registry.review_semantics(path,P,'instruments',registry.SemanticSubmission(revision=shadow['revision'],
+        review=review_submission(shadow['manifest'],shadow['overlay'],doc['text'])))
     grouping = shadow['manifest']['formula_grouping_review']
     assert grouping['endpoint_vectors'][-1] == {'covered_fraction': '1', 'selected_percent': '0', 'alternative_percent': '99'}
     refusal = {'name': 'complete observations without an outage', 'facts': FACTS | {'intervals': []},

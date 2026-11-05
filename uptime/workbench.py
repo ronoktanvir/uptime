@@ -5,7 +5,8 @@ from threading import RLock
 from . import onboarding, policy
 from .contracts import Principal, Source, fingerprint
 from .claim_identity import EconomicScopeReviewRequired, claim_key
-from .vendor_registry import historical_economic_identity
+from .vendor_registry import historical_economic_identity, require_case_semantics
+from .vendor_bindings import SemanticBindingRequired
 from .mandates import CreditDecision, check_credit_decision
 from .disputes import DisputeDesk
 from .evidence import evidence_summary
@@ -475,6 +476,15 @@ class Workbench:
                             amount=None, actions=[])
             case["economic_identity"] = identity
             case["obligation_id"] = claim_key(**identity) if identity else None
+            try:
+                require_case_semantics(self.path, self.tenant, case)
+            except SemanticBindingRequired as error:
+                case.update(financial_scope_status="REVIEW_REQUIRED", financial_scope_reason=str(error),
+                            semantic_binding_status="REVIEW_REQUIRED", recorded_stage=case.get("recorded_stage",case.get("stage")),
+                            recorded_outcome=case.get("recorded_outcome",case.get("outcome")),
+                            recorded_amount=case.get("recorded_amount",case.get("amount")), stage="REVIEW_REQUIRED",
+                            outcome="INSUFFICIENT_EVIDENCE", amount=None, actions=[],
+                            financials=[dict(label="Current estimate", value="Semantic review required", sources=case.get("sources",[]))])
         case["cohort"]="seeded" if case["id"] in self.seed_ids else "portfolio"
         case.setdefault("note", "Seeded historical/comparison simulation; estimates are not additive portfolio value."
                         if case["cohort"]=="seeded" else "Entered workspace record; source labels determine whether facts are simulated or observed.")

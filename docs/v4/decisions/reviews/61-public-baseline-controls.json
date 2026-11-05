@@ -1,0 +1,26 @@
+{
+  "classification": "SYNTHETIC_PUBLIC_SUPPLEMENTARY_BASELINE",
+  "preregistration_sha256": "1594a22acb946b138af3df3d8b3cb98cb4d2ae991cb0aa9b8c5b3ca8deaba354",
+  "original_baseline_unchanged": true,
+  "production_edits": false,
+  "cases": [
+    {
+      "id": "negated_responsibility",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "harness_control": "Removed unrelated lost acknowledgments co-field from the replaced block; source quote and proposed responsibility phrase are unchanged.",
+      "source_sha256": "d2a0c8b6a2eb4c96206b71f4d7eb7cdb2334b875443a15393ed062560750598f",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51"
+    },
+    {
+      "id": "same_phrase_multiple_roles",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "harness_control": "Moved unchanged provider-responsibility prerequisite to its own exact public block; ambiguous role phrase and both proposed roles are unchanged.",
+      "source_sha256": "ae486e6061b0cc45951abe3571890669fc05cdd2de02f3e5e3faf6087cbe595d",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51"
+    }
+  ]
+}

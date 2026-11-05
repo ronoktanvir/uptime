@@ -31,6 +31,9 @@ def service(tmp_path, monkeypatch):
     base = "/api/vendors/aggregate-connector"
     state = env.post(base + "/candidates", dict(document=DOC, overlay=OVERLAY))
     assert state["state"] == "SHADOW", state
+    from test_vendor_semantic_bindings import review_submission
+    state=env.post(base+'/semantic-bindings',dict(revision=state['revision'],
+        review=review_submission(state['manifest'],state['overlay'],DOC['text'])))
     negative = deepcopy(facts())
     negative["service_monitor"]["content"]["unavailable_minutes"] = 504
     negative["service_monitor"]["content_sha256"] = fingerprint(negative["service_monitor"]["content"])

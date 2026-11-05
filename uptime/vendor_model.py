@@ -31,7 +31,8 @@ Never produce source code, actions or tool requests.
 
 
 def _typed_values(manifest):
-    tiers = {t['citation']: t for t in manifest['tiers']}
+    from .credit_steps import from_manifest
+    tiers = {} if from_manifest(manifest) else {t['citation']: t for t in manifest['tiers']}
     for clause in manifest['citations']:
         field = clause['field']
         if field == 'tier':

@@ -55,8 +55,10 @@ def facts():
 
 
 def run(data, m=None):
+    from test_vendor_semantic_bindings import reviewed_context
     m=m or manifest()
-    return evaluate(m,bind_overlay(m,Overlay(**OVERLAY)),data,'independent-compass')
+    bound=bind_overlay(m,Overlay(**OVERLAY))
+    return evaluate(m,bound,data,'independent-compass',bindings=reviewed_context(m,bound,tenant='independent-compass'))
 
 
 def test_attested_aggregate_source_exact_month_basis_threshold_and_fixed_clock():
@@ -155,8 +157,11 @@ def test_service_aggregate_signed_api_produces_case_and_rollback(tmp_path, monke
     scenarios=[{'name':'scoped fee control','facts':data,'expected':{'outcome':'ELIGIBLE','amount':'20.99'}},
                {'name':'exact equality','facts':equality,'expected':{'outcome':'INELIGIBLE'}}]
     secret=secrets.token_urlsafe(32)
+    from test_vendor_semantic_bindings import review_submission
+    terms=manifest()
+    review=review_submission(terms,bind_overlay(terms,Overlay(**OVERLAY)),DOC['text'])
     with serve(tmp_path/'replay.sqlite',secret) as origin:
-        receipt=exercise(DOC,OVERLAY,scenarios,origin,secret)
+        receipt=exercise(DOC,OVERLAY,scenarios,origin,secret,semantic_review=review)
     assert receipt['human_approval'] is False and receipt['authority']==SCRIPT
     assert receipt['results'][0]['amount']=='20.99'
     assert receipt['operations'][-2]['operation']=='rolled-back dispatch denied'

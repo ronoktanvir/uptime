@@ -1,0 +1,32 @@
+{
+  "2026-01": {
+    "outcome": "ELIGIBLE",
+    "amount": "2400.00",
+    "credit_units": 20000000,
+    "completed_steps": 2,
+    "governing_fee": "12000.00",
+    "price_exposure": "0.00",
+    "price_version": "order-v1",
+    "cutoff_exclusive": "2026-03-03T00:00:00+00:00"
+  },
+  "2026-02": {
+    "outcome": "INELIGIBLE",
+    "amount": null,
+    "credit_units": 0,
+    "completed_steps": 0,
+    "governing_fee": "12000.00",
+    "price_exposure": "0.00",
+    "price_version": "order-v1",
+    "cutoff_exclusive": "2026-03-31T00:00:00+00:00"
+  },
+  "2026-03": {
+    "outcome": "INSUFFICIENT_EVIDENCE",
+    "amount": null,
+    "credit_units": null,
+    "completed_steps": null,
+    "governing_fee": "11000.00",
+    "price_exposure": "1000.00",
+    "price_version": "amendment-v2",
+    "cutoff_exclusive": "2026-05-01T00:00:00+00:00"
+  }
+}

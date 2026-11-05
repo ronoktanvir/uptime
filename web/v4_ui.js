@@ -200,6 +200,11 @@
       if (data.detail_unavailable) { n.append(note('Vendor details unavailable. Refresh before reviewing or changing this version.')); return n; }
       n.append(actions(m, data, base));
       if (data.revision !== undefined && data.revision !== null) {
+        if (data.semantic_review_requirements) {
+          n.append(note('Before pricing, a named reviewer must check the complete source, conditions, overrides, exact evidence representations and customer scope. Existing tests or approvals do not supply this review.'));
+          n.append(form(m, 'Source meaning and evidence bindings', [['review','Explicit semantic review (JSON object; source pins, every block and literal selection)','textarea']], 'Record semantic review', v => ({revision:data.revision,review:parseJSON(v.review,'review')}), base + '/semantic-bindings'));
+        }
+        if (data.semantic_binding) n.append(form(m, 'Revoke source meaning review', [], 'Revoke semantic binding', () => ({revision:data.revision}), base + '/semantic-bindings/revoke'));
         n.append(form(m, 'Independent tests & shadow evidence', [ ['tests','Test cases (JSON array: name, facts, expected)', 'textarea'] ], 'Submit independent tests', v => ({revision:data.revision,tests:parseJSON(v.tests,'tests')}), base + '/tests', true));
         n.append(form(m, 'Local shadow preview', [['facts','Shadow facts (JSON object)','textarea']], 'Preview candidate', v => ({revision:data.revision,facts:parseJSON(v.facts,'facts')}), base + '/shadow-preview', true));
       }

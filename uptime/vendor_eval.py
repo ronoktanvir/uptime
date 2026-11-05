@@ -12,6 +12,11 @@ FACT_FIELDS = {'agreement', 'account', 'product', 'plan', 'month', 'eligible_dow
 
 
 def rate_for(manifest, product, plan, available, total):
+    from .credit_steps import from_manifest,rate
+    if rule:=from_manifest(manifest):
+        if (product,plan)!=(rule['product'],rule['plan']):
+            raise ValueError('Completed-step credit scope mismatch.')
+        return rate(rule,available,total),rule['citation']
     for tier in manifest['tiers']:
         if (tier['product'], tier['plan']) == (product, plan) and MAX_PERCENT * available < tier['below_units'] * total:
             return tier['credit_units'], tier['citation']
@@ -20,6 +25,23 @@ def rate_for(manifest, product, plan, available, total):
 
 def generated_checks(manifest):
     rows = []
+    from .credit_steps import from_manifest
+    if rule:=from_manifest(manifest):
+        # Independent exact boundary expectations; ratios do not pass through
+        # rounded display percentages. Include both sides and cap saturation.
+        count=min((rule['cap_units']+rule['credit_units']-1)//rule['credit_units']+1,1000)
+        for step in range(count+1):
+            boundary=2*(rule['target_units']-step*rule['step_units'])
+            if boundary<0:
+                break
+            for available,expected_steps in ((boundary+1,max(0,step-1)),(boundary,step),(boundary-1,step)):
+                if not 0<=available<=2*MAX_PERCENT:
+                    continue
+                expected=min(expected_steps*rule['credit_units'],rule['cap_units'])
+                actual,_=rate_for(manifest,rule['product'],rule['plan'],available,2*MAX_PERCENT)
+                rows.append(dict(product=rule['product'],plan=rule['plan'],available=available,total=2*MAX_PERCENT,
+                                 expected=expected,actual=actual,passed=actual==expected))
+        return rows
     groups = {}
     for tier in manifest['tiers']:
         groups.setdefault((tier['product'], tier['plan']), []).append(tier)
@@ -42,10 +64,10 @@ def usd_estimate(fee_cents, credit_units):
     return f'{whole}.{tail}'
 
 
-def evaluate(manifest, overlay, facts, tenant):
+def evaluate(manifest, overlay, facts, tenant, *, bindings=None):
     if manifest['family'] == 'resource-month/1':
         from .vendor_resource_eval import evaluate_resource
-        return evaluate_resource(manifest,overlay,facts,tenant)
+        return evaluate_resource(manifest,overlay,facts,tenant,bindings=bindings)
     if facts.get('tenant', tenant) != tenant:
         raise PermissionError('Tenant mismatch.')
     if set(facts) - FACT_FIELDS:
@@ -57,6 +79,12 @@ def evaluate(manifest, overlay, facts, tenant):
 
     def stop(outcome, message, missing=()):
         return base | {'outcome': outcome.value, 'trace': [message], 'missing': list(missing)}
+
+    from .credit_steps import from_manifest,completed,final_cents
+    try:
+        step_rule=from_manifest(manifest)
+    except ValueError as error:
+        return stop(Outcome.UNSUPPORTED,str(error))
 
     for key in ('agreement', 'account', 'product', 'plan', 'fee_line_ref'):
         if facts.get(key) != overlay[key]:
@@ -107,13 +135,24 @@ def evaluate(manifest, overlay, facts, tenant):
     base['filing_status'] = 'TIMELY'
     rate, citation = rate_for(manifest, overlay['product'], overlay['plan'], minutes - down, minutes)
     message = f'{minutes - down}/{minutes} UTC minutes available. Exact comparison gives {rate}/{PERCENT_SCALE}% credit.'
+    if step_rule:
+        count=completed(step_rule,minutes-down,minutes)
+        base.update(rate_units=rate,completed_steps=count,tier_citation=citation)
+        message=f'{minutes-down}/{minutes} UTC minutes available; {count} completed shortfall increments; {rate}/{PERCENT_SCALE}% credit after cap.'
     if not rate:
         return stop(Outcome.INELIGIBLE, message)
+    if step_rule:
+        return stop(Outcome.MISSING, 'Trusted governing-fee pricing context is required for completed-step credit.', ['governing_fee_context'])
     if fee == 0:
         base['issuance_status']='NO_POSITIVE_CREDIT'
         base['service_estimate']='0.00'
         return stop(Outcome.INELIGIBLE,'Verified zero affected fee produces no claimable service credit.')
     base['issuance_status'] = 'FUTURE_INVOICE_CREDIT_UNCONFIRMED'
-    return base | {'outcome': Outcome.ELIGIBLE.value, 'amount': usd_estimate(fee, rate),
+    cents=final_cents(fee,rate) if step_rule else None
+    if cents==0:
+        base.update(issuance_status='NO_POSITIVE_CREDIT',service_estimate='0.00')
+        return stop(Outcome.INELIGIBLE,'Final contractual rounding produces no positive claimable credit.')
+    amount=f'{cents//100}.{cents%100:02d}' if cents is not None else usd_estimate(fee,rate)
+    return base | {'outcome': Outcome.ELIGIBLE.value, 'amount': amount,
                    'tier_citation': citation, 'rate_units': rate,
                    'trace': [message, f'Affected fee {fee} USD cents; source-clause future invoice credit only.']}
