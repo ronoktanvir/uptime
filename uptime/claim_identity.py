@@ -132,6 +132,32 @@ def _receipt(receipt, packet):
     return dict(receipt_id=receipt["id"], packet_digest=digest, at=receipt["at"])
 
 
+
+def _historical_parent(db, tenant, case_id, scope, state, receipt, reservation):
+    from .correspondence_history import receipt_chain
+
+    chain = receipt_chain(state)
+    if not chain or chain[1] is not None or len(state["submissions"]) != 1:
+        raise ValueError("Historical response requires its single original filing predecessor.")
+    original = chain[0]
+    packet = receipt["packet"]
+    if (reservation[1] != "supplement" or receipt["action"] != "submit-response"
+            or original["source"] != "vendor" or packet.get("purpose") != "procedural_evidence_only"
+            or packet.get("requested") != "0.00" or receipt.get("requested") != "0.00"
+            or packet.get("in_reply_to") != original["body"]["receipt_id"]
+            or packet.get("original_receipt_digest") != original["digest"]):
+        raise ValueError("Historical response does not match its witnessed procedural filing.")
+    digest = fingerprint([tenant, scope, original["body"]["receipt_id"]])
+    parent_id = "HIST-" + digest
+    parent = db.execute(f"SELECT route,case_id,scope,packet_digest,receipt_id,at,identity FROM {TABLE} "
+                        "WHERE obligation=? AND step='initial'", (reservation[0],)).fetchone()
+    if (not parent or tuple(parent[:5]) != ("historical-receipt", case_id, _json(scope), digest, parent_id)
+            or parent[6] != reservation[8]
+            or datetime.fromisoformat(_instant(parent[5])) > datetime.fromisoformat(_instant(receipt["at"]))):
+        raise ValueError("Historical response has no matching canonical original reservation.")
+    return parent_id
+
+
 def _backfill(db, tenant):
     """Use stored submissions only. Incomplete/conflicting history closes dispatch.
 
@@ -183,16 +209,23 @@ def _backfill(db, tenant):
                     packet = r["packet"]
                     if packet["tenant"] != tenant or packet["claim"] != case_id or packet["scope"] != scope:
                         raise ValueError("Historical inbox scope is not established.")
-                    if r["action"] != ("submit-response" if parent else "submit-claim"):
-                        raise ValueError("Historical inbox step is not established.")
-                    if parent is not None and packet.get("in_reply_to") != parent:
-                        raise ValueError("Historical supplement has no matching original receipt.")
+                    existing = db.execute(f"SELECT obligation,step,route,case_id,scope,packet_digest,receipt_id,at,identity "
+                                          f"FROM {TABLE} WHERE receipt_id=?", (r["id"],)).fetchone()
+                    route = "correspondence"
+                    predecessor = parent
+                    if existing and existing[2] == "historical-receipt":
+                        route = "historical-receipt"
+                        predecessor = _historical_parent(db, tenant, case_id, scope, state, r, existing)
+                    else:
+                        if r["action"] != ("submit-response" if parent else "submit-claim"):
+                            raise ValueError("Historical inbox step is not established.")
+                        if parent is not None and packet.get("in_reply_to") != parent:
+                            raise ValueError("Historical supplement has no matching original receipt.")
                     identity = dict(tenant=tenant, vendor=scope["vendor"], account=scope["account"],
                                     agreement_id=packet["agreement_id"], agreement_version=packet["version"],
                                     service=scope["service"], month=scope["month"], remedy="availability")
-                    existing = db.execute(f"SELECT identity FROM {TABLE} WHERE receipt_id=?", (r["id"],)).fetchone()
                     if existing:
-                        identity["remedy"] = json.loads(existing[0])[-1]
+                        identity["remedy"] = json.loads(existing[8])[-1]
                     elif _label(scope["vendor"]) != "twilio":
                         # Older generic packets omitted remedy. Only the old stored
                         # reservation hash can establish which supported remedy it used.
@@ -202,8 +235,15 @@ def _backfill(db, tenant):
                         if len(matches) != 1:
                             raise ValueError("Historical remedy is unknown; manual reconciliation required.")
                         identity["remedy"] = matches[0]
-                    _reserve(db, identity=identity, route="correspondence", case_id=case_id, scope=scope,
-                             initial_receipt_id=parent, historical=True, **_receipt(r, packet))
+                    checked = _receipt(r, packet)
+                    if existing:
+                        expected = (claim_key(**identity), "supplement" if predecessor else "initial", route,
+                                    case_id, _json(scope), checked["packet_digest"], checked["receipt_id"],
+                                    _instant(checked["at"]), _json(_economic(**identity)))
+                        if tuple(existing[:7]) + (_instant(existing[7]), existing[8]) != expected:
+                            raise ValueError("Canonical inbox reservation and approved receipt disagree.")
+                    _reserve(db, identity=identity, route=route, case_id=case_id, scope=scope,
+                             initial_receipt_id=predecessor, historical=True, **checked)
                     if r["id"] in old:
                         row = old[r["id"]]
                         expected = (_v1_key(identity), "supplement" if parent else "initial", "correspondence",
