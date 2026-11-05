@@ -159,3 +159,30 @@ def test_block_local_options_prevent_a_contextual_effect_on_scope_only_text():
         compiled(*extend_source(wrongly_attached))
     policy = {'kind': 'billing_cycles', 'count': 2, 'utc_time': None, 'endpoint': 'whole_cycle'}
     validate_filing(policy, 'Requests are due by the close of the second full billing cycle after the service month.')
+
+
+@pytest.mark.parametrize('expression', [
+    '100 × (1 minus qualifying interruption minutes divided by all minutes in the service month)',
+    '(one minus downtime / total seconds of the calendar month) times 100',
+    '100 × (1 minus covered seconds divided by all seconds in the month)',
+])
+def test_availability_formula_binds_seconds_and_minutes_to_their_operand_roles(expression):
+    from uptime.vendor_resource_operators import interval_options
+    source = 'Availability is ' + expression + '. A threshold boundary belongs to its higher band.'
+    assert interval_options(source) == ['availability_ratio']
+    assert compiled(*extend_source([(source, {'interval_measurement': ['availability_ratio']})]))
+
+
+@pytest.mark.parametrize('expression', [
+    '100 × (1 minus all seconds in the month divided by covered seconds)',
+    '100 × (1 minus covered seconds multiplied by all seconds in the month)',
+    '100 × (1 minus covered seconds divided by all seconds in the month) + 2',
+    '100 × (1 minus covered minutes divided by all seconds in the month)',
+])
+def test_wrong_formula_is_unsupported_even_if_labeled_nonmaterial(expression):
+    from uptime.vendor_resource_operators import interval_options
+    source = 'Availability is ' + expression + '.'
+    assert 'availability_ratio' not in interval_options(source)
+    for mapping in [{'interval_measurement': ['availability_ratio']}, {'nonmaterial': 'Definition.'}]:
+        with pytest.raises(ValueError):
+            compiled(*extend_source([(source, mapping)]))
