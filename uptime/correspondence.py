@@ -306,14 +306,14 @@ class CorrespondenceDesk:
                 audit(state, now, "claimant", "Drafted one supplemental packet using newly acquired matching component evidence.")
 
     def _reply(self, tenant, scope, state, fact, now):
-        proposal = propose(fact["body"]["text"])
+        requested = Decimal(state["submissions"][0]["requested"])
+        proposal = propose(fact["body"]["text"], claimed=requested)
         state["reason"] = proposal.reason
         reply = dict(reason=proposal.reason, span=proposal.span, event_id=fact["event_id"], digest=fact["digest"],
                      receipt=fact["body"]["receipt_id"], received_at=now.isoformat(), sources=VENDOR)
         state["replies"].append(reply)
         state["stage"] = "HUMAN_REVIEW"
         current = self._assess(tenant, scope, state, now)
-        requested = Decimal(state["submissions"][0]["requested"])
         filed_at = instant(state["submissions"][0]["at"])
         if proposal.reason == "maintenance":
             if confirmed_maintenance(scope, state["evidence"]) and current.evaluation.outcome == Outcome.INELIGIBLE:
