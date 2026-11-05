@@ -1,0 +1,272 @@
+{
+  "original": {
+    "label": "new independently frozen adequate-evidence cases under a studied public vendor source",
+    "classification": "IN-FAMILY",
+    "cohort_count": 10,
+    "complete_case_passes": 2,
+    "aggregates": {
+      "failed": 14,
+      "measured": 148,
+      "passed": 134,
+      "required": 148,
+      "unmeasured": 0
+    },
+    "stages": {
+      "activation": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "approval": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "artifact_delivery": {
+        "measured": 1,
+        "passed": 1,
+        "required": 1
+      },
+      "candidate": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "case_audit": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "changed_version_refusal": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "claim_open": {
+        "measured": 5,
+        "passed": 5,
+        "required": 5
+      },
+      "denial_delivery": {
+        "measured": 5,
+        "passed": 5,
+        "required": 5
+      },
+      "denial_outcome": {
+        "measured": 5,
+        "passed": 1,
+        "required": 5
+      },
+      "evaluation": {
+        "measured": 10,
+        "passed": 2,
+        "required": 10
+      },
+      "historical_audit": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "interpretation_review": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "original_filing": {
+        "measured": 5,
+        "passed": 5,
+        "required": 5
+      },
+      "response_approval": {
+        "measured": 1,
+        "passed": 0,
+        "required": 1
+      },
+      "response_submit": {
+        "measured": 1,
+        "passed": 0,
+        "required": 1
+      },
+      "rollback": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "rollback_refusal": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "shadow_refusal": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "shadow_tests": {
+        "measured": 10,
+        "passed": 10,
+        "required": 10
+      },
+      "signed_records": {
+        "measured": 5,
+        "passed": 5,
+        "required": 5
+      }
+    },
+    "tested_app_sha": "877f427a9a22ae8d8160616c042277ff347d02e3",
+    "transport": "socket",
+    "stable_before_after": true,
+    "harness_stable_before_after": true,
+    "manifest_sha256": "d0bcd1c0ea598e521bc221c10f95b810a48ee97a69bf36d4cf6f31c7c892e58c",
+    "inputs_sha256": "b135cacb5014fe2810f1a1f908b144f2faa4b0f7458b9c8a1c514adc0e340b0c",
+    "gold_sha256": "89b651cbbc589a794a1d970ef828546ffd91d7c201a137665bdec9d4cb4ec07e",
+    "observations_sha256": "4f8e86b5494121e0e54a6bc9507313b1e47e4701fa0a815e3f5acdd2feccee93",
+    "human_approval": false,
+    "vendor_population_generalization": false,
+    "virgin_public_vendor_firstpass": false,
+    "limitations": [
+      "Studied fictional public vendor; separate in-family denominators; no vendor generalization.",
+      "Original 10-case denominator and all completed attempts remain unchanged.",
+      "Original empty filing fields are inadequate test design and cannot be synthesized.",
+      "Historical receipt fields are never inferred from current evidence.",
+      "Public GET pins require an explicit independently frozen original source/version/order commitment.",
+      "Fully specified additive scenarios are also used as separate reviewer templates."
+    ],
+    "original_report_sha256": "98810ec2f44a10b7cb294a536c2d0c3c9bbec5f6ae3921f1058e459573cea0c4"
+  },
+  "additive": {
+    "label": "explicitly new additive fully specified local cases under a studied public vendor source",
+    "classification": "IN-FAMILY-ADDITIVE",
+    "cohort_count": 8,
+    "complete_case_passes": 2,
+    "aggregates": {
+      "failed": 10,
+      "measured": 146,
+      "passed": 136,
+      "required": 146,
+      "unmeasured": 0
+    },
+    "stages": {
+      "activation": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "approval": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "artifact_delivery": {
+        "measured": 1,
+        "passed": 1,
+        "required": 1
+      },
+      "candidate": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "case_audit": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "changed_version_refusal": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "claim_open": {
+        "measured": 7,
+        "passed": 7,
+        "required": 7
+      },
+      "denial_delivery": {
+        "measured": 7,
+        "passed": 7,
+        "required": 7
+      },
+      "denial_outcome": {
+        "measured": 7,
+        "passed": 1,
+        "required": 7
+      },
+      "evaluation": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "historical_audit": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "interpretation_review": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "original_filing": {
+        "measured": 7,
+        "passed": 7,
+        "required": 7
+      },
+      "response_approval": {
+        "measured": 7,
+        "passed": 5,
+        "required": 7
+      },
+      "response_submit": {
+        "measured": 7,
+        "passed": 5,
+        "required": 7
+      },
+      "rollback": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "rollback_refusal": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "shadow_refusal": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "shadow_tests": {
+        "measured": 8,
+        "passed": 8,
+        "required": 8
+      },
+      "signed_records": {
+        "measured": 7,
+        "passed": 7,
+        "required": 7
+      }
+    },
+    "tested_app_sha": "877f427a9a22ae8d8160616c042277ff347d02e3",
+    "transport": "socket",
+    "stable_before_after": true,
+    "harness_stable_before_after": true,
+    "manifest_sha256": "3878dc445d082ea2d51aa065dc17fe45d24dd52bbb1c25dc49c8aa30a8420688",
+    "inputs_sha256": "72b50c0d5581ca07eebd8f20f6c98fd8d2ee99f9bfae80efd92c2314f41f0259",
+    "gold_sha256": "697dcd04819d770cf6fb24cdc4ba47e93dd667ad5c597904bc4ca1e1a59a35c0",
+    "observations_sha256": "6e7a04a0297dad8c0677105dadd560bfd79b9b49ac8a82b074a350dae806f3a7",
+    "human_approval": false,
+    "vendor_population_generalization": false,
+    "virgin_public_vendor_firstpass": false,
+    "limitations": [
+      "Studied fictional public vendor; separate in-family denominators; no vendor generalization.",
+      "Original 10-case denominator and all completed attempts remain unchanged.",
+      "Original empty filing fields are inadequate test design and cannot be synthesized.",
+      "Historical receipt fields are never inferred from current evidence.",
+      "Public GET pins require an explicit independently frozen original source/version/order commitment.",
+      "Fully specified additive scenarios are also used as separate reviewer templates."
+    ],
+    "original_report_sha256": "b0cd309ad5a29588840592a33dc433b04d936a8f0c7aee493e8c993351df5f49"
+  }
+}

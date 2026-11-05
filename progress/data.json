@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-05T04:26:37.834409+00:00",
+  "updated_at": "2026-11-05T04:39:49.662666+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8765",
   "headline": "Uptime engineering progress",
@@ -330,15 +330,15 @@
       "id": "filing_refs",
       "title": "Ground filing fields in signed sources",
       "stream": "Disputes",
-      "status": "active",
-      "summary": "Independent replay isolates remaining plan-reference defect",
-      "detail": "The service and fee fixes passed their focused tests, but the same frozen additive cohort still records 0/7 denial dispositions. Independent socket diagnosis confirms all seven packets fail the plan field. A signed source-to-plan correction is under Opus54 review and negative testing.",
+      "status": "done",
+      "summary": "All seven independent original filings and denials now reach the engine",
+      "detail": "The completed service, fee and plan source-reference corrections are integrated at 877f427. Root passed 67 focused tests. The unchanged socket replay delivers all seven originals and denials. Further failures concern language coverage and are tracked separately.",
       "owner": "Dispute engineering",
       "depends_on": [
         "disputes",
         "adapter"
       ],
-      "next_action": "Integrate the reviewed plan correction and rerun the unchanged cohorts over real sockets.",
+      "next_action": "Retain the authority and source-pinning regressions.",
       "links": [
         {
           "label": "Independent socket diagnosis",
@@ -351,15 +351,20 @@
       "title": "Independent onboarding & denial acceptance",
       "stream": "Independent QA",
       "status": "active",
-      "summary": "Original failures remain in the denominator",
-      "detail": "Original 10-case cohort currently completes 2 cases and 0/5 denial expectations. The separate, fully supplied 8-case cohort passes arithmetic but completes 1 case and 0/7 denials before the filing fix. Counts stay separate.",
+      "summary": "8/8 arithmetic; 1/7 denial dispositions; 2/8 complete",
+      "detail": "Unchanged additive inputs reached all 146 scheduled observations on 877f427. Results are 136 pass, 10 fail and zero unmeasured. All seven denials arrived, but only one expected disposition passed. Zero responses were executed. The original cohort remains 2/10 complete with incomplete historical evidence retained. This studied-family cohort does not measure unseen-vendor population success.",
       "owner": "Independent witness",
       "depends_on": [
         "adapter",
-        "filing_refs"
+        "filing_refs",
+        "response_coverage"
       ],
       "next_action": "Run the same frozen cohorts over a real socket after the fix. Preserve every prior attempt.",
       "links": [
+        {
+          "label": "Current independent socket results",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/cohort-socket-877f427.json"
+        },
         {
           "label": "Witness methodology",
           "url": "https://github.com/ronoktanvir/uptime/blob/main/scripts/adequate_holdout/README.md"
@@ -547,9 +552,35 @@
         }
       ],
       "next_action": "Define a bounded contextual conversation using existing evidence and permission gates, then obtain the required architecture review and test it."
+    },
+    {
+      "id": "response_coverage",
+      "title": "New vendor response coverage",
+      "stream": "Disputes",
+      "status": "active",
+      "summary": "Six independently written replies safely abstain",
+      "detail": "Independent diagnosis isolates decimal/period availability assertions, pronoun-qualified lateness, declarative missing-artifact requests and partial-award wording. The existing engine handles the corresponding supported workflows with its older grammar. Broader bounded language coverage requires review and new positive/negative controls. Monetary calculations remain deterministic.",
+      "owner": "Dispute engineering and independent QA",
+      "depends_on": [
+        "disputes",
+        "filing_refs"
+      ],
+      "links": [
+        {
+          "label": "Independent language diagnosis",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/INDEPENDENT-SOCKET-DIAGNOSIS-02.md"
+        }
+      ],
+      "next_action": "Consult Opus on generic clause coverage, preserve unknown-clause escalation and rerun the same independent cases."
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-05T04:39:49.662666+00:00",
+      "title": "Independent replay reached every scheduled stage",
+      "detail": "Plan reference repair enabled 7/7 original and denial deliveries. Arithmetic remains 8/8. Only 1/7 denial dispositions passes, and zero responses executed. Separate language remediation is active.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/INDEPENDENT-SOCKET-DIAGNOSIS-02.md"
+    },
     {
       "at": "2026-11-05T04:26:37.834409+00:00",
       "title": "Hosted verification and root audit passed",
