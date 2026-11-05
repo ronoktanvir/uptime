@@ -6,7 +6,7 @@
     "text": "Please furnish the dated service log, document NW-JAN-LOG-001."
   },
   "credit_decision": {
-    "event_id": "northwind-award-jan",
+    "event_id": "NW-CM-2026-01",
     "known_at": "2026-03-02T13:00:00Z",
     "text": "We have approved a service credit of USD 2400.00.",
     "credit_id": "NW-CM-2026-01",

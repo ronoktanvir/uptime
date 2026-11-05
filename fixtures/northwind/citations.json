@@ -83,7 +83,7 @@
   {
     "id": "amendment-2026-03.txt:1",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
+    "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
     "start": 0,
     "end": 44,
     "quote": "Northwind Cloud \u2014 Amendment 1 to NW-2026-001",
@@ -92,7 +92,7 @@
   {
     "id": "amendment-2026-03.txt:2",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
+    "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
     "start": 45,
     "end": 301,
     "quote": "1. Execution and effect. The scenario signatories execute this amendment on February 20, 2026 at 15:00 UTC. It becomes effective for service beginning March 1, 2026 at 00:00 UTC and supersedes the order form monthly service-fee provision from that instant.",
@@ -101,7 +101,7 @@
   {
     "id": "amendment-2026-03.txt:3",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
+    "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
     "start": 302,
     "end": 699,
     "quote": "2. Governing fee and ceiling. For Cloud Hosting on the Business plan, the governing service fee becomes USD 11,000.00 per complete UTC service month. The maximum payable covered service fee is also USD 11,000.00. This replaces both the USD 12,000.00 monthly fee and its USD 12,000.00 ceiling for March and later service months; it does not replace the fee for February service invoiced on March 1.",
@@ -110,7 +110,7 @@
   {
     "id": "amendment-2026-03.txt:4",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
+    "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
     "start": 700,
     "end": 979,
     "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
@@ -119,7 +119,7 @@
   {
     "id": "amendment-2026-03.txt:5",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
+    "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
     "start": 980,
     "end": 1204,
     "quote": "4. Signature record. The accompanying local signature specimen identifies its local issuer and actual creation time separately from the scenario execution date. It establishes no real-party execution or external certificate.",
@@ -128,11 +128,11 @@
   {
     "id": "amendment-2026-03.txt:6",
     "source_file": "amendment-2026-03.txt",
-    "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
+    "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
     "start": 1205,
     "end": 1402,
-    "quote": "4. Restated rate schedule. The complete fixed monthly schedule in amendment-monthly-rate.txt forms part of this amendment and expressly restates the billing timing for its governing service months.",
-    "quote_sha256": "5ce6921690984f749982abc7fa5956c80113b22c51db7379e3b12a4abde551f9"
+    "quote": "5. Restated rate schedule. The complete fixed monthly schedule in amendment-monthly-rate.txt forms part of this amendment and expressly restates the billing timing for its governing service months.",
+    "quote_sha256": "d1cb5d3ae5bb175a2898a5000ea1362536082e181b37c964a78793eb43251fe1"
   },
   {
     "id": "order-monthly-rate.txt:1",

@@ -2,7 +2,7 @@
   {
     "kind": "LOCAL_TEST_SIGNATURE",
     "algorithm": "Ed25519",
-    "public_key_base64": "Rkvb7zHjyTcEtv4YgStLFJByVvMdLVL1fhvp7jzR1qo=",
+    "public_key_base64": "kEEl3s+9Dnam7V03g2Ty7CUXVp9hsv3KlHYOdx6HPYk=",
     "payload": {
       "agreement": "NW-2026-001",
       "version": "order-v1",
@@ -13,17 +13,17 @@
       ],
       "source_file": "order-form.txt",
       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
-      "pricing_input_sha256": "3db0e39f776f4ff4ed884eaa45c808835ae1e4b68cd94621769cd151e345b8cc",
+      "pricing_input_sha256": "97129dfad2cdabfd0ab23f1ae20eb75cba92385308df25d67b3bcef3c3804370",
       "issuer": "Local fixture author; no external certificate",
-      "created_at": "2026-11-05T09:31:21.797797+00:00"
+      "created_at": "2026-11-05T09:51:20.800029+00:00"
     },
-    "signature_base64": "ZTbewijrEKQDDhVFRf2UZjQVyFqu8aJgsrNiQW9pOyidNkd0k44Sx7Pi4fkiwQvOGeZrmOr2JT92ie6TZheDAQ==",
+    "signature_base64": "BYJVt8PWkcDAXLQYQBEdVV5KnzoYwpBxyVwMrBQ8zb2rXjJqDZLMlFJn9Khied88BENA43jS4hpFDmcM0EaBBA==",
     "certificate": null
   },
   {
     "kind": "LOCAL_TEST_SIGNATURE",
     "algorithm": "Ed25519",
-    "public_key_base64": "Rkvb7zHjyTcEtv4YgStLFJByVvMdLVL1fhvp7jzR1qo=",
+    "public_key_base64": "kEEl3s+9Dnam7V03g2Ty7CUXVp9hsv3KlHYOdx6HPYk=",
     "payload": {
       "agreement": "NW-2026-001",
       "version": "amendment-v2",
@@ -33,12 +33,12 @@
         "Harborline Analytics"
       ],
       "source_file": "amendment-2026-03.txt",
-      "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0",
-      "pricing_input_sha256": "3db0e39f776f4ff4ed884eaa45c808835ae1e4b68cd94621769cd151e345b8cc",
+      "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+      "pricing_input_sha256": "97129dfad2cdabfd0ab23f1ae20eb75cba92385308df25d67b3bcef3c3804370",
       "issuer": "Local fixture author; no external certificate",
-      "created_at": "2026-11-05T09:31:21.798332+00:00"
+      "created_at": "2026-11-05T09:51:20.800516+00:00"
     },
-    "signature_base64": "BeE8gAfmFEyKYyVBoBl2qYE2g3pQpak6FXAsnh6kMqTOslqyjc5GKS/BXKnp/ZMBJ9gHtcSlx+WFF5/eBnSjDA==",
+    "signature_base64": "OhGWsfaDaxWS64JMkR1tw28gA2dICTJZubkyTVsajbPIJmA3sNdd6rey7hZT7nNCN0hd9R+6FMHXvReFr5dFAw==",
     "certificate": null
   }
 ]

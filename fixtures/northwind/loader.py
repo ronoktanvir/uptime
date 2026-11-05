@@ -75,6 +75,12 @@ def verify_package(root):
                 raise ValueError('Declared complete-month measurement disagrees with interval evidence.')
         elif row['eligible_downtime_minutes'] is not None:
             raise ValueError('Incomplete authored coverage cannot assert a monthly total.')
+    settlement=_json(root,'settlement_invoice.json')
+    unchanged=settlement['unchanged_sla']
+    cited=[row for row in _json(root,'citations.json') if row['id']==unchanged['citation_id']]
+    if (len(cited)!=1 or unchanged['citation']!=cited[0]
+            or unchanged['sla_source_sha256']!=sha256(_json(root,'document.json')['text'].encode()).hexdigest()):
+        raise ValueError('Settlement unchanged-SLA source reference is not exact.')
     for row in _json(root,'supplements.json'):
         artifact,verification=row['artifact'],row['verification']
         if (artifact['content']!=(root/'january-resource-log.txt').read_text()
@@ -127,6 +133,12 @@ def load_package(directory=None):
     bound=bind_overlay(manifest,Overlay(**overlay))
     agreement_data=_json(root,'agreement.json')
     agreement=_agreement(agreement_data)
+    source_citations=_json(root,'citations.json')
+    def source_quotes(version_id):
+        versions=[v for v in agreement_data['versions'] if v['id']==version_id]
+        files={v['source_file'] for v in versions}|{rate['fixed_monthly']['source_file'] for v in versions for rate in v['rates'] if rate.get('fixed_monthly')}
+        return dict(pricing=[c for c in source_citations if c['source_file'] in files],
+                    sla=[dict(c,source_sha256=manifest['document']['sha256'],uri=manifest['document']['uri']) for c in manifest['citations'] if c['field']!='heading'])
     usage={row['month']:row for row in _json(root,'usage.json')}
     months=[]
     for row in _json(root,'invoices.json'):
@@ -146,11 +158,12 @@ def load_package(directory=None):
                 service=overlay['product'],component=observation['component_id'],invoice=invoice.id,incident=observation['incident_id'],
                 currency='USD',month=month,region=observation['region']),
             governing_fee_cents=cents,governing_fee_version=finding.version if finding else None,
-            receipt_ref=row['receipt_ref'],citations=[v['citation'] for v in agreement_data['versions'] if finding is not None and v['id']==finding.version]))
+            receipt_ref=row['receipt_ref'],source_quotes=source_quotes(finding.version if finding else None),citations=[v['citation'] for v in agreement_data['versions'] if finding is not None and v['id']==finding.version]))
     settlement=_json(root,'settlement_invoice.json')
     settlement_invoice=_invoice(settlement['invoice'])
-    settlement=dict(settlement,invoice_input=settlement['invoice'],invoice=settlement_invoice,
-        pricing_result=evaluate_price(agreement,settlement_invoice,as_of=_at(settlement['observed_at'])))
+    settlement_price=evaluate_price(agreement,settlement_invoice,as_of=_at(settlement['observed_at']))
+    settlement=dict(settlement,invoice_input=settlement['invoice'],invoice=settlement_invoice,pricing_result=settlement_price,
+        source_quotes=source_quotes(settlement_price.lines[0].version if settlement_price.lines else None))
     return dict(settlement=settlement,tenant=index['tenant'],document=document,overlay=overlay,manifest=manifest,pricing_agreement=agreement,
                 pricing_agreement_input=agreement_data,months=months,citations=_json(root,'citations.json'),
                 signature_records=_json(root,'signatures.json'),supplements=_json(root,'supplements.json'),
@@ -164,4 +177,4 @@ def build_fee_registry(package):
     overlay=bind_overlay(package['manifest'],Overlay(**package['overlay']))
     return FeeRegistry(tuple(FeeEntry('northwind-fee-'+row['month'],package['tenant'],Scope(**row['scope']),
         overlay['plan'],overlay['fee_line_ref'],package['pricing_agreement'],row['invoice'],
-        package['manifest']['document']['sha256'],fingerprint(package['manifest']),fingerprint(overlay)) for row in package['months']))
+        package['manifest']['document']['sha256'],fingerprint(package['manifest']),fingerprint(overlay)) for row in [*package['months'],package['settlement']]))

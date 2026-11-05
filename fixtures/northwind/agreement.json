@@ -104,7 +104,7 @@
       "tax_treatment": "separate_excluded",
       "rounding": "line_half_up_cent",
       "source_file": "amendment-2026-03.txt",
-      "source_sha256": "acfd1443c9bed6d08941a0a5e68caeb9247a748615b294409f45d5885714d3c0"
+      "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6"
     }
   ]
 }
