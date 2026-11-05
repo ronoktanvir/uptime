@@ -1,0 +1,33 @@
+{
+  "tested_app_sha": "8d5a8034a58b3cef2f9974783beb1f5869e44edb",
+  "original": {
+    "denominator": 10,
+    "categories": {
+      "inadequate_original_test_design": 10,
+      "unmeasured_downstream_of_failed_original": 9,
+      "backend_filing_reference_contract_mismatch": 3
+    },
+    "report_sha256": "96f6f0a472059c0c1e20c62d60072858781cae0d9718d775fdeae2db122016a7"
+  },
+  "additive": {
+    "denominator": 8,
+    "categories": {
+      "backend_filing_reference_contract_mismatch": 7,
+      "unmeasured_downstream_of_failed_original": 17
+    },
+    "report_sha256": "c6a10e9b9cc2177a31322bd0b9c70a4935714a0907293a73f7e499577d9567e1"
+  },
+  "private_failure_index_sha256": "dc93385a38b6315dac9a755f506c8aa8303f98b9ac783dde98c4663e9e30bda5",
+  "unsupported_contract_failures_confirmed": 0,
+  "witness_fixes": [
+    "Remove gold from runtime flow and action mandates",
+    "Use actual AWAITING_VENDOR response stage",
+    "Retain exact ledger.disputed_remainder field",
+    "Require signed original source/version/order before public GET pins"
+  ],
+  "limitations": [
+    "Post-exercise causal classification from actual transcripts and source inspection; no backend patch was tested.",
+    "Three historical additive denials reach the supported API; four ordinary originals are blocked before denial delivery.",
+    "Exact equality is supported on this source version; prior integer-only limitation is historical."
+  ]
+}

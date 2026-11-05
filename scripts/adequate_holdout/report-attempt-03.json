@@ -1,0 +1,153 @@
+{
+  "aggregates": {
+    "failed": 13,
+    "measured": 139,
+    "passed": 126,
+    "required": 148,
+    "unmeasured": 9
+  },
+  "all_green": false,
+  "app_tree_sha256_after": "37a97228d18073851f322ae0f2362c19630e31397f59820ca86f966c2b7b4687",
+  "app_tree_sha256_before": "37a97228d18073851f322ae0f2362c19630e31397f59820ca86f966c2b7b4687",
+  "attempt_evidence_sha256": "d6a9fb667a3fdb95fca06d0c1ca71934b857700b8bc14165a7cd51df1bd1d0fd",
+  "authority": "SCRIPTED_TEST",
+  "classification": "IN-FAMILY",
+  "clock": "existing correspondence clock configured explicitly from frozen synthetic UTC time",
+  "cohort_count": 10,
+  "complete_case_passes": 2,
+  "dependencies": {
+    "cryptography": "46.0.7",
+    "fastapi": "0.162.0",
+    "httpx": "0.28.1",
+    "pydantic": "2.14.2",
+    "uvicorn": "0.54.0"
+  },
+  "exercised_at": "2026-11-05T02:37:28.523168+00:00",
+  "extraction_sha256": "7da3ba6910779918cc15c2fe82ea79f0f8fece3ac58348f020b3824fba7754c4",
+  "frozen_at": "2026-11-05T02:28:22.993386+00:00",
+  "gold_sha256": "89b651cbbc589a794a1d970ef828546ffd91d7c201a137665bdec9d4cb4ec07e",
+  "human_approval": false,
+  "inputs_sha256": "b135cacb5014fe2810f1a1f908b144f2faa4b0f7458b9c8a1c514adc0e340b0c",
+  "label": "new independently frozen adequate-evidence cases under a studied public vendor source",
+  "limitations": [
+    "Studied fictional public vendor; this is an additional in-family cohort.",
+    "Fractional equality is frozen and retained despite the integer-only monitor shape.",
+    "Historical receipt fields are never inferred from current evidence.",
+    "Projection maps grammatical fee labels but cannot fill original received material."
+  ],
+  "manifest_sha256": "d0bcd1c0ea598e521bc221c10f95b810a48ee97a69bf36d4cf6f31c7c892e58c",
+  "original_cohorts": {
+    "failed_first_pass_counts": "unchanged",
+    "recounted": false,
+    "touched": false
+  },
+  "reviewer_application_label": "authenticated_reviewer; automated local named credential, no human approval",
+  "source_sha256": "697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1",
+  "stable_before_after": true,
+  "stages": {
+    "activation": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "approval": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "artifact_delivery": {
+      "measured": 0,
+      "passed": 0,
+      "required": 1
+    },
+    "candidate": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "case_audit": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "changed_version_refusal": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "claim_open": {
+      "measured": 5,
+      "passed": 5,
+      "required": 5
+    },
+    "denial_delivery": {
+      "measured": 2,
+      "passed": 2,
+      "required": 5
+    },
+    "denial_outcome": {
+      "measured": 2,
+      "passed": 0,
+      "required": 5
+    },
+    "evaluation": {
+      "measured": 10,
+      "passed": 2,
+      "required": 10
+    },
+    "historical_audit": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "interpretation_review": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "original_filing": {
+      "measured": 5,
+      "passed": 2,
+      "required": 5
+    },
+    "response_approval": {
+      "measured": 0,
+      "passed": 0,
+      "required": 1
+    },
+    "response_submit": {
+      "measured": 0,
+      "passed": 0,
+      "required": 1
+    },
+    "rollback": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "rollback_refusal": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "shadow_refusal": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "shadow_tests": {
+      "measured": 10,
+      "passed": 10,
+      "required": 10
+    },
+    "signed_records": {
+      "measured": 5,
+      "passed": 5,
+      "required": 5
+    }
+  },
+  "tested_app_sha": "6a15987eb015cc8f80069db9b640238258f644ad",
+  "transport": "testclient",
+  "vendor_population_generalization": false,
+  "virgin_public_vendor_firstpass": false
+}

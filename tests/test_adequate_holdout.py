@@ -1,0 +1,21 @@
+"""Include the public witness harness checks in normal pytest discovery."""
+from scripts.adequate_holdout.test_witness import (
+    test_complete_measured_green,
+    test_current_get_does_not_invent_original_pins,
+    test_exact_mandate_uses_observed_packet_not_expected_amount,
+    test_failure_remains_in_denominator,
+    test_freeze_rejects_changed_file,
+    test_label_projection_preserves_fees_completeness_and_source_time,
+    test_missing_response_observation_cannot_pass_correct_denial,
+    test_no_duplicate_replacement,
+    test_observer_does_not_read_gold_or_call_scorer,
+    test_original_pin_requires_exact_prior_commitments,
+    test_partial_success_is_not_green,
+    test_projection_never_fills_missing_evidence_or_receipt,
+    test_projection_refuses_duplicate_field_collapse,
+    test_projection_retains_fractional_threshold,
+    test_reject_fabricated_green,
+    test_response_submit_scores_actual_api_stage,
+    test_scoring_changes_neither_evidence_nor_denominator,
+    test_unmeasured_is_not_green,
+)
