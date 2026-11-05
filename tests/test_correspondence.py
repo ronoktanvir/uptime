@@ -334,7 +334,18 @@ def test_customer_contract_alias_cannot_duplicate_governing_obligation(env):
     env.file()
     other_scope = env.scope.model_copy(update={"contract":"customer-contract-alias","invoice":"another-id","incident":"another-label"})
     env.desk.provision("bears", other_scope.account, other_scope.vendor, other_scope.contract, other_scope.service, other_scope.component, other_scope.region)
-    env.desk.create(REVIEWER, Claim(claim_id="inbox-contract-alias", scope=other_scope))
+    alias_claim = Claim(claim_id="inbox-contract-alias", scope=other_scope)
+    with pytest.raises(PermissionError):
+        env.desk.create(REVIEWER, alias_claim)
+    # A new contract on the same account cannot inherit existing service grants.
+    env.desk.bind_sender("bears", other_scope.account, "status", "alias-status", scope=other_scope)
+    env.desk.create(REVIEWER, alias_claim)
+    with pytest.raises(PermissionError):
+        env.desk.receive(Principal("bears", "status-fixture", "service"), alias_claim.claim_id,
+                         Delivery(event_id="lateral", scope=other_scope, body=BODIES["status"]))
+    for source in ("status", "customer", "billing"):
+        env.desk.bind_sender("bears", other_scope.account, source, source + "-fixture", scope=other_scope)
+
     for kind in ("status", "impact", "invoice"):
         env.desk.receive(Principal("bears", SOURCES[kind] + "-fixture", "service"), "inbox-contract-alias",
                          Delivery(event_id="alias-"+kind, scope=other_scope, body=BODIES[kind]))
