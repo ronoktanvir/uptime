@@ -104,12 +104,29 @@
   }
   function actions(items, path, reload) {
     const node = el('div', 'actions');
-    list(items).forEach(action => { if (!action.id) return; node.append(button(action.label || action.id, async event => {
-      if (busy) return; busy = true; const trigger = event.currentTarget; node.querySelectorAll('button').forEach(b => b.disabled = true); announce('Sending action for server authorization…');
-      try { await api(`${path}/${encodeURIComponent(action.id)}`, {}); announce('Action recorded. The latest server state is shown below.'); await reload(); }
-      catch (error) { announce(`${error.message || 'Connection interrupted.'} The action outcome may be unknown; refresh state before retrying.`); }
-      finally { busy = false; node.querySelectorAll('button').forEach(b => b.disabled = false); if (trigger.isConnected) trigger.focus(); }
-    })); });
+    list(items).forEach(action => {
+      if (!action.id) return;
+      const trigger = button(action.label || action.id, async () => {
+        if (busy) return;
+        busy = true;
+        document.querySelectorAll('[data-domain-action]').forEach(control => { control.disabled = true; });
+        announce('Sending action for server authorization…');
+        try {
+          await api(`${path}/${encodeURIComponent(action.id)}`, {});
+          await reload();
+          announce('Action recorded.');
+        } catch (error) {
+          announce(`${error.message || 'Connection interrupted.'} Refresh to check the recorded outcome.`);
+        } finally {
+          busy = false;
+          document.querySelectorAll('[data-domain-action]').forEach(control => { control.disabled = false; });
+          if (trigger.isConnected) trigger.focus();
+        }
+      });
+      trigger.dataset.domainAction = action.id;
+      trigger.disabled = busy;
+      node.append(trigger);
+    });
     if (!node.children.length) node.append(el('p', 'help', 'No actions are available in the current server state.'));
     return node;
   }
@@ -140,6 +157,13 @@
     const name = el('h1', '', data.title || data.vendor || id); name.id = 'case-title';
     const target = $('#case-content'); target.replaceChildren(name, el('p', 'help', `${display(data.vendor)} / ${id}`), add(el('div', 'case-meta'), badge(data.outcome), badge(data.stage)), sources(data.sources));
     const financials = panel('Financial stages'); list(data.financials).forEach(f => financials.append(add(el('div', 'record'), el('h3', '', f.label), el('div', 'metric-value', f.value), sources(f.sources)))); if (!list(data.financials).length) financials.append(empty('No financial stages returned.'));
+    if (list(data.financial_refs).length) {
+      financials.append(el('h3', '', 'Linked records'));
+      data.financial_refs.forEach(ref => {
+        if (ref.id) financials.append(add(el('div', 'record'), el('strong', '', title(ref.kind)),
+          el('code', '', ref.id), sources(ref.sources)));
+      });
+    }
     const clauses = panel('Governing clauses'); list(data.clauses).forEach(c => { const url = safeURL(c.uri); const item = el(url ? 'a' : 'span', 'record', c.label); if (url) { item.href = url; item.target = '_blank'; item.rel = 'noopener noreferrer'; localSource(item, url); } clauses.append(add(el('p'), item)); }); if (!list(data.clauses).length) clauses.append(empty('No governing clauses returned.'));
     const evidence = panel('Evidence'); list(data.evidence).forEach(e => evidence.append(add(el('article', 'record'), el('h3', '', e.label), el('p', '', e.detail), sources(e.sources)))); if (!list(data.evidence).length) evidence.append(empty('No evidence returned.'));
     const trace = panel('Decision trace'); trace.append(add(el('ol', 'trace'), ...list(data.trace).map(t => el('li', '', t))));
@@ -149,7 +173,7 @@
   }
   function guide(id) {
     const node = panel('Contextual guide'); node.append(el('p', 'help', 'Ask about this case’s evidence, calculation or next step. The guide is read-only and cannot perform actions.'));
-    const form = el('form', 'guide-form'), input = el('textarea'); input.required = true; input.maxLength = 2000; input.placeholder = 'What evidence supports this case?';
+    const form = el('form', 'guide-form'), input = el('textarea'); input.required = true; input.maxLength = 1000; input.placeholder = 'What evidence supports this case?';
     const submit = el('button', '', 'Ask guide'); submit.type = 'submit'; const answer = el('div', 'guide-answer'); answer.setAttribute('aria-live', 'polite');
     add(form, add(el('label', '', 'Question about this case'), input), submit); form.addEventListener('submit', async event => { event.preventDefault(); if (!input.value.trim()) return; submit.disabled = true; answer.textContent = 'Reading case context…'; try { const data = await api('/api/guide', {case_id:id,question:input.value.trim()}); answer.replaceChildren(el('p', '', data.answer), sources(data.sources)); } catch(error) { answer.textContent = error.message || 'Guide unavailable. Check your local connection and try again.'; } finally { submit.disabled = false; } });
     return add(node, form, answer);
