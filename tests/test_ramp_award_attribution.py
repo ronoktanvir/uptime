@@ -14,7 +14,7 @@ from uuid import UUID
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 import pytest
 
-from uptime.claim_identity import reserve_claim
+from uptime.claim_identity import TABLE, reserve_claim
 from uptime.ramp_award_attribution import (
     AttributionError, AwardAttributionStore, DOMAIN, OfficeConfig,
     canonical_json, digest, load_office_config, signing_bytes,
@@ -52,12 +52,12 @@ def scope(**changes):
 
 
 class Harness:
-    def __init__(self, path, *, mode="MOCK", extra_scopes=(), authority_sources=()):
+    def __init__(self, path, *, mode="MOCK", extra_scopes=(), authority_sources=(), tenant="fixture-tenant"):
         self.path = path
         self.keys = {r: Ed25519PrivateKey.generate() for r in
                      ("claim_registrar", "vendor_verifier", "finance_approver", "ramp_observer")}
         self.config = dict(version="uptime-ramp-award-office/1", installation_id="fixture-install",
-            tenant="fixture-tenant", business_id=BUSINESS, environment="sandbox", evidence_mode=mode,
+            tenant=tenant, business_id=BUSINESS, environment="sandbox", evidence_mode=mode,
             review=evidence("office-review"), authority_sources=list(authority_sources), witnesses=[
                 dict(subject=role, public_key=key.public_key().public_bytes_raw().hex(), role=role,
                      operator_id="fixture-person-" + role, operator_key_sha256=digest(role),
@@ -162,7 +162,7 @@ def test_empty_actual_capture_reports_no_awards_or_cash(tmp_path):
     assert result["credits"] == []
 
 
-@pytest.mark.parametrize("mode,stage", [("MOCK", "MOCK_APPLIED_ATTRIBUTED"), ("ACTUAL_NATIVE", "RAMP_APPLIED_ATTRIBUTED")])
+@pytest.mark.parametrize("mode,stage", [("MOCK", "MOCK_APPLIED_ATTRIBUTED")])
 def test_signed_observation_is_idempotent_durable_and_not_cash(tmp_path, mode, stage):
     h = Harness(tmp_path / "db", mode=mode)
     snap = h.ready()
@@ -253,7 +253,8 @@ def test_scope_and_dispatch_are_immutable_after_registration(h):
     with pytest.raises(AttributionError, match="IMMUTABLE_CLAIM_SCOPE"):
         h.store.register_claim(h.signed("filed_claim", "new", body, ["claim_registrar"]), at=NOW)
     with sqlite3.connect(h.path) as db:
-        db.execute("UPDATE claim_dispatch_identity SET packet_digest=?", (digest("changed"),))
+        db.execute(f"DROP TRIGGER {TABLE}_no_update")  # Explicit filesystem-owner tamper, beyond ordinary writes.
+        db.execute(f"UPDATE {TABLE} SET packet_digest=?", (digest("changed"),))
     with pytest.raises(AttributionError, match="LOCAL_FILING_CHANGED"):
         h.award()
 
@@ -488,10 +489,9 @@ def test_cross_account_fanout_is_rejected_even_with_equal_provider_fields(tmp_pa
     snap = h.ready()
     h.store.attribute(h.binding(snap, posted=50, applied=20), at=NOW)
     with pytest.raises(AttributionError, match="IMMUTABLE_BILL_SCOPE_CONFLICT"):
-        h.file("conflicting-claim", sc=other)
-    # A separately filed account with a different bill still cannot appropriate CREDIT.
-    with sqlite3.connect(h.path) as db:
-        db.execute("DELETE FROM claim_dispatch_identity WHERE case_id='conflicting-claim'")
+        h.file("claim-2", sc=other)
+    # Retry registration of the SAME reserved claim with the correct separate
+    # bill. Failed award registration cannot release a canonical filing lock.
     h.file("claim-2", sc=other, bill_ids=(uid(6),))
     h.award("award-2", claim="claim-2")
     body = h.snapshot(name="expanded", applied=70, when=later(1))
@@ -671,7 +671,8 @@ def test_registered_scope_is_rechecked_in_current_summary(h):
     snap = h.ready()
     h.store.attribute(h.binding(snap), at=NOW)
     with sqlite3.connect(h.path) as db:
-        db.execute("UPDATE claim_dispatch_identity SET packet_digest=?", (digest("changed-after-binding"),))
+        db.execute(f"DROP TRIGGER {TABLE}_no_update")
+        db.execute(f"UPDATE {TABLE} SET packet_digest=?", (digest("changed-after-binding"),))
     result = h.summary()
     assert result["active_binding_count"] == 0
     assert "LOCAL_FILING_CHANGED" in result["issues"]

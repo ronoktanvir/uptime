@@ -62,8 +62,8 @@ document reference/hash, and four separate witness roles:
 
 | Role | Required external review | May sign |
 | --- | --- | --- |
-| `claim_registrar` | Governing contract/version, beneficiary, commercial account, product, local filing, and exact bill scope from independent retained records | Immutable filed-claim registration |
-| `vendor_verifier` | Actual vendor channel and signer authority; source authenticity and independence from claimant and Ramp | Vendor award confirmation |
+| `claim_registrar` | Governing contract/version, beneficiary, commercial account, product, local filing, and exact bill scope from independent retained records | Immutable filed-claim registration and external custody |
+| `vendor_verifier` | Actual vendor channel and signer authority; source authenticity and independence from claimant and Ramp | External filing custody and vendor award confirmation |
 | `finance_approver` | Named authorized human, finance mandate, exact operator-to-key association, and each proposed financial attribution | Award confirmation and each attribution |
 | `ramp_observer` | Custody of genuine authorized GET readbacks, exact sandbox origin and business identity, grants, pagination and detail-read coverage; use mock custody for `MOCK` | Native snapshot observations |
 
@@ -135,11 +135,36 @@ are rejected. `Evidence` always has `reference`, `sha256`, and `method`.
    `claim_id`, `dispatch_sha256`, `local_contract_id`, `claimant_operator_id`,
    full `scope`, `scope_verification`, and `bills`. Each bill includes native
    `bill_id`, `eligible_minor`, and independently reviewed scope evidence.
-   The initial row in `claim_dispatch_identity` must already exist for that
-   claim. `filing_identity(claim_id)` returns its digest for review. The store
-   rereads the row, recomputes the tenant's economic claim key, checks its actual
-   scope, and snapshots the registration immutably. A local receipt establishes
-   local filing identity only; it is not proof of external delivery or entitlement.
+   A proven initial filing must already exist in `claim_dispatch_identity_v2`
+   or the supported v1 history. `filing_identity(claim_id)` returns a normalized,
+   receipt-bound digest for review. The store checks the original stored packet,
+   receipt, scope and economic key; it never resolves history from today's
+   fixtures or terms. Local simulator and local outbox receipts authorize only
+   `MOCK` attribution.
+
+   **`ACTUAL_NATIVE` additionally requires `external_filing` and signatures from
+   both `claim_registrar` and `vendor_verifier`.** The preexisting filing must use
+   the platform's `historical-receipt` route and contain exactly one original
+   external receipt corroborated by its `inbox_delivery` record. A supplement
+   alone, bare reservation, simulated dispatch, or local outbox cannot qualify.
+   `ExternalFilingWitness` has `evidence_mode="ACTUAL_EXTERNAL"`, `receipt_id`,
+   `receipt_sha256` (the digest of the complete persisted original evidence fact),
+   `received_at`, `submitted_to`, `channel`, `verification`,
+   `authority_verification`, and `independence_verification`. The channel must
+   be a vendor portal, signed document, or authenticated correspondence. The
+   three verification fields use `Evidence`. Both signatures cover the entire
+   statement, including exact account, agreement/version, service, month,
+   beneficiary, product, bills and the external custody attestation.
+
+   A platform source grant authenticates intake only. It does not establish
+   external delivery or turn `LOCAL_SYNTHETIC` evidence into a real filing. The
+   separately enrolled witnesses must independently verify the retained external
+   original through the stated channel; they must never attest a simulated
+   record as `ACTUAL_EXTERNAL`. `MOCK` witnesses cannot authorize actual native
+   attribution. This is an explicit office trust decision, not a boolean the
+   applicant or inbound connector can set. The journal binds each vendor/receipt
+   to one claim, including across accounts, in the same transaction as registration.
+   No real external witness or commercial authority is supplied by this repository.
 2. **`vendor_award` / `import_award`:** Both the vendor verifier and independent
    human finance approver sign `VendorAward`: claim ID and immutable registration
    hash, exact scope, unique `vendor_award_ref`, integer `amount_minor`, and
@@ -249,10 +274,83 @@ Run `uv run --locked pytest tests/test_ramp_award_attribution.py` for determinis
 tests. Full integration still requires the root's post-merge `uv run --locked
 pytest` gate. No test or included example supplies real commercial authority.
 
-Validation on this worker's `8393fc5` base: **77 attribution tests passed**.
-The full locked suite finished with **1,127 passed and two failures**. Both failures
-reproduce in a pristine archive of `8393fc5`: the authority browser test cannot
-bind localhost in this sandbox, and the tenant workspace test supplies a sixth
-argument to the existing five-argument `enroll()` function. Those shared files
-were not changed. The adjacent allocation, claim-identity, and reconciliation
-checks also passed. `git diff --check`, compilation, and CLI help passed.
+## Canonical registry compatibility and validation
+
+The v2 economic key excludes agreement version, normalizes vendor/service labels
+with NFC and case folding, and preserves opaque account IDs. Agreement version
+still binds the approved historical packet; a later version cannot mint another
+monthly claim or silently replace the original packet's terms. The historical
+receipt route does not retain a terms version; the independent signed filing
+attestation must establish it. Current contract state cannot fill that gap.
+
+The reader uses the shared `claim_identity` normalization and legacy receipt
+validators. Supported v1 correspondence and legacy records are resolved from
+their saved packets/approvals and their versioned v1 hashes are checked before
+mapping to the v2 key. Identical v1/v2 copies coalesce; conflicting owners of a
+canonical obligation fail closed. Unindexed receipts from an older writer,
+orphan reservations, unknown historical remedies and inconsistent metadata need
+reconciliation through the existing claim migration workflow. Award attribution
+never creates a replacement registry table, releases a reservation, or runs a
+migration during review or summary.
+
+Normalized registration digests survive additive v1-to-v2 migration. Earlier
+`MOCK` registrations that signed a physical v1 row remain usable only while the
+exact original row and corroborating receipt still exist. Unsupported old
+`ACTUAL_NATIVE` registrations without the new independent external witness do
+not become current verified attribution. No stored approval is rewritten.
+
+Receipt identity, packet/scope, source fact and current witness validity are
+rechecked before award import, allocation and each current summary. Changes
+suspend attribution while preserving observed provider amounts and historical
+rows. Receipt uniqueness and allocation caps remain transactional. Filesystem
+owners can bypass SQLite triggers; tests simulate that explicitly rather than
+weakening ordinary write protection.
+
+The corrective work started on `b3a5edadb979ca819cff159c960faf2e2db74b40` with
+**57 failures and 20 passes** in the original attribution test file. The old
+positive ACTUAL test used only an opaque fixture reservation; it was replaced
+by coverage of the platform receipt and independently signed custody protocol.
+Tests use generated identities, keys, packets and captures and establish no
+real claim, award, Ramp write, or recovered cash.
+
+The remediation also read packet/review 42 from the integration worktree:
+`42-release-authority-and-independent-critique.md` SHA-256
+`086d2d29d76122e94cf6b5e17ec808b886addb9d429eb8d86a3fe997b54991c5`, and its JSON
+review SHA-256
+`5a4bd4e285f7a5ac009b619b284214bd652cf8ac20a6c5ac226c12838f837ba4`.
+That saved review requires out-of-band vendor-key enrollment and rejects inferred
+external authority. The office's separately enrolled vendor verifier and exact
+custody signatures enforce this boundary; ordinary source keys are excluded.
+These are existing reviews of the design, not an independent review of this
+patch. **OPUS_BLOCKED for a new consult:** this task explicitly prohibits network
+and credential access. The changes are local and reversible; no actual office
+has been enrolled, real filing certified, or external action authorized here.
+
+Validation commands (offline dependency resolution):
+
+```sh
+UV_OFFLINE=1 uv run --locked pytest tests/test_ramp_award_attribution.py tests/test_ramp_award_claim_integration.py
+UV_OFFLINE=1 uv run --locked pytest
+```
+
+The integration tests exercise original legacy/correspondence receipts, both
+physical registry versions, additive migration and old signatures, canonical
+version/label duplicates, external original versus supplement, missing/mock or
+mismatched witnesses, receipt reuse across accounts, later evidence changes,
+read-only summaries, and the operator CLI. Root wiring remains a separate
+`.summary(tenant, business)` read; no shared workspace or claim-intake code changed.
+
+Final focused validation: **111 passed** across the attribution and claim-join
+files. The broader claim/correspondence/allocation/reconciliation/native-credit
+selection: **370 passed**, with one dependency deprecation warning. Compilation,
+CLI help, the CLI persistence smoke test and `git diff --check` passed.
+
+The final full locked suite reports **1,821 passed, one skipped, two failed**
+(one dependency deprecation warning; 213.31 seconds). The two failures require a
+loopback socket that this task's sandbox rejects:
+`test_source_config_v4.py::test_delivery_cli_posts_original_file_to_real_loopback_and_prints_only_receipt`
+and
+`test_v4_authority_browser.py::test_real_browser_sibling_cannot_exfiltrate_or_replay_authority`.
+Both independently reproduce on a pristine archive of the base commit at
+`listener.bind(("127.0.0.1", 0))` with `PermissionError: Operation not permitted`.
+No permission escalation, credential access or external network call was used.
