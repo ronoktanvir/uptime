@@ -184,7 +184,7 @@ def test_version_is_not_part_of_v2_key_but_is_part_of_filed_packet(tmp_path):
         register(h, claim, wrong, local_contract=local)
 
 
-def historical(h, *, claim="inbox-external", sc=None, receipt="external-original", supplement=False):
+def historical(h, *, claim="inbox-external", sc=None, receipt="external-original", supplement=False, pin_version=True):
     sc = sc or scope() | {"remedy": "resource-month/station-1"}
     local = Scope(account=sc["account_id"], vendor=sc["vendor_name"], contract="local-contract", service=sc["service_name"],
                   component="station-1", region="west", invoice="invoice-1", incident="incident-1", currency="USD", month=sc["month"])
@@ -201,6 +201,8 @@ def historical(h, *, claim="inbox-external", sc=None, receipt="external-original
     desk.create(Principal(tenant, "fixture-claimant", "reviewer"), Claim(claim_id=claim, scope=local))
     original = dict(kind="original_filing_receipt", source_ref="test-custody-document", receipt_id=receipt,
                     received_at=later(-30), observed_at=later(-20), submitted_to="https://fixture.invalid/claims", fields=[])
+    if pin_version and not supplement:
+        original["contract_version"] = sc["contract_version"]
     body = original if not supplement else original | dict(kind="supplement_filing_receipt", original_ref=receipt, receipt_id="supplement")
     desk.receive(Principal(tenant, "fixture-inbound-vendor", "service"), claim, Delivery(event_id="original", scope=local, body=body))
     return desk, local, sc
@@ -216,10 +218,10 @@ def witness(h, claim="inbox-external", *, mode="ACTUAL_EXTERNAL"):
                 independence_verification=evidence("external-independence"))
 
 
-def external_harness(tmp_path, *, extra=()):
+def external_harness(tmp_path, *, extra=(), pin_version=True):
     sc = scope() | {"remedy":"resource-month/station-1"}
     h = Harness(tmp_path / "db", mode="ACTUAL_NATIVE", extra_scopes=[sc, *extra])
-    desk, local, _ = historical(h, sc=sc)
+    desk, local, _ = historical(h, sc=sc, pin_version=pin_version)
     return h, desk, local, sc
 
 

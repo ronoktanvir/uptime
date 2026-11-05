@@ -626,8 +626,8 @@ class AwardAttributionStore:
                     fail("EXTERNAL_RECEIPT_DELIVERY_REQUIRED")
                 if not _time(body["received_at"]) <= _time(body["observed_at"]) <= _time(fact["received_at"]):
                     fail("EXTERNAL_RECEIPT_TIME_CONFLICT")
-                # The historical registry retains lineage, not the agreement version.
-                # That version must be independently attested; never use today's rules.
+                # The receipt's source-signed contract_version pins its original
+                # reviewed economics. The canonical obligation remains version-free.
                 return None, fact
             originals = [r for r in state["submissions"] if r["action"] == "submit-claim"]
             if len(originals) != 1:
@@ -791,6 +791,10 @@ class AwardAttributionStore:
                 fail("ACTUAL_EXTERNAL_FILING_REQUIRED")
             fact = dispatch["receipt"]
             receipt = fact["body"]
+            if not receipt.get("contract_version"):
+                fail("ORIGINAL_CONTRACT_VERSION_REQUIRED")
+            if receipt["contract_version"] != s.contract_version:
+                fail("ORIGINAL_CONTRACT_VERSION_CONFLICT")
             if (witness.receipt_id != receipt["receipt_id"] or witness.receipt_sha256 != digest(fact)
                     or witness.received_at != _time(receipt["received_at"])
                     or witness.submitted_to != receipt["submitted_to"]):
