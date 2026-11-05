@@ -325,10 +325,11 @@ def _compile_resource(document, clauses, issues):
                             raise ValueError(f'Block {index} field {key}: {exc}') from None
                         continue
                     if key == 'nonmaterial':
-                        ordinary_heading = bool(re.fullmatch(r'(?:section\s+)?[0-9]+(?:\.[0-9]+)*[.) :]+[a-z][a-z /-]{1,55}',lower.strip()))
+                        ordinary_heading = bool(re.fullmatch(r'(?:#{1,6}\s+)?(?:section\s+)?[0-9]+(?:\.[0-9]+)*[.) :]+[a-z][a-z /-]{1,55}',lower.strip()))
                         if len(values)==1 and re.search(r'[0-9]',lower) and not ordinary_heading:
                             raise ValueError('Numerical source condition lacks an operative mapping.')
                         material_text = lower.replace('%', '') if header is not None and not re.search(r'\d', lower) else lower
+                        material_text = re.sub(r'\bpublic[- ]only(?=\s+(?:model\s+)?extraction\b)', 'public', material_text)
                         if (not isinstance(value,str) or not value.strip() or len(value)>300 or
                                 len(values)==1 and re.search(r'[%≤≥]|\b(?:shall|must|unless|except|subject to|required|within|refund|exclusive|cap|eligible|only|not|provided that|excludes?)\b',material_text)):
                             raise ValueError('Material source labeled nonoperative.')
@@ -495,8 +496,10 @@ def _compile_resource(document, clauses, issues):
     return manifest if issues is None else None
 
 
-def public_blocks(text):
+def public_blocks(text, *, protocol='public_block_ids/1'):
     """Stable, complete, ordered slices of original public source bytes (Unicode character offsets)."""
+    if protocol not in ('public_block_ids/1', 'public_block_ids/2'):
+        raise ValueError('Unknown immutable source-block protocol.')
     blocks=[]
     for line in re.finditer(r'[^\r\n]+',text):
         left=line.start()
@@ -517,14 +520,41 @@ def public_blocks(text):
             quote=text[left:right]
             blocks.append({'id':len(blocks)+1,'start':left,'end':right,'sha256':sha256(quote.encode()).hexdigest(),'text':quote})
             left=limit
+    if protocol == 'public_block_ids/2':
+        grouped = []
+        for block in blocks:
+            previous = grouped[-1] if grouped else None
+            if previous and _is_wrapped_continuation(text, previous, block):
+                previous['end'] = block['end']
+                previous['text'] = text[previous['start']:previous['end']]
+                previous['sha256'] = sha256(previous['text'].encode()).hexdigest()
+            else:
+                grouped.append(block | {'id': len(grouped) + 1})
+        blocks = grouped
     if not 1<=len(blocks)<=200:
         raise ValueError('Resource extraction supports 1–200 public source blocks.')
     return blocks
 
 
-def project_blocks(text,response):
+def _is_wrapped_continuation(source, previous, following):
+    left, right = previous['text'], following['text']
+    if following['end'] - previous['start'] > 4096:
+        return False
+    if not re.fullmatch(r'[ \t]*\r?\n[ \t]*', source[previous['end']:following['start']]):
+        return False
+    boundary = r'(?:#{1,6}\s|[-*]\s|\d+[.)]\s|\||[A-Za-z][A-Za-z ]{0,30}:\s)'
+    if re.match(boundary, left) or re.match(boundary, right) or '|' in left or '|' in right:
+        return False
+    if left.rstrip().endswith(('.', '?', '!', ':', ';')):
+        return False
+    # Preserve short standalone titles/labels. A lower-case continuation or a long
+    # unfinished prior line is evidence of ordinary source wrapping.
+    return right[0].islower() or len(left.rsplit('\n', 1)[-1]) >= 55
+
+
+def project_blocks(text,response, *, protocol='public_block_ids/1'):
     """Model output cannot replace, reorder, duplicate or discard even one nonblank source block."""
-    blocks=public_blocks(text)
+    blocks=public_blocks(text, protocol=protocol)
     if not isinstance(response,dict) or set(response)!={'blocks'} or not isinstance(response['blocks'],list) or len(response['blocks'])!=len(blocks):
         raise ValueError('Model must return exactly one effect record per source block.')
     rows=[]
