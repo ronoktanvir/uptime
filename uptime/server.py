@@ -8,7 +8,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
-from .auth import Authority, DEFAULT_ORIGIN
+from .auth import Authority, DEFAULT_ORIGIN, TENANT
 
 from .contracts import Principal
 from .intelligence import explain
@@ -32,9 +32,9 @@ class ModeRequest(Empty):
 
 
 def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=False, rehearsal_secret=None,
-               service_credentials=None, origin=DEFAULT_ORIGIN):
-    auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin)
-    bench = Workbench(db_path, mode)
+               service_credentials=None, origin=DEFAULT_ORIGIN, tenant=TENANT):
+    auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant)
+    bench = Workbench(db_path, mode) if tenant == TENANT else Workbench(db_path, mode, tenant=tenant)
     app = FastAPI(title="Uptime for Ramp", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.bench, app.state.auth = bench, auth
     write_lock = Lock()

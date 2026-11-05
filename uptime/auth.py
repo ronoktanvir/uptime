@@ -4,7 +4,7 @@ Enrollment is an offline operator action. A random P-256 key signs short-lived
 challenges. The server stores only its public key. Private keys stay with the operator.
 This is a single-process loopback prototype.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from hashlib import sha256
 import hmac
 import json
@@ -17,10 +17,13 @@ from time import time
 from urllib.parse import urlsplit
 
 from fastapi import HTTPException, Request
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
+from . import mandates
 from .auth_keys import public_bytes, rehearsal_key, verify_reviewer
-from .contracts import Principal
+from .contracts import Principal, fingerprint
+from .correspondence_types import Id
+from .source_config import SourceGrant, SourceGrants, SourceRegistry
 from .storage import database
 
 TENANT = "bears"
@@ -46,11 +49,12 @@ def valid_origin(origin):
     return origin
 
 
-def bind_workspace(path, mode, rehearsal):
+def bind_workspace(path, mode, rehearsal, tenant=TENANT):
     """A rehearsal or other mode must never reuse human state or an ambiguous legacy DB."""
     if mode not in {"replay", "sandbox"} or (rehearsal and mode != "replay"):
         raise ValueError("Scripted rehearsal requires isolated replay mode")
-    scope = (mode, int(rehearsal))
+    TypeAdapter(Id).validate_python(tenant, strict=True)
+    scope = (mode, int(rehearsal), tenant)
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with database(path) as db, db:
         db.execute("BEGIN IMMEDIATE")
@@ -58,11 +62,16 @@ def bind_workspace(path, mode, rehearsal):
         if tables and "authority_workspace" not in tables:
             raise ValueError("Unscoped legacy database. Choose a fresh V4 workspace.")
         db.execute("CREATE TABLE IF NOT EXISTS authority_workspace "
-                   "(id INTEGER PRIMARY KEY CHECK(id=1), mode TEXT, rehearsal INTEGER)")
-        db.execute("INSERT OR IGNORE INTO authority_workspace VALUES(1,?,?)", scope)
-        row = db.execute("SELECT mode,rehearsal FROM authority_workspace WHERE id=1").fetchone()
+                   "(id INTEGER PRIMARY KEY CHECK(id=1), mode TEXT, rehearsal INTEGER, tenant TEXT NOT NULL)")
+        columns = {row[1] for row in db.execute("PRAGMA table_info(authority_workspace)")}
+        if "tenant" not in columns:
+            if tenant != TENANT:
+                raise ValueError("An existing single-tenant V4 database belongs to bears")
+            db.execute("ALTER TABLE authority_workspace ADD COLUMN tenant TEXT NOT NULL DEFAULT 'bears'")
+        db.execute("INSERT OR IGNORE INTO authority_workspace(id,mode,rehearsal,tenant) VALUES(1,?,?,?)", scope)
+        row = db.execute("SELECT mode,rehearsal,tenant FROM authority_workspace WHERE id=1").fetchone()
         if tuple(row) != scope:
-            raise ValueError("Database belongs to a different authority or execution mode")
+            raise ValueError("Database belongs to a different authority, tenant or execution mode")
         Path(path).chmod(0o600)
         if "authority_user" in tables:
             columns = {row[1] for row in db.execute("PRAGMA table_info(authority_user)")}
@@ -70,18 +79,22 @@ def bind_workspace(path, mode, rehearsal):
                 raise ValueError("Legacy password authority requires a fresh workspace and offline key enrollment")
         db.execute("CREATE TABLE IF NOT EXISTS authority_user "
                    "(subject TEXT PRIMARY KEY, role TEXT NOT NULL, public_key BLOB NOT NULL UNIQUE)")
+        mandates.setup(db)
 
 
-def enroll(path, subject, credential, role="reviewer", mode="replay"):
+def enroll(path, subject, credential, role="reviewer", mode="replay", tenant=TENANT):
     if (not NAME.fullmatch(subject) or subject.startswith(("scripted-", "service-", "local-"))
             or role not in {"viewer", "reviewer"}):
         raise ValueError("Use a named local human account and a viewer or reviewer role")
     if isinstance(credential, dict) and credential.get("uptime_rehearsal"):
         raise ValueError("A scripted rehearsal key cannot enroll a human")
     public = public_bytes(credential)
-    bind_workspace(path, mode, False)
+    bind_workspace(path, mode, False, tenant)
     try:
         with database(path) as db, db:
+            db.execute("BEGIN IMMEDIATE")
+            if db.execute("SELECT 1 FROM mandate_issuer WHERE subject=?", (subject,)).fetchone():
+                raise ValueError("A mandate issuer cannot enroll as a reviewer account")
             db.execute("INSERT INTO authority_user VALUES(?,?,?)", (subject, role, public))
     except sqlite3.IntegrityError:
         raise ValueError("Account or public key already enrolled") from None
@@ -120,8 +133,20 @@ class Session:
     key_tag: str
 
 
+@dataclass(frozen=True)
+class ServicePrincipal(Principal):
+    source_key_id: str
+    source_grant_id: str
+
+
+@dataclass(frozen=True)
+class AuthorizedReviewer(Principal):
+    native_ticket: str = field(repr=False, compare=False)
+
+
 class Authority:
-    def __init__(self, path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin):
+    def __init__(self, path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant=TENANT):
+        self.tenant = tenant
         self.origin = valid_origin(origin)
         self.instance = secrets.token_hex(24)
         self.approvals_enabled = bool(approvals_enabled)
@@ -133,13 +158,32 @@ class Authority:
         self.sessions = {}
         self.challenges = {}
         self.deliveries = {}
-        self.services = dict(service_credentials or {})
-        if (len(set(self.services.values())) != len(self.services) or
-                any(not NAME.fullmatch(subject) or len(key) < 32 for subject, key in self.services.items())):
-            raise ValueError("Inbound service identities require individually provisioned strong keys")
+        self.source_registry = service_credentials if isinstance(service_credentials, SourceRegistry) else None
+        if isinstance(service_credentials, (SourceGrants, SourceRegistry)) and service_credentials.audience != (mode, self.origin, tenant):
+            raise ValueError("Source grant audience differs from this installation")
+        self.services = self.source_registry.initial if self.source_registry else dict(service_credentials or {})
+        identities = set()
+        for subject, key in self.services.items():
+            if not NAME.fullmatch(subject):
+                raise ValueError("Inbound services need canonical subjects")
+            if isinstance(key, SourceGrant):
+                if not isinstance(service_credentials, (SourceGrants, SourceRegistry)):
+                    raise ValueError("Source grants require an explicitly validated installation audience")
+                if key.subject != subject:
+                    raise ValueError("Source identity and grant must match")
+                identity = ("ed25519", key.public_key)
+            else:
+                if (not isinstance(key, str) or len(key) < 32 or
+                        mode != "replay" or tenant != TENANT or not (rehearsal or "fixture" in re.split(r"[._-]", subject))):
+                    raise ValueError("Shared-key services require a named local fixture or scripted rehearsal")
+                identity = ("fixture", key)
+            if identity in identities:
+                raise ValueError("Inbound sources require independent keys")
+            identities.add(identity)
         if rehearsal != bool(rehearsal_secret) or (rehearsal and len(rehearsal_secret) < 32):
             raise ValueError("Only a scripted replay can use a private rehearsal credential")
-        bind_workspace(path, mode, rehearsal)
+        bind_workspace(path, mode, rehearsal, tenant)
+        mandates.remember_source_keys(path, [(s.subject, s.public_key) for s in self.services.values() if isinstance(s, SourceGrant)])
         if rehearsal:
             self.script_account = ("reviewer", public_bytes(rehearsal_key(rehearsal_secret)))
 
@@ -171,7 +215,7 @@ class Authority:
             raise HTTPException(401, "Session expired. Sign in again.")
         principal = session.principal
         account = self.account(principal.subject)
-        if not account or principal.tenant != TENANT or principal.role != account[0] or digest(account[1]) != session.key_tag:
+        if not account or principal.tenant != self.tenant or principal.role != account[0] or digest(account[1]) != session.key_tag:
             raise HTTPException(403, "Local authority changed. Sign in again.")
         return principal
 
@@ -205,7 +249,7 @@ class Authority:
                 raise HTTPException(429, "Too many pending challenges")
             nonce = secrets.token_urlsafe(32)
             expires = int(time()) + TTL
-            message = json.dumps(["uptime-v4", self.instance, self.origin, self.mode, self.rehearsal,
+            message = json.dumps(["uptime-v4", self.instance, self.origin, self.tenant, self.mode, self.rehearsal,
                                   body.subject, session, "POST", body.path, body.body_sha256,
                                   self.revision, expires, nonce], separators=(",", ":"))
             self.challenges[nonce] = Challenge(body.subject, body.path, body.body_sha256, session,
@@ -224,7 +268,7 @@ class Authority:
             if session:
                 # Invalidate every pending write after an authorized action, even if validation later fails.
                 self.revision += 1
-            return Principal(TENANT, item.subject, account[0]), digest(account[1])
+            return Principal(self.tenant, item.subject, account[0]), digest(account[1])
 
     def login(self, body: LoginProof):
         principal, tag = self.consume(body.challenge, body.proof, "/api/auth/login", "", "")
@@ -249,42 +293,88 @@ class Authority:
         if principal.role != "reviewer" or request.method != "POST" or request.url.query:
             raise HTTPException(403, "An exact reviewer POST is required")
         path = request.scope["raw_path"].decode("ascii")
-        self.consume(request.headers.get("x-uptime-challenge", ""), request.headers.get("x-uptime-proof", ""),
-                     path, digest(await request.body()), self.session_id(request))
+        body_hash = digest(await request.body())
+        proved, tag = self.consume(request.headers.get("x-uptime-challenge", ""), request.headers.get("x-uptime-proof", ""),
+                                    path, body_hash, self.session_id(request))
+        session = self.sessions.get(self.session_id(request))
+        if not session or proved != principal or session.key_tag != tag:
+            raise HTTPException(403, "Reviewer account changed during authorization")
+        if self.rehearsal:
+            if self.tenant != TENANT:
+                raise HTTPException(403, "Scripted actions require the isolated fixture tenant")
+            return principal
+        try:
+            ticket = mandates.claim(self.path, principal, path, body_hash, self.instance, required=self.tenant != TENANT)
+        except PermissionError as exc:
+            raise HTTPException(403, str(exc)) from None
+        if ticket:
+            return AuthorizedReviewer(principal.tenant, principal.subject, principal.role, ticket)
         return principal
+
+    def authorize_native(self, principal, *, business_id, resource_type, resource_id, action, payload_sha256):
+        """Called at dispatch using the provider-bound IDs and exact bytes of the prepared effect."""
+        self.require_gate()
+        if (self.mode != "sandbox" or self.rehearsal or not isinstance(principal, AuthorizedReviewer)
+                or principal.tenant != self.tenant or principal.role != "reviewer"):
+            raise PermissionError(mandates.DENIED)
+        try:
+            effect = mandates.Effect(business_id=business_id, resource_type=resource_type, resource_id=resource_id,
+                                    action=action, payload_sha256=payload_sha256)
+        except ValueError:
+            raise PermissionError(mandates.DENIED) from None
+        return mandates.consume_native(self.path, principal, self.instance, principal.native_ticket, effect)
 
     async def service(self, request: Request):
         """Authenticate exact raw inbound bytes, consumed once within this service audience."""
         self.require_origin(request)
         self.require_gate()
         subject = request.headers.get("x-uptime-service", "")
-        key = self.services.get(subject)
+        try:
+            key = self.source_registry.lookup(subject) if self.source_registry else self.services.get(subject)
+        except (ValueError, OSError):
+            raise HTTPException(403, "Source configuration is unavailable or invalid") from None
         nonce = request.headers.get("x-uptime-nonce", "")
         stamp = request.headers.get("x-uptime-time", "")
         proof = request.headers.get("x-uptime-proof", "")
         if (not key or request.method != "POST" or request.url.query or
                 not re.fullmatch(r"[a-zA-Z0-9_-]{20,128}", nonce) or not re.fullmatch(r"[0-9]{10}", stamp)
-                or abs(time() - int(stamp)) >= TTL or not re.fullmatch(r"[a-f0-9]{64}", proof)):
+                or abs(time() - int(stamp)) >= TTL):
             raise HTTPException(403, "An authenticated inbound service is required")
-        message = service_message(self.instance, self.origin, subject, request.scope["raw_path"].decode("ascii"),
-                                  await request.body(), stamp, nonce)
+        path = request.scope["raw_path"].decode("ascii")
+        body = await request.body()
+        message = service_message(self.instance, self.origin, subject, path, body, stamp, nonce, self.tenant,
+                                  self.mode if isinstance(key, SourceGrant) else None)
+        if isinstance(key, SourceGrant):
+            valid = key.verify(message, proof) and key.allows(path, body)
+            if valid and self.source_registry and key.public_key != self.services[subject].public_key:
+                try:
+                    mandates.remember_source_keys(self.path, [(subject, key.public_key)])
+                except PermissionError:
+                    raise HTTPException(403, "Source key belongs to a separate authority") from None
+            key_id = "ed25519-sha256:" + digest(bytes.fromhex(key.public_key))
+            grant_id = fingerprint([self.tenant, self.mode, key.model_dump()])
+        else:
+            valid = bool(re.fullmatch(r"[a-f0-9]{64}", proof)) and hmac.compare_digest(signature(key.encode(), message), proof)
+            key_id = "fixture-hmac:" + signature(key.encode(), "uptime-local-fixture-key-id-v1")
+            grant_id = fingerprint([self.tenant, self.mode, subject, key_id, "LOCAL_FIXTURE"])
         with self.lock:
             self.prune()
-            if not hmac.compare_digest(signature(key.encode(), message), proof) or (subject, nonce) in self.deliveries:
-                raise HTTPException(403, "Invalid or reused inbound proof")
+            if not valid or (subject, nonce) in self.deliveries:
+                raise HTTPException(403, "Invalid, out-of-scope or reused inbound proof")
             # The acceptance window includes future timestamps. Retain through its full end.
             self.deliveries[(subject, nonce)] = int(stamp) + TTL
             self.revision += 1
-        return Principal(TENANT, subject, "service")
+        return ServicePrincipal(self.tenant, subject, "service", key_id, grant_id)
 
     def register(self, app):
         app.add_api_route("/api/auth/challenge", self.challenge, methods=["POST"])
         app.add_api_route("/api/auth/login", self.login, methods=["POST"])
         app.add_api_route("/api/auth/logout", self.logout, methods=["POST"])
-        app.add_api_route("/api/auth/context", lambda: {"instance": self.instance, "origin": self.origin},
+        app.add_api_route("/api/auth/context", lambda: {"instance": self.instance, "origin": self.origin,
+                                                         "mode": self.mode, "tenant": self.tenant},
                           methods=["GET"])
 
 
-def service_message(instance, origin, subject, path, body, stamp, nonce):
-    return json.dumps(["uptime-v4-inbound", instance, origin, subject, "POST", path, digest(body), stamp, nonce],
+def service_message(instance, origin, subject, path, body, stamp, nonce, tenant=TENANT, mode=None):
+    return json.dumps(["uptime-v4-inbound", instance, origin, tenant, mode, subject, "POST", path, digest(body), stamp, nonce],
                       separators=(",", ":"))
