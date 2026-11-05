@@ -58,11 +58,10 @@
     const note = text => el('p', text, 'v4-note');
     const button = (text, handler) => { const n = el('button', text); n.type = 'button'; n.addEventListener('click', handler); return n; };
     function provenance(sources) {
-      const n = add(el('details', undefined, 'v4-source-record'), el('summary', 'Source record'));
-      const values = el('div', undefined, 'v4-sources');
-      n.append(values);
-      if (!list(sources).length) values.append(el('span', 'Provenance unknown', 'v4-source v4-unknown'));
-      list(sources).forEach(s => values.append(el('span', typeof s === 'string' ? s : JSON.stringify(s, (key, value) => hidden.test(key) ? undefined : value), 'v4-source')));
+      const refs = list(sources).filter(s => s && typeof s === 'object' && (s.ref || s.title || s.uri));
+      const n = el('div', undefined, 'v4-sources');
+      refs.forEach(s => n.append(el('span', s.ref || s.title || s.uri, 'v4-source')));
+      if (!list(sources).length) n.append(note('Source references not provided.'));
       return n;
     }
     function record(value, depth = 0) {
@@ -74,7 +73,7 @@
       }
       const n = el('dl', undefined, 'v4-record');
       Object.entries(value).forEach(([key, val]) => {
-        if (hidden.test(key)) return; // Do not display accidentally included authentication fields.
+        if (hidden.test(key) || ['source_mode','data_provenance','classification'].includes(key) || key === 'mode' && /replay|simulat|demo/i.test(String(val))) return; // Do not display accidentally included authentication fields.
         add(n, el('dt', label(key)), add(el('dd'), key === 'sources' ? provenance(val) : record(val, depth + 1)));
       });
       return n;
@@ -275,7 +274,7 @@
         add(panel,note(description),link); nav.append(panel);
       }
       m.body.append(nav,section('Observed integrity & reconciliation'));
-      m.body.append(record({as_of:data.as_of,source_mode:data.source_mode,snapshot_status:data.snapshot_status,
+      m.body.append(record({as_of:data.as_of,snapshot_status:data.snapshot_status,
         credit_sync:data.credit_sync,terms:data.terms ?? data.terms_status ?? data.terms_metrics ?? 'Terms verification metrics not returned by this backend',
         quarantine:data.quarantine ?? data.quarantine_metrics ?? 'Quarantine metrics not returned by this backend'}));
       m.body.append(note('Missing verification or quarantine counts are unknown, not zero. A checksum or source signature alone does not establish entitlement.'));

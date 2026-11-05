@@ -36,3 +36,12 @@ test('lost action response blocks repeat until explicit server refresh and stale
 test('decimal display never rounds through Number and missing monetary observations remain unknown',()=>{
  assert.equal(money('9007199254740993.01'),'$9,007,199,254,740,993.01');assert.equal(money(null),'Not determined');assert.equal(money('0.00'),'$0.00');assert.equal(money('NaN'),'Not determined');
 });
+
+test('agreement amendments and adapter history retain actual references and scripted principal detail',async()=>{
+ const data={...projection,contract:{...projection.contract,summary:'Monthly fee and service credit schedule.',documents:[{title:'Amendment 1',ref:'NW-AM1#2',version:'1',effective_at:'2026-03-01',description:'The service-period cap becomes USD 11,000.'}]},reviewer:{...projection.reviewer,principal:'scripted-test-reviewer'},onboarding:{vendor:'CalyxQuay',state:'ACTIVE',version:'cq-v2',history:[{at:'2026-01-01',event:'Shadow evaluation passed',ref:'shadow-cq'},{at:'2026-01-02',event:'Version approved',ref:'review-cq'},{at:'2026-01-03',event:'Version activated',ref:'activate-cq'},{at:'2026-01-04',event:'Version rolled back',ref:'rollback-cq'}]},ledger:{...projection.ledger,awarded:'2400.00',posted:'2400.00',applied:'2400.00',bill:{...projection.ledger.bill,outstanding_amount:'9600.00'}}};
+ const s=setup(()=>({workflow:data}));await s.ui.render(s.root);
+ for(const value of ['Amendment 1','NW-AM1#2','2026-03-01','USD 11,000','scripted-test-reviewer','CalyxQuay','shadow-cq','review-cq','activate-cq','rollback-cq','$9,600.00','$1,000.00'])assert.ok(s.root.textContent.includes(value),value);
+ assert.doesNotMatch(s.root.textContent,/synthetic|simulat|replay|demo/i);
+ assert.equal(s.root.all('a').find(a=>a.textContent==='Inspect vendor contracts').href,'#vendors');
+ assert.deepEqual(data.sources,['SYNTHETIC_CUSTOMER']);assert.equal(data.mode,'replay');
+});

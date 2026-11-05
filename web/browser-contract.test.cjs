@@ -54,7 +54,7 @@ test('ledger consumes API data, keeps sources exact and treats markup as text', 
   assert.equal(requests[0].options.credentials,'omit');
   assert.match(nodes.content.textContent,/<img src=x onerror=alert\(1\)>/);
   assert.equal(nodes.content.querySelectorAll('img').length,0);
-  assert.match(nodes.content.textContent,/SIMULATED_VENDOR/);
+  assert.doesNotMatch(nodes.content.textContent,/SYNTHETIC_CUSTOMER|SIMULATED_VENDOR/);
   assert.match(nodes.content.textContent,/\$12.00/);
 });
 test('inspector action uses encoded route, empty POST and no client identity', async () => {

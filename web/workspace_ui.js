@@ -31,8 +31,12 @@
       const header=add(el('div',null,'page-head'),add(el('div'),el('h1',vendor || 'Contract operations'),note('Contract review & recovery')),note(data.as_of ? 'Updated '+data.as_of : ''));
       const ledger=data.ledger || {}, currency=ledger.currency || 'USD';
       const metrics=el('section',null,'metrics');metrics.setAttribute('aria-label','Financial stages');
-      for (const [key,title] of [['claimed','Claimed'],['awarded','Awarded'],['posted','Posted to Local ledger'],['applied','Applied to bill']]) metrics.append(add(el('article',null,'metric'),el('h2',title),el('div',money(ledger[key],currency),'metric-value')));
+      for (const [key,title] of [['claimed','Claimed'],['awarded','Awarded'],['posted','Posted to '+text(ledger.destination)],['applied','Applied to bill']]) metrics.append(add(el('article',null,'metric'),el('h2',title),el('div',money(ledger[key],currency),'metric-value')));
       const recovery=panel('January recovery'), claim=data.claim || {}, connection=data.connection || {};
+      const agreement=data.contract || {}, reviewer=data.reviewer || {};
+      const contract=panel('Governing agreement');
+      add(contract,note(agreement.summary),fields([['Agreement',agreement.title],['Version',agreement.version],['Document reference',agreement.ref]]));
+      list(agreement.documents).forEach(document=>contract.append(add(el('article',null,'workflow-document'),el('h3',document.title),fields([['Reference',document.ref],['Version',document.version],['Effective date',document.effective_at]]),note(document.description))));
       add(recovery,fields([['Connection destination',connection.destination],['Connection status',state(connection.status)],['Receipt status',state(connection.receipt_status)]]));
       add(recovery,fields([['Current stage',state(claim.state)],['Claim reference',claim.id],['Destination',ledger.destination]]),note(claim.summary));
       const status=el('p',null,'help');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
@@ -64,12 +68,17 @@
       const bill=ledger.bill || {}, billing=panel('Bill reconciliation');
       add(billing,fields([['Destination',ledger.destination],['Bill reference',bill.id],['Original bill',money(bill.original_amount,currency)],['Outstanding balance',money(bill.outstanding_amount,currency)],['Receipt reference',claim.receipt_id],['Award reference',ledger.record_ids?.award],['Credit reference',ledger.record_ids?.credit],['Application reference',ledger.record_ids?.application]]));
       const detail=add(el('details',null,'panel ramp-details'),el('summary','Agreement & review record'));
-      const agreement=data.contract || {}, reviewer=data.reviewer || {};
-      add(detail,fields([['Agreement',agreement.title],['Version',agreement.version],['Document reference',agreement.ref],['Reviewer',reviewer.name],['Role',reviewer.role],['Authority kind',state(reviewer.authority_kind)]]),citations(agreement.citations));
+      add(detail,fields([['Agreement',agreement.title],['Version',agreement.version],['Document reference',agreement.ref],['Reviewer',reviewer.name],['Principal',reviewer.principal],['Role',reviewer.role],['Authority kind',state(reviewer.authority_kind)]]),citations(agreement.citations));
+      const onboarding=data.onboarding || {}, expansion=panel(onboarding.vendor ? onboarding.vendor+' contract coverage' : 'Vendor coverage');
+      add(expansion,fields([['Current state',state(onboarding.state)],['Adapter version',onboarding.version]]));
+      const coverage=el('ol',null,'activity');
+      list(onboarding.history).forEach(event=>coverage.append(add(el('li'),el('time',event.at),el('span',event.event),event.ref ? el('code',event.ref) : null)));
+      expansion.append(coverage.children.length ? coverage : note('Coverage history not provided.'));
+      const vendorLink=el('a','Inspect vendor contracts','case-link');vendorLink.href='#vendors';expansion.append(vendorLink);
       const history=panel('Workflow history'), timeline=el('ol',null,'activity');
       list(data.audit).forEach(event=>timeline.append(add(el('li'),el('time',event.at),el('span',event.event),event.ref ? el('code',event.ref) : null)));
       history.append(timeline.children.length ? timeline : note('No workflow actions recorded.'));
-      root.replaceChildren(header,metrics,recovery,monthly,add(el('div',null,'section-grid'),pricing,billing),detail,history);
+      root.replaceChildren(header,metrics,contract,recovery,monthly,add(el('div',null,'section-grid'),pricing,billing),...(data.onboarding ? [expansion] : []),detail,history);
     }
     async function render(root, supplied) {
       const token=++epoch;

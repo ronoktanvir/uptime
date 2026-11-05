@@ -53,11 +53,11 @@
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
   function button(label, handler, className = '') { const node = el('button', className, label); node.type = 'button'; node.addEventListener('click', handler); return node; }
   function sources(values) {
-    const node = el('details', 'source-record');
-    node.append(el('summary', '', 'Source record'));
-    const entries = el('div', 'sources'); node.append(entries);
-    if (!list(values).length) { entries.append(el('span', 'missing-source', 'Source not provided')); return node; }
-    list(values).forEach(value => entries.append(el('span', 'source', display(value))));
+    const node = el('div', 'sources');
+    if (!list(values).length) node.append(el('span','missing-source','Source not provided'));
+    list(values).filter(value => value && typeof value === 'object').forEach(value => {
+      if (value.ref || value.title || value.uri) node.append(el('span', 'source', value.ref || value.title || value.uri));
+    });
     return node;
   }
   function badge(value) { const text = display(value); return el('span', /pending|draft|shadow|review|insufficient|submitted/i.test(text) ? 'pill pending' : 'pill', text); }
@@ -90,6 +90,7 @@
     if (Array.isArray(value)) { const node = el('div'); value.forEach(item => node.append(add(el('div', 'record'), record(item)))); return node; }
     const node = el('dl', 'record');
     Object.entries(value).forEach(([key, val]) => {
+      if (['source_mode','data_provenance','classification'].includes(key) || key === 'mode' && /replay|simulat|demo/i.test(String(val))) return;
       if (key === 'sources') { add(node, el('dt', '', 'Sources'), add(el('dd'), sources(val))); return; }
       add(node, el('dt', '', title(key)), add(el('dd'), typeof val === 'object' && val !== null ? record(val) : el('span', '', display(val))));
     });

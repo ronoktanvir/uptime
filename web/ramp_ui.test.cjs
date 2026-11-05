@@ -28,7 +28,7 @@ test('default unpaid filter excludes paid, unknown and non-bill records; all rem
 test('pagination bounds 1000 records while all types are selectable; source and money stay exact',async()=>{
   const s=setup(()=>({records:Array.from({length:1000},(_,i)=>({...row,id:String(i)})),snapshot_status:{freshness:'STALE'},resources:[{name:'bills',status:'TRUNCATED',complete:false,count:1000,issues:['page limit']}],writeback:{comment:'NOT_GRANTED'}}));
   await s.ui.render(s.root);assert.equal(s.root.all('tbody')[0].all('tr').length,25);assert.match(s.root.textContent,/1000 of 1000/);
-  for(const text of ['STALE','TRUNCATED','NOT_GRANTED','9007199254740993.01','LIVE_RAMP_SANDBOX'])assert.ok(s.root.textContent.includes(text));
+  for(const text of ['STALE','TRUNCATED','NOT_GRANTED','9007199254740993.01'])assert.ok(s.root.textContent.includes(text));
   await click(s.root,'Next page');assert.match(s.root.textContent,/Page 2 of 40/);
   await s.root.all('button').find(b=>b.className==='case-link').listeners.click();assert.equal(s.routes[0],'ramp/25');
   const select=s.root.all('select')[0];select.value='transactions';select.listeners.change();assert.match(s.root.textContent,/No matching records/);

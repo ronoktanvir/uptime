@@ -21,3 +21,5 @@
 .northwind-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px 24px;margin:18px 0}.northwind-field dt{font-size:12px;color:var(--muted);margin-bottom:7px}.northwind-field dd{margin:0;font-size:15px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.northwind-citations{list-style:none;margin:8px 0;padding:0;color:var(--muted);font-size:11px;line-height:1.6}.northwind-citations code,.activity code{display:block;margin-top:4px;font:inherit;overflow-wrap:anywhere}.northwind-citations li+li{margin-top:8px}
 
 .source-record{margin-top:9px;font-size:11px;color:var(--muted)}.source-record summary{cursor:pointer}.source-record .source{border:0;padding:0;background:transparent}
+
+.workflow-document{border-top:1px solid var(--line);padding-top:20px;margin-top:20px}.workflow-document h3{color:var(--ink)}

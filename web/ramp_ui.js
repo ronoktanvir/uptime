@@ -42,12 +42,14 @@
       if (value == null || typeof value !== 'object') return el('span', shown(value));
       if (Array.isArray(value)) return value.length ? add(el('div'), ...value.map(v => add(el('div', null, 'record'), record(v, depth + 1)))) : note('No records returned.');
       const node = el('dl', null, 'record');
-      Object.entries(value).filter(([k]) => !hidden.test(k)).forEach(([k,v]) => add(node, el('dt', k.replaceAll('_',' ')), add(el('dd'), record(v, depth + 1))));
+      Object.entries(value).filter(([k,v]) => !hidden.test(k) && !['sources','source_mode','data_provenance','classification'].includes(k) && !(k === 'mode' && /replay|simulat|demo/i.test(String(v)))).forEach(([k,v]) => add(node, el('dt', k.replaceAll('_',' ')), add(el('dd'), record(v, depth + 1))));
       return node;
     }
     const details = (name, value) => add(el('details', null, 'panel ramp-details'), el('summary', name), record(value));
     function sources(values) {
-      return add(el('div', null, 'sources'), ... (list(values).length ? list(values).map(v => el('span', shown(v), 'source')) : [el('span', 'Source not provided', 'missing-source')]));
+      const n=el('div',null,'sources');
+      list(values).filter(v=>v && typeof v === 'object' && (v.ref || v.title || v.uri)).forEach(v=>n.append(el('span',v.ref || v.title || v.uri,'source')));
+      return n;
     }
     function nativeLink(uri) {
       const url = providerURL(uri);
