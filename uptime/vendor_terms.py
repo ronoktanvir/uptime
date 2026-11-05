@@ -308,7 +308,7 @@ def bind_overlay(manifest, overlay):
 # A comment-only change can conservatively require fresh review. Historical receipts stay readable.
 _COMMON_SEMANTIC_FILES = ('contracts.py','vendor_terms.py','vendor_eval.py','vendor_model.py','vendor_registry.py')
 _PROFILE_FILES = {REVISION: _COMMON_SEMANTIC_FILES,
-                  'resource-month/1': _COMMON_SEMANTIC_FILES + ('vendor_resource_terms.py','vendor_resource_eval.py','twilio.py')}
+                  'resource-month/1': _COMMON_SEMANTIC_FILES + ('vendor_resource_terms.py','vendor_resource_eval.py','vendor_resource_operators.py','twilio.py')}
 SEMANTICS_REVISIONS = {
     family: fingerprint({'protocol':'reviewed-semantics/1','family':family,'files':{
         name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in files}})
@@ -341,7 +341,7 @@ def compile_propositions(document, clauses):
                 'classification': document.classification, 'sha256': sha256(document.text.encode()).hexdigest()},
                 'tiers': [], 'citations': []}
     seen, scope, header = set(), None, None
-    header_comparator = False
+    header_fields = []
     qualifiers = r'\b(?:unless|except|exclud(?:e|es|ed|ing)|provided|subject to|only if|conditional|cap(?:ped)?|maximum|' \
                  r'discretion|refund|business days|rolling|not|greater than|above|at least|up to|at most|may|can|maintenance)\b|<=|≤'
     for index, (row, (start, end, quote)) in enumerate(zip(clauses, spans, strict=True), 1):
@@ -352,6 +352,10 @@ def compile_propositions(document, clauses):
         manifest['citations'].append(citation)
         if not isinstance(field, str) or field == 'unsupported':
             raise ValueError(f'Model identified unsupported material at clause {index}.')
+        if re.search(r'[.!?]\s+(?=[A-Z])|;', text):
+            raise ValueError('A monthly proposition must cite a single contract statement.')
+        if '|' not in text:
+            header = None
         if re.search(qualifiers, lower):
             raise ValueError(f'Unsupported material qualification at clause {index}.')
         if field in {'vendor', 'agreement'}:
@@ -411,7 +415,21 @@ def compile_propositions(document, clauses):
                 raise ValueError('Tier lacks an explicit product/plan source scope.')
             before = re.escape(value['below'])
             explicit_operator = re.search(rf'(?:below|less than|under|<)\s*{before}\s*%', lower)
-            if not explicit_operator and not (header and header_comparator and '|' in text):
+            if '|' in text:
+                if not header:
+                    raise ValueError('Percentage table row requires a governing header.')
+                cells = [cell.strip() for cell in text.strip('|').split('|')]
+                if len(cells) != len(header_fields):
+                    raise ValueError('Percentage table row and header shape differ.')
+                fields = dict(zip(header_fields, cells, strict=True))
+                for name in ('below', 'credit'):
+                    match = re.fullmatch(rf'({NUMBER})\s*%', fields[name])
+                    if not match or percent_units(match[1]) != percent_units(value[name]):
+                        raise ValueError('Proposed percentages conflict with their source columns.')
+                for name in ('product', 'plan'):
+                    if name in fields and fields[name] != value[name]:
+                        raise ValueError('Proposed scope conflicts with its source column.')
+            if not explicit_operator and not header:
                 raise ValueError('Unsupported or ungrounded tier comparison operator.')
             if not header and not re.search(rf'{re.escape(value["credit"])}\s*%\s*(?:service )?credit|credit (?:of|is)\s*{re.escape(value["credit"])}\s*%', lower):
                 raise ValueError('Ungrounded credit rate.')
@@ -426,12 +444,13 @@ def compile_propositions(document, clauses):
             manifest['tiers'].append(term)
             continue
         elif field == 'table_header':
-            if (value is not None or '|' not in text or not re.search(r'availability|uptime', lower)
-                    or 'credit' not in lower
-                    or '%' in re.sub(r'\(%\)', '', lower)):
-                raise ValueError('Unsupported availability table header.')
+            cells = [cell.strip() for cell in lower.strip('|').split('|')]
+            header_fields = [next((kind for kind, spellings in zip(('product', 'plan', 'below', 'credit'), TABLE_HEADERS, strict=True)
+                                   if cell in spellings), None) for cell in cells]
+            if (value is not None or '|' not in text or len(set(header_fields)) != len(cells)
+                    or set(header_fields) not in ({'below', 'credit'}, {'product', 'plan', 'below', 'credit'})):
+                raise ValueError('Unsupported or ambiguous availability table columns.')
             header = index
-            header_comparator = bool(re.search(r'below|less than|<', lower))
             continue
         elif field == 'table_separator':
             if value is not None or not re.fullmatch(r'[| :\-]+', text) or not header:

@@ -1,8 +1,10 @@
 """Reviewed operator-staged model propositions for account/resource-month availability."""
+from collections import Counter
 from datetime import date, datetime
 from hashlib import sha256
 import re
 
+from .vendor_resource_operators import OPERATORS, PROMPT as OPERATOR_PROMPT, apply_operator, require_operative_mapping
 from .vendor_terms import _clauses, _validate_document, percent_units, MAX_PERCENT
 
 FAMILY = 'resource-month/1'
@@ -39,7 +41,7 @@ unsupported: brief reason for any unimplemented material condition, incorporated
 unknown comparator, or non-supported economic basis. Include it even when other keys in the same span are supported.
 Public text only. The customer overlay is supplied later. Retain source wording for identity, symptom and cause labels.
 Do not use placeholder example strings. Do not use section/clause numbers as business thresholds.
-"""
+""" + OPERATOR_PROMPT
 
 
 def norm(value):
@@ -59,7 +61,7 @@ def source_date(value, quote):
     return any(norm(s) in norm(quote) for s in choices)
 
 
-def count_grounded(number, quote):
+def count_grounded(number, kind, quote):
     words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
              'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen',
              'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five',
@@ -67,26 +69,43 @@ def count_grounded(number, quote):
     ordinal = {1:'first', 2:'second', 3:'third', 4:'fourth', 5:'fifth', 7:'seventh', 10:'tenth',
                12:'twelfth', 14:'fourteenth', 15:'fifteenth', 20:'twentieth', 30:'thirtieth'}
     candidates = [str(number)] + ([words[number]] if number < len(words) else []) + ([ordinal[number]] if number in ordinal else [])
-    return any(re.search(r'\b' + re.escape(w) + r'(?:st|nd|rd|th)?\b', quote, re.I) for w in candidates)
+    unit = {'calendar_days': r'calendar days?', 'billing_cycles': r'(?:monthly )?billing cycles?'}.get(kind)
+    if unit is None:
+        return False
+    # A section number or UTC clock on the same line cannot establish the filing interval.
+    number_phrase = r'(?:' + '|'.join(re.escape(w) for w in candidates) + r')(?:st|nd|rd|th)?'
+    return bool(re.search(r'\b(?:' + number_phrase + r'(?:\s*\(' + number_phrase + r'\))?\s+' + unit
+                          + r'|' + unit + r'\s+' + number_phrase + r')\b', quote, re.I))
 
 
 def validate_filing(value, quote):
     if not isinstance(value, dict) or set(value) != {'kind', 'count', 'utc_time', 'endpoint'}:
         raise ValueError('Incomplete filing proposition.')
     kind, count, clock, endpoint = (value[k] for k in ('kind', 'count', 'utc_time', 'endpoint'))
-    if type(count) is not int or not 1 <= count <= 365 or not count_grounded(count, quote):
+    if type(count) is not int or not 1 <= count <= 365 or not isinstance(kind, str) or not count_grounded(count, kind, quote):
         raise ValueError('Unsupported filing interval.')
     if not re.search(r'claim|request|submit|fil(?:e|ing)|receiv|deadline|notice', quote, re.I):
         raise ValueError('Filing origin lacks a claim or request.')
-    if not re.search(r'month|billing period', quote, re.I):
+    if not re.search(r'(?:after|following|from the end of|subsequent to)\b[^.;]{0,70}\b(?:month|billing period)|'
+                     r'\b(?:month|billing period)[ -]end\b', quote, re.I):
         raise ValueError('Unsupported filing origin.')
     if kind == 'calendar_days':
         if not re.search(r'calendar day', quote, re.I) or endpoint not in {'inclusive','exclusive','whole_day','unclear'}:
             raise ValueError('Unsupported calendar-day filing policy.')
         if clock is not None:
             if (not isinstance(clock, str) or not re.fullmatch(r'(?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?', clock)
-                    or clock not in quote or 'utc' not in quote.casefold() or endpoint not in {'inclusive','exclusive','unclear'}):
+                    or not re.search(r'(?<![\d:])' + re.escape(clock) + r'(?![\d:])', quote) or 'utc' not in quote.casefold() or endpoint not in {'inclusive','exclusive','unclear'}):
                 raise ValueError('Filing cutoff must be a source-grounded UTC clock.')
+            if endpoint != 'unclear':
+                exclusive = bool(re.search(r'\b(?:strictly |earlier than |prior to |before )' + re.escape(clock), quote, re.I))
+                inclusive = bool(re.search(r'\b(?:by|through|no later than|at or before|on or before)\s+' + re.escape(clock), quote, re.I))
+                inclusive = inclusive or bool(re.search(r'\binclusive(?:ly)?\b|including (?:exactly )?(?:the |that )?(?:cutoff|instant|deadline)', quote, re.I))
+                if inclusive:  # "on or before" contains a bare "before"
+                    exclusive = False
+                if (endpoint == 'inclusive' and not inclusive) or (endpoint == 'exclusive' and not exclusive):
+                    raise ValueError('Filing endpoint does not match the source clock comparator.')
+        elif re.search(r'\b\d{1,2}:\d{2}\b', quote) and endpoint == 'whole_day':
+            raise ValueError('An explicit filing clock cannot be replaced by a whole-day cutoff.')
         elif endpoint not in {'whole_day', 'unclear'}:
             raise ValueError('Missing stated filing time.')
     elif kind == 'billing_cycles':
@@ -150,6 +169,39 @@ def _source_pair(quote,upper,rate,columns):
     return False
 
 
+EVIDENCE_LANGUAGE = {
+    'resource_intervals': r'interval|tim(?:e|ing)|timestamps?|logs?|duration|minutes?|seconds?|start.+end',
+    'account_records': r'account|customer.{0,20}(?:records?|logs?|identif)',
+    'itemized_fees': r'fees?|invoice|billing (?:lines?|statement)|charges?',
+    'public_status_context': r'public|status page|status report',
+    'verification': r'verif|confirm|validat|review|investigat|determin',
+    'request_contents': r'claim|request|submit|submission|must (?:identify|include)|include|contain',
+}
+
+
+def validate_material_coverage(quote, values):
+    """Refuse common controlling conditions even when a proposal assigns an unrelated effect."""
+    if re.search(r'(?:filing|processing|application|administrative) (?:fee|charge)|'
+                 r'\b(?:pay|prepay|remit)\b.{0,32}(?:fees?|charges?|deposit)|'
+                 r'(?:\$|€|£)\s*\d', quote, re.I):
+        raise ValueError('Unimplemented payment condition or monetary cap.')
+    if not {'maintenance', 'supplement', 'account_conditions'} & values.keys() and re.search(r'\b(?:as long as|provided (?:that|however)|only if|contingent upon|conditional on|'
+                 r'requires? (?:prior|written) (?:approval|consent)|forfeit(?:s|ed)?)\b', quote, re.I):
+        raise ValueError('Unsupported conditional eligibility clause.')
+    if re.search(r'(?:credits?|claims?|remedy)\b[^.;]{0,48}\b(?:expire[sd]?|expir(?:ation|y)|waiv(?:ed|er))', quote, re.I):
+        raise ValueError('Unimplemented credit expiry or waiver.')
+    if re.search(r'\b(?:round(?:ed|ing)?|half.cent)\b', quote, re.I) and not {'rounding','interval_measurement'} & values.keys():
+        raise ValueError('Rounding instruction requires a typed calculation.')
+    if re.search(r'\b(?:claims?|requests?|fil(?:e|ing))\b[^.;]{0,100}\b(?:calendar days?|billing cycles?)\b', quote, re.I) and 'filing' not in values:
+        raise ValueError('Filing period lacks a source-bound deadline operator.')
+    if _PERCENT_TOKEN.search(quote) and not {'tiers', 'boundary', 'interval_measurement'} & values.keys():
+        raise ValueError('Percentage condition has no applicable threshold or tier.')
+    evidence = values.get('evidence', [])
+    if not isinstance(evidence, list) or any(not isinstance(kind, str) or kind not in EVIDENCE_LANGUAGE
+            or not re.search(EVIDENCE_LANGUAGE[kind], quote, re.I) for kind in evidence):
+        raise ValueError('Proposed evidence category has no supporting source wording.')
+
+
 def compile_resource(document, clauses):
     _validate_document(document)
     spans = _clauses(document.text, [c['quote'] for c in clauses])
@@ -158,7 +210,7 @@ def compile_resource(document, clauses):
                 'citations':[], 'tiers':[], 'interpretation':'model_proposition_human_review_required'}
     fields = {'vendor','agreement','effective','scope','period','symptoms','provider_causes','exclusions',
               'evidence','fee_basis','fee_exclusions','tiers','boundary','rounding','filing',
-              'cycle_calendar_month','remedy','nonmaterial','unsupported','request_fields','submission_channel','precedence','account_conditions'}
+              'cycle_calendar_month','remedy','nonmaterial','unsupported','request_fields','submission_channel','precedence','account_conditions'} | OPERATORS
     lists = {'symptoms','provider_causes','exclusions','fee_exclusions','request_fields'}
     all_text = document.text.casefold()
     columns = None
@@ -171,6 +223,8 @@ def compile_resource(document, clauses):
             columns=None
         if row['field'] != 'resource_terms' or not isinstance(values,dict) or not values or set(values)-fields or 'unsupported' in values:
             raise ValueError(f'Unsupported material in resource clause {index}.')
+        require_operative_mapping(quote, values)
+        validate_material_coverage(quote, values)
         if re.search(r'\b(?:conflict|inconsisten\w*)\b',quote,re.I) and 'precedence' not in values:
             raise ValueError(f'Material conflict rule unresolved in clause {index}.')
         if re.search(r'(?:terminat|suspend|suspension|restrict|breach|non.complian|fail(?:ure)? to (?:comply|abide))',quote,re.I) and re.search(r'(?:account|agreement|terms|customer|access)',quote,re.I) and 'account_conditions' not in values:
@@ -183,7 +237,7 @@ def compile_resource(document, clauses):
                      r'(?:as (?:defined|set forth|described)|governed) (?:in|by) (?:section|the .*?agreement|our .*?terms)',quote,re.I):
             raise ValueError(f'Unresolved governing reference in resource clause {index}.')
         if (re.search(r'\b(?:excluded|excludes?|excluding|unless|except(?:ions?)?)\b',quote,re.I)
-                and not {'exclusions','fee_exclusions','account_conditions'} & values.keys()):
+                and not {'exclusions','fee_exclusions','account_conditions','maintenance'} & values.keys()):
             raise ValueError(f'Unmapped exclusion or condition in clause {index}.')
         if re.search(r'\b(?:capped at|up to|aggregate cap|total cap|at our discretion|sole discretion)\b',quote,re.I):
             raise ValueError(f'Unsupported discretionary amount or cap in clause {index}.')
@@ -192,6 +246,9 @@ def compile_resource(document, clauses):
         manifest['citations'].append(citation)
         lower = quote.casefold()
         for key,value in values.items():
+            if key in OPERATORS:
+                apply_operator(manifest, key, value, quote)
+                continue
             if key == 'nonmaterial':
                 ordinary_heading = bool(re.fullmatch(r'(?:section\s+)?[0-9]+(?:\.[0-9]+)*[.) :]+[a-z][a-z /-]{1,55}',lower.strip()))
                 if len(values)==1 and re.search(r'[0-9]',lower) and not ordinary_heading:
@@ -259,14 +316,14 @@ def compile_resource(document, clauses):
                         previous.append(condition)
                 continue
             if key == 'evidence':
-                allowed = {'resource_intervals','account_records','itemized_fees','public_status_context','verification','request_contents'}
-                if not isinstance(value,list) or not value or any(v not in allowed for v in value):
-                    raise ValueError('Unsupported resource evidence condition.')
+                if not value:
+                    raise ValueError('Empty resource evidence condition.')
                 manifest.setdefault(key,[]).extend(v for v in value if v not in manifest.get(key,[]))
                 continue
             if key == 'tiers':
                 if not isinstance(value,list) or not value:
                     raise ValueError('Missing tier values.')
+                accounted = Counter()
                 for tier in value:
                     if not isinstance(tier,dict) or set(tier)-{'below','credit','at_least'} or not {'below','credit'}<=set(tier):
                         raise ValueError('Malformed resource tier.')
@@ -285,7 +342,12 @@ def compile_resource(document, clauses):
                             raise ValueError('Uncited tier lower bound.')
                     if re.search(r'(?:at most|no more than|less than or equal to|≤|<=)\s*'+re.escape(tier['below'])+r'\s*(?:%|percent)',lower):
                         raise ValueError('Inclusive upper tier is unsupported.')
+                    accounted.update([upper, rate])
+                    if floor is not None:
+                        accounted.update([floor])
                     manifest['tiers'].append(dict(below_units=upper,credit_units=rate,citation=index,floor=floor))
+                if accounted != Counter(_quoted_units(m[1]) for m in _PERCENT_TOKEN.finditer(quote)):
+                    raise ValueError('Every percentage in a resource tier block must map to a threshold, floor or credit.')
                 continue
             if key in manifest and manifest[key] != value:
                 raise ValueError(f'Conflicting {key} propositions.')
@@ -308,8 +370,11 @@ def compile_resource(document, clauses):
                 raise ValueError('Unsupported resource month denominator.')
             if key == 'boundary' and (value!='strict_below' or not re.search(r'below|lower than|less than|<|equal|threshold|at or above',lower)):
                 raise ValueError('Uncited strict availability boundary.')
-            if key=='fee_basis' and (value!='affected_resource_fees' or not re.search(r'fees?|charg(?:es?|ed)|spend|billed',lower)):
-                raise ValueError('Ungrounded affected-fee basis.')
+            if key == 'fee_basis' and (value != 'affected_resource_fees'
+                    or not re.search(r'fees?|charges?|spend|billed|rental|subscription cost', lower)
+                    or not re.search(r'\b(?:affected|impacted|unavailable|qualifying|same|corresponding)\b', lower)
+                    or re.search(r'(?:all|aggregate|total) (?:account|tenant|customer|unaffected) (?:fees?|charges?|spend)', lower)):
+                raise ValueError('Ungrounded affected-resource fee basis.')
             if key=='rounding' and (value!='nearest_cent_half_up' or 'cent' not in lower
                     or not re.search(r'half.{0,15}up|(?:ties|halves|half.a.cent).{0,35}(?:up|higher)',lower)):
                 raise ValueError('Unconfirmed half-up cent rounding.')
@@ -318,7 +383,9 @@ def compile_resource(document, clauses):
             if key=='cycle_calendar_month' and (value is not True or not re.search(r'billing cycle',lower) or 'calendar month' not in lower):
                 raise ValueError('Unsupported inferred billing calendar.')
             if key=='remedy' and (value!='future_noncash_credit' or 'credit' not in lower
-                    or not re.search(r'future|next|subsequent|non.cash|no cash|not .*cash',lower)):
+                    or not re.search(r'\b(?:future|next|subsequent|following)\b',lower)
+                    or not re.search(r'invoice|bill|service (?:fee|charge|credit)',lower)
+                    or re.search(r'(?:option|elect|choose|exchange|redeem).{0,35}\bcash\b',lower)):
                 raise ValueError('Unconfirmed future credit remedy.')
             manifest[key]=value
     required={'vendor','effective','scope','period','symptoms','provider_causes','fee_basis','filing','remedy','evidence'}
@@ -335,6 +402,8 @@ def compile_resource(document, clauses):
     manifest.setdefault('fee_exclusions',[])
     if {norm(v) for v in manifest['provider_causes']} & {norm(v) for v in manifest['exclusions']}:
         raise ValueError('Conflicting included and excluded responsibility labels.')
+    if manifest.get('maintenance') and any('maintenance' in norm(label) for label in manifest['exclusions']):
+        raise ValueError('A conditional maintenance exclusion cannot also subtract maintenance unconditionally.')
     lower,previous=0,MAX_PERCENT+1
     manifest['tiers'].sort(key=lambda t:t['below_units'])
     for tier in manifest['tiers']:

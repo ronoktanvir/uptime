@@ -93,3 +93,14 @@ A rejected public-only CLI extraction writes a separate create-only diagnostic r
 A candidate version includes a semantics revision derived from the installed compiler, evaluator, registry and shared calculation source files for that family. Artifact, active binding and new case receipts each retain that revision. A deployment with a different revision, including a conservative change to the same files without semantic effect, disables current activation and dispatch until the document is reinstalled, independently tested and explicitly reviewed. Pre-revision records follow the same rule. Historical receipts retain their original observations, amounts and available provenance. Rollback cannot restore an incompatible evaluator.
 
 An affected fee of zero, or a credit that becomes zero under a source-declared rounding rule, has no claimable amount. A qualifying outage and timely filing can remain separately established. Where the agreement has no settlement rounding rule, the interpreter preserves a positive fractional-cent estimate.
+
+## Signed HTTP rehearsal with external synthetic inputs
+
+Run the following from the repository. Supply the public document object, private synthetic overlay object and independently calculated list of shadow scenarios as separate JSON files. Only use synthetic customer observations. The command starts the real application in a disposable replay database on a newly bound loopback port. It uses the reserved scripted identity for all review actions and reports `human_approval: false`. No vendor communication occurs. An operator may stage a public-only extraction first and select it with the environment variables above.
+
+```sh
+python scripts/rehearse_vendor.py --document public.json --overlay synthetic-order.json \
+  --scenarios synthetic-review-scenarios.json > rehearsal-receipt.json
+```
+
+The output records the source, suite and evaluator digests, actual HTTP statuses, resulting case IDs and financial estimates. The runner verifies that shadow and rolled-back revisions refuse dispatch, an active revision produces the expected results in the workbench and portfolio, and historical case evidence survives rollback. Scenarios for the same monthly obligation deliberately update a single case. A named human uses their own enrolled credential and the gated workspace for a real review decision.
