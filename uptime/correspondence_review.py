@@ -192,6 +192,7 @@ class InterpretationDesk:
             else:
                 self.desk._reply_proposal(p.tenant,scope,projected,fact,self.desk._now(),proposal)
             stage=projected['stage']
+        projected['interpretation_review']=dict(review_id=review_id,context_digest=context['digest'],event_digest=context['event_digest'],text_sha256=context['text_sha256'],contract_version=context['contract_version'],contract_source_sha256=context['contract_source_sha256'])
         prepare=stage in {'RESPONSE_DRAFTED','NEEDS_EVIDENCE','AWAITING_NOTICE'}
         packet=None
         if stage=='RESPONSE_DRAFTED':

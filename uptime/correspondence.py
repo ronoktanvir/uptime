@@ -465,6 +465,16 @@ class CorrespondenceDesk:
               proposal=proposal.reason, receipt=fact["body"]["receipt_id"])
 
     def _packet(self, tenant, claim_id, scope, state, current):
+        packet = self._base_packet(tenant, claim_id, scope, state, current)
+        reviewed = state.get("interpretation_review")
+        if reviewed:
+            if (reviewed["contract_version"] != current.version
+                    or reviewed["contract_source_sha256"] != current.contract_source_sha256):
+                raise ValueError("The reviewed interpretation's governing terms changed.")
+            packet["interpretation_review"] = reviewed
+        return packet
+
+    def _base_packet(self, tenant, claim_id, scope, state, current):
         """Construct local simulator wire data from allowlisted fields only. No incoming body/text is copied."""
         if receipt_chain(state):
             material = response_material(state, current)
@@ -538,6 +548,9 @@ class CorrespondenceDesk:
                             [asdict(c) for c in current.evaluation.clauses]])
 
     def _actions(self, p, scope, state, current, now):
+        reviewed = state.get("interpretation_review")
+        if reviewed and (reviewed["contract_version"] != current.version or reviewed["contract_source_sha256"] != current.contract_source_sha256):
+            return []
         cutoff = instant(current.procedure["response_cutoff"]) if current.procedure and current.procedure.get("response_cutoff") else current.cutoff
         if (p.role != "reviewer" or not (action := ACTIONS.get(state["stage"]))
                 or cutoff is None or now >= cutoff):

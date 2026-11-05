@@ -21,8 +21,8 @@
     root.append(el('p',`Case ${context.claim} · Vendor ${context.scope.vendor} · Service ${context.scope.service} · Region ${context.scope.region}`));
     const provenance=el('details'); provenance.append(el('summary','Original source and governing terms'),el('p',`Reply ${context.event_digest} · Text ${context.text_sha256} · Terms ${context.contract_version} · Document ${context.contract_source_sha256}`,'interpretation-meta')); root.append(provenance);
     const form=el('div'), grid=el('div',undefined,'interpretation-grid'); form.append(el('h2','Your independent reading'),grid); root.append(form);
-    function field(parent,label,options) {
-      const wrap=el('label',label), node=el(options?'select':'input');
+    function field(parent,label,options,multiline=false) {
+      const wrap=el('label',label), node=el(options?'select':multiline?'textarea':'input'); node.setAttribute('aria-label',label);
       if(options){node.append(new Option('Choose…','')); for(const [value,title] of options)node.append(new Option(title,value));}
       wrap.append(node);parent.append(wrap);return node;
     }
@@ -34,7 +34,7 @@
     const scopeField=field(grid,'Incorrect scoped identifier, if any',[['none','No scoped identifier correction'],['account','Account'],['component','Component'],['invoice','Invoice']]);
     const quotes={}; for(const [name,label] of [['period','Exact month phrase, if stated'],['award','Exact awarded USD amount, if stated'],['remainder','Exact declined remainder, if stated'],['claimed','Exact restated claim amount, if stated'],['artifact_ref','Exact document reference, if stated'],['scope_ref','Exact incorrect identifier, if stated'],['downtime','Exact duration with unit, if stated']])quotes[name]=field(grid,label);
     const condition=field(form,'Exact condition phrase, if any (copy from the reply)');
-    const filing=field(form,'Contractual filing items, if requested (one exact name per line)');
+    const filing=field(form,'Contractual filing items, if requested (one exact name per line)',null,true);
     if(context.filing_fields.length)form.append(el('p','Declared missing items: '+context.filing_fields.join('; ')));
     const residual=field(form,'Additional objection or unresolved meaning?', [['no','None after reviewing the complete reply'],['yes','Yes; keep this in human review']]);
     let blind=data.blind_entry, selected=null, preview=null;

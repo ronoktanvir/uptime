@@ -4,6 +4,8 @@ from datetime import timedelta
 from decimal import Decimal
 from hashlib import sha256
 import json
+from pathlib import Path
+import re
 
 import pytest
 
@@ -68,6 +70,8 @@ def test_manual_review_and_preview_are_inert_until_draft_then_existing_approval(
     sent=env.act('submit-response')
     assert len(sent['submissions'])==2 and sent['submissions'][1]['packet']['in_reply_to']==before['submissions'][0]['id']
     assert sent['ledger']['awarded']==sent['ledger']['applied']=='0.00'
+    assert sent['submissions'][1]['packet']['interpretation_review']['review_id']==rid
+    assert sent['submissions'][1]['approval']['digest']==sent['submissions'][1]['digest']
 
 
 @pytest.mark.parametrize('change',['scope','text','terms','source','amount','state'])
@@ -214,3 +218,115 @@ def test_mounted_authenticated_bridge_keeps_existing_signed_submission_boundary(
     service.now+=timedelta(days=1)
     sent=service.action('submit-response')
     assert sent['submissions'][1]['requested']=='20.99' and sent['ledger']['awarded']=='0.00'
+
+
+def test_historical_amount_absence_and_missing_measurement_never_become_model_facts(service):
+    # Deliberately provide no independent month measurement. A signed original
+    # receipt establishes chronology, not a filed amount or service failure.
+    context_view=service.read()
+    original=dict(kind='original_filing_receipt',source_ref='public-original',receipt_id='public-original',
+                  observed_at=service.now.isoformat(),received_at='2027-03-02T23:00:00Z',submitted_to='local-support',fields=[],
+                  contract_version=context_view['contract_version'],contract_source_sha256=context_view['contract_source_sha256'])
+    deliver(service,[('vendor-fixture',original),('vendor-fixture',dict(kind='message',receipt_id='public-original',text=TEXT))])
+    desk=InterpretationDesk(service.inbox)
+    p=REVIEWER
+    context=desk.view(p,service.id)['context']
+    assert context['requested'] is None
+    annotation=meaning(TEXT,'availability')
+    desk.blind(p,service.id,Entry(context_digest=context['digest'],interpretation=annotation))
+    rid=desk.review(p,service.id,Review(context_digest=context['digest'],interpretation=annotation,resolutions=[dict(proposition=0,verdict='accept',explanation='Synthetic reviewed assertion; evidence still missing.')],residuals_reviewed=True,complete_meaning_reviewed=True))['id']
+    preview=desk.preview(p,service.id,rid)
+    assert not preview['prepare_allowed'] and preview['packet'] is None
+    assert service.read()['ledger']['claimed']==service.read()['ledger']['awarded']=='0.00'
+    award=meaning('A credit of USD 17.20 is reported.','award',slots=[('award','USD 17.20')])
+    assert proposal_for_review(dict(context,text=award.propositions[0].source.quote),award).reason=='unknown'
+
+
+def test_model_failure_has_one_attempt_and_no_claim_or_candidate_mutation(env):
+    desk,context=start(env)
+    calls=[]
+    def unavailable(payload):calls.append(payload);raise TimeoutError('Public test timeout')
+    desk.adapter=PublicInterpretationAdapter(enabled=True,allowed_requests=[sha256(serialized_request(context)).hexdigest()],provider=unavailable)
+    desk.blind(REVIEWER,ID,Entry(context_digest=context['digest'],interpretation=meaning(TEXT)))
+    before=env.get()
+    with pytest.raises(TimeoutError):desk.model(REVIEWER,ID,ModelRequest(context_digest=context['digest']))
+    assert len(calls)==1 and env.get()==before and desk.view(REVIEWER,ID)['candidates']==[]
+
+
+def test_valid_source_span_cannot_omit_a_trailing_material_objection():
+    first='The filing window closed.'
+    text=first+' A settlement waived all claims.'
+    annotation=meaning(first)
+    # All quotes and offsets are valid; only full coverage detects this omission.
+    with pytest.raises(ValueError,match='omits original text'):
+        validate_grounding(text,annotation)
+
+
+def test_full_segment_cannot_hide_unannotated_material_outside_proposition():
+    first='The filing window closed.'
+    text=first+' A settlement waived all claims.'
+    annotation=meaning(first).model_dump()
+    annotation['segments']=[dict(source=span(text),role='substantive')]
+    with pytest.raises(ValueError,match='Every substantive or unsupported byte'):
+        validate_grounding(text,Interpretation.model_validate(annotation))
+
+
+def test_two_grounded_families_are_not_collapsed_to_one_disposition():
+    first='The filing window closed. '
+    second='An invoice detail is also required.'
+    text=first+second
+    one=meaning(first).model_dump()['propositions'][0]
+    two=meaning(second,'artifact',artifact_type='invoice_detail').model_dump()['propositions'][0]
+    two['source']=span(text,second)
+    annotation=Interpretation.model_validate(dict(propositions=[one,two],segments=[dict(source=span(text,first),role='substantive'),dict(source=span(text,second),role='substantive')]))
+    validate_grounding(text,annotation)
+    assert proposal_for_review(dict(text=text,scope={'month':'2031-12'},requested='101.75',filing_fields=[]),annotation).reason=='unknown'
+
+
+def test_conflicting_preparation_replay_cannot_rebind_an_accepted_review(env):
+    desk,context=start(env)
+    rid=review(desk,context,meaning(TEXT))
+    preview=desk.preview(REVIEWER,ID,rid)
+    before=desk.prepare(REVIEWER,ID,Prepare(review_id=rid,preview_digest=preview['digest']))
+    with pytest.raises(ValueError,match='Conflicting'):
+        desk.prepare(REVIEWER,ID,Prepare(review_id=rid,preview_digest='0'*64))
+    assert env.get()==before
+
+
+def test_another_reviewer_must_enter_blind_before_previewing(env):
+    desk,context=start(env)
+    rid=review(desk,context,meaning(TEXT))
+    other=Principal('bears','second-reviewer','reviewer')
+    assert desk.view(other,ID)['candidates']==[]
+    with pytest.raises(ValueError,match='own semantic judgment'):
+        desk.preview(other,ID,rid)
+
+
+def test_prepared_review_stales_on_changed_terms_before_approval(env,monkeypatch):
+    from dataclasses import replace
+    desk,context=start(env)
+    rid=review(desk,context,meaning(TEXT))
+    preview=desk.preview(REVIEWER,ID,rid)
+    desk.prepare(REVIEWER,ID,Prepare(review_id=rid,preview_digest=preview['digest']))
+    original=env.desk._assess
+    monkeypatch.setattr(env.desk,'_assess',lambda *a,**k:replace(original(*a,**k),version='changed-reviewed-terms'))
+    assert env.get()['actions']==[]
+    with pytest.raises(ValueError): env.act('approve-response')
+    assert len(env.get()['submissions'])==1
+
+
+VARIABLE_PUBLIC=json.loads((Path(__file__).resolve().parents[1]/'fixtures/correspondence/interpretation-60-review.json').read_text())['cases']
+
+
+@pytest.mark.parametrize('case',VARIABLE_PUBLIC,ids=lambda c:c['id'])
+def test_preregistered_varied_contexts_check_reviewed_values_not_text_predictions(case):
+    text=case['text']; trusted=case['context']
+    context=dict(text=text,scope={'month':trusted['scope_month']},currency=trusted['currency'],requested=trusted['local_filed_requested'],filing_fields=[])
+    if 'period' in case['id']:
+        slots=[('period',re.search(r'20[0-9]{2}-[0-9]{2}',text)[0])]
+        annotation=meaning(text,'availability',slots=slots)
+    else:
+        amounts=re.findall(r'USD [0-9]+\.[0-9]{2}',text)
+        annotation=meaning(text,'award',slots=list(zip(['claimed','award','remainder'],amounts)))
+    expected='unknown' if case['expected_proposal_family']=='unsupported' else case['expected_proposal_family']
+    assert proposal_for_review(context,annotation).reason==expected

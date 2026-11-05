@@ -118,8 +118,15 @@ def validate_grounding(text, interpretation):
             if not proposition.source.start <= span.start < span.end <= proposition.source.end:
                 raise ValueError('A semantic slot or condition is outside its proposition.')
     for segment in substantive:
-        if not any(segment.source.start <= p.source.start and p.source.end <= segment.source.end for p in interpretation.propositions):
-            raise ValueError('Every substantive or unsupported segment needs a proposition.')
+        covered=segment.source.start
+        ranges=sorted((p.source.start,p.source.end) for p in interpretation.propositions
+                      if segment.source.start <= p.source.start and p.source.end <= segment.source.end)
+        for start,end in ranges:
+            if start>covered:
+                raise ValueError('A substantive source segment contains unannotated bytes.')
+            covered=max(covered,end)
+        if covered != segment.source.end:
+            raise ValueError('Every substantive or unsupported byte needs a proposition.')
     return interpretation
 
 
