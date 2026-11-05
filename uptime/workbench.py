@@ -129,7 +129,8 @@ def _metrics(cases):
 
 
 class Workbench:
-    def __init__(self, path, mode):
+    def __init__(self, path, mode, *, tenant=TENANT):
+        self.tenant = tenant
         self.path=path
         self.mode=mode
         if mode not in {"sandbox","replay"}:
@@ -138,16 +139,24 @@ class Workbench:
         policy.setup(path)
         self.mutex=RLock()  # Serializes mode changes with dispatch in this single-process sandbox.
         self.desk=DisputeDesk(path)
-        self.desk.seed(TENANT)
-        seeds = price_cases()+sla_cases()+other_cases()
-        self.seed_ids = {c["id"] for c in seeds}
-        # Provision missing examples only; restarting must not overwrite a revision.
-        existing = {c["id"] for c in stored_cases(path, TENANT)}
-        save_cases(path,TENANT,[c for c in seeds if c["id"] not in existing])
-        self.seed_ids.update(c["id"] for c in self.desk.cases(Principal(TENANT, "seed-reader", "viewer")))
+        self.seed_ids = set()
+        if tenant == TENANT:
+            self.desk.seed(tenant)
+            seeds = price_cases()+sla_cases()+other_cases()
+            existing = {c["id"] for c in stored_cases(path, tenant)}
+            save_cases(path, tenant, [c for c in seeds if c["id"] not in existing])
+            self.seed_ids.update(c["id"] for c in seeds)
+            self.seed_ids.update(c["id"] for c in self.desk.cases(Principal(tenant, "seed-reader", "viewer")))
         self.allocations = AllocationLedger(path)
 
+    def require_tenant(self, principal):
+        if principal.tenant != self.tenant:
+            raise PermissionError("Workspace mismatch")
+
     def ramp(self):
+        if self.tenant != TENANT:
+            return {"sources": [Source.UNAVAILABLE.value], "observed_at": None,
+                    "bills": [], "credits": [], "capabilities": {}, "note": "This installation has its own Ramp worklist."}
         data=FixtureRampProvider().snapshot() if self.mode=="replay" else ramp_snapshot()
         if self.mode=="sandbox" and Source.RAMP in data["sources"]:
             data["sources"]=list(dict.fromkeys([*data["sources"],Source.REPLAY.value]))
@@ -157,8 +166,7 @@ class Workbench:
         return data
 
     def pricing_probe(self, principal):
-        if principal.tenant != TENANT:
-            raise PermissionError("Workspace mismatch")
+        self.require_tenant(principal)
         if self.mode!="sandbox":
             return []
         data=self.ramp()
@@ -219,6 +227,9 @@ class Workbench:
         return result
 
     def lab(self, principal, action=None):
+        self.require_tenant(principal)
+        if self.tenant != TENANT:
+            raise KeyError("This installation uses the vendor catalog")
         with self.mutex, database(self.path) as db:
             if action is not None:
                 self.check_write(principal)
@@ -230,22 +241,26 @@ class Workbench:
             return result
 
     def setting(self, principal):
+        self.require_tenant(principal)
         result=policy.policy(self.path,principal)
         if self.mode!="replay":
             result["available_modes"]=["OBSERVE","ASSISTED"]
         return result
 
     def change_setting(self, principal, mode, cap):
+        self.require_tenant(principal)
         with self.mutex:
             if mode=="POLICY_AUTOMATED" and self.mode!="replay":
                 raise ValueError("Policy automation requires an isolated replay workspace")
             return policy.configure(self.path,principal,mode,cap)
 
     def check_write(self, principal):
+        self.require_tenant(principal)
         if principal.role!="reviewer" or self.setting(principal)["mode"]=="OBSERVE":
             raise PermissionError("This session or workspace policy permits observation only")
 
     def dispute(self, principal, case_id):
+        self.require_tenant(principal)
         case=self.desk.case(principal,case_id)
         events=settlement_events(self.path,principal.tenant,case_id)
         awarded=case["ledger"]["awarded"]
@@ -399,6 +414,7 @@ class Workbench:
         return case
 
     def case(self, principal, case_id):
+        self.require_tenant(principal)
         inbox=self._inbox_case(principal, case_id)
         if inbox is not None:
             return self._present(self._correspondence(principal, inbox))
@@ -437,6 +453,7 @@ class Workbench:
             return self.case(principal,case_id)
 
     def dashboard(self, principal):
+        self.require_tenant(principal)
         cases={c["id"]:self._present(c, versions=case_versions(self.path,principal.tenant,c["id"]))
                for c in stored_cases(self.path,principal.tenant)}
         cases.update({c["id"]:self._present(self.dispute(principal,c["id"])) for c in self.desk.cases(principal)})
@@ -458,14 +475,13 @@ class Workbench:
         audit=[dict(at=e["at"],event=e["event"],case_id=c["id"],sources=e["sources"])
                for c in cases for e in c.get("timeline",[])]
         ramp=self.ramp()
-        return dict(workspace="Bears finance lab",as_of=ramp.get("observed_at") or "Deterministic replay",
+        return dict(workspace="Bears finance lab" if self.tenant == TENANT else self.tenant,as_of=ramp.get("observed_at") or "Deterministic replay",
                     role=principal.role,mode=self.mode,metrics=_metrics(cases), cohorts=cohorts,
                     cases=[summary(c) for c in cases],
                     audit=sorted(audit,key=lambda e:e["at"] or "",reverse=True)[:24],ramp=ramp,
                     real_recovery="No verified customer recovery",actual_applied=None)
 
     def integrations(self, principal):
-        if principal.tenant != TENANT:
-            raise PermissionError("Workspace mismatch")
+        self.require_tenant(principal)
         return dict(ramp=self.ramp(),public_evidence=evidence_summary(),model=model_card(),
                     vendor_transport="SIMULATED_VENDOR",sources=[Source.REPLAY.value])
