@@ -7,6 +7,7 @@ from typing import Callable
 from . import twilio
 from .contracts import Citation, EvaluationResult, Outcome, fingerprint
 from .correspondence_types import Scope, instant
+from .correspondence_artifacts import SUPPLEMENTS
 from .disputes_wire import TERMS, VERSION, deadline
 
 @dataclass(frozen=True)
@@ -20,9 +21,11 @@ class ActiveRemedy:
     scope: Scope
     evidence_digest: str
     version: str
-    cutoff: datetime
+    cutoff: datetime | None
     evaluation: EvaluationResult
     agreement_id: str = ""
+    remedy: str = "availability"
+    filing_material: dict | None = None
 
 
 Resolver = Callable[[str, Scope, tuple[dict, ...], datetime], ActiveRemedy | None]
@@ -35,6 +38,8 @@ class Assessment:
     version: str
     evidence_digest: str
     agreement_id: str = "twilio-apis"
+    remedy: str = "availability"
+    filing_material: dict | None = None
 
 
 def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = None):
@@ -53,12 +58,13 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
     if not supported:
         active = resolver(tenant, scope, facts, at) if resolver else None
         if (active is None or active.tenant != tenant or active.scope != scope or active.evidence_digest != digest
-                or not active.version or not active.agreement_id or active.cutoff.utcoffset() is None):
+                or not active.version or not active.agreement_id or (active.cutoff is None and active.evaluation.outcome == Outcome.ELIGIBLE)
+                or (active.cutoff is not None and active.cutoff.utcoffset() is None)):
             return stop(Outcome.UNSUPPORTED, "No ACTIVE evaluation and remedy terms match this tenant, scope and evidence.")
-        if (filed or at) >= active.cutoff:
+        if active.cutoff is not None and (filed or at) >= active.cutoff:
             return Assessment(EvaluationResult(Outcome.INELIGIBLE, active.evaluation.clauses, ("Verified filing window closed.",)),
-                              active.cutoff, active.version, digest, active.agreement_id)
-        return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id)
+                              active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material)
+        return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material)
 
     month = datetime.strptime(scope.month, "%Y-%m").date()
     first, following = twilio.calendar_bounds(month, "UTC")
@@ -68,7 +74,11 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
         return stop(Outcome.UNSUPPORTED, "USD mapping required.")
     grouped = {}
     for e in facts:
+        if e["kind"] in SUPPLEMENTS:
+            continue
         grouped.setdefault(e["kind"], []).append(e)
+    if grouped.keys() - {"status","impact","invoice","component","notice","coverage"}:
+        return stop(Outcome.MISSING, "Unsupported evidence conflicts with the ordinary API profile.")
     for kind in ("status", "impact", "invoice"):
         if not grouped.get(kind):
             return stop(Outcome.MISSING, f"Awaiting an authenticated {kind} record for this exact claim.")
@@ -81,6 +91,14 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
     for kind in ("impact", "notice", "component"):
         if kind in grouped and any(grouped[kind][0]["body"][k] != status["body"][k] for k in ("start", "end")):
             return stop(Outcome.MISSING, "Evidence disagrees about the affected interval.")
+    if "coverage" in grouped:
+        report = grouped["coverage"][0]["body"]
+        if (instant(report["start"]) != first or instant(report["end"]) != following
+                or not report["complete"] or not report["exclusions_removed"] or report["incident_ids"] != [scope.incident]):
+            return stop(Outcome.MISSING, "The independent month report contradicts the supported incident scope.")
+        if ("notice" not in grouped and impact["body"]["exclusion"] == "none" and
+                timedelta(minutes=report["total_eligible_minutes"]) != (end-start if impact["body"]["affected"] else timedelta())):
+            return stop(Outcome.MISSING, "The month report contradicts customer-attributed downtime.")
     if "component" in grouped and grouped["component"][0]["body"]["component_id"] != scope.component:
         return stop(Outcome.MISSING, "The customer attachment identifies a different component.")
     I = impact["body"]

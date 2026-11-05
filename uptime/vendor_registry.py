@@ -11,7 +11,7 @@ from .onboarding import _atomic
 from .storage import database, now, persist_case, _read_versions
 from .vendor_eval import evaluate, generated_checks
 from .vendor_model import staged_extraction
-from .vendor_terms import Intake, Strict, bind_overlay, candidate_version
+from .vendor_terms import Intake, Strict, bind_overlay, candidate_version, semantics_revision
 
 SOURCES = [Source.REPLAY.value, Source.CUSTOMER.value, Source.VENDOR.value]
 OPS = {'approve': 'Approve reviewed tests', 'activate': 'Activate for local evaluation',
@@ -77,6 +77,33 @@ def _artifact(db, p, vendor, version):
     return json.loads(row[0]) if row else None
 
 
+def _compatible(artifact,version):
+    try:
+        return bool(artifact and artifact.get('semantics_revision')==semantics_revision(artifact['manifest'])
+                    and version==candidate_version(artifact['manifest'],artifact['overlay'],artifact['extraction']))
+    except (KeyError,TypeError,ValueError):
+        return False
+
+
+def _require_current(db,p,vendor,version):
+    artifact=_artifact(db,p,vendor,version)
+    if not _compatible(artifact,version):
+        raise ValueError('Evaluator changed. Reinstall source, rerun tests and obtain a fresh human review.')
+    return artifact
+
+
+def _capability(db,p,vendor,state):
+    """Public capability is derived at read time, including across app restarts/deployments."""
+    snapshot=dict(state)
+    version=state['version']
+    if version and not _compatible(_artifact(db,p,vendor,version),version):
+        snapshot.update(state='REVIEW_REQUIRED',recorded_state=state['state'],actions=[],reinstall_required=True)
+    active=state['active_version']
+    if active and not _compatible(_artifact(db,p,vendor,active),active):
+        snapshot.update(active_version=None,recorded_active_version=active)
+    return snapshot
+
+
 def _event(db, p, vendor, state, kind):
     state['revision'] += 1
     db.execute('INSERT INTO v4_vendor_event VALUES(?,?,?,?,?,?,?)',
@@ -105,6 +132,7 @@ def _view(db, p, vendor, state):
     artifact = _artifact(db, p, vendor, state['version'])
     audit = [dict(row) for row in db.execute(
         'SELECT revision,kind,actor,at FROM v4_vendor_event WHERE tenant=? AND vendor=? ORDER BY revision', (p.tenant, vendor))]
+    state=_capability(db,p,vendor,state)
     result = {k: v for k, v in state.items() if k != 'tests'}
     result.update(vendor_id=vendor, audit=audit, actions=[], sources=SOURCES)
     if artifact:
@@ -121,7 +149,7 @@ def catalog(path, p):
             WHERE v.vendor=e.vendor AND v.tenant=e.tenant) ORDER BY e.vendor""", (p.tenant,))
         vendors = []
         for vendor, payload in rows:
-            state = json.loads(payload)
+            state = _capability(db,p,vendor,json.loads(payload))
             vendors.append({'vendor_id': vendor, **{key: state[key] for key in ('vendor', 'revision', 'version', 'state', 'active_version')}})
         return {'vendors': vendors}
 
@@ -156,13 +184,13 @@ def install(path, p, vendor, body):
         version = candidate_version(manifest, overlay, extraction)
         if old and old['version'] == version:
             return _view(db, p, vendor, old)
-        artifact = {'manifest': manifest, 'overlay': overlay, 'extraction': extraction, 'source_text': intake.document.text,
+        artifact = {'semantics_revision':semantics_revision(manifest),'manifest': manifest, 'overlay': overlay, 'extraction': extraction, 'source_text': intake.document.text,
                     'generated_tests': generated_checks(manifest), 'source_received_at': now()}
         if not _artifact(db, p, vendor, version):
             db.execute('INSERT INTO v4_vendor_artifact VALUES(?,?,?,?)', (p.tenant, vendor, version, encode(artifact)))
         if old and old['active_version']:
             prior = _artifact(db, p, vendor, old['active_version'])
-            if prior['manifest'] == manifest and prior['overlay'] == overlay:
+            if _compatible(prior,old['active_version']) and prior['manifest'] == manifest and prior['overlay'] == overlay:
                 state['previous'] = old['active_version']
                 state['previous_suite'] = old['suite']
         state.update(version=version, vendor=manifest['vendor'],
@@ -181,7 +209,7 @@ def submit_tests(path, p, vendor, submission):
         state = _tail(db, p, vendor)
         if state['revision'] != submission.revision or state['state'] != 'SHADOW':
             raise ValueError('Test submission requires the current shadow revision.')
-        artifact = _artifact(db, p, vendor, state['version'])
+        artifact = _require_current(db,p,vendor,state['version'])
         rows, outcomes, names = [], set(), set()
         for test in submission.tests:
             expected = test.expected
@@ -218,6 +246,7 @@ def act(path, p, vendor, action):
         if action not in ops:
             raise ValueError('Stale or unavailable reviewer action.')
         op = ops[action]
+        _require_current(db,p,vendor,state['version'])
         if op == 'interpret':
             state['interpretation_reviewer'] = p.subject
         elif op == 'approve':
@@ -230,7 +259,10 @@ def act(path, p, vendor, action):
                 raise PermissionError('Activation requires the same authenticated approving reviewer.')
             state.update(state='ACTIVE', active_version=state['version'])
         elif op == 'rollback':
-            state.update(state='REVOKED', active_version=state['previous'], previous=None, reviewer=None)
+            previous=state['previous']
+            if previous and not _compatible(_artifact(db,p,vendor,previous),previous):
+                previous=None
+            state.update(state='REVOKED', active_version=previous, previous=None, reviewer=None)
         elif op == 'revoke':
             state.update(state='REVOKED', active_version=None, previous=None, reviewer=None)
         else:
@@ -246,27 +278,41 @@ def dispatch(path, p, vendor, facts):
         if not state['active_version']:
             raise ValueError('An activated local adapter is required to create a workbench case.')
         version = state['active_version']
-        artifact = _artifact(db, p, vendor, version)
+        artifact = _require_current(db,p,vendor,version)
         manifest, overlay = artifact['manifest'], artifact['overlay']
         result = evaluate(manifest, overlay, facts, p.tenant)
-        obligation = fingerprint([p.tenant, vendor, overlay['account'], overlay['agreement'], overlay['product'],
-                                  overlay['plan'], facts.get('month')])
+        identity = [p.tenant, vendor, overlay['account'], overlay['agreement'], overlay['product'],overlay['plan'],facts.get('month')]
+        if 'resource_id' in overlay:
+            identity.append(overlay['resource_id'])
+        obligation = fingerprint(identity)
         case_id = 'availability-' + obligation
         versions = list(_read_versions(db, p.tenant, case_id))
         if versions:
             saved = versions[-1]['payload']
-            if saved['observation_digest'] == result['observation_digest'] and saved['version'] == version:
+            if saved['observation_digest'] == result['observation_digest'] and saved['version'] == version and saved.get('adapter_revision') == state['revision']:
                 return saved
         at = now()
         doc = manifest['document']
         clauses = [dict(c, label=f'{doc["name"]}, clause {c["id"]}: {c["quote"]}', uri=doc['uri'],
                         source_sha256=doc['sha256']) for c in manifest['citations']]
+        if governing := overlay.get('governing_terms'):
+            clauses.append({'label':governing['source_ref'],'source':Source.CUSTOMER.value,'sha256':governing['evidence_sha256'],
+                            'governing_source_sha256':governing['source_sha256'],'effective_from':governing['effective_from'],
+                            'unamended_terms':governing['unamended_terms'],'uri':''})
+        if period := overlay.get('billing_period'):
+            clauses.append({'label':period['source_ref'],'quote':period['quote'],'source':Source.CUSTOMER.value,
+                            'sha256':fingerprint(period),'uri':''})
         if override := overlay.get('override'):
             clauses.append({'label': override['source_ref'], 'quote': override['quote'], 'source': Source.CUSTOMER.value,
                             'sha256': fingerprint(override), 'uri': ''})
+        received_at=artifact.get('source_received_at')
+        if received_at is None:
+            receipt=db.execute("SELECT at FROM v4_vendor_event WHERE tenant=? AND vendor=? AND json_extract(payload,'$.version')=? ORDER BY revision LIMIT 1",
+                               (p.tenant,vendor,version)).fetchone()
+            received_at=receipt[0] if receipt else None
         case = dict(result, id=case_id, vendor=manifest['vendor'], vendor_id=vendor, title='Monthly availability · ' + overlay['product'],
-                    stage='EVALUATED', version=version, obligation_id=obligation, sources=SOURCES, clauses=clauses,
-                    source_sha256=doc['sha256'], source_received_at=artifact['source_received_at'],
+                    stage='EVALUATED', version=version, semantics_revision=artifact['semantics_revision'], obligation_id=obligation, sources=SOURCES, clauses=clauses,
+                    source_sha256=doc['sha256'], source_received_at=received_at,
                     source_currentness='Version supplied at intake; current external terms unverified',
                     agreement=overlay['agreement'], account=overlay['account'], adapter_revision=state['revision'],
                     evidence=[{'label': 'Scoped synthetic customer and vendor observations', 'detail': facts, 'sources': SOURCES}],
@@ -282,8 +328,8 @@ def active_binding(path, p, vendor):
         state = _tail(db, p, vendor)
         if not state['active_version']:
             raise ValueError('No active adapter for this vendor and tenant.')
-        artifact = _artifact(db, p, vendor, state['active_version'])
-        return {'version': state['active_version'], 'revision': state['revision'],
+        artifact = _require_current(db,p,vendor,state['active_version'])
+        return {'semantics_revision':artifact['semantics_revision'],'version': state['active_version'], 'revision': state['revision'],
                 'manifest': artifact['manifest'], 'overlay': artifact['overlay']}
 
 
@@ -297,9 +343,33 @@ def resolve_case(path, p, case_id, *, require_active=True):
         if not case_id.startswith('availability-') or not case.get('vendor_id'):
             raise ValueError('Case is not an integrity-verified availability evaluation.')
         state = _tail(db, p, case['vendor_id'])
-        if require_active and state['active_version'] != case['version']:
+        if require_active and (state['active_version'] != case['version'] or state['revision'] != case.get('adapter_revision')):
             raise ValueError('The governing adapter is no longer active. Historical evaluation is preserved.')
         artifact = _artifact(db, p, case['vendor_id'], case['version'])
+        if require_active and not _compatible(artifact,case['version']):
+            raise ValueError('Historical case uses an incompatible evaluator revision.')
         if not artifact or (artifact['overlay']['agreement'], artifact['overlay']['account']) != (case['agreement'], case['account']):
             raise ValueError('Case agreement or account binding is inconsistent.')
         return case
+
+
+def evaluate_active_db(db, p, vendor, facts, *, expected_version=None, expected_revision=None):
+    """Evaluate with the active tenant-scoped version inside the caller's existing transaction."""
+    if not isinstance(p,Principal) or not p.tenant or not p.subject or p.role not in {'viewer','reviewer'}:
+        raise PermissionError('Authenticated tenant principal required.')
+    state=_tail(db,p,vendor)
+    version=state['active_version']
+    if (not version or expected_version is not None and expected_version!=version
+            or expected_revision is not None and expected_revision!=state['revision']):
+        raise ValueError('Stale or inactive resource adapter binding.')
+    artifact=_require_current(db,p,vendor,version)
+    manifest,overlay=artifact['manifest'],artifact['overlay']
+    result=evaluate(manifest,overlay,facts,p.tenant)
+    return dict(result,version=version,semantics_revision=artifact['semantics_revision'],revision=state['revision'],manifest_digest=fingerprint(manifest),
+                source_sha256=manifest['document']['sha256'],overlay_digest=fingerprint(overlay),
+                vendor_id=vendor,agreement=overlay['agreement'],account=overlay['account'],resource_id=overlay.get('resource_id'))
+
+
+def evaluate_active(path,p,vendor,facts,*,expected_version=None,expected_revision=None):
+    with transaction(path,p,vendor) as db:
+        return evaluate_active_db(db,p,vendor,facts,expected_version=expected_version,expected_revision=expected_revision)

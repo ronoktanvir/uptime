@@ -501,3 +501,59 @@ def test_rollback_restores_compatible_previously_reviewed_version(api, monkeypat
     assert rolled['active_version'] == first['version']
     assert active_binding(path, REVIEWER, 'example-cloud')['version'] == first['version']
     assert c.post(V + '/evaluate', json={'facts': FACTS}).json()['version'] == first['version']
+
+
+def test_changed_installed_semantics_requires_new_review_and_preserves_prior_receipt(api,monkeypatch):
+    from uptime.storage import case_versions
+    from uptime.vendor_registry import active_binding,resolve_case,evaluate_active
+    from uptime.vendor_terms import SEMANTICS_REVISIONS,REVISION
+    c,_,restart,path=api
+    first=activate(c)
+    saved=c.post(V+'/evaluate',json={'facts':FACTS}).json()
+    old=action_url(first,'rollback')
+    monkeypatch.setitem(SEMANTICS_REVISIONS,REVISION,'b'*64)
+    c=restart()
+    current=c.get(V).json()
+    assert current['state']=='REVIEW_REQUIRED' and not current['active_version'] and not current['actions']
+    assert current['recorded_active_version']==first['version']
+    assert c.get('/api/vendors').json()['vendors'][0]['active_version'] is None
+    assert c.post(old,json={}).status_code==409 and c.post(V+'/evaluate',json={'facts':FACTS}).status_code==409
+    with pytest.raises(ValueError):
+        active_binding(path,REVIEWER,'example-cloud')
+    with pytest.raises(ValueError):
+        evaluate_active(path,REVIEWER,'example-cloud',FACTS)
+    with pytest.raises(ValueError):
+        resolve_case(path,REVIEWER,saved['id'])
+    assert resolve_case(path,REVIEWER,saved['id'],require_active=False)==saved
+    shadow=install(c)
+    assert shadow['state']=='SHADOW' and shadow['previous'] is None and shadow['version']!=first['version']
+    second=transition(c,transition(c,run_suite(c,shadow),'approve'),'activate')
+    new=c.post(V+'/evaluate',json={'facts':FACTS}).json()
+    assert new['id']==saved['id'] and new['semantics_revision']=='b'*64
+    assert [r['payload'] for r in case_versions(path,REVIEWER.tenant,saved['id'])]==[saved,new]
+    assert transition(c,second,'rollback')['active_version'] is None
+
+
+def test_pre_revision_approval_cannot_activate_on_current_semantics(api,monkeypatch):
+    from uptime import vendor_registry
+    c,_,_,_=api
+    approved=transition(c,run_suite(c,install(c)),'approve')
+    activate_url=action_url(approved,'activate')
+    original=vendor_registry._artifact
+    def old_record(*args):
+        artifact=original(*args)
+        if artifact:
+            artifact.pop('semantics_revision',None)
+        return artifact
+    monkeypatch.setattr(vendor_registry,'_artifact',old_record)
+    assert c.get(V).json()['state']=='REVIEW_REQUIRED'
+    assert c.post(activate_url,json={}).status_code==409
+
+
+def test_zero_effective_fee_preserves_timely_filing_and_no_positive_issuance():
+    m=compile_terms(Document(**DOC))
+    r=evaluate(m,OVERLAY,FACTS|{'monthly_fee_cents':0},REVIEWER.tenant)
+    assert r['outcome']=='INELIGIBLE' and r['amount'] is None
+    assert r['filing_status']=='TIMELY' and r['issuance_status']=='NO_POSITIVE_CREDIT'
+    tiny=evaluate(m,OVERLAY,FACTS|{'monthly_fee_cents':1},REVIEWER.tenant)
+    assert tiny['outcome']=='ELIGIBLE' and tiny['amount']=='0.00125'

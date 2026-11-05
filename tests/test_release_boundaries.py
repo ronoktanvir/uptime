@@ -1,4 +1,5 @@
 """Regression reproductions from the independent integration review."""
+from datetime import datetime
 from pathlib import Path
 import secrets
 import subprocess
@@ -80,8 +81,14 @@ def test_auto_replay_cannot_turn_duplicate_approval_into_new_filing(tmp_path):
 
 @pytest.mark.parametrize("cap,expected",[("99.99",0),("100.00",1)])
 def test_automated_mode_requires_separate_scoped_approval(tmp_path,cap,expected):
-    client,_,_=login(tmp_path)
+    client,app,_=login(tmp_path)
     assert configure(client,"POLICY_AUTOMATED",cap).status_code==200
+    # No approved cap supplies the missing authenticated component report.
+    initial=act(client,"dispute-cure","approve-claim").json()
+    assert initial["stage"]=="CLAIM_APPROVED" and initial["submissions"]==[]
+    app.state.bench.desk.clock=lambda: datetime.fromisoformat("2026-11-02T10:02:00+00:00")
+    revised=act(client,"dispute-cure","refresh-claim").json()
+    assert revised["stage"]=="DRAFTED"
     result=act(client,"dispute-cure","approve-claim").json()
     assert len(result["submissions"])==expected
     assert len(act(client,"dispute-cure","approve-claim").json()["submissions"])==expected

@@ -9,6 +9,7 @@ from pathlib import Path
 from .mandates import check_claim_decision, claim_preview
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import reserve_claim
+from .correspondence_artifacts import approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
 from .correspondence_reason import propose
 from .correspondence_rules import assess, confirmed_maintenance
 from .correspondence_types import Claim, Delivery, SOURCE, Scope, instant
@@ -28,6 +29,10 @@ CREATE TABLE IF NOT EXISTS inbox_account (
 CREATE TABLE IF NOT EXISTS inbox_sender (
  tenant TEXT NOT NULL, subject TEXT NOT NULL, account TEXT NOT NULL, source TEXT NOT NULL,
  PRIMARY KEY(tenant,subject,account,source), UNIQUE(tenant,subject,account));
+CREATE TABLE IF NOT EXISTS inbox_sender_scope (
+ tenant TEXT NOT NULL, subject TEXT NOT NULL, account TEXT NOT NULL, subscription TEXT NOT NULL,
+ exact_scope TEXT NOT NULL, PRIMARY KEY(tenant,subject,account,subscription,exact_scope));
+CREATE TABLE IF NOT EXISTS inbox_migration (name TEXT NOT NULL PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS inbox_claim (
  tenant TEXT NOT NULL, id TEXT NOT NULL, obligation TEXT NOT NULL, scope TEXT NOT NULL,
  state TEXT NOT NULL, PRIMARY KEY(tenant,id), UNIQUE(tenant,obligation));
@@ -36,6 +41,26 @@ CREATE TABLE IF NOT EXISTS inbox_delivery (
  claim TEXT NOT NULL, digest TEXT NOT NULL, received TEXT NOT NULL,
  PRIMARY KEY(tenant,account,source,event_id));
 """
+
+
+SUBSCRIPTION_FIELDS = ("vendor", "contract", "service", "component", "region")
+
+
+def subscription_id(scope):
+    return fingerprint([getattr(scope, key) for key in SUBSCRIPTION_FIELDS])
+
+
+def migrate_sender_scopes(db):
+    # The old account-wide grant may be safely narrowed only when one subscription
+    # already exists. Multiple possible targets need an explicit operator binding.
+    if not db.execute("INSERT OR IGNORE INTO inbox_migration VALUES('pin-sender-scopes-v1')").rowcount:
+        return
+    for tenant, subject, account in db.execute("SELECT tenant, subject, account FROM inbox_sender"):
+        choices = db.execute("SELECT vendor, contract, service, component, region FROM inbox_account "
+                             "WHERE tenant=? AND account=? LIMIT 2", (tenant, account)).fetchall()
+        if len(choices) == 1:
+            db.execute("INSERT INTO inbox_sender_scope VALUES(?,?,?,?,?)",
+                       (tenant, subject, account, fingerprint(list(choices[0])), ""))
 
 
 def money(amount):
@@ -48,6 +73,13 @@ def remainder(claimed, awarded):
     with localcontext() as context:
         context.prec = 50
         return money(Decimal(claimed) - Decimal(awarded))
+
+
+def _issuers(state):
+    # Keep named issuers and public key identifiers in the approval record;
+    # the outbound packet contains only the commitment to these local records.
+    return [{k: e.get(k) for k in ("event_id", "source", "subject", "source_key_id", "source_grant_id", "digest")}
+            for e in state["evidence"]]
 
 
 def authorize(p, write=False):
@@ -75,6 +107,9 @@ class CorrespondenceDesk:
         self.active_resolver = active_resolver
         with database(path) as db:
             db.executescript(SCHEMA)
+            with db:
+                db.execute("BEGIN IMMEDIATE")
+                migrate_sender_scopes(db)
 
     def _now(self):
         value = self.clock()
@@ -98,18 +133,30 @@ class CorrespondenceDesk:
             db.execute("INSERT OR IGNORE INTO inbox_account VALUES(?,?,?,?,?,?,?)",
                        (tenant, binding.account, binding.vendor, binding.contract, binding.service, binding.component, binding.region))
 
-    def bind_sender(self, tenant, account, source, subject):
-        """Operator-only allowlist of named HMAC service identities and source roles."""
+    def bind_sender(self, tenant, account, source, subject, *, scope=None):
+        """Pin an operator-verified source to a single scope. Legacy fixtures pin their sole subscription."""
         if source not in SOURCE.values() or not subject or not tenant:
             raise ValueError("Unsupported source binding.")
+        scope = Scope.model_validate(scope) if scope is not None else None
         with self._write() as db:
-            if not db.execute("SELECT 1 FROM inbox_account WHERE tenant=? AND account=?", (tenant, account)).fetchone():
+            rows = db.execute("SELECT vendor,contract,service,component,region FROM inbox_account "
+                              "WHERE tenant=? AND account=?", (tenant, account)).fetchall()
+            if not rows:
                 raise PermissionError("No such provisioned account.")
+            if scope is None:
+                if len(rows) != 1:
+                    raise ValueError("Select an exact scope for an account with multiple subscriptions.")
+                subscription, exact = fingerprint(list(rows[0])), ""
+            else:
+                if scope.account != account or tuple(getattr(scope, k) for k in SUBSCRIPTION_FIELDS) not in map(tuple, rows):
+                    raise PermissionError("Source scope does not match a provisioned subscription.")
+                subscription, exact = subscription_id(scope), fingerprint(scope.model_dump())
             existing = db.execute("SELECT source FROM inbox_sender WHERE tenant=? AND account=? AND subject=?",
                                   (tenant, account, subject)).fetchone()
             if existing and existing["source"] != source:
                 raise ValueError("Source roles require independent signers for this account.")
             db.execute("INSERT OR IGNORE INTO inbox_sender VALUES(?,?,?,?)", (tenant, subject, account, source))
+            db.execute("INSERT OR IGNORE INTO inbox_sender_scope VALUES(?,?,?,?,?)", (tenant, subject, account, subscription, exact))
 
     def create(self, p, claim: Claim):
         authorize(p, True)
@@ -118,9 +165,20 @@ class CorrespondenceDesk:
             if not db.execute("SELECT 1 FROM inbox_account WHERE tenant=? AND account=? AND vendor=? AND contract=? AND service=? AND component=? AND region=?",
                               (p.tenant, scope.account, scope.vendor, scope.contract, scope.service, scope.component, scope.region)).fetchone():
                 raise PermissionError("No verified account and agreement binding matches this scope.")
+            # Fully provisioned source configurations give the reviewer an exact
+            # incident/month/invoice intake scope. Reject invented aliases before
+            # they can occupy the economic identity of the legitimate claim.
+            permitted = db.execute("""SELECT 1 FROM inbox_sender_scope WHERE tenant=? AND account=? AND subscription=?
+                AND exact_scope IN ('',?) LIMIT 1""",
+                (p.tenant, scope.account, subscription_id(scope), fingerprint(scope.model_dump()))).fetchone()
+            if not permitted:
+                raise PermissionError("The operator must bind an inbound source for this claim scope.")
             # The covered API monthly credit is a single economic obligation.
             # Invoice, incident, claim and component aliases cannot create a second filing.
-            obligation = fingerprint([p.tenant, scope.vendor, scope.account, scope.contract, scope.service, scope.month, "availability"])
+            draft_key = [p.tenant, scope.vendor, scope.account, scope.contract, scope.service, scope.month, "availability"]
+            if scope.vendor.casefold() != "twilio":
+                draft_key.append(scope.component)
+            obligation = fingerprint(draft_key)
             duplicate = db.execute("SELECT id,scope FROM inbox_claim WHERE tenant=? AND (obligation=? OR id=?)",
                                    (p.tenant, obligation, claim.claim_id)).fetchone()
             if duplicate:
@@ -153,13 +211,19 @@ class CorrespondenceDesk:
         if p.role != "service" or not p.subject or not p.tenant:
             raise PermissionError("An authenticated source service is required.")
         with self._write(p.tenant) as db:
-            sender = db.execute("SELECT source FROM inbox_sender WHERE tenant=? AND subject=? AND account=?",
-                                (p.tenant, p.subject, event.scope.account)).fetchone()
+            scoped = fingerprint(event.scope.model_dump())
+            # An authenticated configured key must always match the complete grant.
+            # Legacy embedded callers may use their originally pinned subscription.
+            fallback = scoped if getattr(p, "source_grant_id", None) else ""
+            sender = db.execute("""SELECT s.source FROM inbox_sender s JOIN inbox_sender_scope g
+                    USING(tenant, subject, account) WHERE s.tenant=? AND s.subject=? AND s.account=?
+                    AND g.subscription=? AND g.exact_scope IN (?,?) LIMIT 1""",
+                    (p.tenant, p.subject, event.scope.account, subscription_id(event.scope), scoped, fallback)).fetchone()
             if not sender:
                 raise PermissionError("Service has no source grant on this account.")
-            return self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p.subject)
+            return self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p)
 
-    def _receive(self, db, tenant, account, source, claim_id, event, subject):
+    def _receive(self, db, tenant, account, source, claim_id, event, principal):
         if source != SOURCE[event.body.kind] or account != event.scope.account or observe_only(db, tenant):
             raise PermissionError("Source cannot deliver this evidence.")
         scope, state = self._read(db, tenant, claim_id)
@@ -174,6 +238,7 @@ class CorrespondenceDesk:
                 raise ValueError("Delivery identity was reused with different content.")
             return dict(event_id=event.event_id, digest=digest, received_at=previous["received"])
         now = self._now()
+        validate_arrival(body, now)
         if any(e["digest"] == digest for e in state["evidence"]):
             audit(state, now, source, "Recorded an identical-content delivery alias.", digest=digest)
         else:
@@ -187,10 +252,11 @@ class CorrespondenceDesk:
                 if not state["submissions"] or body["receipt_id"] != state["submissions"][-1]["id"]:
                     raise ValueError("Correspondence does not refer to the current local submission.")
 
-            fact = dict(event_id=event.event_id, source=source, subject=subject, kind=body["kind"], digest=digest,
+            fact = dict(event_id=event.event_id, source=source, subject=principal.subject, kind=body["kind"], digest=digest,
+                        source_key_id=getattr(principal, "source_key_id", None), source_grant_id=getattr(principal, "source_grant_id", None),
                         received_at=now.isoformat(), known_at=now.isoformat(), body=body)
             state["evidence"].append(fact)
-            audit(state, now, subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
+            audit(state, now, principal.subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
                   event_id=event.event_id, digest=digest)
             if body["kind"] == "message":
                 if any(r["receipt"] == body["receipt_id"] for r in state["replies"]):
@@ -226,6 +292,12 @@ class CorrespondenceDesk:
         if state["reason"] == "maintenance" and confirmed_maintenance(scope, state["evidence"]) and evaluation.outcome == Outcome.INELIGIBLE:
             state["stage"] = "DENIAL_ACCEPTED"
             audit(state, now, "claimant", "Customer notice independently confirms timely scheduled maintenance. Closed without further contact.")
+        elif state["reason"] == "artifact" and state["stage"] in {"NEEDS_EVIDENCE","RESPONSE_DRAFTED"}:
+            if evaluation.outcome != Outcome.ELIGIBLE or _artifact_conflict(state):
+                state["stage"] = "HUMAN_REVIEW"
+            elif approved_artifact(state):
+                state["stage"] = "RESPONSE_DRAFTED"
+                audit(state, now, "claimant", "A newly acquired artifact matches the requested proof and independent verification.")
         elif state["reason"] == "component" and state["stage"] in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED"}:
             initial = set(state["submissions"][0]["evidence_digests"])
             if evaluation.outcome != Outcome.ELIGIBLE:
@@ -256,7 +328,13 @@ class CorrespondenceDesk:
                     state["awarded"] = money(awarded)
                     state["stage"] = "AWARDED" if awarded == requested else "PARTIAL_AWARD_REVIEW"
             elif len(state["submissions"]) == 1:
-                if proposal.reason == "component":
+                if proposal.reason == "scope_error" and getattr(scope, proposal.scope_field) != proposal.reference:
+                    state["scope_correction"] = dict(field=proposal.scope_field, cited_id=proposal.reference)
+                    state["stage"] = "RESPONSE_DRAFTED"
+                    audit(state, now, "claimant", "The vendor named an identifier that contradicts both the filed packet and authenticated source scope.")
+                elif proposal.reason in {"component","artifact"}:
+                    if proposal.reason == "artifact":
+                        state["requested_artifact"] = dict(type=proposal.artifact_type, ref=proposal.reference)
                     state["stage"] = "NEEDS_EVIDENCE"
                     self._evidence_arrival(tenant, scope, state, now)
                 elif proposal.reason == "time_bar" and filed_at < current.cutoff:
@@ -275,9 +353,11 @@ class CorrespondenceDesk:
         request = money(current.evaluation.amount.amount)
         packet = dict(tenant=tenant, claim=claim_id, scope=scope.model_dump(), destination="isolated-local-simulator",
                       subject="SLA Claim", version=current.version, requested=request, evidence_digest=current.evidence_digest,
-                      agreement_id=current.agreement_id,
+                      agreement_id=current.agreement_id, authority_digest=fingerprint(_issuers(state)),
                       filing_cutoff=current.cutoff.isoformat(), terms_digest=fingerprint([asdict(c) for c in current.evaluation.clauses]),
                       artifacts=[dict(kind=e["kind"], digest=e["digest"]) for e in facts])
+        if current.filing_material:
+            packet["filing_material"] = current.filing_material
         if state["submissions"]:
             original = state["submissions"][0]
             if current.evaluation.amount.amount != Decimal(original["requested"]):
@@ -286,6 +366,15 @@ class CorrespondenceDesk:
             packet["vendor_event"] = state["replies"][-1]["digest"]
             if state["reason"] == "component" and any(e["kind"] == "component" and e["digest"] not in original["evidence_digests"] for e in facts):
                 packet["argument"] = "New authenticated customer component evidence identifies the affected service."
+            elif state["reason"] == "artifact" and (disclosure := approved_artifact(state)):
+                packet["argument"] = "The requested scoped artifact is independently verified against the filed source records."
+                packet["disclosed_artifact"] = disclosure
+            elif state["reason"] == "scope_error" and state.get("scope_correction"):
+                correction = state["scope_correction"]
+                if getattr(scope, correction["field"]) == correction["cited_id"] or original["packet"]["scope"] != scope.model_dump():
+                    raise ValueError("The vendor scope assertion is not contradicted by this filing.")
+                packet["argument"] = "Authenticated sources and the original filing establish the scoped identifier."
+                packet["verified_scope_field"] = correction["field"]
             elif state["reason"] == "time_bar" and instant(original["at"]) < current.cutoff:
                 packet["argument"] = "The dated original receipt predates the verified filing cutoff."
             else:
@@ -328,7 +417,8 @@ class CorrespondenceDesk:
             digest = fingerprint(packet)
             if action.startswith("approve-"):
                 state["approval"] = dict(action=action, actor=p.subject, at=now.isoformat(), digest=digest,
-                                         binding=self._approval_binding(current))
+                                         binding=self._approval_binding(current),
+                                         evidence_authorities=_issuers(state))
                 state["stage"] = "CLAIM_APPROVED" if action == "approve-claim" else "RESPONSE_APPROVED"
                 audit(state, now, p.subject, "Approved exact local packet.", digest=digest)
             else:
@@ -339,7 +429,7 @@ class CorrespondenceDesk:
                                evidence_digests=[a["digest"] for a in packet["artifacts"]], sources=VENDOR)
                 reserve_claim(db, tenant=p.tenant, vendor=scope.vendor, account=scope.account,
                               agreement_id=current.agreement_id, agreement_version=current.version, service=scope.service,
-                              month=scope.month, remedy="availability", route="correspondence", case_id=claim_id,
+                              month=scope.month, remedy=current.remedy, route="correspondence", case_id=claim_id,
                               packet_digest=digest, scope=scope.model_dump(), receipt_id=receipt["id"], at=receipt["at"],
                               initial_receipt_id=state["submissions"][0]["id"] if state["submissions"] else None)
                 state["submissions"].append(receipt)
@@ -378,6 +468,11 @@ class CorrespondenceDesk:
         evidence = [dict(label=e["kind"], detail=e["event_id"] + " · " + e["source"], digest=e["digest"],
                          received_at=e["received_at"], known_at=e.get("known_at", e["received_at"]), sources=VENDOR if e["source"] == "vendor" else SOURCES)
                     for e in state["evidence"]]
+        for item, fact in zip(evidence, state["evidence"]):
+            body = fact["body"]
+            item.update({k:body[k] for k in ("source_ref","observed_at","artifact_ref","artifact_type","body_sha256","linked_ref") if k in body})
+            item["available_at"] = fact["known_at"] if "known_at" in fact else fact["received_at"]
+            item["issuer"] = fact.get("subject",fact["source"])
         replies = [{**r, "text": next(e["body"]["text"] for e in state["evidence"] if e["digest"] == r["digest"])} for r in state["replies"]]
         actions = [] if observe_only(db, p.tenant) else self._actions(p, scope, state, current, now)
         if p.tenant != "bears" and actions:
@@ -396,5 +491,6 @@ class CorrespondenceDesk:
                     evidence=evidence, timeline=state["timeline"], submissions=submitted, replies=replies, approval=state["approval"],
                     actions=actions,
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
+                    requested_artifact=state.get("requested_artifact"),
                     policy_dispatchable=False, ledger=ledger,
                     financials=[dict(label=k.replace("_", " ").title(), value=scope.currency + " " + v, sources=SOURCES) for k,v in ledger.items()])
