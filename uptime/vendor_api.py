@@ -45,6 +45,14 @@ def make_router(db_path, actor, reviewer, check_write, mutex):
     def tests(vendor_id: str, body: registry.TestSubmission, p=Depends(reviewer)):
         return mutate(p, registry.submit_tests, vendor_id, body)
 
+    @router.post('/{vendor_id}/semantic-bindings')
+    def semantic_review(vendor_id: str, body: registry.SemanticSubmission, p=Depends(reviewer)):
+        return mutate(p, registry.review_semantics, vendor_id, body)
+
+    @router.post('/{vendor_id}/semantic-bindings/revoke')
+    def semantic_revocation(vendor_id: str, body: registry.SemanticRevocation, p=Depends(reviewer)):
+        return mutate(p, registry.revoke_semantics, vendor_id, body)
+
     @router.post('/{vendor_id}/shadow-preview')
     def preview(vendor_id: str, body: Preview, p=Depends(reviewer)):
         return mutate(p, registry.shadow_preview, vendor_id, body)

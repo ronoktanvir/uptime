@@ -44,7 +44,7 @@ def historical_reply(state, fact, now, proposal):
                 received_at=now.isoformat(), filing_source="observed")
 
 
-def procedure(scope, events, manifest, overlay):
+def procedure(scope, events, manifest, overlay, *, bindings=None):
     """Establish only receipt chronology and concrete filed/missing items, never month coverage or price."""
     from datetime import timedelta
     from .correspondence_resource import filing_refs
@@ -73,11 +73,16 @@ def procedure(scope, events, manifest, overlay):
     if not channel or original["body"]["submitted_to"] != channel or instant(original["body"]["received_at"]) < following:
         raise ValueError("Historical receipt does not establish the reviewed destination or completed service period.")
     expected = set(manifest.get("request_fields", []))
+    def meaning(name):
+        values = bindings.resolve('request_fields',name) if bindings else frozenset()
+        if len(values) != 1:
+            raise ValueError('Historical filing name needs one reviewed definition.')
+        return next(iter(values))
     if manifest.get("subscription"):
         from .vendor_resource_scopes import subscription
         subscription(dict(region=scope.region), overlay, manifest, first, following)
     received = {}
-    initial_fields = {field["name"] for field in original["body"]["fields"]}
+    initial_fields = {meaning(field["name"]) for field in original["body"]["fields"]}
     if manifest.get("cure_clock") and not set(manifest["cure_clock"]["initial_fields"]) <= initial_fields:
         raise ValueError("Required original ticket fields were missing at the initial deadline.")
     response = groups.get("portal_response_receipt")
@@ -105,9 +110,10 @@ def procedure(scope, events, manifest, overlay):
             raise ValueError("A receipt contains repeated field names.")
         for field in event["body"]["fields"]:
             name, refs = field["name"], field["refs"]
-            if name not in expected or name in received and received[name] != refs:
+            target = meaning(name)
+            if target not in expected or target in received and received[target] != refs:
                 raise ValueError("Unexpected or contradictory filing item in a historical receipt.")
-            received[name] = refs
+            received[target] = refs
     material = groups.get("filing_material")
     available = {}
     if material:
@@ -148,16 +154,23 @@ def procedure(scope, events, manifest, overlay):
             raise ValueError("Statement does not corroborate the contemplated filing resource.")
         for field in candidate["fields"]:
             name, refs = field["name"], field["refs"]
-            if name not in expected or name in received and received[name] != refs:
+            target = meaning(name)
+            if target not in expected or target in received and received[target] != refs:
                 raise ValueError("Signed customer and vendor statements conflict about an item.")
-            if len(set(refs)) == len(refs) and set(refs) <= filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
+            if len(set(refs)) == len(refs) and set(refs) <= filing_refs(name, manifest, overlay, scope, groups, intervals, fees, bindings):
                 available[name] = refs
+    missing = []
+    for target in sorted(expected - received.keys()):
+        names = bindings.representations('request_fields',target)
+        if len(names) != 1:
+            raise ValueError('Choose the intended reviewed literal before preparing a historical cure.')
+        missing.extend(names)
     return dict(original=original["body"]["receipt_id"], original_digest=original["digest"], filed_at=original["body"]["received_at"],
                 last=(supplement or original)["body"]["receipt_id"], supplemented=bool(supplement), channel=channel,
                 cutoff=cutoff.isoformat(), response_cutoff=response_cutoff, response_ref=response["body"]["source_ref"] if response else None,
                 response_message_ref=response["body"]["message_ref"] if response else None,
                 ticket_id=original["body"].get("ticket_id"), can_supplement=bool(response_cutoff) or manifest.get("supplement") == "same_filing_deadline",
-                missing=sorted(expected - received.keys()), available=available,
+                missing=sorted(missing), available=available,
                 source_digests=sorted(e["digest"] for e in groups.values()))
 
 

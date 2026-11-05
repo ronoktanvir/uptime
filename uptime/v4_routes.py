@@ -15,7 +15,8 @@ from .correspondence_types import SOURCE, instant
 from .storage import database
 from .twilio import calendar_bounds
 from .vendor_api import make_router
-from .vendor_registry import evaluate_active_db
+from .vendor_registry import evaluate_active_db, binding_context_db
+from .vendor_bindings import require_context, SemanticBindingRequired
 from .correspondence_resource import exclusive_cutoff, join_resource
 from .correspondence_service import join_service, service_procedure
 from .correspondence_history import procedure
@@ -195,25 +196,41 @@ def resolve_active(path, tenant, scope, events, at):
         if binding is None:
             return None
         installation, state, manifest, overlay = binding
+        principal = Principal(tenant,'local-active-join','viewer')
+        semantics = binding_context_db(db, principal, installation)
+        semantic_gap = None
+        try:
+            require_context(manifest, overlay, tenant, semantics)
+        except SemanticBindingRequired as error:
+            semantic_gap = str(error)
         receipts = _filing_receipts(db, tenant, scope)
         filed = instant(receipts[0]["at"]) if receipts else at
         resource = manifest["family"] == "resource-month/1"
         aggregate = bool(manifest.get("aggregate_monitor"))
         filing = raw = gap = cutoff = historical = None
-        if resource and not aggregate and any(e["kind"] in HISTORICAL for e in events):
+        if resource and not semantic_gap and not aggregate and any(e["kind"] in HISTORICAL for e in events):
             try:
                 # This entry point also rejects stale interpreter semantics before
                 # using a published clause for a nonfinancial procedural response.
                 evaluate_active_db(db, Principal(tenant,"local-active-join","viewer"), installation, {},
                                    expected_version=state["active_version"], expected_revision=state["revision"])
-                historical = procedure(scope, events, manifest, overlay)
+                historical = procedure(scope, events, manifest, overlay, bindings=semantics)
             except ValueError:
                 historical = None
         try:
+            if semantic_gap:
+                # Fixed/calendar filing clocks remain useful; unknown literal
+                # meaning cannot authorize a filing packet or a monetary preview.
+                from .vendor_resource_eval import unresolved_semantics
+                facts = {k:overlay[k] for k in ('account','agreement','product','plan')}
+                facts.update(month=scope.month, received_at=filed.isoformat())
+                raw = unresolved_semantics(manifest, overlay, facts, {}, semantic_gap)
+                cutoff = exclusive_cutoff(raw)
+                raise SemanticBindingRequired(semantic_gap)
             if aggregate:
-                obs, filing = join_service(scope, events, manifest, overlay, filed, receipts)
+                obs, filing = join_service(scope, events, manifest, overlay, filed, receipts, bindings=semantics)
             elif resource:
-                obs, filing = join_resource(scope, events, manifest, overlay, filed, receipts)
+                obs, filing = join_resource(scope, events, manifest, overlay, filed, receipts, bindings=semantics)
             else:
                 _, following = calendar_bounds(instant(scope.month+"-01T00:00:00Z").date(), "UTC")
                 cutoff = following + timedelta(days=overlay.get("override",{}).get("filing_days",manifest["filing_days"]))
@@ -224,7 +241,7 @@ def resolve_active(path, tenant, scope, events, at):
                 cutoff = exclusive_cutoff(raw)
         except ValueError as error:
             gap = str(error)
-        if aggregate:
+        if aggregate and not semantic_gap:
             historical = service_procedure(events, manifest, raw)
     if not cutoff and historical:
         cutoff = instant(historical["cutoff"])
@@ -253,6 +270,8 @@ def resolve_active(path, tenant, scope, events, at):
     # The economic key describes governing rules for this month. Reformatting
     # or reissuing the same terms must not mint another monthly obligation.
     controlling = _economics(manifest, overlay)
+    if resource:
+        controlling = fingerprint([controlling, semantics.digest if semantics and not semantic_gap else 'semantic-review-required'])
     measurement = None
     if result.outcome == Outcome.ELIGIBLE:
         if resource:

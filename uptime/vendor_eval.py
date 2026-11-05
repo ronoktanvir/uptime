@@ -42,10 +42,10 @@ def usd_estimate(fee_cents, credit_units):
     return f'{whole}.{tail}'
 
 
-def evaluate(manifest, overlay, facts, tenant):
+def evaluate(manifest, overlay, facts, tenant, *, bindings=None):
     if manifest['family'] == 'resource-month/1':
         from .vendor_resource_eval import evaluate_resource
-        return evaluate_resource(manifest,overlay,facts,tenant)
+        return evaluate_resource(manifest,overlay,facts,tenant,bindings=bindings)
     if facts.get('tenant', tenant) != tenant:
         raise PermissionError('Tenant mismatch.')
     if set(facts) - FACT_FIELDS:

@@ -58,6 +58,9 @@ def filing(tmp_path, monkeypatch, request):
     prefix = "/api/vendors/filing-reference-control"
     state = env.post(prefix + "/candidates", dict(document=document, overlay=OVERLAY | {"plan":plan}))
     assert state["state"] == "SHADOW", state
+    from test_vendor_semantic_bindings import review_submission
+    state=env.post(prefix+'/semantic-bindings',dict(revision=state['revision'],
+        review=review_submission(state['manifest'],state['overlay'],document['text'])))
     positive = facts()
     positive["plan"] = plan
     for kind in ("service_invoice", "service_monitor", "filing_proof"):

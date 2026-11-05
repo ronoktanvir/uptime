@@ -1,0 +1,18 @@
+{
+  "kind": "actual_old_binary_startup_guard",
+  "old_revision": "704caa5",
+  "old_auth_sha256": "d21d1dc4879eccb72f245b966e0e928ef937c1d23f958dee4e5499020df1be2d",
+  "setup": {
+    "returncode": 0,
+    "stdout": "OLD_STORE_ACCEPTED",
+    "stderr": ""
+  },
+  "startup": {
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    from uptime.server import create_app; create_app('/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus61-older-startup-probe.sqlite', approvals_enabled=True)\n                                          ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus61-older-704caa5/uptime/server.py\", line 36, in create_app\n    auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant)\n  File \"/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus61-older-704caa5/uptime/auth.py\", line 193, in __init__\n    bind_workspace(path, mode, rehearsal, tenant)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus61-older-704caa5/uptime/auth.py\", line 79, in bind_workspace\n    raise ValueError(\"Legacy password authority requires a fresh workspace and offline key enrollment\")\nValueError: Legacy password authority requires a fresh workspace and offline key enrollment"
+  },
+  "second_migration_byte_equal": true,
+  "epoch": 61,
+  "limitation": "Pre-existing old processes and direct imported evaluator helpers are not stopped by an ignored schema epoch. Stop all old processes and restrict the upgraded database to the new deployment before reopening. No claim of malicious-binary resistance."
+}

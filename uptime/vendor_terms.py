@@ -331,7 +331,7 @@ def bind_overlay(manifest, overlay):
 # A comment-only change can conservatively require fresh review. Historical receipts stay readable.
 _COMMON_SEMANTIC_FILES = ('contracts.py','vendor_terms.py','vendor_eval.py','vendor_model.py','vendor_registry.py','claim_identity.py')
 _PROFILE_FILES = {REVISION: _COMMON_SEMANTIC_FILES,
-                  'resource-month/1': _COMMON_SEMANTIC_FILES + ('vendor_resource_terms.py','vendor_resource_eval.py','vendor_resource_operators.py','vendor_resource_predicates.py','vendor_resource_scopes.py','vendor_service_month.py','twilio.py')}
+                  'resource-month/1': _COMMON_SEMANTIC_FILES + ('vendor_bindings.py','vendor_resource_terms.py','vendor_resource_eval.py','vendor_resource_operators.py','vendor_resource_predicates.py','vendor_resource_scopes.py','vendor_service_month.py','twilio.py')}
 SEMANTICS_REVISIONS = {
     family: fingerprint({'protocol':'reviewed-semantics/1','family':family,'files':{
         name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in files}})
