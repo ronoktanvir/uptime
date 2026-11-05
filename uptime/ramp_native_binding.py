@@ -7,7 +7,6 @@ The HTTP boundary consumes the independent mandate for the bytes it sends.
 from dataclasses import dataclass, field
 from datetime import timedelta
 from hashlib import sha256
-import base64
 import json
 import os
 from pathlib import Path
@@ -21,7 +20,7 @@ import httpx
 from fastapi import Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 
-from . import gates, mandates
+from . import gates, mandates, ramp_credentials
 from .auth import NAME
 from .auth_keys import public_bytes
 from .contracts import fingerprint
@@ -81,16 +80,14 @@ class Empty(_Strict):
     pass
 
 
-def _credentials():
+def _credentials(path=None):
     # No token, scope or credential path can come from an HTTP caller or native config.
     if os.environ.get("RAMP_ENV") != "sandbox" or os.environ.get("RAMP_BASE_URL", ORIGIN) != ORIGIN:
         raise WorkflowError("Exact sandbox operator environment required")
-    value = strict_json(_protected_bytes(Path.home() / ".config/uptime/ramp-sandbox.json"))
-    if (set(value) != {"base_url", "client_id", "client_secret"} or value["base_url"] != ORIGIN
-            or any(not isinstance(value[k], str) or not value[k] or any(c.isspace() for c in value[k])
-                   for k in ("client_id", "client_secret")) or ":" in value["client_id"]):
-        raise WorkflowError("Controlled sandbox credentials unavailable")
-    return base64.b64encode((value["client_id"] + ":" + value["client_secret"]).encode()).decode()
+    try:
+        return ramp_credentials.load(path).basic
+    except ramp_credentials.CredentialError:
+        raise WorkflowError("Controlled sandbox credentials unavailable") from None
 
 
 def _client():
@@ -223,6 +220,7 @@ class NativeBinding:
         self.installation = {"workspace_id": realm, "tenant": self.config.tenant, "business_id": self.config.business_id,
                              "config_sha256": sha256(self._config_bytes).hexdigest()}
         self._guard()
+        self._credential_path = ramp_credentials.selected_path()
         self.outbox_path = self.config_path.with_suffix(".outbox.sqlite3")
         if self.outbox_path.resolve() == Path(auth.path).resolve():
             raise WorkflowError("Native outbox must be separate from the authority database")
@@ -329,7 +327,7 @@ class NativeBinding:
                         "comment_ready": False, "business_verified": False, "scope_receipt": "UNAVAILABLE"}
         try:
             data = _response(client, "POST", "/developer/v1/token", headers={
-                "Authorization": "Basic " + _credentials(), "Content-Type": "application/x-www-form-urlencoded"},
+                "Authorization": "Basic " + _credentials(self._credential_path), "Content-Type": "application/x-www-form-urlencoded"},
                 content=urlencode({"grant_type": "client_credentials", "scope": " ".join(sorted(SCOPES))}).encode())
             token, scope, expires = data.get("access_token"), data.get("scope"), data.get("expires_in")
             if (not isinstance(token, str) or not token or any(c.isspace() for c in token)

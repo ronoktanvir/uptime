@@ -1,0 +1,29 @@
+# Bounded response grammar: implementation and verification
+
+The affected response families now use one complete clause grammar for admission. Decimal points remain inside numeric tokens. Old keyword matches only retain presentation spans for already supported responses; they cannot admit or reject a reply. The public API schema and signed source protocol are unchanged. Internally, `propose(text, *, claimed=None, scope_month=None)` accepts the stored claim month, supplied by both historical and local correspondence paths.
+
+This implements the accepted scope of actual Opus56 review session `19ad791c`. Availability admits a finite set of subject, predicate, optional numeric and period forms. Explicit month/year or ISO month must equal server `scope.month`; relative, rolling, quarterly, duplicate and missing-context periods refuse. The phrase “the service month” resolves only that stored label. Percentages do not establish contractual thresholds, verified availability or money. A pair of explicit percentages must be internally consistent, and duplicate numeric threshold roles refuse.
+
+Claim-pronoun binding requires a same-sentence matrix object literally “your claim/request/filing” followed directly by “because it” and a recognized receipt/filing lateness predicate. Artifact requests may follow an explicit missing-artifact declaration only when their types and references unify without conflict. “That document” or “it” can inherit only the immediately preceding unique missing-artifact target. Additional substantive clauses, cross-family assertions, duplicate assertions or multiple parses refuse. Existing maintenance, downtime and scope-error families retain their whole-reply grammar.
+
+New USD conjunctions admit exactly one unconditional service-credit grant and a stated denied remainder; an optional stated claim must equal the filed claim, and grant plus remainder must equal that claim. Every monetary token must occupy one recognized role. Unsupported currency, conditions, future grants, taxes, refunds, discounts, unknown text, multiple grants and inconsistent amounts refuse. Existing partial grants without a stated remainder remain supported: the domain records the reported award and keeps the remainder pending in `PARTIAL_AWARD_REVIEW`. It does not waive the remainder, post or apply credit, settle the dispute, or authorize cash movement.
+
+## Public evidence
+
+The original 37 cases were committed before production edits in `ee244ca`; their SHA-256 remains `2dc8a13a6b68ee0149d4dbc1983676668cbc7993e87b344322737bfbd7b25841`. The 35 reviewed controls were committed in `d297dea`; their SHA-256 remains `f9b56e43e84a72d90100bac496516053498ac0f079ea5e0594b768faf7ef6e8d`. One explicit reviewed override rejects the original cross-sentence pronoun case. The original fixture is not rewritten.
+
+- All 72 public proposal cases pass under that explicit override.
+- Twelve recorded successful proposals from base `877f427` preserve every output field, including their spans. The legacy fixture records the original source hashes.
+- The expanded grammar/lifecycle module passes 114 tests. Mounted signed controls cover mistaken and valid availability denials, actual original-receipt lateness, exact independently verified artifact cure, partial-award conservation, and rejected unknown or inconsistent messages. A correct denial test also compares the immutable stored original receipt before and after disposition.
+- A broader run passes 646 tests across correspondence, canonical claim identity/history, source configuration, signed mandates, disputes, actual award attribution and existing public acceptance controls. The only warning is the existing Starlette/httpx deprecation.
+- Six isolated single-guard mutations each cause the intended negative tests to fail: completeness 5 failures; month equality 3; artifact identity 3; monetary conservation 2; compatibility 3; parse ambiguity 1. The ambiguity control deliberately introduces an overlapping family template and requires refusal. Real source hashes remain unchanged throughout the mutation run.
+
+Durable local receipts are `~/.local/share/uptime-engineering/receipts/dispute-response-56-scoped.log` and `response-56-mutations.json`; the latter contains mutated source hashes, log hashes and failure summaries. The mutation harness runs copies under the durable `tasks` directory and never alters the actual source.
+
+## Interpretation and remaining limits
+
+These are self-authored public remediation tests, not independent generalization evidence. Root sealed a separate 100-case corpus before production edits, with seal `1253b8211a992c00ee40ed21b00ccc64207cbfd10d2813aec098026059f0d0b2`; this implementer has not read its inputs or expected results. Its fixed February 2027/USD 37.50 context limits any later score. Independent replay and full integration regression remain for root after this candidate is frozen.
+
+This remains a finite English grammar. Unrecognized paraphrases and unusual punctuation, competing antecedents, unsupported period placement or windows, new legal/commercial objections and unsupported money roles require human review. No language model proposes executable authority in this change. Signed source grants, exact scope, pinned contract/source identity, complete evidence, immutable filing receipts and reviewer authorization still govern domain actions.
+
+Earlier cohort attempts remain separate: the grounded-reference repair initially retained 0/7 denial flows; the plan-reference repair delivered all seven originals/denials but produced only 2/8 completed additive cases and 2/10 completed original cases despite 8/8 additive arithmetic. The prior prediction of 7/7 denial dispositions was not met. This document does not revise those measurements or claim that public grammar success repairs an unseen cohort.

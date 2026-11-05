@@ -1,5 +1,4 @@
 """Narrow sandbox adapter. The UI consumes saved, sanitized observations offline."""
-import base64
 import hashlib
 import hmac
 import http.client
@@ -222,13 +221,14 @@ def _read_query(query, path):
 class SandboxRampProvider:
     def __init__(self):
         self._guard()
-        path = Path.home() / ".config/uptime/ramp-sandbox.json"
-        if not path.is_file() or path.is_symlink() or path.stat().st_mode & 0o077:
-            raise RampError("Private sandbox credential file unavailable")
-        cfg = json.loads(path.read_text())
-        if cfg.get("base_url") != ORIGIN:
-            raise RampError("Credential origin mismatch")
-        self._basic = base64.b64encode((cfg["client_id"] + ":" + cfg["client_secret"]).encode()).decode()
+        from . import ramp_credentials
+        try:
+            self._credential_path = ramp_credentials.selected_path()
+            credential = ramp_credentials.load(self._credential_path)
+        except ramp_credentials.CredentialError:
+            raise RampError("Private sandbox credential file unavailable") from None
+        self._basic = credential.basic
+        self.client_fingerprint = credential.client_fingerprint
 
     @staticmethod
     def _guard():

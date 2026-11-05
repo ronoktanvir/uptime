@@ -10,6 +10,12 @@ The app obtained `vendors:read`, `bills:read`, `transactions:read`, `purchase_or
 
 ## Interfaces and implementation boundary
 
+### Signed-in demo association check, November 4 local time
+
+The newly signed-in Ramp UI exposed a pending bill with a different UUID from the original credential's pending bill. An exact read using the original app returned HTTP 404; the complete original six-bill list also omitted the UI UUID. The visible Developer Apps view had no app rows. These facts require a separately verified connection and do not diagnose why the registrations differ. The agent prepared the Uptime registration, leaving developer agreement acceptance and credential creation to the administrator. No native comment or draft mutation has been sent. See [demo connection](RAMP-DEMO-CONNECTION.md).
+
+The signed-in browser advertised WebMCP tools for native page context, tables and unsaved editors. This is an observed browser capability; the earlier absence of a connected standalone Ramp MCP plugin remains a separate fact. The actual observed bill route was `/bill-pay/bills/list/{UUID}`. A new read-only association checker accepts that exact observed route and verifies its UUID through the API, without inventing an ERP deep link.
+
 | Surface | Supported use | What must be true |
 |---|---|---|
 | Bill Pay and purchases | Read bills, drafts, approval state, inventory/expense lines and linked POs. The bill's `deep_link_url` and the PO's `ramp_url` are provider fields. Use the native record as the review destination. | Stable UUID plus correct sandbox host. A PO discrepancy can support a procurement finding. Negotiated pricing also requires applicable terms and line/date/fee identity. [Bill Pay](https://docs.ramp.com/llms-guides/bill-payments.txt) |
