@@ -1,0 +1,81 @@
+{
+  "video": {
+    "codec_name": "h264",
+    "width": 1280,
+    "height": 900,
+    "pix_fmt": "yuv420p",
+    "duration": "120.000000",
+    "nb_frames": "2880"
+  },
+  "scenes": [
+    {
+      "start_s": 0,
+      "duration_s": 8,
+      "chapter": "Ramp worklist"
+    },
+    {
+      "start_s": 8,
+      "duration_s": 12,
+      "chapter": "Designated bill"
+    },
+    {
+      "start_s": 20,
+      "duration_s": 10,
+      "chapter": "Record-bound approval evidence"
+    },
+    {
+      "start_s": 30,
+      "duration_s": 7,
+      "chapter": "Captured payee"
+    },
+    {
+      "start_s": 37,
+      "duration_s": 7,
+      "chapter": "Captured card transaction"
+    },
+    {
+      "start_s": 44,
+      "duration_s": 10,
+      "chapter": "Available purchase order"
+    },
+    {
+      "start_s": 54,
+      "duration_s": 12,
+      "chapter": "Constructed cap on the same ID"
+    },
+    {
+      "start_s": 66,
+      "duration_s": 12,
+      "chapter": "Informational note plan"
+    },
+    {
+      "start_s": 78,
+      "duration_s": 8,
+      "chapter": "Synthetic Twilio dispute"
+    },
+    {
+      "start_s": 86,
+      "duration_s": 10,
+      "chapter": "Simulated award"
+    },
+    {
+      "start_s": 96,
+      "duration_s": 7,
+      "chapter": "Recorded simulated credit"
+    },
+    {
+      "start_s": 103,
+      "duration_s": 7,
+      "chapter": "Partial simulated application"
+    },
+    {
+      "start_s": 110,
+      "duration_s": 10,
+      "chapter": "GENERAL onboarding / human approval pending"
+    }
+  ],
+  "identity": "scripted-test-reviewer",
+  "database": "fresh disposable replay",
+  "network": "loopback only",
+  "capture": "actual browser frames with timed editorial captions"
+}

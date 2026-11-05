@@ -237,18 +237,86 @@
       "stage": "PARTIALLY_APPLIED"
     },
     {
-      "view": "Shadow onboarding",
+      "view": "GENERAL onboarding / human approval pending",
       "duration_s": 10,
       "native_id": null,
       "source_kinds": [
-        "DETERMINISTIC_REPLAY"
+        "DETERMINISTIC_REPLAY",
+        "SYNTHETIC_CUSTOMER",
+        "SIMULATED_VENDOR"
       ],
       "native_amount": null,
       "finding_amount": null,
       "ledger": null,
-      "stage": null
+      "stage": "SHADOW"
     }
   ],
+  "onboarding": {
+    "vendor_id": "calyxquay-film-draft",
+    "state": "SHADOW",
+    "version": "c9820841301915da1358e094e28736ad152fa60fde3e940ce0aad7d5ec1b1e6b",
+    "source_sha256": "697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1",
+    "extraction": {
+      "method": "tool_free_model_propositions",
+      "source_sha256": "697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1",
+      "model": "claude-opus-5-5",
+      "session": "609751b5-43c2-4ddf-947d-799f6e5431ec",
+      "at": "2026-11-05T01:59:33.188612+00:00",
+      "proposal_sha256": "7bff6902faf2bca6e52e4cf4e7b2c4bb1651e2dd9a38c574b4fb267d11be9a9f",
+      "protocol": "public_block_ids/2",
+      "raw_proposal_sha256": "c6fe6ab944775eebd9b96043c6fedfbbb37b336b8e4e1df75454e0927a7dcb8e"
+    },
+    "human_approval": "PENDING",
+    "controls": "EDITOR_AUTHORED_SYNTHETIC_NOT_HELD_OUT",
+    "preview": {
+      "classification": "LOCAL_DRAFT_PREVIEW",
+      "dispatch_authorized": false,
+      "vendor_id": "calyxquay-film-draft",
+      "revision": 4,
+      "evaluation": {
+        "amount": "12.00",
+        "currency": "USD",
+        "trace": [
+          "2588400000000/2592000000000 microseconds available; 10000 verified affected USD cents."
+        ],
+        "missing": [],
+        "basis": "eb1655429c3da4c75f2f5c7eb3be809156d3b134cbe89e5e9e42029289c81229",
+        "observation_digest": "092db4eb69482895bdd69f9ed9af325bd2c924bd4a3a003f633eef80b6311be2",
+        "remedy": "noncash_service_credit",
+        "citations": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "issuance_status": "NONCASH_SERVICE_CREDIT_UNCONFIRMED",
+        "filing_status": "TIMELY",
+        "claim_cutoff": "2031-05-15T00:00:00+00:00",
+        "cutoff_inclusive": true,
+        "affected_fee_cents": 10000,
+        "downtime_microseconds": 3600000000,
+        "total_microseconds": 2592000000000,
+        "rate_units": 12000000,
+        "tier_citation": 6,
+        "service_estimate": "12.00",
+        "outcome": "ELIGIBLE"
+      }
+    },
+    "model_called_during_film": false
+  },
   "reviewer_origin": "disposable scripted-test-reviewer",
   "copy_origin": "editorial captions; UI text is literal application output",
   "network": "loopback only; no provider API calls",
