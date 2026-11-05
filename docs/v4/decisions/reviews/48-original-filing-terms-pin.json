@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T02:14:42.287489+00:00",
+  "packet_sha256": "6b200867dfbf1aaf7b54b391f480098f0ed4883d2462c2d394dad01dbc9b9bba",
+  "prompt_sha256": "2338e6442adf56deed698edd7f659c9b791876093e736d1d4ca2b924b9894559",
+  "status": "REVIEWED",
+  "session": "3d74c6ff-cd6e-49ba-ae54-b87b01db0e52",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** B is directionally right but insufficient as specified.\n\n**Alternatives:** A conflates fresh attestation with historical fact; reject. C correctly rejected. B is sound only if strengthened.\n\n**Version ID alone isn't enough.** Labels can be reused, mis-typed or re-issued. Bind the receipt to:\n- a contract-document content digest, not only `contract_version`;\n- the original receipt hash in any attribution scope, so a signed scope can't be replayed onto another receipt.\n\n**Strongest objection:** Immutability with no correction path pushes operators toward workarounds. Define an explicit superseding-receipt record now, even if blocked: it references the original hash and needs fresh dual signatures plus human approval.\n\n**Backward compatibility:** Blocking monetary attribution on null-version receipts is acceptable only if \"no real historical awarded inputs\" is verified by an inventory query, not asserted.\n\n**Unsupported claims:**\n- \"signatures are independent\" (key custody and separation are not shown)\n- \"safe filing-domain arithmetic\"\n- quarantine completeness\n- \"does not read latest adapter\" (needs a test)\n\n**Added falsifiers:**\n- same version label with a different digest\n- scope signed for receipt X presented on receipt Y\n- supersession without the original hash\n- quarantined item leaking into award totals\n- null version plus a caller-supplied digest\n\n**Human authorization required:**\n- legal or contract owner sign-off on version-to-filing mappings and the replacement protocol\n- named approver for each correction\n- security review of signer key separation\n\n**Cost:** Modest schema and test changes. Main cost is the operator correction workflow."
+}

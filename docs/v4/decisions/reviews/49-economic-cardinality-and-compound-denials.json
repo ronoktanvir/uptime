@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T02:19:44.115077+00:00",
+  "packet_sha256": "e6b5ac027165cbeb9883c945bb63cb2c3de1a6c80caac9649f34cf87acd0990d",
+  "prompt_sha256": "f32a2cfe10a1354433266ff3ec6e331b53efff0ded97fb6e8bdc059352f5ad77",
+  "status": "REVIEWED",
+  "session": "baa85cb2-6323-42f9-8fb6-c6748ae322f1",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Assessment:** The direction is sound, but three claims lack support.\n\n**Unsupported claims**\n- \"Contract-derived economic keys\" assumes the terms reliably say whether a fee is per resource-region or per whole service. Ambiguous contracts will flood quarantine. Nobody has measured that rate.\n- \"Deterministic migration\" is asserted, not shown. Re-keying old state can split or merge entries that were already attributed, even if their credits stay frozen.\n- \"Full substantive-clause coverage\" has no definition of a clause, no segmentation method and no completeness proof.\n\n**Strongest objection:** A new key scheme for evaluation, portfolio and correspondence changes all three at once. One mismatch can silently double-count or drop entitlements. A smaller fix that keys only the dedup step may be enough.\n\n**Alternatives:** Per-surface keys reconciled by an invariant check, which is cheaper. Or human review of every multi-unit case.\n\n**Falsification tests**\n- Run the migration on the existing state twice. Results must match byte-for-byte, and attributed totals must not change.\n- Construct the same obligation under different aliases and case IDs and confirm only one entitlement results. Repeat with genuinely separate region fees and confirm two (e.g., 25.02 stays 25.02).\n- A supplement with a nonzero amount, a forged predecessor, or a reordered chain must be rejected.\n- Denials with an unrecognized legal ground buried among benign closings must escalate.\n- Measure false escalations on valid single-reason denials.\n\n**Human authorization:** Legal should sign off on the waiver and ambiguity taxonomy. The data owner should approve the migration and quarantine resolution."
+}
