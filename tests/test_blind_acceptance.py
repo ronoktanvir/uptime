@@ -398,3 +398,61 @@ def test_input_defaults_are_projected_without_expected_values(monkeypatch):
     plan = project_input_selectors(raw)
     assert plan[0]["account_id"] == "account" and plan[0]["resource_id"] == "resource"
     assert all("private-marker" not in token for token in seen)
+
+
+def test_actual_public_artifact_signed_positive_negative_cure_and_late_routes(monkeypatch):
+    """Use the already published public artifact; no private corpus or model call."""
+    from scripts import blind_acceptance as runner
+    root = Path(__file__).resolve().parents[1]
+    document = json.loads((root / "docs/v4/evidence/public-source/blind-contract.json").read_bytes())
+    monkeypatch.setenv("UPTIME_PUBLIC_EXTRACTIONS", str(root / "docs/v4/evidence/public-extractions"))
+    monkeypatch.setenv("UPTIME_MODEL_PROPOSITIONS", "1")
+    monkeypatch.setattr(runner, "TRANSPORT_MODE", "testclient")
+    results = runner.independent_inbox_controls(document["text"].encode())
+    assert len(results) == 3
+    assert all(r["passed"] and r["rollback_verified"] for r in results), [r["fail_codes"] for r in results]
+    positive, negative, late = results
+    assert positive["positive"]["outcome"] == "ELIGIBLE"
+    assert len(positive["observed"]["receipt_ids_sha256"]) == 2
+    assert negative["observed"]["outcome"] == "INELIGIBLE"
+    assert late["observed"]["stage"] == "DENIAL_ACCEPTED"
+    assert len(late["observed"]["historical_receipt_ids_sha256"]) == 1
+    assert all(r["authority"] == "SCRIPTED_LOCAL_SYNTHETIC" for r in results)
+
+
+def test_additive_suite_is_explicit_and_preserves_original_manifest(tmp_path):
+    from scripts.blind_acceptance import FREEZE
+    fixture = fixture_tree(tmp_path)
+    original = (tmp_path / "manifest.json").read_bytes()
+    extension = {"schema_version": "fresh-blind-boundaries-1", "initial_freeze_commit": FREEZE,
+                 "additional_evidence": "extra.jsonl", "additional_expected": "extra-expected.json", "manifest": "extra-manifest.json"}
+    (tmp_path / "BOUNDARY-SCHEMA.json").write_text(json.dumps(extension))
+    (tmp_path / "extra.jsonl").write_text(json.dumps({"id": "extra-input"}) + "\n")
+    (tmp_path / "extra-expected.json").write_text(json.dumps({"eligible_base": "100.00", "period_seconds": "86400", "cases": [
+        {"id": "extra-case", "as_of": "2028-01-01T00:00:00Z", "input_artifact_ids": ["extra-input"], "input_correspondence_ids": []}]}))
+    hashes = {p.name:digest(p.read_bytes()) for p in tmp_path.iterdir() if p.is_file()}
+    (tmp_path / "extra-manifest.json").write_text(json.dumps({"files": hashes}))
+    added = Fixture(tmp_path, suite="boundaries")
+    assert fixture.plan(allow_input_projection=True)[0]["id"] == "case-a"
+    assert added.plan(allow_input_projection=True)[0]["id"] == "extra-case"
+    assert added.rows("evidence") == [{"id":"extra-input"}]
+    with pytest.raises(BoundaryError, match="GOLD_BEFORE_OBSERVATIONS"):
+        added.gold()
+    added.seal_observations([])
+    assert added.gold()["cases"][0]["eligible_base"] == "100.00"
+    assert (tmp_path / "manifest.json").read_bytes() == original
+
+
+def test_interval_probe_never_invents_an_exact_request_timestamp():
+    from scripts.blind_mapping import event_plan
+    probe = dict(id="probe", kind="customer_probe", account_id="a", resource_id="r", incident_id="incident", source_locator="probe-source",
+                 start="2028-03-01T01:00:00Z", end_exclusive="2028-03-01T02:00:00Z", available_at="2028-03-02T00:00:00Z",
+                 credentials_valid=True, rate_limit_exhausted=False, all_valid_enqueue_requests_failed=True)
+    events, gaps = event_plan([probe], {"account":"a", "component":"r"}, {})
+    assert not any(e["body"]["kind"] == "request_evidence" for e in events)
+    assert "REQUEST_INTERVAL_CANNOT_ESTABLISH_EXACT_SAMPLE_TIME" in gaps
+    exact = probe | {"requested_at":"2028-03-01T01:23:45Z"}
+    events, gaps = event_plan([exact], {"account":"a", "component":"r"}, {})
+    report = next(e["body"] for e in events if e["body"]["kind"] == "request_evidence")
+    assert report["records"][0]["requested_at"] == exact["requested_at"]
+    assert report["records"][0]["valid"] and report["records"][0]["failed"]

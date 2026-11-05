@@ -132,7 +132,7 @@ def invoice_report(invoice, mapping, scope):
     return dict(kind="resource_invoice", source_ref=mapping["source_locator"], observed_at=mapping["available_at"],
                 itemized_complete=True, lines=[dict(ref=gross["line_id"], resource_id=scope["component"],
                 month=scope["month"], currency=invoice["currency"], kind="resource_service", category="monthly_recurring",
-                amount_cents=net, gross_cents=gross_cents, discount_cents=discount_cents,
+                fee_line_ref=gross["line_id"], amount_cents=net, gross_cents=gross_cents, discount_cents=discount_cents,
                 discount_ref=discount["line_id"])])
 
 
@@ -199,6 +199,16 @@ def event_plan(records, scope, manifest):
             start=min((r["start"] for r in probes), key=datetime.fromisoformat),
             end=max((r["end_exclusive"] for r in probes), key=datetime.fromisoformat), causes=causes, exclusions=[]), probes)
         gaps.update({"COMPLETE_MONTH_ATTRIBUTION_MISSING", "CUSTOMER_CAUSE_ATTESTATION_MISSING"})
+        gaps.add("PROVIDER_CAUSE_REQUIRES_CUSTOMER_ROLE_IN_APP_SCHEMA")
+        exact = [r for r in probes if r.get("requested_at")]
+        if exact:
+            enqueue("customer", dict(kind="request_evidence", source_ref=exact[0]["source_locator"],
+                observed_at=max((r["available_at"] for r in exact), key=datetime.fromisoformat),
+                records=[dict(ref=r["id"], resource_id=scope["component"], interval_ref=r.get("incident_id", r["id"]),
+                    requested_at=r["requested_at"], valid=r["credentials_valid"] is True and r["rate_limit_exhausted"] is False,
+                    failed=r["all_valid_enqueue_requests_failed"] is True) for r in exact]), exact)
+        if len(exact) != len(probes):
+            gaps.add("REQUEST_INTERVAL_CANNOT_ESTABLISH_EXACT_SAMPLE_TIME")
     else:
         gaps.add("CUSTOMER_REQUEST_PROOF_MISSING")
     invoices = [r for r in scoped if r["kind"] == "invoice"]
@@ -254,6 +264,7 @@ def event_plan(records, scope, manifest):
                 result.append(dict(name=name, refs=sorted(set(refs))))
         return result
 
+    receipt_fields = {}
     for row in scoped:
         if row["kind"] not in {"historical_customer_filing_receipt", "historical_customer_supplement_receipt"}:
             continue
@@ -269,6 +280,18 @@ def event_plan(records, scope, manifest):
         if supplement:
             body["original_ref"] = originals[0]["id"]
         enqueue("vendor", body, [row], row["id"])
+        for field in body["fields"]:
+            if field["name"] in receipt_fields and receipt_fields[field["name"]] != field["refs"]:
+                gaps.add("SUPPLEMENT_FIELD_AUGMENTATION_UNSUPPORTED")
+            else:
+                receipt_fields[field["name"]] = field["refs"]
+    if originals and receipt_fields:
+        # A proposed local packet is not a statement that anything new was sent.
+        # It only cites the actual selected attachments and immutable receipt.
+        sources = [r for r in scoped if r["kind"] != "scope_control"]
+        enqueue("customer", dict(kind="filing_material", source_ref="prepared-" + originals[0]["id"],
+            observed_at=max((r["available_at"] for r in sources), key=datetime.fromisoformat),
+            channel=manifest["submission_channel"], fields=[dict(name=k, refs=v) for k,v in receipt_fields.items()]), sources)
     return sorted(events, key=lambda r: datetime.fromisoformat(r["available_at"])), sorted(gaps)
 
 
@@ -342,3 +365,46 @@ def bounded_input_diagnostic(records, scope, manifest):
                 scoped_net_base_supported=net is not None,
                 prior_amount_supported=bool(net and invoices[0].get("previously_granted_credit") == billmaps[0].get("previously_granted_credit")),
                 prior_history_complete=False)
+
+
+def independent_reports(facts, manifest, scope):
+    """Exact signed wire inputs for the authored control world only."""
+    if facts.get("monitor_ref") != "independent-complete-month":
+        raise ValueError("CONTROL_WORLD_REQUIRED")
+    start = datetime.fromisoformat(facts["month"] + "-01").replace(tzinfo=UTC)
+    end = start + timedelta(days=monthrange(start.year, start.month)[1])
+    common = dict(observed_at=facts["received_at"])
+    month = dict(start=start.isoformat(), end=end.isoformat(), complete=True)
+    spans = [{k:r[k] for k in ("ref", "resource_id", "start", "end", "symptom")} for r in facts["intervals"]]
+    causes = [{k:r[k] for k in ("ref", "resource_id", "start", "end", "cause")} for r in facts["intervals"]]
+    fees = [{k:v for k, v in r.items() if k != "account"} | {"fee_line_ref": facts["fee_line_ref"]} for r in facts["fee_lines"]]
+    records = [dict(ref="independent-request-" + str(i), resource_id=scope["component"], interval_ref=r["ref"],
+                    requested_at=r["start"], valid=True, failed=True) for i, r in enumerate(spans)]
+    reports = [("status", dict(kind="resource_status", source_ref="independent-status", intervals=spans, **month, **common)),
+               ("customer", dict(kind="resource_attribution", source_ref="independent-causes", causes=causes, exclusions=[], **month, **common)),
+               ("billing", dict(kind="resource_invoice", source_ref="independent-billing", itemized_complete=True, lines=fees, **common))]
+    if records:
+        reports.append(("customer", dict(kind="request_evidence", source_ref="independent-probes", records=records, **common)))
+    for key, role in (("maintenance", "customer"), ("prior_credit", "billing")):
+        if manifest.get(key):
+            reports.append((role, dict(kind=key + "_evidence", source_ref="independent-" + key, complete=True, records=[], **common)))
+    fields = []
+    for name in manifest.get("request_fields", []):
+        tokens = set(re.findall(r"[a-z]+", name.casefold()))
+        if tokens & {"billing", "invoice", "charges", "fees"}:
+            refs = [fees[0]["ref"]]
+        elif "valid" in tokens and tokens & {"requests", "request"}:
+            refs = [r["ref"] for r in records]
+        elif tokens & {"cause", "failure", "intervals", "logs", "timestamps"}:
+            refs = [r["ref"] for r in spans]
+        elif tokens & {"month", "period"}:
+            refs = [scope["month"]]
+        elif tokens & {"endpoint", "resource"}:
+            refs = [scope["component"]]
+        else:
+            raise ValueError("INDEPENDENT_FILING_FIELD_UNSUPPORTED")
+        if refs:
+            fields.append(dict(name=name, refs=refs))
+    reports.append(("customer", dict(kind="filing_material", source_ref="independent-packet",
+                    channel=manifest["submission_channel"], fields=fields, **common)))
+    return reports

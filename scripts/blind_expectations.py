@@ -91,7 +91,7 @@ def decision_check(value, observed):
     if words.startswith("accept denial"):
         passed = stage == "DENIAL_ACCEPTED" and outcome == "INELIGIBLE"
     elif words.startswith("draft evidence request"):
-        passed = stage in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED"}
+        passed = stage == "RESPONSE_DRAFTED" if "challenge" in words else stage in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED"}
     elif (words.startswith("draft") or words.startswith("timely")) and "claim" in words:
         passed = outcome == "ELIGIBLE" and stage in {"DRAFTED", "EVALUATED", "RESPONSE_DRAFTED"}
     elif words.startswith("draft correct channel filing"):

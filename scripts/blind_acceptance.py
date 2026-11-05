@@ -132,7 +132,7 @@ def missing_categories(row):
 INPUT_KEYS = {"id", "account_id", "resource_id", "requested_account_id", "requested_resource_id", "month", "measured_month", "as_of",
               "input_artifact_ids", "input_correspondence_ids"}
 OUTCOMES = {"ELIGIBLE", "INELIGIBLE", "INSUFFICIENT_EVIDENCE", "UNSUPPORTED_RULE"}
-STAGES = {"EVALUATED", "HISTORICAL_FILING", "DRAFTED", "NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "RESPONSE_APPROVED", "HUMAN_REVIEW",
+STAGES = {"EVALUATED", "AWAITING_VENDOR", "HISTORICAL_FILING", "DRAFTED", "NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "RESPONSE_APPROVED", "HUMAN_REVIEW",
           "DENIAL_ACCEPTED", "EXPIRED", "AWARDED", "PARTIAL_AWARD_REVIEW", "AWAITING_RESPONSE",
           "CLAIM_APPROVED", "AWAITING_NOTICE"}
 
@@ -664,6 +664,104 @@ def exercise_general(source, account, messages):
     return {"required_count": len(messages), "delivered_count": sum(r.get("delivered", False) for r in results), "checks": results}
 
 
+def independent_inbox_controls(public):
+    """Three expressly scripted worlds, separate from every private heldout case."""
+    from _blind_acceptance_mapping import independent_reports, promotion_scenarios, public_identity
+    from _blind_acceptance_expectations import term_value
+    identity = public_identity(public)
+    results = []
+    for kind in ("positive_and_cure", "negative", "late_denial"):
+        result = dict(control=kind, authority="SCRIPTED_LOCAL_SYNTHETIC", passed=False, fail_codes=[])
+        try:
+            overlay = dict(agreement="independent-control-agreement", public_agreement=identity["agreement"],
+                account="independent-control-account", product=identity["scope"]["product"], plan="Independent",
+                resource_id="independent-resource", resource_label="endpoint", currency="USD", fee_line_ref="independent-fee",
+                effective_from=identity["effective"][0], effective_until="2099-12-31")
+            intake = dict(document=dict(name="Public source independent protocol control", classification="synthetic_public",
+                uri="urn:synthetic:sha256:"+digest(public), text=public.decode()), overlay=overlay)
+            # Month/identities belong exclusively to the authored control world.
+            manifest_stub = identity | {"effective": identity["effective"]}
+            scenarios = promotion_scenarios(public, manifest_stub, overlay)
+            from copy import deepcopy
+            facts = deepcopy(scenarios[0]["facts"])
+            if kind == "negative":
+                # A one-second covered incident keeps every required filing
+                # item meaningful while remaining below the public trigger.
+                first = facts["intervals"][0]
+                first["end"] = (instant(first["start"]) + timedelta(seconds=1)).isoformat()
+            scope = dict(account=overlay["account"], vendor=identity["vendor"], contract=overlay["agreement"],
+                service=overlay["product"], component=overlay["resource_id"], invoice="independent-invoice",
+                incident="independent-outage", currency="USD", month=facts["month"], region="independent-region")
+            with listener(scope, facts["received_at"]) as transport:
+                result["operations"] = transport.operations
+                prefix = "/api/vendors/independent-inbox-control"
+                state = transport.post(prefix+"/candidates", intake, "independent_inbox_intake")
+                if not state or state.get("state") != "SHADOW":
+                    raise BoundaryError("INDEPENDENT_INBOX_INTAKE_FAILED")
+                state, _ = promote_and_exercise(transport, prefix, state, intake)
+                path = "/api/correspondence/claims/inbox-independent-control"
+                row = transport.post("/api/correspondence/claims", {"claim_id":"inbox-independent-control", "scope":scope}, "independent_inbox_create")
+                reports = independent_reports(facts, state["manifest"], scope)
+                for i, (role, body) in enumerate(reports):
+                    if not transport.deliver(path, role, scope, body, "independent-report-"+str(i), facts["received_at"]):
+                        raise BoundaryError("INDEPENDENT_INBOX_REPORT_REFUSED")
+                row = transport.get(path, "independent_inbox_preflight")
+                if kind == "negative":
+                    refused = transport.post(path+"/actions/approve-claim", {}, "independent_negative_approval_refused")
+                    result["passed"] = bool(row and row["outcome"] == "INELIGIBLE" and refused is None and not row["submissions"])
+                elif kind == "late_denial":
+                    cutoff = term_value(("filing_deadline_inclusive",), state["manifest"] | {"_measurement_month": facts["month"]})
+                    arrived = cutoff + timedelta(seconds=1)
+                    material = reports[-1][1]
+                    original = dict(kind="original_filing_receipt", source_ref="independent-vendor-receipt", receipt_id="independent-late-receipt",
+                        received_at=arrived.isoformat(), observed_at=arrived.isoformat(), submitted_to=material["channel"], fields=material["fields"])
+                    if not transport.deliver(path, "vendor", scope, original, "independent-late", arrived.isoformat()):
+                        raise BoundaryError("INDEPENDENT_LATE_RECEIPT_REFUSED")
+                    if not transport.deliver(path, "vendor", scope, dict(kind="message", receipt_id=original["receipt_id"],
+                        text="The filing window expired."), "independent-late-denial", arrived.isoformat()):
+                        raise BoundaryError("INDEPENDENT_LATE_DENIAL_REFUSED")
+                    row = transport.get(path, "independent_late_readback")
+                    result["passed"] = bool(row and row["stage"] == "DENIAL_ACCEPTED" and not row["actions"] and not row["submissions"])
+                else:
+                    if not row or row["amount"] != scenarios[0]["expected"]["amount"]:
+                        raise BoundaryError("INDEPENDENT_SIGNED_POSITIVE_NOT_READY")
+                    result["positive"] = compact_case(row)
+                    for action in ("approve-claim", "submit-claim"):
+                        row = transport.post(path+"/actions/"+action, {}, "independent_"+action)
+                    if not row or len(row["submissions"]) != 1:
+                        raise BoundaryError("INDEPENDENT_INITIAL_RECEIPT_MISSING")
+                    initial = row["submissions"][0]["id"]
+                    arrival = instant(facts["received_at"]) + timedelta(hours=1)
+                    transport.deliver(path, "vendor", scope, dict(kind="message", receipt_id=initial,
+                        text="Please supply the service log, record CONTROL-7."), "independent-request", arrival.isoformat())
+                    waiting = transport.get(path, "independent_request_readback")
+                    content = "Independent scripted control log. These are authored test observations."
+                    common = dict(artifact_ref="CONTROL-7", artifact_type="resource_log", body_sha256=digest(content.encode()), observed_at=arrival.isoformat())
+                    transport.deliver(path, "customer", scope, dict(kind="artifact", source_ref="independent-archive", content=content, **common),
+                                      "independent-artifact", arrival.isoformat())
+                    transport.deliver(path, "status", scope, dict(kind="status_verification", source_ref="independent-verifier", linked_ref=scope["incident"], **common),
+                                      "independent-verification", arrival.isoformat())
+                    ready = transport.get(path, "independent_cure_ready")
+                    approved = transport.post(path+"/actions/approve-response", {}, "independent_response_approve")
+                    transport.clock[0] = arrival + timedelta(days=1)
+                    row = transport.post(path+"/actions/submit-response", {}, "independent_response_submit")
+                    readback = transport.get(path, "independent_cure_readback")
+                    result["passed"] = bool(waiting and waiting["stage"] == "NEEDS_EVIDENCE" and ready and ready["stage"] == "RESPONSE_DRAFTED"
+                        and approved and row and readback and len(row["submissions"]) == len(readback["submissions"]) == 2
+                        and row["submissions"][-1]["packet"].get("in_reply_to") == initial)
+                result["observed"] = compact_case(row)
+                if not result["passed"]:
+                    result["fail_codes"].append("INDEPENDENT_EXPECTED_STAGE_OR_OUTCOME_MISMATCH")
+                rollback = next(a["id"] for a in state["actions"] if a["operation"] == "rollback")
+                revoked = transport.post(prefix+"/actions/"+rollback, {}, "independent_inbox_rollback")
+                result["rollback_verified"] = bool(revoked and not revoked.get("active_version") and
+                    transport.post(prefix+"/evaluate", {"facts":facts}, "independent_inbox_rollback_refusal") is None)
+        except Exception as exc:
+            result["fail_codes"].append(exc.args[0] if isinstance(exc, BoundaryError) else "INDEPENDENT_INBOX_CONTROL_UNAVAILABLE")
+        results.append(result)
+    return results
+
+
 def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspondence, public, term_observations=None):
     observed = {"case_sha256": digest(plan["id"]), "fail_codes": [], "operations": []}
     messages, account, authorized = [], None, False
@@ -729,7 +827,7 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             requested_scope = scope | {"account": account["account_id"], "component": account["resource_id"]}
             path = "/api/correspondence/claims/inbox-blind-case"
             row = transport.post("/api/correspondence/claims", dict(claim_id="inbox-blind-case", scope=requested_scope), "blind_create")
-            observed["scope_refused"] = row is None and not authorized
+            observed["scope_refused"] = row is None and not authorized and transport.operations[-1]["http_status"] == 403
             if row is not None:
                 if not authorized:
                     observed["fail_codes"].append("UNAUTHORIZED_SCOPE_ACCEPTED")
@@ -1034,7 +1132,9 @@ def run(args):
         term_observations = []
         for row in plan:
             result["observations"].append(exercise_case(fixture, source, row, overlay, accounts, evidence, correspondence, public, term_observations))
-        result["observations_sha256"] = fixture.seal_observations(dict(cases=result["observations"], manifests=term_observations))
+        result["independent_inbox"] = independent_inbox_controls(public)
+        result["observations_sha256"] = fixture.seal_observations(dict(cases=result["observations"], manifests=term_observations,
+                                                                       independent_inbox=result["independent_inbox"]))
         # This is the only expected-result decoding phase. No observed result can
         # subsequently change, and no gold is sent back to the application.
         sealed = json.loads(fixture._sealed)
@@ -1054,6 +1154,10 @@ def run(args):
             rollback_passed=sum(row.get("rollback_verified", False) and row.get("rollback_history_verified", False) for row in result["observations"]))
         if controls and any(not c["passed"] for c in controls):
             result["fail_codes"].append("INDEPENDENT_READBACK_OR_OUTCOME_FAILED")
+        result["independent_check_counts"]["inbox_passed"] = sum(c["passed"] and c.get("rollback_verified", False) for c in result["independent_inbox"])
+        result["independent_check_counts"]["inbox_failed"] = len(result["independent_inbox"]) - result["independent_check_counts"]["inbox_passed"]
+        if result["independent_check_counts"]["inbox_failed"]:
+            result["fail_codes"].append("INDEPENDENT_SIGNED_INBOX_CONTROL_FAILED")
         result["network_proof"] = TRANSPORT_MODE == "socket" and any(row["operations"] for row in result["observations"])
         result["fail_codes"] = sorted(set(result["fail_codes"]) | {code for row in result["observations"] for code in row["fail_codes"]})
         # Agreement remains blocked until complete terms, financial and dispute
