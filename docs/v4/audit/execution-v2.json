@@ -1,0 +1,105 @@
+{
+  "driver_commit": "69809ff91033d3fba3853a8bf15a941af1700e61",
+  "runs": [
+    {
+      "report": "baseline-v2.json",
+      "sha256": "ebe5167a124a9aba19a7183a90b798ef4e76ee389aeb0864980e77a6f8dcdf52",
+      "command": [
+        "/Users/ronoktanvir/.local/share/uptime-engineering/venv/bin/python",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/scripts/v4_audit_gate.py",
+        "--source",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa",
+        "--phase",
+        "baseline",
+        "--report",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/docs/v4/audit/baseline-v2.json"
+      ],
+      "exit_code": 2,
+      "source_commit": "18afaa6433284dc582d38c02b797dc4e688892f1",
+      "source_stable": true,
+      "counts": {
+        "PASS": 73,
+        "FAIL": 43,
+        "UNAVAILABLE": 2
+      }
+    },
+    {
+      "report": "release-v2.json",
+      "sha256": "64acba58c3e8037fe72009e5b8eab2a6cbb9f0f9b639962201efb3514fc560a4",
+      "command": [
+        "/Users/ronoktanvir/.local/share/uptime-engineering/venv/bin/python",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/scripts/v4_audit_gate.py",
+        "--source",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa",
+        "--phase",
+        "release",
+        "--before",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/docs/v4/audit/baseline-v2.json",
+        "--report",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/docs/v4/audit/release-v2.json"
+      ],
+      "exit_code": 1,
+      "source_commit": "69809ff91033d3fba3853a8bf15a941af1700e61",
+      "source_stable": true,
+      "counts": {
+        "PASS": 110,
+        "FAIL": 6,
+        "UNAVAILABLE": 2
+      }
+    },
+    {
+      "report": "main-release-v2-raced.json",
+      "sha256": "db5ffea03a8badba0fc5e78ec296d8c5dd9725490536f61dc08826a14469bc84",
+      "command": [
+        "/Users/ronoktanvir/.local/share/uptime-engineering/venv/bin/python",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/scripts/v4_audit_gate.py",
+        "--source",
+        "/Users/ronoktanvir/Documents/Codex/2026-11-03/important-greenfield-project-initialization-this-is/outputs/Uptime-V4",
+        "--phase",
+        "release",
+        "--before",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/docs/v4/audit/baseline-v2.json",
+        "--report",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/docs/v4/audit/main-release-v2.json"
+      ],
+      "exit_code": 1,
+      "source_commit": "44787d6c78ac78ae23a486a3b72057eb1f93a302",
+      "source_stable": false,
+      "counts": {
+        "PASS": 116,
+        "UNAVAILABLE": 2
+      }
+    },
+    {
+      "report": "main-release-v2.json",
+      "sha256": "e6b84b82179f479eb9bb25558706a0e2dd4f30761d744e42c42eae94e535d9f0",
+      "command": [
+        "/Users/ronoktanvir/.local/share/uptime-engineering/venv/bin/python",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/scripts/v4_audit_gate.py",
+        "--source",
+        "/Users/ronoktanvir/Documents/Codex/2026-11-03/important-greenfield-project-initialization-this-is/outputs/Uptime-V4",
+        "--phase",
+        "release",
+        "--before",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/docs/v4/audit/baseline-v2.json",
+        "--report",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/docs/v4/audit/main-release-v2.json"
+      ],
+      "exit_code": 1,
+      "source_commit": "dc0929957075d0f7392283a705b876c28cd343d8",
+      "source_stable": true,
+      "counts": {
+        "PASS": 116,
+        "UNAVAILABLE": 2
+      }
+    },
+    {
+      "report": "pytest-v2.log",
+      "sha256": "c6c3ba9f3d1294532326a1f68e7707e16a8389c895f2fbf9770a4e7cb7031aa6",
+      "command": "/Users/ronoktanvir/.local/share/uptime-engineering/venv/bin/python -m pytest tests/test_v4_audit*.py -q",
+      "cwd": "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa",
+      "exit_code": 0,
+      "passed": 177
+    }
+  ]
+}

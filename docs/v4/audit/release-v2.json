@@ -1,0 +1,4415 @@
+{
+  "schema": "uptime-v4-independent-audit-gate-v2",
+  "phase": "release",
+  "generated_at": "2026-11-05T00:33:16.208228+00:00",
+  "baseline_commit": "18afaa6433284dc582d38c02b797dc4e688892f1",
+  "source": {
+    "commit": "69809ff91033d3fba3853a8bf15a941af1700e61",
+    "product_source_sha256": "9d61b6cf92743fc8b8d1b1b9c49fe1849353927e4910d65d6637fca97306dfe0",
+    "changed_tracked_paths": []
+  },
+  "invocation": [
+    "/Users/ronoktanvir/.local/share/uptime-engineering/venv/bin/python",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/scripts/v4_audit_gate.py",
+    "--source",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa",
+    "--phase",
+    "release",
+    "--before",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/docs/v4/audit/baseline-v2.json",
+    "--report",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/qa/docs/v4/audit/release-v2.json"
+  ],
+  "runtime": {
+    "python": "3.13.12",
+    "executable": "/Users/ronoktanvir/.local/share/uptime-engineering/venv/bin/python",
+    "platform": "macOS-15.1-arm64-arm-64bit-Mach-O",
+    "packages": {
+      "fastapi": "0.162.0",
+      "starlette": "1.10.0",
+      "httpx": "0.28.1",
+      "uvicorn": "0.54.0",
+      "playwright": "1.64.1",
+      "cryptography": "46.0.7"
+    },
+    "browser": {
+      "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "installed": true,
+      "installed_version": "156.0.8078.80",
+      "required": "system Chrome; actual launch and loopback requests required for browser observations"
+    }
+  },
+  "interpreter": "3.13.12",
+  "audit_provenance": {
+    "audit": {
+      "path": "ENGINEERING-AUDIT.md",
+      "sha256": "edf0d5d2a2a1b446c2532ad163f46d23489e258bcb29c1a32c12bb8f08719060"
+    },
+    "financial": {
+      "path": "evidence/financial/probes.py",
+      "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+    },
+    "workflow": {
+      "path": "evidence/workflow/workflow_probe.py",
+      "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+    },
+    "novel": {
+      "path": "evidence/workflow/novel_probe.py",
+      "sha256": "d62b65e8865cf50db68b7e183a0241576f220e1fefd932ccb0ac9f55eb805e43"
+    },
+    "boundary": {
+      "path": "evidence/independent/boundary_probes.py",
+      "sha256": "7889daeb293d4f14bfe391207158917c50ab97774c5cf38f11c23b16eb9deac7"
+    },
+    "independent": {
+      "path": "evidence/independent/probes.py",
+      "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+    },
+    "lead": {
+      "path": "evidence/lead/lead_probes.py",
+      "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+    }
+  },
+  "synthetic_input_sha256": {
+    "fixtures/disputes/claimant/dossiers.json": "0cf5a1b425962256a0bf45de5d4d36cdbc75673bc5f30a218e9f6d9cc1d0e880",
+    "fixtures/disputes/simulator/records.json": "63366935a8faecc8c15b6254dfb0d2007c50b0232ee98491815cb89a51aeb11b",
+    "fixtures/onboarding/extraction.json": "2bdd9d3740de9f349f4e8046957c659ff45f51a53533eed6c3d232aad4ac04b7",
+    "fixtures/onboarding/overlay.json": "ea630cfe2779d60c03ef04c799e1477401d47d6a0e3ef76d365b6a36f7bf7714",
+    "fixtures/onboarding/observations.json": "1b67a7ca79e3dd8d1dc75d649df9548812ebdceb0b0590d4b775e04ad570610c",
+    "fixtures/pricing/agreement.json": "797e3240283f50c7d1c23c90a1d2fe73e13efae6eb3c6330ae99b673714f0123",
+    "fixtures/pricing/cases.json": "13675a64789fa7100cb20b18c236423620edcc13197945e71dab2c9891acc0cb",
+    "fixtures/twilio/cases.json": "fe99f6e08ffd5fa0c50d44307a2493504f6f1ee6e1de6f56cd8d39d42069d175",
+    "fixtures/other_obligations/agreement.txt": "62ebae7fa9d8e079ff0b032c2862f79ac0a5c9baab045483af0bf59777903452",
+    "fixtures/other_obligations/examples.json": "06ac26b235d7b2f2d41b82b7b9512ea791eaa1b2695fcb06724bb59ca7c22f56"
+  },
+  "gate_code": {
+    "scripts/v4_audit_gate.py": "1e7c9b0d7a2dda71aa39ae628e9859f0fff216e1c9412cb684276880a6fcb9b8",
+    "tests/test_v4_audit_browser.py": "9b4b42c99a989cf8f04aee615476e52b0edbb4089a015b80492cf27e48b40f30",
+    "tests/test_v4_audit_financial.py": "11bf1967fde3f2ea54fd52063392223f59af59ef721dfbd724e7420daf66fe0d",
+    "tests/test_v4_audit_gate.py": "0a260a50a24858fc2c6f03547e2df6725a528a53dfaf65115ca1117a4f35f043",
+    "tests/test_v4_audit_ledger.py": "efd373d2f77f5fff223de26e7dd6b17f25fe438609cd1ea6f4385609f07f87e6",
+    "tests/test_v4_audit_protocol.py": "57914fc17206a4b03d457e7340f7ab585051daab2f2007087a9a0241845bf68e",
+    "tests/test_v4_audit_vendor.py": "e53a3a0e1fa2635c48e6134fac5246175e610032fb3a30900683d67ad50108de",
+    "tests/test_v4_audit_workflow.py": "3b1bccbe2fb3a08ae18fcd651ce8146f04977b9b3581720026cfe5030cce943e"
+  },
+  "required_ids": [
+    "A-billing-profile-intent",
+    "A-case-revision-not-silent",
+    "A-guide-ui-api-limit",
+    "A-null-bill-status-resilience",
+    "A-prevention-paid-title",
+    "A-provider-line-preserves-known-facts",
+    "A-ui-financial-join-ids",
+    "A-unattested-capture-provenance",
+    "B-cross-currency",
+    "B-identical-repeat",
+    "B-inclusive-and-earlier-credit",
+    "B-inclusive-minus-one-cent",
+    "B-only-closed-year",
+    "B-padded-repeat-triggers-tier",
+    "B-single-below-threshold",
+    "D-cent-claim-drops-to-zero",
+    "D-cent-positive-W2",
+    "D-desk-old-terms-can-approve",
+    "D-known-ordinary-case",
+    "D-missing-doc-reference",
+    "D-missing-ref-at-ticket-construction",
+    "D-predates-governing-SLA",
+    "J-95-below",
+    "J-95-exact",
+    "J-99-below",
+    "J-99-exact",
+    "J-ambient-rounding-alters-tier",
+    "J-challenge-local-holiday",
+    "J-explicit-vendor-aggregate",
+    "J-general-surface",
+    "J-good-standing",
+    "J-issuance-vs-filing",
+    "J-june-21min-enterprise",
+    "J-june-22min-enterprise",
+    "J-june-43min-premium",
+    "J-june-44min-premium",
+    "J-late",
+    "J-on-time",
+    "J-other-product",
+    "J-positive",
+    "J-reseller",
+    "J-sandbox",
+    "J-technical-ticket",
+    "J-threshold-operator",
+    "J-unknown-holiday-list",
+    "J-zero-fee-not-claimable",
+    "P-UTC-control",
+    "P-amendment-end",
+    "P-amendment-start",
+    "P-covered-line-positive",
+    "P-fold-conflicting-provider-date",
+    "P-fold-incorrect-version",
+    "P-late-amendment",
+    "P-tier-1000",
+    "P-tier-1001",
+    "P-tier-999",
+    "P-unimplemented-mode",
+    "P-unimplemented-quantity_scope",
+    "P-unrelated-outside-line",
+    "P-unsplit-amendment",
+    "R-different-product-account-before-award",
+    "R-durable-identity-readback",
+    "R-idempotent-positive",
+    "R-multi-award-same-bill-total",
+    "R-serialized-concurrency",
+    "R-single-award-bill-cap",
+    "R-zero-cent-partial-stage",
+    "T-500-overlap-gap-cross-boundary-patterns",
+    "T-across-month-five-before-clipping",
+    "T-across-month-fraction-under-five",
+    "T-admin-before-cutoff",
+    "T-admin-cutoff",
+    "T-base-SendGrid-at-same-duration",
+    "T-base-boundary-above",
+    "T-base-boundary-at",
+    "T-blank-document-provenance",
+    "T-connection-throughput",
+    "T-distant-out-of-period-unknown",
+    "T-enhanced-SendGrid-independent-remedy",
+    "T-enhanced-SendGrid-region-is-not-availability-input",
+    "T-exact-repeat",
+    "T-exclusion-splits-short-spans",
+    "T-first-late-instant",
+    "T-foreign-status-host",
+    "T-historical-version-control",
+    "T-incomplete-status-month",
+    "T-last-instant",
+    "T-min-5-exact",
+    "T-min-below-5",
+    "T-no-attribution",
+    "T-no-document-provenance",
+    "T-padded-repeat",
+    "T-partial-coverage",
+    "T-prior-receipt",
+    "T-proven-month",
+    "T-region-scope-dispute-preflight",
+    "T-short-notice",
+    "T-tax-carrier-third-party",
+    "W-activation-runtime",
+    "W-browser-sibling-origin",
+    "W-business-claim-idempotency",
+    "W-complete-policy-packet",
+    "W-known-exclusion-before-filing",
+    "W-lifecycle-ABA",
+    "W-malformed-source-quarantine",
+    "W-mode-policy-isolation",
+    "W-mode-session-isolation",
+    "W-named-authority-positive",
+    "W-named-authority-refusals",
+    "W-novel-missing-component",
+    "W-novel-positive",
+    "W-novel-wrong-line-scope",
+    "W-outbound-allowlist",
+    "W-reply-FREEFORM_MISSING_DOC",
+    "W-reply-WINDOW_CLOSED",
+    "W-tenant-account-binding",
+    "W-tenant-account-positive",
+    "W-viewer-boundary"
+  ],
+  "primary_coverage": {
+    "B01": [
+      "W-browser-sibling-origin",
+      "W-mode-session-isolation",
+      "W-named-authority-positive",
+      "W-named-authority-refusals"
+    ],
+    "B02": [
+      "W-known-exclusion-before-filing",
+      "W-complete-policy-packet"
+    ],
+    "B03": [
+      "D-predates-governing-SLA",
+      "D-desk-old-terms-can-approve",
+      "W-novel-missing-component",
+      "W-novel-wrong-line-scope",
+      "W-reply-WINDOW_CLOSED"
+    ],
+    "B04": [
+      "P-fold-incorrect-version",
+      "P-fold-conflicting-provider-date",
+      "P-unrelated-outside-line"
+    ],
+    "B05": [
+      "T-padded-repeat",
+      "B-padded-repeat-triggers-tier"
+    ],
+    "B06": [
+      "W-business-claim-idempotency",
+      "W-outbound-allowlist"
+    ],
+    "B07": [
+      "W-lifecycle-ABA",
+      "W-malformed-source-quarantine",
+      "W-activation-runtime"
+    ],
+    "B08": [
+      "R-multi-award-same-bill-total",
+      "R-zero-cent-partial-stage",
+      "R-different-product-account-before-award",
+      "R-serialized-concurrency",
+      "R-durable-identity-readback"
+    ]
+  },
+  "results": [
+    {
+      "id": "P-UTC-control",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "expected": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-fold-incorrect-version",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "expected": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-fold-conflicting-provider-date",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": "rejected",
+      "expected": "rejected",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-proven-month",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-distant-out-of-period-unknown",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-padded-repeat",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-exact-repeat",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-known-ordinary-case",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-cent-positive-W2",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "0.0010"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "0.0010"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-cent-claim-drops-to-zero",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "0.0010"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "0.0010"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-predates-governing-SLA",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-historical-version-control",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-missing-doc-reference",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-missing-ref-at-ticket-construction",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": "blocked prior to approval",
+      "expected": "blocked prior to approval",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-last-instant",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-first-late-instant",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-prior-receipt",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-no-attribution",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-incomplete-status-month",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-tax-carrier-third-party",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-partial-coverage",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-connection-throughput",
+      "group": "financial.collect_financial",
+      "category": "v3-known-limit",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-base-boundary-at",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-base-boundary-above",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-min-5-exact",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-min-below-5",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-admin-before-cutoff",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-admin-cutoff",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-exclusion-splits-short-spans",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-short-notice",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-across-month-five-before-clipping",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-across-month-fraction-under-five",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-positive",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-explicit-vendor-aggregate",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-threshold-operator",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-june-43min-premium",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-june-44min-premium",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-june-22min-enterprise",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "60.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "60.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-june-21min-enterprise",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-99-exact",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-99-below",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "300.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "300.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-95-exact",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "300.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "300.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-95-below",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "600.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "600.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-on-time",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-late",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-sandbox",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-general-surface",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-other-product",
+      "group": "financial.collect_financial",
+      "category": "v3-known-limit",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-reseller",
+      "group": "financial.collect_financial",
+      "category": "v3-known-limit",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-technical-ticket",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-good-standing",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-challenge-local-holiday",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": "2026-07-09",
+      "expected": "2026-07-09",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-unknown-holiday-list",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": null,
+      "expected": null,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-ambient-rounding-alters-tier",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-single-below-threshold",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-identical-repeat",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-padded-repeat-triggers-tier",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-inclusive-and-earlier-credit",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "1750.00"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "1750.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-inclusive-minus-one-cent",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-only-closed-year",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "B-cross-currency",
+      "group": "financial.collect_financial",
+      "category": "v3-known-limit",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-blank-document-provenance",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-no-document-provenance",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-idempotent-positive",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "80.00",
+        "80.00",
+        "80.00",
+        null
+      ],
+      "expected": [
+        "80.00",
+        "80.00",
+        "80.00",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-single-award-bill-cap",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": "rejected",
+      "expected": "rejected",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-zero-cent-partial-stage",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        "POSTED",
+        "0.00",
+        0
+      ],
+      "expected": [
+        "POSTED",
+        "0.00",
+        0
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-multi-award-same-bill-total",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": "80.00",
+      "expected": "80.00",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "R-different-product-account-before-award",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": "0.00",
+      "expected": "0.00",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-tier-999",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "expected": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-tier-1000",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "expected": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-tier-1001",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "expected": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-amendment-end",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "expected": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-amendment-start",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "expected": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-unsplit-amendment",
+      "group": "financial.collect_financial",
+      "category": "v3-known-limit",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        "None",
+        []
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        "None",
+        []
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-unimplemented-mode",
+      "group": "financial.collect_financial",
+      "category": "v3-known-limit",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-unimplemented-quantity_scope",
+      "group": "financial.collect_financial",
+      "category": "v3-known-limit",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "P-late-amendment",
+      "group": "financial.collect_financial",
+      "category": "v3-known-limit",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "D-desk-old-terms-can-approve",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": "no approval action",
+      "expected": "no approval action",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "J-issuance-vs-filing",
+      "group": "financial.collect_financial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": {
+        "outcome": "ELIGIBLE",
+        "amount": "120.00",
+        "filing": "TIMELY",
+        "issuance": "BLOCKED_ACCOUNT_STANDING"
+      },
+      "expected": {
+        "outcome": "ELIGIBLE",
+        "amount": "120.00",
+        "filing": "TIMELY",
+        "issuance": "BLOCKED_ACCOUNT_STANDING"
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-enhanced-SendGrid-region-is-not-availability-input",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "expected": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-base-SendGrid-at-same-duration",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "expected": [
+        "INELIGIBLE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-enhanced-SendGrid-independent-remedy",
+      "group": "financial.collect_financial",
+      "category": "v3-known-limit",
+      "status": "PASS",
+      "observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "expected": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-foreign-status-host",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-region-scope-dispute-preflight",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "expected": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "T-500-overlap-gap-cross-boundary-patterns",
+      "group": "financial.collect_financial",
+      "category": "control",
+      "status": "PASS",
+      "observed": [],
+      "expected": [],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_financial.collect_financial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/financial/probes.py",
+          "sha256": "196539928b62eca8e8e576b21d0b4d495c019bf14e88b92d1c0b61f334c5a289"
+        }
+      ]
+    },
+    {
+      "id": "W-known-exclusion-before-filing",
+      "group": "workflow.stock_denial",
+      "category": "defect",
+      "status": "PASS",
+      "observed": {
+        "outcome": "INELIGIBLE",
+        "approval_offered": false,
+        "approval_denied": true,
+        "receipts": 0
+      },
+      "expected": {
+        "outcome": "INELIGIBLE",
+        "approval_offered": false,
+        "approval_denied": true,
+        "receipts": 0
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.stock_denial",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        },
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "W-complete-policy-packet",
+      "group": "workflow.complete_policy",
+      "category": "defect",
+      "status": "PASS",
+      "observed": {
+        "missing_component_reply": false,
+        "policy_claims_complete": true
+      },
+      "expected": {
+        "missing_component_reply": false,
+        "policy_claims_complete": true
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.complete_policy",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-reply-WINDOW_CLOSED",
+      "group": "workflow.denial_responses",
+      "category": "defect",
+      "status": "PASS",
+      "observed": {
+        "stage": "HUMAN_REVIEW",
+        "awarded": "0.00",
+        "has_receipt": true
+      },
+      "expected": {
+        "stage": "HUMAN_REVIEW",
+        "awarded": "0.00",
+        "has_receipt": true
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.denial_responses",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "W-reply-FREEFORM_MISSING_DOC",
+      "group": "workflow.denial_responses",
+      "category": "control",
+      "status": "PASS",
+      "observed": {
+        "stage": "HUMAN_REVIEW",
+        "awarded": "0.00",
+        "has_receipt": true
+      },
+      "expected": {
+        "stage": "HUMAN_REVIEW",
+        "awarded": "0.00",
+        "has_receipt": true
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.denial_responses",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "W-business-claim-idempotency",
+      "group": "workflow.duplicate_and_privacy",
+      "category": "defect",
+      "status": "PASS",
+      "observed": 1,
+      "expected": 1,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.duplicate_and_privacy",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/boundary_probes.py",
+          "sha256": "7889daeb293d4f14bfe391207158917c50ab97774c5cf38f11c23b16eb9deac7"
+        }
+      ]
+    },
+    {
+      "id": "W-outbound-allowlist",
+      "group": "workflow.duplicate_and_privacy",
+      "category": "defect",
+      "status": "PASS",
+      "observed": false,
+      "expected": false,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.duplicate_and_privacy",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/boundary_probes.py",
+          "sha256": "7889daeb293d4f14bfe391207158917c50ab97774c5cf38f11c23b16eb9deac7"
+        }
+      ]
+    },
+    {
+      "id": "W-lifecycle-ABA",
+      "group": "workflow.lifecycle",
+      "category": "defect",
+      "status": "PASS",
+      "observed": [
+        409,
+        409,
+        409
+      ],
+      "expected": [
+        409,
+        409,
+        409
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.lifecycle",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-malformed-source-quarantine",
+      "group": "workflow.malformed_source",
+      "category": "defect",
+      "status": "PASS",
+      "observed": {
+        "request_rejected_or_quarantined": true,
+        "silently_active": false,
+        "audit_added": true
+      },
+      "expected": {
+        "request_rejected_or_quarantined": true,
+        "silently_active": false,
+        "audit_added": true
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.malformed_source",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-viewer-boundary",
+      "group": "workflow.session_isolation",
+      "category": "control",
+      "status": "PASS",
+      "observed": 403,
+      "expected": 403,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.session_isolation",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-mode-session-isolation",
+      "group": "workflow.session_isolation",
+      "category": "defect",
+      "status": "PASS",
+      "observed": true,
+      "expected": true,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.session_isolation",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-mode-policy-isolation",
+      "group": "workflow.session_isolation",
+      "category": "defect",
+      "status": "PASS",
+      "observed": true,
+      "expected": true,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.session_isolation",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-novel-positive",
+      "group": "workflow.novel_evidence",
+      "category": "control",
+      "status": "PASS",
+      "observed": "41.73",
+      "expected": "41.73",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.novel_evidence",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/novel_probe.py",
+          "sha256": "d62b65e8865cf50db68b7e183a0241576f220e1fefd932ccb0ac9f55eb805e43"
+        }
+      ]
+    },
+    {
+      "id": "W-novel-missing-component",
+      "group": "workflow.novel_evidence",
+      "category": "defect",
+      "status": "PASS",
+      "observed": "0.00",
+      "expected": "0.00",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.novel_evidence",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/novel_probe.py",
+          "sha256": "d62b65e8865cf50db68b7e183a0241576f220e1fefd932ccb0ac9f55eb805e43"
+        }
+      ]
+    },
+    {
+      "id": "W-novel-wrong-line-scope",
+      "group": "workflow.novel_evidence",
+      "category": "defect",
+      "status": "PASS",
+      "observed": {
+        "receipts": 0,
+        "awarded": "0.00",
+        "eligible": false
+      },
+      "expected": {
+        "receipts": 0,
+        "awarded": "0.00",
+        "eligible": false
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.novel_evidence",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/novel_probe.py",
+          "sha256": "d62b65e8865cf50db68b7e183a0241576f220e1fefd932ccb0ac9f55eb805e43"
+        }
+      ]
+    },
+    {
+      "id": "W-tenant-account-positive",
+      "group": "workflow.tenant_account",
+      "category": "control",
+      "status": "PASS",
+      "observed": [
+        "AWARD",
+        "100.00"
+      ],
+      "expected": [
+        "AWARD",
+        "100.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.tenant_account",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "W-tenant-account-binding",
+      "group": "workflow.tenant_account",
+      "category": "defect",
+      "status": "PASS",
+      "observed": false,
+      "expected": false,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.tenant_account",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "A-prevention-paid-title",
+      "group": "workflow.comparative_api",
+      "category": "defect",
+      "status": "FAIL",
+      "observed": [
+        "price-000-audit",
+        "$9,123.45"
+      ],
+      "expected": [
+        "price-prepayment",
+        "$7,500.00"
+      ],
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.comparative_api",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-case-revision-not-silent",
+      "group": "workflow.comparative_api",
+      "category": "defect",
+      "status": "PASS",
+      "observed": true,
+      "expected": true,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.comparative_api",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-billing-profile-intent",
+      "group": "workflow.comparative_api",
+      "category": "defect",
+      "status": "FAIL",
+      "observed": true,
+      "expected": false,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.comparative_api",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-guide-ui-api-limit",
+      "group": "workflow.comparative_api",
+      "category": "defect",
+      "status": "FAIL",
+      "observed": 422,
+      "expected": 200,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.comparative_api",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-provider-line-preserves-known-facts",
+      "group": "workflow.captured_line_api",
+      "category": "defect",
+      "status": "FAIL",
+      "observed": true,
+      "expected": false,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.captured_line_api",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "A-null-bill-status-resilience",
+      "group": "workflow.captured_line_api",
+      "category": "defect",
+      "status": "FAIL",
+      "observed": false,
+      "expected": true,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.captured_line_api",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/lead/lead_probes.py",
+          "sha256": "d154fd0e8414f658e94b0eee07f64d3db9878230c3a0cf4639db4cd9de25a1d9"
+        }
+      ]
+    },
+    {
+      "id": "W-activation-runtime",
+      "group": "workflow.activation_runtime",
+      "category": "defect",
+      "status": "PASS",
+      "observed": {
+        "preactivation_refused": true,
+        "active_amount": "120.00",
+        "same_case_in_dashboard": true,
+        "rollback_refused": true,
+        "history_preserved": true,
+        "same_reviewer": true
+      },
+      "expected": {
+        "preactivation_refused": true,
+        "active_amount": "120.00",
+        "same_case_in_dashboard": true,
+        "rollback_refused": true,
+        "history_preserved": true,
+        "same_reviewer": true
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.activation_runtime",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        },
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "P-covered-line-positive",
+      "group": "workflow.additional_domain",
+      "category": "control",
+      "status": "PASS",
+      "observed": "7500.00",
+      "expected": "7500.00",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.additional_domain",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "P-unrelated-outside-line",
+      "group": "workflow.additional_domain",
+      "category": "defect",
+      "status": "PASS",
+      "observed": "7500.00",
+      "expected": "7500.00",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.additional_domain",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "J-zero-fee-not-claimable",
+      "group": "workflow.additional_domain",
+      "category": "defect",
+      "status": "FAIL",
+      "observed": true,
+      "expected": false,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.additional_domain",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "evidence/independent/probes.py",
+          "sha256": "fcc5bb8a540496ee0ad95351ed0221fcab1fde9b266dab7e1348f342addafe13"
+        }
+      ]
+    },
+    {
+      "id": "A-unattested-capture-provenance",
+      "group": "workflow.capture_integrity",
+      "category": "defect",
+      "status": "PASS",
+      "observed": true,
+      "expected": true,
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.capture_integrity",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "ENGINEERING-AUDIT.md",
+          "sha256": "edf0d5d2a2a1b446c2532ad163f46d23489e258bcb29c1a32c12bb8f08719060"
+        }
+      ]
+    },
+    {
+      "id": "R-durable-identity-readback",
+      "group": "ledger.durable_allocations",
+      "category": "control",
+      "status": "PASS",
+      "observed": {
+        "positive_applied": "80.00",
+        "same_ids": true,
+        "duplicate_no_event": true,
+        "restart_same": true,
+        "historical_unchanged": true
+      },
+      "expected": {
+        "positive_applied": "80.00",
+        "same_ids": true,
+        "duplicate_no_event": true,
+        "restart_same": true,
+        "historical_unchanged": true
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_ledger.durable_allocations",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "ENGINEERING-AUDIT.md",
+          "sha256": "edf0d5d2a2a1b446c2532ad163f46d23489e258bcb29c1a32c12bb8f08719060"
+        }
+      ]
+    },
+    {
+      "id": "R-serialized-concurrency",
+      "group": "ledger.durable_allocations",
+      "category": "defect",
+      "status": "PASS",
+      "observed": {
+        "accepted": 1,
+        "refused": 1,
+        "total": "80.00",
+        "applications": 1
+      },
+      "expected": {
+        "accepted": 1,
+        "refused": 1,
+        "total": "80.00",
+        "applications": 1
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_ledger.durable_allocations",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "ENGINEERING-AUDIT.md",
+          "sha256": "edf0d5d2a2a1b446c2532ad163f46d23489e258bcb29c1a32c12bb8f08719060"
+        }
+      ]
+    },
+    {
+      "id": "W-named-authority-positive",
+      "group": "workflow.named_authority",
+      "category": "control",
+      "status": "PASS",
+      "observed": {
+        "named": true,
+        "role": "reviewer",
+        "approvals": true,
+        "rehearsal": false,
+        "accepted": 200,
+        "stage": "CLAIM_APPROVED",
+        "readback_same": true
+      },
+      "expected": {
+        "named": true,
+        "role": "reviewer",
+        "approvals": true,
+        "rehearsal": false,
+        "accepted": 200,
+        "stage": "CLAIM_APPROVED",
+        "readback_same": true
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.named_authority",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "ENGINEERING-AUDIT.md",
+          "sha256": "edf0d5d2a2a1b446c2532ad163f46d23489e258bcb29c1a32c12bb8f08719060"
+        }
+      ]
+    },
+    {
+      "id": "W-named-authority-refusals",
+      "group": "workflow.named_authority",
+      "category": "defect",
+      "status": "PASS",
+      "observed": {
+        "wrong_signer": 403,
+        "old_subject": 403,
+        "disabled_gate": 403,
+        "all_unchanged": true
+      },
+      "expected": {
+        "wrong_signer": 403,
+        "old_subject": 403,
+        "disabled_gate": 403,
+        "all_unchanged": true
+      },
+      "assertion_source": "independent-audit-and-known-mutation",
+      "callable": "test_v4_audit_workflow.named_authority",
+      "execution": "OBSERVED",
+      "audit_evidence": [
+        {
+          "path": "ENGINEERING-AUDIT.md",
+          "sha256": "edf0d5d2a2a1b446c2532ad163f46d23489e258bcb29c1a32c12bb8f08719060"
+        }
+      ]
+    },
+    {
+      "id": "W-browser-sibling-origin",
+      "group": "browser.browser_sibling_origin",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "PermissionError",
+      "error_location": [
+        {
+          "file": "v4_audit_gate.py",
+          "function": "execute_group",
+          "line": 220
+        },
+        {
+          "file": "v4_audit_gate.py",
+          "function": "run",
+          "line": 335
+        },
+        {
+          "file": "test_v4_audit_browser.py",
+          "function": "browser_sibling_origin",
+          "line": 29
+        }
+      ],
+      "callable": "test_v4_audit_browser.browser_sibling_origin",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    },
+    {
+      "id": "A-ui-financial-join-ids",
+      "group": "browser.browser_sibling_origin",
+      "status": "UNAVAILABLE",
+      "category": "required",
+      "error_type": "PermissionError",
+      "error_location": [
+        {
+          "file": "v4_audit_gate.py",
+          "function": "execute_group",
+          "line": 220
+        },
+        {
+          "file": "v4_audit_gate.py",
+          "function": "run",
+          "line": 335
+        },
+        {
+          "file": "test_v4_audit_browser.py",
+          "function": "browser_sibling_origin",
+          "line": 29
+        }
+      ],
+      "callable": "test_v4_audit_browser.browser_sibling_origin",
+      "assertion_source": "independent-audit-and-known-mutation",
+      "audit_evidence": [
+        {
+          "path": "evidence/workflow/workflow_probe.py",
+          "sha256": "249bd86fbb14edec56292e6729e9a97442ea3098cdebc8498f0683803f6f82d0"
+        }
+      ]
+    }
+  ],
+  "before_after": [
+    {
+      "id": "P-UTC-control",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ]
+    },
+    {
+      "id": "P-fold-incorrect-version",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "5.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ]
+    },
+    {
+      "id": "P-fold-conflicting-provider-date",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": "accepted",
+      "after_observed": "rejected"
+    },
+    {
+      "id": "T-proven-month",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-distant-out-of-period-unknown",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-padded-repeat",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "200.0000"
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "T-exact-repeat",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "D-known-ordinary-case",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.00"
+      ]
+    },
+    {
+      "id": "D-cent-positive-W2",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "0.0010"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "0.0010"
+      ]
+    },
+    {
+      "id": "D-cent-claim-drops-to-zero",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "0.0010"
+      ]
+    },
+    {
+      "id": "D-predates-governing-SLA",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.00"
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ]
+    },
+    {
+      "id": "T-historical-version-control",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ]
+    },
+    {
+      "id": "D-missing-doc-reference",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.00"
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "D-missing-ref-at-ticket-construction",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": "KeyError 'ref'",
+      "after_observed": "blocked prior to approval"
+    },
+    {
+      "id": "T-last-instant",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-first-late-instant",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "T-prior-receipt",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-no-attribution",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "T-incomplete-status-month",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "T-tax-carrier-third-party",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "T-partial-coverage",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "T-connection-throughput",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ]
+    },
+    {
+      "id": "T-base-boundary-at",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "T-base-boundary-above",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-min-5-exact",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-min-below-5",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "T-admin-before-cutoff",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-admin-cutoff",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "T-exclusion-splits-short-spans",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "T-short-notice",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-across-month-five-before-clipping",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-across-month-fraction-under-five",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "J-positive",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ]
+    },
+    {
+      "id": "J-explicit-vendor-aggregate",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "J-threshold-operator",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "J-june-43min-premium",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "J-june-44min-premium",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ]
+    },
+    {
+      "id": "J-june-22min-enterprise",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "60.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "60.00"
+      ]
+    },
+    {
+      "id": "J-june-21min-enterprise",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "J-99-exact",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ]
+    },
+    {
+      "id": "J-99-below",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "300.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "300.00"
+      ]
+    },
+    {
+      "id": "J-95-exact",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "300.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "300.00"
+      ]
+    },
+    {
+      "id": "J-95-below",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "600.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "600.00"
+      ]
+    },
+    {
+      "id": "J-on-time",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ]
+    },
+    {
+      "id": "J-late",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "J-sandbox",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "J-general-surface",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "J-other-product",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ]
+    },
+    {
+      "id": "J-reseller",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ]
+    },
+    {
+      "id": "J-technical-ticket",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "J-good-standing",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ]
+    },
+    {
+      "id": "J-challenge-local-holiday",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": "2026-07-09",
+      "after_observed": "2026-07-09"
+    },
+    {
+      "id": "J-unknown-holiday-list",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": null,
+      "after_observed": null
+    },
+    {
+      "id": "J-ambient-rounding-alters-tier",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "120.00"
+      ]
+    },
+    {
+      "id": "B-single-below-threshold",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "B-identical-repeat",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "B-padded-repeat-triggers-tier",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "2000.00"
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "B-inclusive-and-earlier-credit",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "1750.00"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "1750.00"
+      ]
+    },
+    {
+      "id": "B-inclusive-minus-one-cent",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "B-only-closed-year",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "B-cross-currency",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ]
+    },
+    {
+      "id": "T-blank-document-provenance",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "T-no-document-provenance",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "R-idempotent-positive",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "80.00",
+        "80.00",
+        "80.00",
+        null
+      ],
+      "after_observed": [
+        "80.00",
+        "80.00",
+        "80.00",
+        null
+      ]
+    },
+    {
+      "id": "R-single-award-bill-cap",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": "rejected",
+      "after_observed": "rejected"
+    },
+    {
+      "id": "R-zero-cent-partial-stage",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        "PARTIALLY_APPLIED",
+        "0.00",
+        1
+      ],
+      "after_observed": [
+        "POSTED",
+        "0.00",
+        0
+      ]
+    },
+    {
+      "id": "R-multi-award-same-bill-total",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": "160.00",
+      "after_observed": "80.00"
+    },
+    {
+      "id": "R-different-product-account-before-award",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": "80.00",
+      "after_observed": "0.00"
+    },
+    {
+      "id": "P-tier-999",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ]
+    },
+    {
+      "id": "P-tier-1000",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ]
+    },
+    {
+      "id": "P-tier-1001",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ]
+    },
+    {
+      "id": "P-amendment-end",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "agreement-v1"
+        ]
+      ]
+    },
+    {
+      "id": "P-amendment-start",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        "0.00",
+        [
+          "amendment-v2"
+        ]
+      ]
+    },
+    {
+      "id": "P-unsplit-amendment",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        "None",
+        []
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        "None",
+        []
+      ]
+    },
+    {
+      "id": "P-unimplemented-mode",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ]
+    },
+    {
+      "id": "P-unimplemented-quantity_scope",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ]
+    },
+    {
+      "id": "P-late-amendment",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        "None",
+        []
+      ]
+    },
+    {
+      "id": "D-desk-old-terms-can-approve",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": "CLAIM_APPROVED",
+      "after_observed": "no approval action"
+    },
+    {
+      "id": "J-issuance-vs-filing",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "outcome": "INELIGIBLE",
+        "amount": null,
+        "filing": null,
+        "issuance": null
+      },
+      "after_observed": {
+        "outcome": "ELIGIBLE",
+        "amount": "120.00",
+        "filing": "TIMELY",
+        "issuance": "BLOCKED_ACCOUNT_STANDING"
+      }
+    },
+    {
+      "id": "T-enhanced-SendGrid-region-is-not-availability-input",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ],
+      "after_observed": [
+        "ELIGIBLE",
+        "100.0000"
+      ]
+    },
+    {
+      "id": "T-base-SendGrid-at-same-duration",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INELIGIBLE",
+        null
+      ],
+      "after_observed": [
+        "INELIGIBLE",
+        null
+      ]
+    },
+    {
+      "id": "T-enhanced-SendGrid-independent-remedy",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ],
+      "after_observed": [
+        "UNSUPPORTED_RULE",
+        null
+      ]
+    },
+    {
+      "id": "T-foreign-status-host",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "T-region-scope-dispute-preflight",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "after_observed": [
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ]
+    },
+    {
+      "id": "T-500-overlap-gap-cross-boundary-patterns",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [],
+      "after_observed": []
+    },
+    {
+      "id": "W-known-exclusion-before-filing",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "outcome": "ELIGIBLE",
+        "approval_offered": true,
+        "approval_denied": false,
+        "receipts": 0
+      },
+      "after_observed": {
+        "outcome": "INELIGIBLE",
+        "approval_offered": false,
+        "approval_denied": true,
+        "receipts": 0
+      }
+    },
+    {
+      "id": "W-complete-policy-packet",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "missing_component_reply": true,
+        "policy_claims_complete": true
+      },
+      "after_observed": {
+        "missing_component_reply": false,
+        "policy_claims_complete": true
+      }
+    },
+    {
+      "id": "W-reply-WINDOW_CLOSED",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "stage": "EXPIRED",
+        "awarded": "0.00",
+        "has_receipt": true
+      },
+      "after_observed": {
+        "stage": "HUMAN_REVIEW",
+        "awarded": "0.00",
+        "has_receipt": true
+      }
+    },
+    {
+      "id": "W-reply-FREEFORM_MISSING_DOC",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": {
+        "stage": "HUMAN_REVIEW",
+        "awarded": "0.00",
+        "has_receipt": true
+      },
+      "after_observed": {
+        "stage": "HUMAN_REVIEW",
+        "awarded": "0.00",
+        "has_receipt": true
+      }
+    },
+    {
+      "id": "W-business-claim-idempotency",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": 2,
+      "after_observed": 1
+    },
+    {
+      "id": "W-outbound-allowlist",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": true,
+      "after_observed": false
+    },
+    {
+      "id": "W-lifecycle-ABA",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": [
+        409,
+        200,
+        200
+      ],
+      "after_observed": [
+        409,
+        409,
+        409
+      ]
+    },
+    {
+      "id": "W-malformed-source-quarantine",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "request_rejected_or_quarantined": true,
+        "silently_active": true,
+        "audit_added": false
+      },
+      "after_observed": {
+        "request_rejected_or_quarantined": true,
+        "silently_active": false,
+        "audit_added": true
+      }
+    },
+    {
+      "id": "W-viewer-boundary",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": 403,
+      "after_observed": 403
+    },
+    {
+      "id": "W-mode-session-isolation",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": false,
+      "after_observed": true
+    },
+    {
+      "id": "W-mode-policy-isolation",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": false,
+      "after_observed": true
+    },
+    {
+      "id": "W-novel-positive",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": "41.73",
+      "after_observed": "41.73"
+    },
+    {
+      "id": "W-novel-missing-component",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": "41.73",
+      "after_observed": "0.00"
+    },
+    {
+      "id": "W-novel-wrong-line-scope",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "receipts": 2,
+        "awarded": "41.73",
+        "eligible": true
+      },
+      "after_observed": {
+        "receipts": 0,
+        "awarded": "0.00",
+        "eligible": false
+      }
+    },
+    {
+      "id": "W-tenant-account-positive",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": [
+        "AWARD",
+        "100.00"
+      ],
+      "after_observed": [
+        "AWARD",
+        "100.00"
+      ]
+    },
+    {
+      "id": "W-tenant-account-binding",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": true,
+      "after_observed": false
+    },
+    {
+      "id": "A-prevention-paid-title",
+      "before": "FAIL",
+      "after": "FAIL",
+      "before_observed": [
+        "price-000-audit",
+        "$9,123.45"
+      ],
+      "after_observed": [
+        "price-000-audit",
+        "$9,123.45"
+      ]
+    },
+    {
+      "id": "A-case-revision-not-silent",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": false,
+      "after_observed": true
+    },
+    {
+      "id": "A-billing-profile-intent",
+      "before": "FAIL",
+      "after": "FAIL",
+      "before_observed": true,
+      "after_observed": true
+    },
+    {
+      "id": "A-guide-ui-api-limit",
+      "before": "FAIL",
+      "after": "FAIL",
+      "before_observed": 422,
+      "after_observed": 422
+    },
+    {
+      "id": "A-provider-line-preserves-known-facts",
+      "before": "FAIL",
+      "after": "FAIL",
+      "before_observed": true,
+      "after_observed": true
+    },
+    {
+      "id": "A-null-bill-status-resilience",
+      "before": "FAIL",
+      "after": "FAIL",
+      "before_observed": false,
+      "after_observed": false
+    },
+    {
+      "id": "W-activation-runtime",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "adds_governed_case": false,
+        "rollback_removes_active_case": false
+      },
+      "after_observed": {
+        "preactivation_refused": true,
+        "active_amount": "120.00",
+        "same_case_in_dashboard": true,
+        "rollback_refused": true,
+        "history_preserved": true,
+        "same_reviewer": true
+      }
+    },
+    {
+      "id": "P-covered-line-positive",
+      "before": "PASS",
+      "after": "PASS",
+      "before_observed": "7500.00",
+      "after_observed": "7500.00"
+    },
+    {
+      "id": "P-unrelated-outside-line",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": "None",
+      "after_observed": "7500.00"
+    },
+    {
+      "id": "J-zero-fee-not-claimable",
+      "before": "FAIL",
+      "after": "FAIL",
+      "before_observed": true,
+      "after_observed": true
+    },
+    {
+      "id": "A-unattested-capture-provenance",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": false,
+      "after_observed": true
+    },
+    {
+      "id": "R-durable-identity-readback",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "interface_present": false
+      },
+      "after_observed": {
+        "positive_applied": "80.00",
+        "same_ids": true,
+        "duplicate_no_event": true,
+        "restart_same": true,
+        "historical_unchanged": true
+      }
+    },
+    {
+      "id": "R-serialized-concurrency",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "interface_present": false
+      },
+      "after_observed": {
+        "accepted": 1,
+        "refused": 1,
+        "total": "80.00",
+        "applications": 1
+      }
+    },
+    {
+      "id": "W-named-authority-positive",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "named_protocol_present": false
+      },
+      "after_observed": {
+        "named": true,
+        "role": "reviewer",
+        "approvals": true,
+        "rehearsal": false,
+        "accepted": 200,
+        "stage": "CLAIM_APPROVED",
+        "readback_same": true
+      }
+    },
+    {
+      "id": "W-named-authority-refusals",
+      "before": "FAIL",
+      "after": "PASS",
+      "before_observed": {
+        "named_protocol_present": false
+      },
+      "after_observed": {
+        "wrong_signer": 403,
+        "old_subject": 403,
+        "disabled_gate": 403,
+        "all_unchanged": true
+      }
+    },
+    {
+      "id": "W-browser-sibling-origin",
+      "before": "UNAVAILABLE",
+      "after": "UNAVAILABLE",
+      "before_observed": null,
+      "after_observed": null
+    },
+    {
+      "id": "A-ui-financial-join-ids",
+      "before": "UNAVAILABLE",
+      "after": "UNAVAILABLE",
+      "before_observed": null,
+      "after_observed": null
+    }
+  ],
+  "baseline_verified": false,
+  "baseline_error_type": null,
+  "source_stable": true,
+  "driver_stable": true,
+  "release_pass": false,
+  "counts": {
+    "PASS": 110,
+    "FAIL": 6,
+    "UNAVAILABLE": 2
+  }
+}
