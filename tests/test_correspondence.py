@@ -385,3 +385,64 @@ def test_independently_labelled_award_requested_and_denied_parts_reconcile(env):
                          "The remaining USD 13.63 is denied.")
     assert result["stage"] == "PARTIAL_AWARD_REVIEW"
     assert result["ledger"]["awarded"] == "48.50" and result["ledger"]["disputed_remainder"] == "13.63"
+
+
+def test_later_authenticated_short_notice_can_rebut_a_mistaken_maintenance_denial(env):
+    original = env.file()
+    assert env.message("We decline this claim because the incident was scheduled maintenance.")["stage"] == "AWAITING_NOTICE"
+    late_notice = dict(BODIES["notice"], issued_at=BODIES["status"]["start"])
+    env.send("notice", data=late_notice)
+    assert env.get()["stage"] == "RESPONSE_DRAFTED"
+    env.act("approve-response")
+    env.now += timedelta(days=1)
+    response = env.act("submit-response")["submissions"][1]["packet"]
+    assert response["in_reply_to"] == original["id"]
+    assert response["maintenance_evidence"] and response["verified_measurement"]["downtime_microseconds"] > 0
+
+
+def test_saved_preupgrade_approval_can_be_reapproved_at_same_economic_terms(env):
+    from dataclasses import asdict
+    from uptime.contracts import fingerprint
+    from uptime.storage import database
+    env.build()
+    env.act("approve-claim")
+    with database(env.path) as db, db:
+        scope, state = env.desk._read(db, "bears", ID)
+        current = env.desk._assess("bears", scope, state, env.now)
+        state["approval"]["binding"] = fingerprint([current.agreement_id, current.version, current.cutoff.isoformat(),
+            current.evidence_digest, "62.13", [asdict(c) for c in current.evaluation.clauses]])
+        state["approval"]["digest"] = "0"*64
+        env.desk._save(db, "bears", ID, state)
+    assert [a["id"] for a in env.get()["actions"]] == ["approve-claim"]
+    with pytest.raises(ValueError):
+        env.act("submit-claim")
+    env.act("approve-claim")
+    assert env.act("submit-claim")["submissions"][0]["requested"] == "62.13"
+
+
+def test_narrowed_legacy_grant_cannot_revert_to_subscription_wildcard(env):
+    for role in set(SOURCES.values()):
+        env.desk.bind_sender("bears", env.scope.account, role, role + "-fixture", scope=env.scope)
+    with pytest.raises(ValueError, match="broadened"):
+        env.desk.bind_sender("bears", env.scope.account, "status", "status-fixture")
+    with pytest.raises(PermissionError):
+        env.desk.create(REVIEWER, Claim(claim_id="inbox-next-month", scope=env.scope.model_copy(update={"month":"2027-02"})))
+    env.send("status")
+
+
+@pytest.mark.parametrize("description,correctable", [
+    ("Our monitors recorded 0.4 hours of downtime, so we decline your claim.", True),
+    ("We counted 1740 seconds of unavailability. Claim denied.", False),
+    ("We observed at least 12 minutes of downtime. Claim denied.", False),
+    ("Your logs recorded 12 minutes of downtime. Claim denied.", False),
+    ("Our logs show 12 minutes of downtime or 33 minutes of outages. Claim denied.", False),
+])
+def test_counterparty_numeric_denial_is_checked_against_scoped_measurement(env, description, correctable):
+    env.file()
+    row = env.message(description)
+    assert row["stage"] == ("RESPONSE_DRAFTED" if correctable else "HUMAN_REVIEW")
+    if correctable:
+        env.act("approve-response")
+        env.now += timedelta(days=1)
+        packet = env.act("submit-response")["submissions"][-1]["packet"]
+        assert packet["verified_measurement"]["downtime_microseconds"] == 29 * 60_000_000

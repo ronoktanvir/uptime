@@ -15,9 +15,9 @@ OBSERVED = "2026-07-01T06:00:00Z"
 MONTH = dict(start="2026-06-01T00:00:00Z",end="2026-07-01T00:00:00Z",complete=True)
 
 
-def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, conditions=False):
-    rows=deepcopy(ROWS)
-    facts=deepcopy(FACTS)
+def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, conditions=False, extra_terms=(), shadow=None, expected="12.51"):
+    rows=deepcopy(ROWS) + list(extra_terms)
+    facts=deepcopy(shadow if shadow is not None else FACTS)
     overlay = deepcopy(OVERLAY)
     if cycles:
         overlay.pop("billing_period", None)
@@ -50,7 +50,7 @@ def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, condit
     s=env.post(base+"/candidates",dict(document=dict(name="Synthetic station SLA",uri="urn:synthetic:weather",
                     classification="synthetic_public",text=text),overlay=overlay))
     assert s["state"]=="SHADOW",s
-    tests=[dict(name="433 countable minutes",facts=facts,expected=dict(outcome="ELIGIBLE",amount="12.51")),
+    tests=[dict(name="verified scoped outage",facts=facts,expected=dict(outcome="ELIGIBLE",amount=expected)),
            dict(name="no incident",facts=facts|{"intervals":[]},expected=dict(outcome="INELIGIBLE"))]
     s=env.post(base+"/tests",dict(revision=s["revision"],tests=tests))
     for op in ("interpret","approve","activate"):
@@ -280,3 +280,127 @@ def test_availability_denial_rebuttal_contains_independently_measured_countable_
     assert packet["verified_measurement"] == dict(downtime_microseconds=433*60_000_000,
                                                    total_microseconds=30*86400*1_000_000)
     assert packet["in_reply_to"] == initial["id"]
+
+
+def test_conditional_statements_require_complete_matching_history():
+    from uptime.correspondence_resource import append_monthly_reports
+    from uptime.correspondence_types import Scope, instant
+
+    scope = Scope.model_validate(dict(account="account-71", vendor="Utility", contract="terms-a",
+        service="Network", component="station-21", invoice="inv-1", incident="n1",
+        currency="USD", month="2026-06", region="east"))
+    credit = dict(ref="bill-line-2", credit_id="credit-17", agreement=scope.contract, account=scope.account,
+                  resource_id=scope.component, month=scope.month, currency=scope.currency, amount_cents=180, state="issued")
+    notice = dict(ref="advisory-4", account=scope.account, resource_id=scope.component,
+                  start="2026-06-17T01:00:00Z", end="2026-06-17T04:00:00Z", announced_at="2026-06-15T01:00:00Z")
+    report = dict(complete=True, observed_at=OBSERVED, source_ref="private-op")
+    groups = dict(maintenance_evidence=dict(body=report | {"records":[notice]}),
+                  prior_credit_evidence=dict(body=report | {"records":[credit]}))
+    manifest = dict(maintenance={"basis":"within_announced_window"}, prior_credit="subtract_issued_same_resource_month")
+    facts = {}
+    append_monthly_reports(facts, groups, manifest, scope, instant(MONTH["end"]))
+    assert facts["maintenance_evidence"]["records"] == [notice]
+    assert facts["prior_credit_evidence"]["records"] == [credit]
+    for bad in [[credit | {"account":"other"}], [credit, credit | {"ref": "alias", "amount_cents": 181}]]:
+        groups["prior_credit_evidence"]["body"]["records"] = bad
+        with pytest.raises(ValueError):
+            append_monthly_reports({}, groups, manifest, scope, instant(MONTH["end"]))
+
+
+def install_statements(env, tmp_path, monkeypatch):
+    from test_vendor_resource_operators import EXTENSION, readings
+    facts = readings()
+    install(env, tmp_path, monkeypatch, extra_terms=EXTENSION, shadow=facts, expected="10.44")
+    rows = reports()
+    rows[0][1]["intervals"] = [{k:r[k] for k in ("ref","resource_id","start","end","symptom")} for r in facts["intervals"]]
+    rows[1][1]["causes"] = [{k:r[k] for k in ("ref","resource_id","start","end","cause")} for r in facts["intervals"]]
+    rows[1][1]["exclusions"] = []
+    rows[2][1]["lines"] = [{k:v for k,v in r.items() if k != "account"} for r in facts["fee_lines"]]
+    rows[3][1]["fields"][1]["refs"] = ["reader-A", "reader-B"]
+    deliver(env, rows)
+    assert env.read()["outcome"] == "INSUFFICIENT_EVIDENCE"
+    notice, prior = (dict(kind=k, source_ref=facts[k]["ref"], observed_at=OBSERVED, complete=True,
+                          records=facts[k]["records"]) for k in ("maintenance_evidence", "prior_credit_evidence"))
+    prior["records"] = [r for r in prior["records"] if r["resource_id"] == env.scope["component"] and r["month"] == env.scope["month"]]
+    deliver(env, [("customer-fixture", notice)])
+    assert env.read()["outcome"] == "INSUFFICIENT_EVIDENCE"
+    deliver(env, [("billing-fixture", prior)])
+    assert env.read()["amount"] == "10.44"
+
+
+@pytest.mark.parametrize("credit_id,expected", [(None,"HUMAN_REVIEW"), ("credit-A", "HUMAN_REVIEW"),
+                                               ("fresh-resource-award", "PARTIAL_AWARD_REVIEW")])
+def test_signed_previous_issuance_and_maintenance_control_residual_and_new_award(env, tmp_path, monkeypatch, credit_id, expected):
+    install_statements(env, tmp_path, monkeypatch)
+    env.action("approve-claim")
+    rec = env.action("submit-claim")["submissions"][0]
+    assert rec["requested"] == "10.44"
+    body = dict(kind="message", receipt_id=rec["id"], text="We have approved a service credit of USD 2.31.")
+    if credit_id:
+        body["credit_id"] = credit_id
+    deliver(env, [("vendor-fixture", body)])
+    result = env.read()
+    assert result["stage"] == expected
+    assert result["ledger"]["awarded"] == ("2.31" if expected == "PARTIAL_AWARD_REVIEW" else "0.00")
+
+
+def test_mistaken_resource_maintenance_denial_uses_only_residual_counted_time(env, tmp_path, monkeypatch):
+    install_statements(env, tmp_path, monkeypatch)
+    env.action("approve-claim")
+    initial = env.action("submit-claim")["submissions"][0]
+    assert message(env, initial, "Claim denied because this was scheduled maintenance.")["stage"] == "RESPONSE_DRAFTED"
+    env.action("approve-response")
+    env.now += timedelta(days=1)
+    rec = env.action("submit-response")["submissions"][1]
+    assert rec["packet"]["verified_measurement"]["downtime_microseconds"] == 530*60_000_000
+    assert env.read()["preflight"]["outcome"] == "ELIGIBLE"
+    assert env.read()["ledger"]["claimed"] == "10.44"
+
+
+@pytest.mark.parametrize("when,expected", [("2026-07-10T18:00:00Z", "ELIGIBLE"),
+                                            ("2026-07-10T18:00:00.000001Z", "INELIGIBLE")])
+def test_historical_incomplete_filing_and_independently_arriving_supplement(env, tmp_path, monkeypatch, when, expected):
+    install_statements(env, tmp_path, monkeypatch)
+    env.now = datetime(2026, 7, 12, tzinfo=UTC)
+    destination = "claims@example.invalid"
+    common = dict(observed_at=env.now.isoformat(), submitted_to=destination)
+    supplement = dict(kind="supplement_filing_receipt", source_ref="mailbox-entry-b", receipt_id="vendor-supp-2",
+                      original_ref="vendor-intake-1", received_at=when,
+                      fields=[dict(name="log references", refs=["reader-A", "reader-B"])], **common)
+    original = dict(kind="original_filing_receipt", source_ref="mailbox-entry-a", receipt_id="vendor-intake-1",
+                    received_at="2026-07-02T03:00:00Z", fields=[dict(name="station identifier", refs=[OVERLAY["resource_id"]])], **common)
+    assert env.source("customer-fixture", original).status_code == 403
+    deliver(env, [("vendor-fixture", supplement)])
+    first = env.read()
+    assert first["stage"] == "HISTORICAL_FILING" and first["outcome"] == "INSUFFICIENT_EVIDENCE"
+    assert first["actions"] == [] and first["submissions"] == []
+    deliver(env, [("vendor-fixture", original)])
+    joined = env.read()
+    assert joined["preflight"]["outcome"] == expected
+    assert joined["stage"] == "HISTORICAL_FILING" and joined["actions"] == [] and joined["submissions"] == []
+    assert joined["ledger"]["claimed"] == joined["ledger"]["awarded"] == "0.00"
+    assert env.human.post(env.url + "/actions/approve-claim", {}).status_code == 409
+
+
+def test_counterparty_independently_measures_bulletins_and_net_remaining_issuance():
+    from dataclasses import replace
+    from decimal import Decimal
+    from uptime.correspondence_types import Scope, instant
+    from uptime.correspondence_vendor import ResourceVendorRecord, adjudicate_resource
+
+    scope = Scope(account="buyer-219", vendor="Provider", contract="governing-A", service="API",
+                  component="cell-1", invoice="statement-one", incident="obs-12", currency="USD", month="2026-06", region="east")
+    vendor = ResourceVendorRecord("bears", scope, "public-A", "2026-07-10T18:00:00.000001Z",
+        (("2026-06-05T00:00:00Z","2026-06-05T10:50:00Z"), ("2026-06-05T02:05:00Z","2026-06-05T05:00:00Z")),
+        (), (("net-service",10201), ("support",12299)), frozenset({"net-service"}),
+        ((Decimal(98), Decimal(45)), (Decimal(99), Decimal("12.5"))), True, "ref-284", "resource_log", "a"*64,
+        maintenance_lead=timedelta(hours=2), bulletins=(("2026-06-05T00:30:00Z","2026-06-05T02:30:00Z","2026-06-04T22:30:00Z"),),
+        issued_credits_cents=(("memo-31",231),("memo-31",231)))
+    packet = dict(tenant="bears", scope=scope.model_dump(), agreement_id="public-A", destination="isolated-local-simulator",
+                  requested="999.00", disclosed_artifact=dict(ref="ref-284", type="resource_log", sha256="a"*64))
+    filed_at = instant("2026-07-08T13:00:00Z")
+    assert adjudicate_resource(packet, vendor, filed_at) == "We approved a service credit of USD 10.44."
+    assert "requires verification" in adjudicate_resource(packet, replace(vendor, issued_credits_cents=None), filed_at)
+    assert "conflicting records" in adjudicate_resource(packet, replace(vendor, issued_credits_cents=(("x",12),("x",13))), filed_at)
+    covered = replace(vendor, bulletins=(("2026-06-05T00:00:00Z","2026-06-05T10:50:00Z","2026-06-04T22:00:00Z"),))
+    assert "meet the contract threshold" in adjudicate_resource(packet, covered, filed_at)

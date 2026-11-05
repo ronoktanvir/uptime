@@ -9,7 +9,7 @@ from pathlib import Path
 from .mandates import check_claim_decision, claim_preview
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import reserve_claim
-from .correspondence_artifacts import approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
+from .correspondence_artifacts import HISTORICAL, approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
 from .correspondence_reason import propose
 from .correspondence_rules import assess, confirmed_maintenance
 from .correspondence_types import Claim, Delivery, SOURCE, Scope, instant
@@ -156,6 +156,14 @@ class CorrespondenceDesk:
             if existing and existing["source"] != source:
                 raise ValueError("Source roles require independent signers for this account.")
             db.execute("INSERT OR IGNORE INTO inbox_sender VALUES(?,?,?,?)", (tenant, subject, account, source))
+            if exact:
+                # A narrowed operator grant must replace that subject's legacy
+                # wildcard for this subscription, including grants migrated on startup.
+                db.execute("DELETE FROM inbox_sender_scope WHERE tenant=? AND subject=? AND account=? "
+                           "AND subscription=? AND exact_scope=''", (tenant, subject, account, subscription))
+            elif db.execute("SELECT 1 FROM inbox_sender_scope WHERE tenant=? AND subject=? AND account=? "
+                            "AND subscription=? AND exact_scope!='' LIMIT 1", (tenant, subject, account, subscription)).fetchone():
+                raise ValueError("An exact source grant cannot be broadened by the legacy fixture interface.")
             db.execute("INSERT OR IGNORE INTO inbox_sender_scope VALUES(?,?,?,?,?)", (tenant, subject, account, subscription, exact))
 
     def create(self, p, claim: Claim):
@@ -204,6 +212,9 @@ class CorrespondenceDesk:
 
     def _assess(self, tenant, scope, state, now):
         filed = instant(state["submissions"][0]["at"]) if state["submissions"] else None
+        historical = [e for e in state["evidence"] if e["kind"] == "original_filing_receipt"]
+        if not filed and len(historical) == 1:
+            filed = instant(historical[0]["body"]["received_at"])
         return assess(tenant, scope, state["evidence"], now, filed, self.active_resolver)
 
     def receive(self, p, claim_id, event: Delivery):
@@ -258,7 +269,21 @@ class CorrespondenceDesk:
             state["evidence"].append(fact)
             audit(state, now, principal.subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
                   event_id=event.event_id, digest=digest)
-            if body["kind"] == "message":
+            if body["kind"] in HISTORICAL:
+                if state["submissions"]:
+                    raise ValueError("Local and imported original submissions cannot share an intake.")
+                current = self._assess(tenant, scope, state, now)
+                if not current.remedy.startswith("resource-month/"):
+                    raise ValueError("Historical filing evidence requires an active, reviewed resource-month agreement.")
+                original_id = body.get("original_ref") or body["receipt_id"]
+                identity = fingerprint([tenant, scope.model_dump(), original_id])
+                reserve_claim(db, tenant=tenant, vendor=scope.vendor, account=account, agreement_id=current.agreement_id,
+                              agreement_version=current.version, service=scope.service, month=scope.month, remedy=current.remedy,
+                              route="historical-receipt", case_id=claim_id, packet_digest=identity, scope=scope.model_dump(),
+                              receipt_id="HIST-" + identity, at=now.isoformat())
+                state.update(stage="HISTORICAL_FILING", approval=None)
+                audit(state, now, principal.subject, "Recorded a scoped historical receipt. This intake cannot originate another filing.", VENDOR)
+            elif body["kind"] == "message":
                 if any(r["receipt"] == body["receipt_id"] for r in state["replies"]):
                     state["stage"] = "HUMAN_REVIEW"
                     state["approval"] = None
@@ -289,9 +314,8 @@ class CorrespondenceDesk:
         if not state["submissions"]:
             return
         evaluation = self._assess(tenant, scope, state, now).evaluation
-        if state["reason"] == "maintenance" and confirmed_maintenance(scope, state["evidence"]) and evaluation.outcome == Outcome.INELIGIBLE:
-            state["stage"] = "DENIAL_ACCEPTED"
-            audit(state, now, "claimant", "Customer notice independently confirms timely scheduled maintenance. Closed without further contact.")
+        if state["reason"] == "maintenance":
+            self._maintenance(scope, state, evaluation, now)
         elif state["reason"] == "artifact" and state["stage"] in {"NEEDS_EVIDENCE","RESPONSE_DRAFTED"}:
             if evaluation.outcome != Outcome.ELIGIBLE or _artifact_conflict(state):
                 state["stage"] = "HUMAN_REVIEW"
@@ -306,6 +330,21 @@ class CorrespondenceDesk:
                 state["stage"] = "RESPONSE_DRAFTED"
                 audit(state, now, "claimant", "Drafted one supplemental packet using newly acquired matching component evidence.")
 
+    @staticmethod
+    def _maintenance(scope, state, evaluation, now):
+        reports = [e for e in state["evidence"] if e["kind"] in {"notice", "maintenance_evidence"}]
+        if confirmed_maintenance(scope, state["evidence"]) and evaluation.outcome == Outcome.INELIGIBLE:
+            state["stage"] = "DENIAL_ACCEPTED"
+            audit(state, now, "claimant", "A timely, independently authenticated notice covers the scoped interruption.")
+        elif not reports:
+            state["stage"] = "AWAITING_NOTICE"
+        elif (len(state["submissions"]) == 1 and evaluation.outcome == Outcome.ELIGIBLE
+              and evaluation.amount.amount == Decimal(state["submissions"][0]["requested"])):
+            state["stage"] = "RESPONSE_DRAFTED"
+            audit(state, now, "claimant", "The independent notice and incident records leave qualifying downtime after the governing exclusion.")
+        else:
+            state["stage"] = "HUMAN_REVIEW"
+
     def _reply(self, tenant, scope, state, fact, now):
         requested = Decimal(state["submissions"][0]["requested"])
         proposal = propose(fact["body"]["text"], claimed=requested)
@@ -317,14 +356,18 @@ class CorrespondenceDesk:
         current = self._assess(tenant, scope, state, now)
         filed_at = instant(state["submissions"][0]["at"])
         if proposal.reason == "maintenance":
-            if confirmed_maintenance(scope, state["evidence"]) and current.evaluation.outcome == Outcome.INELIGIBLE:
-                state["stage"] = "DENIAL_ACCEPTED"
-            elif not any(e["kind"] == "notice" for e in state["evidence"]):
-                state["stage"] = "AWAITING_NOTICE"
+            self._maintenance(scope, state, current.evaluation, now)
         elif current.evaluation.outcome == Outcome.ELIGIBLE and current.evaluation.amount.amount == requested:
             if proposal.reason == "award":
                 awarded = Decimal(proposal.amount)
-                if 0 < awarded <= requested:
+                previous_ids = {row["credit_id"] for e in state["evidence"] if e["kind"] == "prior_credit_evidence"
+                                for row in e["body"]["records"]}
+                credit_id = fact["body"].get("credit_id")
+                if previous_ids and (not credit_id or credit_id in previous_ids):
+                    audit(state, now, "claimant", "The billing statement already lists prior issuances. A distinct credit ID is required to book an additional award.")
+                elif 0 < awarded <= requested:
+                    if credit_id:
+                        reply["credit_id"] = credit_id
                     state["awarded"] = money(awarded)
                     state["stage"] = "AWARDED" if awarded == requested else "PARTIAL_AWARD_REVIEW"
             elif len(state["submissions"]) == 1:
@@ -337,13 +380,18 @@ class CorrespondenceDesk:
                         state["requested_artifact"] = dict(type=proposal.artifact_type, ref=proposal.reference)
                     state["stage"] = "NEEDS_EVIDENCE"
                     self._evidence_arrival(tenant, scope, state, now)
+                elif (proposal.reason == "downtime" and current.measurement
+                      and current.measurement["downtime_microseconds"] > proposal.downtime_us):
+                    state["vendor_downtime_us"] = proposal.downtime_us
+                    state["stage"] = "RESPONSE_DRAFTED"
+                    audit(state, now, "claimant", "Scoped independent records show more qualifying downtime than the counterparty counted.")
                 elif proposal.reason == "availability" and current.measurement:
                     state["stage"] = "RESPONSE_DRAFTED"
                     audit(state, now, "claimant", "Published threshold and independently measured qualifying downtime contradict the vendor's availability conclusion.")
                 elif proposal.reason == "time_bar" and filed_at < current.cutoff:
                     state["stage"] = "RESPONSE_DRAFTED"
                     audit(state, now, "claimant", "The original local receipt predates the filing cutoff; drafted a receipt-backed correction.")
-        if state["stage"] in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED"}:
+        if state["stage"] in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "AWAITING_NOTICE"}:
             state["cooldown"] = (now + FOLLOW_UP).isoformat()
         audit(state, now, "claimant", "Evaluated vendor correspondence: " + state["stage"] + ".", VENDOR,
               proposal=proposal.reason, receipt=fact["body"]["receipt_id"])
@@ -378,6 +426,17 @@ class CorrespondenceDesk:
                     raise ValueError("The vendor scope assertion is not contradicted by this filing.")
                 packet["argument"] = "Authenticated sources and the original filing establish the scoped identifier."
                 packet["verified_scope_field"] = correction["field"]
+            elif state["reason"] == "maintenance" and current.measurement:
+                notices = [e["digest"] for e in facts if e["kind"] in {"notice", "maintenance_evidence"}]
+                if not notices:
+                    raise ValueError("A verified scoped notice record is required to dispute a maintenance exclusion.")
+                packet["argument"] = "The verified maintenance timeline leaves countable downtime under the governing rule."
+                packet["maintenance_evidence"] = notices
+                packet["verified_measurement"] = current.measurement
+            elif (state["reason"] == "downtime" and current.measurement and state.get("vendor_downtime_us") is not None
+                  and current.measurement["downtime_microseconds"] > state["vendor_downtime_us"]):
+                packet["argument"] = "The scoped, exclusion-adjusted measurements exceed the duration cited in the denial."
+                packet["verified_measurement"] = current.measurement
             elif state["reason"] == "availability" and current.measurement:
                 packet["argument"] = "Reconciled qualifying downtime breaches the published availability threshold for this service month."
                 packet["verified_measurement"] = current.measurement
@@ -389,7 +448,11 @@ class CorrespondenceDesk:
 
     @staticmethod
     def _approval_binding(current):
-        return fingerprint([current.agreement_id, current.version, current.cutoff.isoformat() if current.cutoff else None,
+        # Include the current packet contract so durable pre-upgrade approvals
+        # return to review instead of repeatedly failing on a new wire digest.
+        return fingerprint(["correspondence-packet/2", current.agreement_id, current.version,
+                            current.measurement, current.filing_material,
+                            current.cutoff.isoformat() if current.cutoff else None,
                             current.evidence_digest, money(current.evaluation.amount.amount) if current.evaluation.amount else None,
                             [asdict(c) for c in current.evaluation.clauses]])
 
@@ -477,6 +540,9 @@ class CorrespondenceDesk:
         for item, fact in zip(evidence, state["evidence"]):
             body = fact["body"]
             item.update({k:body[k] for k in ("source_ref","observed_at","artifact_ref","artifact_type","body_sha256","linked_ref") if k in body})
+            if fact["kind"] in HISTORICAL:
+                item.update({k:body[k] for k in ("receipt_id","original_ref","submitted_to") if k in body})
+                item["filed_at"] = body["received_at"]
             item["available_at"] = fact["known_at"] if "known_at" in fact else fact["received_at"]
             item["issuer"] = fact.get("subject",fact["source"])
         replies = [{**r, "text": next(e["body"]["text"] for e in state["evidence"] if e["digest"] == r["digest"])} for r in state["replies"]]

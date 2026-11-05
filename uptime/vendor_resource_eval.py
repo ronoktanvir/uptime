@@ -11,7 +11,7 @@ from .vendor_terms import MAX_PERCENT
 
 FACTS = {'tenant','agreement','account','product','plan','resource_id','month','received_at','monitor_source',
          'monitor_ref','month_complete','intervals','exclusions','fee_lines','fee_line_ref','itemized_complete',
-         'billing_cycles','issuance','fee_ref','filing_proof','condition_evidence'}
+         'billing_cycles','issuance','fee_ref','filing_proof','condition_evidence','maintenance_evidence','prior_credit_evidence'}
 SCOPED = {'agreement','account','product','plan','resource_id','fee_line_ref'}
 
 
@@ -127,6 +127,55 @@ def source_labels(manifest,key):
     return {norm(v) for v in manifest[key]} | {norm(v['phrase']) for v in manifest.get('label_bindings',{}).get(key,{}).values()}
 
 
+def scoped_records(facts, overlay, key):
+    receipt = facts.get(key)
+    if (not isinstance(receipt, dict) or receipt.get('verified') is not True or receipt.get('complete') is not True
+            or not relevant(receipt, overlay) or receipt.get('agreement') != overlay['agreement']
+            or receipt.get('month') != facts['month']):
+        raise Gap('Verified complete scoped statement required: ' + key)
+    required_ref(receipt.get('ref'))
+    return observation_rows(receipt, 'records', overlay)
+
+
+def announced_windows(facts, overlay, manifest):
+    rule = manifest.get('maintenance')
+    if not rule:
+        return []
+    windows = []
+    notice = rule['notice']
+    lead = timedelta(**{notice['unit']: notice['count']}) if notice else timedelta()
+    for row in scoped_records(facts, overlay, 'maintenance_evidence'):
+        left, right = instant(row.get('start')), instant(row.get('end'))
+        if right <= left:
+            raise Gap('Empty or reversed announced maintenance window.')
+        if row.get('state') == 'confirmed_unannounced' and row.get('announced_at') is None:
+            continue
+        announced = instant(row.get('announced_at'))
+        if row.get('state', 'announced') != 'announced':
+            raise Gap('Contradictory maintenance announcement record.')
+        if announced < left and left - announced >= lead:
+            windows.append((left, right))
+    return _merge(windows)
+
+
+def prior_credit_cents(facts, overlay, manifest):
+    if not manifest.get('prior_credit'):
+        return 0
+    credits = {}
+    for row in scoped_records(facts, overlay, 'prior_credit_evidence'):
+        for key in ('month', 'agreement'):
+            required_ref(row.get(key))
+        if row['month'] != facts['month'] or row['agreement'] != overlay['agreement']:
+            continue
+        credit_id = required_ref(row.get('credit_id'))
+        amount = row.get('amount_cents')
+        if (row.get('state') != 'issued' or row.get('currency') != 'USD' or type(amount) is not int
+                or not 0 <= amount <= 10**15 or credits.get(credit_id, amount) != amount):
+            raise Gap('Issued credit is unverified or conflicts with its scoped prior record.')
+        credits[credit_id] = amount
+    return sum(credits.values())
+
+
 def measured(facts,overlay,manifest,start,end,excluded_refs):
     if facts.get('monitor_source') not in ('simulated_vendor','synthetic_customer') or facts.get('month_complete') is not True:
         raise Gap('Complete account-specific resource evidence required; a public incident is context alone.')
@@ -137,6 +186,11 @@ def measured(facts,overlay,manifest,start,end,excluded_refs):
     s_alias=overlay.get('symptom_aliases',{})
     c_alias=overlay.get('cause_aliases',{})
     included,excluded=[],[]
+    windows = announced_windows(facts, overlay, manifest)
+    maintenance = manifest.get('maintenance', {})
+    cause_specific = maintenance.get('basis') == 'caused_within_announced_window'
+    if not cause_specific:
+        excluded.extend(windows)
     linked=set()
     for key in ('intervals','exclusions'):
         for row in observation_rows(facts,key,overlay,optional=key=='exclusions'):
@@ -165,9 +219,12 @@ def measured(facts,overlay,manifest,start,end,excluded_refs):
                 raise Gap('Unverified service symptom.')
             if symptom not in symptoms:
                 continue
-            if cause not in providers:
+            if cause_specific and cause == norm(maintenance['cause']):
+                included.extend(_subtract([(left, right)], windows))
+            elif cause in providers:
+                included.append((left, right))
+            else:
                 raise Gap('Unconfirmed responsibility for qualifying service symptom.')
-            included.append((left,right))
     if linked!=excluded_refs:
         raise Gap('Local exclusion references an unverified or out-of-scope interval.')
     return sum(micros(right-left) for left,right in _subtract(_merge(included),excluded))
@@ -178,7 +235,10 @@ def fees(facts,overlay,manifest):
         raise Gap('An itemized complete affected-resource fee statement is required.')
     included=[]
     for row in observation_rows(facts,'fee_lines',overlay):
-        if set(row)-{'ref','account','resource_id','month','kind','amount_cents','currency','fee_line_ref','category'}:
+        fields = {'ref','account','resource_id','month','kind','amount_cents','currency','fee_line_ref','category'}
+        if manifest.get('fee_adjustment'):
+            fields.update({'discount_ref','gross_cents','discount_cents','amount_basis'})
+        if set(row) - fields:
             raise Gap('Unrecognized fee-line fields.')
         if row.get('month')!=facts['month']:
             continue
@@ -195,6 +255,18 @@ def fees(facts,overlay,manifest):
             raise Gap('Invalid currency or amount on an affected service line.')
         if norm(row.get('category','')) in source_labels(manifest,'fee_exclusions'):
             continue
+        if manifest.get('fee_adjustment'):
+            required_ref(row.get('discount_ref'))
+            basis = row.get('amount_basis')
+            if basis not in (None, 'net_after_discounts'):
+                raise Gap('Unverified net affected-resource charge.')
+            if 'gross_cents' in row or 'discount_cents' in row:
+                gross, discount = row.get('gross_cents'), row.get('discount_cents')
+                if (type(gross) is not int or type(discount) is not int or not 0 <= discount <= gross <= 10**15
+                        or gross - discount != cents):
+                    raise Gap('Discount and gross amounts do not reconcile to the cited net charge.')
+            elif basis != 'net_after_discounts':
+                raise Gap('A referenced post-discount fee or reconciled discount breakdown is required.')
         included.append(cents)
     if not included:
         raise Gap('Missing itemized matched service charges for this resource and month.')
@@ -230,21 +302,57 @@ def deadline(facts,overlay,manifest,end):
     return cursor,False
 
 
-def check_submission(facts,overlay,manifest):
-    items=manifest.get('request_fields',[])
-    channel=manifest.get('submission_channel')
-    if not items and not channel:
-        return
-    proof=facts.get('filing_proof')
-    if not isinstance(proof,dict) or proof.get('verified') is not True or not relevant(proof,overlay):
+def check_submission(facts, overlay, manifest, received, cutoff, inclusive):
+    items = manifest.get('request_fields', [])
+    channel = manifest.get('submission_channel')
+    if not items and not channel and not manifest.get('supplement'):
+        return True
+    proof = facts.get('filing_proof')
+    if not isinstance(proof, dict) or proof.get('verified') is not True or not relevant(proof, overlay):
         raise Gap('Verified scoped filing receipt and request contents required.')
-    required_ref(proof.get('ref'))
-    destination=proof.get('submitted_to')
-    if channel and (not isinstance(destination,str) or destination.strip().casefold()!=channel.strip().casefold()):
+    receipt = required_ref(proof.get('ref'))
+    destination = proof.get('submitted_to')
+    if channel and (not isinstance(destination,str) or destination.strip().casefold() != channel.strip().casefold()):
         raise Gap('Contractual filing channel unverified.')
-    values=proof.get('fields',{})
-    if not isinstance(values,dict) or not all(isinstance(values.get(k),str) and values[k].strip() for k in items):
+    values = proof.get('fields', {})
+    if not isinstance(values, dict):
+        raise Gap('Malformed request fields.')
+    supplied = dict(values)
+    observations = dict(values)
+    late = set()
+    supplements = proof.get('supplements', [])
+    if not isinstance(supplements, list) or len(supplements) > 100 or supplements and not manifest.get('supplement'):
+        raise Gap('Unsupported supplemental filing evidence.')
+    known = {}
+    for row in supplements:
+        if (not isinstance(row, dict) or row.get('verified') is not True or not relevant(row, overlay)
+                or row.get('agreement') != overlay['agreement'] or row.get('month') != facts['month']
+                or row.get('original_ref') != receipt or row.get('submitted_to') != destination):
+            raise Gap('Supplement lacks original receipt, destination or verified monthly scope.')
+        reference = required_ref(row.get('ref'))
+        if reference == receipt or known.get(reference, row) != row:
+            raise Gap('Conflicting supplemental filing reference.')
+        known[reference] = row
+        delivered = instant(row.get('received_at'))
+        if delivered < received:
+            raise Gap('Supplement predates its initial filing.')
+        additions = row.get('fields')
+        if not isinstance(additions, dict) or not additions:
+            raise Gap('Supplement contains no verified request items.')
+        for key, value in additions.items():
+            if not isinstance(value, str) or not value.strip() or key not in items:
+                raise Gap('Supplement contains an unsupported or empty filing item.')
+            if observations.get(key) not in (None, '', value):
+                raise Gap('Supplement contradicts an earlier filing item.')
+            observations[key] = value
+            if delivered < cutoff or delivered == cutoff and inclusive:
+                supplied[key] = value
+            else:
+                late.add(key)
+    missing = {key for key in items if not isinstance(supplied.get(key), str) or not supplied[key].strip()}
+    if missing - late:
         raise Gap('Required source-defined claim fields missing from local receipt.')
+    return not missing
 
 
 def issuance(facts,overlay,amount):
@@ -297,16 +405,28 @@ def evaluate_resource(manifest,overlay,facts,tenant):
             cents=(2*fee*rate+MAX_PERCENT)//(2*MAX_PERCENT)
             amount=f'{cents//100}.{cents%100:02d}'
         base.update(affected_fee_cents=fee,service_estimate=amount)
+        if manifest.get('prior_credit'):
+            prior = prior_credit_cents(facts, overlay, manifest)
+            remaining_scaled_cents = max(0, fee * rate - prior * MAX_PERCENT)
+            if manifest.get('rounding') == 'nearest_cent_half_up':
+                cents = (2 * remaining_scaled_cents + MAX_PERCENT) // (2 * MAX_PERCENT)
+                amount = f'{cents//100}.{cents%100:02d}'
+            else:
+                amount = usd_estimate(1, remaining_scaled_cents)
+            base.update(prior_issued_cents=prior, remaining_estimate=amount)
+            base['trace'].append(f'Prior verified credits for this resource and month: {prior} USD cents.')
         cutoff,inclusive=deadline(facts,overlay,manifest,end)
         base.update(claim_cutoff=cutoff.isoformat(),cutoff_inclusive=inclusive)
         if not inclusive:
             base['claim_cutoff_exclusive']=cutoff.isoformat()
-        check_submission(facts,overlay,manifest)
         received=instant(facts.get('received_at'))
         if received<end or received>cutoff or received==cutoff and not inclusive:
             base.update(filing_status='OUTSIDE_WINDOW')
             base['trace'].append('Receipt outside the governing filing window.')
             return base|{'outcome':Outcome.INELIGIBLE.value}
+        if not check_submission(facts, overlay, manifest, received, cutoff, inclusive):
+            base['trace'].append('The required supplement arrived after the original filing deadline.')
+            return base | {'outcome': Outcome.INELIGIBLE.value, 'filing_status': 'LATE_SUPPLEMENT'}
         if amount=='0.00':
             base['trace'].append('The governing fee and credit precision produce no positive claimable amount.')
             return base|{'outcome':Outcome.INELIGIBLE.value,'filing_status':'TIMELY','issuance_status':'NO_POSITIVE_CREDIT'}

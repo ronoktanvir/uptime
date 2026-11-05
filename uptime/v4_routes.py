@@ -25,7 +25,8 @@ def _economics(manifest, overlay):
     if manifest["family"] == "resource-month/1":
         fields = ("family","period","scope","symptoms","provider_causes","exclusions","fee_basis","fee_exclusions",
                   "rounding","filing","cycle_calendar_month","submission_channel","request_fields","remedy",
-                  "account_conditions","precedence","label_bindings")
+                  "account_conditions","precedence","label_bindings","maintenance","prior_credit",
+                  "supplement","interval_measurement","fee_adjustment")
         semantics = {k:manifest.get(k) for k in fields}
         semantics["tiers"] = [(t["below_units"],t["credit_units"]) for t in manifest["tiers"]]
         semantics["billing_period"] = overlay.get("billing_period", {}).get("kind") if overlay.get("billing_period") else None
@@ -157,18 +158,19 @@ def _joined_observation(scope, events, overlay, received_at):
                 fee_month=scope.month, fee_ref=by_kind["invoice"]["digest"], received_at=received_at.isoformat())
 
 
-def _filed_at(db, tenant, scope, at):
-    # During an inbound reply the actual historical receipt controls timeliness.
-    # A prospective claim uses the current authenticated action time.
+def _filing_receipts(db, tenant, scope):
+    """Authenticate immutable local packets before using them as dated filing evidence."""
     row = db.execute("SELECT state FROM inbox_claim WHERE tenant=? AND scope=?", (tenant, scope.model_dump_json())).fetchone()
-    submissions = json.loads(row[0])["submissions"] if row else []
-    if not submissions:
-        return at
-    initial = submissions[0]
-    if (initial["packet"]["scope"] != scope.model_dump() or initial["packet"]["tenant"] != tenant or
-            fingerprint(initial["packet"]) != initial["approval"]["digest"] or initial["digest"] != initial["approval"]["digest"]):
-        raise ValueError("Historical filing receipt no longer matches its approved scope and packet.")
-    return instant(initial["at"])
+    receipts = json.loads(row[0])["submissions"] if row else []
+    if len(receipts) > 2:
+        raise ValueError("Historical filings exceed the one-supplement policy.")
+    for receipt in receipts:
+        packet = receipt["packet"]
+        if (packet["scope"] != scope.model_dump() or packet["tenant"] != tenant
+                or fingerprint(packet) != receipt["approval"]["digest"] or receipt["digest"] != receipt["approval"]["digest"]
+                or receipt["id"] != "LOCAL-" + receipt["digest"][:24]):
+            raise ValueError("Historical filing receipt no longer matches its approved scope and packet.")
+    return receipts
 
 
 def resolve_active(path, tenant, scope, events, at):
@@ -179,12 +181,13 @@ def resolve_active(path, tenant, scope, events, at):
         if binding is None:
             return None
         installation, state, manifest, overlay = binding
-        filed = _filed_at(db, tenant, scope, at)
+        receipts = _filing_receipts(db, tenant, scope)
+        filed = instant(receipts[0]["at"]) if receipts else at
         resource = manifest["family"] == "resource-month/1"
         filing = raw = gap = cutoff = None
         try:
             if resource:
-                obs, filing = join_resource(scope, events, manifest, overlay, filed)
+                obs, filing = join_resource(scope, events, manifest, overlay, filed, receipts)
             else:
                 _, following = calendar_bounds(instant(scope.month+"-01T00:00:00Z").date(), "UTC")
                 cutoff = following + timedelta(days=overlay.get("override",{}).get("filing_days",manifest["filing_days"]))
