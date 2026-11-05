@@ -60,7 +60,7 @@ def source_date(value, quote):
     return any(norm(s) in norm(quote) for s in choices)
 
 
-def count_grounded(number, quote):
+def count_grounded(number, kind, quote):
     words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
              'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen',
              'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five',
@@ -68,14 +68,19 @@ def count_grounded(number, quote):
     ordinal = {1:'first', 2:'second', 3:'third', 4:'fourth', 5:'fifth', 7:'seventh', 10:'tenth',
                12:'twelfth', 14:'fourteenth', 15:'fifteenth', 20:'twentieth', 30:'thirtieth'}
     candidates = [str(number)] + ([words[number]] if number < len(words) else []) + ([ordinal[number]] if number in ordinal else [])
-    return any(re.search(r'\b' + re.escape(w) + r'(?:st|nd|rd|th)?\b', quote, re.I) for w in candidates)
+    unit = {'calendar_days': r'calendar days?', 'billing_cycles': r'(?:monthly )?billing cycles?'}.get(kind)
+    if unit is None:
+        return False
+    # A section number or UTC clock on the same line cannot establish the filing interval.
+    number_phrase = r'(?:' + '|'.join(re.escape(w) for w in candidates) + r')(?:st|nd|rd|th)?'
+    return bool(re.search(r'\b' + number_phrase + r'(?:\s*\(' + number_phrase + r'\))?\s+' + unit + r'\b', quote, re.I))
 
 
 def validate_filing(value, quote):
     if not isinstance(value, dict) or set(value) != {'kind', 'count', 'utc_time', 'endpoint'}:
         raise ValueError('Incomplete filing proposition.')
     kind, count, clock, endpoint = (value[k] for k in ('kind', 'count', 'utc_time', 'endpoint'))
-    if type(count) is not int or not 1 <= count <= 365 or not count_grounded(count, quote):
+    if type(count) is not int or not 1 <= count <= 365 or not isinstance(kind, str) or not count_grounded(count, kind, quote):
         raise ValueError('Unsupported filing interval.')
     if not re.search(r'claim|request|submit|fil(?:e|ing)|receiv|deadline|notice', quote, re.I):
         raise ValueError('Filing origin lacks a claim or request.')
@@ -87,7 +92,7 @@ def validate_filing(value, quote):
             raise ValueError('Unsupported calendar-day filing policy.')
         if clock is not None:
             if (not isinstance(clock, str) or not re.fullmatch(r'(?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?', clock)
-                    or clock not in quote or 'utc' not in quote.casefold() or endpoint not in {'inclusive','exclusive','unclear'}):
+                    or not re.search(r'(?<![\d:])' + re.escape(clock) + r'(?![\d:])', quote) or 'utc' not in quote.casefold() or endpoint not in {'inclusive','exclusive','unclear'}):
                 raise ValueError('Filing cutoff must be a source-grounded UTC clock.')
             if endpoint != 'unclear':
                 exclusive = bool(re.search(r'\b(?:strictly |earlier than |prior to |before )' + re.escape(clock), quote, re.I))
@@ -96,6 +101,8 @@ def validate_filing(value, quote):
                     exclusive = False
                 if (endpoint == 'inclusive' and not inclusive) or (endpoint == 'exclusive' and not exclusive):
                     raise ValueError('Filing endpoint does not match the source clock comparator.')
+        elif re.search(r'\b\d{1,2}:\d{2}\b', quote) and endpoint == 'whole_day':
+            raise ValueError('An explicit filing clock cannot be replaced by a whole-day cutoff.')
         elif endpoint not in {'whole_day', 'unclear'}:
             raise ValueError('Missing stated filing time.')
     elif kind == 'billing_cycles':
@@ -356,8 +363,11 @@ def compile_resource(document, clauses):
                 raise ValueError('Unsupported resource month denominator.')
             if key == 'boundary' and (value!='strict_below' or not re.search(r'below|lower than|less than|<|equal|threshold|at or above',lower)):
                 raise ValueError('Uncited strict availability boundary.')
-            if key=='fee_basis' and (value!='affected_resource_fees' or not re.search(r'fees?|charg(?:es?|ed)|spend|billed',lower)):
-                raise ValueError('Ungrounded affected-fee basis.')
+            if key == 'fee_basis' and (value != 'affected_resource_fees'
+                    or not re.search(r'fees?|charges?|spend|billed|rental|subscription cost', lower)
+                    or not re.search(r'\b(?:affected|impacted|unavailable|qualifying|same|corresponding)\b', lower)
+                    or re.search(r'(?:all|aggregate|total) (?:account|tenant|customer|unaffected) (?:fees?|charges?|spend)', lower)):
+                raise ValueError('Ungrounded affected-resource fee basis.')
             if key=='rounding' and (value!='nearest_cent_half_up' or 'cent' not in lower
                     or not re.search(r'half.{0,15}up|(?:ties|halves|half.a.cent).{0,35}(?:up|higher)',lower)):
                 raise ValueError('Unconfirmed half-up cent rounding.')
@@ -366,7 +376,9 @@ def compile_resource(document, clauses):
             if key=='cycle_calendar_month' and (value is not True or not re.search(r'billing cycle',lower) or 'calendar month' not in lower):
                 raise ValueError('Unsupported inferred billing calendar.')
             if key=='remedy' and (value!='future_noncash_credit' or 'credit' not in lower
-                    or not re.search(r'future|next|subsequent|non.cash|no cash|not .*cash',lower)):
+                    or not re.search(r'\b(?:future|next|subsequent|following)\b',lower)
+                    or not re.search(r'invoice|bill|service (?:fee|charge|credit)',lower)
+                    or re.search(r'(?:option|elect|choose|exchange|redeem).{0,35}\bcash\b',lower)):
                 raise ValueError('Unconfirmed future credit remedy.')
             manifest[key]=value
     required={'vendor','effective','scope','period','symptoms','provider_causes','fee_basis','filing','remedy','evidence'}
