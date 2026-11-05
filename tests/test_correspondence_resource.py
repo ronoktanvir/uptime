@@ -286,6 +286,25 @@ def test_availability_denial_rebuttal_contains_independently_measured_countable_
     assert packet["in_reply_to"] == initial["id"]
 
 
+@pytest.mark.parametrize("additional,stage", [
+    ("", "RESPONSE_DRAFTED"),
+    (" Thank you for your patience.", "RESPONSE_DRAFTED"),
+    (" You waived all service credit claims in a separate settlement agreement.", "HUMAN_REVIEW"),
+    (" A separate commercial condition prevents this remedy.", "HUMAN_REVIEW"),
+    (" Your subscription was cancelled before this month.", "HUMAN_REVIEW"),
+])
+def test_signed_compound_denial_requires_every_substantive_ground_to_be_understood(env, tmp_path, monkeypatch, additional, stage):
+    initial = setup_filed(env, tmp_path, monkeypatch)
+    text = "We denied your claim because we measured 5 minutes of downtime." + additional
+    row = message(env, initial, text)
+    assert row["stage"] == stage
+    assert row["replies"][-1]["text"] == text
+    if stage == "HUMAN_REVIEW":
+        assert row["replies"][-1]["reason"] == "unknown" and row["actions"] == []
+        assert env.human.post(env.url + "/actions/approve-response", {}).status_code == 409
+    assert len(row["submissions"]) == 1 and row["ledger"]["awarded"] == "0.00"
+
+
 def test_conditional_statements_require_complete_matching_history():
     from uptime.correspondence_resource import append_monthly_reports
     from uptime.correspondence_types import Scope, instant
