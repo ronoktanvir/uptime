@@ -23,6 +23,27 @@ TENANT="bears"
 SIM=[Source.VENDOR.value,Source.REPLAY.value]
 CUSTOM=[Source.CUSTOMER.value,Source.REPLAY.value]
 
+# Current observations whose authority is unavailable have a distinct shape.
+# New evaluator fields cannot silently survive this allowlist. Evidence and
+# clauses are immutable inputs; historical amounts live in recorded_* / versions.
+REVIEW_OBSERVATION_FIELDS = frozenset({
+    'id','vendor','vendor_id','title','version','semantics_revision','obligation_id','economic_identity',
+    'sources','clauses','source_sha256','source_received_at','source_currentness','agreement','account',
+    'adapter_revision','evidence','timeline','currency','basis','observation_digest','remedy','citations',
+    'claim_cutoff','cutoff_inclusive','deadline_context','recorded_stage','recorded_outcome','recorded_amount',
+    'financial_scope_status','financial_scope_reason','semantic_binding_status',
+})
+
+
+def review_observation(case):
+    result = {key:value for key,value in case.items() if key in REVIEW_OBSERVATION_FIELDS}
+    reason = case.get('financial_scope_reason', 'Current source meaning requires review.')
+    result.update(stage='REVIEW_REQUIRED', outcome='INSUFFICIENT_EVIDENCE', amount=None, actions=[],
+        trace=[f"Current evaluation unavailable for version {case.get('version', 'unknown')}: {reason}"],
+        missing=['Current reviewed source meaning and financial scope'],
+        financials=[dict(label='Current estimate', value='Review required', sources=case.get('sources', []))])
+    return result
+
 
 def usd(amount):
     number = Decimal(amount)
@@ -471,6 +492,8 @@ class Workbench:
                             recorded_amount=case.get("recorded_amount",case.get("amount")), stage="REVIEW_REQUIRED",
                             outcome="INSUFFICIENT_EVIDENCE", amount=None, actions=[],
                             financials=[dict(label="Current estimate", value="Semantic review required", sources=case.get("sources",[]))])
+            if case.get('financial_scope_status') == 'REVIEW_REQUIRED':
+                case = review_observation(case)
         case["cohort"]="seeded" if case["id"] in self.seed_ids else "portfolio"
         case.setdefault("note", "Seeded historical/comparison simulation; estimates are not additive portfolio value."
                         if case["cohort"]=="seeded" else "Entered workspace record; source labels determine whether facts are simulated or observed.")

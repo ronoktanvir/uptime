@@ -1,0 +1,159 @@
+{
+  "review": "Independent financial join and semantic containment review",
+  "reviewed_commit": "5463bcbbff217f588f1441b4ad7e24a2bd6d9694",
+  "reviewer": "financial_join_review independent Codex agent",
+  "date": "2026-11-05",
+  "decision": "Changes required before claiming complete ADR61 containment.",
+  "scope": [
+    "vendor_eval/resource_eval/service_month monetary evaluation",
+    "vendor_bindings exact literal roles and fee roles",
+    "registry lifecycle, checks, revocation and current capability",
+    "correspondence resource/service/history joins",
+    "workbench current projections, v4 routes and economic identity",
+    "public tests and public integration-fixture diff"
+  ],
+  "excluded": [
+    "Private holdout/gold material",
+    "Credential files",
+    "Network and native Ramp operations",
+    "Native-post qualification or retesting",
+    "Root source edits",
+    "Full-suite rerun"
+  ],
+  "findings": [
+    {
+      "id": "F61-1",
+      "priority": "P1",
+      "release_blocking": true,
+      "title": "Reject contradictory qualifying and nonqualifying telemetry literal bindings",
+      "source": [
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/vendor_bindings.py",
+          "function": "review_record",
+          "line": 209,
+          "end_line": 214
+        },
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/vendor_resource_scopes.py",
+          "function": "_clocked",
+          "line": 65,
+          "end_line": 70
+        }
+      ],
+      "observation": "A named review can bind the same raw literal to provider_status and provider_nonqualifying, or customer_status and customer_nonqualifying. review_record rejects analogous provider-cause/exclusion and fee-role collisions but not these pairs. _clocked resolves qualifying first and never checks contradictory nonqualifying meaning.",
+      "reproduction": "Public test_vendor_resource_scoped source and facts. Baseline provider status running or customer status degraded is INELIGIBLE with amount null. Assign that same literal to the corresponding positive status in the explicit review while retaining its nonqualifying mapping. Both reviews are accepted and both evaluations become ELIGIBLE with USD 15.03.",
+      "impact": "An internally contradictory accepted semantic context creates a positive credit. This requires an authorized contradictory review and is not an unauthenticated-input bypass; the contradiction is deterministic and should not be resolved by branch order.",
+      "correction": "Reject intersections between each same-source positive/nonqualifying role pair before creating the reviewed record; conservatively return unresolved/null if contradictory contexts can still reach the evaluator.",
+      "tests": [
+        "test_contradictory_telemetry_literal_cannot_authorize_money[provider-running]",
+        "test_contradictory_telemetry_literal_cannot_authorize_money[customer-degraded]"
+      ],
+      "evidence": [
+        "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/provider-telemetry-collision-observed.json",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/customer-telemetry-collision-observed.json",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/telemetry-collision-observed.json"
+      ]
+    },
+    {
+      "id": "F61-2",
+      "priority": "P1",
+      "release_blocking": true,
+      "title": "Remove revoked monetary intermediates and monetary trace from the current case projection",
+      "source": [
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/workbench.py",
+          "function": "Workbench._present",
+          "line": 467,
+          "end_line": 473
+        }
+      ],
+      "observation": "After signed semantic revocation, GET /api/cases/{id} correctly changes amount to null, stage and semantic status to REVIEW_REQUIRED, and retains recorded_amount. However, the same current object retains service_estimate=12.51, affected_fee_cents=10004, rate_units=12500000 and a current trace asserting modeled USD 12.51.",
+      "impact": "Current API consumers and the Decision trace UI can still expose a monetary conclusion after its semantic authority is revoked. Existing dashboard amount suppression and dispatch blocking work; this is a remaining current-projection leak.",
+      "historical_distinction": "The probe confirms immutable case_versions are byte-equivalent before and after. recorded_amount and archived versions may retain their amounts; the unqualified current service_estimate and trace need removal or explicit archival separation.",
+      "correction": "Apply the monetary scrub used by unresolved_semantics to the current case projection and replace the current trace/status with the reason for review. Preserve historical snapshots, receipts and recorded values without rewriting them.",
+      "tests": [
+        "test_current_case_removes_revoked_semantic_monetary_intermediates"
+      ],
+      "evidence": [
+        "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/revoked-case-observed.json"
+      ]
+    },
+    {
+      "id": "F61-3",
+      "priority": "P2",
+      "release_blocking": true,
+      "title": "Separate stale recorded test results from current checks",
+      "source": [
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/vendor_registry.py",
+          "function": "_capability",
+          "line": 165,
+          "end_line": 172
+        },
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/vendor_registry.py",
+          "function": "_view",
+          "line": 206,
+          "end_line": 218
+        }
+      ],
+      "observation": "Simulating a semantic dependency digest mismatch makes the current vendor response REVIEW_REQUIRED with active_version null, but its current checks still report actual.outcome=ELIGIBLE, actual.amount=12.51 and passed=true. These checks are not moved to a recorded/stale field.",
+      "impact": "The current vendor projection contradicts ADR61 containment of test actuals after meaning is stale. Actions remain blocked; the defect concerns stale monetary output and displayed validation status, not activation bypass.",
+      "qualification": "Dependency mismatch was injected with an in-process monkeypatch to vendor_bindings.dependency; no source file, immutable artifact or stored review was modified. This exercises the same current-context refusal path used when a pinned semantic dependency changes.",
+      "correction": "Retain historic results explicitly as recorded checks, and suppress or invalidate current actual monetary values and current passed status when semantic authority is unavailable.",
+      "tests": [
+        "test_current_vendor_stale_semantics_removes_test_actual_money"
+      ],
+      "evidence": [
+        "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/stale-vendor-observed.json"
+      ]
+    }
+  ],
+  "validation": {
+    "public_focused": {
+      "result": "165 passed, 1 warning in 12.97s",
+      "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/public-focused.log",
+      "files": [
+        "tests/test_vendor_semantic_bindings.py",
+        "tests/test_vendor_binding_integration.py",
+        "tests/test_vendor_service_month.py",
+        "tests/test_vendor_resource_scoped.py",
+        "tests/test_vendor_economic_identity.py",
+        "tests/test_correspondence_service.py",
+        "tests/test_correspondence_filing_refs.py"
+      ]
+    },
+    "independent_regressions": {
+      "result": "4 failed, 1 warning in 0.67s; failures preserved without relaxing assertions",
+      "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/probes-run3.log",
+      "source": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/test_containment_review.py",
+      "reproduce_command": "cd /Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4 && PYTHONPATH=\"$PWD:$PWD/tests\" /Users/ronoktanvir/.local/bin/uv run --locked pytest -q /Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/test_containment_review.py --basetemp=/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/pytest-temp-reproduce"
+    },
+    "earlier_attempts": [
+      {
+        "result": "uv unavailable on PATH; no tests ran",
+        "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/probes.log"
+      },
+      {
+        "result": "2 projection regressions failed, 1 warning in 0.99s",
+        "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic61-financial-review/probes-run2.log"
+      }
+    ],
+    "warning": "Existing Starlette TestClient httpx deprecation warning."
+  },
+  "verified_boundaries": [
+    "Absent/revoked direct-evaluator bindings remove amount and monetary intermediates in the existing public controls.",
+    "Opaque label/raw-literal union matching is removed; exact role-specific reviewed representations remain required.",
+    "Unknown fee categories with explicit exclusions do not become included through non-match.",
+    "Revocation blocks pending claims and current dashboard estimated rollup while preserving archived evidence and receipts in existing integration controls.",
+    "Economic obligation and reservation identity survive re-review; review versions can change without minting another obligation.",
+    "Examined public fixture changes explicitly add named synthetic review; changed draft-only preview assertions correctly require null money and a forbidden semantic-review request. No monetary/authority assertion weakening was observed in those reviewed diffs."
+  ],
+  "not_bugs_or_not_claimed": [
+    "Typed wire definition references are explicitly deferred by ADR61; their absence is missing functionality rather than an unreported implementation failure.",
+    "Human source-meaning judgment remains a documented boundary. This review does not claim to validate arbitrary natural-language interpretation or dishonest noncontradictory attestations.",
+    "Conservative refusals for unsupported filing semantics are not false positive financial bugs.",
+    "No production readiness, live vendor entitlement or native Ramp delivery is established by these public synthetic tests."
+  ],
+  "root_source_modified": false
+}

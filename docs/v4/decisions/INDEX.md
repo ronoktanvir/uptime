@@ -85,5 +85,11 @@ The earlier table preserves its inspected-source status. The following decisions
 - [55 — Onboarding operator consistency and public diagnostics](ADR-0055-onboarding-operator-consistency.md)
 - [56 — Bounded vendor-response coverage](ADR-0056-bounded-vendor-response-coverage.md)
 - [57 — Bind the visible Ramp demo to its own installation](ADR-0057-native-demo-installation-identity.md)
+- [58 — Bounded source-label whitespace equivalence](ADR-0058-bounded-source-label-whitespace.md)
+- [60 — Source-locked interpretation and independent authority](../OPUS60-INTERPRETATION-RECOMMENDATION.md)
+- [61 — Explicit source meaning before monetary evaluation](ADR-0061-source-semantic-bindings.md)
+- [62 — Public model transport, measured refusals and limitations](../DECISION62-PUBLIC-TRANSPORT.md)
+- [64 — A coherent financial walkthrough with ordinary product views](ADR-0064-clean-walkthrough.md)
+- [67 — Current financial projections and contradictory source meanings](ADR-0067-current-semantic-containment.md)
 
 Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.

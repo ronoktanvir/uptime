@@ -1,0 +1,16 @@
+[
+  {
+    "workspace": "workbench-sandbox.sqlite",
+    "stored_reviews": 0,
+    "contradictions": 0,
+    "database_file_unchanged": true,
+    "read_only": true
+  },
+  {
+    "workspace": "workbench-demo-native.sqlite",
+    "stored_reviews": 0,
+    "contradictions": 0,
+    "database_file_unchanged": true,
+    "read_only": true
+  }
+]
