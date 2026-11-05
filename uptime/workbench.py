@@ -398,6 +398,9 @@ class Workbench:
 
     def _settlement_plan(self, principal, case):
         """Compute both the reviewer-visible commitment and exact journal input from the same scoped records."""
+        configured=getattr(self,'settlement_provider',None)
+        if configured is not None and not configured.allows_case(case['id'],case['scope']):
+            return None
         records = case["reconciliations"]
         if not records:
             award = self._award_record(case)
@@ -407,7 +410,7 @@ class Workbench:
                       "award_id":award["id"], "source":Source.REPLAY.value}
             provider=getattr(self,'settlement_provider',None)
             if provider is not None:
-                credit=provider.credit(principal.tenant,award)
+                credit=provider.credit(principal.tenant,award,case_id=case['id'])
             plan = {"award":award, "credits":[credit]}
             amount = usd_cents(award["amount"])
             target = dict(action="record-credit", contract_version=award["contract_version"], award_id=award["id"],
@@ -424,7 +427,7 @@ class Workbench:
                         effective_date=max(record["effective_date"],bill["effective_date"]))
             provider=getattr(self,'settlement_provider',None)
             if provider is not None:
-                plan=provider.application(principal.tenant,plan)
+                plan=provider.application(principal.tenant,plan,case_id=case['id'])
             target = dict(action="apply-balance", contract_version=record["scope"]["contract_version"],
                           award_id=record["award_id"], credit_id=plan["credit_id"], bill_id=bill["id"],
                           journal_sequence=record["as_of_sequence"])
@@ -436,6 +439,9 @@ class Workbench:
         return decision, plan
 
     def _settle_inbox(self, principal, case, action):
+        configured=getattr(self,'settlement_provider',None)
+        if configured is not None and not configured.allows_case(case['id'],case['scope']):
+            raise PermissionError('The configured settlement destination does not authorize this claim.')
         if action not in {a["id"] for a in case["actions"]}:
             # An exact completed action may be retried, but never create another record.
             if action=="record-credit" and case.get("reconciliations"):
@@ -450,7 +456,7 @@ class Workbench:
         def verify(db):
             check_credit_decision(db, principal, decision)
         provider=getattr(self,'settlement_provider',None)
-        confirm=(lambda:provider.confirm(principal.tenant,action,plan)) if provider is not None else None
+        confirm=(lambda:provider.confirm(principal.tenant,action,plan,case_id=case['id'])) if provider is not None else None
         if action == "record-credit":
             self.allocations.ingest(principal.tenant, case["id"], **plan, check_authority=verify,confirm=confirm)
         else:
@@ -520,6 +526,9 @@ class Workbench:
     def act(self, principal, case_id, action):
         with self.mutex:
             self.check_write(principal)
+            provider=getattr(self,'settlement_provider',None)
+            if provider is not None and action in SETTLEMENT_ACTIONS and case_id!=provider.claim_id:
+                raise PermissionError('The configured settlement destination does not authorize this case.')
             inbox=self._inbox_case(principal, case_id)
             if inbox is not None:
                 if action in SETTLEMENT_ACTIONS:
