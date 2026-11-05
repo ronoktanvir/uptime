@@ -2,7 +2,7 @@
 from collections import Counter
 from contextlib import contextmanager
 from copy import deepcopy
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from hashlib import sha256
 import re
 
@@ -228,7 +228,7 @@ def validate_material_coverage(quote, values):
         raise ValueError('Unimplemented credit expiry or waiver.')
     if re.search(r'\b(?:round(?:ed|ing)?|half.cent)\b', quote, re.I) and not {'rounding','interval_measurement'} & values.keys():
         raise ValueError('Rounding instruction requires a typed calculation.')
-    if re.search(r'\b(?:claims?|requests?|fil(?:e|ing))\b[^.;]{0,100}\b(?:calendar days?|billing cycles?)\b', quote, re.I) and 'filing' not in values:
+    if re.search(r'\b(?:claims?|requests?|fil(?:e|ing))\b[^.;]{0,100}\b(?:calendar days?|billing cycles?)\b', quote, re.I) and not {'filing','fixed_filing'} & values.keys():
         raise ValueError('Filing period lacks a source-bound deadline operator.')
     if _PERCENT_TOKEN.search(quote) and not {'tiers', 'boundary', 'interval_measurement'} & values.keys():
         raise ValueError('Percentage condition has no applicable threshold or tier.')
@@ -284,7 +284,8 @@ def _compile_resource(document, clauses, issues):
     lists = {'symptoms','provider_causes','exclusions','fee_exclusions','request_fields'}
     all_text = document.text.casefold()
     columns = None
-    for index, (row, (start,end,quote)) in enumerate(zip(clauses,spans,strict=True),1):
+    for index, (row, (start,end,original)) in enumerate(zip(clauses,spans,strict=True),1):
+        quote = ' '.join(original.split())
         with _diagnostic(issues, manifest, index):
             values = row['value']
             header=_tier_columns(quote)
@@ -308,12 +309,12 @@ def _compile_resource(document, clauses, issues):
                          r'(?:as (?:defined|set forth|described)|governed) (?:in|by) (?:section|the .*?agreement|our .*?terms)',quote,re.I):
                 raise ValueError(f'Unresolved governing reference in resource clause {index}.')
             if (re.search(r'\b(?:excluded|excludes?|excluding|unless|except(?:ions?)?)\b',quote,re.I)
-                    and not {'exclusions','fee_exclusions','account_conditions','maintenance','subscription','telemetry','causal_report','fee_settlement'} & values.keys()):
+                    and not {'exclusions','fee_exclusions','account_conditions','maintenance','subscription','telemetry','causal_report','fee_settlement','denial_policy'} & values.keys()):
                 raise ValueError(f'Unmapped exclusion or condition in clause {index}.')
             if re.search(r'\b(?:capped at|up to|aggregate cap|total cap|at our discretion|sole discretion)\b',quote,re.I):
                 raise ValueError(f'Unsupported discretionary amount or cap in clause {index}.')
-            citation = {'id':index,'start':start,'end':end,'quote':quote,'field':'resource_terms','propositions':values,
-                        'block_sha256':sha256(quote.encode()).hexdigest()}
+            citation = {'id':index,'start':start,'end':end,'quote':original,'field':'resource_terms','propositions':values,
+                        'block_sha256':sha256(original.encode()).hexdigest()}
             manifest['citations'].append(citation)
             lower = quote.casefold()
             for key,value in values.items():
@@ -464,12 +465,32 @@ def _compile_resource(document, clauses, issues):
                         validate_filing(value,quote)
                     if key=='cycle_calendar_month' and (value is not True or not re.search(r'billing cycle',lower) or 'calendar month' not in lower):
                         raise ValueError('Unsupported inferred billing calendar.')
-                    if key=='remedy' and (value!='future_noncash_credit' or 'credit' not in lower
+                    aggregate_noncash = (key == 'remedy' and value == 'noncash_service_credit' and 'credit' in lower
+                                         and re.search(r'non.?cash|not (?:a )?cash|no cash', lower))
+                    if key=='remedy' and not aggregate_noncash and (value!='future_noncash_credit' or 'credit' not in lower
                             or not re.search(r'\b(?:future|next|subsequent|following)\b',lower)
                             or not re.search(r'invoice|bill|service (?:fee|charge|credit)',lower)
                             or re.search(r'(?:option|elect|choose|exchange|redeem).{0,35}\bcash\b',lower)):
                         raise ValueError('Unconfirmed future credit remedy.')
                     manifest[key]=value
+    if manifest.get('aggregate_monitor'):
+        from .vendor_service_month import utc
+        needed = {'fixed_period','fixed_filing','service_fee','scope'}
+        if needed - manifest.keys():
+            raise ValueError('Aggregate service-month profile requires fixed period, filing clock, scope and paid fee.')
+        if any(key in manifest for key in ('prior_credit','maintenance','subscription','telemetry','fee_adjustment','supplement',
+                                           'cure_clock','fee_settlement','account_conditions','original_receipt','precedence')):
+            raise ValueError('Aggregate service profile cannot silently accept extra resource conditions.')
+        start, end = (utc(manifest['fixed_period'][key]) for key in ('start','end'))
+        window = [start.date().isoformat(), (end.date() - timedelta(days=1)).isoformat()]
+        if manifest.get('effective', window) != window or utc(manifest['fixed_filing']['at']) < end:
+            raise ValueError('Inconsistent fixed period or filing dates.')
+        if ('fixed_filing_days' in manifest and end + timedelta(days=manifest['fixed_filing_days']) != utc(manifest['fixed_filing']['at'])):
+            raise ValueError('Cited relative filing interval disagrees with the fixed UTC deadline.')
+        if manifest.get('fixed_formula_minutes', (end-start)//timedelta(minutes=1)) != (end-start)//timedelta(minutes=1):
+            raise ValueError('Fixed availability denominator differs from the actual calendar-month duration.')
+        manifest.update(effective=window, period='service_utc_calendar_month')
+        manifest.setdefault('evidence', ['account_records','itemized_fees'])
     dual = manifest.get('telemetry')
     if dual:
         if (dual.get('join') != 'intersect_customer_provider' or not dual.get('provider_status') or not dual.get('customer_status')):
@@ -479,6 +500,8 @@ def _compile_resource(document, clauses, issues):
     if manifest.get('cure_clock') and manifest.get('supplement'):
         raise ValueError('Contradictory supplement deadlines.')
     required={'vendor','effective','scope','period','symptoms','provider_causes','fee_basis','filing','remedy','evidence'}
+    if manifest.get('aggregate_monitor'):
+        required -= {'symptoms','provider_causes','fee_basis','filing'}
     if required-set(manifest) or not manifest['tiers']:
         raise ValueError('Incomplete resource-month source propositions: '+', '.join(sorted(required-set(manifest))))
     if not re.search(r'below|less than|lower than|<',all_text):
@@ -490,7 +513,7 @@ def _compile_resource(document, clauses, issues):
     manifest.setdefault('agreement',None)
     manifest.setdefault('exclusions',[])
     manifest.setdefault('fee_exclusions',[])
-    if {norm(v) for v in manifest['provider_causes']} & {norm(v) for v in manifest['exclusions']}:
+    if {norm(v) for v in manifest.get('provider_causes',[])} & {norm(v) for v in manifest['exclusions']}:
         raise ValueError('Conflicting included and excluded responsibility labels.')
     if manifest.get('maintenance') and any('maintenance' in norm(label) for label in manifest['exclusions']):
         raise ValueError('A conditional maintenance exclusion cannot also subtract maintenance unconditionally.')

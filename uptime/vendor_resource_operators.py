@@ -1,7 +1,7 @@
 """Source-grounded extensions for resource-month terms. This module never executes proposals."""
 import re
 
-from . import vendor_resource_predicates as scoped
+from . import vendor_resource_predicates as scoped, vendor_service_month as service
 
 
 PROMPT = """
@@ -27,9 +27,9 @@ order and map each positive band, its exclusive upper bound, any explicit inclus
 The filing endpoint is inclusive for 'by' or an explicitly included cutoff. A printed UTC time must be preserved.
 A clause requiring a timely initial filing AND allowing timely supplementation may contain filing, supplement,
 evidence and request_fields together. Always mark genuinely unresolved other conditions unsupported.
-""" + scoped.PROMPT
+""" + scoped.PROMPT + service.PROMPT
 
-OPERATORS = {'maintenance', 'interval_measurement', 'fee_adjustment', 'supplement', 'prior_credit'} | scoped.FIELDS
+OPERATORS = {'maintenance', 'interval_measurement', 'fee_adjustment', 'supplement', 'prior_credit'} | scoped.FIELDS | service.FIELDS
 
 _MEASURES = {
     'union_overlaps': (r'overlap|concurrent|intersect|union|simultaneous|double.count|(?:count|measure)[^.;]{0,30}once',
@@ -63,6 +63,9 @@ def _availability_formula(quote):
     forms = [r'100\s*\*\s*\(\s*1\s*-\s*' + _LOST + r'\s*/\s*' + _TOTAL + r'\s*\)',
              r'\(\s*1\s*-\s*' + _LOST + r'\s*/\s*' + _TOTAL + r'\s*\)\s*\*\s*100',
              r'100\s*\*\s*\(\s*' + _TOTAL + r'\s*-\s*' + _LOST + r'\s*\)\s*/\s*' + _TOTAL]
+    fixed = re.search(r'100\s*\*\s*\(\s*([1-9][\d,]*)\s*-\s*unavailable minutes?\s*\)\s*/\s*([1-9][\d,]*)' + end, expression)
+    if fixed and fixed[1].replace(',', '') == fixed[2].replace(',', '') and _RATIO_LIKE.search(quote):
+        return 'fixed_minutes:' + fixed[1].replace(',', '')
     if not _RATIO_LIKE.search(quote):
         return False
     # Natural-language multiplication with no grouping has a second mathematical reading.
@@ -96,6 +99,9 @@ def interval_options(quote):
 
 def apply_operator(manifest, key, value, quote):
     """Only compile operators whose controlling predicates are evidenced by this source block."""
+    if key in service.FIELDS:
+        service.validate(manifest, key, value, quote)
+        return
     if key in scoped.FIELDS:
         scoped.validate(manifest, key, value, quote)
         return
@@ -103,7 +109,10 @@ def apply_operator(manifest, key, value, quote):
         options = interval_options(quote)
         if not isinstance(value, list) or not value or any(not isinstance(item, str) or item not in options for item in value):
             raise ValueError('Uncited interval measurement proposition.')
-        if 'availability_ratio' in value and _availability_formula(quote) == 'review_grouping':
+        formula = _availability_formula(quote)
+        if 'availability_ratio' in value and formula and formula.startswith('fixed_minutes:'):
+            manifest['fixed_formula_minutes'] = int(formula.split(':')[1])
+        if 'availability_ratio' in value and formula == 'review_grouping':
             manifest['formula_grouping_review'] = {
                 'source_block': manifest['citations'][-1]['id'],
                 'selected': '100 * (1 - covered_duration / month_duration)',
