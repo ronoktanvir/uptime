@@ -471,11 +471,16 @@ def compact_case(row):
             "response_sha256": digest(row)}
 
 
-def promote_and_exercise(transport, prefix, state, intake):
+def promote_and_exercise(transport, prefix, state, intake, *, semantic_review=None):
     """Independently authored public controls; normal actions and case readback."""
     from _blind_acceptance_mapping import promotion_scenarios
     if transport.post(prefix + "/evaluate", {"facts": {}}, "shadow_dispatch_refused") is not None:
         raise BoundaryError("INACTIVE_DISPATCH_ACCEPTED")
+    if semantic_review is not None:
+        state = transport.post(prefix + "/semantic-bindings", dict(revision=state["revision"],
+            review=semantic_review(state, intake)), "explicit_public_semantic_review")
+        if not state:
+            raise BoundaryError("EXPLICIT_SEMANTIC_REVIEW_REFUSED")
     scenarios = promotion_scenarios(intake["document"]["text"].encode(), state["manifest"], intake["overlay"])
     state = transport.post(prefix + "/tests", dict(revision=state["revision"], tests=scenarios), "independent_shadow_tests")
     if not state or not all(row["passed"] for row in state.get("checks", [])):
@@ -664,7 +669,7 @@ def exercise_general(source, account, messages):
     return {"required_count": len(messages), "delivered_count": sum(r.get("delivered", False) for r in results), "checks": results}
 
 
-def independent_inbox_controls(public):
+def independent_inbox_controls(public, *, semantic_review=None):
     """Three expressly scripted worlds, separate from every private heldout case."""
     from _blind_acceptance_mapping import independent_reports, promotion_scenarios, public_identity
     from _blind_acceptance_expectations import term_value
@@ -698,7 +703,7 @@ def independent_inbox_controls(public):
                 state = transport.post(prefix+"/candidates", intake, "independent_inbox_intake")
                 if not state or state.get("state") != "SHADOW":
                     raise BoundaryError("INDEPENDENT_INBOX_INTAKE_FAILED")
-                state, _ = promote_and_exercise(transport, prefix, state, intake)
+                state, _ = promote_and_exercise(transport, prefix, state, intake, semantic_review=semantic_review)
                 path = "/api/correspondence/claims/inbox-independent-control"
                 row = transport.post("/api/correspondence/claims", {"claim_id":"inbox-independent-control", "scope":scope}, "independent_inbox_create")
                 reports = independent_reports(facts, state["manifest"], scope)

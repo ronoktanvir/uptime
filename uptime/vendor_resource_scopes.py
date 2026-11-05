@@ -62,9 +62,13 @@ def _clocked(report, facts, overlay, region, start, end, positive_role, nonquali
         if right <= left:
             raise Gap('Invalid authoritative monitor interval.')
         status = required_ref(row.get('status'))
-        if bindings.targets(positive_role,status):
+        positive = bindings.targets(positive_role,status)
+        nonqualifying = bindings.targets(nonqualifying_role,status)
+        if positive and nonqualifying:
+            raise Gap('Reviewed monitor meanings conflict for the same scoped status.')
+        if positive:
             target = included
-        elif bindings.targets(nonqualifying_role,status):
+        elif nonqualifying:
             target = excluded
         else:
             raise Gap('Observed status is absent from the source-defined monitor vocabulary.')

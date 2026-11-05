@@ -275,7 +275,7 @@ def resource_inputs(resource):
 
 
 def install_resource(env, folder, vendor, *, resource="station-21", extra_terms=(), overlay_override=None,
-                     facts_override=None, expected="12.51"):
+                     facts_override=None, expected="12.51", semantic_review=None):
     rows = deepcopy(ROWS) + list(extra_terms)
     text = "\n".join(q for q, _ in rows)
     digest = sha256(text.encode()).hexdigest()
@@ -293,6 +293,9 @@ def install_resource(env, folder, vendor, *, resource="station-21", extra_terms=
     state = env.post(url + "/candidates", dict(document=dict(name="Synthetic review terms",
         uri="urn:synthetic:independent-review", classification="synthetic_public", text=text), overlay=overlay))
     assert state["state"] == "SHADOW", state
+    if semantic_review is not None:
+        state = env.post(url + "/semantic-bindings", dict(revision=state["revision"],
+                         review=semantic_review(state, text)))
     negative = deepcopy(facts) | {"intervals": []}
     if "provider_telemetry" in negative:
         negative["provider_telemetry"].update(records=[], no_events_verified=True)

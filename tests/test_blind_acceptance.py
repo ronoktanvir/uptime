@@ -412,7 +412,20 @@ def test_actual_public_artifact_signed_positive_negative_cure_and_late_routes(mo
     monkeypatch.setenv("UPTIME_PUBLIC_EXTRACTIONS", str(root / "docs/v4/evidence/public-extractions"))
     monkeypatch.setenv("UPTIME_MODEL_PROPOSITIONS", "1")
     monkeypatch.setattr(runner, "TRANSPORT_MODE", "testclient")
-    results = runner.independent_inbox_controls(document["text"].encode())
+    from test_vendor_semantic_bindings import review_submission
+    from uptime.vendor_bindings import definitions
+    def public_review(state, intake):
+        review = review_submission(state['manifest'], state['overlay'], intake['document']['text'])
+        fee_definitions = {d['id'] for d in definitions(state['manifest']) if d['role'] == 'fee_inclusions'}
+        # The public control's separately authored invoice uses this recurring
+        # category. Review it against the source fee clause, never expected money.
+        for binding in review['bindings']:
+            if binding['definition_id'] in fee_definitions:
+                binding['literals'] = ['monthly_recurring']
+        return review
+    # This explicitly authored public fixture review does not change private
+    # corpus execution or create authority from expected monetary answers.
+    results = runner.independent_inbox_controls(document["text"].encode(), semantic_review=public_review)
     assert len(results) == 3
     assert all(r["passed"] and r["rollback_verified"] for r in results), [r["fail_codes"] for r in results]
     positive, negative, late = results

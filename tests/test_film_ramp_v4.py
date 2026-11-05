@@ -58,7 +58,16 @@ def test_public_general_draft_over_signed_http(tmp_path, monkeypatch):
         preview = post('/shadow-preview', dict(revision=state['revision'], facts=facts))
         assert preview['classification'] == 'LOCAL_DRAFT_PREVIEW'
         assert preview['dispatch_authorized'] is False
-        assert preview['evaluation']['amount'] == '12.00'
+        assert preview['evaluation']['amount'] is None
+        assert preview['evaluation']['outcome'] == 'INSUFFICIENT_EVIDENCE'
+        assert preview['evaluation']['semantic_binding_status'] == 'REVIEW_REQUIRED'
+        # Draft credentials cannot mint the authority now required for money.
+        from test_vendor_semantic_bindings import review_submission
+        from httpx import HTTPStatusError
+        with pytest.raises(HTTPStatusError) as denied:
+            reviewer.post(prefix+'/semantic-bindings', dict(revision=state['revision'],
+                review=review_submission(state['manifest'], state['overlay'], intake['document']['text'])))
+        assert denied.value.response.status_code == 403
         for field in ('reviewer', 'active_version', 'interpretation_reviewer'):
             altered = copy.deepcopy(state)
             altered[field] = 'fabricated-approval'

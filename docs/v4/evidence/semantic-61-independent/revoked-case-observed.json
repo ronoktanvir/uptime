@@ -1,0 +1,16 @@
+{
+  "affected_fee_cents": 10004,
+  "amount": null,
+  "prior_issued_cents": null,
+  "rate_units": 12500000,
+  "recorded_amount": "12.51",
+  "remaining_estimate": null,
+  "semantic_binding_status": "REVIEW_REQUIRED",
+  "service_estimate": "12.51",
+  "stage": "REVIEW_REQUIRED",
+  "trace": [
+    "25980000000/2592000000000 UTC microseconds of qualifying downtime after overlap union and exclusion subtraction.",
+    "10004 eligible service cents, rate 12500000/1000000%, modeled USD 12.51."
+  ],
+  "archived_snapshots_unchanged": true
+}

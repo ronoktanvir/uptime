@@ -111,7 +111,10 @@ def draft_boundaries(state, extraction):
     require(state['state'] == 'SHADOW' and state['active_version'] is None and state['reviewer'] is None
             and state.get('interpretation_reviewer') is None, 'Draft acquired approval or activation')
     require(state['extraction'] == extraction, 'Draft extraction provenance mismatch')
-    require(state['checks'] and all(row['passed'] for row in state['checks']), 'Editorial controls failed')
+    require(state.get('semantic_binding_status') == 'REVIEW_REQUIRED', 'Draft acquired source-meaning authority')
+    require(state['checks'] and not all(row['passed'] for row in state['checks'])
+            and all(row['actual'].get('amount') is None for row in state['checks'] if 'actual' in row),
+            'Unreviewed draft exposed a monetary result')
 
 
 class RampDirector(Director):
@@ -230,7 +233,8 @@ class RampDirector(Director):
         draft_boundaries(state, extraction)
         preview = post(prefix+'/shadow-preview', dict(revision=state['revision'], facts=facts))
         require(preview['classification'] == 'LOCAL_DRAFT_PREVIEW' and preview['dispatch_authorized'] is False
-                and preview['evaluation']['amount'] == '12.00', 'Draft preview boundary changed')
+                and preview['evaluation']['amount'] is None
+                and preview['evaluation'].get('semantic_binding_status') == 'REVIEW_REQUIRED', 'Draft preview boundary changed')
         self.view('vendors')
         self.expand('Rules, overlay, tests and reviewer versions')
         self.page.get_by_text(extraction['session'], exact=False).first.wait_for()
