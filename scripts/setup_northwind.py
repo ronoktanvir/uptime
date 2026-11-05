@@ -15,7 +15,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 
-from fixtures.northwind.loader import load_package
+from fixtures.northwind.loader import load_package,build_fee_registry
 from uptime.auth import SCRIPT
 from uptime.auth_client import ReviewerClient,service_headers
 from uptime.contracts import fingerprint
@@ -82,7 +82,7 @@ def open_workspace(directory):
     config=dict(package=package,installation='northwind-cloud',onboarding_installation='calyxquay',
         claim_month='2026-01',bill_month='2026-03',claim_ids={m:'inbox-northwind-'+m for m in scopes},scopes=scopes,
         senders=senders,clock_start='2026-03-01T12:00:00Z',clock_steps={},
-        correspondence=package['correspondence'],provider_path=directory/'local-ledger.db')
+        correspondence=package['correspondence'],provider_path=directory/'local-ledger.db',governing_fees=build_fee_registry(package))
     app=create_app(directory/'workspace.db',mode='replay',rehearsal=True,approvals_enabled=True,
         rehearsal_secret=private['rehearsal_secret'],service_credentials=registry,origin=private['origin'],workflow_config=config)
     return app,private,events
@@ -109,8 +109,23 @@ def seed(client,app,private,events):
             raw=event.model_dump_json(exclude_unset=True).encode()
             headers=service_headers(instance=app.state.auth.instance,origin=private['origin'],subject=sender.subject,key=sender,path=path,body=raw)
             checked(client.post(path,content=raw,headers=headers))
+    state=seed_northwind(post,state,package)
     seed_calyx(post)
     return actor,state
+
+
+def seed_northwind(post,state,package):
+    base='/api/vendors/northwind-cloud'
+    # Authored controls, independently declared from the engine output. These
+    # are scripted tests, never a claim of independent commercial authority.
+    expectations={'2026-01':dict(outcome='ELIGIBLE',amount='2400.00'),
+                  '2026-02':dict(outcome='INELIGIBLE'),'2026-03':dict(outcome='INSUFFICIENT_EVIDENCE')}
+    controls=[dict(name='Source-backed '+row['month'],facts=row['facts'],expected=expectations[row['month']]) for row in package['months']]
+    state=post(base+'/tests',dict(revision=state['revision'],tests=controls))
+    if any(not row['passed'] for row in state['checks']):raise ValueError('Authored Northwind source controls failed.')
+    state=catalog_action(post,base,catalog_action(post,base,state,'approve'),'activate')
+    for row in package['months']:post(base+'/evaluate',dict(facts=row['facts']))
+    return state
 
 
 def scripted_literal_review(requirements):

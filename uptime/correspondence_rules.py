@@ -29,6 +29,8 @@ class ActiveRemedy:
     measurement: dict | None = None
     procedure: dict | None = None
     contract_source_sha256: str | None = None
+    governing_fee_digest: str | None = None
+    governing_pricing_version: str | None = None
 
 
 Resolver = Callable[[str, Scope, tuple[dict, ...], datetime], ActiveRemedy | None]
@@ -46,6 +48,8 @@ class Assessment:
     measurement: dict | None = None
     procedure: dict | None = None
     contract_source_sha256: str | None = None
+    governing_fee_digest: str | None = None
+    governing_pricing_version: str | None = None
 
 
 def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = None):
@@ -69,8 +73,8 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
             return stop(Outcome.UNSUPPORTED, "No ACTIVE evaluation and remedy terms match this tenant, scope and evidence.")
         if active.evaluation.outcome == Outcome.ELIGIBLE and active.cutoff is not None and (filed or at) >= active.cutoff:
             return Assessment(EvaluationResult(Outcome.INELIGIBLE, active.evaluation.clauses, ("Verified filing window closed.",)),
-                              active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement, active.procedure, active.contract_source_sha256)
-        return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement, active.procedure, active.contract_source_sha256)
+                              active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement, active.procedure, active.contract_source_sha256, active.governing_fee_digest, active.governing_pricing_version)
+        return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement, active.procedure, active.contract_source_sha256, active.governing_fee_digest, active.governing_pricing_version)
 
     month = datetime.strptime(scope.month, "%Y-%m").date()
     first, following = twilio.calendar_bounds(month, "UTC")

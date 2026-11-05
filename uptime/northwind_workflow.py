@@ -239,7 +239,7 @@ class WorkspaceWorkflow:
                      and c.get('account')==self.package['overlay']['account']
                      and c.get('agreement')==self.package['overlay']['agreement']
                      and any(isinstance(e.get('detail'),dict) and e['detail'].get('month')==month for e in c.get('evidence',[]))]
-            current=matches[-1] if matches else None
+            current=self.bench.case(p,matches[-1]['id']) if matches else None
             usage=row['usage']; known=instant(usage['observed_at'])<=self.now()
             invoice=row['invoice']; line=invoice.lines[0]
             result.append(dict(month=month,outcome=current['outcome'] if current and known else 'INSUFFICIENT_EVIDENCE',
@@ -285,7 +285,11 @@ class WorkspaceWorkflow:
                 amount=price_amount,currency=invoice.currency,reason='; '.join(price.evaluation.trace) if invoice_known else 'The invoice is not yet known.',
                 citations=self._citations([dict(document=c.document,section=c.section,uri=c.uri) for c in price.evaluation.clauses])),
             claim=dict(id=self.claim_id,state=claim['stage'] if claim else 'NOT_OPENED',amount=claim['amount'] if claim else None,
-                       currency=invoice.currency,receipt_id=claim['submissions'][-1]['id'] if claim and claim['submissions'] else None),
+                       currency=invoice.currency,receipt_id=claim['submissions'][-1]['id'] if claim and claim['submissions'] else None,
+                       eligibility_version=claim['contract_version'] if claim else None,
+                       sla_source_sha256=claim['contract_source_sha256'] if claim else None,
+                       governing_pricing_version=claim.get('governing_pricing_version') if claim else None,
+                       governing_fee_digest=claim.get('governing_fee_digest') if claim else None),
             connection=dict(destination=self.provider.destination,status='CONNECTED',receipt_status='VERIFIED_LOCAL_READBACK' if posted else 'NOT_POSTED'),
             ledger=dict(destination=self.provider.destination,estimated=claim['amount'] if claim else None,
                         claimed=ledger.get('claimed','0.00'),awarded=ledger.get('awarded','0.00'),posted=ledger.get('posted','0.00'),
@@ -340,7 +344,7 @@ class WorkspaceWorkflow:
         return dict(id=identity,operation=operation,label=label,group=group,pin=pin)
 
     def _offers(self,p,claim):
-        if p.role!='reviewer' or p.subject!=SCRIPT or self.bench.setting(p)['mode']=='OBSERVE':return []
+        if not self.auth.approvals_enabled or p.role!='reviewer' or p.subject!=SCRIPT or self.bench.setting(p)['mode']=='OBSERVE':return []
         # An interrupted exact operation remains the only offered operation.
         with database(self.bench.path) as db:
             pending=db.execute("SELECT id,operation FROM workspace_workflow_intent WHERE status='EXECUTING' ORDER BY rowid LIMIT 1").fetchone()
@@ -438,6 +442,7 @@ class WorkspaceWorkflow:
             if at<self.now():raise ValueError('Workflow event time cannot move backwards.')
             with database(self.bench.path) as db,db:
                 db.execute('UPDATE workspace_workflow SET event_clock=? WHERE id=1',(at.isoformat(),))
+            if self.failure_point=='after-clock':raise RuntimeError('Injected workflow interruption after event clock advance.')
             if operation.startswith('receive-'):
                 await self.deliver(self.claim_id,Delivery(**effect['event']))
             else:

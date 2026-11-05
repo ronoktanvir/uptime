@@ -156,7 +156,9 @@ def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=Fal
 
     if find_spec("uptime.v4_routes") is not None:
         from .v4_routes import register_v4_routes
-        register_v4_routes(app, bench, auth)
+        register_v4_routes(app, bench, auth,
+            governing_fees=workflow_config.get('governing_fees') if workflow_config is not None else None,
+            trusted_now=(lambda:app.state.workflow.now()) if workflow_config is not None else None)
     from .ramp_workspace import register_ramp_workspace
     native_workspace = register_ramp_workspace(app, bench, auth, award_office=award_office)
     if native_config is not None:
