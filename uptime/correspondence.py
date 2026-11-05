@@ -283,6 +283,8 @@ class CorrespondenceDesk:
                 current = self._assess(tenant, scope, state, now)
                 if not current.remedy.startswith("resource-month/"):
                     raise ValueError("Historical filing evidence requires an active, reviewed resource-month agreement.")
+                if body.get("contract_version") is not None and body["contract_version"] != current.version:
+                    raise ValueError("The signed original contract version differs from the governing scoped terms.")
                 original_id = body.get("original_ref") or body["receipt_id"]
                 identity = fingerprint([tenant, scope.model_dump(), original_id])
                 reserve_claim(db, tenant=tenant, vendor=scope.vendor, account=account, agreement_id=current.agreement_id,
@@ -599,7 +601,7 @@ class CorrespondenceDesk:
                         "artifact_ref","artifact_type","body_sha256","linked_ref","ticket_id","response_ref",
                         "original_ref","message_ref","response_kind","delivered_at") if k in body})
             if fact["kind"] in HISTORICAL:
-                item.update({k:body[k] for k in ("receipt_id","original_ref","submitted_to") if k in body})
+                item.update({k:body[k] for k in ("receipt_id","original_ref","submitted_to","contract_version") if k in body})
                 item["filed_at"] = body["received_at"]
             item["available_at"] = fact["known_at"] if "known_at" in fact else fact["received_at"]
             item["issuer"] = fact.get("subject",fact["source"])
@@ -614,7 +616,8 @@ class CorrespondenceDesk:
                 actions = []
         return dict(id=claim_id, title="Claim correspondence · " + scope.invoice, vendor=scope.vendor,
                     mode="LOCAL_SIMULATOR", policy="ASSISTED", tenant=p.tenant, scope=scope.model_dump(), stage=stage,
-                    outcome=outcome, amount=amount, currency=scope.currency, sources=SOURCES + [Source.VENDOR.value],
+                    outcome=outcome, amount=amount, currency=scope.currency, contract_version=current.version or None,
+                    sources=SOURCES + [Source.VENDOR.value],
                     trace=list(evaluation.trace), preflight=dict(outcome=evaluation.outcome, trace=list(evaluation.trace),
                     missing=list(evaluation.missing), clauses=[asdict(c) for c in evaluation.clauses]),
                     clauses=[dict(label=c.document + " " + c.version + " " + c.section, uri=c.uri) for c in evaluation.clauses],
