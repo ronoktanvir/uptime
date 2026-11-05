@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:21:03.666060+00:00",
+  "packet_sha256": "d1c11041dec8198d8986994b62800ddda5e571ec346b4d84a2a3a7e0e99be64c",
+  "prompt_sha256": "2f2b1e27b186fa4b49d64bee77321e31ce29020ab13e6c94e04bc2723376cb13",
+  "status": "REVIEWED",
+  "session": "d6d3356e-68a5-456e-a5ad-68605ff56d1c",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "## Assessment\n\n**Strongest objection: the joins are not time-bound.** Matching on today's ACTIVE installation and active rule version can pair a past outage with the current plan, overlay or rules. A plan upgrade, migration or rule revision after the incident could then grant credit under terms that did not govern that month. The fingerprint check only proves nothing changed during evaluation. It does not prove the right terms were selected.\n\n**Minimal correction:**\n- Resolve the installation, plan and rule version that were effective during each incident interval.\n- Reject intervals that straddle a change.\n- Include those effective-version IDs in the evidence digest and approval fingerprint.\n- Allow a customer overlay only to narrow public rules, never widen them.\n\n**Unsupported claims:**\n- **\"SQLite serializes.\"** This holds only if every write uses `BEGIN IMMEDIATE` on one database. Sending is external, so it cannot share the transaction. It needs a transactional outbox with an idempotency key.\n- **\"Independent signed.\"** The design doesn't say who holds the keys, how they rotate, or how replay is prevented. A signature proves who sent an event, not that it applies to this case.\n- **\"V4\"** and its value are undefined.\n\n**Alternatives:** Rejecting user-supplied digests and the Twilio-only scope is correct. A deferred option is manual review for every claim until the adapters mature.\n\n**Costs:** Effective-dated history storage, plus maintenance per adapter.\n\n**Falsification tests:**\n- Plan change mid-month.\n- Installation deactivated after the incident.\n- Rule revised after the incident.\n- Overlay that widens a public rule.\n- Replayed event under a new ID.\n- Crash between commit and send.\n\n**Human authorization needed:** Rule and overlay approval, and each outbound vendor claim."
+}

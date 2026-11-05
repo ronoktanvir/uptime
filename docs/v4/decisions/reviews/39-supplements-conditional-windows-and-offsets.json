@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:27:36.529720+00:00",
+  "packet_sha256": "c40f11fa7ba5b138af1e6ace6aa4bc466c97a0804da1c631bc81fee71f198a0e",
+  "prompt_sha256": "2db039b8f84d149ad0e361dbb20b85260ac7ec1e229e8ab2396b3b4219ec4923",
+  "status": "REVIEWED",
+  "session": "c256cc9c-328d-456f-ab96-cb49edc4640b",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Source-bound declarative operators plus quarantine is the right choice. LLM adjudication is non-deterministic and unauditable. Ignoring clauses produces silent false positives. Human vendor adapters don't generalize and hide drift.\n\n**Costs:** Interpreter growth, a larger attack and evidence surface, attestation overhead, and slower releases.\n\n**Strongest objection:** Operators fitted to a single synthetic source risk overfitting. \"Generalization\" stays unsupported until held-out, independently authored sources exercise each operator.\n\n**Unsupported claims:**\n- \"Independently authored\" and \"frozen\" need provenance and a hash or timestamp attestation.\n- Private data requirements need an access and audit owner.\n\n**Semantics to fix:**\n- **Prior awards:** Missing prior-award evidence means unknown, so the case is quarantined. Only an attested zero means zero. A Ramp payment is never an award.\n- **Maintenance:** Exempt only the intersection of eligible scope, time window and timely notice. Late or missing notice means no exemption.\n- **Outages:** Union fractional-second intervals per scope before summing, so overlaps are not double-counted.\n- **Charges:** Compute after discount. Invoice fees count only if the clause scope names them. If ambiguous, quarantine.\n- **Clock:** Inclusive UTC deadline. Supplements are accepted at that same instant. Repeat filings and denials don't reset the clock unless the source says so.\n\n**Falsification tests:**\n- Boundary-instant notices and filings.\n- Overlapping and duplicate outages.\n- Fee-scope flips.\n- Negative controls that must stay unclaimable.\n- Mutation tests.\n- Independent freeze-to-output replay.\n\n**Rollback:** Immutable operator and source version hashes, with re-evaluation diffs.\n\n**Human authorization required:** Security and evidence review of the interpreter, plus sign-off before release.\n\n**Keep a case unclaimable when:** Any operand is unknown, the scope is ambiguous, attestation fails, or the operator is unvalidated."
+}

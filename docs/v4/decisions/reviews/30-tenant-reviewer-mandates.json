@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:21:17.341599+00:00",
+  "packet_sha256": "accc971af06debea1dfc62b147e140f249fdbbbd65db70442d3e0d35d7026255",
+  "prompt_sha256": "1f04042ba76b99fed659295753f322eab143dcc07d8fc930245702fb2945efc2",
+  "status": "REVIEWED",
+  "session": "dc8ae071-f1c3-43c6-97ec-d72cd6cd826a",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound direction; the smallest fix is server-side binding of the signer's key to the enrolled subject and scope. Remaining risks sit in enrollment and the legacy path.\n\n**Smallest design:** one tenant per process. A signature covers {tenant, audience, action, subject key ID, resource, account, purpose, estimate hash, nonce, expiry}. The server resolves authority only from the stored enrollment, ignoring any client label or role. Escalation actions (grant, adapter activation, settlement acceptance) need a separate enrolled key.\n\n**Strongest objection:** keeping the \"broad simulated operator\" path preserves exactly the substitution vector you're closing. Gate it by build flag or tenant mode, and refuse it when real enrollments exist.\n\n**Unsupported claims:** that \"independently sourced\" mandates are actually independent (who enrolls them?); that the CLI is trusted; that one DB per tenant prevents cross-tenant replay without audience checks; \"exact immutable estimate\" (where is it hashed?).\n\n**Falsification tests:**\n- Reviewer A's signature replayed as B \u2192 reject.\n- Valid signature with wrong tenant or audience \u2192 reject before any write.\n- Stale or replayed nonce \u2192 reject.\n- Amount at cap+1 \u2192 reject.\n- Estimate mutated after signing \u2192 reject.\n- Missing scope or minimum \u2192 fail closed.\n- Finance key attempting a grant or settlement \u2192 reject.\n- Self-label \"reviewer\" with no enrollment \u2192 reject.\n- Legacy operator path on a real tenant \u2192 reject.\n\n**Human authorization:** key enrollment, scope changes, revocation, and enabling real-customer onboarding should need an out-of-band second person.\n\n**Costs:** modest. Expect key-rotation and revocation tooling as the hidden expense."
+}

@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:21:02.816861+00:00",
+  "packet_sha256": "6b0a4a175d41b4eb7a632641f66f35f04e917682ec87941adfbe132858be1efb",
+  "prompt_sha256": "1cb86bac95e18eb1a870e5344116115b75666698df91705cb46fa7ac142ec9bb",
+  "status": "REVIEWED",
+  "session": "e06c5bbb-284f-446c-9163-983d348de013",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Better than password-HMAC, but it is a plaintext key file with browser signing, not hardware-bound auth.\n\n**Strongest objection:** WebAuthn's CI argument is weak. WebDriver/CDP virtual authenticators need no human gesture, and localhost ports are rarely a real threat. WebAuthn provides true origin binding. Here, \"origin-bound\" is self-asserted by page JS. Any XSS, extension or copied file can sign any origin.\n\n**Unsupported claims:**\n- \"Never transmits private bytes\": JS reads the raw file before import. `nonextractable` doesn't stop an in-page attacker, who can simply sign.\n- \"Reject malleable signatures\": WebCrypto emits raw r\u2016s with no low-S guarantee. Enforcing low-S rejects about half of valid signatures. Key replay on the challenge ID, not signature bytes, or use Ed25519.\n- Unencrypted mode-0600 files are readable by any same-user process or backup.\n\n**Falsification tests:**\n1. Swap the (r, n\u2212s) signature and replay it. It must fail.\n2. Sign with a different origin, mode or body. It must fail.\n3. Race two concurrent uses of one challenge. Exactly one may succeed.\n4. Check that the sessionStorage token can't perform writes, including via CSRF.\n5. Inject XSS and measure the damage.\n6. Run the fixture-derived key in human mode. It must be refused.\n7. Revoke a key and confirm the next request is rejected.\n\n**Human authorization needed:** Provisioning, rotation and revocation; the risk of identity-DB editors; and accepting no passphrase on keys. Consider a PKCS8 passphrase."
+}

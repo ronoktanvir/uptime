@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:49.726597+00:00",
+  "packet_sha256": "79fa2176cffe78636b2368feaa78218a7e6d6db5e1837c6820f26b9bea301d8c",
+  "prompt_sha256": "8382c322039c849d502be1f1c7bd990de779bebcfe24a15f349c123e1f8ced29",
+  "status": "REVIEWED",
+  "session": "8a260828-4919-4bdf-b424-551ddfe42de1",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** A shared registry with reserve-once semantics is the right approach. The risk is in how the key is canonicalized.\n\n**Strongest objection:** Agreement *version* in the key undermines idempotence. A mid-month amendment that leaves the controlling terms unchanged produces a new version, and the claim gets filed twice. Key on agreement lineage plus a hash of the controlling terms instead. The claim that the \"trusted resolver cannot be aliased\" is asserted but not shown. The same applies to vendor/account canonicalization (case, Unicode, legacy IDs).\n\n**Exclusions:** Dropping route, case UUID, incident and component is sound. Dropping invoice holds only if remedies are strictly per month. Confirm that contracts never grant per-invoice credits, or valid claims will be suppressed.\n\n**Atomicity:** The send happens outside the transaction, so use an outbox. Track states: reserved \u2192 sent | failed-definite | unknown.\n- **Definite pre-send failure:** retry under the same claim ID and downstream idempotency token. Never mint a new claim.\n- **Unknown delivery:** never release. Hold for reconciliation.\n\n**Gaps:**\n- Backfilling both legacy tables, and conflicts already present between them.\n- A race between release and retry.\n\n**Additional tests:**\n- An amendment with identical terms.\n- Alias normalization.\n- Backfill conflicts.\n- A crash between reservation and outbox commit.\n\n**Unsupported claims:** That \"forbid demo names\" is the only simpler alternative. That a single cross-vendor key necessarily over-suppresses.\n\n**Human authorization needed:**\n- Legal/business sign-off on the key's remedy scope.\n- Resolution of migration conflicts.\n- Manual reconciliation of unknown sends.\n- Any real vendor action."
+}

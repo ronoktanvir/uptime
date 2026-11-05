@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:48.584821+00:00",
+  "packet_sha256": "ce6c37d0cf71f0584d0901dec2efad97e4173eab893e88ac30704342642f40f3",
+  "prompt_sha256": "f0ed4b6074f19551c5e98436168c980fe160114d53429ddf56f8b7a9e0d9287c",
+  "status": "REVIEWED",
+  "session": "2cf1c844-3378-4bfc-a659-fe633d5c09cf",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The direction is sound, but it is under-specified at the trust boundaries.\n\n**Alternatives:**\n- Per-source asymmetric keys (Ed25519) beat shared HMAC. The app would hold only public keys, so an app compromise cannot forge events.\n- mTLS per source.\n- Cost: more key ceremony, but revocation becomes cleaner.\n\n**Strongest objection:** The CLI both reads scoped bindings and signs, so it is effectively a minting authority. Anyone with file access is every source. Mitigations:\n- One secret file per source.\n- Strict 0600 permissions and an ownership check at load.\n- The app re-derives scope from its own grant table, never from signed claims alone.\n\n**Unsupported claims:**\n- \"Prior audit says intake is most central gap\": no evidence is cited.\n- \"No customer text to provider\": nothing enforces it. It needs an egress allowlist test.\n- Nonce replay protection: the store, TTL, clock skew, and persistence across restart are unspecified.\n\n**Falsification tests:**\n1. Source A's signature with source B's binding is rejected.\n2. A valid signature with an out-of-scope component is rejected.\n3. Revoke, restart, then replay an old nonce: rejected.\n4. A duplicate canonical key is idempotent and not a second write.\n5. Unknown envelope keys are rejected.\n6. Grep logs and crash dumps for secret bytes.\n7. Run with network denied except the public model host.\n\n**Minimum operator interface:** `source add|list|revoke|rotate`, `send <file>`, `verify-config`. No secret on argv, and no secret echoed.\n\n**Human authorization required:**\n- Any external inbox polling.\n- Any non-public provider egress.\n- Secret rotation policy.\n- Production scope expansion.\n\n**Rollback:** Revocation must take effect without restart, via a denylist checked per request."
+}

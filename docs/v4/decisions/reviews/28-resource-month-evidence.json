@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:21:12.198720+00:00",
+  "packet_sha256": "e8c8969165628f71ffbfc0efed3b4a1e14066ad01dff75611303f3395bb91b7f",
+  "prompt_sha256": "fb70f9f0c4d03c5096166b3185470606201295df2a1d99c79f941fd2f621a650",
+  "status": "REVIEWED",
+  "session": "8484c67b-383a-4a05-947b-6fc8e78612cb",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The direction is sound, but the retest is no longer blind.\n\n**Strongest objection:** You extended the schema after seeing the failed input, so re-passing it shows fit, not generality. Keep it as a regression case. Acceptance needs a fresh, sealed corpus from unseen vendors, chosen by someone other than the schema author.\n\n**Unsupported claims**\n- \"109 clean V4 tests\" says nothing about generalization, since that suite also passed the parser that later failed.\n- A \"finite schema\" covering arbitrary agreements is asserted, not shown.\n- \"Hardcoding breaks the unseen gate\" is plausible but untested.\n\n**Review points**\n- **Definitions:** Pin each defined term's span and digest. Refuse if a referenced definition, exclusion or incorporated document cannot be resolved.\n- **Spans:** Require a mapping from every effect to its spans. Deleting or perturbing a span must change the output or trigger a refusal.\n- **Bounds:** Use half-open [start, end) in the timezone the contract states. Convert \"through end of day\" explicitly, and refuse if no timezone is given.\n- **\"Verified after claim\":** This is independent only if it comes from separate evidence (provider status or usage logs), not eligibility outputs. Otherwise it is circular.\n\n**Falsification tests:** Shift boundaries by \u00b11s and by DST, test leap and short months, check cent rounding at half-values, and include adversarial refusals.\n\n**Human authorization:** Corpus selection, sign-off on the rule digest, activation, and any provider filing."
+}

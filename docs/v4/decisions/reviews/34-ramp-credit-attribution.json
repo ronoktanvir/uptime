@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:12.164307+00:00",
+  "packet_sha256": "b23869b46492b951bab1fd7e6338e7ec5131d1f9c8505e4a048beb59b49d4b35",
+  "prompt_sha256": "022be30d8e9e5d0ffb06f8efc8577aa9071359b3ec6f09330bcc268ff17c0522",
+  "status": "REVIEWED",
+  "session": "71676943-388e-4aff-949a-ae5f24d244f6",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The design is sound in principle. It has three gaps: it relies on one source for utilization, it assumes awards and credits map 1:1, and its quarantine rule is ambiguous.\n\n**Strongest objection:** The credit's `applied_bills` and the bill's `applied_vendor_credits` both come from Ramp, so cross-checking them is not independent corroboration. Calling a credit \"Applied\" needs a second source, such as an ERP/GL sync, a vendor statement, or the payment amount.\n\n**Unsupported claims:**\n- \"No public create/apply\" depends on a schema snapshot. Pin the version and date, and re-check it.\n- \"Decreases quarantined\" conflicts with normal behavior: `remaining_amount` legitimately falls as the credit is applied. Quarantine only drops in `total_amount`, rises in remaining, or unapplications.\n- `archived_at` may be routine cleanup rather than a conflict.\n\n**Scope and allocations:** Model N:M links. One award may span several credits, and one credit may cover several awards or unrelated items. Store allocation amounts explicitly, and keep any unallocated remainder as unknown.\n\n**Falsification tests:**\n- Credit applied, then the bill is voided or reversed.\n- `total_amount` edited after linking.\n- Pagination and eventual-consistency skew between the two resources.\n- FX credit against a bill in a different currency.\n- Partial award, partial credit.\n\n**Costs:** Manual linking labor and a growing quarantine backlog. Add SLAs and an owner.\n\n**Human authorization required for:**\n- Each award-to-credit link.\n- Each quarantine resolution.\n- Any reporting of recovered cash.\n\n**Alternative:** Use ERP/GL as the second source of truth."
+}

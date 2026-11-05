@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:47.946567+00:00",
+  "packet_sha256": "d8e87da3f7a7061f6789825d8ac983e37c54cea1cf34a0b6d20c08417bd5b2f4",
+  "prompt_sha256": "5548fda4551e898bbe4664692a9890fc07a6f3c8fc36fce9c2c5ecef08002868",
+  "status": "REVIEWED",
+  "session": "583bd9d0-ccad-4575-bbdc-706f5ea5394d",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Strongest objection:** WebAuthn/passkeys already provide a nonextractable, origin-bound, per-operator signing key with a challenge. A typed-password-derived key is weaker and needs custom crypto. Justify rejecting WebAuthn, or adopt it.\n\n**Cryptographic gaps**\n- WebCrypto cannot derive ECDSA/Ed25519 keys from PBKDF2 directly. The practical result is HMAC, which means the server stores a password-equivalent key. A server or DB leak lets an attacker forge signatures, and the slow KDF does not help.\n- Every captured challenge and signature pair enables offline dictionary attacks. Specify KDF parameters and a password-strength floor, and fix the parameters server-side so they cannot be downgraded.\n- \"Nonextractable bounds exposure\" is unsupported against XSS or a malicious extension. Same-origin script can still call `sign()`. A CSP and Trusted Types requirement is missing.\n- Canonicalization is undefined: query string, encoding, content-type, and header binding. Without it, signatures may verify against different interpretations of the same request.\n\n**Test gaps**\n- DNS rebinding with a valid Host.\n- Query or Content-Type tampering.\n- Constant-time compare.\n- Challenge expiry and clock skew.\n- Double-spend race on one-use challenges.\n- KDF downgrade.\n- HMAC key exposure across tenants.\n- Idempotency-ID collisions across scopes.\n- Enrollment, reset, and lockout abuse.\n\n**Falsification tests:** Show that injected same-origin script cannot sign a mutation. Show that a dumped verifier DB cannot forge a request.\n\n**Costs:** Challenge state store, re-auth friction, and custom protocol maintenance.\n\n**Human authorization required:** Operator enrollment and recovery, service-credential issuance and rotation, and formal acceptance that a shared OS credential store is out of the threat model."
+}

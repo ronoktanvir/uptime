@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:26.471182+00:00",
+  "packet_sha256": "a4495545ae9c43ce83ec4d8ba1c00d53a0ba8af7bcd77f4849e724264ffc3f86",
+  "prompt_sha256": "bbbdfb09de4d76623a7a1eebaa72ac7067152d0a6ac8fe8190bb33547518b907",
+  "status": "REVIEWED",
+  "session": "984d65ef-9b59-4d99-8793-df34af54e4e2",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The preferred approach is right, but it currently has no proof behind it beyond commits 18afaa6 and e120dcd.\n\n**Alternatives:** Trusting summaries is cheap but circular. Recreating tests after seeing the answers contaminates them. Literal recovery plus a fresh rerun costs more (reviewer, frozen fixtures, sandbox, migration and UI tests, waiting on real access), but it is the only option that produces evidence.\n\n**Strongest objection:** Code recovered from tool histories has no provenance. Without hashes or signatures from before the restart, \"literal original\" is an unsupported claim.\n\n**Unsupported claims:**\n- That the sealed evidence and receipts existed and passed.\n- That the missing worker objects don't matter.\n- That the grants are unchanged.\n\n**Falsification tests:**\n1. Check each recovered blob against any surviving hash, commit, or log. If it doesn't match, quarantine it.\n2. Commit fixtures and their hashes before the reviewer runs, and confirm reveal timestamps come after the freeze.\n3. A fresh reviewer, with no access to the summaries, reruns everything.\n4. Webhooks and native comments must fail closed when the grant is missing, revoked, or wrong-scope. Test those negative paths.\n5. Re-query live grants instead of reusing cached ones.\n\n**Human authorization required:** Activation, any real Ramp action, grant changes, and accepting \"unauditable\" labels.\n\n**Proof vs. report:** Proof is a commit-pinned artifact, a pre-frozen fixture hash, a fresh independent run, and a live permission check. Anything else, including historical results, is a report and should be labeled that way."
+}

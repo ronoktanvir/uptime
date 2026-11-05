@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:29.080005+00:00",
+  "packet_sha256": "83ad78c8e983ba140bb35fb957aa1171f4f12fa580829cff64cf6b0050cb7c5b",
+  "prompt_sha256": "9fdc1d821148d4cee0c77bfaa97889ef854cb3eeacf054b30385b63ec0bf612b",
+  "status": "REVIEWED",
+  "session": "69828812-37c4-400c-a2a4-9b4f3be1d3ea",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The architecture is sound: an LLM proposes, deterministic rules decide. But the four incidents show the validation layer is the real risk, not the parser.\n\n**Alternatives:** Hardcoded replies are brittle, and unconstrained LLM correspondence is unsafe. A middle option was never evaluated: a template-only outbound path with a human-approved clause library.\n\n**Costs:** Maintaining the rule family, keeping the oracle sealed, the escalation queue's workload, and simulator fidelity drift.\n\n**Strongest objection:** The $41.73 error passed \"careful\" validation. That suggests anchoring to source text doesn't bind amount, currency and component together. The cloned double submission suggests the idempotency key isn't enforced at submit time.\n\n**Unsupported claims:**\n- That the simulator is truly \"independent\" of the training and test authors.\n- That the Twilio account generalizes beyond one vendor.\n- That \"defensively redacted\" works, when a sentinel leaked.\n- That the time-bar override is legally correct.\n\n**Falsification and parser tests:**\n- Amounts given in multiple currencies, or a line item that conflicts with the total.\n- Negated or conditional denials (\"not denied unless\u2026\").\n- Quoted earlier messages carrying a stale notice.\n- Truncated, malformed or unparseable input, which must escalate and never claim by default.\n- Replayed messages, reordered messages, and two sessions acting on one case concurrently.\n- Expired authentication mid-thread.\n- A sender spoofing another vendor's case.\n- Evidence whose `observed_at` predates filing.\n- Redaction placeholders deliberately planted in the input.\n\n**Human authorization needed:**\n- Any real vendor communication.\n- Overriding a time-bar.\n- Activating a new rule family or vendor.\n- Releasing the oracle."
+}

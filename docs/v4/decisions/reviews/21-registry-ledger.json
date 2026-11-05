@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:40.319514+00:00",
+  "packet_sha256": "a099fca47e7ae9e8ef811eaf07a288531f0358a04beb5ee5c0dbb73dcca2e4cf",
+  "prompt_sha256": "fc5e14cb876758f882eadf21029c54fe68a3b74dccbda48a2d591630c1acb89c",
+  "status": "REVIEWED",
+  "session": "7458df14-4bfd-4f99-8ea9-6f5a732e463b",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound direction. Append-only revisions plus typed filters fix the root causes. Several gaps remain.\n\n**Alternatives missed:**\n- Event-sourcing with derived projections, rather than snapshots plus a pointer.\n- Bitemporal rows (valid-time vs. recorded-time), which make replay and rollback semantics explicit.\n\n**Costs:** Storage growth, pointer-consistency races under concurrent writes, migration of the V3 rows, and more complex queries.\n\n**Strongest objection:** The \"current pointer\" reintroduces mutable state. If a pointer update and a revision insert aren't atomic, the original silent-divergence failure returns.\n\n**Unsupported claims:**\n- That the $9123.45 and $80 errors stem solely from title matching. No root-cause trace is shown.\n- That the unique identity keys are actually unique across providers.\n- That rollback \"without erasing\" preserves auditability. Nothing specifies who can see or reactivate disabled projections.\n- That the ledger cross-check is authoritative. There is no tolerance or currency-conversion policy.\n\n**Falsification tests:**\n- Two concurrent revisions to one case leave the pointer at a non-latest or orphaned row.\n- An identical resubmission creates a duplicate revision, or alters the totals.\n- The same receipt appears under two cohorts and is counted twice.\n- Mixed-currency totals sum without conversion.\n- An old snapshot replay yields different totals than were recorded at that time.\n- A malformed status is coerced to \"paid\" instead of \"unavailable\".\n- A seeded example leaks into the customer ROI figures.\n\n**Human authorization needed:**\n- Migrating or reinterpreting V3 history.\n- Activation and rollback.\n- Defining cohort labels and identity keys.\n- Any externally reported ROI."
+}

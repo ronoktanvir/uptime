@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:32.232373+00:00",
+  "packet_sha256": "19b78882cef5da15f15092d94621f342e11f57a96c97327ddd5991074af4e64a",
+  "prompt_sha256": "4fadf8f9aef708f585640d3d3dc67f7818660c3708b65f368aedf0b45ad69eea",
+  "status": "REVIEWED",
+  "session": "e993b907-e1b6-44af-9147-1cf3db9748ee",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The design is sound in posture. The core gap is that the scope anomalies are unexplained, so you can't yet trust any capability inference.\n\n**Alternatives:** You were right to reject broader scopes and UI bypass. Two better options:\n- An admin grants the exact write scope on a dedicated sandbox app registration.\n- Test against a recorded or mocked provider until scopes are fixed.\n\n**Costs:** The write probe creates persistent artifacts. Drafts may not be deletable and may consume journal numbering. Keeping separate normalization paths adds maintenance.\n\n**Strongest objection:** A \"capability probe\" that creates a draft journal is still a provider write. Reading the original authorization as covering it is an inference, not a grant.\n\n**Unsupported claims:**\n- The sandbox tenant is isolated from production data and ledgers.\n- Drafts have no posting or financial effect.\n- The scope downgrade comes from configuration, not consent flow or tenant policy.\n- Actual/synthetic labels survive normalization.\n\n**Falsification tests:**\n- A redirect or alternate host aborts the request.\n- A production-host token is rejected.\n- Two vendors matching the UUID or tag fails closed.\n- Pages that shift or duplicate mid-read are detected.\n- A stale or altered proof hash is rejected.\n- A same-ID GET shows the draft unposted, with unchanged balances.\n- A cross-account or currency credit application is refused.\n\n**Needs admin:**\n- Explaining and fixing the scope downgrades.\n- Granting the exact write scope.\n- Confirming the tenant is non-production.\n- Designating the vendor UUID and journal.\n- Explicitly approving the write probe.\n- Setting draft cleanup and retention policy."
+}

@@ -1,0 +1,11 @@
+{
+  "source": "official Ramp CLI",
+  "commit": "a29141b5293c4e1ad15befc9587314b52c1b0bc6",
+  "command": "ramp auth status --env sandbox",
+  "sandbox": {
+    "authenticated": false,
+    "base_url": "https://demo-api.ramp.com",
+    "access": null
+  },
+  "writes": 0
+}

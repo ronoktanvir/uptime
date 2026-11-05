@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:21:16.758286+00:00",
+  "packet_sha256": "2d2f637a6cb450362379459930516fbd36968743da0fa33bb9dc58f28d764295",
+  "prompt_sha256": "57c6d1b2e27c27a0bbd8fdd006866a6211423c3abf6b00d59fb853d4c2537fdd",
+  "status": "REVIEWED",
+  "session": "88abacff-193d-406d-b541-60211a087c5f",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Ed25519 is the right choice over HMAC. A server compromise then exposes only public keys, not signing ability. Several claims still need mechanisms behind them.\n\n**Unsupported claims**\n- **Replay safety after restart:** This requires a durable nonce store, or a monotonic per-instance counter, plus a bounded clock-skew window. Neither is specified.\n- **Origin binding:** \"Fixed local origin\" only constrains browsers. Non-browser clients choose their own Origin.\n- **Tenant binding:** \"Subject cannot bind to another tenant\" needs an enforced uniqueness constraint in the protected config, not just policy.\n- **Body hash:** \"Exact\" needs defined canonicalization for path, query, encoding and empty bodies.\n\n**Strongest objection:** Revocation only takes effect at restart. Until an operator acts offline, a stolen key works up to the full configured scope. Add key IDs with an epoch or a deny-list checked per request, or accept and document that window.\n\n**Migration risks**\n- Downgrade if HMAC stays reachable. Gate it at build time or test-only.\n- A dual-acceptance window during cutover.\n- Stale bindings, backups or umask exposing keys stored with 0600 permissions.\n\n**Additional falsification tests**\n- HMAC rejected when Ed25519 is configured\n- Concurrent duplicate-nonce race\n- Nonce-store loss\n- Clock skew at the boundary\n- Key-ID substitution\n- Tampered config ownership or permissions\n- Revoked key used mid-flight\n\n**Human authorization required:** key issuance, scope or binding changes, revocation, and any later activation of a real external connector."
+}

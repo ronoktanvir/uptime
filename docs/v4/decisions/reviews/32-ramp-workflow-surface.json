@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:00.925398+00:00",
+  "packet_sha256": "5a65e137ef09cd77894074ffff67db50793f0b15d5e52035ff9aa55eacc866f6",
+  "prompt_sha256": "f7709a5e6475d3ab0b3e9bcfab2dc957e57909b513017363a0804d88c719ae54",
+  "status": "REVIEWED",
+  "session": "90ca5d5f-bd03-497b-b20c-15d688b649ec",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound posture (read-mostly, gated writes), but several load-bearing API claims are asserted without citation.\n\n**Unsupported or unverified claims**\n- Endpoint paths, the `blank_canvas:write` scope, and the `{status,url,recipients}` schema need pinned doc URLs and version dates. I can't verify them here.\n- The `service_key` case-sensitivity and entitlement requirements aren't sourced.\n- Nothing shows that comment POST is idempotent or supports client keys. Without that, \"re-read before retry\" is the only real guard.\n\n**Alternatives**\n1. Comments only. This is cheapest and reversible, with no workflow coupling.\n2. Metadata PATCH. Visible in the approval UI, but it mutates trigger state.\n3. Approve/reject. Highest value and highest risk.\n\nRecommend shipping 1, prototyping 2, and only modeling 3.\n\n**Strongest objection:** Readback by comment listing is racy. Concurrent writers, pagination, or edited or deleted comments can produce false \"already posted\" or duplicate posts. A digest marker inside the comment body leaks a fingerprint unless it is salted.\n\n**Falsification tests**\n- Kill the process after POST and before the outbox commit. Expect exactly one comment.\n- Send a reset event after metadata PATCH. Expect stale-state detection.\n- Use the wrong-case `service_key`. Expect rejection.\n- Run a bill that has no procurement trigger. Expect no write.\n- Label replayed vs. real webhooks.\n\n**Costs:** Entitlement procurement, a sandbox tenant, and reconciliation ops.\n\n**Required human authorization:** Granting a write scope, enabling the external approval step, any live approve/reject on a specific object, and any public webhook deployment."
+}

@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:16.805544+00:00",
+  "packet_sha256": "ab2af31943ee28849c5e1dd602fd942254c63b5ef0d24b888521a77bda8fb64c",
+  "prompt_sha256": "050fc67c2fe592ad0567ed161f39f88fbe3326c145c62eb6f1a02fc095b05a73",
+  "status": "REVIEWED",
+  "session": "c7f0e950-e04e-4798-941c-4b2d5c2977cc",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound as a labelled plumbing rehearsal. It does not demonstrate detection capability.\n\n**Strongest objection:** The cap is called \"independently selected\", yet the root knows the USD 840 total. A USD 800 cap picked with that knowledge guarantees the finding. That shows the wiring works, not that discovery works. Drop \"independently\" or have a third party commit to the cap (hashed) before the bill is fetched.\n\n**Unsupported claims:**\n- \"Authoritative\" total: is it from the provider API, and does it include tax and fees?\n- \"Signed\" overlay: whose key, and how is it verified?\n- \"Pre-existing\": what proves it?\n- A pending bill is not final, so its total can drift.\n\n**Alternatives:**\n- Fully synthetic fixtures. These are cheaper and deterministic, but lack end-to-end realism.\n- A negative-control-first demo.\n- Pausing until a real agreement is supplied. This is the most credible option but blocked.\n\n**Costs:** Engineering effort, plus the risk that a synthetic finding leaks into real reports.\n\n**Falsification tests (each should refuse or produce no finding):**\n- Cap \u2265 USD 840.\n- Tax-exclusive cap semantics.\n- Currency mismatch.\n- Cents rounding at 800.00 vs 800.004.\n- Bill amended or paid after the snapshot.\n- Overlay missing, unsigned, or duplicated.\n- Period mismatch.\n- Superseding amendment present.\n\n**Human authorization required:**\n- The sandbox owner, for any write.\n- Finance or legal, to attest any real agreement's scope and cap.\n- Explicit sign-off before anything is published. Synthetic provenance must permanently block \"overcharge\" or \"claim\" labels."
+}

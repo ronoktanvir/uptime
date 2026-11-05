@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:00.925214+00:00",
+  "packet_sha256": "fcd55c4f2a3bfa429c52453395e80a14e0512c92ba8357b6f42f943f3589af1f",
+  "prompt_sha256": "2e3594c75fe759cf65bcf2a1dbea655983b81687e8b8e357d2bebecac597efaa",
+  "status": "REVIEWED",
+  "session": "1533dac1-e406-4936-965d-fd5ef2bbdc40",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The direction is sound, but it is not yet credible. Several claims are asserted, not demonstrated.\n\n**Unsupported claims**\n- That the OpenAPI hash matches what production actually serves.\n- That POST `vendors/agreements` is a read-only query. A POST with side effects would be serious, so confirm it.\n- That missing `bills:write` metadata means writes are blocked. A token can be granted more than its metadata shows; only an attempted write that gets rejected proves enforcement.\n- That sandbox bills are \"real.\" That conflicts with \"no customer information,\" so clarify it.\n\n**Alternatives**\n- **Flat CSV or mock ledger:** rejected correctly; they overstate coverage.\n- **Live pass-through with no snapshots:** fresher data, but findings can't be replayed or audited.\n- **Webhooks plus snapshots:** probably the best, if Ramp supports them for these resources.\n\n**Strongest objection:** Snapshots quietly become a shadow ledger. Disputes will cite stale state, which undermines \"Ramp is authoritative.\"\n\n**Minimum credible boundary:** Read-only app scopes, plus per-resource versioned snapshots with exact IDs, `fetched_at`, and a content hash. Every finding should cite the snapshot version and be re-checked live before any claim.\n\n**Raw data:** Storing only IDs, hashes, and minor-unit amounts reduces exposure but cannot eliminate it. Disputes need retrievable evidence, so you need fetch-on-demand plus retention limits, not \"no raw data.\"\n\n**Falsification tests**\n- An attempted write must be rejected.\n- Pages fetched in shuffled order or during mutations must not create duplicates or drop records.\n- An ambiguous join must never auto-resolve.\n- Stale-snapshot findings must be flagged.\n\n**Human authorization needed:** the Ramp tenant admin (scopes), legal/DPA (retention), and security (the synthetic overlay). Keep the overlay in a separate namespace, never written onto real IDs."
+}

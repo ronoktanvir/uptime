@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:24.690297+00:00",
+  "packet_sha256": "731321bc207a26c650c14915c9d4975d4cb394daea7e968249770de2b387795e",
+  "prompt_sha256": "287b6b8b84ead116ec8f193c100b7f98923f09b7d0fa36f66c464219b12fecd2",
+  "status": "REVIEWED",
+  "session": "d01e66e8-5a52-4664-b9d5-2079e78f1f13",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound direction; under-specified on who declares compatibility.\n\n**Alternatives:** (a) Hash all code: safe but suspends everything on doc releases. (b) Ignore code version: approvals silently cover new semantics. (c) Proposed: pin semantic versions of validator, compiler, evaluator, and profile. Best balance, if bumps are enforced.\n\n**Costs:** Reauthorization churn, a compatibility-matrix maintenance burden, and dispatch-time validation latency.\n\n**Strongest objection:** Semantic versions are self-declared. A behavior change shipped without a bump defeats the whole scheme, which is effectively option (b) with extra steps. Mitigate by binding each version to golden-output test vectors, and fail CI if outputs change without a bump.\n\n**Unsupported claims:**\n- \"Compatible prior revision usable after regression check\": who certifies compatibility, and against what corpus?\n- \"Doc release needlessly suspends\": true only if docs are separable from code; profiles and configs blur this.\n- Legacy Jira separation: the trust boundary isn't defined.\n\n**Falsification tests:**\n1. Change evaluator rounding with no version bump. Golden vectors must fail CI.\n2. Reinstall the registry. The digest must be identical.\n3. Roll back to incompatible code. Dispatch must be blocked.\n4. Present a stale URL. It must hard-fail.\n5. Apply a zero-after-rounding case. No claim should post, and the breach and filing records must persist.\n6. Supply a fraction with no rounding rule. It must remain an exact, unposted estimate.\n\n**Human authorization required:** Version-compatibility declarations, reauthorization of incompatible saved revisions, and adoption of any settlement-rounding rule."
+}

@@ -1,0 +1,134 @@
+{
+  "schema": "uptime-ramp-discovery/1",
+  "origin": "https://demo-api.ramp.com",
+  "observed_at": "2026-11-05T00:22:25.605244+00:00",
+  "environment": "LIVE_RAMP_SANDBOX",
+  "writes_attempted": false,
+  "scope_grants": {
+    "approvals:read": {
+      "granted": [
+        "approvals:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "bills:read": {
+      "granted": [
+        "bills:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "bills:write": {
+      "granted": [],
+      "scope_field": false,
+      "exact": false
+    },
+    "blank_canvas:write": {
+      "granted": [],
+      "scope_field": false,
+      "exact": false
+    },
+    "business:read": {
+      "granted": [
+        "business:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "custom_forms:read": {
+      "granted": [
+        "custom_forms:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "custom_records:read": {
+      "granted": [
+        "custom_records:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "custom_records:write": {
+      "granted": [],
+      "scope_field": false,
+      "exact": false
+    },
+    "purchase_orders:read": {
+      "granted": [
+        "purchase_orders:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "spend_programs:read": {
+      "granted": [
+        "spend_programs:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "spend_requests:read": {
+      "granted": [
+        "spend_requests:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "spend_requests:write": {
+      "granted": [],
+      "scope_field": false,
+      "exact": false
+    },
+    "transactions:read": {
+      "granted": [
+        "transactions:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "transactions:write": {
+      "granted": [],
+      "scope_field": false,
+      "exact": false
+    },
+    "unified_requests:read": {
+      "granted": [
+        "unified_requests:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    },
+    "vendors:read": {
+      "granted": [
+        "vendors:read"
+      ],
+      "scope_field": true,
+      "exact": true
+    }
+  },
+  "read_queries": {
+    "agreements": {
+      "status": "READ_VERIFIED",
+      "sample_count": 0,
+      "has_next": false
+    },
+    "transactions": {
+      "status": "READ_VERIFIED",
+      "sample_count": 5,
+      "has_next": true
+    },
+    "purchase_orders": {
+      "status": "READ_VERIFIED",
+      "sample_count": 5,
+      "has_next": true
+    },
+    "credits": {
+      "status": "READ_VERIFIED",
+      "sample_count": 0,
+      "has_next": false
+    }
+  },
+  "installation_identity": "CANONICAL_ID_VERIFIED"
+}

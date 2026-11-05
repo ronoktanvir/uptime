@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:13.889815+00:00",
+  "packet_sha256": "08bf2dc6bd042b0009d3848818569a4c12d5a043adbd59a627e77e5a5a22650f",
+  "prompt_sha256": "58e8bead7f5cf3f3af78e5c59f3254c87fbf18d1c60abf367db646bf361eebb5",
+  "status": "REVIEWED",
+  "session": "71e36e16-9437-4803-8767-c05b0312deff",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound posture; the core rule of separating tool availability, scope grants and confirmed write-back is right. Several claims still need receipts.\n\n**Alternatives:**\n- **Server-owned REST with client credentials (preferred):** auditable, but limited to app-granted scopes.\n- **Official CLI/MCP as a human operator:** richer access, but it acts as the person, which blurs accountability.\n- **Simulated native response:** acceptable only if visibly labelled.\n\n**Costs:** maintaining two auth paths, rehearsal overhead, and doc drift.\n\n**Strongest objection:** The design depends on Ramp behaviors not shown here. These include the CLI/MCP role and sandbox semantics, a \"read-only\" scope allowing POST-based agreement queries, and native bill comment or metadata write support. If bill write-back doesn't exist, the demo is mostly simulation.\n\n**Unsupported claims:** CLI sandbox selection guarantees isolation; tools exposed differ from grants (plausible, unproven); POST list under read-only scope; native resource URL formats on the sandbox host.\n\n**Falsification tests:**\n1. Token introspection receipt showing exact scopes.\n2. A write call under read-only scope returns 403.\n3. A sandbox ID resolves only on the sandbox host.\n4. The native write reads back with a matching ID and timestamp.\n5. The two-minute run is timed from a real Ramp ID.\n\n**Human authorization required:** admin app permissions, webhook registration, approval-chain changes, OAuth install, and any production access."
+}

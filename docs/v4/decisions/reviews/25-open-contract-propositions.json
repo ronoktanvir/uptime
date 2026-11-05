@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:21:00.189705+00:00",
+  "packet_sha256": "cd3e061db65d7f76a0b4e2fb1bfe3c4866f732356edebe20e280107ee72cf858",
+  "prompt_sha256": "7056ffc0bcee3cfe383ad8e14606c89ee99d661c020984ab98374fd3261d98b2",
+  "status": "REVIEWED",
+  "session": "024cc548-b0dc-4c03-b181-8c65c83ab4b0",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The direction is sound: proposal, then deterministic validation, then a human gate. Two gaps decide it.\n\n**Decisive guard: complement coverage.** Validating spans proves only that cited text exists, not that it was interpreted completely. A model can quote \"credit of 10%\" exactly and still miss \"except for Free tier\" two sentences later, or a definitions section that redefines \"Downtime.\" Require every sentence in the credit and exclusion sections, plus every cross-referenced definition, to be either bound to a clause or explicitly marked immaterial. An unbound modifier should fail closed.\n\n**Falsification tests:**\n- **Mutation suite.** Flip a comparator, drop a tier, insert \"except,\" or move a definition. Each change must change the output or block it.\n- **Paraphrase pairs.** Equivalent wording must produce identical clauses.\n- **Ordering checks.** Supersession and as-of ordering must be tested with conflicting versions.\n\n**Unsupported claims:**\n- \"Rejects ordinary prose\" has no measured rejection rate or corpus.\n- Model output being \"safe once validated\" depends on the coverage guard above.\n- \"Independent\" gold cases need provenance separate from whoever wrote the prompts.\n\n**Costs:** Human review for every vendor version, ongoing gold-set maintenance, and the fact that the model adds no value for novel primitives.\n\n**Strongest objection:** Review fatigue. Humans may rubber-stamp clauses that the validator has already passed. Show reviewers the unbound text, not just the bound clauses.\n\n**Human authorization needed:**\n- Opt-in for public digests to go to an outside model.\n- Interpretation and activation approval for each slot and version.\n- An owner for marking text immaterial."
+}

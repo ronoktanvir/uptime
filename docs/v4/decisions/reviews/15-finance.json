@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:16.123910+00:00",
+  "packet_sha256": "87f85473d2bf369c40774a05e672d45cfbbcf1eb1f4f35372bf3b4d7b83500b0",
+  "prompt_sha256": "75235f8fc2902afe984783a3966fbae7d286d01f90201017ee4fcb6f52b37bb2",
+  "status": "REVIEWED",
+  "session": "52ecc667-a99d-4d47-a4ad-a28bdeefd606",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound direction; several claims need evidence before adoption.\n\n**Alternatives:** Blanket UTC calendar math is simpler but shifts month/day boundaries and cutoffs, which can change contractual rights. Trimming or deduplicating strings is cheap but silently merges distinct identifiers. Hybrid UTC-instant plus IANA-calendar costs more: zone-database versioning, dual code paths and reviewer training.\n\n**Strongest objection:** The rule that UTC applies to bindings and IANA applies to calendars needs a classifier for each field. If a field is misclassified, the old failure comes back while appearing principled. Who owns that mapping, and how is it audited?\n\n**Unsupported claims:**\n- The five probes are cited without reproduction artifacts or root causes. Were they caused by timezones, by padding, or both?\n- \"Fail closed\" lacks a defined incomplete-total threshold or escalation path.\n- \"Unsupported precision\" lacks a reporting format.\n- The tzdata version is not pinned.\n\n**Falsification tests:**\n- Property tests showing that equal instants always yield an identical amount ($0 vs. $7,500 must be impossible).\n- Padded, aliased or conflicting IDs must reject and never sum ($100 must not become $200, and no $2,000 rebate may appear).\n- Randomized DST folds and gaps at cutoffs.\n- Irrelevant intervals must not suppress findings.\n- A missing document reference must block filing.\n- Exact-ratio rounding must stay invariant across ambient precision settings.\n\n**Human authorization required:**\n- Finance or legal sign-off on calendar semantics and rejection policy.\n- Owner approval before any real filing or posting.\n- Approval for the tzdata update cadence."
+}

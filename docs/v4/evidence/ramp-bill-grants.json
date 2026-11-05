@@ -1,0 +1,78 @@
+{
+  "mode": "token metadata only",
+  "origin": "https://demo-api.ramp.com",
+  "observed_at": "2026-11-05T00:20:16.231887+00:00",
+  "requests": [
+    {
+      "granted": [
+        "vendors:read"
+      ],
+      "requested": [
+        "vendors:read"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "scope_reported": true,
+      "diagnosis": "EXACT_GRANT",
+      "state": "GRANTED",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    },
+    {
+      "granted": [
+        "bills:read"
+      ],
+      "requested": [
+        "bills:read"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "scope_reported": true,
+      "diagnosis": "EXACT_GRANT",
+      "state": "GRANTED",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    },
+    {
+      "granted": [
+        "bills:read"
+      ],
+      "requested": [
+        "bills:read",
+        "bills:write"
+      ],
+      "missing": [
+        "bills:write"
+      ],
+      "unexpected": [],
+      "scope_reported": true,
+      "diagnosis": "MISSING_GRANTS",
+      "state": "SCOPE_MISMATCH",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    },
+    {
+      "granted": [],
+      "requested": [
+        "bills:write"
+      ],
+      "missing": [
+        "bills:write"
+      ],
+      "unexpected": [],
+      "scope_reported": false,
+      "diagnosis": "SCOPE_FIELD_ABSENT",
+      "state": "SCOPE_MISMATCH",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    }
+  ],
+  "app_allowed_scopes": "NOT_OBSERVABLE_FROM_TOKEN_RESPONSE",
+  "admin_configuration": "NOT_INSPECTED",
+  "records_read": false,
+  "writes_attempted": false
+}

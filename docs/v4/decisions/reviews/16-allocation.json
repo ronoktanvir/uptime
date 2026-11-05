@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:16.123929+00:00",
+  "packet_sha256": "6c4bbc9c99752d0b53a95d3933399d6a6f885649aab2a08868506ccacd1f9cbc",
+  "prompt_sha256": "88ef76182ef21c174413698c512b1ef320ff617fcd6154f01a3285f79ce997ba",
+  "status": "REVIEWED",
+  "session": "b5f81e17-29da-4b8c-80b1-cb52172f78d9",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound for single-host scope. Its weakest points are deployment topology and migration.\n\n**Strongest objection:** SQLite serializes writers on one host only. If multiple service instances on separate hosts or network filesystems write to it, the guarantee fails. Use `BEGIN IMMEDIATE`, WAL and busy_timeout, and require one-host deployment. Otherwise use Postgres SERIALIZABLE.\n\n**Unsupported claims:**\n- Double-entry being \"higher cost\" is unquantified.\n- \"Triggers enforce caps\" holds only if every writer goes through this DB with triggers enabled.\n- The $0-ID cause is undiagnosed. It could be rounding or a missing `CHECK(amount_minor > 0)`.\n\n**Essential identity/data rules:**\n- Use an immutable composite key (tenant, provider, vendor, account, currency) on both bill and credit, with cross-currency application forbidden.\n- Store integer minor units and a per-currency exponent table.\n- Require a unique idempotency key per application.\n- Enforce \u03a3applied \u2264 bill and \u03a3applied \u2264 credit.\n- Keep estimates in a separate table, never summed.\n- Rows are append-only, corrected by reversal entries.\n\n**Falsification tests:** The design is wrong if any of these succeed or corrupt state:\n- N processes concurrently applying $80 to a $100 bill\n- a 1-cent partial\n- a currency mismatch\n- a duplicate idempotency key\n- a crash mid-transaction followed by restart\n- property-based fuzzing against an oracle\n\n**Migration/rollback:** Keep the old store read-only. Import it with provenance and legacy flags. Quarantine rows that violate caps rather than dropping or \"fixing\" them, and reconcile totals. Version the schema. Rollback means switching reads back, never deleting rows.\n\n**Human authorization needed for:**\n- making the ledger authoritative for real case actions\n- the rounding policy\n- resolving quarantined records"
+}

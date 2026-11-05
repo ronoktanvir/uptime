@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:00.925816+00:00",
+  "packet_sha256": "3e41bf3e0f0c092db6ae30cd774b4a76d6df658e014b617a6dfd724d6b8184d7",
+  "prompt_sha256": "9be6ed92a9ae685284910a5ccc58be16ecf638479ed2ee3c60f5030dc2344c2f",
+  "status": "REVIEWED",
+  "session": "24f0e5ae-9b3e-48e6-9073-5ec68d7ab021",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Sound security posture. Several provider-specific claims are unverified and should block implementation until checked against current Ramp docs.\n\n**Unsupported claims (verify first)**\n- Header name `X-Ramp-Signature`, base64 encoding, HMAC input composition, and whether a timestamp is included.\n- Challenge handshake semantics, `service_key` applicability, and the \"Blank Canvas approval instance\" dependency.\n- Event-type parity between Bill Pay and Procurement. Payloads, IDs, and retry behavior may differ.\n- Provider retry and replay window. Without a signed timestamp, UUID dedup needs a defined retention horizon.\n\n**Alternatives**\n- **Polling:** simpler and has no inbound surface, but adds latency and costs approval-trigger fidelity.\n- **Managed relay/queue:** reduces exposure, but adds a vendor in the data path.\n\n**Costs:** A new ingress surface, key rotation, dedup storage, quarantine triage, and ongoing tracking of provider doc changes.\n\n**Strongest objection:** The design depends on an inbound path that cannot be validated end-to-end without registration, which is forbidden. Local fixtures prove only internal logic. Shipping it adds risk before authenticity has been demonstrated.\n\n**Falsification tests**\n- Flip one byte or re-serialize the JSON: verification must fail.\n- Duplicate keys must be rejected.\n- Replaying an old UUID after the retention horizon must be refused.\n- A reset during pending approval must invalidate it.\n- A valid signature for a foreign business must be refused.\n- An unknown event must produce zero writes.\n- A crash before persistence must cause no acknowledgment.\n\n**Human authorization required:** Webhook registration, any network exposure or tunnel, production key issuance, and sandbox-to-live promotion. Each needs explicit, separately recorded approval."
+}

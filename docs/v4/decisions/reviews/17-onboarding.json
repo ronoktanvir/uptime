@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:26.021085+00:00",
+  "packet_sha256": "4c54ba5e0d9e22c0572e7cf98a624194b5f5f278cf61689a7220b43282a55164",
+  "prompt_sha256": "d62e7a807e750da83aee783caca6ab45d10bb7e067b67a4a7a55d3e64e32e676",
+  "status": "REVIEWED",
+  "session": "c2745989-9cd5-4f29-8c94-c3093db70e1d",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The design is sound in direction, but several claims are unproven.\n\n**Alternatives:** Vendor-per-code plugins fail on unseen contracts, and generated Python is unsafe, so rejecting both is correct. A third option was not weighed: human-authored declarative rules, with the model only flagging spans. It is slower but has the smallest trust surface.\n\n**Costs:** Independent reviewer gold is expensive and slow. Blocking on unverified clauses will raise manual-review volume, possibly to most contracts, since tiered credits, caps and service-specific clauses are common.\n\n**Strongest objection:** \"Local grammar can handle ordinary prose and tables\" is the load-bearing claim, and it is asserted, not measured. Rather than generalizing, a bounded \"monthly availability\" family may quietly overfit.\n\n**Unsupported claims:**\n- The grammar's coverage\n- That \"digest-opt-in\" public sources actually exclude private overlays\n- That the tenant negotiated-window source is truly independent\n- That the audit fixes (Jira pointer, stale links, malformed resume) are resolved. They are listed, not shown closed.\n\n**Falsification tests:**\n- Run held-out contracts from unseen vendors and report precision and recall per field.\n- Use adversarial cases: conflicting windows, an amendment overriding the base contract, and table-only fees.\n- Show that A\u2192B\u2192A yields revision 3, not 1.\n- Show that a malformed source fails closed.\n- Show that a stale link returns 404/410.\n- Show a Jira pointer change produces an observable diff.\n\n**Authorization:** Each operational promotion and rollback needs a named human approver. The scripted proof correctly claims no real signature, so production remains unauthorized until a real sign-off exists."
+}

@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:35.611287+00:00",
+  "packet_sha256": "77dc2e2da43ecb940d271bb22021c29fc3cbc40bd91ac428d9a247bc8dae709f",
+  "prompt_sha256": "77129c09866f076bab55d23bc4d18b1677550ca7d633f4bbbdcc2abfad1ce374",
+  "status": "REVIEWED",
+  "session": "f622a7b1-edd2-4cc5-be02-78b445607b9c",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The design is sound in intent, but its gates currently self-attest: the builder writes, runs, and certifies its own tests.\n\n**Alternatives:** \"Green old tests = release\" and \"open real actions while testing\" are rightly rejected. A better middle path is feature-flagged actions on a synthetic tenant, with parallel (not purely sequential) gates. Sequential gates cost time and block legitimate reviewers.\n\n**Strongest objection:** The gates can be circular. Fix this by having attestations signed by an identity outside the build loop. That means a human or a separately provisioned worker with its own credentials and logs. No gate may consume the artifacts it judges.\n\n**Unsupported claims:**\n- \"Independent\" QA worker: same model or shared context isn't independent.\n- \"Sealed/unseen\": a hash proves integrity, not secrecy or timing.\n- \"Without deleting coverage\": no coverage-diff metric is given.\n- \"Actual browser run\": needs a trace or video as evidence.\n\n**Falsification tests:**\n- Perturb one financial value; the gate must fail.\n- Re-inject a cookie-dependent test; migration must flag it.\n- The hash commit timestamp must precede the API-integration commit.\n- Submit a scripted review labeled human; the system must reject it.\n- Simulate Ramp write outage; W3 and W4 must still pass.\n\n**Human-vs-scripted labeling:** Require an `actor_type` enum with an authenticated identity. Never default it. The UI badge comes from auth, not payload.\n\n**Human authorization required:** Enabling real actions, final release sign-off, public deployment, scope changes, and any real communications."
+}

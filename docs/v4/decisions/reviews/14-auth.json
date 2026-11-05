@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:20:16.123679+00:00",
+  "packet_sha256": "fcc88001f027fb1fdbcc129ca3eea2fd5eb61692c49759693b13cb69f80a404b",
+  "prompt_sha256": "05fff3a4964b611d807b9adc94ae35925c17ed9254764c5b4f89e3fc17d5bedc",
+  "status": "REVIEWED",
+  "session": "248d95ee-0ebe-47ca-b257-2459d4c5b2ec",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The direction is sound, but the threat model is underspecified.\n\n**Alternatives:** Port-scoped SameSite was never viable, because cookies ignore ports and every 127.0.0.1 port counts as same-site. An enterprise IdP adds an external dependency but solves recovery. The local proof-bound session is the right default.\n\n**Strongest objection:** A local attacker able to bind a sibling port can likely also read process memory, the session store or the enrollment files. Without stating the boundary (browser-origin attacker or local process), the per-action proofs may add friction without adding protection.\n\n**Unsupported claims:**\n- Slow hashing only resists offline cracking, not live local abuse.\n- The packet does not say how proofs are bound or where the key lives. A JS-held key is exposed to same-origin XSS.\n- Session digests need constant-time comparison.\n\n**Gaps:** DNS rebinding (validate Host and Origin), the CORS preflight path, and concurrent replay races on one-use proofs.\n\n**Regressions:**\n- Restarts invalidate sessions mid-review.\n- There is no lockout or recovery path.\n- Clock skew can expire proofs.\n- Multi-tab stage conflicts are unaddressed.\n- Per-action proofs may push operators toward scripted workarounds.\n\n**Extra falsification tests:** rebinding with a forged Host header, parallel replay of the same proof, an XSS-injected proof request, and a viewer escalating via stale stage IDs.\n\n**Human authorization needed:** offline identity provisioning, the recovery procedure, and any external transport or production grant.\n\nI couldn't verify the server.py, scripts/serve.py and storage.py references without tools."
+}

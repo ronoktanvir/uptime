@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-05T00:27:36.529561+00:00",
+  "packet_sha256": "b80147597c98e19cbc0b03357fbef0bd43649a371637376ac2f0703d67d5a68e",
+  "prompt_sha256": "bf547c37cf8f1b80bc6e1011afa55d328e09fa0588893e284ad12a3ce50645e6",
+  "status": "REVIEWED",
+  "session": "c1d3a523-4dc9-4c84-bf32-543787f71ad8",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** The attested binding beats (a), which hides legitimate recoveries, and (b), where amount-matching produces false attribution on collisions, splits and 1-unit drift. But attestation is **not enough** to label realized cash.\n\n**Label tiers:**\n- **Ramp-applied:** the native credit plus its bill application reduces a payable. That is attributable, not cash.\n- **Actual realized:** requires settled bank or refund evidence reconciled to that credit. In sandbox this stays null.\n\n**Strongest objection:** \"Independent\" is unproven. If the vendor's attestation and Ramp's posting share an upstream, you have two views of one source.\n\n**Unsupported claims:**\n- The no-create/apply schema finding lacks a version or date.\n- The independence of the authenticator is undefined.\n- The mechanism behind \"immutable\" is unspecified.\n- Six bills with zero credits is too thin a sample.\n\n**Falsification tests:**\n- Duplicate webhook or poll yields one posting.\n- A reversal voids attribution.\n- A split credit sums exactly or is rejected.\n- 1-minor-unit mismatch fails.\n- Concurrent allocations cannot exceed the credit, enforced at DB level.\n- An unconfirmed grant, missing unique source, or cross-account fan-out is rejected.\n- N:M without explicit allocations is rejected.\n- A fixture boolean cannot reach the real-provenance column, enforced by type.\n\n**Human sign-off:**\n1. Per binding, before an award becomes \"verified\": claim, account, agreement, product, amount.\n2. Promotion from sandbox to production credentials.\n3. Any customer-visible \"recovered\" figure.\n\nAll sign-offs should be dual-control and logged. No external financial action occurs without a separate, explicit authorization."
+}
