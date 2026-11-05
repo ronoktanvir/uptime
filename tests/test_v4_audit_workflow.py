@@ -23,18 +23,7 @@ def observation(ident, observed, expected, category="defect"):
                 matches=observed == expected, category=category)
 
 
-def bootstrap(db, mode="replay", rehearsal=True):
-    from fastapi.testclient import TestClient
-    from uptime.server import create_app, viewer_token
-    secret = secrets.token_urlsafe(32)
-    app = create_app(db, session_secret=secret, mode=mode, rehearsal=rehearsal)
-    user = TestClient(app, raise_server_exceptions=False)
-    viewer = TestClient(app, raise_server_exceptions=False)
-    user.get("/session/" + secret)
-    viewer.get("/session/" + viewer_token(secret))
-    if user.get("/api/policy").status_code != 200:
-        raise RuntimeError("Auth interface requires reviewed adapter")
-    return user, viewer, app
+from test_v4_audit_protocol import bootstrap, is_v4, SignedClient, ORIGIN, SUBJECT, scoped_dossier
 
 
 @contextmanager
@@ -67,7 +56,10 @@ def lab_action(client, lab, operation):
 
 
 def stock_denial():
-    with workspace() as (u, _, _, _):
+    with workspace() as (u, _, app, _):
+        # The exclusion is known only after its recorded availability. Freeze a
+        # later synthetic decision time; do not move or rewrite source evidence.
+        app.state.bench.desk.clock = lambda: datetime(2026, 11, 3, 12, tzinfo=UTC)
         initial = successful(u.get("/api/cases/dispute-denial"))
         response = post(u, "dispute-denial", "approve-claim")
         after = successful(u.get("/api/cases/dispute-denial"))
@@ -106,42 +98,54 @@ def denial_responses():
     return rows
 
 
+@contextmanager
+def provision_dossiers(dossiers):
+    from uptime import disputes
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root/'claimant').mkdir()
+        (root/'claimant/dossiers.json').write_text(json.dumps(dossiers))
+        with patch.object(disputes, 'FIXTURES', root):
+            yield
+
+
 def duplicate_and_privacy():
-    from uptime import disputes_vendor
+    from uptime import disputes, disputes_vendor
+    original_dossiers = json.loads((Path(disputes.FIXTURES)/'claimant/dossiers.json').read_text())
     rows = []
-    with workspace() as (u, _, _, db):
-        with sqlite3.connect(db) as conn:
-            conn.execute("INSERT INTO dispute_cases SELECT tenant,'dispute-clone',dossier,state FROM dispute_cases WHERE id='dispute-partial'")
+    duplicate = deepcopy(original_dossiers)
+    duplicate['dispute-clone'] = deepcopy(duplicate['dispute-partial'])
+    # Both aliases are legitimate initial intake, not post-seed SQL tampering.
+    with provision_dossiers(duplicate), workspace() as (u, _, _, _):
         receipts = []
-        for key in ("dispute-partial", "dispute-clone"):
-            response = post(u, key, "approve-claim")
+        for key in ('dispute-partial', 'dispute-clone'):
+            response = post(u, key, 'approve-claim')
             if response.status_code == 200:
-                response = post(u, key, "submit-claim")
+                response = post(u, key, 'submit-claim')
             if response.status_code not in (200, 409):
-                raise RuntimeError("Unexpected duplicate dispatch response")
-            state = successful(u.get("/api/cases/" + key))
-            receipts.extend(state["submissions"])
-        rows.append(observation("W-business-claim-idempotency", len(receipts), 1))
-    with workspace() as (u, _, _, db):
-        sentinel = "SYNTHETIC-PRIVATE-AUDIT-NOTE"
-        with sqlite3.connect(db) as conn:
-            dossier = json.loads(conn.execute("SELECT dossier FROM dispute_cases WHERE id='dispute-cure'").fetchone()[0])
-            dossier["initial_documents"][0]["private_internal_annotation"] = sentinel
-            conn.execute("UPDATE dispute_cases SET dossier=? WHERE id='dispute-cure'", (json.dumps(dossier),))
+                raise RuntimeError('UnexpectedDuplicateDispatchResponse')
+            state = successful(u.get('/api/cases/' + key))
+            if state['id'] != key:
+                raise RuntimeError('DuplicateCaseIdentityChanged')
+            receipts.extend(state['submissions'])
+        rows.append(observation('W-business-claim-idempotency', len(receipts), 1))
+    sentinel = 'SYNTHETIC-PRIVATE-AUDIT-NOTE'
+    annotated = deepcopy(original_dossiers)
+    dossier = annotated['dispute-cure']
+    dossier['initial_documents'][0]['private_internal_annotation'] = sentinel
+    scoped_dossier(dossier)
+    with provision_dossiers(annotated), workspace() as (u, _, _, _):
         seen = []
         original = disputes_vendor.review
         def inspect(ticket, clock):
             seen.append(sentinel in json.dumps([d.body for d in ticket.documents]))
             return original(ticket, clock)
-        with patch("uptime.disputes.vendor.review", side_effect=inspect):
-            approval = post(u, "dispute-cure", "approve-claim")
-            if approval.status_code == 200:
-                submitted = post(u, "dispute-cure", "submit-claim")
-                if submitted.status_code not in (200, 409):
-                    raise RuntimeError("Unexpected minimized dispatch response")
-            elif approval.status_code != 409:
-                raise RuntimeError("Unexpected privacy approval response")
-        rows.append(observation("W-outbound-allowlist", any(seen), False))
+        with patch('uptime.disputes.vendor.review', side_effect=inspect):
+            successful(post(u, 'dispute-cure', 'approve-claim'))
+            successful(post(u, 'dispute-cure', 'submit-claim'))
+        if not seen:
+            raise RuntimeError('OutboundPositiveControlNotExecuted')
+        rows.append(observation('W-outbound-allowlist', any(seen), False))
     return rows
 
 
@@ -187,6 +191,25 @@ def session_isolation():
     from fastapi.testclient import TestClient
     with workspace() as (u, viewer, _, db):
         viewer_status = post(viewer, "dispute-cure", "approve-claim").status_code
+        if is_v4():
+            from uptime.server import create_app
+            blocked = False
+            try:
+                create_app(db, mode="sandbox", approvals_enabled=True, origin=ORIGIN)
+            except ValueError:
+                blocked = True
+            target = db.with_name('other-mode.sqlite')
+            fresh, fresh_viewer, new_app = bootstrap(target, "sandbox", False)
+            try:
+                old_request = u.prepare('/api/cases/dispute-review/actions/approve-claim', {})
+                replay = fresh.raw.post('/api/cases/dispute-review/actions/approve-claim', **old_request)
+                fresh_policy = successful(fresh.get('/api/policy'))
+                return [observation('W-viewer-boundary', viewer_status, 403, 'control'),
+                        observation('W-mode-session-isolation', replay.status_code in (401,403), True),
+                        observation('W-mode-policy-isolation', blocked and fresh_policy['mode'] in fresh_policy['available_modes'], True)]
+            finally:
+                fresh.close()
+                fresh_viewer.close()
         old_cookies = dict(u.cookies)
         successful(u.post("/api/policy", json={"mode": "POLICY_AUTOMATED", "cap": "100.00"}, headers=HEADERS))
         fresh, _, app = bootstrap(db, "sandbox", False)
@@ -224,7 +247,17 @@ def novel_evidence():
                            start=dossier["start"], end=dossier["end"])
                 if kind == "missing-component" and doc["kind"] == "component_record":
                     doc.pop("component_id", None)
-                provider["document_registry"][doc["ref"]] = fingerprint(doc)
+                wire_fields = {'ref', 'kind', 'account', 'month', 'product', 'region', 'source',
+                               'start', 'end', 'origin', 'classification', 'component_id', 'observed_at'}
+                public_body = {k:v for k,v in doc.items() if k in wire_fields} if is_v4() else doc
+                provider['document_registry'][doc['ref']] = fingerprint(public_body)
+        dossier = scoped_dossier(dossier)
+        if is_v4():
+            provider.update(account=dossier['account'], invoice_id=dossier['invoice_id'])
+            provider['lines'] = [dict(id='invoice-'+kind, kind='affected_api', usd='417.30',
+                account=dossier['account'], month='2026-10', product='Twilio Messaging API',
+                region='US1', currency='USD', invoice_id=dossier['invoice_id'],
+                evidence_ref=dossier['invoice_id']+'/invoice-'+kind)]
         dossiers[key] = dossier
         records[dossier["account"]] = provider
         mutated[kind] = key
@@ -266,9 +299,13 @@ def tenant_account():
     from uptime.disputes_vendor import review
     dossier = json.loads((FIXTURES / "claimant/dossiers.json").read_text())["dispute-cure"]
     right = review(ticket_for("bears", dossier, dossier["supplemental_archive"]), START)
-    wrong = review(ticket_for("other-tenant", dossier, dossier["supplemental_archive"]), START)
+    try:
+        wrong = review(ticket_for("other-tenant", dossier, dossier["supplemental_archive"]), START)
+        wrong_award = wrong.code in ("AWARD", "PARTIAL_AWARD")
+    except (PermissionError, ValueError):
+        wrong_award = False
     return [observation("W-tenant-account-positive", [right.code, right.awarded], ["AWARD", "100.00"], "control"),
-            observation("W-tenant-account-binding", wrong.code in ("AWARD", "PARTIAL_AWARD"), False)]
+            observation("W-tenant-account-binding", wrong_award, False)]
 
 
 def comparative_api():
@@ -328,6 +365,9 @@ def captured_line_api():
 
 
 def activation_runtime():
+    if is_v4():
+        from test_v4_audit_vendor import mounted_activation
+        return mounted_activation()
     with workspace() as (u, _, _, _):
         before = successful(u.get("/api/dashboard"))["cases"]
         _, approved = lab_action(u, successful(u.get("/api/onboarding")), "approve")
@@ -340,7 +380,8 @@ def activation_runtime():
         return [observation("W-activation-runtime", {
             "adds_governed_case": bool(set(jira_ids(current)) - set(jira_ids(before))),
             "rollback_removes_active_case": not (set(jira_ids(current)) - set(jira_ids(after))) == set(),
-        }, {"adds_governed_case": True, "rollback_removes_active_case": True}, "v3-known-limit")]
+        }, {"preactivation_refused": True, "active_amount": "120.00", "same_case_in_dashboard": True,
+             "rollback_refused": True, "history_preserved": True, "same_reviewer": True}, "defect")]
 
 
 def additional_domain():
@@ -384,3 +425,52 @@ def capture_integrity():
                 result = {}
         return [observation("A-unattested-capture-provenance", rejected or
                             "LIVE_RAMP_SANDBOX" not in result.get("sources", []), True)]
+
+
+def named_authority():
+    positive_expected = dict(named=True, role='reviewer', approvals=True, rehearsal=False,
+                             accepted=200, stage='CLAIM_APPROVED', readback_same=True)
+    refusal_expected = dict(wrong_signer=403, old_subject=403, disabled_gate=403,
+                            all_unchanged=True)
+    if not is_v4():
+        return [observation('W-named-authority-positive', {'named_protocol_present': False}, positive_expected, 'control'),
+                observation('W-named-authority-refusals', {'named_protocol_present': False}, refusal_expected)]
+    from test_v4_audit_protocol import generate_key, sign
+    from fastapi.testclient import TestClient
+    from uptime.server import create_app
+    with workspace() as (u, _, app, db):
+        case = 'dispute-partial'
+        path = '/api/cases/'+case+'/actions/approve-claim'
+        before = successful(u.get('/api/cases/'+case))
+        request = u.prepare(path, {})
+        # Sign the right challenge with a different P-256 key, retaining the valid read identity.
+        import hashlib
+        challenge = successful(u.raw.post('/api/auth/challenge', headers=u.headers,
+            json={'subject': u.subject, 'path': path, 'body_sha256': hashlib.sha256(b'{}').hexdigest()}))
+        bad = u.raw.post(path, content=b'{}', headers={**u.headers, 'X-Uptime-Challenge': challenge['challenge'],
+                        'X-Uptime-Proof': sign(generate_key(), challenge['message'])})
+        bad_state = successful(u.get('/api/cases/'+case))
+        with sqlite3.connect(db) as conn:
+            conn.execute("UPDATE authority_user SET role='viewer' WHERE subject=?", (u.subject,))
+        old = u.raw.post(path, **request)
+        with sqlite3.connect(db) as conn:
+            conn.execute("UPDATE authority_user SET role='reviewer' WHERE subject=?", (u.subject,))
+        old_state = successful(u.get('/api/cases/'+case))
+        disabled_app = create_app(db, approvals_enabled=False, origin=ORIGIN)
+        raw = TestClient(disabled_app, base_url=ORIGIN, client=('127.0.0.1', 55124), raise_server_exceptions=False)
+        disabled = SignedClient(raw, u.subject, u.key)
+        try:
+            denied = disabled.post(path, json={})
+            gate_state = successful(disabled.get('/api/cases/'+case))
+        finally:
+            disabled.close()
+        response = u.post(path, json={})
+        after = successful(u.get('/api/cases/'+case))
+        returned = response.json() if response.status_code == 200 else {}
+        return [observation('W-named-authority-positive', dict(named=u.identity['subject']==SUBJECT,
+                    role=u.identity['role'], approvals=u.identity['approvals_enabled'], rehearsal=u.identity['rehearsal'],
+                    accepted=response.status_code, stage=after['stage'],
+                    readback_same=returned.get('id')==after['id']==case and returned.get('stage')==after['stage']), positive_expected, 'control'),
+                observation('W-named-authority-refusals', dict(wrong_signer=bad.status_code, old_subject=old.status_code,
+                    disabled_gate=denied.status_code, all_unchanged=all(x['stage']==before['stage'] and x['submissions']==before['submissions']
+                        for x in (bad_state, old_state, gate_state))), refusal_expected)]
