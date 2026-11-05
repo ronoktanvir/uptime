@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends
 
 from . import vendor_registry as registry
+from .contracts import DraftReviewer
 from .vendor_terms import Strict
 
 
@@ -13,12 +14,19 @@ class Observation(Strict):
     facts: dict
 
 
+class Preview(Observation):
+    revision: int
+
+
 def make_router(db_path, actor, reviewer, check_write, mutex):
     router = APIRouter(prefix='/api/vendors')
 
     def mutate(p, fn, *args):
         with mutex:
-            check_write(p)
+            if not isinstance(p, DraftReviewer):
+                check_write(p)
+            elif fn not in {registry.install, registry.submit_tests, registry.shadow_preview}:
+                raise PermissionError("Draft capability cannot authorize this operation.")
             return fn(db_path, p, *args)
 
     @router.get('')
@@ -36,6 +44,10 @@ def make_router(db_path, actor, reviewer, check_write, mutex):
     @router.post('/{vendor_id}/tests')
     def tests(vendor_id: str, body: registry.TestSubmission, p=Depends(reviewer)):
         return mutate(p, registry.submit_tests, vendor_id, body)
+
+    @router.post('/{vendor_id}/shadow-preview')
+    def preview(vendor_id: str, body: Preview, p=Depends(reviewer)):
+        return mutate(p, registry.shadow_preview, vendor_id, body)
 
     @router.post('/{vendor_id}/actions/{action}')
     def act(vendor_id: str, action: str, body: Empty, p=Depends(reviewer)):
