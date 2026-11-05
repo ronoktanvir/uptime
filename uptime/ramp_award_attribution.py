@@ -19,7 +19,9 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field, ValidationError
 
+from . import claim_identity
 from .claim_identity import claim_key
+from .contracts import fingerprint
 
 MAX_MINOR = 10**15
 MAX_AGE = timedelta(hours=24)
@@ -182,6 +184,19 @@ class BillScope(Strict):
     evidence: Evidence  # explicitly binds this bill to the claim's beneficiary/contract
 
 
+class ExternalFilingWitness(Strict):
+    """Independent custody attestation, never an inbound service's source label."""
+    evidence_mode: Literal["ACTUAL_EXTERNAL", "MOCK"]
+    receipt_id: Id
+    receipt_sha256: Hash
+    received_at: Instant
+    submitted_to: Id
+    channel: Literal["VENDOR_PORTAL", "VENDOR_SIGNED_DOCUMENT", "VENDOR_AUTHENTICATED_CORRESPONDENCE"]
+    verification: Evidence
+    authority_verification: Evidence
+    independence_verification: Evidence
+
+
 class FiledClaim(Strict):
     claim_id: Id
     dispatch_sha256: Hash
@@ -190,6 +205,7 @@ class FiledClaim(Strict):
     scope: ClaimScope
     scope_verification: Evidence
     bills: list[BillScope] = Field(min_length=1, max_length=128)
+    external_filing: ExternalFilingWitness | None = None
 
 
 class VendorConfirmation(Evidence):
@@ -404,7 +420,7 @@ class AwardAttributionStore:
     """An offline observation journal, independently callable by RampWorkspace.
 
     Constructor configuration is trusted operator input, never request content.
-    Use the same DB as local claim_dispatch_identity (or an exact reviewed copy).
+    Use the same DB as the claim identity registry (or an exact reviewed copy).
     All tables owned here have the `award_observation_` prefix.
     """
 
@@ -496,6 +512,7 @@ class AwardAttributionStore:
             "office": "id INTEGER PRIMARY KEY CHECK(id=1), payload TEXT NOT NULL",
             "event": "sequence INTEGER PRIMARY KEY, kind TEXT NOT NULL, id TEXT NOT NULL, digest TEXT NOT NULL UNIQUE, signed TEXT NOT NULL, recorded_at TEXT NOT NULL, UNIQUE(kind,id)",
             "claim": "id TEXT PRIMARY KEY, digest TEXT NOT NULL UNIQUE, dispatch_sha256 TEXT NOT NULL, payload TEXT NOT NULL",
+            "external_receipt": "source_key TEXT PRIMARY KEY, claim_id TEXT NOT NULL UNIQUE REFERENCES award_observation_claim(id)",
             "award": "id TEXT PRIMARY KEY, claim_id TEXT NOT NULL REFERENCES award_observation_claim(id), source_key TEXT NOT NULL UNIQUE, amount INTEGER NOT NULL, payload TEXT NOT NULL",
             "snapshot": "digest TEXT PRIMARY KEY, observed_at TEXT NOT NULL, payload TEXT NOT NULL, status TEXT NOT NULL, issues TEXT NOT NULL",
             "conflict": "digest TEXT PRIMARY KEY, reason TEXT NOT NULL",
@@ -580,45 +597,243 @@ class AwardAttributionStore:
                    (s.kind, s.id, hashed, canonical_json(signed), now))
         return hashed, True
 
-    @staticmethod
-    def _dispatch(db, claim_id):
+    def _local_filing(self, db, row, tables):
+        """Resolve original persisted evidence, without current fixtures or rules."""
+        tenant, case = self._config.tenant, row["case_id"]
+        route, local = row["route"], json.loads(row["scope"])
+        if route in {"correspondence", "historical-receipt"}:
+            if "inbox_claim" not in tables:
+                fail("PREEXISTING_LOCAL_FILING_REQUIRED")
+            saved = db.execute("SELECT scope,state FROM inbox_claim WHERE tenant=? AND id=?", (tenant, case)).fetchone()
+            if not saved or json.loads(saved["scope"]) != local:
+                fail("LOCAL_FILING_SCOPE_CONFLICT")
+            state = json.loads(saved["state"])
+            if route == "historical-receipt":
+                originals = [e for e in state["evidence"] if e["kind"] == "original_filing_receipt"]
+                if len(originals) != 1 or state["submissions"]:
+                    fail("ORIGINAL_EXTERNAL_RECEIPT_REQUIRED")
+                fact = originals[0]
+                body = fact["body"]
+                expected = fingerprint([tenant, case, local, "vendor", body])
+                lock = fingerprint([tenant, local, body["receipt_id"]])
+                if (fact["source"] != "vendor" or body["kind"] != "original_filing_receipt"
+                        or body.get("original_ref") is not None or fact["digest"] != expected
+                        or row["packet_digest"] != lock or row["receipt_id"] != "HIST-" + lock):
+                    fail("EXTERNAL_RECEIPT_CONFLICT")
+                delivery = db.execute("SELECT claim,digest,received FROM inbox_delivery WHERE tenant=? AND account=? AND source='vendor' AND event_id=?",
+                                      (tenant, local["account"], fact["event_id"])).fetchone()
+                if not delivery or tuple(delivery) != (case, expected, fact["received_at"]):
+                    fail("EXTERNAL_RECEIPT_DELIVERY_REQUIRED")
+                if not _time(body["received_at"]) <= _time(body["observed_at"]) <= _time(fact["received_at"]):
+                    fail("EXTERNAL_RECEIPT_TIME_CONFLICT")
+                # The historical registry retains lineage, not the agreement version.
+                # That version must be independently attested; never use today's rules.
+                return None, fact
+            originals = [r for r in state["submissions"] if r["action"] == "submit-claim"]
+            if len(originals) != 1:
+                fail("PREEXISTING_LOCAL_FILING_REQUIRED")
+            receipt = originals[0]
+            packet = receipt["packet"]
+            if packet["tenant"] != tenant or packet["claim"] != case or packet["scope"] != local:
+                fail("LOCAL_FILING_SCOPE_CONFLICT")
+            identity = dict(tenant=tenant, vendor=local["vendor"], account=local["account"],
+                            agreement_id=packet["agreement_id"], agreement_version=packet["version"],
+                            service=local["service"], month=local["month"])
+            if "identity" in row:
+                identity["remedy"] = json.loads(row["identity"])[-1]
+            else:
+                remedies = ["availability", "resource-month/" + local["component"]]
+                matches = [r for r in remedies if claim_identity._v1_key(identity | {"remedy": r}) == row["obligation"]]
+                if len(matches) != 1:
+                    fail("HISTORICAL_REMEDY_UNRESOLVED")
+                identity["remedy"] = matches[0]
+        elif route == "legacy":
+            receipts = []
+            if "dispute_receipts" in tables:
+                receipts += [json.loads(r[0]) for r in db.execute(
+                    "SELECT body FROM dispute_receipts WHERE tenant=? AND case_id=? AND action='submit-claim'", (tenant, case))]
+            if "dispute_cases" in tables:
+                saved = db.execute("SELECT state FROM dispute_cases WHERE tenant=? AND id=?", (tenant, case)).fetchone()
+                if saved:
+                    receipts += [r for r in json.loads(saved[0])["submissions"] if r["action"] == "submit-claim"]
+            unique = {canonical_json(r): r for r in receipts}
+            if len(unique) != 1:
+                fail("PREEXISTING_LOCAL_FILING_REQUIRED")
+            receipt = next(iter(unique.values()))
+            packet = receipt["payload"]
+            identity, expected_scope = claim_identity._legacy(packet)
+            if identity["tenant"] != tenant or local != expected_scope:
+                fail("LOCAL_FILING_SCOPE_CONFLICT")
+        else:
+            # An opaque reservation is useful for MOCK capacity tests only. It
+            # never establishes delivery, regardless of its route/status spelling.
+            if "identity" not in row:
+                fail("HISTORICAL_FILING_UNRESOLVED")
+            return None, None
+        proof = claim_identity._receipt(receipt, packet)
+        if (receipt["action"] != "submit-claim" or proof["receipt_id"] != row["receipt_id"]
+                or proof["packet_digest"] != row["packet_digest"] or _time(proof["at"]) != _time(row["at"])):
+            fail("LOCAL_RECEIPT_CONFLICT")
+        return identity, receipt
+
+    def _dispatch(self, db, claim_id):
+        """Read both physical schemas; v1 versioned hashes are never v2 keys.
+
+        Normalize proven history in memory only. A migrated copy coalesces with
+        its original; different owners of one canonical obligation fail closed.
+        No registry tables, receipts, locks, or migrations are written here.
+        """
+        tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        filings = {}
         try:
-            rows = db.execute("SELECT * FROM claim_dispatch_identity WHERE case_id=? AND step='initial'", (claim_id,)).fetchall()
-        except sqlite3.OperationalError:
-            fail("PREEXISTING_LOCAL_FILING_REQUIRED")
-        if len(rows) != 1:
-            fail("PREEXISTING_LOCAL_FILING_REQUIRED")
-        return dict(rows[0])
+            for table in (claim_identity.TABLE, "claim_dispatch_identity"):
+                if table not in tables:
+                    continue
+                for saved in db.execute(f"SELECT * FROM {table} WHERE step='initial'"):
+                    row = dict(saved)
+                    economic = json.loads(row["identity"]) if table == claim_identity.TABLE else None
+                    if economic is not None:
+                        if not isinstance(economic, list) or len(economic) != 7:
+                            fail("INVALID_LOCAL_FILING")
+                        if economic[0] != self._config.tenant:
+                            continue
+                    else:
+                        # v1 omitted tenant; resolve it from the stored scope/case.
+                        local = json.loads(row["scope"])
+                        owner = local.get("tenant")
+                        if row["route"] == "correspondence" and "inbox_claim" in tables:
+                            owners = [r[0] for r in db.execute("SELECT tenant,scope FROM inbox_claim WHERE id=?", (row["case_id"],))
+                                      if json.loads(r[1]) == local]
+                            if len(owners) != 1:
+                                fail("HISTORICAL_FILING_UNRESOLVED")
+                            owner = owners[0]
+                        if owner is None:
+                            fail("HISTORICAL_FILING_UNRESOLVED")
+                        if owner != self._config.tenant:
+                            continue
+                    identity, receipt = self._local_filing(db, row, tables)
+                    if identity is not None:
+                        proven = claim_identity._economic(**identity)
+                        if economic is not None and economic != proven:
+                            fail("LOCAL_FILING_SCOPE_CONFLICT")
+                        if economic is None and row["obligation"] != claim_identity._v1_key(identity):
+                            fail("LOCAL_FILING_SCOPE_CONFLICT")
+                        economic = proven
+                    if economic is None:
+                        fail("HISTORICAL_FILING_UNRESOLVED")
+                    identity_check = dict(tenant=economic[0], vendor=economic[1], account=economic[2],
+                        agreement_id=economic[3], service=economic[4], month=economic[5], remedy=economic[6],
+                        agreement_version="excluded-from-v2-identity")
+                    if claim_identity._economic(**identity_check) != economic:
+                        fail("INVALID_LOCAL_FILING")
+                    key = claim_key(**identity_check)
+                    if table == claim_identity.TABLE and row["obligation"] != key:
+                        fail("LOCAL_FILING_SCOPE_CONFLICT")
+                    normalized = {k: row[k] for k in ("step", "route", "case_id", "packet_digest", "receipt_id")}
+                    normalized.update(obligation=key, scope=canonical_json(json.loads(row["scope"])),
+                                      at=_time(row["at"]), identity=economic, receipt=receipt,
+                                      contract_version=identity["agreement_version"] if identity else None)
+                    old = filings.get(key)
+                    if old is not None and old != normalized:
+                        fail("CANONICAL_FILING_CONFLICT")
+                    filings[key] = normalized
+            # An older writer may append receipts after the v2 migration. Do
+            # not overlook an unindexed second filing just because v2 exists.
+            indexed = {(r["route"], r["case_id"], r["receipt_id"]) for r in filings.values()}
+            for table, route in (("inbox_claim", "correspondence"), ("dispute_cases", "legacy")):
+                if table in tables:
+                    for case, raw in db.execute(f"SELECT id,state FROM {table} WHERE tenant=?", (self._config.tenant,)):
+                        for receipt in json.loads(raw)["submissions"]:
+                            if receipt["action"] == "submit-claim" and (route, case, receipt["id"]) not in indexed:
+                                fail("UNINDEXED_HISTORICAL_FILING")
+            if "dispute_receipts" in tables:
+                for case, rid in db.execute("SELECT case_id,id FROM dispute_receipts WHERE tenant=? AND action='submit-claim'",
+                                            (self._config.tenant,)):
+                    if ("legacy", case, rid) not in indexed:
+                        fail("UNINDEXED_HISTORICAL_FILING")
+            rows = [r for r in filings.values() if r["case_id"] == claim_id]
+            if len(rows) != 1:
+                fail("PREEXISTING_LOCAL_FILING_REQUIRED")
+            return rows[0]
+        except AttributionError:
+            raise
+        except (sqlite3.DatabaseError, KeyError, TypeError, ValueError, IndexError):
+            fail("INVALID_LOCAL_FILING")
+
+    def _filing_scope(self, dispatch, body, issued_at):
+        s = body.scope
+        try:
+            expected = claim_key(tenant=self._config.tenant, vendor=s.vendor_name, account=s.account_id,
+                                 agreement_id=s.contract_id, agreement_version=s.contract_version,
+                                 service=s.service_name, month=s.month, remedy=s.remedy)
+        except ValueError:
+            fail("LOCAL_FILING_SCOPE_CONFLICT")
+        local = json.loads(dispatch["scope"])
+        required = dict(account=s.account_id, vendor=s.vendor_name, contract=body.local_contract_id,
+                        service=s.service_name, currency=s.currency, month=s.month)
+        if dispatch["route"] == "legacy":
+            # This historical wire format has no local contract alias or currency.
+            required = dict(account=s.account_id, vendor=s.vendor_name, product=s.service_name, month=s.month)
+            if body.local_contract_id != s.contract_id or s.currency != "USD" or s.minor_unit_conversion_rate != 100:
+                fail("LOCAL_FILING_SCOPE_CONFLICT")
+        # Human-readable labels share the registry's NFC/casefold semantics.
+        for k in ("vendor", "service", "product"):
+            if k in required and k in local:
+                local[k], required[k] = claim_identity._label(local[k]), claim_identity._label(required[k])
+        if (dispatch["obligation"] != expected or any(local.get(k) != v for k, v in required.items())
+                or dispatch["contract_version"] not in (None, s.contract_version)):
+            fail("LOCAL_FILING_SCOPE_CONFLICT")
+        if dispatch["at"] > issued_at:
+            fail("FILING_MUST_PREEXIST_REGISTRATION")
+        if self._config.evidence_mode == "ACTUAL_NATIVE":
+            witness = body.external_filing
+            if dispatch["route"] != "historical-receipt" or witness is None or witness.evidence_mode != "ACTUAL_EXTERNAL":
+                fail("ACTUAL_EXTERNAL_FILING_REQUIRED")
+            fact = dispatch["receipt"]
+            receipt = fact["body"]
+            if (witness.receipt_id != receipt["receipt_id"] or witness.receipt_sha256 != digest(fact)
+                    or witness.received_at != _time(receipt["received_at"])
+                    or witness.submitted_to != receipt["submitted_to"]):
+                fail("EXTERNAL_FILING_WITNESS_CONFLICT")
+            if _time(fact["received_at"]) > issued_at:
+                fail("FILING_MUST_PREEXIST_REGISTRATION")
 
     def filing_identity(self, claim_id):
         """Read-only review aid. An applicant-supplied digest is never sufficient."""
         with self._db() as db:
             return digest(self._dispatch(db, claim_id))
 
+    def _filing_roles(self):
+        return {"claim_registrar", "vendor_verifier"} if self._config.evidence_mode == "ACTUAL_NATIVE" else {"claim_registrar"}
+
+    def _dispatch_matches(self, db, dispatch, hashed):
+        if digest(dispatch) == hashed:
+            return True
+        # Pre-upgrade MOCK registrations signed the physical v1 row. Retain
+        # that signature only while the original row AND its proven history
+        # still exist. Old ACTUAL registrations without external proof close.
+        if self._config.evidence_mode == "MOCK" and db.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='claim_dispatch_identity'").fetchone():
+            rows = db.execute("SELECT * FROM claim_dispatch_identity WHERE case_id=? AND receipt_id=? AND step='initial'",
+                              (dispatch["case_id"], dispatch["receipt_id"])).fetchall()
+            return len(rows) == 1 and digest(dict(rows[0])) == hashed
+        return False
+
     def register_claim(self, envelope, *, at=None):
         now = self._now(at)
         body = _parse(FiledClaim, _parse(SignedStatement, envelope).statement.body)
-        signed, witnesses = self._verified(envelope, "filed_claim", {"claim_registrar"}, now, body.scope)
+        signed, witnesses = self._verified(envelope, "filed_claim", self._filing_roles(), now, body.scope)
         _unique(body.bills, "bill_id")
-        if witnesses["claim_registrar"].operator_id == body.claimant_operator_id:
+        if body.claimant_operator_id in {w.operator_id for w in witnesses.values()}:
             fail("CLAIMANT_CANNOT_REGISTER_SCOPE")
         with self._db(write=True) as db:
             dispatch = self._dispatch(db, body.claim_id)
-            if digest(dispatch) != body.dispatch_sha256:
+            if not self._dispatch_matches(db, dispatch, body.dispatch_sha256):
                 fail("LOCAL_FILING_IDENTITY_CONFLICT")
+            self._filing_scope(dispatch, body, signed.statement.issued_at)
             s = body.scope
-            expected = claim_key(tenant=self._config.tenant, vendor=s.vendor_name, account=s.account_id,
-                                 agreement_id=s.contract_id, agreement_version=s.contract_version,
-                                 service=s.service_name, month=s.month, remedy=s.remedy)
-            local = json.loads(dispatch["scope"])
-            required = dict(account=s.account_id, vendor=s.vendor_name, contract=body.local_contract_id,
-                            service=s.service_name, currency=s.currency, month=s.month)
-            if dispatch["obligation"] != expected or any(local.get(k) != v for k, v in required.items()):
-                fail("LOCAL_FILING_SCOPE_CONFLICT")
-            if _time(dispatch["at"]) > signed.statement.issued_at:
-                fail("FILING_MUST_PREEXIST_REGISTRATION")
             old = db.execute("SELECT payload FROM award_observation_claim WHERE id=?", (body.claim_id,)).fetchone()
-            if old and old[0] != canonical_json(body):
+            if old and _parse(FiledClaim, json.loads(old[0])) != body:
                 fail("IMMUTABLE_CLAIM_SCOPE_CONFLICT")
             owner = _scope_owner(s)
             for bill in body.bills:
@@ -631,6 +846,9 @@ class AwardAttributionStore:
             if created:
                 db.execute("INSERT INTO award_observation_claim VALUES(?,?,?,?)",
                            (body.claim_id, hashed, body.dispatch_sha256, canonical_json(body)))
+                if self._config.evidence_mode == "ACTUAL_NATIVE":
+                    db.execute("INSERT INTO award_observation_external_receipt VALUES(?,?)",
+                               (digest([s.vendor_id, body.external_filing.receipt_id]), body.claim_id))
                 for bill in body.bills:
                     db.execute("INSERT OR IGNORE INTO award_observation_bill_owner VALUES(?,?)", (bill.bill_id, owner))
         return dict(status="REGISTERED", claim_sha256=hashed, duplicate=not created)
@@ -650,10 +868,12 @@ class AwardAttributionStore:
         registered = db.execute("SELECT recorded_at FROM award_observation_event WHERE digest=?", (hashed,)).fetchone()[0]
         if registered > issued_at:
             fail("CLAIM_MUST_PREEXIST_SIGNATURE")
-        if digest(self._dispatch(db, claim_id)) != row["dispatch_sha256"]:
+        dispatch = self._dispatch(db, claim_id)
+        if not self._dispatch_matches(db, dispatch, row["dispatch_sha256"]):
             fail("LOCAL_FILING_CHANGED")
         claim = _parse(FiledClaim, json.loads(row["payload"]))
-        self._evidence_authority(db, hashed, "filed_claim", {"claim_registrar"}, claim.scope, now)
+        self._filing_scope(dispatch, claim, registered)
+        self._evidence_authority(db, hashed, "filed_claim", self._filing_roles(), claim.scope, now)
         return claim
 
     def import_award(self, envelope, *, at=None):
