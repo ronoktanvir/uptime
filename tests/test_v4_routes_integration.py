@@ -6,9 +6,8 @@ import secrets
 import pytest
 from fastapi.testclient import TestClient
 
-from uptime.auth import DEFAULT_ORIGIN, enroll
+from uptime.auth import DEFAULT_ORIGIN, SCRIPT
 from uptime.auth_client import ReviewerClient, service_headers
-from uptime.auth_keys import generate_reviewer_key
 from uptime.server import create_app
 
 SCOPE = dict(account="north-612", vendor="Boreal Relay", contract="BR-74", service="Message Store",
@@ -29,12 +28,11 @@ Service credits apply to affected monthly fees on a future invoice."""
 
 class App:
     def __init__(self, path):
-        key = generate_reviewer_key()
-        enroll(path, "maria.reviewer", key)
+        key = secrets.token_urlsafe(32)
         self.keys = {source + "-fixture":secrets.token_hex(32) for source in ("status", "customer", "billing", "vendor")}
-        self.app = create_app(path, approvals_enabled=True, service_credentials=self.keys)
+        self.app = create_app(path, rehearsal=True, rehearsal_secret=key, approvals_enabled=True, service_credentials=self.keys)
         self.client = TestClient(self.app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 4510))
-        self.human = ReviewerClient(self.client, DEFAULT_ORIGIN, "maria.reviewer", key)
+        self.human = ReviewerClient(self.client, DEFAULT_ORIGIN, SCRIPT, key)
         self.inbox = self.app.state.correspondence
         self.now = datetime(2026,11,3,tzinfo=UTC)
         self.inbox.clock = lambda: self.now
@@ -45,7 +43,7 @@ class App:
     def provision(self):
         self.inbox.provision("bears", *(self.scope[k] for k in ("account", "vendor", "contract", "service", "component", "region")))
         for subject in self.keys:
-            self.inbox.bind_sender("bears", self.scope["account"], subject.removesuffix("-fixture"), subject)
+            self.inbox.bind_sender("bears", self.scope["account"], subject.removesuffix("-fixture"), subject, scope=self.scope)
 
     def post(self, path, payload):
         result = self.human.post(path,payload)
@@ -188,6 +186,7 @@ def test_active_effective_dates_must_cover_entire_measurement_month(env):
     env.scope.update(month="2027-01", invoice="next-invoice", incident="next-event")
     env.id="inbox-future"
     env.url="/api/correspondence/claims/"+env.id
+    env.provision()
     assert env.create()["outcome"]=="UNSUPPORTED_RULE"
 
 
@@ -207,3 +206,12 @@ def test_conflicting_duplicate_month_record_invalidates_approval(env):
     row = env.read()
     assert row["approval"] is None and row["outcome"]=="INSUFFICIENT_EVIDENCE"
     assert env.human.post(env.url+"/actions/submit-claim",{}).status_code==409
+
+@pytest.mark.parametrize("field,other", [("incident", "invented"), ("month", "2025-01"),
+                                         ("invoice", "other-invoice"), ("currency", "EUR")])
+def test_exact_source_binding_prevents_early_registration_of_invented_claim(env, field, other):
+    env.provision()
+    assert env.human.post("/api/correspondence/claims", dict(
+        claim_id="inbox-wrong", scope=env.scope | {field: other})).status_code == 403
+    assert env.create()["id"] == env.id
+    assert env.source("status-fixture", dict(kind="status", **INTERVAL)).status_code == 200
