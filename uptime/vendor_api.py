@@ -1,5 +1,6 @@
 """Authenticated vendor catalog router. The application supplies session and mutation guards."""
 from fastapi import APIRouter, Depends
+from datetime import datetime,UTC
 
 from . import vendor_registry as registry
 from .contracts import DraftReviewer
@@ -18,7 +19,11 @@ class Preview(Observation):
     revision: int
 
 
-def make_router(db_path, actor, reviewer, check_write, mutex):
+def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=None, trusted_now=None):
+    from .governing_fees import FeeRegistry
+    if governing_fees is not None and type(governing_fees) is not FeeRegistry:
+        raise TypeError('A fixed server FeeRegistry is required; arbitrary fee callbacks are not supported.')
+    clock=trusted_now or (lambda:datetime.now(UTC))
     router = APIRouter(prefix='/api/vendors')
 
     def mutate(p, fn, *args):
@@ -27,7 +32,16 @@ def make_router(db_path, actor, reviewer, check_write, mutex):
                 check_write(p)
             elif fn not in {registry.install, registry.submit_tests, registry.shadow_preview}:
                 raise PermissionError("Draft capability cannot authorize this operation.")
-            return fn(db_path, p, *args)
+            extra={}
+            if governing_fees is not None and not isinstance(p,DraftReviewer) and fn in {registry.submit_tests,registry.shadow_preview,registry.dispatch}:
+                contexts=governing_fees.contexts_from_inbox(db_path,p.tenant,as_of=clock())
+                if fn is registry.submit_tests:
+                    extra['governing_fees']=contexts
+                else:
+                    artifact=registry.get_vendor(db_path,p,args[0])
+                    facts=args[1].facts if fn is registry.shadow_preview else args[1]
+                    extra['governing_fee']=registry._fee_for(contexts,artifact['manifest'],artifact['overlay'],facts,p.tenant)
+            return fn(db_path, p, *args,**extra)
 
     @router.get('')
     def catalog(p=Depends(actor)):

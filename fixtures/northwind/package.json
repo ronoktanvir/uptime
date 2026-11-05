@@ -6,13 +6,15 @@
     "amendment-2026-03.txt": "82d6d99e53b4784f19c118f6feb4b032d17da77985832bd1947c14564e0cfff7",
     "document.json": "2ec3e3332bb73525100f50389d53f33d6ca07a3af0f9a4cdcd61727dcbc62fa7",
     "overlay.json": "e341b986908b5011c7514d8ab1eaa6f78113d9f4fd93062027d165ae22004c1b",
-    "agreement.json": "d9c26958b39683a39723cb01c9e3dfafafabb4efde48671b52844962262aff3b",
+    "agreement.json": "f916435977155971ea6945a517edfd2c39945812169ba964c980a701a2a49b0b",
     "invoices.json": "929ab9227711447d458ae34f1ab6f4dbdf0f03567f35cb65b54cbaa94355e185",
     "usage.json": "c703d35a67c836f759f1c1d3065b0173c48538fbc610b245ea1c245358720366",
-    "citations.json": "e6c3105ff1b4ae016367faf1b2b82516d1b478ef1e06d42871e9a1e0dba2b8d6",
-    "signatures.json": "6bb79ae2c85fee197d29073c931f2875e375b9ac530129284d3a40e3c9a3ea98",
+    "citations.json": "9057f072aa1fa372b0c981e36481facc394c3ca7ddeec01b18f50ead7512a36f",
+    "signatures.json": "8ecb28081b275e2317668601bf5130a823db9d90b55596a73f7421a9ec24ff68",
     "january-resource-log.txt": "d6286805ecba90c66fbeeb7da036b731734efdc951aa95c29fea8e9fefc413f4",
     "supplements.json": "de51cc326dbc6ff9452cc1034e654f23d7572b04f670b79b7dba24b1cf688eec",
-    "correspondence.json": "e1c5f1c9cab68218daf186f642b388ff2cb73354198f7c53368f4ccb454682be"
+    "correspondence.json": "d26efd2ca52a4bc3dc1ad162efd362fc2c2a829e2d2842882cc36de009f26423",
+    "order-monthly-rate.txt": "77fbd2378fb7475979cda3a5a54c5280953ec26410fe72f6f98594444b5b14e5",
+    "amendment-monthly-rate.txt": "6667e899c409de21b00ba125ca0c7e1de507ff144ce7bac514a77c3aa47e7fa4"
   }
 }

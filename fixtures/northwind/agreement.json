@@ -25,7 +25,18 @@
           ],
           "mode": "graduated",
           "quantity_scope": "complete_performance_slice",
-          "boundary": "upper_inclusive"
+          "boundary": "upper_inclusive",
+          "fixed_monthly": {
+            "source_text": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 12000.00. Invoice quantity must equal one; taxes are separate and excluded.\n",
+            "source_file": "order-monthly-rate.txt",
+            "source_sha256": "77fbd2378fb7475979cda3a5a54c5280953ec26410fe72f6f98594444b5b14e5",
+            "citation": {
+              "document": "Order Form NW-2026-001 monthly rate schedule",
+              "version": "order-v1",
+              "section": "Complete fixed monthly rate schedule",
+              "uri": "urn:northwind:NW-2026-001:order-monthly-rate.txt"
+            }
+          }
         }
       ],
       "excluded_products": [
@@ -65,7 +76,18 @@
           ],
           "mode": "graduated",
           "quantity_scope": "complete_performance_slice",
-          "boundary": "upper_inclusive"
+          "boundary": "upper_inclusive",
+          "fixed_monthly": {
+            "source_text": "For Cloud Hosting, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 11000.00. Invoice quantity must equal one; taxes are separate and excluded.\n",
+            "source_file": "amendment-monthly-rate.txt",
+            "source_sha256": "6667e899c409de21b00ba125ca0c7e1de507ff144ce7bac514a77c3aa47e7fa4",
+            "citation": {
+              "document": "Amendment 1 to NW-2026-001 monthly rate schedule",
+              "version": "amendment-v2",
+              "section": "Complete fixed monthly rate schedule",
+              "uri": "urn:northwind:NW-2026-001:amendment-monthly-rate.txt"
+            }
+          }
         }
       ],
       "excluded_products": [

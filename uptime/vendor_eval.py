@@ -64,7 +64,7 @@ def usd_estimate(fee_cents, credit_units):
     return f'{whole}.{tail}'
 
 
-def evaluate(manifest, overlay, facts, tenant, *, bindings=None):
+def evaluate(manifest, overlay, facts, tenant, *, bindings=None, governing_fee=None):
     if manifest['family'] == 'resource-month/1':
         from .vendor_resource_eval import evaluate_resource
         return evaluate_resource(manifest,overlay,facts,tenant,bindings=bindings)
@@ -113,10 +113,10 @@ def evaluate(manifest, overlay, facts, tenant, *, bindings=None):
     down = facts.get('eligible_downtime_minutes')
     if type(down) is not int or not 0 <= down <= minutes:
         return stop(Outcome.MISSING, 'Confirmed downtime minutes are missing or out of range.', ['eligible_downtime_minutes'])
-    fee = facts.get('monthly_fee_cents')
-    if type(fee) is not int or not 0 <= fee <= 10**15 or facts.get('fee_month', month) != month:
+    fee = None if step_rule else facts.get('monthly_fee_cents')
+    if not step_rule and (type(fee) is not int or not 0 <= fee <= 10**15 or facts.get('fee_month', month) != month):
         return stop(Outcome.MISSING, 'Verified affected fee line in cents for this month is required.', ['monthly_fee_cents'])
-    for key in ('monitor_ref', 'fee_ref'):
+    for key in (('monitor_ref',) if step_rule else ('monitor_ref','fee_ref')):
         if key in facts and (not isinstance(facts[key], str) or not facts[key].strip() or len(facts[key]) > 160):
             return stop(Outcome.MISSING, 'Malformed observation source reference.', [key])
     # The observation digest itself is a local immutable reference if no external reference is supplied.
@@ -142,7 +142,15 @@ def evaluate(manifest, overlay, facts, tenant, *, bindings=None):
     if not rate:
         return stop(Outcome.INELIGIBLE, message)
     if step_rule:
-        return stop(Outcome.MISSING, 'Trusted governing-fee pricing context is required for completed-step credit.', ['governing_fee_context'])
+        from .governing_fees import require_governing_fee
+        try:
+            context=require_governing_fee(governing_fee,manifest,overlay,facts,tenant)
+        except (ValueError,TypeError,KeyError):
+            return stop(Outcome.MISSING, 'Trusted governing-fee pricing context is required for completed-step credit.', ['governing_fee_context'])
+        fee=context.fee_minor
+        base.update(governing_fee_digest=context.digest,governing_fee_cents=fee,
+                    governing_pricing_version=context.governing_pricing_version,pricing_as_of=context.as_of,
+                    provenance_class=context.provenance_class,fee_ref=context.signed_evidence_digest)
     if fee == 0:
         base['issuance_status']='NO_POSITIVE_CREDIT'
         base['service_estimate']='0.00'

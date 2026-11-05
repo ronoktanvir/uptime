@@ -12,14 +12,16 @@ from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from uptime.contracts import Citation
+from uptime.contracts import Citation,fingerprint
+from uptime.pricing_terms import compile_fixed_monthly
 from uptime.pricing import Agreement,ContractVersion,Rate,Tier,Invoice,InvoiceLine,evaluate_price
 from uptime.vendor_terms import Document,Overlay,bind_overlay,compile_terms
 
 ROOT=Path(__file__).resolve().parent
 INPUTS=('order-form.txt','amendment-2026-03.txt','document.json','overlay.json','agreement.json',
         'invoices.json','usage.json','citations.json','signatures.json',
-        'january-resource-log.txt','supplements.json','correspondence.json')
+        'january-resource-log.txt','supplements.json','correspondence.json',
+        'order-monthly-rate.txt','amendment-monthly-rate.txt')
 
 
 def _at(value):
@@ -53,6 +55,12 @@ def verify_package(root):
                 or text[citation['start']:citation['end']]!=citation['quote']
                 or sha256(citation['quote'].encode()).hexdigest()!=citation['quote_sha256']):
             raise ValueError('Source citation bytes changed.')
+    for version in _json(root,'agreement.json')['versions']:
+        for rate in version['rates']:
+            terms=rate.get('fixed_monthly')
+            if terms and (terms['source_sha256']!=index['input_sha256'].get(terms['source_file'])
+                          or terms['source_text']!=(root/terms['source_file']).read_text()):
+                raise ValueError('Typed fixed monthly schedule does not match its complete source bytes.')
     for row in _json(root,'usage.json'):
         spans=sorted(row['eligible_intervals'],key=lambda span:span['start'])
         total=0;previous=None
@@ -80,7 +88,8 @@ def _agreement(data):
     versions=[]
     for row in data['versions']:
         rates=tuple(Rate(r['product'],r['unit'],tuple(Tier(Decimal(t['upper']) if t['upper'] is not None else None,
-            Decimal(t['rate'])) for t in r['tiers']),r['mode'],r['quantity_scope'],r['boundary']) for r in row['rates'])
+            Decimal(t['rate'])) for t in r['tiers']),r['mode'],r['quantity_scope'],r['boundary'],
+            compile_fixed_monthly(r['fixed_monthly']['source_text'],Citation(**r['fixed_monthly']['citation'])) if r.get('fixed_monthly') else None) for r in row['rates'])
         versions.append(ContractVersion(row['id'],_at(row['effective_at']),_at(row['signed_at']),tuple(row['signatories']),
             row['supersedes'],rates,tuple(row['excluded_products']),Citation(**row['citation']),row['currency'],
             row['tax_treatment'],row['rounding']))
@@ -133,9 +142,22 @@ def load_package(directory=None):
             month_complete=observation['month_complete'],exclusions_removed=observation['exclusions_removed'],
             monthly_fee_cents=cents,fee_month=month,fee_ref=invoice.id+':'+(finding.version if finding else 'unresolved'),received_at=row['received_at'])
         months.append(dict(month=month,facts=facts,invoice=invoice,invoice_input=row['invoice'],usage=observation,
-            pricing_result=price,governing_fee_cents=cents,governing_fee_version=finding.version if finding else None,
+            pricing_result=price,scope=dict(account=overlay['account'],vendor=document['text'].splitlines()[1].removeprefix('Vendor: '),contract=overlay['agreement'],
+                service=overlay['product'],component=observation['component_id'],invoice=invoice.id,incident=observation['incident_id'],
+                currency='USD',month=month,region=observation['region']),
+            governing_fee_cents=cents,governing_fee_version=finding.version if finding else None,
             receipt_ref=row['receipt_ref'],citations=[v['citation'] for v in agreement_data['versions'] if finding is not None and v['id']==finding.version]))
     return dict(tenant=index['tenant'],document=document,overlay=overlay,manifest=manifest,pricing_agreement=agreement,
                 pricing_agreement_input=agreement_data,months=months,citations=_json(root,'citations.json'),
                 signature_records=_json(root,'signatures.json'),supplements=_json(root,'supplements.json'),
                 correspondence=_json(root,'correspondence.json'),input_sha256=index['input_sha256'])
+
+
+def build_fee_registry(package):
+    """Trusted fixed input registration only; no synthetic signature/grant minting."""
+    from uptime.correspondence_types import Scope
+    from uptime.governing_fees import FeeEntry,FeeRegistry
+    overlay=bind_overlay(package['manifest'],Overlay(**package['overlay']))
+    return FeeRegistry(tuple(FeeEntry('northwind-fee-'+row['month'],package['tenant'],Scope(**row['scope']),
+        overlay['plan'],overlay['fee_line_ref'],package['pricing_agreement'],row['invoice'],
+        package['manifest']['document']['sha256'],fingerprint(package['manifest']),fingerprint(overlay)) for row in package['months']))
