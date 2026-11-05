@@ -12,7 +12,8 @@ from .onboarding import _atomic
 from .storage import database, now, persist_case, _read_versions
 from .vendor_eval import evaluate, generated_checks, rate_for
 from .vendor_model import staged_extraction
-from .vendor_terms import Intake, Strict, bind_overlay, candidate_version, semantics_revision
+from .vendor_terms import Document, Intake, Strict, bind_overlay, candidate_version, semantics_revision
+from .vendor_public_diagnostics import selected_attachment, public_issues
 
 SOURCES = [Source.REPLAY.value, Source.CUSTOMER.value, Source.VENDOR.value]
 SCOPE_REVIEW_REASON = 'Ambiguous economic scope requires manual reconciliation.'
@@ -152,13 +153,16 @@ def _view(db, p, vendor, state):
     audit = [dict(row) for row in db.execute(
         'SELECT revision,kind,actor,at FROM v4_vendor_event WHERE tenant=? AND vendor=? ORDER BY revision', (p.tenant, vendor))]
     state=_capability(db,p,vendor,state)
-    result = {k: v for k, v in state.items() if k != 'tests'}
+    result = {k: v for k, v in state.items() if k not in {'tests','public_source_document','public_source_diagnostic','public_source_issues'}}
     result.update(vendor_id=vendor, audit=audit, actions=[], sources=SOURCES)
     if state["state"] == "QUARANTINED":
         # Older append-only events may contain exception text from private input.
         reason = state.get("reason")
         result["reason"] = (reason if isinstance(reason, str) and reason in PUBLIC_QUARANTINE_REASONS
                             else "Source or overlay validation failed.")
+        issues = public_issues(state.get('public_source_document'), state.get('public_source_diagnostic'))
+        if issues:
+            result['public_source_issues'] = issues
     if artifact:
         result.update(artifact)
     if p.role == 'reviewer' and not isinstance(p, DraftReviewer):
@@ -210,7 +214,18 @@ def install(path, p, vendor, body):
                 reason = SCOPE_REVIEW_REASON
             state.update(state='QUARANTINED', outcome=Outcome.UNSUPPORTED.value, rejected_digest=sha256(json.dumps(body, sort_keys=True, allow_nan=True).encode()).hexdigest(),
                          reason=reason)
-            if old and old.get('rejected_digest') == state['rejected_digest'] and old['state'] == 'QUARANTINED':
+            # Public diagnostics are independent of overlay success and always
+            # accompany the generic refusal. Only an explicit offline attachment
+            # for these exact approved public bytes may supply a source quote.
+            try:
+                document = Document.model_validate(body.get('document') if isinstance(body, dict) else None)
+                attachment = selected_attachment(document)
+                if attachment:
+                    state.update(public_source_document=document.model_dump(), public_source_diagnostic=attachment)
+            except (ValueError, TypeError):
+                pass
+            if (old and old.get('rejected_digest') == state['rejected_digest'] and old['state'] == 'QUARANTINED'
+                    and old.get('public_source_diagnostic') == state.get('public_source_diagnostic')):
                 return _view(db, p, vendor, old)
             _event(db, p, vendor, state, 'Quarantined intake; dispatch suspended')
             return _view(db, p, vendor, state)

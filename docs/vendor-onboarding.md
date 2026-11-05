@@ -128,6 +128,22 @@ The compiler checks the order of operands and their elapsed units. For example, 
 
 The public-only rejection replay also returns a `diagnostics` array for resource-month proposals. It checks independent blocks and fields and reports any remaining aggregate dependency error. It verifies the historical receipt’s content address, leaves it untouched, and provides no promotion action. Even a proposal that validates under newer code still requires fresh intake and the full independent review sequence.
 
+An operator can explicitly export a bounded public diagnostic attachment during offline replay.
+
+```sh
+python -m uptime.vendor_model \
+  --document /operator-approved/public.json \
+  --approved-sha256 <exact-public-source-sha256> \
+  --replay-rejection /operator-approved/rejections/<rejected-receipt-sha256>.json \
+  --diagnostic-output-dir /operator-owned/extractions
+```
+
+Use the operator-owned directory already selected by `UPTIME_PUBLIC_EXTRACTIONS`. Export creates an immutable report under `public-diagnostics/<diagnostic-sha256>.json` and explicitly selects it through `<source-sha256>.diagnostic.json`. A subsequent signed intake of the exact public source can attach `public_source_issues` to its quarantine detail. The existing vendor detail displays those issues alongside the generic refusal. A repeated intake appends a new event only when its selected attachment changes. Repeated reads preserve the event history.
+
+Reports contain fixed reason codes and byte-checked original public slices, with bounded quote sizes and the rejected receipt's digest. Explanations come from a fixed server table. Private overlay failures retain generic messages, and approved public issues appear independently of overlay success. Model rationale and exception text cannot enter the attachment. Normal intake resolves the exact operator-selected report without traversing rejection archives or invoking a model. Mismatched source hashes, modified quotes, extra fields and stale validator revisions produce the generic refusal. Export requires a currently rejected proposal with exact source-block diagnostics.
+
+Extraction hints and compilation share the existing whitespace normalization, including ordinary NBSP, while provenance retains the original source bytes and offsets. The no-minimum-duration operator accepts bounded affirmative assertions and refuses additional unsupported duration quantities or conditions in the same block. Hyphenation and zero-width characters remain unresolved. Issuer verification requires a source-bound provider process or issuance condition. The legacy claimant-proof combination is retained only with explicit proof language, source-bound filing fields and `request_contents`; every such `verification` label becomes internal `claimant_supporting_proof`. This internal label grants no issuer authority and remains outside the input vocabulary.
+
 ## Regional subscriptions and independent monitors
 
 A `subscription` operator binds coverage to an account, service edition, region, accepted contract version and signed interval covering the whole month. The private overlay supplies `subscription_record`. Its `verified`, `signed`, `ref`, `account`, `agreement`, `product`, `plan`, `region`, `contract_version`, `active_from`, `active_until` and `subscription_type` must establish that scope. The observation repeats the region.
