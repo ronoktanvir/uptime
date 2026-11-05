@@ -677,6 +677,8 @@ class CorrespondenceDesk:
                     mode="LOCAL_SIMULATOR", policy="ASSISTED", tenant=p.tenant, scope=scope.model_dump(), stage=stage,
                     outcome=outcome, amount=amount, currency=scope.currency, contract_version=current.version or None,
                     contract_source_sha256=current.contract_source_sha256,
+                    governing_fee_digest=current.governing_fee_digest,
+                    governing_pricing_version=current.governing_pricing_version,
                     sources=SOURCES + [Source.VENDOR.value],
                     trace=list(evaluation.trace), preflight=dict(outcome=evaluation.outcome, trace=list(evaluation.trace),
                     missing=list(evaluation.missing), clauses=[asdict(c) for c in evaluation.clauses]),

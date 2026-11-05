@@ -32,7 +32,10 @@ class ModeRequest(Empty):
 
 
 def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=False, rehearsal_secret=None,
-               service_credentials=None, origin=DEFAULT_ORIGIN, tenant=TENANT, native_config=None, award_office=None):
+               service_credentials=None, origin=DEFAULT_ORIGIN, tenant=TENANT, native_config=None, award_office=None,
+               workflow_config=None):
+    if workflow_config is not None and (native_config is not None or mode != 'replay' or not rehearsal or tenant != TENANT):
+        raise PermissionError('A configured local workflow requires its isolated rehearsal workspace, without a native connection.')
     auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant)
     bench = Workbench(db_path, mode) if tenant == TENANT else Workbench(db_path, mode, tenant=tenant)
     app = FastAPI(title="Uptime for Ramp", docs_url=None, redoc_url=None, openapi_url=None)
@@ -153,11 +156,15 @@ def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=Fal
 
     if find_spec("uptime.v4_routes") is not None:
         from .v4_routes import register_v4_routes
-        register_v4_routes(app, bench, auth)
+        register_v4_routes(app, bench, auth,
+            governing_fees=workflow_config.get('governing_fees') if workflow_config is not None else None,
+            trusted_now=(lambda:app.state.workflow.now()) if workflow_config is not None else None)
     from .ramp_workspace import register_ramp_workspace
     native_workspace = register_ramp_workspace(app, bench, auth, award_office=award_office)
     if native_config is not None:
         from .ramp_native_binding import register_native_binding
         native_workspace.native_binding = register_native_binding(app, workspace=native_workspace, auth=auth, config_path=native_config)
+    from .northwind_workflow import register_workspace_workflow
+    register_workspace_workflow(app, bench, auth, workflow_config)
     app.mount("/static",StaticFiles(directory=ROOT/"web",check_dir=False),name="static")
     return app

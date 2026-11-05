@@ -41,6 +41,13 @@ def _economics(manifest, overlay):
         semantics["private_plan"] = overlay["plan"]
         semantics["private_mappings"] = [overlay.get(k) for k in ("symptom_aliases","cause_aliases","public_plan","public_product")]
         return fingerprint(semantics)
+    if "credit_rule" in manifest:
+        from .vendor_eval import rate_for
+        # Validate the exhaustive variant; never mix old tiers with stepped rules.
+        rate_for(manifest, overlay["product"], overlay["plan"], 1, 1)
+        filing_days = overlay.get("override", {}).get("filing_days", manifest["filing_days"])
+        return fingerprint([manifest["family"], manifest["period"], manifest["remedy"], overlay["plan"],
+                            manifest["credit_rule"], manifest["credit_rounding"], filing_days])
     tiers = sorted((t["below_units"], t["credit_units"]) for t in manifest["tiers"]
                    if t["product"] == overlay["product"] and t["plan"] == overlay["plan"])
     filing_days = overlay.get("override", {}).get("filing_days", manifest["filing_days"])
@@ -188,7 +195,7 @@ def _filing_receipts(db, tenant, scope):
     return receipts
 
 
-def resolve_active(path, tenant, scope, events, at):
+def resolve_active(path, tenant, scope, events, at, *, governing_fees=None):
     """Re-evaluate the current published source, with no financial input from the reviewer request."""
     with database(path) as db:
         db.execute("BEGIN")
@@ -208,6 +215,7 @@ def resolve_active(path, tenant, scope, events, at):
         resource = manifest["family"] == "resource-month/1"
         aggregate = bool(manifest.get("aggregate_monitor"))
         filing = raw = gap = cutoff = historical = None
+        governing_fee = None
         if resource and not semantic_gap and not aggregate and any(e["kind"] in HISTORICAL for e in events):
             try:
                 # This entry point also rejects stale interpreter semantics before
@@ -235,8 +243,13 @@ def resolve_active(path, tenant, scope, events, at):
                 _, following = calendar_bounds(instant(scope.month+"-01T00:00:00Z").date(), "UTC")
                 cutoff = following + timedelta(days=overlay.get("override",{}).get("filing_days",manifest["filing_days"]))
                 obs = _joined_observation(scope, events, overlay, filed)
+                if manifest.get('credit_rule') and governing_fees is not None:
+                    from .governing_fees import authenticated_invoice_snapshot
+                    invoices=[e for e in events if e['kind']=='invoice']
+                    if len(invoices)==1:
+                        governing_fee=governing_fees.resolve(authenticated_invoice_snapshot(tenant,scope,invoices[0]),as_of=at)
             raw = evaluate_active_db(db, Principal(tenant,"local-active-join","viewer"), installation, obs,
-                                     expected_version=state["active_version"], expected_revision=state["revision"])
+                                     expected_version=state["active_version"], expected_revision=state["revision"],governing_fee=governing_fee)
             if resource:
                 cutoff = exclusive_cutoff(raw)
         except ValueError as error:
@@ -251,6 +264,10 @@ def resolve_active(path, tenant, scope, events, at):
                   for c in manifest["citations"] if c["field"] != "heading")
     dates = _period(manifest, overlay)
     cited += (Citation("Authorized scope", publication, f"Governing period {dates[0]} through {dates[1]}", "urn:uptime:scope"),)
+    if governing_fee is not None and raw and raw.get('governing_fee_digest'):
+        cited += (Citation('Source-bound governing monthly fee',governing_fee.governing_pricing_version,
+                    'Authenticated invoice pricing as of '+governing_fee.as_of+'; context '+governing_fee.digest,
+                    'urn:uptime:governing-fee:'+governing_fee.digest),)
     for e in events:
         issuer = fingerprint([e["subject"], e.get("source_key_id"), e.get("source_grant_id")])
         cited += (Citation("Authenticated " + e["source"] + " · " + e["subject"], e["digest"],
@@ -270,6 +287,8 @@ def resolve_active(path, tenant, scope, events, at):
     # The economic key describes governing rules for this month. Reformatting
     # or reissuing the same terms must not mint another monthly obligation.
     controlling = _economics(manifest, overlay)
+    if manifest.get('credit_rule'):
+        controlling = fingerprint([controlling,raw.get('governing_fee_digest','governing-fee-required') if raw else 'governing-fee-required'])
     if resource:
         controlling = fingerprint([controlling, semantics.digest if semantics and not semantic_gap else 'semantic-review-required'])
     measurement = None
@@ -284,11 +303,13 @@ def resolve_active(path, tenant, scope, events, at):
                         controlling, cutoff, result, agreement_id=manifest.get("agreement") or overlay["agreement"],
                         remedy=resource_remedy(manifest, overlay), filing_material=filing,
                         measurement=measurement, procedure=historical,
-                        contract_source_sha256=manifest["document"]["sha256"])
+                        contract_source_sha256=manifest["document"]["sha256"],
+                        governing_fee_digest=raw.get('governing_fee_digest') if raw else None,
+                        governing_pricing_version=raw.get('governing_pricing_version') if raw else None)
 
 
-def register_v4_routes(app, bench, auth):
-    inbox = CorrespondenceDesk(bench.path, active_resolver=partial(resolve_active, bench.path))
+def register_v4_routes(app, bench, auth, *, governing_fees=None, trusted_now=None):
+    inbox = CorrespondenceDesk(bench.path, active_resolver=partial(resolve_active, bench.path,governing_fees=governing_fees))
     app.state.correspondence = bench.inbox = inbox
 
     def reader(p=Depends(auth.actor)):
@@ -301,5 +322,6 @@ def register_v4_routes(app, bench, auth):
             return DraftReviewer(p.tenant, p.subject, p.role)
         return p
 
-    app.include_router(make_router(bench.path, vendor_reader, auth.reviewer, bench.check_write, bench.mutex))
+    app.include_router(make_router(bench.path, vendor_reader, auth.reviewer, bench.check_write, bench.mutex,
+                                  governing_fees=governing_fees,trusted_now=trusted_now))
     app.include_router(make_correspondence_router(inbox, reader, auth.reviewer, bench.check_write, auth.service))
