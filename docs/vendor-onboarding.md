@@ -104,3 +104,18 @@ python scripts/rehearse_vendor.py --document public.json --overlay synthetic-ord
 ```
 
 The output records the source, suite and evaluator digests, actual HTTP statuses, resulting case IDs and financial estimates. The runner verifies that shadow and rolled-back revisions refuse dispatch, an active revision produces the expected results in the workbench and portfolio, and historical case evidence survives rollback. Scenarios for the same monthly obligation deliberately update a single case. A named human uses their own enrolled credential and the gated workspace for a real review decision.
+
+## Resource-level adjustments and supporting records
+
+The resource profile uses exact UTC durations, unions concurrent intervals and preserves fractional time. A typed maintenance exclusion can apply to all overlap with an announced window, or to just the source-defined maintenance cause within the window. A minimum notice interval, when present, must be established by the contract. The evaluator compares the actual announcement time to the original window start before clipping the overlap to the service month. A late or explicitly unannounced window supplies no exclusion.
+
+A resource contract can require net charges after discounts, a deduction for earlier credits granted for the same resource and month, and supplementation within the original filing window. Each new operator has its own ordered source citation. Missing evidence prevents an estimate. A conflicting duplicate credit, a mismatched discount breakdown or an unlinked supplement also prevents a positive result.
+
+| Private evidence | Fields and checks |
+| --- | --- |
+| Maintenance register | `maintenance_evidence` contains `verified: true`, `complete: true`, `ref`, `agreement`, `account`, `resource_id`, `month`, and `records`. Each record supplies `ref`, `account`, `resource_id`, `start`, `end`, and an offset-aware `announced_at`. A verified row with `state: "confirmed_unannounced"` and a null announcement timestamp explicitly rules out advance publication. |
+| Net invoice line | A matched `resource_service` line supplies `discount_ref`. Its `amount_cents` is the actual net amount. Supply either both `gross_cents` and `discount_cents`, which must reconcile exactly, or `amount_basis: "net_after_discounts"` for a directly attested net amount. |
+| Prior credit ledger | `prior_credit_evidence` uses the same verified, complete, scoped envelope as the maintenance register. Its records contain `ref`, `credit_id`, `state: "issued"`, `agreement`, `account`, `resource_id`, `month`, `currency: "USD"`, and integer `amount_cents`. Repeated evidence of the same issued credit counts once. An empty verified statement establishes zero for its specific scope. |
+| Supplemental receipt | `filing_proof.supplements` is a list of receipts. Each specifies `verified: true`, `ref`, `original_ref`, `agreement`, `account`, `resource_id`, `month`, `received_at`, `submitted_to`, and the source-defined request `fields` supplied in that supplement. It must reference the original filing and match its destination. The original receipt time still governs the first filing. A timely supplement can supply missing fields. A required field supplied after the cutoff gives `LATE_SUPPLEMENT`. |
+
+The case records `service_estimate` before deducting existing credits, `prior_issued_cents` as the amount supported by the scoped ledger, and `remaining_estimate` after deduction with a zero floor. Only a positive remaining estimate can become the case amount. Existing issuance evidence and financial posting remain separate stages.
