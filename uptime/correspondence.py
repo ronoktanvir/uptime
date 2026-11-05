@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import reserve_claim
-from .correspondence_artifacts import approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
+from .correspondence_artifacts import HISTORICAL, approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
 from .correspondence_reason import propose
 from .correspondence_rules import assess, confirmed_maintenance
 from .correspondence_types import Claim, Delivery, SOURCE, Scope, instant
@@ -203,6 +203,9 @@ class CorrespondenceDesk:
 
     def _assess(self, tenant, scope, state, now):
         filed = instant(state["submissions"][0]["at"]) if state["submissions"] else None
+        historical = [e for e in state["evidence"] if e["kind"] == "original_filing_receipt"]
+        if not filed and len(historical) == 1:
+            filed = instant(historical[0]["body"]["received_at"])
         return assess(tenant, scope, state["evidence"], now, filed, self.active_resolver)
 
     def receive(self, p, claim_id, event: Delivery):
@@ -257,7 +260,21 @@ class CorrespondenceDesk:
             state["evidence"].append(fact)
             audit(state, now, principal.subject, "Received authenticated " + body["kind"] + " record.", VENDOR if source == "vendor" else SOURCES,
                   event_id=event.event_id, digest=digest)
-            if body["kind"] == "message":
+            if body["kind"] in HISTORICAL:
+                if state["submissions"]:
+                    raise ValueError("Local and imported original submissions cannot share an intake.")
+                current = self._assess(tenant, scope, state, now)
+                if not current.remedy.startswith("resource-month/"):
+                    raise ValueError("Historical filing evidence requires an active, reviewed resource-month agreement.")
+                original_id = body.get("original_ref") or body["receipt_id"]
+                identity = fingerprint([tenant, scope.model_dump(), original_id])
+                reserve_claim(db, tenant=tenant, vendor=scope.vendor, account=account, agreement_id=current.agreement_id,
+                              agreement_version=current.version, service=scope.service, month=scope.month, remedy=current.remedy,
+                              route="historical-receipt", case_id=claim_id, packet_digest=identity, scope=scope.model_dump(),
+                              receipt_id="HIST-" + identity, at=now.isoformat())
+                state.update(stage="HISTORICAL_FILING", approval=None)
+                audit(state, now, principal.subject, "Recorded a scoped historical receipt. This intake cannot originate another filing.", VENDOR)
+            elif body["kind"] == "message":
                 if any(r["receipt"] == body["receipt_id"] for r in state["replies"]):
                     state["stage"] = "HUMAN_REVIEW"
                     state["approval"] = None
@@ -500,6 +517,9 @@ class CorrespondenceDesk:
         for item, fact in zip(evidence, state["evidence"]):
             body = fact["body"]
             item.update({k:body[k] for k in ("source_ref","observed_at","artifact_ref","artifact_type","body_sha256","linked_ref") if k in body})
+            if fact["kind"] in HISTORICAL:
+                item.update({k:body[k] for k in ("receipt_id","original_ref","submitted_to") if k in body})
+                item["filed_at"] = body["received_at"]
             item["available_at"] = fact["known_at"] if "known_at" in fact else fact["received_at"]
             item["issuer"] = fact.get("subject",fact["source"])
         replies = [{**r, "text": next(e["body"]["text"] for e in state["evidence"] if e["digest"] == r["digest"])} for r in state["replies"]]

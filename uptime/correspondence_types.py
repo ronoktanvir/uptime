@@ -213,6 +213,20 @@ class FilingField(Strict):
     refs: list[Id] = Field(min_length=1, max_length=32)
 
 
+class HistoricalReceipt(Report):
+    kind: Literal["original_filing_receipt", "supplement_filing_receipt"]
+    receipt_id: Id
+    original_ref: Id | None = None
+    received_at: Annotated[str, StringConstraints(max_length=40)]
+    submitted_to: Annotated[str, StringConstraints(min_length=1, max_length=200)]
+    fields: list[FilingField] = Field(max_length=32)
+
+    @field_validator("received_at")
+    @classmethod
+    def filing_time(cls, value):
+        return instant(value).isoformat()
+
+
 class FilingMaterial(Report):
     kind: Literal["filing_material"]
     channel: Annotated[str, StringConstraints(min_length=1, max_length=200)]
@@ -269,7 +283,7 @@ class Delivery(Strict):
     event_id: Id
     scope: Scope
     body: Annotated[Status | Coverage | Impact | Component | Notice | Invoice | Message | ResourceStatus
-                    | ResourceAttribution | ResourceInvoice | BillingCalendar | FilingMaterial | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification, Field(discriminator="kind")]
+                    | ResourceAttribution | ResourceInvoice | BillingCalendar | FilingMaterial | HistoricalReceipt | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification, Field(discriminator="kind")]
 
 
 class Empty(Strict):
@@ -277,6 +291,6 @@ class Empty(Strict):
 
 
 SOURCE = dict(status="status", coverage="status", impact="customer", component="customer", notice="customer",
-              invoice="billing", message="vendor", resource_status="status", resource_attribution="customer",
+              invoice="billing", message="vendor", original_filing_receipt="vendor", supplement_filing_receipt="vendor", resource_status="status", resource_attribution="customer",
               resource_invoice="billing", billing_calendar="billing", maintenance_evidence="customer", prior_credit_evidence="billing", account_conditions="customer", filing_material="customer", artifact="customer",
               status_verification="status", billing_verification="billing")

@@ -3,6 +3,7 @@ from hashlib import sha256
 
 from .correspondence_types import instant
 
+HISTORICAL = {"original_filing_receipt", "supplement_filing_receipt"}
 SUPPLEMENTS = {"artifact", "status_verification", "billing_verification"}
 VERIFY = {"resource_log": "status_verification", "invoice_detail": "billing_verification", "scope_mapping": "status_verification"}
 
@@ -12,6 +13,11 @@ def validate_arrival(body, now):
         raise ValueError("A source report cannot be known before it is observed.")
     if body["kind"] in {"resource_status","resource_attribution"} and instant(body["observed_at"]) < instant(body["end"]):
         raise ValueError("A completed measurement cannot be observed before the reporting period ends.")
+    if body["kind"] in HISTORICAL:
+        if (instant(body["received_at"]) > instant(body["observed_at"])
+                or (body["kind"] == "supplement_filing_receipt") != bool(body.get("original_ref"))
+                or body["receipt_id"] == body.get("original_ref")):
+            raise ValueError("A historical receipt must link a distinct original and a past verified receipt time.")
     if body["kind"] == "account_conditions":
         for finding in body["findings"]:
             terms = finding.get("reviewed_terms")

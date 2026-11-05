@@ -63,7 +63,7 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
                 or not active.version or not active.agreement_id or (active.cutoff is None and active.evaluation.outcome == Outcome.ELIGIBLE)
                 or (active.cutoff is not None and active.cutoff.utcoffset() is None)):
             return stop(Outcome.UNSUPPORTED, "No ACTIVE evaluation and remedy terms match this tenant, scope and evidence.")
-        if active.cutoff is not None and (filed or at) >= active.cutoff:
+        if active.evaluation.outcome == Outcome.ELIGIBLE and active.cutoff is not None and (filed or at) >= active.cutoff:
             return Assessment(EvaluationResult(Outcome.INELIGIBLE, active.evaluation.clauses, ("Verified filing window closed.",)),
                               active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement)
         return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement)

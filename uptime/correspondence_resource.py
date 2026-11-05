@@ -2,7 +2,7 @@
 from datetime import timedelta
 import re
 
-from .correspondence_artifacts import SUPPLEMENTS
+from .correspondence_artifacts import HISTORICAL, SUPPLEMENTS
 from .correspondence_types import SOURCE, instant
 from .twilio import calendar_bounds
 
@@ -45,7 +45,7 @@ def append_monthly_reports(facts, groups, manifest, scope, following):
         if kind == "prior_credit_evidence":
             expected.update(agreement=scope.contract, month=scope.month, currency=scope.currency)
         refs = set()
-        credit_ids = set()
+        credit_amounts = {}
         for row in report["records"]:
             if row["ref"] in refs or any(row[k] != value for k, value in expected.items()):
                 raise ValueError("Repeated or out-of-scope row on signed monthly statement.")
@@ -58,9 +58,9 @@ def append_monthly_reports(facts, groups, manifest, scope, following):
                         or instant(row["end"]) > instant(report["observed_at"])):
                     raise ValueError("Maintenance statement contains an unobserved or invalid interval.")
             else:
-                if row["credit_id"] in credit_ids:
-                    raise ValueError("More than one entry for the same credit issuance.")
-                credit_ids.add(row["credit_id"])
+                previous = credit_amounts.setdefault(row["credit_id"], row["amount_cents"])
+                if previous != row["amount_cents"]:
+                    raise ValueError("Conflicting amounts for the same credit issuance.")
         facts[kind] = dict(verified=True, complete=True, ref=report["source_ref"], agreement=scope.contract,
                            account=scope.account, resource_id=scope.component, month=scope.month, records=report["records"])
 
@@ -77,7 +77,7 @@ def join_resource(scope, events, manifest, overlay, filed, receipts=()):
     required = {"resource_status","resource_attribution","resource_invoice"}
     if missing := required - groups.keys():
         raise ValueError("Awaiting signed " + ", ".join(sorted(missing)) + ".")
-    if groups.keys() - required - {"billing_calendar","filing_material","account_conditions","maintenance_evidence","prior_credit_evidence"}:
+    if groups.keys() - required - HISTORICAL - {"billing_calendar","filing_material","account_conditions","maintenance_evidence","prior_credit_evidence"}:
         raise ValueError("Evidence outside the active resource profile requires review.")
     if overlay["resource_id"] != scope.component:
         raise ValueError("Resource differs from the reviewed customer and contract mapping.")
@@ -162,6 +162,28 @@ def join_resource(scope, events, manifest, overlay, filed, receipts=()):
         filing = dict(channel=channel, fields=fields, material_digest=material["digest"])
         facts["filing_proof"] = dict(verified=True, ref=material["digest"], account=scope.account, resource_id=scope.component,
                                      submitted_to=channel, fields={k:", ".join(v) for k,v in fields.items()})
+        historical = groups.keys() & HISTORICAL
+        if historical:
+            if receipts:
+                raise ValueError("Local filings conflict with imported existing submission receipts.")
+            initial = groups.get("original_filing_receipt")
+            if not initial:
+                raise ValueError("Awaiting the independently observed original filing receipt.")
+            def corroborate(event):
+                item = event["body"]
+                listed = {field["name"]:field["refs"] for field in item["fields"]}
+                if (len(listed) != len(item["fields"]) or item["submitted_to"] != channel
+                        or any(fields.get(name) != refs for name,refs in listed.items())):
+                    raise ValueError("Receipt contents and prior customer filing material do not agree.")
+                return dict(verified=True, ref=item["receipt_id"], submitted_to=channel,
+                            fields={name:", ".join(refs) for name,refs in listed.items()},
+                            account=scope.account, resource_id=scope.component)
+            facts["filing_proof"] = corroborate(initial)
+            facts["received_at"] = initial["body"]["received_at"]
+            if followup := groups.get("supplement_filing_receipt"):
+                item = followup["body"]
+                facts["filing_proof"]["supplements"] = [dict(corroborate(followup), original_ref=item["original_ref"],
+                    month=scope.month, agreement=scope.contract, received_at=item["received_at"])]
         if receipts:
             original = receipts[0]
             original_material = original["packet"].get("filing_material")
