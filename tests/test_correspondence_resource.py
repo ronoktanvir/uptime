@@ -426,3 +426,63 @@ def test_replies_are_bound_to_latest_observed_filing_and_exact_predecessor(env, 
     assert note("history-812", "The filing window expired.", "stale").status_code == 409
     assert note("history-823", "We approved a service credit of USD 3.00.", "note-B").status_code == 200
     assert len(env.read()["replies"]) == 2 and env.read()["ledger"]["awarded"] == "0.00"
+
+
+def test_observed_missing_item_can_be_cured_without_claiming_an_incomplete_month(env, tmp_path, monkeypatch):
+    from test_vendor_resource_operators import EXTENSION, readings
+    install(env, tmp_path, monkeypatch, extra_terms=EXTENSION, shadow=readings(), expected="10.44")
+    rows = reports()
+    rows[0][1]["complete"] = False  # event evidence only, no month completeness assertion
+    rows[1][1]["complete"] = False
+    original = dict(kind="original_filing_receipt", receipt_id="original-292", source_ref="vendor-received-inbox",
+                    received_at="2026-07-02T12:30:00Z", observed_at=env.now.isoformat(),
+                    submitted_to="claims@example.invalid", fields=[dict(name="station identifier", refs=[env.scope["component"]])])
+    deliver(env, [("vendor-fixture", original), ("customer-fixture", rows[3][1])])
+    note = dict(kind="message", receipt_id="original-292", text="Our desk cannot complete review without the station logs. Please supply log references.")
+    deliver(env, [("vendor-fixture", note)])
+    assert env.read()["stage"] == "NEEDS_EVIDENCE"
+    assert env.read()["actions"] == []
+    deliver(env, rows[:2])
+    ready = env.read()
+    assert ready["stage"] == "RESPONSE_DRAFTED" and ready["preflight"]["outcome"] == "INSUFFICIENT_EVIDENCE"
+    assert ready["historical_procedure"]["missing"] == ["log references"]
+    assert ready["historical_procedure"]["available"]["log references"] == ["n1", "n2"]
+    env.action("approve-response")
+    assert env.human.post(env.url + "/actions/submit-response", {}).status_code == 409
+    env.now += timedelta(days=1)
+    submitted = env.action("submit-response")
+    assert len(submitted["submissions"]) == 1
+    rec = submitted["submissions"][0]
+    assert rec["action"] == "submit-response" and rec["requested"] == "0.00"
+    assert rec["packet"]["purpose"] == "procedural_evidence_only" and rec["packet"]["in_reply_to"] == original["receipt_id"]
+    assert rec["packet"]["filing_material"]["fields"] == {"log references":["n1","n2"]}
+    assert submitted["ledger"]["claimed"] == submitted["ledger"]["awarded"] == "0.00"
+    assert env.read()["preflight"]["outcome"] == "INSUFFICIENT_EVIDENCE"
+    assert len(env.action("submit-response")["submissions"]) == 1
+    second = dict(kind="message", receipt_id=rec["id"], text="We approved a service credit of USD 12.51.")
+    assert env.source("vendor-fixture", second, event_id="award-receipt").status_code == 200
+    assert env.read()["ledger"]["awarded"] == "0.00" and env.read()["actions"] == []
+
+
+def test_distinct_filing_items_reference_only_their_provenance():
+    from uptime.correspondence_resource import filing_refs
+    from uptime.correspondence_types import Scope
+    from test_vendor_resource import compiled
+    scope = Scope(account="buyer-1", vendor="Green", contract="governing-a", service="App",
+                  component=OVERLAY["resource_id"], invoice="inv-83", incident="obs-4", currency="USD",
+                  month="2026-06", region="east")
+    span = dict(ref="error-4", resource_id=scope.component, start="2026-06-01T11:00:00Z", end="2026-06-01T12:00:00Z",
+                symptom="rejected samples", cause="instrument gateway failure")
+    witness = dict(ref="probe-74", resource_id=scope.component, interval_ref=span["ref"], requested_at=span["start"],
+                   valid=True, failed=True)
+    groups = dict(resource_status=dict(event_id="stat",body=dict(source_ref="stat-ledger")),
+                  resource_invoice=dict(event_id="bill",body=dict(source_ref="invoice-ledger")),
+                  request_evidence=dict(body=dict(observed_at=OBSERVED,records=[witness])))
+    def references(field):
+        return filing_refs(field, compiled(), OVERLAY, scope, groups, [span], [])
+    assert references("the measured month") == {scope.month}
+    assert references("covered instrument failure") == {"error-4"}
+    assert references("evidence that valid requests failed") == {"probe-74"}
+    witness["interval_ref"] = "unrelated"
+    assert not references("evidence that valid requests failed")
+    assert not references("billing evidence tying the charge to that endpoint")

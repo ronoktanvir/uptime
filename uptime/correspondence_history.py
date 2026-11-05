@@ -42,3 +42,109 @@ def historical_reply(state, fact, now, proposal):
     return dict(reason=proposal.reason, span=proposal.span, event_id=fact["event_id"],
                 digest=fact["digest"], receipt=fact["body"]["receipt_id"], original_receipt=original["body"]["receipt_id"],
                 received_at=now.isoformat(), filing_source="observed")
+
+
+def procedure(scope, events, manifest, overlay):
+    """Establish only receipt chronology and concrete filed/missing items, never month coverage or price."""
+    from datetime import timedelta
+    from .correspondence_resource import filing_refs
+    from .correspondence_types import SOURCE
+    from .twilio import calendar_bounds
+    from .vendor_resource_eval import deadline
+    groups = {}
+    relevant = HISTORICAL | {"filing_material","request_evidence","resource_invoice","resource_status",
+                             "resource_attribution","billing_calendar"}
+    for event in events:
+        kind = event["kind"]
+        if kind not in relevant:
+            continue
+        if kind in groups or SOURCE[kind] != event["source"]:
+            raise ValueError("Conflicting procedural evidence.")
+        groups[kind] = event
+    chain = receipt_chain({"evidence":events})
+    if not chain:
+        return None
+    original, supplement = chain
+    first, following = calendar_bounds(instant(scope.month + "-01T00:00:00Z").date(), "UTC")
+    calendar = groups.get("billing_calendar")
+    cutoff, inclusive = deadline({"billing_cycles":calendar["body"]["cycles"]} if calendar else {}, overlay, manifest, following)
+    cutoff += timedelta(microseconds=int(inclusive))
+    channel = manifest.get("submission_channel")
+    if not channel or original["body"]["submitted_to"] != channel or instant(original["body"]["received_at"]) < following:
+        raise ValueError("Historical receipt does not establish the reviewed destination or completed service period.")
+    expected = set(manifest.get("request_fields", []))
+    received = {}
+    for event in filter(None, (original, supplement)):
+        for field in event["body"]["fields"]:
+            name, refs = field["name"], field["refs"]
+            if name not in expected or name in received and received[name] != refs:
+                raise ValueError("Unexpected or contradictory filing item in a historical receipt.")
+            received[name] = refs
+    material = groups.get("filing_material")
+    available = {}
+    if material:
+        candidate = material["body"]
+        if candidate["channel"] != channel or len({f["name"] for f in candidate["fields"]}) != len(candidate["fields"]):
+            raise ValueError("Customer filing material contradicts the active procedure.")
+        status = groups.get("resource_status",{}).get("body",{}).get("intervals", [])
+        causes = groups.get("resource_attribution",{}).get("body",{}).get("causes", [])
+        by_ref = {r["ref"]:r for r in causes}
+        if len(by_ref) != len(causes) or len({r["ref"] for r in status}) != len(status):
+            raise ValueError("Duplicate incident evidence prevents a factual cure.")
+        intervals = []
+        for row in status:
+            cause = by_ref.get(row["ref"])
+            if (row["resource_id"] != scope.component or not first <= instant(row["start"]) < instant(row["end"]) <= following):
+                raise ValueError("Event-level service records mismatch the account, resource or period.")
+            if cause and any(cause[k] != row[k] for k in ("start","end","resource_id")):
+                raise ValueError("Customer attribution conflicts with the status incident.")
+            intervals.append(dict(row, cause=cause["cause"] if cause else ""))
+        invoice = groups.get("resource_invoice",{}).get("body",{})
+        fees = invoice.get("lines", [])
+        if any(r["resource_id"] != scope.component or r["currency"] != scope.currency or r["month"] != scope.month for r in fees):
+            raise ValueError("Statement does not corroborate the contemplated filing resource.")
+        for field in candidate["fields"]:
+            name, refs = field["name"], field["refs"]
+            if name not in expected or name in received and received[name] != refs:
+                raise ValueError("Signed customer and vendor statements conflict about an item.")
+            if len(set(refs)) == len(refs) and set(refs) <= filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
+                available[name] = refs
+    return dict(original=original["body"]["receipt_id"], original_digest=original["digest"], filed_at=original["body"]["received_at"],
+                last=(supplement or original)["body"]["receipt_id"], supplemented=bool(supplement), channel=channel,
+                cutoff=cutoff.isoformat(), can_supplement=manifest.get("supplement") == "same_filing_deadline",
+                missing=sorted(expected - received.keys()), available=available,
+                source_digests=sorted(e["digest"] for e in groups.values()))
+
+
+def response_material(state, current):
+    """A verified procedural correction can carry evidence; its monetary request is always zero."""
+    info = current.procedure
+    if (not info or not state["replies"] or state["submissions"] or info["supplemented"]
+            or not info["can_supplement"] or instant(info["filed_at"]) >= instant(info["cutoff"])):
+        return None
+    reply = state["replies"][-1]
+    if reply["receipt"] != info["last"]:
+        return None
+    if reply["reason"] == "time_bar":
+        return dict(argument="The independently authenticated original filing receipt predates the published cutoff.",
+                    verified_original_at=info["filed_at"])
+    requested = set(reply.get("requested_fields", []))
+    if requested and requested <= info["available"].keys():
+        return dict(argument="Source records corroborate the requested filing items for this resource and month.",
+                    filing_material=dict(channel=info["channel"], fields={k:info["available"][k] for k in sorted(requested)}))
+    return None
+
+
+def apply_response_state(state, current):
+    reply = state["replies"][-1]
+    state["approval"] = None
+    if state["submissions"] or not current.procedure:
+        state["stage"] = "HUMAN_REVIEW"
+    elif response_material(state, current):
+        state["stage"] = "RESPONSE_DRAFTED"
+    elif reply.get("requested_fields") and not current.procedure["supplemented"]:
+        state["stage"] = "NEEDS_EVIDENCE"
+    elif reply["reason"] == "time_bar" and instant(current.procedure["filed_at"]) >= instant(current.procedure["cutoff"]):
+        state["stage"] = "DENIAL_ACCEPTED"
+    else:
+        state["stage"] = "HUMAN_REVIEW"

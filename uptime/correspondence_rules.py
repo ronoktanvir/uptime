@@ -27,6 +27,7 @@ class ActiveRemedy:
     remedy: str = "availability"
     filing_material: dict | None = None
     measurement: dict | None = None
+    procedure: dict | None = None
 
 
 Resolver = Callable[[str, Scope, tuple[dict, ...], datetime], ActiveRemedy | None]
@@ -42,6 +43,7 @@ class Assessment:
     remedy: str = "availability"
     filing_material: dict | None = None
     measurement: dict | None = None
+    procedure: dict | None = None
 
 
 def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = None):
@@ -65,8 +67,8 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
             return stop(Outcome.UNSUPPORTED, "No ACTIVE evaluation and remedy terms match this tenant, scope and evidence.")
         if active.evaluation.outcome == Outcome.ELIGIBLE and active.cutoff is not None and (filed or at) >= active.cutoff:
             return Assessment(EvaluationResult(Outcome.INELIGIBLE, active.evaluation.clauses, ("Verified filing window closed.",)),
-                              active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement)
-        return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement)
+                              active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement, active.procedure)
+        return Assessment(active.evaluation, active.cutoff, active.version, digest, active.agreement_id, active.remedy, active.filing_material, active.measurement, active.procedure)
 
     month = datetime.strptime(scope.month, "%Y-%m").date()
     first, following = twilio.calendar_bounds(month, "UTC")
