@@ -217,3 +217,39 @@ def test_issuer_and_machine_intake_keys_cannot_cross_roles_even_after_rotation(t
         mandates.register_issuer(db, mandates.Issuer(subject="another.issuer",public_key=public))
     with pytest.raises(PermissionError, match="issuer"):
         mandates.remember_source_keys(db,[("test.source",signer.public_key().public_bytes_raw().hex())])
+
+
+def test_dynamic_claim_authorization_checks_current_packet_and_amount(tmp_path):
+    db = tmp_path/"claim.db"
+    authority, human, _ = installation(db,issuer=False)
+    signer = Ed25519PrivateKey.generate()
+    mandates.register_issuer(db, mandates.Issuer(subject=ISSUER, public_key=signer.public_key().public_bytes_raw().hex(),
+                                                 local_purposes=("claim-filing",)))
+    scope = {"currency":"USD","account":"A"}
+    packet = {"claim":"inbox-auth","tenant":TENANT,"scope":scope,"requested":"10.01","version":"terms-A"}
+    route = "/api/correspondence/claims/inbox-auth/actions/approve-claim"
+    app = FastAPI()
+    authority.register(app)
+    @app.exception_handler(PermissionError)
+    async def denied(request, exc):
+        return JSONResponse({"detail":str(exc)},403)
+    @app.post(route)
+    def act(p=Depends(authority.reviewer)):
+        mandates.check_claim_decision(p, "approve-claim", scope, packet)
+        return {"amount":packet["requested"]}
+    preview = mandates.claim_preview("approve-claim",scope,packet)
+    with local(app) as client:
+        user = ReviewerClient(client,DEFAULT_ORIGIN,USER,human)
+        for changes, version, result in [({"max_amount_cents":1000},"terms-A",403), ({},"terms-B",403), ({},"terms-A",200)]:
+            grant = signed(db,signer,path=route,effect=None,claim=preview.model_copy(update=changes))
+            mandates.install(db,grant)
+            packet["version"] = version
+            assert user.post(route,{}).status_code == result
+
+
+@pytest.mark.parametrize("path", ["/api/vendors/vendor-a/actions/activate~1~abcd","/api/policy"])
+def test_routine_issuer_cannot_promote_vendors_or_change_policy(tmp_path,path):
+    db = tmp_path/"scope.db"
+    _, _, signer = installation(db)
+    with pytest.raises(PermissionError):
+        mandates.install(db,signed(db,signer,path=path,effect=None))

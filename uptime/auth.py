@@ -141,7 +141,8 @@ class ServicePrincipal(Principal):
 
 @dataclass(frozen=True)
 class AuthorizedReviewer(Principal):
-    native_ticket: str = field(repr=False, compare=False)
+    native_ticket: str | None = field(repr=False, compare=False)
+    claim_decision: mandates.ClaimDecision | None = field(repr=False, compare=False)
 
 
 class Authority:
@@ -304,11 +305,11 @@ class Authority:
                 raise HTTPException(403, "Scripted actions require the isolated fixture tenant")
             return principal
         try:
-            ticket = mandates.claim(self.path, principal, path, body_hash, self.instance, required=self.tenant != TENANT)
+            claimed = mandates.claim(self.path, principal, path, body_hash, self.instance, required=self.tenant != TENANT)
         except PermissionError as exc:
             raise HTTPException(403, str(exc)) from None
-        if ticket:
-            return AuthorizedReviewer(principal.tenant, principal.subject, principal.role, ticket)
+        if claimed:
+            return AuthorizedReviewer(principal.tenant, principal.subject, principal.role, claimed.ticket, claimed.claim_decision)
         return principal
 
     def authorize_native(self, principal, *, business_id, resource_type, resource_id, action, payload_sha256):

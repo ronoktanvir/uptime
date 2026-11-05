@@ -1,4 +1,6 @@
 """Offline trust roots and single-use reviewer mandates for an exact local request and optional native effect."""
+from dataclasses import dataclass
+from decimal import Decimal, ROUND_CEILING
 from hashlib import sha256
 import json
 import re
@@ -68,12 +70,65 @@ class Issuer(Strict):
     # Empty business scope allows only local actions. Native permissions are enumerated.
     business_id: ObjectID | None = None
     native_actions: tuple[NativeAction, ...] = ()
+    local_purposes: tuple[Literal["workspace", "claim-filing", "vendor-promotion", "policy-change"], ...] = ("workspace",)
 
     @model_validator(mode="after")
     def bounded(self):
         if bool(self.business_id) != bool(self.native_actions) or len(set(self.native_actions)) != len(self.native_actions):
             raise ValueError("Native issuer registration requires an exact business and distinct allowed actions")
         return self
+
+
+class ClaimDecision(Strict):
+    claim_id: str = Field(pattern=r"^inbox-[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
+    action: Literal["approve-claim", "submit-claim", "approve-response", "submit-response"]
+    scope_sha256: Key
+    packet_sha256: Key
+    currency: Literal["USD"]
+    max_amount_cents: int = Field(ge=0, le=10**17)
+
+
+def claim_preview(action, scope, packet):
+    # A sub-cent claim must still fit under the explicit integer-cent ceiling.
+    amount = Decimal(packet["requested"])
+    if not amount.is_finite() or amount < 0 or packet["scope"] != scope:
+        raise ValueError("Invalid claim amount or scope")
+    return ClaimDecision(claim_id=packet["claim"], action=action, scope_sha256=fingerprint(scope),
+                         packet_sha256=fingerprint(packet), currency=scope["currency"],
+                         max_amount_cents=int((amount*100).to_integral_value(rounding=ROUND_CEILING)))
+
+
+def check_claim_decision(principal, action, scope, packet):
+    decision = getattr(principal, "claim_decision", None)
+    if decision is None:
+        if principal.tenant == "bears":
+            return
+        raise PermissionError(DENIED)
+    actual = claim_preview(action, scope, packet)
+    if (decision.max_amount_cents < actual.max_amount_cents or
+            decision.model_dump(exclude={"max_amount_cents"}) != actual.model_dump(exclude={"max_amount_cents"})):
+        raise PermissionError(DENIED)
+
+
+def local_purpose(path):
+    if path == "/api/policy":
+        return "policy-change"
+    if "/actions/" in path:
+        action = path.rsplit("/",1)[-1]
+        if path.startswith(("/api/vendors/", "/api/onboarding/")):
+            return "vendor-promotion"
+        if action in {"approve-claim","submit-claim","approve-response","submit-response"}:
+            return "claim-filing"
+        if path.startswith("/api/cases/"):
+            # Legacy allocation writes omit the final provider bill and credit plan from their signed bodies.
+            return "unsupported-legacy-case-action"
+    return "workspace"
+
+
+@dataclass(frozen=True)
+class ClaimedMandate:
+    ticket: str | None
+    claim_decision: ClaimDecision | None
 
 
 class Mandate(Strict):
@@ -90,6 +145,7 @@ class Mandate(Strict):
     path: str = Field(pattern=r"^/api/[a-zA-Z0-9_./~-]+$", max_length=1024)
     body_sha256: Key
     effect: Effect | None = None
+    claim: ClaimDecision | None = None
 
     @field_validator("path")
     @classmethod
@@ -102,10 +158,20 @@ class Mandate(Strict):
     def bounded(self):
         if self.issuer == self.reviewer or not 0 < self.valid_until - self.valid_from <= 86400:
             raise ValueError("An independent issuer and a validity window of at most one day are required")
+        if self.claim:
+            c = self.claim
+            if self.effect or self.path not in {f"/api/cases/{c.claim_id}/actions/{c.action}",
+                                               f"/api/correspondence/claims/{c.claim_id}/actions/{c.action}"}:
+                raise ValueError("Claim decision does not match the exact local action")
+        elif local_purpose(self.path) == "claim-filing":
+            raise ValueError("A filing needs a signed estimate and exact scope")
         return self
 
     def signing_bytes(self):
-        return json.dumps(self.model_dump(mode="json"), sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+        data = self.model_dump(mode="json")
+        if data["claim"] is None:
+            del data["claim"]  # Preserve signing bytes of version-one non-claim mandates.
+        return json.dumps(data, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
 
 
 class SignedMandate(Strict):
@@ -187,6 +253,8 @@ def _verified(db, signed, at):
             or not m.valid_from <= at < m.valid_until):
         raise PermissionError(DENIED)
     issuer = Issuer.model_validate_json(row[0])
+    if local_purpose(m.path) not in issuer.local_purposes:
+        raise PermissionError(DENIED)
     if m.effect and (m.effect.business_id != issuer.business_id or m.effect.action not in issuer.native_actions):
         raise PermissionError(DENIED)
     try:
@@ -245,7 +313,7 @@ def claim(path, principal, request_path, body_digest, instance, required):
         ticket = token_hex(32) if m.effect else None
         db.execute("UPDATE reviewer_mandate SET used=1,ticket=?,ticket_until=?,instance=? WHERE id=?",
                    (sha256(ticket.encode()).hexdigest() if ticket else None, min(at+60, m.valid_until), instance, m.mandate_id))
-        return ticket
+        return ClaimedMandate(ticket, m.claim)
 
 
 def consume_native(path, principal, instance, ticket, effect):
