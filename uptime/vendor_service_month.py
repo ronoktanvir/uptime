@@ -67,11 +67,11 @@ def validate(manifest, key, value, quote):
                 or not re.search(r'recurring|subscription',text) or not re.search(r'fee|charge|invoice|line',text)):
             raise ValueError('Paid recurring service fee scope is unverified.')
     elif key in ('record_integrity','denial_policy'):
-        patterns={'source_identifier':r'(?:source|record) identifiers?|source ids?', 'recorded_timestamp':r'recorded timestamp|timestamped',
+        patterns={'source_identifier':r'(?:source|record) identifiers?|source ids?|identif.{0,40}recording system', 'recorded_timestamp':r'recorded timestamp|timestamped',
                   'content_hash':r'content hash|sha.256', 'missing_unknown':r'unknown|unestablished|insufficient',
                   'no_customer_telemetry':r'customer telemetry (?:is |are )?not required',
-                  'filing_timestamp':r'filing timestamp|timestamped claim|time of filing',
-                  'accept_correct':r'(?:correct|valid).{0,140}(?:accept|upheld)', 'cure_missing':r'missing.{0,90}(?:supply|provide|supplement)',
+                  'filing_timestamp':r'filing timestamp|timestamped claim|time of filing|(?:receipt|received|arrival) timestamp',
+                  'accept_correct':r'(?:correct|valid).{0,140}(?:accept|upheld)', 'cure_missing':r'missing.{0,90}(?:supply|provide|supplement)|supporting records.{0,45}supplied|corrections? and supplements?',
                   'escalate_unsupported':r'escalat.{0,35}review|refer.{0,35}review','no_automatic_appeal':r'no.{0,60}automatic appeal|do not.{0,100}automatic appeal',
                   'synthetic_only':r'synthetic testing only|only synthetic'}
         permitted = ({'source_identifier','recorded_timestamp','content_hash','missing_unknown','no_customer_telemetry','filing_timestamp'}
