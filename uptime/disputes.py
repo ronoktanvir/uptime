@@ -16,6 +16,7 @@ from pathlib import Path
 
 from uptime.contracts import EvaluationResult, Outcome, Principal, Source, fingerprint
 from uptime import disputes_claimant as claimant
+from uptime.claim_identity import reserve_legacy_claim
 from uptime import disputes_vendor as vendor
 from uptime.disputes_wire import FIXTURES, TERMS, VERSION, deadline, instant
 
@@ -320,9 +321,20 @@ class DisputeDesk:
         db.execute("INSERT OR IGNORE INTO dispute_obligations VALUES(?,?,?)",
                    (principal.tenant, ticket.obligation_key, case_id))
         key = fingerprint([ticket.obligation_key, action])
+        db.execute("SAVEPOINT local_claim_send")
+        try:
+            reserve_legacy_claim(
+                db, ticket=ticket, case_id=case_id, receipt_id="SIM-" + key[:16], at=now.isoformat(),
+                initial_receipt_id=state["submissions"][0]["id"] if is_response else None)
+        except ValueError as error:
+            raise DisputeConflict(str(error)) from error
         try:
             reply = vendor.review(ticket, now)
         except (ConnectionError, TimeoutError):
+            # Only this pure local simulator establishes a definite no-effect failure.
+            # A real/unknown transport must retain the reservation for reconciliation.
+            db.execute("ROLLBACK TO local_claim_send")
+            db.execute("RELEASE local_claim_send")
             # The offline reviewer is pure. Receipt, state and action commit together.
             failures = state["failed_sends"].get(key, 0) + 1
             state["failed_sends"][key] = failures
@@ -332,6 +344,7 @@ class DisputeDesk:
                   action=action, idempotency_key=key, failed_attempts=failures)
             return failures >= 2
 
+        db.execute("RELEASE local_claim_send")
         receipt = dict(id="SIM-" + key[:16], idempotency_key=key, action=action, digest=ticket.digest,
                        document_refs=[doc.fact.ref for doc in ticket.documents], approval=state["approval"],
                        subject=ticket.subject, destination=ticket.channel, at=now.isoformat(), sources=SIMULATED)
