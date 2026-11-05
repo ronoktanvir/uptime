@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-05T22:31:23.292872+00:00",
+  "updated_at": "2026-11-05T22:40:51.507195+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
@@ -10,6 +10,12 @@
       "value": "2,949 passed",
       "detail": "3f5b856: 2,949 passed, 1 warning in 218.30s. 47 JavaScript checks also passed. Interrupted and failed attempts are preserved.",
       "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-3f5b856.json"
+    },
+    {
+      "label": "Hosted verification",
+      "value": "CI passed",
+      "detail": "Exact application checkpoint3561836 passed on Linux: 2,949 tests in341.39s, 47 JavaScript checks, graph/replay/secret checks.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42122411200"
     },
     {
       "label": "Northwind workflow",
@@ -457,19 +463,19 @@
       "id": "ci",
       "title": "GitHub CI verification",
       "stream": "Independent QA",
-      "status": "active",
-      "summary": "Last accepted main CI passed; new publication pending",
-      "detail": "The previous main checkpoint c47094a passed GitHub run 41998010128. The completed Northwind integration has passed local full regression and awaits its own hosted result.",
+      "status": "done",
+      "summary": "GitHub CI passed on3561836",
+      "detail": "Main run42122411200 passed: 2,949 Python tests, 47 JavaScript checks, dependency validation, replay and repository scan. This snapshot update changes metadata only; application code is unchanged.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
         "regression"
       ],
-      "next_action": "Verify GitHub CI for the new published commit.",
+      "next_action": "Repeat the configured checks after the next application change.",
       "links": [
         {
-          "label": "Completed GitHub workflow",
-          "url": "https://github.com/ronoktanvir/uptime/actions/runs/41968278163"
+          "label": "Successful GitHub run",
+          "url": "https://github.com/ronoktanvir/uptime/actions/runs/42122411200"
         }
       ]
     },
@@ -635,6 +641,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-05T22:40:51.507195+00:00",
+      "title": "Published checkpoint passes hosted CI",
+      "detail": "Main3561836 is verified on GitHub. Only this evidence receipt and progress metadata follow; application code is unchanged.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42122411200"
+    },
     {
       "at": "2026-11-05T22:31:23.292872+00:00",
       "title": "Northwind reaches applied; final regression passes",

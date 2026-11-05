@@ -1,5 +1,7 @@
 # Northwind integration checkpoint
 
+Published application checkpoint `3561836` passed [GitHub CI](https://github.com/ronoktanvir/uptime/actions/runs/42122411200): **2,949 tests passed, 1 warning in 341.39s**, plus all 47 JavaScript checks, dependency validation, replay and repository scan. The subsequent receipt/progress commit changes metadata only. [CI receipt](evidence/ci-3561836.json)
+
 The continuous Northwind workflow is implemented and has completed all 11 actions through the signed HTTP API and the actual browser. January's USD 2,400 credit progresses through filing, an evidence denial, verified supplementary evidence, an authorized response, award, Local ledger posting and April application. April's USD 11,000 invoice retains USD 8,600 outstanding. March's separate USD 1,000 price finding remains open. These stage amounts are not additive.
 
 The source integration is `5146e17`; `3f5b856` fixes the real-browser action handler and returns expired signing sessions to the existing login screen. Final locked regression: **2,949 passed, 1 warning in 218.30s** at `3f5b856`; all 47 Node checks passed. [Full receipt](evidence/verification-3f5b856.json) This is a working authored-data walkthrough, not evidence of real vendor recovery, actual-human approval or a native Ramp write.

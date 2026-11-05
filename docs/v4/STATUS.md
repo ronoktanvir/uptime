@@ -1,5 +1,7 @@
 # Uptime V4 engineering status
 
+Published application checkpoint `3561836` passed [GitHub CI](https://github.com/ronoktanvir/uptime/actions/runs/42122411200): **2,949 tests passed, 1 warning in 341.39s**, plus all 47 JavaScript checks, dependency validation, replay and repository scan. The subsequent receipt/progress commit changes metadata only. [CI receipt](evidence/ci-3561836.json)
+
 Uptime is connected to the Ramp demo the user opened. The new app reads the same bill UUID visible in Ramp and has a verified `bills:write` grant. The first native write is still pending. The contract and financial engines are implemented for bounded families; independent evaluation exposes substantial remaining language and source-meaning gaps. Passing regression tests is not production-readiness evidence.
 
 ## Completed Northwind integration

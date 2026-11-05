@@ -1,0 +1,19 @@
+{
+  "source_commit": "3561836542a5baeb013e1c5837f3d51d9715a12c",
+  "run_id": 42122411200,
+  "job_id": 127577895516,
+  "url": "https://github.com/ronoktanvir/uptime/actions/runs/42122411200",
+  "status": "completed",
+  "conclusion": "success",
+  "completed_at": "2026-11-05T22:39:24Z",
+  "environment": "GitHub Actions ubuntu-latest, locked Python3.13 and Chromium",
+  "python_result": "2949 passed, 1 warning in 341.39s",
+  "javascript_result": "47 passed, 0 failed",
+  "other_checks": [
+    "dependency graph and link safety passed",
+    "legacy deterministic replay passed",
+    "secret check passed for1504 versioned text objects"
+  ],
+  "native_write_attempted": false,
+  "scope": "Application and tests match3561836. The following metadata-only publication records this receipt without another full CI run."
+}
