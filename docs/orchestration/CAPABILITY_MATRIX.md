@@ -1,5 +1,7 @@
 # Capability matrix
 
+This is the preserved November3 baseline. For current implementation depth, repaired bugs, the new Ramp app grant, Northwind execution and unresolved native proof, use [the V4 capability matrix](../v4/CAPABILITIES.md). Historical observations below are not a claim about today's configuration or UI presentation.
+
 | Surface | What was verified | Source / boundary |
 |---|---|---|
 | Ramp vendors and bills | Scoped OAuth read succeeded. Six bills; twenty vendors on the sampled page, additional vendor pages available. Same-ID detail read for the USD 840 pending and USD 481.28 paid records. | LIVE_RAMP_SANDBOX. Saved proof adds DETERMINISTIC_REPLAY. |

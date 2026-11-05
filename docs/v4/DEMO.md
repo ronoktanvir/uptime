@@ -1,5 +1,42 @@
 # Ramp-first two-minute demo
 
+## Current Northwind walkthrough
+
+The current interactive walkthrough uses the ordinary finance workbench and the signed contract, dispute and financial services. Its customer documents, reviewer display name, vendor messages and ledger are authored demonstration inputs. State this orally before the presentation. The product uses ordinary document references and financial states; the write destination is accurately named **Local ledger**. This run is not native Ramp write or actual recovered-money proof.
+
+Start a fresh private workspace outside the checkout (choose a new directory name for each new presentation):
+
+```sh
+uv sync --locked
+uv run --locked python scripts/setup_northwind.py \
+  --directory "$HOME/.local/share/uptime/northwind-session-001" \
+  --origin http://127.0.0.1:8776 --serve
+```
+
+Open `http://127.0.0.1:8776`, sign in as `scripted-test-reviewer`, and select `scripted-reviewer.jwk` from that directory. Do not copy the key into chat or Git. If the page reloads, the in-memory signing key is discarded and the next write asks for sign-in again. To restart without resetting state, use the same command with `--resume`.
+
+| Time | Show and do | Explain |
+|---|---|---|
+| 0–25 seconds | March price review, governing amendment and January/February/March evaluations | The March cap is USD 11,000 against a USD 12,000 invoice: USD 1,000 requires review before payment. January earns USD 2,400; February is ineligible; incomplete March evidence prevents an SLA estimate. |
+| 25–45 seconds | Approve January claim → File January claim → Receive vendor response | Filing preserves the exact contract and evidence. The vendor requests the missing resource log; a denial does not automatically end the case. |
+| 45–75 seconds | Attach requested log → Verify supplied log → Approve response → Send response | The new artifact and separate verification must satisfy the requested proof. Authorization and the follow-up clock remain enforced. |
+| 75–100 seconds | Receive credit decision → Post to Local ledger → Receive next invoice → Apply credit to eligible invoice | Award, posting and application are distinct. The same verified credit is applied once to April's USD 11,000 invoice, leaving USD 8,600. The March finding remains unresolved. |
+| 100–120 seconds | Bill reconciliation and CalyxQuay contract coverage; expand Agreement & review record | Show the credit/application IDs, adapter hash, shadow/review/activation/rollback history and actual reviewer principal. Ramp remains the intended financial system of record; native publication and real credit synchronization are separate uncompleted proof gates. |
+
+The 11-step socket receipt checks duplicate requests and independent readbacks. The normal browser also completed all 11 steps. A restart readback preserves the final IDs and balances. [Execution evidence](validation/northwind/browser-verification.json) · [Socket receipt](validation/northwind/final-socket.json) · [Complete screen](validation/northwind/browser-applied.png)
+
+For a deterministic fallback, run the signed client against an owned running fresh workspace:
+
+```sh
+uv run --locked python scripts/rehearse_northwind.py \
+  --directory "$HOME/.local/share/uptime/northwind-session-001" \
+  --receipt "$HOME/.local/share/uptime/northwind-session-001/socket-receipt.json"
+```
+
+It follows server-issued actions and records actual results; it does not manufacture an expected award. An already completed workspace yields zero new actions. The saved complete screen and receipt are the fallback if the local server is unavailable. The existing 120-second video below is an older, separate demonstration and has not been regenerated to depict Northwind.
+
+## Historical recorded film
+
 `scripts/film_ramp_v4.py` captures the normal application, starting at `#ramp`, in a fresh disposable replay database. Thirteen actual browser screenshots become exactly 120 seconds of H.264 video through the existing `film_demo.py` ffmpeg encoder. The captions sit below the untouched application image. The video is silent; the spoken script below is for a live presenter. There are no stock assets, replacement screens, Ramp embeds, provider calls, or live writes.
 
 ## Reproduce and verify

@@ -1,0 +1,24 @@
+{
+  "reviewed_commit": "844e6525fcb06b8ba59e2dfb91617de37cda4167",
+  "result": "Both previously reported65A defects resolved in the rechecked boundaries; three adapted original probes passed in0.48s.",
+  "findings_resolved": [
+    "F65A-1 stale lifecycle/current case/rollup authority",
+    "F65A-2 duplicate exact authenticated lookup key overwrite"
+  ],
+  "adaptation": "Explicit governing_fees and trusted_now passed through current catalog/Workbench calls; positive values required before close. Old action token captured before closure and rejection asserted afterward. Duplicate constructor assertion covers both input orderings rather than continuing past the now-expected rejection. Original failure files remain unchanged.",
+  "observed_boundaries": [
+    "January current tests/case/portfolio estimated amount=2400.00 before registry.close().",
+    "After closure current checks/actions unavailable, old approve token rejects, current case/estimated metric null and current resolve_case rejects.",
+    "recorded_amount/history retain2400.00; archived case_versions unchanged.",
+    "One registry entry resolves correctly; two exact Scope keys with distinct plan refuse in both orderings."
+  ],
+  "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-fee65b-844e652/recheck.log",
+  "tests": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-fee65b-844e652/test_known_repairs.py",
+  "observations": [
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-fee65b-844e652/catalog-observed.json",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-fee65b-844e652/case-observed.json"
+  ],
+  "worktree": "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/independent-fee65b",
+  "root_source_modified": false,
+  "limits": "Stopped after the already-requested known-fix recheck per latest user steering. No further advance timing/April architecture review, new probes, arithmetic sweep, fullsuite, private inputs, credentials or native operations. No production-readiness claim."
+}

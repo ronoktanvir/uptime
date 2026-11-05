@@ -1,0 +1,400 @@
+Browser tab: 6, Title: "Uptime for Ramp · Finance workbench", URL: "http://127.0.0.1:8776/".
+1 AXWebArea Uptime for Ramp · Finance workbench, URL: 127.0.0.1:8776/
+	2 link Description: Skip to workbench, Value: 127.0.0.1:8776/#workspace
+	3 container
+		4 link Description: Uptime for Ramp, worklist, Value: 127.0.0.1:8776/#ramp
+		5 text Finance workbench
+		6 container Main navigation
+			7 link Description: Contract worklist, Value: 127.0.0.1:8776/#ramp
+			8 link Description: Ramp records, Value: 127.0.0.1:8776/#records
+			9 link Description: Case ledger Advanced, Help: Evidence ledger · advanced, Value: 127.0.0.1:8776/#dashboard
+			10 link Description: Vendor contracts, Value: 127.0.0.1:8776/#vendors
+			11 link Description: Correspondence, Value: 127.0.0.1:8776/#disputes
+			12 link Description: Onboarding lab, Value: 127.0.0.1:8776/#onboarding
+			13 link Description: Policies, Value: 127.0.0.1:8776/#policy
+			14 link Description: Integrations, Value: 127.0.0.1:8776/#integrations
+			15 link Description: Advanced workflows, Value: 127.0.0.1:8776/#advanced
+			16 link Description: Vendor intake & versions, Value: 127.0.0.1:8776/#vendors
+			17 link Description: Correspondence & disputes, Value: 127.0.0.1:8776/#disputes
+			18 link Description: Onboarding lab, Value: 127.0.0.1:8776/#lab
+			19 link Description: Regression comparison, Value: 127.0.0.1:8776/#regression
+	20 container workspace
+		21 container
+			25 text Harborline Analytics
+			23 button Sign out · scripted-test-reviewer, ID: account
+			24 button Refresh data, ID: refresh
+		26 container content
+			27 heading Northwind Cloud, Value: 1
+				28 text Northwind Cloud
+			29 text Contract review & recovery
+			30 text Updated 2026-04-01T09:00:00+00:00
+			31 container Financial stages
+				32 container
+					33 heading Claimed, Value: 2
+						34 text Claimed
+					35 text $2,400.00
+				36 container
+					37 heading Awarded, Value: 2
+						38 text Awarded
+					39 text $2,400.00
+				40 container
+					41 heading Posted to Local ledger, Value: 2
+						42 text Posted to Local ledger
+					43 text $2,400.00
+				44 container
+					45 heading Applied to bill, Value: 2
+						46 text Applied to bill
+					47 text $2,400.00
+			48 container
+				49 heading Governing agreement, Value: 2
+					50 text Governing agreement
+				51 text Service Level Agreement Vendor: Northwind Cloud Agreement: NW-2026-001 Effective: 2026-01-01 through 2026-12-31 Availability is measured over each UTC calendar month. For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%. Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments. Claims must be received within 30 calendar days after month end. Service credits apply to affected monthly fees on a future invoice.
+				52 definition list
+					53 container Agreement
+						54 text Agreement
+					55 text Northwind Cloud Service Level Agreement
+					56 container Version
+						57 text Version
+					58 text 3426def8d2c8cdb660f27843b1cdf77ef3811d81fb3546763660f45eead66fde
+					59 container Document reference
+						60 text Document reference
+					61 text urn:northwind:NW-2026-001:sla
+				62 heading Order Form NW-2026-001, Value: 3
+					63 text Order Form NW-2026-001
+				64 definition list
+					65 container Reference
+						66 text Reference
+					67 text urn:northwind:NW-2026-001:order-form.txt
+					68 container Version
+						69 text Version
+					70 text order-v1
+					71 container Effective date
+						72 text Effective date
+					73 text 2026-01-01T00:00:00+00:00
+				74 text 2 Covered subscription; 3 Eligible fees; 6 Governing date
+				75 heading Amendment 1 to NW-2026-001, Value: 3
+					76 text Amendment 1 to NW-2026-001
+				77 definition list
+					78 container Reference
+						79 text Reference
+					80 text urn:northwind:NW-2026-001:amendment-2026-03.txt
+					81 container Version
+						82 text Version
+					83 text amendment-v2
+					84 container Effective date
+						85 text Effective date
+					86 text 2026-03-01T00:00:00+00:00
+				87 text 1 Execution and effect; 2 Governing fee and ceiling
+			88 container
+				89 heading January recovery, Value: 2
+					90 text January recovery
+				91 definition list
+					92 container Connection destination
+						93 text Connection destination
+					94 text Local ledger
+					95 container Connection status
+						96 text Connection status
+					97 text connected
+					98 container Receipt status
+						99 text Receipt status
+					100 text verified local readback
+				101 definition list
+					102 container Current stage
+						103 text Current stage
+					104 text awarded
+					105 container Claim reference
+						106 text Claim reference
+					107 text inbox-northwind-2026-01
+					108 container Destination
+						109 text Destination
+					110 text Local ledger
+				111 text No actions available in the current state.
+			112 container
+				113 heading Service credit evaluations, Value: 2
+					114 text Service credit evaluations
+				115 table
+					116 row
+						117 cell
+							118 text Service month
+						119 cell
+							120 text Decision
+						121 cell
+							122 text Service credit
+						123 cell
+							124 text Evidence
+					125 row
+						126 cell
+							127 text 2026-01
+						128 cell
+							129 text Eligible
+						130 cell
+							131 text $2,400.00
+						132 cell
+							133 text 44505/44640 UTC minutes available; 2 completed shortfall increments; 20000000/1000000% credit after cap.; Affected fee 1200000 USD cents; source-clause future invoice credit only.
+							134 content list
+								135 container
+									136 text Northwind Cloud Service Level Agreement, clause 1: Service Level Agreement urn:northwind:NW-2026-001:sla
+								137 container
+									138 text Northwind Cloud Service Level Agreement, clause 2: Vendor: Northwind Cloud urn:northwind:NW-2026-001:sla
+								139 container
+									140 text Northwind Cloud Service Level Agreement, clause 3: Agreement: NW-2026-001 urn:northwind:NW-2026-001:sla
+								141 container
+									142 text Northwind Cloud Service Level Agreement, clause 4: Effective: 2026-01-01 through 2026-12-31 urn:northwind:NW-2026-001:sla
+								143 container
+									144 text Northwind Cloud Service Level Agreement, clause 5: Availability is measured over each UTC calendar month. urn:northwind:NW-2026-001:sla
+								145 container
+									146 text Northwind Cloud Service Level Agreement, clause 6: For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%. urn:northwind:NW-2026-001:sla
+								147 container
+									148 text Northwind Cloud Service Level Agreement, clause 7: Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments. urn:northwind:NW-2026-001:sla
+								149 container
+									150 text Northwind Cloud Service Level Agreement, clause 8: Claims must be received within 30 calendar days after month end. urn:northwind:NW-2026-001:sla
+								151 container
+									152 text Northwind Cloud Service Level Agreement, clause 9: Service credits apply to affected monthly fees on a future invoice. urn:northwind:NW-2026-001:sla
+							153 button (collapsed) Inspect invoice & usage, Secondary Actions: Expand
+								154 text Inspect invoice & usage
+					155 row
+						156 cell
+							157 text 2026-02
+						158 cell
+							159 text Ineligible
+						160 cell
+							161 text Not determined
+						162 cell
+							163 text 40315/40320 UTC minutes available; 0 completed shortfall increments; 0/1000000% credit after cap.
+							164 content list
+								165 container
+									166 text Northwind Cloud Service Level Agreement, clause 1: Service Level Agreement urn:northwind:NW-2026-001:sla
+								167 container
+									168 text Northwind Cloud Service Level Agreement, clause 2: Vendor: Northwind Cloud urn:northwind:NW-2026-001:sla
+								169 container
+									170 text Northwind Cloud Service Level Agreement, clause 3: Agreement: NW-2026-001 urn:northwind:NW-2026-001:sla
+								171 container
+									172 text Northwind Cloud Service Level Agreement, clause 4: Effective: 2026-01-01 through 2026-12-31 urn:northwind:NW-2026-001:sla
+								173 container
+									174 text Northwind Cloud Service Level Agreement, clause 5: Availability is measured over each UTC calendar month. urn:northwind:NW-2026-001:sla
+								175 container
+									176 text Northwind Cloud Service Level Agreement, clause 6: For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%. urn:northwind:NW-2026-001:sla
+								177 container
+									178 text Northwind Cloud Service Level Agreement, clause 7: Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments. urn:northwind:NW-2026-001:sla
+								179 container
+									180 text Northwind Cloud Service Level Agreement, clause 8: Claims must be received within 30 calendar days after month end. urn:northwind:NW-2026-001:sla
+								181 container
+									182 text Northwind Cloud Service Level Agreement, clause 9: Service credits apply to affected monthly fees on a future invoice. urn:northwind:NW-2026-001:sla
+							183 button (collapsed) Inspect invoice & usage, Secondary Actions: Expand
+								184 text Inspect invoice & usage
+					185 row
+						186 cell
+							187 text 2026-03
+						188 cell
+							189 text Needs evidence
+						190 cell
+							191 text Not determined
+						192 cell
+							193 text Scoped, exclusion-adjusted, full-month vendor measurement is required.
+							194 content list
+								195 container
+									196 text Northwind Cloud Service Level Agreement, clause 1: Service Level Agreement urn:northwind:NW-2026-001:sla
+								197 container
+									198 text Northwind Cloud Service Level Agreement, clause 2: Vendor: Northwind Cloud urn:northwind:NW-2026-001:sla
+								199 container
+									200 text Northwind Cloud Service Level Agreement, clause 3: Agreement: NW-2026-001 urn:northwind:NW-2026-001:sla
+								201 container
+									202 text Northwind Cloud Service Level Agreement, clause 4: Effective: 2026-01-01 through 2026-12-31 urn:northwind:NW-2026-001:sla
+								203 container
+									204 text Northwind Cloud Service Level Agreement, clause 5: Availability is measured over each UTC calendar month. urn:northwind:NW-2026-001:sla
+								205 container
+									206 text Northwind Cloud Service Level Agreement, clause 6: For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%. urn:northwind:NW-2026-001:sla
+								207 container
+									208 text Northwind Cloud Service Level Agreement, clause 7: Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments. urn:northwind:NW-2026-001:sla
+								209 container
+									210 text Northwind Cloud Service Level Agreement, clause 8: Claims must be received within 30 calendar days after month end. urn:northwind:NW-2026-001:sla
+								211 container
+									212 text Northwind Cloud Service Level Agreement, clause 9: Service credits apply to affected monthly fees on a future invoice. urn:northwind:NW-2026-001:sla
+							213 button (collapsed) Inspect invoice & usage, Secondary Actions: Expand
+								214 text Inspect invoice & usage
+			215 container
+				216 heading March price review, Value: 2
+					217 text March price review
+				218 definition list
+					219 container Finding
+						220 text Finding
+					221 text Price cap review
+					222 container Exposure
+						223 text Exposure
+					224 text $1,000.00
+					225 container Status
+						226 text Status
+					227 text prepayment review
+				228 text [urn:northwind:NW-2026-001:amendment-2026-03.txt #1 Execution and effect; 2 Governing fee and ceiling] Line cloud-hosting-monthly: performance [2026-03-01T00:00:00+00:00, 2026-04-01T00:00:00+00:00); effective version amendment-v2, signed 2026-02-20T15:00:00+00:00, effective 2026-03-01T00:00:00+00:00, supersedes order-v1; invoice date does not choose rate.; Line cloud-hosting-monthly: fixed calendar-month advance fee, provisional as of 2026-03-01T12:00:00+00:00; no usage or future telemetry inferred.; Line cloud-hosting-monthly: allocation subscription-ledger-2026-03; complete quantity 1 service-month; graduated tiers reset for this complete performance slice; thresholds upper-inclusive.; Line cloud-hosting-monthly: tier (0.00, unbounded] 1.00 × 11000.00 USD = 11000.0000 USD.; Line cloud-hosting-monthly: billed net 12000.00 - expected 11000.00 = 1000.00 USD (OVERCHARGE); line HALF_UP to cents; tax 0.00 separately excluded and not adjudicated.; Provisional overcharge 1000.00 USD; undercharge 0.00 USD; no automatic netting. Payment status remains pending; prevented, claimed, awarded and recovered amounts are 0.00.
+				229 content list
+					230 container
+						231 text Order Form NW-2026-001 · order-form.txt:1 urn:northwind:NW-2026-001:order-form.txt
+					232 container
+						233 text Order Form NW-2026-001 · order-form.txt:2 urn:northwind:NW-2026-001:order-form.txt
+					234 container
+						235 text Order Form NW-2026-001 · order-form.txt:3 urn:northwind:NW-2026-001:order-form.txt
+					236 container
+						237 text Order Form NW-2026-001 · order-form.txt:4 urn:northwind:NW-2026-001:order-form.txt
+					238 container
+						239 text Order Form NW-2026-001 · order-form.txt:5 urn:northwind:NW-2026-001:order-form.txt
+					240 container
+						241 text Order Form NW-2026-001 · order-form.txt:6 urn:northwind:NW-2026-001:order-form.txt
+					242 container
+						243 text Order Form NW-2026-001 · order-form.txt:7 urn:northwind:NW-2026-001:order-form.txt
+					244 container
+						245 text Order Form NW-2026-001 · order-form.txt:8 urn:northwind:NW-2026-001:order-form.txt
+					246 container
+						247 text Order Form NW-2026-001 · order-form.txt:9 urn:northwind:NW-2026-001:order-form.txt
+					248 container
+						249 text Amendment 1 to NW-2026-001 · amendment-2026-03.txt:1 urn:northwind:NW-2026-001:amendment-2026-03.txt
+					250 container
+						251 text Amendment 1 to NW-2026-001 · amendment-2026-03.txt:2 urn:northwind:NW-2026-001:amendment-2026-03.txt
+					252 container
+						253 text Amendment 1 to NW-2026-001 · amendment-2026-03.txt:3 urn:northwind:NW-2026-001:amendment-2026-03.txt
+					254 container
+						255 text Amendment 1 to NW-2026-001 · amendment-2026-03.txt:4 urn:northwind:NW-2026-001:amendment-2026-03.txt
+					256 container
+						257 text Amendment 1 to NW-2026-001 · amendment-2026-03.txt:5 urn:northwind:NW-2026-001:amendment-2026-03.txt
+					258 container
+						259 text Amendment 1 to NW-2026-001 · amendment-2026-03.txt:6 urn:northwind:NW-2026-001:amendment-2026-03.txt
+			260 container
+				261 heading Bill reconciliation, Value: 2
+					262 text Bill reconciliation
+				263 definition list
+					264 container Destination
+						265 text Destination
+					266 text Local ledger
+					267 container Bill reference
+						268 text Bill reference
+					269 text NW-2026-04
+					270 container Invoice issued
+						271 text Invoice issued
+					272 text 2026-04-01T00:00:00+00:00
+					273 container Service starts
+						274 text Service starts
+					275 text 2026-04-01T00:00:00+00:00
+					276 container Service ends
+						277 text Service ends
+					278 text 2026-05-01T00:00:00+00:00
+					279 container Original bill
+						280 text Original bill
+					281 text $11,000.00
+					282 container Outstanding balance
+						283 text Outstanding balance
+					284 text $8,600.00
+					285 container Receipt reference
+						286 text Receipt reference
+					287 text LOCAL-89f956ddbe155200460823b4
+					288 container Award reference
+						289 text Award reference
+					290 text inbox-award:3160bf112449fbd5eff4bb7f68d45005e72e13fc3be823c6f1f6e190a511c93e
+					291 container Credit reference
+						292 text Credit reference
+					293 text local-ledger:23bb4b8b-3625-5438-b396-f5e336a01da8
+					294 container Application reference
+						295 text Application reference
+					296 text local-ledger:a9bbcbd4-7235-5929-8352-dbb798157c5c
+			297 container
+				298 heading CalyxQuay contract coverage, Value: 2
+					299 text CalyxQuay contract coverage
+				300 definition list
+					301 container Current state
+						302 text Current state
+					303 text active
+					304 container Adapter version
+						305 text Adapter version
+					306 text e1b5b1f7f082a1d169bd386ef4a3a3c672e979a3f81133d7a071ce2a04189734
+				307 content list
+					308 container
+						309 text 2026-11-05T10:12:31.815017+00:00 Imported public document and separate tenant overlay 1
+					310 container
+						311 text 2026-11-05T10:12:31.815037+00:00 Validated source coverage, typed thresholds and governing dates 2
+					312 container
+						313 text 2026-11-05T10:12:31.815045+00:00 Shadow only; waiting for independent reviewer cases 3
+					314 container
+						315 text 2026-11-05T10:12:31.825033+00:00 Named pre-pricing source and literal evidence binding review 4
+					316 container
+						317 text 2026-11-05T10:12:31.850675+00:00 Executed reviewer-authored scenarios in shadow 5
+					318 container
+						319 text 2026-11-05T10:12:31.861623+00:00 Accept source interpretation for this review 6
+					320 container
+						321 text 2026-11-05T10:12:31.872421+00:00 Approve reviewed tests 7
+					322 container
+						323 text 2026-11-05T10:12:31.883314+00:00 Activate for local evaluation 8
+					324 container
+						325 text 2026-11-05T10:12:31.895734+00:00 Roll back activation 9
+					326 container
+						327 text 2026-11-05T10:12:31.906751+00:00 Begin fresh review 10
+					328 container
+						329 text 2026-11-05T10:12:31.931067+00:00 Executed reviewer-authored scenarios in shadow 11
+					330 container
+						331 text 2026-11-05T10:12:31.941096+00:00 Accept source interpretation for this review 12
+					332 container
+						333 text 2026-11-05T10:12:31.951350+00:00 Approve reviewed tests 13
+					334 container
+						335 text 2026-11-05T10:12:31.961718+00:00 Activate for local evaluation 14
+				336 link Description: Inspect vendor contracts, Value: 127.0.0.1:8776/#vendors
+			337 container
+				338 button (expanded) Agreement & review record, Secondary Actions: Collapse
+					339 text Agreement & review record
+				340 definition list
+					341 container Agreement
+						342 text Agreement
+					343 text Northwind Cloud Service Level Agreement
+					344 container Version
+						345 text Version
+					346 text 3426def8d2c8cdb660f27843b1cdf77ef3811d81fb3546763660f45eead66fde
+					347 container Document reference
+						348 text Document reference
+					349 text urn:northwind:NW-2026-001:sla
+					350 container Reviewer
+						351 text Reviewer
+					352 text Dana Reyes
+					353 container Principal
+						354 text Principal
+					355 text scripted-test-reviewer
+					356 container Role
+						357 text Role
+					358 text Contract reviewer
+					359 container Authority kind
+						360 text Authority kind
+					361 text Scripted reviewer
+				362 text Source references not provided.
+			363 container
+				364 heading Workflow history, Value: 2
+					365 text Workflow history
+				366 content list
+					367 container
+						368 text 2026-03-01T12:00:00+00:00 Opened an assisted local claim intake.
+					369 container
+						370 text 2026-03-01T12:00:00+00:00 Received authenticated invoice record. northwind-invoice-2026-01
+					371 container
+						372 text 2026-03-01T12:00:00+00:00 Received authenticated status record. northwind-status-2026-01
+					373 container
+						374 text 2026-03-01T12:00:00+00:00 Received authenticated impact record. northwind-impact-2026-01
+					375 container
+						376 text 2026-03-01T12:00:00+00:00 Received authenticated coverage record. northwind-monthly-coverage-2026-01
+					377 container
+						378 text 2026-03-01T12:00:00+00:00 Approved exact local packet. e632bf26b09154221957e16081fd159a5b20511311ed2fbbc6d8e026d9d6ca0a
+					379 container
+						380 text 2026-03-01T12:00:00+00:00 Filed approved packet in the isolated local outbox.
+					381 container
+						382 text 2026-03-01T12:10:00+00:00 Received authenticated message record. northwind-denial-jan
+					383 container
+						384 text 2026-03-01T12:10:00+00:00 Evaluated vendor correspondence: NEEDS_EVIDENCE.
+					385 container
+						386 text 2026-03-02T09:00:00+00:00 Received authenticated artifact record. northwind-jan-resource-log
+					387 container
+						388 text 2026-03-02T09:05:00+00:00 Received authenticated status_verification record. northwind-jan-status-verification
+					389 container
+						390 text 2026-03-02T09:05:00+00:00 A newly acquired artifact matches the requested proof and independent verification.
+					391 container
+						392 text 2026-03-02T09:05:00+00:00 Approved exact local packet. 89f956ddbe155200460823b433f5177027bdaecf883dc97d3acbc15dbb3c077d
+					393 container
+						394 text 2026-03-02T12:10:00+00:00 Filed approved packet in the isolated local outbox.
+					395 container
+						396 text 2026-03-02T13:00:00+00:00 Received authenticated message record. NW-CM-2026-01
+					397 container
+						398 text 2026-03-02T13:00:00+00:00 Evaluated vendor correspondence: AWARDED.
+
+The focused UI element is 20 container workspace

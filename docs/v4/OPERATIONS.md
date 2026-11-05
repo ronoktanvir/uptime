@@ -4,6 +4,8 @@ Run these commands from the Uptime V4 checkout. Use Python 3.11 or later, uv, an
 
 ## Open the application
 
+For the current authored Northwind walkthrough, use [the isolated workspace procedure](NORTHWIND-WORKFLOW.md). Its default port is 8776 and its generated reviewer credential belongs only to that private workspace. Keep it separate from the connected Ramp database and credentials described below. `--resume` preserves state; a fresh directory starts a new run. The [two-minute script](DEMO.md#current-northwind-walkthrough) and readback receipts describe what was actually demonstrated.
+
 On macOS run `./Open\ Uptime.command`. It provisions a local view-only key on first launch, uses a private application database, and opens the loopback sign-in page. Sign in as `ramp.viewer` and select `~/.config/uptime/ramp-worklist-viewer.json`. In the macOS file chooser press Command-Shift-G to enter that path. Close the server with Control-C. The viewer can inspect the worklist, evidence and history. Its key carries no reviewer or financial authority.
 
 For a separate named installation:

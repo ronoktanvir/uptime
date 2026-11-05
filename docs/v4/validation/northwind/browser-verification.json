@@ -1,0 +1,267 @@
+{
+  "schema": "northwind-browser-verification/1",
+  "recorded_at": "2026-11-05T22:29:09.056537+00:00",
+  "implementation_commit": "3f5b856",
+  "method": "Actual CUA browser interactions against loopback server; no intercepted workflow responses",
+  "origin": "http://127.0.0.1:8776",
+  "reviewer": "scripted-test-reviewer",
+  "authority_kind": "SCRIPTED_REVIEWER",
+  "actions_completed": [
+    "Approve January claim",
+    "File January claim",
+    "Receive vendor response",
+    "Attach requested log",
+    "Verify supplied log",
+    "Approve response",
+    "Send response",
+    "Receive credit decision",
+    "Post to Local ledger",
+    "Receive next invoice",
+    "Apply credit to eligible invoice"
+  ],
+  "observed_final": {
+    "ledger": {
+      "destination": "Local ledger",
+      "estimated": "2400.00",
+      "claimed": "2400.00",
+      "awarded": "2400.00",
+      "posted": "2400.00",
+      "applied": "2400.00",
+      "currency": "USD",
+      "record_ids": {
+        "award": "inbox-award:3160bf112449fbd5eff4bb7f68d45005e72e13fc3be823c6f1f6e190a511c93e",
+        "credit": "local-ledger:23bb4b8b-3625-5438-b396-f5e336a01da8",
+        "application": "local-ledger:a9bbcbd4-7235-5929-8352-dbb798157c5c"
+      },
+      "unapplied_credit": "0.00",
+      "bill": {
+        "id": "NW-2026-04",
+        "original_amount": "11000.00",
+        "outstanding_amount": "8600.00",
+        "issued_at": "2026-04-01T00:00:00+00:00",
+        "service_start": "2026-04-01T00:00:00+00:00",
+        "service_end": "2026-05-01T00:00:00+00:00",
+        "known_at": "2026-04-01T09:00:00Z",
+        "source_sha256": "ba3a23e99bb642a94c206460071804678c771f46eb0a06ba55b76d7e14c6a9e2",
+        "governing_pricing_version": "amendment-v2",
+        "award_eligibility_version": "0211908c3efcd58b663a17a7af37761ff4d2c5741baca70a47ab0dbd4778ec50",
+        "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+        "source_ref": "local-invoice:a77f502839bb41486e4c4e961eeeb98df3274763a65bd0ca8dca07f3f1a39f45",
+        "unchanged_sla": {
+          "citation": {
+            "end": 979,
+            "id": "amendment-2026-03.txt:4",
+            "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+            "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+            "source_file": "amendment-2026-03.txt",
+            "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+            "start": 700
+          },
+          "citation_id": "amendment-2026-03.txt:4",
+          "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5"
+        }
+      }
+    },
+    "price_finding": {
+      "id": "pricing-ac41b0a29a6b3f960cf34726946208baa82dba23b5e4e76a8bbda06bd0be18bc",
+      "state": "PREPAYMENT_REVIEW",
+      "amount": "1000.00",
+      "currency": "USD",
+      "reason": "Synthetic invoice only; no live Ramp bill bound.; [urn:northwind:NW-2026-001:amendment-2026-03.txt #1 Execution and effect; 2 Governing fee and ceiling] Line cloud-hosting-monthly: performance [2026-03-01T00:00:00+00:00, 2026-04-01T00:00:00+00:00); effective version amendment-v2, signed 2026-02-20T15:00:00+00:00, effective 2026-03-01T00:00:00+00:00, supersedes order-v1; invoice date does not choose rate.; Line cloud-hosting-monthly: fixed calendar-month advance fee, provisional as of 2026-03-01T12:00:00+00:00; no usage or future telemetry inferred.; Line cloud-hosting-monthly: allocation subscription-ledger-2026-03; complete quantity 1 service-month; graduated tiers reset for this complete performance slice; thresholds upper-inclusive.; Line cloud-hosting-monthly: tier (0.00, unbounded] 1.00 \u00d7 11000.00 USD = 11000.0000 USD.; Line cloud-hosting-monthly: billed net 12000.00 - expected 11000.00 = 1000.00 USD (OVERCHARGE); line HALF_UP to cents; tax 0.00 separately excluded and not adjudicated.; Provisional overcharge 1000.00 USD; undercharge 0.00 USD; no automatic netting. Payment status remains pending; prevented, claimed, awarded and recovered amounts are 0.00.",
+      "invoice_id": "NW-2026-03",
+      "citations": [
+        {
+          "label": "Order Form NW-2026-001 \u00b7 order-form.txt:1",
+          "ref": "urn:northwind:NW-2026-001:order-form.txt",
+          "quote": "Northwind Cloud \u2014 Order Form NW-2026-001",
+          "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+          "quote_sha256": "830b1d0363a9825364f41823abbdc66cc2e9210052c9f53bffea9afe3592e748",
+          "start": 0,
+          "end": 40
+        },
+        {
+          "label": "Order Form NW-2026-001 \u00b7 order-form.txt:2",
+          "ref": "urn:northwind:NW-2026-001:order-form.txt",
+          "quote": "1. Parties and term. Provider: Northwind Cloud. Customer: Harborline Analytics. Account: harborline-001. The term covers complete UTC service months from January 1 through December 31, 2026.",
+          "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+          "quote_sha256": "2e628f0b450b0f49514f6c0fb2bc6dc1893fe68eaa11367088c68e8e239c4a52",
+          "start": 41,
+          "end": 231
+        },
+        {
+          "label": "Order Form NW-2026-001 \u00b7 order-form.txt:3",
+          "ref": "urn:northwind:NW-2026-001:order-form.txt",
+          "quote": "2. Covered subscription. Cloud Hosting on the Business plan is one complete service-month unit. The governing service fee is USD 12,000.00 per complete UTC service month; the maximum payable covered service fee is also USD 12,000.00. There are no usage overage charges or partial-month allocations in this order.",
+          "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+          "quote_sha256": "047584ae18b634621e72ffb2edbf726e42306be68f48c903697c63a4941a3d9b",
+          "start": 232,
+          "end": 544
+        },
+        {
+          "label": "Order Form NW-2026-001 \u00b7 order-form.txt:4",
+          "ref": "urn:northwind:NW-2026-001:order-form.txt",
+          "quote": "3. Eligible fees. The SLA credit base is the governing covered monthly service fee after any amendment effective for that service month. An overbilled invoice does not increase that base. Taxes, Premium Support and One-time Setup charges are separate and excluded from the SLA credit base and covered-service price discrepancy.",
+          "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+          "quote_sha256": "b746423eba5e59c20d62d4c7b19597dd5a967a4f03f2f7b8f3b5b13887ef51ea",
+          "start": 545,
+          "end": 872
+        },
+        {
+          "label": "Order Form NW-2026-001 \u00b7 order-form.txt:5",
+          "ref": "urn:northwind:NW-2026-001:order-form.txt",
+          "quote": "4. Service measurement. Availability uses every elapsed minute in the complete UTC month. Only recorded service unavailability counts as eligible downtime; no maintenance or other exclusions apply under this order. A complete monthly coverage report is required; absent coverage means eligibility is unknown.",
+          "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+          "quote_sha256": "ade6497dc46265a1d6b36772e3bf3b6dd3e207ba3ef3e76ff4ee26d0853c547a",
+          "start": 873,
+          "end": 1181
+        },
+        {
+          "label": "Order Form NW-2026-001 \u00b7 order-form.txt:6",
+          "ref": "urn:northwind:NW-2026-001:order-form.txt",
+          "quote": "5. SLA and filing. The attached Service Level Agreement defines completed shortfall increments and final-cent rounding. Claims must be received during the 30 full calendar days following the final day of the service month, inclusive through the last instant of day 30. A draft timestamp is not a filing receipt.",
+          "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+          "quote_sha256": "3b219536283c97a9302c53b644facfaf7d48030bab250f67443dd0e8b8f6cbc7",
+          "start": 1182,
+          "end": 1493
+        },
+        {
+          "label": "Order Form NW-2026-001 \u00b7 order-form.txt:7",
+          "ref": "urn:northwind:NW-2026-001:order-form.txt",
+          "quote": "6. Governing date. The fee is chosen by the service period, not the invoice issue date. An unsplit line crossing an amendment-effective boundary requires complete allocation before pricing.",
+          "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+          "quote_sha256": "bbaa6047457aaf4250f6892795c29ac5746ac20b8123d9ca59e53fa0b7a5d31f",
+          "start": 1494,
+          "end": 1683
+        },
+        {
+          "label": "Order Form NW-2026-001 \u00b7 order-form.txt:8",
+          "ref": "urn:northwind:NW-2026-001:order-form.txt",
+          "quote": "7. Signature record. The scenario signature date is December 15, 2025 at 15:00 UTC. The accompanying local signature specimen binds these bytes and the typed pricing input; it is not an external certificate or evidence of real-party execution.",
+          "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+          "quote_sha256": "7681551075370ce16624faeecb4a452084427dd6839a85f8175117007efacff8",
+          "start": 1684,
+          "end": 1927
+        },
+        {
+          "label": "Order Form NW-2026-001 \u00b7 order-form.txt:9",
+          "ref": "urn:northwind:NW-2026-001:order-form.txt",
+          "quote": "8. Rate schedule. The complete fixed monthly schedule in order-monthly-rate.txt forms part of this order, including its explicit billing timing.",
+          "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+          "quote_sha256": "56ddc6bfca6a3b2190c8e58df39cd5a32dff9e38f7addb3fc79a4a4bb572d155",
+          "start": 1928,
+          "end": 2072
+        },
+        {
+          "label": "Amendment 1 to NW-2026-001 \u00b7 amendment-2026-03.txt:1",
+          "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+          "quote": "Northwind Cloud \u2014 Amendment 1 to NW-2026-001",
+          "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+          "quote_sha256": "04dbdea8066ebfe3148278300e8a10a19f0207d131d186c0965f57c6da6f6026",
+          "start": 0,
+          "end": 44
+        },
+        {
+          "label": "Amendment 1 to NW-2026-001 \u00b7 amendment-2026-03.txt:2",
+          "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+          "quote": "1. Execution and effect. The scenario signatories execute this amendment on February 20, 2026 at 15:00 UTC. It becomes effective for service beginning March 1, 2026 at 00:00 UTC and supersedes the order form monthly service-fee provision from that instant.",
+          "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+          "quote_sha256": "81fe56dfa01d095abb7c6cd2da263e6e621995cf4cf2119e2f8ae0bfc43946b8",
+          "start": 45,
+          "end": 301
+        },
+        {
+          "label": "Amendment 1 to NW-2026-001 \u00b7 amendment-2026-03.txt:3",
+          "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+          "quote": "2. Governing fee and ceiling. For Cloud Hosting on the Business plan, the governing service fee becomes USD 11,000.00 per complete UTC service month. The maximum payable covered service fee is also USD 11,000.00. This replaces both the USD 12,000.00 monthly fee and its USD 12,000.00 ceiling for March and later service months; it does not replace the fee for February service invoiced on March 1.",
+          "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+          "quote_sha256": "8fb48882919c541ee3d5eb5e03378d8314c3fec314a0f51f9d7f7ea78fe5c51d",
+          "start": 302,
+          "end": 699
+        },
+        {
+          "label": "Amendment 1 to NW-2026-001 \u00b7 amendment-2026-03.txt:4",
+          "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+          "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+          "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+          "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+          "start": 700,
+          "end": 979
+        },
+        {
+          "label": "Amendment 1 to NW-2026-001 \u00b7 amendment-2026-03.txt:5",
+          "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+          "quote": "4. Signature record. The accompanying local signature specimen identifies its local issuer and actual creation time separately from the scenario execution date. It establishes no real-party execution or external certificate.",
+          "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+          "quote_sha256": "7d2443ce6ce8c6e9ae82a2185191f9dd582a15fd6665cc17f0bbb3a5156003e3",
+          "start": 980,
+          "end": 1204
+        },
+        {
+          "label": "Amendment 1 to NW-2026-001 \u00b7 amendment-2026-03.txt:6",
+          "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+          "quote": "5. Restated rate schedule. The complete fixed monthly schedule in amendment-monthly-rate.txt forms part of this amendment and expressly restates the billing timing for its governing service months.",
+          "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+          "quote_sha256": "d1cb5d3ae5bb175a2898a5000ea1362536082e181b37c964a78793eb43251fe1",
+          "start": 1205,
+          "end": 1402
+        }
+      ],
+      "credit_applied": "0.00"
+    },
+    "months": [
+      {
+        "month": "2026-01",
+        "outcome": "ELIGIBLE",
+        "amount": "2400.00"
+      },
+      {
+        "month": "2026-02",
+        "outcome": "INELIGIBLE",
+        "amount": null
+      },
+      {
+        "month": "2026-03",
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "amount": null
+      }
+    ],
+    "onboarding_state": "ACTIVE",
+    "onboarding_events": 14,
+    "onboarding_version": "e1b5b1f7f082a1d169bd386ef4a3a3c672e979a3f81133d7a071ce2a04189734",
+    "available_actions": 0
+  },
+  "defects_found_and_repaired": [
+    "HTMLCollection did not provide Array.forEach, preventing the first browser action. Repaired at3f5b856 with an actual Chrome action regression.",
+    "After reload the signing key was absent as designed;401 now returns to the existing login screen and invalidates the old control."
+  ],
+  "restart_verification": {
+    "receipt": "resume-readback.json",
+    "new_actions": 0,
+    "same_credit_and_application_ids": true,
+    "same_final_balance": true
+  },
+  "limits": [
+    "Authored contract, usage, vendor responses and reviewer display name.",
+    "Local ledger is separate from Ramp; no native posting or real recovery occurred.",
+    "A complete interactive flow was observed, but no timed120-second Northwind video was rendered.",
+    "Prior unseen-vendor and reply evaluation scores are unchanged."
+  ],
+  "artifacts": {
+    "browser-applied.png": {
+      "sha256": "4ad308290a04c734dbcad60199ab94403a7ca8dd161fa7531e9dee5dc34a9d68",
+      "bytes": 798799
+    },
+    "browser-final-ax.txt": {
+      "sha256": "d7a8e865c077ebb8c3b2030f986bc99a4c5cafaeeb227e677f9f0458d87d2b29",
+      "bytes": 21613
+    },
+    "browser-initial.png": {
+      "sha256": "107bc9e71e9bf1d2307d35b10e3e22deff6ed31afe79b4d2e853b7d86f7c8e95",
+      "bytes": 59481
+    },
+    "resume-readback.json": {
+      "sha256": "156af761f74a1533570da9309df41b9fb7bb3ff2fa6ae03125c4d204fcca908b",
+      "bytes": 82480
+    }
+  }
+}

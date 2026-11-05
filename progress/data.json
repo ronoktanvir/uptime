@@ -1,15 +1,21 @@
 {
-  "updated_at": "2026-11-05T08:53:26.539587+00:00",
+  "updated_at": "2026-11-05T22:31:23.292872+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
-  "application_url": "http://127.0.0.1:8765",
+  "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Ramp-native implementation, independent verification and the dependencies remaining before the final submission.",
+  "summary": "Northwind application verified through credit application; native Ramp proof and unseen-vendor generalization remain separate dependencies.",
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "2,760 passed",
-      "detail": "e365f52 passed full regression. Independent review found three semantic containment defects; all original reproductions and four extra edge checks now pass. Historical failed evidence remains.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-e365f52.json"
+      "value": "2,949 passed",
+      "detail": "3f5b856: 2,949 passed, 1 warning in 218.30s. 47 JavaScript checks also passed. Interrupted and failed attempts are preserved.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-3f5b856.json"
+    },
+    {
+      "label": "Northwind workflow",
+      "value": "11 / 11 actions",
+      "detail": "Actual browser and signed socket reached Applied. January credit 2,400 reduces April 11,000 to8,600; March 1,000 remains unresolved. Destination: Local ledger.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/validation/northwind/browser-verification.json"
     },
     {
       "label": "Independent audit",
@@ -59,8 +65,8 @@
       "title": "Private GitHub repository",
       "stream": "Foundation",
       "status": "done",
-      "summary": "264 commits verified in a fresh clone",
-      "detail": "Private ronoktanvir/uptime has main as its default branch. A fresh clone at b6666b4 has the exact same reachable objects as local history. Credentials, runtime databases and private evaluation corpora remain outside publication.",
+      "summary": "Focused implementation and verification commits",
+      "detail": "Private ronoktanvir/uptime preserves the baseline, workstream merges and separate browser fixes. Current verified source is 3f5b856; receipts and failed attempts are versioned. Credentials, runtime databases and private evaluation corpora stay outside Git.",
       "owner": "Orchestrator",
       "depends_on": [
         "audit"
@@ -143,8 +149,8 @@
       "title": "Deterministic contract engines",
       "stream": "Financial correctness",
       "status": "done",
-      "summary": "Typed money, terms, deadlines and exclusions",
-      "detail": "Supported rule families cover amendment chains, pricing tiers, fee exclusions, complete monthly evidence and exact fractional-time arithmetic. Unsupported semantics remain quarantined. This covers a bounded financial grammar.",
+      "summary": "Exact monthly fee, amendment and completed-step calculations",
+      "detail": "Typed engines now include source-bound fixed monthly fees and exact completed-step SLA arithmetic. Northwind January 2400, February ineligible and March SLA unknown are verified; March pricing detects1000 exposure. Unsupported families remain explicit.",
       "owner": "Contract engineering",
       "depends_on": [
         "audit"
@@ -183,14 +189,14 @@
       "title": "Declarative vendor onboarding",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Working bounded families; semantic risk found",
-      "detail": "Normalization and issuer-authority fixes preserve accepted sources and rejected history. Independent public probes expose substring/alias semantics that can produce a wrong monetary shadow estimate. Named interpretation prevents activation; automatic source meaning still needs remediation.",
+      "summary": "Reviewed lifecycle works; broader generalization remains",
+      "detail": "CalyxQuay completed source review, shadow controls, approval, activation, rollback and reactivation with 14 immutable history events and scripted authority. Known source/fee-authority defects are repaired. No new independent unseen-vendor success is claimed.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
         "security"
       ],
-      "next_action": "Implement reviewed source-meaning containment and typed observation bindings before broader claims.",
+      "next_action": "Continue general contract-family coverage and real human promotion without weakening source review.",
       "links": [
         {
           "label": "Onboarding design",
@@ -321,15 +327,15 @@
       "id": "native_proof",
       "title": "Live Ramp write & same-ID proof",
       "stream": "Ramp integration",
-      "status": "active",
-      "summary": "Same bill verified; write not yet sent",
-      "detail": "The old credentials returned HTTP 404 for the browser bill. The new app reads that exact UUID and identifies a different business. Opus reviewed a bounded connection-check note; its isolated command is under implementation. The financial native routes remain unreleased.",
+      "status": "blocked",
+      "summary": "Write grant verified; native retest automatically rejected",
+      "detail": "No live write occurred. Automatic approval review rejected the independent native-posting retest with stated reason possible cybersecurity risk. The separate qualification runner remains disabled and unmerged.",
       "owner": "Ramp engineering",
       "depends_on": [
         "publication",
         "ramp_permission"
       ],
-      "next_action": "Finish and test the fixed note, obtain exact action and policy authorization, then verify the same object through API and UI.",
+      "next_action": "Resolve the execution-review block and exact external-action authority before native posting/readback.",
       "links": []
     },
     {
@@ -383,13 +389,13 @@
       "title": "Additional contract families",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Source normalization fixed; meaning review active",
-      "detail": "The third real public-source extraction remains historically rejected. Its unchanged proposal validates offline after whitespace corrections, without becoming an accepted artifact. Opus-reviewed semantic boundary work is active.",
+      "summary": "Bounded source and advance-month rules integrated",
+      "detail": "Current Northwind uses typed fixed calendar-month advance pricing, cited amendment timing and exact fee contexts. This does not cover arbitrary proration, retroactive changes or unrestricted contractual prose.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Resolve source polarity and aliases, preserve original evidence, then make a fresh authorized public extraction.",
+      "next_action": "Add the next justified contract primitive against new source-grounded cases.",
       "links": []
     },
     {
@@ -432,14 +438,14 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "2,760 Python tests passed at e365f52",
-      "detail": "Full locked run:2760passed1warning164.64s. Independent semantics review found3defects with4failedprobes at5463bcb; fixes rechecked through13tests plus4newedgecontrols. No production-readiness inference.",
+      "summary": "2,949 Python and 47 JavaScript checks passed",
+      "detail": "Source 3f5b856 passed the locked full suite:2,949 passed, 1 warning in 218.30s. Browser verification caught and repaired an HTMLCollection action defect that the Node stub missed. Original failures and interrupted runs remain preserved.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
         "companion"
       ],
-      "next_action": "Run locked full regression after each further integration.",
+      "next_action": "Run the hosted workflow for the published checkpoint.",
       "links": [
         {
           "label": "Frozen verification",
@@ -451,15 +457,15 @@
       "id": "ci",
       "title": "GitHub CI verification",
       "stream": "Independent QA",
-      "status": "done",
-      "summary": "GitHub CI passed on68571a3",
-      "detail": "Actions run41993894741 completed successfully on68571a3. The latest semantic integration passed its local full suite and independent repair review; next push triggersCI.",
+      "status": "active",
+      "summary": "Last accepted main CI passed; new publication pending",
+      "detail": "The previous main checkpoint c47094a passed GitHub run 41998010128. The completed Northwind integration has passed local full regression and awaits its own hosted result.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
         "regression"
       ],
-      "next_action": "Verify CI for the next published checkpoint.",
+      "next_action": "Verify GitHub CI for the new published commit.",
       "links": [
         {
           "label": "Completed GitHub workflow",
@@ -472,14 +478,14 @@
       "title": "Two-minute deterministic demonstration",
       "stream": "Demonstration",
       "status": "done",
-      "summary": "120-second actual application capture rendered",
-      "detail": "The recording shows exact Ramp IDs, the hypothetical cap, simulated recovery stages, and real recorded Opus provenance for a SHADOW adapter. The reviewer and counterparty remain simulated. Audio is provided as a spoken script.",
+      "summary": "Northwind interactive flow and two-minute script ready",
+      "detail": "All11 actions completed in the actual browser and signed socket. The current script targets 120 seconds with a saved-screen and socket fallback. The existing 120-second video is historical and has not been regenerated for Northwind.",
       "owner": "Demo engineering",
       "depends_on": [
         "companion",
         "publication"
       ],
-      "next_action": "Publish the verified final video and rehearse the spoken script.",
+      "next_action": "Present the current flow with an oral data disclosure; do not call it native recovery.",
       "links": [
         {
           "label": "Demo script",
@@ -526,8 +532,8 @@
       "title": "Complete the native submission proof",
       "stream": "Demonstration",
       "status": "blocked",
-      "summary": "Internal verification and external access both matter",
-      "detail": "The final demonstration needs real Ramp publication and readback, grounded evidence, new denial handling, reviewed adapter lifecycle and honest credit stages. Write scope now exists; exact native action authority, financial release and real contractual evidence remain separate dependencies.",
+      "summary": "Local flow complete; native and independent gates remain",
+      "detail": "The complete authored workflow is verified. Actual customer terms, real human promotion, native write/credit evidence and unseen-contract/reply acceptance are still separate prerequisites.",
       "owner": "Orchestrator",
       "depends_on": [
         "native_proof",
@@ -537,7 +543,7 @@
         "demo",
         "ci"
       ],
-      "next_action": "Finish unblocked verification while the human-owned Ramp and evidence prerequisites remain visible.",
+      "next_action": "Finish native evidence and broad generalization before claiming the original submission proof complete.",
       "links": []
     },
     {
@@ -566,8 +572,8 @@
       "title": "New vendor response coverage",
       "stream": "Disputes",
       "status": "active",
-      "summary": "Manual interpretation integrated; model coverage unproven",
-      "detail": "Source-locked review and separately authorized response preview are integrated atf83587f. Public model experiment:0/4 fully grounded compatible candidates under final validator. Existing independent0/50 valid replies remains unchanged.",
+      "summary": "Reviewed bridge and Northwind cure work; blind score unchanged",
+      "detail": "The source-locked interpretation bridge and signed Northwind evidence cure work. The prior unseen set remains 0/50 supported replies recognized; the public model proposal experiment remains 0/4 fully grounded compatible candidates.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -583,21 +589,21 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/public-reply-harness-532c8d8.txt"
         }
       ],
-      "next_action": "Use reviewed evidence in the continuous Northwind workflow without claiming new blind coverage."
+      "next_action": "Improve useful unseen-reply interpretation while retaining conservative ambiguity handling."
     },
     {
       "id": "source_meaning",
       "title": "Contract meaning and observation identity",
       "stream": "Onboarding",
-      "status": "active",
-      "summary": "Reviewed literal meaning and contradiction guards integrated",
-      "detail": "Named source review now precedes affected money. Revocation removes current derived values; stale checks remain only as recorded history; conflicting positive/nonqualifying telemetry refuses. Actual semantic truth remains a reviewer judgment, not a test-score claim.",
+      "status": "done",
+      "summary": "Known semantic and fee-authority defects repaired",
+      "detail": "Original semantic failures and both fee-authority findings have focused repairs and preserved independent rechecks. Current values disappear on authority closure; historical evidence remains. Duplicate exact lookup scopes reject in both orders.",
       "owner": "Onboarding and security engineering",
       "depends_on": [
         "adapter",
         "security"
       ],
-      "next_action": "Validate new governing-fee joins independently; retain genuine meaning review for customer terms.",
+      "next_action": "Retain source-meaning review and exact current authority for new inputs.",
       "links": [
         {
           "label": "Confirmed semantic-risk evidence",
@@ -609,9 +615,9 @@
       "id": "northwind",
       "title": "Northwind continuous financial walkthrough",
       "stream": "Integration",
-      "status": "active",
-      "summary": "Contract, exact-step calculation, local ledger and clean UI in parallel",
-      "detail": "Authored Northwind agreement/invoices/usage exercise the existing engines. Actual Ramp proof and actual human promotion remain separate; no fictional event satisfies those gates.",
+      "status": "done",
+      "summary": "11 browser and socket actions; April balance 8,600",
+      "detail": "Signed authored agreement/evidence, denial cure, award, same-ID Local ledger readback and application completed. January 2,400 credit reduces April 11,000 to8,600; March 1,000 exposure remains separate. CalyxQuay is active with rollback history. Restart preserved exact IDs and balances.",
       "owner": "Parallel engineering",
       "depends_on": [
         "rules",
@@ -619,16 +625,22 @@
         "response_coverage",
         "companion"
       ],
-      "next_action": "Join governing amended fees, signed evidence, CalyxQuay lifecycle and confirmed local credit application; run and verify the continuous flow.",
+      "next_action": "Use the reproducible setup and two-minute script; keep native acceptance gates open.",
       "links": [
         {
-          "label": "Walkthrough decision",
-          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/decisions/ADR-0064-clean-walkthrough.md"
+          "label": "Execution checkpoint",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/NORTHWIND-INTEGRATION-STATUS.md"
         }
       ]
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-05T22:31:23.292872+00:00",
+      "title": "Northwind reaches applied; final regression passes",
+      "detail": "2,949 Python and 47 JavaScript checks passed. Actual browser and signed HTTP completed 11 actions; restart retained the 2,400 credit application and 8,600 balance. Native Ramp write remains unverified.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-3f5b856.json"
+    },
     {
       "at": "2026-11-05T06:58:38.029859+00:00",
       "title": "Collaborator access documented; latest regression preserved",

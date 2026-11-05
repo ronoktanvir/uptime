@@ -1,0 +1,68 @@
+{
+  "source_commit": "3f5b856",
+  "recorded_at": "2026-11-05T22:31:23.292872+00:00",
+  "command": "uv run --locked pytest --basetemp=<unique owned temporary directory>",
+  "attempts": [
+    {
+      "log": "root-fee65a-merge-01.log",
+      "source_commit": "dccfd1d",
+      "result": "2819 passed, 1 warning in 179.97s",
+      "exit_code": 0,
+      "sha256": "c9b898cec319adbbc012603ce8e53445ab8c596f1d951ea721df0cdc6f2906b0"
+    },
+    {
+      "log": "root-workflow66-merge-01.log",
+      "source_commit": "4cf1eaf",
+      "result": "2858 passed, 1 warning in 180.72s",
+      "exit_code": 0,
+      "sha256": "c71fda1cc5079a2ce35a19eba48d49aaf28fd54350b2afc12faec2ecc55029b1"
+    },
+    {
+      "log": "root-ui-merge-01.log",
+      "source_commit": "efa4b2a",
+      "result": "2 failed, 2857 passed, 1 warning in 212.45s",
+      "exit_code": 1,
+      "sha256": "b0dd8621096e2be632ce712d6aa98324e46efb22d248761b2ca230f40ee2f18f"
+    },
+    {
+      "log": "root-ui-copy-fix-01.log",
+      "source_commit": "e5e7995",
+      "result": "4 passed, 1 warning in 5.26s",
+      "exit_code": 0,
+      "sha256": "fac200fd0932ad630f5f403fdb3766bf16ad7daeab5de672230e9e62659936c8"
+    },
+    {
+      "log": "root-northwind-final-01.log",
+      "source_commit": "5146e17",
+      "result": "INTERRUPTED: browser click defect found; not a completed suite",
+      "exit_code": 130,
+      "sha256": "81377bf7c8228728439207f6d06c7a7c4e6676c3d7387b0f3d93ab25d6542144"
+    },
+    {
+      "log": "root-northwind-final-02.log",
+      "source_commit": "3f5b856",
+      "result": "INTERRUPTED: user requested stop; not a completed suite",
+      "exit_code": 130,
+      "sha256": "02d9a03c208775b13ddb1d968ffa52f530fc87b4cbd187bbabbec4f6e428dd0b"
+    },
+    {
+      "log": "root-northwind-final-03.log",
+      "source_commit": "3f5b856",
+      "result": "2949 passed, 1 warning in 218.30s",
+      "exit_code": 0,
+      "sha256": "e2a1619c4da013cb00a394dc5294e66a0c36af1a89030bb7149d509d801104bd"
+    }
+  ],
+  "javascript": {
+    "command": "node --test web/*.test.cjs",
+    "passed": 47,
+    "failed": 0,
+    "log_sha256": "5b2fe8fec29f3eab4ea06083101386fd690d736f734ba38daf3588d0bc43df56"
+  },
+  "browser": "11 signed actions through applied; actual-browser defect fixed before this final full run",
+  "socket": "11 actions; each duplicate response unchanged and separate GET equal",
+  "restart": "Same credit/application IDs and8600.00 outstanding after restart; zero new actions",
+  "independent_recheck": "3 adapted original fee-authority probes passed at844e652; original failures preserved",
+  "production_readiness": false,
+  "native_ramp_write_attempted": false
+}
