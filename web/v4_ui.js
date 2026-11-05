@@ -166,7 +166,7 @@
       list(data.actions).forEach(action => {
         const id = typeof action === 'string' ? action : action.id;
         if (typeof id !== 'string' || !id) return;
-        const b = button(typeof action === 'string' ? label(action) : action.label || label(id), () => mutate(m, base + '/actions/' + encodeURIComponent(id), {}));
+        const b = button(typeof action === 'string' ? label(action) : (action.label === 'Replay shadow checks' ? 'Run shadow checks' : action.label) || label(id), () => mutate(m, base + '/actions/' + encodeURIComponent(id), {}));
         m.writes.push(b); n.append(b);
       });
       if (!n.children.length) n.append(note('No approved action is available in the returned server state.'));
