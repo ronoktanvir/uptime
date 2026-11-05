@@ -61,3 +61,11 @@ test('application invoice comes only from current projection and pricing failure
  for(const value of ['NW-2026-04','2026-04-01','2026-05-01','$11,000.00','$8,600.00','Future performance requires separate advance-billing rules.'])assert.ok(s.root.textContent.includes(value),value);
  assert.doesNotMatch(s.root.textContent,/synthetic|9,600/ig);assert.ok(data.months.every(m=>m.amount===null));assert.equal(data.price_finding.amount,null);
 });
+
+test('missing measurement diagnostic stays visible in summary and detail without generated source prefix',async()=>{
+ const diagnostic='Simulated scoped, exclusion-adjusted, full-month vendor measurement is required.';
+ const data={...projection,months:[{...projection.months[2],reason:diagnostic,trace:[diagnostic]}]};
+ const s=setup(()=>({workflow:data}));await s.ui.render(s.root);
+ assert.match(s.root.textContent,/Scoped, exclusion-adjusted, full-month vendor measurement is required/);assert.doesNotMatch(s.root.textContent,/Simulated/);
+ assert.equal(s.root.all('tbody')[0].all('tr')[0].children[2].textContent,'Not determined');assert.equal(data.months[0].trace[0],diagnostic);
+});

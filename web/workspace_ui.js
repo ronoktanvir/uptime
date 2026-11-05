@@ -5,7 +5,7 @@
   const text = value => value == null || value === '' ? 'Not provided' : String(value);
   const names = {ELIGIBLE:'Eligible', INELIGIBLE:'Ineligible', INSUFFICIENT_EVIDENCE:'Needs evidence', UNKNOWN:'Needs evidence',
     SCRIPTED_REVIEWER:'Scripted reviewer', SCRIPTED:'Scripted reviewer', LOCAL_LEDGER:'Local ledger'};
-  const reason = value => text(value).replace(/^Synthetic invoice only; no live Ramp bill bound\.;?\s*/, '');
+  const reason = value => text(value).replace(/^Synthetic invoice only; no live Ramp bill bound\.;?\s*/, '').replace(/^Simulated scoped,/, 'Scoped,');
   const state = value => names[value] || text(value).replaceAll('_', ' ').toLowerCase();
   function money(value, currency = 'USD') {
     if (value == null || value === '') return 'Not determined';
@@ -28,13 +28,13 @@
       return refs.children.length ? refs : note('Source references not provided.');
     }
     function monthEvidence(month) {
-      const cell=el('td');add(cell,note(month.reason),citations(month.citations));
+      const cell=el('td');add(cell,note(reason(month.reason)),citations(month.citations));
       if (month.invoice || list(month.evidence).length || list(month.trace).length) {
         const detail=add(el('details',null,'workflow-evidence'),el('summary','Inspect invoice & usage'));
         const invoice=month.invoice || {};
         if (month.invoice) detail.append(fields([['Invoice',invoice.id],['Issued',invoice.issued_at],['Service starts',invoice.service_start],['Service ends',invoice.service_end]]));
         list(month.evidence).forEach(item=>detail.append(add(el('article',null,'workflow-document'),el('h3',item.label),note(item.value == null ? 'Not provided' : item.value),item.ref ? el('code',item.ref) : null)));
-        if(list(month.trace).length) detail.append(add(el('ol',null,'trace'),...month.trace.map(line=>el('li',line))));
+        if(list(month.trace).length) detail.append(add(el('ol',null,'trace'),...month.trace.map(line=>el('li',reason(line)))));
         cell.append(detail);
       }
       return cell;
