@@ -73,12 +73,6 @@ def open_workspace(directory):
     path=_protected_path(directory/'workspace.json')
     with os.fdopen(os.open(path,os.O_RDONLY|os.O_NOFOLLOW),'r') as handle:
         _check_file(handle.fileno());private=json.load(handle)
-    # Only already committed public extraction receipts; this does not call a model.
-    public_extractions=str(ROOT/'docs/v4/evidence/public-extractions')
-    if os.environ.get('UPTIME_PUBLIC_EXTRACTIONS',public_extractions)!=public_extractions:
-        raise ValueError('This authored workspace requires its exact committed public extraction directory.')
-    os.environ['UPTIME_PUBLIC_EXTRACTIONS']=public_extractions
-    os.environ['UPTIME_MODEL_PROPOSITIONS']='1'
     package=load_package()
     if private['schema']!='authored-workspace/1' or private['package_sha256']!=fingerprint(package['input_sha256']):
         raise ValueError('The verified package differs from this workspace; preserve it and create a new directory.')
@@ -140,6 +134,15 @@ def catalog_action(post,base,state,operation):
 
 
 def seed_calyx(post):
+    # Scope the already accepted public artifact opt-in to this installation.
+    # Never leave a process-wide proposition capability behind after setup.
+    from unittest.mock import patch
+    with patch.dict(os.environ,{'UPTIME_PUBLIC_EXTRACTIONS':str(ROOT/'docs/v4/evidence/public-extractions'),
+                                'UPTIME_MODEL_PROPOSITIONS':'1'}):
+        return _seed_calyx_public(post)
+
+
+def _seed_calyx_public(post):
     from scripts.film_ramp_v4 import public_intake,demo_controls
     body,manifest,_=public_intake()
     body=deepcopy(body)
