@@ -21,11 +21,11 @@ def review_submission(manifest, overlay=OVERLAY, source=None):
                     for d in requirements['definitions']]}
 
 
-def reviewed_context(manifest=None, overlay=OVERLAY, *, source=None, current=lambda:True):
+def reviewed_context(manifest=None, overlay=OVERLAY, *, source=None, tenant='weather-tenant', current=lambda:True):
     """Unit-test authority fixture. Production contexts come only from server storage."""
     manifest = manifest or compiled()
     source = source or '\n'.join(c['quote'] for c in manifest['citations'])
-    record = bindings.review_record(manifest, overlay, source, 'weather-tenant', 'scripted-semantic-fixture',
+    record = bindings.review_record(manifest, overlay, source, tenant, 'scripted-semantic-fixture',
                                    review_submission(manifest, overlay, source), '2026-11-05T00:00:00Z')
     return bindings._from_record(record, current)
 
@@ -111,3 +111,95 @@ def test_mid_token_proposal_cannot_acquire_a_reviewed_occurrence():
     manifest = compiled(document,proposal)
     definition = next(d for d in bindings.definitions(manifest) if d['label']=='event_a')
     assert definition['spans'] == []
+
+
+def test_direct_evaluation_requires_current_review_before_any_monetary_value():
+    from uptime.vendor_eval import evaluate
+    from uptime.vendor_terms import bind_overlay, Overlay
+    from test_vendor_resource import FACTS
+    manifest = compiled()
+    overlay = bind_overlay(manifest,Overlay(**OVERLAY))
+    unresolved = evaluate(manifest,overlay,FACTS,'weather-tenant')
+    assert unresolved['amount'] is None and unresolved['outcome'] == 'INSUFFICIENT_EVIDENCE'
+    assert unresolved['semantic_binding_status'] == 'REVIEW_REQUIRED'
+    assert unresolved['claim_cutoff'] == '2026-07-10T18:00:00+00:00'
+    assert not {'service_estimate','remaining_estimate','affected_fee_cents','rate_units'} & unresolved.keys()
+    alive = [True]
+    context = reviewed_context(manifest,overlay,current=lambda:alive[0])
+    assert evaluate(manifest,overlay,FACTS,'weather-tenant',bindings=context)['amount'] == '12.51'
+    alive[0] = False
+    assert evaluate(manifest,overlay,FACTS,'weather-tenant',bindings=context)['amount'] is None
+
+
+@pytest.mark.parametrize('raw', ['successful samples','successful_samples','event_a','event a','stalled_samples','Stalled samples'])
+def test_actual_evaluator_never_prices_an_opaque_id_as_raw_evidence(raw):
+    from uptime.vendor_eval import evaluate
+    from uptime.vendor_terms import bind_overlay, Overlay
+    from test_vendor_resource import FACTS, interval
+    document, proposal = extend_source([('A further symptom is stalled samples.', {'symptoms':[
+        {'label':'successful_samples','phrase':'stalled samples'}, {'label':'event_a','phrase':'stalled samples'}]})])
+    manifest = compiled(document,proposal)
+    overlay = bind_overlay(manifest,Overlay(**OVERLAY))
+    context = reviewed_context(manifest,overlay,source=document['text'])
+    facts = FACTS | {'intervals':[interval('opaque-raw',0,600,symptom=raw)],'exclusions':[]}
+    assert evaluate(manifest,overlay,facts,'weather-tenant',bindings=context)['amount'] is None
+    positive = deepcopy(facts)
+    positive['intervals'][0]['symptom'] = 'stalled samples'
+    assert evaluate(manifest,overlay,positive,'weather-tenant',bindings=context)['amount'] == '12.51'
+
+
+@pytest.mark.parametrize('quote', ['Downtime does not mean rejected samples.',
+    'Rejected samples count only when acknowledged by the signed controller report.',
+    'The phrase "rejected samples" is a nonoperative example.'])
+def test_negated_qualified_or_quoted_source_does_not_price_without_complete_review(quote):
+    from uptime.vendor_eval import evaluate
+    from uptime.vendor_terms import bind_overlay, Overlay
+    from test_vendor_resource import FACTS
+    document, proposal = extend_source([(quote,{'symptoms':['rejected samples']})])
+    manifest = compiled(document,proposal)
+    overlay = bind_overlay(manifest,Overlay(**OVERLAY))
+    result = evaluate(manifest,overlay,FACTS,'weather-tenant')
+    assert result['amount'] is None and result['semantic_binding_status'] == 'REVIEW_REQUIRED'
+    needed = bindings.requirements(manifest,overlay,document['text'])
+    assert quote in [b['quote'] for b in needed['blocks']]
+
+
+def test_registry_binding_is_named_append_only_and_does_not_replace_final_approval(tmp_path,monkeypatch):
+    import json
+    from hashlib import sha256
+    from uptime import vendor_registry as registry
+    from uptime.storage import initialize, database
+    from uptime.vendor_model import MODEL
+    from uptime.vendor_api import Preview
+    from uptime.contracts import fingerprint, DraftReviewer
+    from test_vendor_resource import P, FACTS, PROPOSAL
+    path=tmp_path/'semantic.sqlite'
+    initialize(path)
+    digest=sha256(DOC['text'].encode()).hexdigest()
+    (tmp_path/(digest+'.json')).write_text(json.dumps(dict(model=MODEL,source_sha256=digest,
+        session='synthetic-semantic-authority-test',at='2026-07-01T00:00:00Z',proposal=PROPOSAL,
+        proposal_sha256=fingerprint(PROPOSAL))))
+    monkeypatch.setenv('UPTIME_PUBLIC_EXTRACTIONS',str(tmp_path))
+    monkeypatch.setenv('UPTIME_MODEL_PROPOSITIONS','1')
+    shadow=registry.install(path,P,'semantic-test',dict(document=DOC,overlay=OVERLAY))
+    old_version=shadow['version']
+    missing=registry.shadow_preview(path,P,'semantic-test',Preview(revision=shadow['revision'],facts=FACTS))
+    assert missing['evaluation']['amount'] is None
+    submission=registry.SemanticSubmission(revision=shadow['revision'],review=review_submission(shadow['manifest'],shadow['overlay'],DOC['text']))
+    with pytest.raises(PermissionError):
+        registry.review_semantics(path,DraftReviewer(P.tenant,P.subject,P.role),'semantic-test',submission)
+    reviewed=registry.review_semantics(path,P,'semantic-test',submission)
+    assert reviewed['version'] != old_version and reviewed['actions'] == []
+    assert reviewed['reviewer'] is None and reviewed['semantic_binding_status'] == 'REVIEWED'
+    preview=registry.shadow_preview(path,P,'semantic-test',Preview(revision=reviewed['revision'],facts=FACTS))
+    assert preview['evaluation']['amount'] == '12.51'
+    with database(path) as db:
+        original=list(db.execute('SELECT payload FROM v4_vendor_artifact ORDER BY version'))
+        context=registry.binding_context_db(db,P,'semantic-test')
+        assert context.resolve('symptoms','rejected samples')
+    revoked=registry.revoke_semantics(path,P,'semantic-test',registry.SemanticRevocation(revision=reviewed['revision']))
+    assert revoked['semantic_binding_status'] == 'REVIEW_REQUIRED' and revoked['actions'] == []
+    assert registry.shadow_preview(path,P,'semantic-test',Preview(revision=revoked['revision'],facts=FACTS))['evaluation']['amount'] is None
+    with database(path) as db:
+        assert list(db.execute('SELECT payload FROM v4_vendor_artifact ORDER BY version')) == original
+        assert db.execute('SELECT count(*) FROM v4_vendor_semantic_review').fetchone()[0] == 1

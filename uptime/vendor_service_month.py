@@ -126,14 +126,16 @@ def minute_microseconds(value):
     return int(duration)
 
 
-def evaluate(manifest, overlay, facts, tenant):
-    from .vendor_resource_eval import Gap, instant, required_ref
+def evaluate(manifest, overlay, facts, tenant,*,bindings=None):
+    from .vendor_resource_eval import Gap, instant, required_ref, source_labels, unresolved_semantics
+    from .vendor_bindings import require_context, SemanticBindingRequired, literal
     if facts.get('tenant',tenant) != tenant:
         raise PermissionError('Tenant mismatch.')
     result={'amount':None,'currency':'USD','trace':[],'missing':[],'basis':fingerprint(overlay),'observation_digest':fingerprint(facts),
             'remedy':manifest['remedy'],'citations':[c['id'] for c in manifest['citations']],
             'issuance_status':'NOT_ESTABLISHED','filing_status':'UNDETERMINED'}
     try:
+        bindings = require_context(manifest,overlay,tenant,bindings)
         scope=('account','product','plan','agreement','fee_line_ref')
         if set(facts)-set(scope)-{'tenant','month','service_monitor','service_invoice','filing_proof','received_at','resource_id'}:
             raise Gap('Unrecognized aggregate service observations.')
@@ -156,7 +158,7 @@ def evaluate(manifest, overlay, facts, tenant):
         if invoice.get('paid') is not True or invoice.get('currency')!='USD' or not isinstance(invoice.get('lines'),list):
             raise Gap('Paid complete itemized USD subscription invoice required.')
         fees=[]; seen={}
-        excluded={v.casefold() for v in manifest.get('fee_exclusions',[])}
+        excluded=source_labels(manifest,'fee_exclusions',bindings)
         for line in invoice['lines']:
             if not isinstance(line,dict):
                 raise Gap('Invalid itemized service-line evidence.')
@@ -166,7 +168,7 @@ def evaluate(manifest, overlay, facts, tenant):
                     raise Gap('Conflicting fee records under one source reference.')
                 continue
             seen[ref]=line
-            category=required_ref(line.get('category')).casefold()
+            category=literal(required_ref(line.get('category')))
             if category in excluded:
                 continue
             if line.get('kind')!='recurring_subscription' or ref!=overlay['fee_line_ref']:
@@ -183,7 +185,15 @@ def evaluate(manifest, overlay, facts, tenant):
             raise Gap('Verified scoped timestamped claim receipt required.')
         required_ref(proof.get('ref'))
         fields = proof.get('fields', {})
-        if not isinstance(fields, dict) or not all(isinstance(fields.get(k), str) and fields[k].strip()
+        if not isinstance(fields, dict):
+            raise Gap('Malformed claim contents.')
+        supplied = {}
+        for raw,value in fields.items():
+            for key in bindings.targets('request_fields',raw) if bindings else ():
+                if key in supplied and supplied[key] != value:
+                    raise Gap('Conflicting literal representations of one filing field.')
+                supplied[key] = value
+        if not all(isinstance(supplied.get(k), str) and supplied[k].strip()
                 for k in manifest.get('request_fields', [])):
             raise Gap('Required claim contents are absent from the verified original filing.')
         received=instant(proof.get('received_at'))
@@ -206,3 +216,5 @@ def evaluate(manifest, overlay, facts, tenant):
         return result|{'outcome':Outcome.ELIGIBLE.value,'amount':amount,'issuance_status':'NONCASH_SERVICE_CREDIT_UNCONFIRMED'}
     except Gap as exc:
         return result|{'outcome':Outcome.MISSING.value,'trace':[str(exc)],'missing':[str(exc)]}
+    except SemanticBindingRequired as exc:
+        return unresolved_semantics(manifest,overlay,facts,result,str(exc))

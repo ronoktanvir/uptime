@@ -40,7 +40,7 @@ def scope_match(record, facts, overlay, region):
             and all(record.get(k) == overlay[k] for k in ('account','product','resource_id','agreement')))
 
 
-def _clocked(report, facts, overlay, region, start, end, positive, nonqualifying):
+def _clocked(report, facts, overlay, region, start, end, positive_role, nonqualifying_role, bindings):
     if (not scope_match(report, facts, overlay, region) or report.get('verified') is not True
             or report.get('complete') is not True):
         raise Gap('Independent verified full-month monitor statement required.')
@@ -61,10 +61,10 @@ def _clocked(report, facts, overlay, region, start, end, positive, nonqualifying
         left, right = instant(row.get('start')), instant(row.get('end'))
         if right <= left:
             raise Gap('Invalid authoritative monitor interval.')
-        status = folded(required_ref(row.get('status')))
-        if status == folded(positive):
+        status = required_ref(row.get('status'))
+        if bindings.targets(positive_role,status):
             target = included
-        elif status in {folded(x) for x in nonqualifying}:
+        elif bindings.targets(nonqualifying_role,status):
             target = excluded
         else:
             raise Gap('Observed status is absent from the source-defined monitor vocabulary.')
@@ -92,15 +92,14 @@ def _intersections(first, second):
     return overlap
 
 
-def dual_downtime(facts, overlay, manifest, start, end, region, windows):
+def dual_downtime(facts, overlay, manifest, start, end, region, windows,bindings):
     if facts.get('intervals'):
         raise Gap('Direct outage totals cannot replace two independently attested source streams.')
     cfg = manifest['telemetry']
     customer = facts.get('customer_telemetry')
-    c, cref, cid = _clocked(customer, facts, overlay, region, start, end, cfg['customer_status'],
-                            cfg.get('customer_nonqualifying', []))
+    c, cref, cid = _clocked(customer, facts, overlay, region, start, end,'customer_status','customer_nonqualifying',bindings)
     p, pref, pid = _clocked(facts.get('provider_telemetry'), facts, overlay, region, start, end,
-                            cfg['provider_status'], cfg.get('provider_nonqualifying', []))
+                            'provider_status','provider_nonqualifying',bindings)
     if cref == pref or cid == pid:
         raise Gap('Both observations trace to the same source.')
     if cfg.get('custodian'):
@@ -114,9 +113,8 @@ def dual_downtime(facts, overlay, manifest, start, end, region, windows):
     rows = facts.get('exclusions', [])
     if not isinstance(rows, list) or len(rows) > 1000:
         raise Gap('Malformed exclusion report list.')
-    causes = {folded(x) for x in manifest.get('exclusions', [])}
     for row in rows:
-        if not scope_match(row, facts, overlay, region) or folded(row.get('cause')) not in causes:
+        if not scope_match(row, facts, overlay, region) or not bindings.targets('exclusions',row.get('cause')):
             raise Gap('Exclusion lacks a source-grounded cause and scoped supporting record.')
         required_ref(row.get('ref'))
         if manifest.get('causal_report'):

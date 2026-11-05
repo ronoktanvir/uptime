@@ -14,6 +14,7 @@ from .vendor_eval import evaluate, generated_checks, rate_for
 from .vendor_model import staged_extraction
 from .vendor_terms import Document, Intake, Strict, bind_overlay, candidate_version, semantics_revision
 from .vendor_public_diagnostics import selected_attachment, public_issues
+from . import vendor_bindings
 
 SOURCES = [Source.REPLAY.value, Source.CUSTOMER.value, Source.VENDOR.value]
 SCOPE_REVIEW_REASON = 'Ambiguous economic scope requires manual reconciliation.'
@@ -33,6 +34,15 @@ class TestSubmission(Strict):
     tests: list[IndependentTest] = Field(min_length=1, max_length=60)
 
 
+class SemanticSubmission(Strict):
+    revision: int
+    review: dict
+
+
+class SemanticRevocation(Strict):
+    revision: int
+
+
 def encode(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False)
 
@@ -44,7 +54,10 @@ def _schema(db):
     db.execute("""CREATE TABLE IF NOT EXISTS v4_vendor_event (
         tenant TEXT NOT NULL, vendor TEXT NOT NULL, revision INTEGER NOT NULL, kind TEXT NOT NULL,
         actor TEXT NOT NULL, at TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(tenant,vendor,revision))""")
-    for table, key in [('v4_vendor_artifact', 'version'), ('v4_vendor_event', 'revision')]:
+    db.execute("""CREATE TABLE IF NOT EXISTS v4_vendor_semantic_review (
+        tenant TEXT NOT NULL, vendor TEXT NOT NULL, digest TEXT NOT NULL, payload TEXT NOT NULL,
+        PRIMARY KEY(tenant,vendor,digest))""")
+    for table, key in [('v4_vendor_artifact', 'version'), ('v4_vendor_event', 'revision'), ('v4_vendor_semantic_review','digest')]:
         for op in ('UPDATE', 'DELETE'):
             db.execute(f"""CREATE TRIGGER IF NOT EXISTS {table}_no_{op} BEFORE {op} ON {table}
                             BEGIN SELECT RAISE(ABORT,'immutable catalog record'); END""")
@@ -112,6 +125,34 @@ def _require_current(db,p,vendor,version):
     return artifact
 
 
+def binding_context_db(db, p, vendor, state=None, artifact=None):
+    """Load exact current server authority; never accept context in an HTTP body."""
+    state = state or _tail(db,p,vendor)
+    artifact = artifact or _artifact(db,p,vendor,state['version'])
+    if not artifact or not vendor_bindings.required(artifact['manifest']):
+        return None
+    digest = artifact['extraction'].get('semantic_binding')
+    if not digest or state.get('semantic_binding') != digest:
+        return None
+    row = db.execute('SELECT payload FROM v4_vendor_semantic_review WHERE tenant=? AND vendor=? AND digest=?',
+                     (p.tenant,vendor,digest)).fetchone()
+    if not row:
+        return None
+    record = json.loads(row[0])
+    if fingerprint(record) != digest or record.get('tenant') != p.tenant:
+        return None
+    version = state['version']
+    def current():
+        latest = _tail(db,p,vendor)
+        return (latest['version'] == version and latest.get('semantic_binding') == digest
+                and _compatible(artifact,version))
+    context = vendor_bindings._from_record(record,current)
+    try:
+        return vendor_bindings.require_context(artifact['manifest'],artifact['overlay'],p.tenant,context)
+    except vendor_bindings.SemanticBindingRequired:
+        return None
+
+
 def _capability(db,p,vendor,state):
     """Public capability is derived at read time, including across app restarts/deployments."""
     snapshot=dict(state)
@@ -121,6 +162,14 @@ def _capability(db,p,vendor,state):
     active=state['active_version']
     if active and not _compatible(_artifact(db,p,vendor,active),active):
         snapshot.update(active_version=None,recorded_active_version=active)
+    artifact = _artifact(db,p,vendor,version)
+    if artifact and vendor_bindings.required(artifact['manifest']):
+        context = binding_context_db(db,p,vendor,state,artifact)
+        snapshot.update(semantic_binding_required=True, semantic_binding_status='REVIEWED' if context else 'REVIEW_REQUIRED')
+        if not context:
+            snapshot.update(semantic_binding=None, actions=[])
+            if active or state['state'] in ('APPROVED','ACTIVE'):
+                snapshot.update(state='REVIEW_REQUIRED',recorded_state=state['state'],active_version=None,recorded_active_version=active)
     return snapshot
 
 
@@ -131,6 +180,8 @@ def _event(db, p, vendor, state, kind):
 
 
 def _actions(state):
+    if state.get('semantic_binding_required') and state.get('semantic_binding_status') != 'REVIEWED':
+        return []
     if state['state'] == 'SHADOW':
         if state['checks'] and all(r['passed'] for r in state['checks']):
             return ['interpret'] if state.get('interpretation_required') and not state.get('interpretation_reviewer') else ['approve']
@@ -165,6 +216,10 @@ def _view(db, p, vendor, state):
             result['public_source_issues'] = issues
     if artifact:
         result.update(artifact)
+        if vendor_bindings.required(artifact['manifest']):
+            result['semantic_review_requirements'] = vendor_bindings.requirements(
+                artifact['manifest'],artifact['overlay'],artifact['source_text'])
+            result['semantic_review_requirements']['revision'] = state['revision']
     if p.role == 'reviewer' and not isinstance(p, DraftReviewer):
         result['actions'] = [{'id': _key(p, vendor, state, op), 'label': OPS[op], 'operation': op} for op in _actions(state)]
         if artifact and (grouping := artifact['manifest'].get('formula_grouping_review')):
@@ -194,7 +249,7 @@ def get_vendor(path, p, vendor):
 def _fresh(old, vendor):
     return dict(vendor=vendor, version=None, state='DRAFT', revision=old['revision'] if old else 0,
                 active_version=None, previous=None, reviewer=None, reviewer_kind=None,
-                checks=[], tests=[], suite=None, test_author=None)
+                checks=[], tests=[], suite=None, test_author=None,semantic_binding=None)
 
 
 def install(path, p, vendor, body):
@@ -252,6 +307,43 @@ def install(path, p, vendor, body):
         return _view(db, p, vendor, state)
 
 
+def review_semantics(path,p,vendor,submission):
+    with transaction(path,p,vendor,write=True) as db:
+        state = _tail(db,p,vendor)
+        if state['revision'] != submission.revision or state['state'] != 'SHADOW' or state['active_version']:
+            raise ValueError('Semantic binding requires the current inactive shadow candidate.')
+        artifact = _require_current(db,p,vendor,state['version'])
+        if not vendor_bindings.required(artifact['manifest']):
+            raise ValueError('This candidate has no unresolved literal definitions.')
+        record = vendor_bindings.review_record(artifact['manifest'],artifact['overlay'],artifact['source_text'],
+                                               p.tenant,p.subject,submission.review,now())
+        record['reviewer_kind'] = 'scripted_test' if p.subject.startswith('scripted-') else 'authenticated_reviewer'
+        digest = fingerprint(record)
+        db.execute('INSERT INTO v4_vendor_semantic_review VALUES(?,?,?,?)',(p.tenant,vendor,digest,encode(record)))
+        extraction = dict(artifact['extraction'],semantic_binding=digest)
+        version = candidate_version(artifact['manifest'],artifact['overlay'],extraction)
+        reviewed = dict(artifact,extraction=extraction)
+        db.execute('INSERT INTO v4_vendor_artifact VALUES(?,?,?,?)',(p.tenant,vendor,version,encode(reviewed)))
+        state.update(version=version,semantic_binding=digest,semantic_binding_required=True,semantic_binding_status='REVIEWED',
+                     tests=[],checks=[],suite=None,test_author=None,reviewer=None,reviewer_kind=None,
+                     interpretation_reviewer=None,previous=None)
+        state.pop('formula_decision',None)
+        _event(db,p,vendor,state,'Named pre-pricing source and literal evidence binding review')
+        return _view(db,p,vendor,state)
+
+
+def revoke_semantics(path,p,vendor,submission):
+    with transaction(path,p,vendor,write=True) as db:
+        state = _tail(db,p,vendor)
+        if state['revision'] != submission.revision or not state.get('semantic_binding'):
+            raise ValueError('A current semantic binding is required for revocation.')
+        state.update(state='SHADOW',semantic_binding=None,semantic_binding_status='REVIEW_REQUIRED',active_version=None,
+                     previous=None,tests=[],checks=[],suite=None,test_author=None,reviewer=None,reviewer_kind=None,
+                     interpretation_reviewer=None)
+        _event(db,p,vendor,state,'Revoked current semantic binding; immutable historical records retained')
+        return _view(db,p,vendor,state)
+
+
 def submit_tests(path, p, vendor, submission):
     with transaction(path, p, vendor, write=True, draft=True) as db:
         state = _tail(db, p, vendor)
@@ -274,7 +366,8 @@ def submit_tests(path, p, vendor, submission):
                 raise ValueError('Independent case names must be unique.')
             names.add(test.name)
             outcomes.add(expected['outcome'])
-            result = evaluate(artifact['manifest'], artifact['overlay'], test.facts, p.tenant)
+            result = evaluate(artifact['manifest'], artifact['overlay'], test.facts, p.tenant,
+                              bindings=binding_context_db(db,p,vendor,state,artifact))
             actual = {k: result[k] for k in ('outcome', 'amount')}
             rows.append({'name': test.name, 'expected': expected, 'actual': actual, 'passed':
                          actual['outcome'] == expected['outcome'] and actual['amount'] == expected.get('amount')})
@@ -306,7 +399,8 @@ def shadow_preview(path, p, vendor, submission):
         if state["revision"] != submission.revision or state["state"] != "SHADOW":
             raise ValueError("Preview requires the current shadow revision.")
         artifact = _require_current(db, p, vendor, state["version"])
-        result = evaluate(artifact["manifest"], artifact["overlay"], submission.facts, p.tenant)
+        result = evaluate(artifact["manifest"], artifact["overlay"], submission.facts, p.tenant,
+                          bindings=binding_context_db(db,p,vendor,state,artifact))
         return {"classification":"LOCAL_DRAFT_PREVIEW", "dispatch_authorized":False,
                 "vendor_id":vendor, "revision":state["revision"], "evaluation":result}
 
@@ -314,6 +408,7 @@ def shadow_preview(path, p, vendor, submission):
 def act(path, p, vendor, action):
     with transaction(path, p, vendor, write=True) as db:
         state = _tail(db, p, vendor)
+        state = _capability(db,p,vendor,state)
         ops = {_key(p, vendor, state, op): op for op in _actions(state)}
         if action not in ops:
             raise ValueError('Stale or unavailable reviewer action.')
@@ -356,7 +451,7 @@ def dispatch(path, p, vendor, facts):
         version = state['active_version']
         artifact = _require_current(db,p,vendor,version)
         manifest, overlay = artifact['manifest'], artifact['overlay']
-        result = evaluate(manifest, overlay, facts, p.tenant)
+        result = evaluate(manifest, overlay, facts, p.tenant,bindings=binding_context_db(db,p,vendor,state,artifact))
         identity = [p.tenant, vendor, overlay['account'], overlay['agreement'], overlay['product'],overlay['plan'],facts.get('month')]
         if 'resource_id' in overlay:
             identity.append(overlay['resource_id'])
@@ -454,6 +549,18 @@ def historical_economic_identity(path, tenant, case):
         return None
 
 
+def require_case_semantics(path, tenant, case):
+    """Current money requires current authority; never rewrite archived snapshots."""
+    if not case.get('vendor_id') or not case['id'].startswith('availability-'):
+        return
+    with database(path) as db:
+        p = Principal(tenant, 'local-semantic-projection', 'viewer')
+        artifact = _artifact(db, p, case['vendor_id'], case['version'])
+        if artifact and vendor_bindings.required(artifact['manifest']):
+            context = binding_context_db(db, p, case['vendor_id'], artifact=artifact)
+            vendor_bindings.require_context(artifact['manifest'], artifact['overlay'], tenant, context)
+
+
 def resolve_case(path, p, case_id, *, require_active=True):
     """Resolve a previously dispatched estimate with its bound current agreement; never infer an award."""
     with transaction(path, p) as db:
@@ -471,6 +578,9 @@ def resolve_case(path, p, case_id, *, require_active=True):
             raise ValueError('Historical case uses an incompatible evaluator revision.')
         if not artifact or (artifact['overlay']['agreement'], artifact['overlay']['account']) != (case['agreement'], case['account']):
             raise ValueError('Case agreement or account binding is inconsistent.')
+        if require_active:
+            vendor_bindings.require_context(artifact['manifest'], artifact['overlay'], p.tenant,
+                                           binding_context_db(db,p,case['vendor_id'],state,artifact))
         return case
 
 
@@ -485,7 +595,7 @@ def evaluate_active_db(db, p, vendor, facts, *, expected_version=None, expected_
         raise ValueError('Stale or inactive resource adapter binding.')
     artifact=_require_current(db,p,vendor,version)
     manifest,overlay=artifact['manifest'],artifact['overlay']
-    result=evaluate(manifest,overlay,facts,p.tenant)
+    result=evaluate(manifest,overlay,facts,p.tenant,bindings=binding_context_db(db,p,vendor,state,artifact))
     return dict(result,version=version,semantics_revision=artifact['semantics_revision'],revision=state['revision'],manifest_digest=fingerprint(manifest),
                 source_sha256=manifest['document']['sha256'],overlay_digest=fingerprint(overlay),
                 vendor_id=vendor,agreement=overlay['agreement'],account=overlay['account'],resource_id=overlay.get('resource_id'))

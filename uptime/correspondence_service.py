@@ -4,10 +4,10 @@ from datetime import timedelta
 from .contracts import fingerprint
 from .correspondence_artifacts import HISTORICAL, SUPPLEMENTS
 from .correspondence_types import SOURCE, instant
-from .correspondence_resource import filing_refs
+from .correspondence_resource import filing_refs, bound_filing_fields
 
 
-def join_service(scope, events, manifest, overlay, filed, receipts):
+def join_service(scope, events, manifest, overlay, filed, receipts, *, bindings=None):
     groups = {}
     for event in events:
         kind = event["kind"]
@@ -45,10 +45,11 @@ def join_service(scope, events, manifest, overlay, filed, receipts):
             raise ValueError("Awaiting signed source-defined filing contents.")
         body = material["body"]
         fields = {row["name"]:row["refs"] for row in body["fields"]}
-        if len(fields) != len(body["fields"]) or set(fields) != required:
+        if len(fields) != len(body["fields"]):
             raise ValueError("Source-defined filing fields must each appear once.")
+        bound_filing_fields(fields, manifest, bindings)
         for name, refs in fields.items():
-            allowed = filing_refs(name, manifest, overlay, scope, groups, [], [])
+            allowed = filing_refs(name, manifest, overlay, scope, groups, [], [], bindings)
             if not allowed or set(refs) - allowed or len(set(refs)) != len(refs):
                 raise ValueError("Each filing field must identify its independently supported source record.")
         if body["channel"] != manifest.get("submission_channel", body["channel"]):

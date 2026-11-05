@@ -22,7 +22,7 @@ def _fee_description(phrase):
     return set(re.findall(r"[a-z0-9]+", phrase.casefold())) - _FEE_GRAMMAR
 
 
-def _aggregate_fee_refs(words, manifest, overlay, event):
+def _aggregate_fee_refs(words, manifest, overlay, event, bindings):
     """A named fee requires its present row even when citing the whole invoice.
 
     The caller already verifies the signed event's scope, plan and commitment.
@@ -31,7 +31,7 @@ def _aggregate_fee_refs(words, manifest, overlay, event):
     if not event:
         return set()
     description = words - _FEE_GRAMMAR
-    excluded = {category.casefold(): manifest.get("label_bindings", {}).get("fee_exclusions", {}).get(category, {}).get("phrase", category)
+    excluded = {category: manifest.get("label_bindings", {}).get("fee_exclusions", {}).get(category, {}).get("phrase", category)
                 for category in manifest.get("fee_exclusions", [])}
     recurring_request = bool(description & {"subscription", "recurring"}) and description <= {"subscription", "recurring", "service"}
     matches = {category for category, phrase in excluded.items() if description == _fee_description(phrase)}
@@ -39,11 +39,11 @@ def _aggregate_fee_refs(words, manifest, overlay, event):
         return set()
     lines = set()
     for row in event["body"]["content"].get("lines", []):
-        category = row["category"].casefold()
-        recurring = row["ref"] == overlay["fee_line_ref"] and row["kind"] == "recurring_subscription" and category not in excluded
-        if (not description and (recurring or category in excluded)
+        categories = bindings.targets('fee_exclusions', row['category']) if bindings else frozenset()
+        recurring = row["ref"] == overlay["fee_line_ref"] and row["kind"] == "recurring_subscription" and not categories
+        if (not description and (recurring or categories)
                 or recurring_request and recurring
-                or description and not recurring_request and category in matches):
+                or description and not recurring_request and categories & matches):
             if re.search(r"\b(?:credit\w*|refund\w*|void\w*|revers\w*|cancel\w*)\b", row["kind"], re.I):
                 return set()  # A reversal cannot establish the requested charge.
             lines.add(row["ref"])
@@ -52,16 +52,33 @@ def _aggregate_fee_refs(words, manifest, overlay, event):
     return lines | _record_refs(event) if lines else set()
 
 
-def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
+def bound_filing_fields(fields, manifest, bindings):
+    """Validate meaning without changing the original signed field names."""
+    required = set(manifest.get('request_fields', []))
+    targets = []
+    for name in fields:
+        meanings = bindings.resolve('request_fields', name) if bindings else frozenset()
+        if len(meanings) != 1:
+            raise ValueError('Filing field needs one reviewed source definition.')
+        targets.extend(meanings)
+    if len(targets) != len(set(targets)) or set(targets) != required:
+        raise ValueError('Every required filing field must have one reviewed literal representation.')
+
+
+def filing_refs(name, manifest, overlay, scope, groups, intervals, fees, bindings):
     # Ground source-defined labels using the reviewed clause, not a user-supplied
     # field type. Keep log, billing and identity evidence in separate namespaces.
-    label = manifest.get("label_bindings", {}).get("request_fields", {}).get(name, {}).get("phrase", name)
+    targets = bindings.resolve('request_fields', name) if bindings else frozenset()
+    if len(targets) != 1:
+        return set()
+    target = next(iter(targets))
+    label = manifest.get("label_bindings", {}).get("request_fields", {}).get(target, {}).get("phrase", target)
     words = set(re.findall(r"[a-z0-9]+", label.casefold()))
     status = groups.get("resource_status")
     invoice = groups.get("resource_invoice")
     if manifest.get("aggregate_monitor"):
         if words & _BILLING_WORDS:
-            return _aggregate_fee_refs(words, manifest, overlay, groups.get("service_invoice"))
+            return _aggregate_fee_refs(words, manifest, overlay, groups.get("service_invoice"), bindings)
         if words & {"logs", "log", "status", "monitor", "telemetry"}:
             return _record_refs(groups.get("service_monitor"))
         if words & {"service", "product"}:
@@ -93,7 +110,7 @@ def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
         times = {r["ref"]:r for r in intervals}
         # A scoped status witness may itself explicitly attest that valid
         # requests failed. A generic error or availability percentage cannot.
-        refs = {r["ref"] for r in intervals if re.search(r"\bvalid requests?\b", r["symptom"], re.I)
+        refs = {r["ref"] for r in intervals if bindings.targets('symptoms', r['symptom']) and re.search(r"\bvalid requests?\b", r["symptom"], re.I)
                 and re.search(r"\b(?:fail(?:ed|ure)?|reject(?:ed|ion)?)\b", r["symptom"], re.I)
                 and not re.search(r"\b(?:no|not|never|uncertain|maybe)\b", r["symptom"], re.I)}
         for item in report["body"]["records"] if report else ():
@@ -105,9 +122,7 @@ def filing_refs(name, manifest, overlay, scope, groups, intervals, fees):
                 refs.add(item["ref"])
         return refs
     if words & {"cause", "failure", "attribution"}:
-        causes = {c.casefold() for c in manifest.get("provider_causes", [])}
-        aliases = overlay.get("cause_aliases", {})
-        return {r["ref"] for r in intervals if aliases.get(r.get("cause"), r.get("cause", "")).casefold() in causes}
+        return {r["ref"] for r in intervals if bindings.targets('provider_causes', r.get('cause', ''))}
     if words & {"logs", "log", "timestamps", "times", "intervals", "timeline", "telemetry"}:
         refs = {r["ref"] for r in intervals} | ({status["event_id"], status["body"]["source_ref"]} if status else set())
         for kind in ("customer_telemetry","provider_telemetry"):
@@ -228,7 +243,7 @@ def dual_reports(scope, groups, manifest, first, following):
     return facts
 
 
-def join_resource(scope, events, manifest, overlay, filed, receipts=()):
+def join_resource(scope, events, manifest, overlay, filed, receipts=(), *, bindings=None):
     groups = {}
     for event in events:
         kind = event["kind"]
@@ -294,10 +309,11 @@ def join_resource(scope, events, manifest, overlay, filed, receipts=()):
         if channel and body["channel"] != channel:
             raise ValueError("The local packet channel differs from the reviewed contract.")
         fields = {r["name"]:r["refs"] for r in body["fields"]}
-        if (set(fields) != set(manifest.get("request_fields", [])) or len(fields) != len(body["fields"])):
+        if len(fields) != len(body["fields"]):
             raise ValueError("Every required filing field must appear exactly once.")
+        bound_filing_fields(fields, manifest, bindings)
         for name, values in fields.items():
-            allowed = filing_refs(name, manifest, overlay, scope, groups, intervals, fees)
+            allowed = filing_refs(name, manifest, overlay, scope, groups, intervals, fees, bindings)
             if not allowed or len(values) != len(set(values)) or set(values) - allowed:
                 raise ValueError("Filing field references must match the kind of scoped evidence its clause requires.")
         # This is a checked prospective local packet. The inbox records actual

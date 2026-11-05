@@ -70,8 +70,9 @@ span retains the actual source text. Evidence matching remains case-sensitive.
 def _declared(citation, role, label):
     values = citation.get('propositions', {})
     if role in LIST_ROLES:
-        return any(item == label or isinstance(item, dict) and item.get('label') == label
-                   for item in values.get(role, []))
+        return (any(item == label or isinstance(item, dict) and item.get('label') == label
+                    for item in values.get(role, []))
+                or role == 'request_fields' and label in values.get('cure_clock',{}).get('initial_fields',[]))
     if role in TELEMETRY_ROLES:
         item = values.get('telemetry', {}).get(role)
         return label in item if isinstance(item, list) else item == label
@@ -82,6 +83,7 @@ def definitions(manifest):
     """All free-form roles, with exact possible source occurrences for named review."""
     rows = []
     roles = {role:list(manifest.get(role, [])) for role in LIST_ROLES}
+    roles['request_fields'].extend(manifest.get('cure_clock',{}).get('initial_fields',[]))
     for role in TELEMETRY_ROLES:
         value = manifest.get('telemetry', {}).get(role)
         roles[role] = value if isinstance(value, list) else [value] if value else []
@@ -121,7 +123,8 @@ def required(manifest):
 
 def dependency(manifest):
     files = ('vendor_bindings.py', 'vendor_resource_terms.py', 'vendor_resource_eval.py',
-             'vendor_resource_scopes.py', 'vendor_service_month.py', 'correspondence_resource.py')
+             'vendor_resource_scopes.py', 'vendor_service_month.py', 'correspondence_resource.py',
+             'correspondence_service.py', 'v4_routes.py', 'vendor_registry.py')
     return fingerprint({'protocol':PROTOCOL, 'definitions':definitions(manifest), 'source':manifest['document']['sha256'],
                         'files':{name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in files}})
 
