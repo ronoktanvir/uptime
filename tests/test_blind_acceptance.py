@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-from scripts.blind_acceptance import (BoundaryError, Fixture, artifact_transport, bound_account, compact_case,
+from scripts.blind_acceptance import (BoundaryError, Fixture, bound_account, compact_case,
     compare_case, compare_gold, compare_terms, digest, general_control, local_path, money_check,
     project_input_selectors, select_records, write_receipt)
 
@@ -102,29 +102,53 @@ def test_changed_fixture_never_becomes_new_authorized_input(tmp_path):
 
 
 def test_null_resource_does_not_inherit_claim_scope_or_complete_month():
-    source = dict(kind="provider_incident", account_id="account-a", resource_id=None,
+    from scripts.blind_mapping import event_plan
+    source = dict(id="provider-a", kind="provider_incident", account_id="account-a", resource_id=None,
                   source_locator="source-a", available_at="2028-01-02T00:00:00Z", start="2028-01-01T01:00:00Z",
                   end_exclusive="2028-01-01T01:05:00Z", incident_id="incident-a", all_valid_enqueue_requests_failed=True)
-    role, envelope, body, code = artifact_transport(source, {"account": "account-a", "component": "resource-a"})
-    assert role == "status" and envelope["component"] is None
-    assert body["complete"] is False and body["intervals"][0]["resource_id"] is None
-    assert code == "INCIDENT_IS_NOT_COMPLETE_MONTH"
+    scope = {"account": "account-a", "component": "resource-a"}
+    manifest = {"symptoms": ["requests fail"]}
+    events, gaps = event_plan([source], scope, manifest)
+    assert not events and "PROVIDER_RESOURCE_MAPPING_MISSING" in gaps
+    events, gaps = event_plan([source | {"resource_id": "resource-a"}], scope, manifest)
+    assert events[0]["body"]["complete"] is False
+    assert "COMPLETE_MONTH_STATUS_MISSING" in gaps
 
 
-def test_historical_receipt_is_not_disguised_as_scoped_artifact():
-    source = dict(kind="historical_customer_filing_receipt", account_id="account-a", resource_id="resource-a",
-                  source_locator="source-a", available_at="2028-01-02T00:00:00Z", received_at="2028-01-01T00:00:00Z")
-    role, envelope, body, code = artifact_transport(source, {"account": "account-a", "component": "resource-a"})
-    assert body == source and role == "customer" and code == "HISTORICAL_FILING_UNSUPPORTED"
+def test_historical_receipt_preserves_original_identifier_and_clock():
+    from scripts.blind_mapping import event_plan
+    source = dict(id="original-a", kind="historical_customer_filing_receipt", account_id="account-a", resource_id="resource-a",
+                  source_locator="source-a", available_at="2028-01-02T00:00:00Z", received_at="2028-01-01T00:00:00Z",
+                  channel="claims@example.invalid", attachments=[])
+    supplement = source | {"id": "supplement-a", "kind": "historical_customer_supplement_receipt",
+                           "received_at": "2028-01-02T00:00:00Z"}
+    events, gaps = event_plan([source, supplement], {"account": "account-a", "component": "resource-a"}, {})
+    assert events[0]["role"] == "vendor" and events[0]["body"]["kind"] == "original_filing_receipt"
+    assert events[0]["body"]["receipt_id"] == "original-a"
+    assert events[0]["body"]["received_at"] == source["received_at"]
+    assert events[1]["body"]["original_ref"] == "original-a"
+    assert not any(e["body"]["kind"] == "filing_material" for e in events)
 
 
-def test_billing_preserves_signed_discount_and_prior_credit():
-    source = dict(kind="invoice", account_id="account-a", source_locator="invoice-a",
+def test_billing_joins_signed_allocation_and_never_invents_credit_history():
+    from scripts.blind_mapping import event_plan, invoice_report
+    source = dict(id="invoice-a", invoice_id="invoice-a", kind="invoice", account_id="account-a", source_locator="invoice-a",
                   available_at="2028-02-01T00:00:00Z", currency="USD", previously_granted_credit="2.50",
-                  lines=[dict(line_id="discount-a", resource_id="resource-a", type="allocated_discount", amount="-4.25")])
-    _, _, body, code = artifact_transport(source, {"account": "account-a", "component": "resource-a", "month": "2028-01"})
-    assert body["lines"][0]["amount_cents"] == -425
-    assert body["previously_granted_credit"] == "2.50" and code == "SIGNED_DISCOUNT_AND_PRIOR_CREDIT_UNSUPPORTED"
+                  lines=[dict(line_id="gross-a", resource_id="resource-a", type="monthly_recurring", amount="50.00"),
+                         dict(line_id="discount-a", resource_id=None, type="allocated_discount", amount="-4.25")])
+    mapping = dict(id="mapping-a", kind="billing_resource_attestation", account_id="account-a", resource_id="resource-a",
+                   source_locator="billing-mapping-a", available_at="2028-02-02T00:00:00Z", invoice_id="invoice-a",
+                   recurring_line_id="gross-a", discount_line_id="discount-a", net_recurring="45.75", previously_granted_credit="2.50")
+    scope = {"account": "account-a", "component": "resource-a", "month": "2028-01"}
+    assert invoice_report(source, None, scope) is None
+    assert invoice_report(source, mapping | {"resource_id": "unrelated"}, scope) is None
+    assert invoice_report(source, mapping | {"net_recurring": "45.74"}, scope) is None
+    events, gaps = event_plan([source, mapping], scope, {"prior_credit": "subtract_issued_same_resource_month"})
+    body = next(e["body"] for e in events if e["body"]["kind"] == "resource_invoice")
+    assert body["lines"][0]["amount_cents"] == 4575
+    assert body["lines"][0]["discount_cents"] == 425
+    assert not any(e["body"]["kind"] == "prior_credit_evidence" for e in events)
+    assert "PRIOR_ISSUANCE_IDS_AND_COMPLETE_HISTORY_MISSING" in gaps
 
 
 def test_scope_controls_do_not_gain_consent():
@@ -184,36 +208,11 @@ def test_general_control_is_read_from_preexisting_source_only():
     assert setup["EXPECTED"] == "52.17"
 
 
-@contextmanager
-def inprocess_transport(scope, at):
-    """Unit-test transport only. The production CLI always owns a real socket."""
-    from tempfile import TemporaryDirectory
-    from fastapi.testclient import TestClient
-    from uptime.auth import SCRIPT, DEFAULT_ORIGIN
-    from uptime.auth_client import ReviewerClient
-    from uptime.server import create_app
-    from scripts.blind_acceptance import Transport, instant
-    subjects = {role: "blind-" + role for role in ("status", "customer", "billing", "vendor")}
-    keys = {name: secrets.token_hex(32) for name in subjects.values()}
-    secret = secrets.token_urlsafe(48)
-    with TemporaryDirectory() as work:
-        app = create_app(Path(work) / "unit.sqlite", mode="replay", rehearsal=True,
-                         approvals_enabled=True, rehearsal_secret=secret, service_credentials=keys)
-        desk = app.state.correspondence
-        desk.provision("bears", *(scope[k] for k in ("account", "vendor", "contract", "service", "component", "region")))
-        from uptime.correspondence_types import Scope
-        for role, subject in subjects.items():
-            desk.bind_sender("bears", scope["account"], role, subject, scope=Scope(**scope))
-        clock = [instant(at)]
-        desk.clock = lambda: clock[0]
-        with TestClient(app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 41000)) as client:
-            reviewer = ReviewerClient(client, DEFAULT_ORIGIN, SCRIPT, secret)
-            yield Transport(client, reviewer, app, DEFAULT_ORIGIN, subjects, keys, clock)
 
 
 def test_separate_generality_control_reaches_signed_inbox_without_holdout_gold(monkeypatch):
     from scripts import blind_acceptance as runner
-    monkeypatch.setattr(runner, "listener", inprocess_transport)
+    monkeypatch.setattr(runner, "TRANSPORT_MODE", "testclient")
     # Entirely new harness-only message, never loaded from a private fixture.
     account = {"account_id": "harness-account", "resource_id": "harness-resource"}
     message = {"id": "harness-message", **account, "available_at": "2026-11-04T00:00:00Z",
@@ -229,7 +228,7 @@ def test_separate_generality_control_reaches_signed_inbox_without_holdout_gold(m
 
 def test_quarantined_case_still_attempts_signed_denial_and_general_control(monkeypatch):
     from scripts import blind_acceptance as runner
-    monkeypatch.setattr(runner, "listener", inprocess_transport)
+    monkeypatch.setattr(runner, "TRANSPORT_MODE", "testclient")
     account = dict(account_id="harness-account", resource_id="harness-resource", service="Harness Service",
                    endpoint="Harness Endpoint", consenting=True)
     overlay = dict(authorized_account=account["account_id"], authorized_resource=account["resource_id"],
@@ -258,3 +257,40 @@ print('SAFE')
     child = subprocess.run([sys.executable, "-c", program], capture_output=True, text=True, check=True,
                            cwd=Path(__file__).resolve().parents[1])
     assert child.stdout == "SAFE\n" and child.stderr == ""
+
+
+def test_public_promotion_scenarios_have_independent_math_and_real_cure():
+    from scripts.blind_mapping import promotion_scenarios
+    from copy import deepcopy
+    from test_vendor_resource import compiled, OVERLAY
+    manifest = compiled()
+    manifest.update(supplement="same_filing_deadline", fee_adjustment="after_discounts")
+    public = b"| Below 99.9% | 7% |\n| Below 99% | 18% |"
+    scenarios = promotion_scenarios(public, manifest, OVERLAY)
+    assert [t["expected"]["outcome"] for t in scenarios] == [
+        "ELIGIBLE", "INELIGIBLE", "INSUFFICIENT_EVIDENCE", "ELIGIBLE", "INELIGIBLE"]
+    assert scenarios[0]["expected"]["amount"] == "7.00"
+    changed = deepcopy(manifest)
+    changed["tiers"][0]["credit_units"] = 99_000_000
+    assert promotion_scenarios(public, changed, OVERLAY) == scenarios
+    missing, cure, late = (s["facts"] for s in scenarios[2:])
+    assert len(missing["filing_proof"]["fields"]) + 1 == len(scenarios[0]["facts"]["filing_proof"]["fields"])
+    assert cure["filing_proof"]["supplements"][0]["original_ref"] == cure["filing_proof"]["ref"]
+    assert late["filing_proof"]["supplements"][0]["received_at"] > cure["filing_proof"]["supplements"][0]["received_at"]
+
+
+def test_new_listener_uses_exact_ed25519_grants_without_socket_claim(monkeypatch):
+    from scripts import blind_acceptance as runner
+    from test_v4_routes_integration import SCOPE, INTERVAL
+    from uptime.source_config import SenderCredential
+    monkeypatch.setattr(runner, "TRANSPORT_MODE", "testclient")
+    with runner.listener(SCOPE, "2026-11-03T00:00:00Z") as transport:
+        assert all(isinstance(key, SenderCredential) for key in transport.senders.values())
+        path = "/api/correspondence/claims/inbox-witness"
+        assert transport.post("/api/correspondence/claims", {"claim_id": "inbox-witness", "scope": SCOPE}, "create")
+        assert transport.deliver(path, "status", SCOPE, {"kind": "status", **INTERVAL}, "status-a", "2026-11-03T00:00:00Z")
+        assert transport.deliver(path, "customer", SCOPE, {"kind": "status", **INTERVAL}, "status-b", "2026-11-03T00:00:00Z") is None
+        assert transport.deliver(path, "status", SCOPE | {"component": "ungranted"},
+                                 {"kind": "status", **INTERVAL}, "status-c", "2026-11-03T00:00:00Z") is None
+        with pytest.raises(BoundaryError, match="ARRIVAL_CLOCK_REVERSED"):
+            transport.deliver(path, "status", SCOPE, {"kind": "status", **INTERVAL}, "status-d", "2026-11-02T00:00:00Z")

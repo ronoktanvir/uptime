@@ -304,6 +304,8 @@ def dispatch(path, p, vendor, facts):
         identity = [p.tenant, vendor, overlay['account'], overlay['agreement'], overlay['product'],overlay['plan'],facts.get('month')]
         if 'resource_id' in overlay:
             identity.append(overlay['resource_id'])
+        if manifest.get('subscription') and overlay.get('subscription_record'):
+            identity.append(overlay['subscription_record']['region'])
         obligation = fingerprint(identity)
         case_id = 'availability-' + obligation
         versions = list(_read_versions(db, p.tenant, case_id))

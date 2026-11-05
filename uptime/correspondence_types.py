@@ -203,6 +203,25 @@ class Cycle(Interval):
     ref: Id
 
 
+class RequestWitness(Strict):
+    ref: Id
+    resource_id: Id
+    interval_ref: Id
+    requested_at: Annotated[str, StringConstraints(max_length=40)]
+    valid: bool
+    failed: bool
+
+    @field_validator("requested_at")
+    @classmethod
+    def request_time(cls, value):
+        return instant(value).isoformat()
+
+
+class RequestEvidence(Report):
+    kind: Literal["request_evidence"]
+    records: list[RequestWitness] = Field(min_length=1, max_length=300)
+
+
 class BillingCalendar(Report):
     kind: Literal["billing_calendar"]
     cycles: list[Cycle] = Field(min_length=1, max_length=36)
@@ -283,7 +302,7 @@ class Delivery(Strict):
     event_id: Id
     scope: Scope
     body: Annotated[Status | Coverage | Impact | Component | Notice | Invoice | Message | ResourceStatus
-                    | ResourceAttribution | ResourceInvoice | BillingCalendar | FilingMaterial | HistoricalReceipt | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification, Field(discriminator="kind")]
+                    | ResourceAttribution | ResourceInvoice | BillingCalendar | FilingMaterial | RequestEvidence | HistoricalReceipt | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification, Field(discriminator="kind")]
 
 
 class Empty(Strict):
@@ -292,5 +311,5 @@ class Empty(Strict):
 
 SOURCE = dict(status="status", coverage="status", impact="customer", component="customer", notice="customer",
               invoice="billing", message="vendor", original_filing_receipt="vendor", supplement_filing_receipt="vendor", resource_status="status", resource_attribution="customer",
-              resource_invoice="billing", billing_calendar="billing", maintenance_evidence="customer", prior_credit_evidence="billing", account_conditions="customer", filing_material="customer", artifact="customer",
+              resource_invoice="billing", billing_calendar="billing", maintenance_evidence="customer", prior_credit_evidence="billing", account_conditions="customer", filing_material="customer", request_evidence="customer", artifact="customer",
               status_verification="status", billing_verification="billing")

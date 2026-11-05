@@ -85,10 +85,10 @@ def staged_extraction(document):
         raise ValueError('Staged extraction integrity check failed.')
     if 'protocol' in artifact:
         from .vendor_resource_terms import project_blocks
-        if artifact['protocol']!='public_block_ids/1' or not isinstance(artifact['proposal'],list):
+        if artifact['protocol'] not in ('public_block_ids/1','public_block_ids/2') or not isinstance(artifact['proposal'],list):
             raise ValueError('Unsupported public block receipt.')
         records={'blocks':[{'id':i,'value':c.get('value')} for i,c in enumerate(artifact['proposal'],1) if isinstance(c,dict)]}
-        rows,index=project_blocks(document.text,records)
+        rows,index=project_blocks(document.text,records,protocol=artifact['protocol'])
         if (index!=artifact['block_index'] or rows!=artifact['proposal']
                 or fingerprint(records)!=artifact['raw_proposal_sha256']):
             raise ValueError('Immutable public block index or raw proposal digest mismatch.')
@@ -100,10 +100,12 @@ def staged_extraction(document):
 
 class RejectedProposal(ValueError):
     """Carries public model-output-only diagnostics; never accepted as a staged candidate."""
-    def __init__(self, reason, *, model_session, digest, profile, raw_proposal, allow_propositions):
+    def __init__(self, reason, *, model_session, digest, profile, raw_proposal, allow_propositions, protocol=None):
         self.receipt={'status':'REJECTED','model':MODEL,'session':model_session,'at':datetime.now(UTC).isoformat(),
                       'source_sha256':digest,'profile':profile,'allow_propositions':allow_propositions,
                       'reason':str(reason),'raw_proposal':raw_proposal,'raw_proposal_sha256':fingerprint(raw_proposal)}
+        if protocol:
+            self.receipt['protocol'] = protocol
         super().__init__(f'Public model proposal rejected: {reason}; model={MODEL}; session={model_session}; '
                          f'source_sha256={digest}; proposal_sha256={self.receipt["raw_proposal_sha256"]}')
 
@@ -143,7 +145,7 @@ def replay_rejection(document,path,approved_digest):
     result={'historical_status':'REJECTED','source_sha256':digest,'session':receipt['session'],
             'raw_proposal_sha256':receipt['raw_proposal_sha256'],'historical_reason':receipt['reason']}
     try:
-        clauses,_=_project(document,receipt['profile'],receipt['raw_proposal'])
+        clauses,_=_project(document,receipt['profile'],receipt['raw_proposal'],receipt.get('protocol','public_block_ids/1'))
         if receipt['profile'] == 'resource-month' and receipt['allow_propositions']:
             from .vendor_resource_terms import diagnose_resource
             issues = diagnose_resource(document, clauses)
@@ -157,11 +159,11 @@ def replay_rejection(document,path,approved_digest):
     return result|{'current_validation':'VALIDATES_UNDER_CURRENT_CODE','requires_fresh_intake':True}
 
 
-def _project(document,profile,proposal):
+def _project(document,profile,proposal,block_protocol='public_block_ids/1'):
     if profile=='resource-month':
         from .vendor_resource_terms import project_blocks
-        clauses,index=project_blocks(document.text,proposal)
-        return clauses,{'protocol':'public_block_ids/1','block_index':index,'raw_proposal_sha256':fingerprint(proposal)}
+        clauses,index=project_blocks(document.text,proposal,protocol=block_protocol)
+        return clauses,{'protocol':block_protocol,'block_index':index,'raw_proposal_sha256':fingerprint(proposal)}
     if profile!='monthly' or not isinstance(proposal,dict) or set(proposal)!={'clauses'}:
         raise ValueError('Unexpected proposal schema.')
     return proposal['clauses'],{}
@@ -173,6 +175,7 @@ def generate(document, approved_digest, *, allow_propositions=False, profile='mo
     if not re.fullmatch('[a-f0-9]{64}', approved_digest) or digest != approved_digest:
         raise ValueError('The operator-approved digest must match the exact public document bytes.')
     prompt = PROMPT
+    block_protocol = 'public_block_ids/1'
     model_input = 'PUBLIC CONTRACT TEXT\n' + document.text
     if profile == 'resource-month':
         if not allow_propositions:
@@ -180,9 +183,12 @@ def generate(document, approved_digest, *, allow_propositions=False, profile='mo
         from .vendor_resource_terms import PROMPT as resource_prompt, public_blocks
         prompt = resource_prompt
         from .vendor_resource_operators import interval_options
+        blocks = public_blocks(document.text, protocol='public_block_ids/2')
+        if any('\n' in block['text'] for block in blocks):
+            block_protocol = 'public_block_ids/2'
         model_input = json.dumps({'blocks': [
             {'id': block['id'], 'text': block['text'], 'interval_measurement_options': interval_options(block['text'])}
-            for block in public_blocks(document.text)]}, ensure_ascii=False)
+            for block in blocks]}, ensure_ascii=False)
     elif profile != 'monthly':
         raise ValueError('Unknown extraction profile.')
     env = {k: os.environ[k] for k in ('HOME', 'PATH', 'LANG', 'TMPDIR', 'CLAUDE_CODE_OAUTH_TOKEN') if k in os.environ}
@@ -202,13 +208,13 @@ def generate(document, approved_digest, *, allow_propositions=False, profile='mo
         raw = raw[7:-3]
     proposal = json.loads(raw)
     try:
-        clauses,protocol=_project(document,profile,proposal)
+        clauses,protocol=_project(document,profile,proposal,block_protocol)
         validate_proposal(document,clauses,allow_propositions=allow_propositions)
     except (TypeError,ValueError) as exc:
         session=envelope.get('session_id','')
         session=session if isinstance(session,str) and re.fullmatch(r'[a-zA-Z0-9-]{1,80}',session) else 'unconfirmed'
         raise RejectedProposal(exc,model_session=session,digest=digest,profile=profile,raw_proposal=proposal,
-                               allow_propositions=allow_propositions) from None
+                               allow_propositions=allow_propositions,protocol=block_protocol if profile=='resource-month' else None) from None
     return {'source_sha256': digest, 'model': MODEL, 'session': envelope['session_id'],
             'at':datetime.now(UTC).isoformat(),'proposal':clauses,'proposal_sha256':fingerprint(clauses),**protocol}
 
