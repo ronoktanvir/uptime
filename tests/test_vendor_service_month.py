@@ -69,6 +69,34 @@ def test_attested_aggregate_source_exact_month_basis_threshold_and_fixed_clock()
     assert run(data)['filing_status']=='OUTSIDE_WINDOW'
 
 
+@pytest.mark.parametrize('minutes', [50.4, '50.4', '5.04e1'])
+def test_fractional_minutes_at_strict_threshold_are_exact(minutes):
+    rows = deepcopy(ROWS)
+    rows[4] = (rows[4][0].replace('98.75', '99.875'),
+               {'tiers':[{'below':'99.875','credit':'17','at_least':None}]})
+    contract = manifest(rows)
+    data = facts()
+    data['service_monitor'] = record('fractional-equality', {'source':'simulated_vendor','unavailable_minutes':minutes})
+    result = run(data, contract)
+    assert result['outcome'] == 'INELIGIBLE' and result['amount'] is None
+    assert result['downtime_microseconds'] == 3_024_000_000
+    for duration, outcome in [('50.39999995', 'INELIGIBLE'), ('50.40000005', 'ELIGIBLE')]:
+        data['service_monitor'] = record('fractional-boundary', {'source':'simulated_vendor','unavailable_minutes':duration})
+        result = run(data, contract)
+        assert result['outcome'] == outcome
+        if outcome == 'ELIGIBLE':
+            assert result['amount'] == '20.99'
+
+
+@pytest.mark.parametrize('minutes', [True, None, [], 'NaN', 'Infinity', '-0.1', '0.000000001', 40320.1,
+                                   '1e999', '1e-999', '1e99999999999999999999999', '1e-999999999'])
+def test_invalid_or_out_of_month_durations_abstain(minutes):
+    data = facts()
+    data['service_monitor'] = record('invalid-duration', {'source':'simulated_vendor','unavailable_minutes':minutes})
+    result = run(data)
+    assert result['outcome'] == 'INSUFFICIENT_EVIDENCE' and result['amount'] is None
+
+
 @pytest.mark.parametrize('record_name',['service_monitor','service_invoice'])
 def test_missing_or_unbound_evidence_never_becomes_a_zero_observation(record_name):
     data=facts()
