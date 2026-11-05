@@ -3,6 +3,8 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal, localcontext
 
+from .correspondence_language import complete_explanation
+
 @dataclass(frozen=True)
 class Proposal:
     reason: str
@@ -157,12 +159,16 @@ def propose(text: str, *, claimed: Decimal | None = None) -> Proposal:
         return Proposal("unknown")
     if reason == "maintenance" and re.search(r"\b(no|not|never|possibly|potential|unclear|unknown|unconfirmed)\b.{0,40}\bmaintenance\b", text):
         return Proposal("unknown")
+    if not complete_explanation(source, reason):
+        return Proposal("unknown")
     return Proposal(reason, span, artifact_type=artifact_type, reference=reference, scope_field=scope_field, downtime_us=downtime_us)
 
 
 def requested_filing_fields(text, names):
     """Match an explicit request to corroborated public field labels, never arbitrary vendor instructions."""
     lowered = text.casefold()
+    if not complete_explanation(text, "filing_fields", names):
+        return []
     if (not re.search(r"\b(?:need|missing|lack|provide|document|prove|send|supply|attach|furnish|require|show|demonstrate|without)\w*\b", lowered)
             or re.search(r"\b(?:ignore|override|execute|credentials?|password|secret|token|instructions?|disregard|quoted|hypothetical|already|unnecessary)\b|[<>{}\"“”]|https?://", lowered)):
         return []
