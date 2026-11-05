@@ -50,7 +50,6 @@ _MEASURES = {
     'union_overlaps': (r'overlap|concurrent|intersect|union|simultaneous|double.count|(?:count|measure)[^.;]{0,30}once',
                        r'time|interval|minute|second|incident|outage|failure|duration|report'),
     'half_open': (r'include.{0,35}(?:start|begin)', r'exclude.{0,35}end'),
-    'no_minimum_duration': (r'no minimum|without (?:a )?minimum', r'duration|incident|outage'),
     'fixed_denominator': (r'exclusion', r'(?:do|does) not reduce|unchanged|unaffected'),
     'unrounded_availability': (r'(?:do|must|shall) not round|unrounded|without rounding', r'availability|tier'),
     'exact_elapsed': (r'fraction|elapsed|sub.?minute|sub.?second|actual duration|without rounding|not round|partial minutes?|partial seconds?',
@@ -115,8 +114,26 @@ _MONTH_CLIP = re.compile(
     r'\bcount(?:s|ed)? only\b.{0,38}\b(?:during|within|inside)\b.{0,22}\bmonth\b', re.I)
 
 
+def normalize_source_block(quote):
+    """Canonical whitespace for interpretation, retaining original source elsewhere."""
+    return ' '.join(quote.split())
+
+
+_NO_MINIMUM_DURATION = re.compile(
+    r'(?:There is no minimum (?:incident|outage) duration|No minimum (?:incident|outage) duration applies)\.', re.I)
+
+
+def _measurement_statements(quote):
+    # This finite grammar uses full-stop-delimited assertions. It does not resolve
+    # quotations, exceptions, abbreviated prose or competing interpretations.
+    return re.split(r'(?<=\.) ', normalize_source_block(quote))
+
+
 def interval_options(quote):
+    quote = normalize_source_block(quote)
     options = [name for name, patterns in _MEASURES.items() if _cites(patterns, quote)]
+    if any(_NO_MINIMUM_DURATION.fullmatch(statement) for statement in _measurement_statements(quote)):
+        options.append('no_minimum_duration')
     if _MONTH_CLIP.search(quote):
         options.append('clip_to_month')
     if _availability_formula(quote) or symbolic_formula(quote):
@@ -247,6 +264,21 @@ def apply_operator(manifest, key, value, quote):
 
 
 def require_operative_mapping(quote, values):
+    statements = _measurement_statements(quote)
+    if any(_NO_MINIMUM_DURATION.fullmatch(statement) for statement in statements):
+        measurement = values.get('interval_measurement', [])
+        if not isinstance(measurement, list) or 'no_minimum_duration' not in measurement:
+            raise ValueError('Minimum-duration absence lacks an operative mapping.')
+        for statement in statements:
+            if _NO_MINIMUM_DURATION.fullmatch(statement):
+                continue
+            if re.search(r'\bminimum\b|\b(?:unless|except|provided|conditional|however)\b|'
+                         r'\bonly (?:if|for|to)\b|\bdoes not apply\b', statement, re.I):
+                raise ValueError('Additional duration scope or condition requires an independent supported operator.')
+            if re.search(r'\b(?:duration|seconds?|minutes?|hours?)\b', statement, re.I):
+                supported = set(interval_options(statement)) & set(measurement)
+                if re.search(r'\d', statement) or not supported:
+                    raise ValueError('Additional duration quantity or proposition is unresolved.')
     if _RATIO_LIKE.search(quote) or symbolic_formula(quote):
         measurement = values.get('interval_measurement')
         if not isinstance(measurement, list) or 'availability_ratio' not in measurement or not (_availability_formula(quote) or symbolic_formula(quote)):
