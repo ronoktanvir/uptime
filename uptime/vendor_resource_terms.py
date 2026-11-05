@@ -69,7 +69,7 @@ def count_grounded(number, kind, quote):
     ordinal = {1:'first', 2:'second', 3:'third', 4:'fourth', 5:'fifth', 7:'seventh', 10:'tenth',
                12:'twelfth', 14:'fourteenth', 15:'fifteenth', 20:'twentieth', 30:'thirtieth'}
     candidates = [str(number)] + ([words[number]] if number < len(words) else []) + ([ordinal[number]] if number in ordinal else [])
-    unit = {'calendar_days': r'calendar days?', 'billing_cycles': r'(?:monthly )?billing cycles?'}.get(kind)
+    unit = {'calendar_days': r'calendar days?', 'billing_cycles': r'(?:(?:full|whole|complete|monthly) )?billing cycles?'}.get(kind)
     if unit is None:
         return False
     # A section number or UTC clock on the same line cannot establish the filing interval.
@@ -132,14 +132,41 @@ def _tier_columns(quote):
     credit=next((i for i,c in enumerate(cells) if re.search(r'credit',c)),None)
     if commitment is None or credit is None or commitment==credit:
         return None
-    return commitment,credit,bool(re.search(r'below|less than|under|<',cells[commitment]))
+    return (commitment, credit, bool(re.search(r'below|less than|under|<', cells[commitment])),
+            bool(re.search(r'%|percent', cells[commitment])), bool(re.search(r'%|percent', cells[credit])))
+
+
+def _tier_quote(quote, columns):
+    """Restore units explicitly printed in a table header for validating its numeric cells."""
+    if columns is None or '|' not in quote:
+        return quote
+    cells = [cell.strip() for cell in quote.strip().strip('|').split('|')]
+    threshold, credit, _, threshold_percent, credit_percent = columns
+    if max(threshold, credit) >= len(cells):
+        return quote
+    for index, percent in ((threshold, threshold_percent), (credit, credit_percent)):
+        if percent:
+            cells[index] = re.sub(r'(?<![\d.])(\d{1,3}(?:\.\d{1,6})?)(?![\d.]|\s*(?:%|percent\b))',
+                                  r'\1%', cells[index], flags=re.I)
+    return '| ' + ' | '.join(cells) + ' |'
+
+
+def _inclusive_floor(quote, floor):
+    for token in _PERCENT_TOKEN.finditer(quote):
+        if _quoted_units(token[1]) != floor:
+            continue
+        before, after = quote[:token.start()].lower(), quote[token.end():].lower()
+        if (re.search(r'(?:at least|no less than|greater than or equal to|≥|>=)\s*$', before)
+                or re.match(r'\s*(?:≤|<=|or (?:more|higher|above)|\(inclusive\))', after)):
+            return True
+    return False
 
 
 def _source_pair(quote,upper,rate,columns):
     """The quoted rate and exclusive upper bound must refer to the same band."""
     if columns is not None and '|' in quote:
         cells=[c.strip().casefold() for c in quote.strip().strip('|').split('|')]
-        threshold_col,credit_col,exclusive=columns
+        threshold_col,credit_col,exclusive=columns[:3]
         if max(threshold_col,credit_col)>=len(cells):
             return False
         bound=cells[threshold_col]
@@ -247,14 +274,18 @@ def compile_resource(document, clauses):
         lower = quote.casefold()
         for key,value in values.items():
             if key in OPERATORS:
-                apply_operator(manifest, key, value, quote)
+                try:
+                    apply_operator(manifest, key, value, quote)
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(f'Block {index} field {key}: {exc}') from None
                 continue
             if key == 'nonmaterial':
                 ordinary_heading = bool(re.fullmatch(r'(?:section\s+)?[0-9]+(?:\.[0-9]+)*[.) :]+[a-z][a-z /-]{1,55}',lower.strip()))
                 if len(values)==1 and re.search(r'[0-9]',lower) and not ordinary_heading:
                     raise ValueError('Numerical source condition lacks an operative mapping.')
+                material_text = lower.replace('%', '') if header is not None and not re.search(r'\d', lower) else lower
                 if (not isinstance(value,str) or not value.strip() or len(value)>300 or
-                        len(values)==1 and re.search(r'[%≤≥]|\b(?:shall|must|unless|except|subject to|required|within|refund|exclusive|cap|eligible|only|not|provided that|excludes?)\b',lower)):
+                        len(values)==1 and re.search(r'[%≤≥]|\b(?:shall|must|unless|except|subject to|required|within|refund|exclusive|cap|eligible|only|not|provided that|excludes?)\b',material_text)):
                     raise ValueError('Material source labeled nonoperative.')
                 continue
             if key in lists:
@@ -323,6 +354,7 @@ def compile_resource(document, clauses):
             if key == 'tiers':
                 if not isinstance(value,list) or not value:
                     raise ValueError('Missing tier values.')
+                tier_quote = _tier_quote(quote, columns)
                 accounted = Counter()
                 for tier in value:
                     if not isinstance(tier,dict) or set(tier)-{'below','credit','at_least'} or not {'below','credit'}<=set(tier):
@@ -330,15 +362,15 @@ def compile_resource(document, clauses):
                     if not all(isinstance(tier[k],str) for k in ('below','credit')):
                         raise ValueError('Expected decimal percent tokens.')
                     upper,rate = percent_units(tier['below']),percent_units(tier['credit'])
-                    numbers=[_quoted_units(t[1]) for t in _PERCENT_TOKEN.finditer(lower)]
-                    if upper not in numbers or rate not in numbers or not _source_pair(quote,upper,rate,columns):
+                    numbers=[_quoted_units(t[1]) for t in _PERCENT_TOKEN.finditer(tier_quote)]
+                    if upper not in numbers or rate not in numbers or not _source_pair(tier_quote,upper,rate,columns):
                         raise ValueError('Credit tier values absent from cited source.')
                     floor = tier.get('at_least')
                     if floor is not None:
                         if not isinstance(floor,str):
                             raise ValueError('Invalid explicit band lower bound.')
                         floor = 0 if re.fullmatch(r'0(?:\.0+)?',floor) else percent_units(floor)
-                        if floor not in numbers:
+                        if floor not in numbers or not _inclusive_floor(tier_quote, floor):
                             raise ValueError('Uncited tier lower bound.')
                     if re.search(r'(?:at most|no more than|less than or equal to|≤|<=)\s*'+re.escape(tier['below'])+r'\s*(?:%|percent)',lower):
                         raise ValueError('Inclusive upper tier is unsupported.')
@@ -346,7 +378,7 @@ def compile_resource(document, clauses):
                     if floor is not None:
                         accounted.update([floor])
                     manifest['tiers'].append(dict(below_units=upper,credit_units=rate,citation=index,floor=floor))
-                if accounted != Counter(_quoted_units(m[1]) for m in _PERCENT_TOKEN.finditer(quote)):
+                if accounted != Counter(_quoted_units(m[1]) for m in _PERCENT_TOKEN.finditer(tier_quote)):
                     raise ValueError('Every percentage in a resource tier block must map to a threshold, floor or credit.')
                 continue
             if key in manifest and manifest[key] != value:
@@ -371,7 +403,7 @@ def compile_resource(document, clauses):
             if key == 'boundary' and (value!='strict_below' or not re.search(r'below|lower than|less than|<|equal|threshold|at or above',lower)):
                 raise ValueError('Uncited strict availability boundary.')
             if key == 'fee_basis' and (value != 'affected_resource_fees'
-                    or not re.search(r'fees?|charges?|spend|billed|rental|subscription cost', lower)
+                    or not re.search(r'fees?|charges?|spend|billed|rental|subscription cost|amount (?:paid|payable)', lower)
                     or not re.search(r'\b(?:affected|impacted|unavailable|qualifying|same|corresponding)\b', lower)
                     or re.search(r'(?:all|aggregate|total) (?:account|tenant|customer|unaffected) (?:fees?|charges?|spend)', lower)):
                 raise ValueError('Ungrounded affected-resource fee basis.')

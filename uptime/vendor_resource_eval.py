@@ -318,6 +318,7 @@ def check_submission(facts, overlay, manifest, received, cutoff, inclusive):
     if not isinstance(values, dict):
         raise Gap('Malformed request fields.')
     supplied = dict(values)
+    observations = dict(values)
     late = set()
     supplements = proof.get('supplements', [])
     if not isinstance(supplements, list) or len(supplements) > 100 or supplements and not manifest.get('supplement'):
@@ -341,8 +342,9 @@ def check_submission(facts, overlay, manifest, received, cutoff, inclusive):
         for key, value in additions.items():
             if not isinstance(value, str) or not value.strip() or key not in items:
                 raise Gap('Supplement contains an unsupported or empty filing item.')
-            if supplied.get(key) not in (None, '', value):
+            if observations.get(key) not in (None, '', value):
                 raise Gap('Supplement contradicts an earlier filing item.')
+            observations[key] = value
             if delivered < cutoff or delivered == cutoff and inclusive:
                 supplied[key] = value
             else:

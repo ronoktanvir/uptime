@@ -7,7 +7,10 @@ Additional supported resource-month operators. Attach each operator to the immut
 a block may have several keys. Do not label these material terms nonmaterial or unsupported when they fit:
 interval_measurement: list containing "union_overlaps" for counting concurrent/duplicate intervals once,
 "exact_elapsed" for actual elapsed or fractional time, "clip_to_month" for counting just time within the service month.
-Repeat relevant items across blocks. For an explicit availability formula using qualifying elapsed downtime and
+Each input block has interval_measurement_options. This list is a vocabulary restriction, not evidence.
+If it is empty, NEVER output interval_measurement for that block. Even when an option is listed,
+emit it only when THIS block directly establishes it. Scope, vendor and effective-date blocks typically have no
+interval_measurement. Do not duplicate effects from adjacent blocks. For an explicit availability formula using qualifying elapsed downtime and
 the entire resource month use "availability_ratio". A percentage conversion factor is not a payout tier.
 maintenance: {"basis":"within_announced_window" or "caused_within_announced_window",
 "notice":null or {"count":positive integer,"unit":"minutes","hours" or "days"}}. Use null for advance publication
@@ -27,10 +30,14 @@ evidence and request_fields together. Always mark genuinely unresolved other con
 OPERATORS = {'maintenance', 'interval_measurement', 'fee_adjustment', 'supplement', 'prior_credit'}
 
 _MEASURES = {
-    'union_overlaps': r'overlap|concurrent|intersect|union|once|without double|not double',
-    'exact_elapsed': r'fraction|elapsed|sub.?minute|sub.?second|actual duration|without rounding|not round',
-    'clip_to_month': r'within|inside|clip|portion|boundary|boundaries',
-    'availability_ratio': r'percent|100|ratio|divid|subtract|minus',
+    'union_overlaps': (r'overlap|concurrent|intersect|union|simultaneous|double.count|(?:count|measure)[^.;]{0,30}once',
+                       r'time|interval|minute|second|incident|outage|failure|duration|report'),
+    'exact_elapsed': (r'fraction|elapsed|sub.?minute|sub.?second|actual duration|without rounding|not round|partial minutes?|partial seconds?',
+                      r'time|duration|minute|second|interval|outage'),
+    'clip_to_month': (r'within|inside|clip|portion|boundary|boundaries|falls? in', r'month',
+                      r'interval|incident|outage|downtime|unavaila|elapsed'),
+    'availability_ratio': (r'percent|100|ratio|divid|subtract|minus', r'availab|uptime', r'month', r'downtime|unavaila|outage'),
+
 }
 
 
@@ -38,15 +45,16 @@ def _cites(patterns, text):
     return all(re.search(pattern, text, re.I) for pattern in patterns)
 
 
+def interval_options(quote):
+    return [name for name, patterns in _MEASURES.items() if _cites(patterns, quote)]
+
+
 def apply_operator(manifest, key, value, quote):
     """Only compile operators whose controlling predicates are evidenced by this source block."""
     if key == 'interval_measurement':
-        if not isinstance(value, list) or not value or any(
-                not isinstance(item, str) or item not in _MEASURES or not re.search(_MEASURES[item], quote, re.I)
-                for item in value):
+        options = interval_options(quote)
+        if not isinstance(value, list) or not value or any(not isinstance(item, str) or item not in options for item in value):
             raise ValueError('Uncited interval measurement proposition.')
-        if 'availability_ratio' in value and not _cites([r'availab|uptime', r'month', r'downtime|unavaila|outage'], quote):
-            raise ValueError('Availability ratio requires scoped downtime and monthly measurement.')
         manifest[key] = sorted(set(manifest.get(key, [])) | set(value))
         return
     if key == 'maintenance':
@@ -81,6 +89,8 @@ def apply_operator(manifest, key, value, quote):
                 r'(?:deadline|cutoff|window).{0,35}(?:same|appl|unchanged|extend)|without (?:an )?extension'], quote):
             raise ValueError('A supplement must preserve the contractual filing deadline.')
     elif key == 'prior_credit':
+        if re.search(r'(?:all|across|any|unrelated) (?:resources|accounts|services)|account.wide', quote, re.I):
+            raise ValueError('A wider credit ledger cannot be treated as a resource-specific deduction.')
         if value != 'subtract_issued_same_resource_month' or not _cites([
                 r'credit', r'previous|prior|already|earlier', r'grant|award|issu|applie|posted|received',
                 r'reduce|deduct|subtract|less|offset|net|remain', r'month|billing period',

@@ -172,7 +172,10 @@ def generate(document, approved_digest, *, allow_propositions=False, profile='mo
             raise ValueError('Resource profile requires --allow-propositions.')
         from .vendor_resource_terms import PROMPT as resource_prompt, public_blocks
         prompt = resource_prompt
-        model_input=json.dumps({'blocks':[{'id':b['id'],'text':b['text']} for b in public_blocks(document.text)]},ensure_ascii=False)
+        from .vendor_resource_operators import interval_options
+        model_input = json.dumps({'blocks': [
+            {'id': block['id'], 'text': block['text'], 'interval_measurement_options': interval_options(block['text'])}
+            for block in public_blocks(document.text)]}, ensure_ascii=False)
     elif profile != 'monthly':
         raise ValueError('Unknown extraction profile.')
     env = {k: os.environ[k] for k in ('HOME', 'PATH', 'LANG', 'TMPDIR', 'CLAUDE_CODE_OAUTH_TOKEN') if k in os.environ}
