@@ -1,0 +1,559 @@
+{
+  "updated_at": "2026-11-05T03:39:40.671790+00:00",
+  "repository_url": "https://github.com/ronoktanvir/uptime",
+  "application_url": "http://127.0.0.1:8765",
+  "headline": "Uptime engineering progress",
+  "summary": "Ramp-native implementation, independent verification and the dependencies remaining before the final submission.",
+  "evidence": [
+    {
+      "label": "Frozen regression",
+      "value": "2,118 + 34",
+      "detail": "Python and JavaScript checks passed at b6666b4.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-b6666b4.json"
+    },
+    {
+      "label": "Independent audit",
+      "value": "118 / 118",
+      "detail": "Same source passes. Original V3 failed 45 of 118.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-b6666b4.json"
+    },
+    {
+      "label": "Live Ramp context",
+      "value": "6 bills \u00b7 5 linked vendors",
+      "detail": "Exact ID reads. Broader transaction/PO inventories remain sampled.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/RAMP-RECORDS.md"
+    },
+    {
+      "label": "Actual recovery",
+      "value": "Unverified",
+      "detail": "Zero native credits observed. Simulated awards remain separate.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/RAMP-CREDIT-SYNC.md"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "audit",
+      "title": "V3 audit & preserved baseline",
+      "stream": "Foundation",
+      "status": "done",
+      "summary": "118 independent audit assertions",
+      "detail": "Original V3 passed 73 and failed 45 assertions. Its code and original findings remain in history. The source-stable b6666b4 build passes all 118, including real-browser checks.",
+      "owner": "Independent QA",
+      "depends_on": [],
+      "next_action": "Keep the original baseline when verifying later changes.",
+      "links": [
+        {
+          "label": "Independent review",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/INDEPENDENT-FINAL-REVIEW.md"
+        }
+      ]
+    },
+    {
+      "id": "github",
+      "title": "Private GitHub repository",
+      "stream": "Foundation",
+      "status": "done",
+      "summary": "264 commits verified in a fresh clone",
+      "detail": "Private ronoktanvir/uptime has main as its default branch. A fresh clone at b6666b4 has the exact same reachable objects as local history. Credentials, runtime databases and private evaluation corpora remain outside publication.",
+      "owner": "Orchestrator",
+      "depends_on": [
+        "audit"
+      ],
+      "next_action": "Push focused, verified workstream commits.",
+      "links": [
+        {
+          "label": "Repository",
+          "url": "https://github.com/ronoktanvir/uptime"
+        },
+        {
+          "label": "Publication decision",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/decisions/ADR-0051-private-github-repository.md"
+        }
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Supported Ramp integration",
+      "stream": "Ramp integration",
+      "status": "done",
+      "summary": "Public API and sandbox feasibility checked",
+      "detail": "Reviewed Bill Pay, vendor credits, comments, Blank Canvas, OAuth, Custom Records, CLI and MCP. No public arbitrary-page embedding interface was identified. Native comments are the first bounded write target.",
+      "owner": "Ramp engineering",
+      "depends_on": [
+        "audit"
+      ],
+      "next_action": "Recheck grants before any real write.",
+      "links": [
+        {
+          "label": "Feasibility",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/RAMP-FEASIBILITY.md"
+        }
+      ]
+    },
+    {
+      "id": "capture",
+      "title": "Real Ramp records & associations",
+      "stream": "Ramp integration",
+      "status": "done",
+      "summary": "6 bills and all 5 linked vendors read",
+      "detail": "Latest live capture also reads 12 sampled vendors, 12 transactions, 12 purchase orders and 11 approval observations. Agreement and credit lists are empty. Broader inventories are marked truncated.",
+      "owner": "Ramp engineering",
+      "depends_on": [
+        "scope"
+      ],
+      "next_action": "Refresh the installed workspace and preserve capture provenance.",
+      "links": [
+        {
+          "label": "Read model",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/RAMP-RECORDS.md"
+        },
+        {
+          "label": "Linked vendors",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/linked-vendor-capture.md"
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "title": "Signed authority & isolation",
+      "stream": "Security",
+      "status": "done",
+      "summary": "Enrolled keys, scoped mandates and replay controls",
+      "detail": "Implemented reviewer proof, tenant/source separation, signed event scope, nonce/body/origin binding, immutable reservations and conservative release gates. Local operator custody remains a deployment trust assumption.",
+      "owner": "Security engineering",
+      "depends_on": [
+        "audit"
+      ],
+      "next_action": "Retest every composed financial workflow.",
+      "links": [
+        {
+          "label": "Review mandates",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/REVIEWER-MANDATES.md"
+        }
+      ]
+    },
+    {
+      "id": "rules",
+      "title": "Deterministic contract engines",
+      "stream": "Financial correctness",
+      "status": "done",
+      "summary": "Typed money, terms, deadlines and exclusions",
+      "detail": "Supported rule families cover amendment chains, pricing tiers, fee exclusions, complete monthly evidence and exact fractional-time arithmetic. Unsupported semantics remain quarantined. This covers a bounded financial grammar.",
+      "owner": "Contract engineering",
+      "depends_on": [
+        "audit"
+      ],
+      "next_action": "Use new independent cases to measure remaining grammar gaps.",
+      "links": [
+        {
+          "label": "Capabilities",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/CAPABILITIES.md"
+        }
+      ]
+    },
+    {
+      "id": "bindings",
+      "title": "Native terms & price bindings",
+      "stream": "Financial correctness",
+      "status": "done",
+      "summary": "Exact capture, bill, line and source identity",
+      "detail": "Signed bindings connect supported contract terms to native records. Constructed USD800 terms over a real USD840 bill stay separately labelled as a hypothetical USD40 finding.",
+      "owner": "Financial engineering",
+      "depends_on": [
+        "capture",
+        "rules",
+        "security"
+      ],
+      "next_action": "Provide authentic terms before establishing a live contractual finding.",
+      "links": [
+        {
+          "label": "Price evidence",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/RAMP-PRICE-EVIDENCE.md"
+        }
+      ]
+    },
+    {
+      "id": "adapter",
+      "title": "Declarative vendor onboarding",
+      "stream": "Onboarding",
+      "status": "done",
+      "summary": "Real Opus proposal, compiler and lifecycle",
+      "detail": "Generic source-grounded adapters support defined monthly and resource/service-month families. Intake, tests, shadow, interpretation, activation and rollback use the normal application. Tests use explicitly scripted reviewers.",
+      "owner": "Onboarding engineering",
+      "depends_on": [
+        "rules",
+        "security"
+      ],
+      "next_action": "Complete independent new-case acceptance and obtain human promotion.",
+      "links": [
+        {
+          "label": "Onboarding design",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/vendor-onboarding.md"
+        }
+      ]
+    },
+    {
+      "id": "disputes",
+      "title": "Signed dispute inbox",
+      "stream": "Disputes",
+      "status": "done",
+      "summary": "New messages and evidence reach a bounded evaluator",
+      "detail": "Evidence requests, correct denials, rebuttals, partial awards and ambiguous clauses use typed validation and signed sources. Unknown substantive legal language escalates. External vendor communications require authorization.",
+      "owner": "Dispute engineering",
+      "depends_on": [
+        "rules",
+        "security"
+      ],
+      "next_action": "Verify newly frozen denials through the full filing and response path.",
+      "links": [
+        {
+          "label": "Dispute interfaces",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/fixtures/correspondence/resource-protocol.md"
+        }
+      ]
+    },
+    {
+      "id": "identity",
+      "title": "Financial identity & source pins",
+      "stream": "Security",
+      "status": "done",
+      "summary": "Four reproduced lifecycle defects corrected",
+      "detail": "Independent verification passes distinct-resource totals, regional intake, compound-denial escalation and attribution after a lawful reply. Legacy delimiter collisions now refuse before financial writes. Ambiguous archive rows remain readable for review.",
+      "owner": "Security + financial engineering",
+      "depends_on": [
+        "disputes",
+        "adapter"
+      ],
+      "next_action": "Keep original receipts immutable through later changes.",
+      "links": [
+        {
+          "label": "Independent fix verification",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/INDEPENDENT-FINAL-FIX-VERIFICATION.md"
+        },
+        {
+          "label": "Compatibility",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/ECONOMIC-DELIMITER-COMPATIBILITY.md"
+        }
+      ]
+    },
+    {
+      "id": "credit",
+      "title": "Credit reconciliation & attribution",
+      "stream": "Ramp integration",
+      "status": "done",
+      "summary": "Award \u2192 native credit \u2192 applied bill stages",
+      "detail": "Implemented native observation joins, independent original-filing and award witnesses, amount/currency bounds and allocation controls. The actual sandbox contains zero credits and the installed workspace has zero awards.",
+      "owner": "Reconciliation engineering",
+      "depends_on": [
+        "capture",
+        "identity"
+      ],
+      "next_action": "Supply a genuine award and credit before claiming an actual application.",
+      "links": [
+        {
+          "label": "Attribution",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/RAMP-ATTRIBUTION.md"
+        }
+      ]
+    },
+    {
+      "id": "publication",
+      "title": "Native writeback implementation",
+      "stream": "Ramp integration",
+      "status": "done",
+      "summary": "Exact-object review, dispatch and readback",
+      "detail": "Fixed redacted bill comments use separate effect authorization, a durable outbox and same-thread reconciliation. Blank Canvas validates active trigger and reset state. Controlled-provider tests verify transport behavior.",
+      "owner": "Ramp engineering",
+      "depends_on": [
+        "scope",
+        "bindings",
+        "security"
+      ],
+      "next_action": "Execute only after the real scope and workflow are configured.",
+      "links": [
+        {
+          "label": "Native operator guide",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/NATIVE-OPERATOR.md"
+        }
+      ]
+    },
+    {
+      "id": "ramp_permission",
+      "title": "Ramp administrator grants",
+      "stream": "External dependencies",
+      "status": "blocked",
+      "summary": "bills:write is absent from token grants",
+      "detail": "The sandbox exchange reports read grants while write-only requests provide no reported write scope. Admin app settings and product entitlement cannot be distinguished from the token alone. The available sandbox browser is at sign-in.",
+      "owner": "Ramp administrator",
+      "depends_on": [
+        "scope"
+      ],
+      "next_action": "Sign in and verify the app's allowed scopes and Bill Pay access.",
+      "links": [
+        {
+          "label": "Permission evidence",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/RAMP-FEASIBILITY.md"
+        }
+      ]
+    },
+    {
+      "id": "real_terms",
+      "title": "Actual customer terms & evidence",
+      "stream": "External dependencies",
+      "status": "blocked",
+      "summary": "Live agreement list is empty",
+      "detail": "Observed bills lack usable signed negotiated terms and sufficient line-level quantities. Authentic agreements, usage/fee facts and an authorized source binding are needed to establish a live entitlement.",
+      "owner": "Contract / finance owner",
+      "depends_on": [
+        "capture",
+        "bindings"
+      ],
+      "next_action": "Provide and attest the governing contract and necessary fee/usage records.",
+      "links": []
+    },
+    {
+      "id": "native_proof",
+      "title": "Live Ramp write & same-ID proof",
+      "stream": "Ramp integration",
+      "status": "blocked",
+      "summary": "No live comment or draft write has occurred",
+      "detail": "A real native write needs a granted scope and an exact reviewed object. The implementation supports readback and uncertain-delivery reconciliation. The current two-minute film shows a simulation-only note plan.",
+      "owner": "Ramp engineering",
+      "depends_on": [
+        "publication",
+        "ramp_permission"
+      ],
+      "next_action": "Run one permitted sandbox comment or safe draft action, then verify its real ID and readback.",
+      "links": []
+    },
+    {
+      "id": "filing_refs",
+      "title": "Ground filing fields in signed sources",
+      "stream": "Disputes",
+      "status": "active",
+      "summary": "Source-reference fix integrated; independent replay pending",
+      "detail": "Reviewed correction92b1ca1 accepts exact signed source IDs and matching fee rows, while rejecting absent, ambiguous, injected and reversed evidence. Worker281 scoped and33 focused tests passed. The unchanged independent cohorts are the next acceptance check.",
+      "owner": "Dispute engineering",
+      "depends_on": [
+        "disputes",
+        "adapter"
+      ],
+      "next_action": "Integrate the reviewed source-reference correction and rerun untouched frozen cases.",
+      "links": []
+    },
+    {
+      "id": "holdout",
+      "title": "Independent onboarding & denial acceptance",
+      "stream": "Independent QA",
+      "status": "active",
+      "summary": "Original failures remain in the denominator",
+      "detail": "Original 10-case cohort currently completes 2 cases and 0/5 denial expectations. The separate, fully supplied 8-case cohort passes arithmetic but completes 1 case and 0/7 denials before the filing fix. Counts stay separate.",
+      "owner": "Independent witness",
+      "depends_on": [
+        "adapter",
+        "filing_refs"
+      ],
+      "next_action": "Run the same frozen cohorts over a real socket after the fix. Preserve every prior attempt.",
+      "links": [
+        {
+          "label": "Witness methodology",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/scripts/adequate_holdout/README.md"
+        }
+      ]
+    },
+    {
+      "id": "grammar",
+      "title": "Additional contract families",
+      "stream": "Onboarding",
+      "status": "todo",
+      "summary": "A third independently chosen source remains refused",
+      "detail": "Some new public clauses still fall outside the finite compiler grammar. Previously studied sources can demonstrate remediation. Universal unseen-vendor support remains unverified.",
+      "owner": "Onboarding engineering",
+      "depends_on": [
+        "holdout"
+      ],
+      "next_action": "Extend only source-grounded typed semantics and test newly independent documents.",
+      "links": []
+    },
+    {
+      "id": "promotion",
+      "title": "Actual human adapter promotion",
+      "stream": "External dependencies",
+      "status": "blocked",
+      "summary": "Human approval is pending",
+      "detail": "Recorded model extraction and passing scripted lifecycle checks cannot supply a real reviewer's interpretation approval. The demonstrated CalyxQuay candidate remains in SHADOW.",
+      "owner": "Authorized contract reviewer",
+      "depends_on": [
+        "holdout"
+      ],
+      "next_action": "Review the source, customer overlay, shadow outcomes and exact adapter version before activation.",
+      "links": []
+    },
+    {
+      "id": "companion",
+      "title": "Ramp-first companion application",
+      "stream": "Application",
+      "status": "done",
+      "summary": "Native worklist plus evidence and dispute views",
+      "detail": "The local application opens on Ramp records. Advanced evidence inspection, vendor intake, correspondence and case history remain companion workflows. Read-only defaults preserve effect boundaries.",
+      "owner": "Application engineering",
+      "depends_on": [
+        "capture",
+        "adapter",
+        "disputes"
+      ],
+      "next_action": "Refresh the operator process on the final verified build.",
+      "links": [
+        {
+          "label": "Open Uptime",
+          "url": "http://127.0.0.1:8765"
+        }
+      ]
+    },
+    {
+      "id": "regression",
+      "title": "Frozen regression & audit",
+      "stream": "Independent QA",
+      "status": "done",
+      "summary": "2,118 Python + 34 JavaScript checks pass",
+      "detail": "Source b6666b4 completed a stable full regression with no failed or skipped tests. The same source passes the independent 118-assertion V3 comparison. Later source changes still need a new run.",
+      "owner": "Integration QA",
+      "depends_on": [
+        "identity",
+        "companion"
+      ],
+      "next_action": "Repeat on the final source after the newly discovered filing correction.",
+      "links": [
+        {
+          "label": "Verified source",
+          "url": "https://github.com/ronoktanvir/uptime/commit/b6666b4"
+        }
+      ]
+    },
+    {
+      "id": "ci",
+      "title": "GitHub CI verification",
+      "stream": "Independent QA",
+      "status": "done",
+      "summary": "GitHub workflow passed on b6666b4",
+      "detail": "Hosted Python/browser, JavaScript, rehearsal and secret-check steps completed successfully after the full-history checkout correction. Later code changes require another hosted run.",
+      "owner": "Integration QA",
+      "depends_on": [
+        "github",
+        "regression"
+      ],
+      "next_action": "Rerun on the final integrated source.",
+      "links": [
+        {
+          "label": "Successful workflow",
+          "url": "https://github.com/ronoktanvir/uptime/actions/runs/41959566243"
+        }
+      ]
+    },
+    {
+      "id": "demo",
+      "title": "Two-minute deterministic demonstration",
+      "stream": "Demonstration",
+      "status": "done",
+      "summary": "120-second actual application capture rendered",
+      "detail": "The recording shows exact Ramp IDs, the hypothetical cap, simulated recovery stages, and real recorded Opus provenance for a SHADOW adapter. The reviewer and counterparty remain simulated. Audio is provided as a spoken script.",
+      "owner": "Demo engineering",
+      "depends_on": [
+        "companion",
+        "publication"
+      ],
+      "next_action": "Publish the verified final video and rehearse the spoken script.",
+      "links": [
+        {
+          "label": "Demo script",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/DEMO.md"
+        }
+      ]
+    },
+    {
+      "id": "progress",
+      "title": "This project dependency dashboard",
+      "stream": "Application",
+      "status": "done",
+      "summary": "Local graph, task details and status filters verified",
+      "detail": "Dependency-free localhost dashboard with 26 task nodes, actual dependency edges, owners, blockers and evidence links. Root verified filters, search, node details, expanded graph and mobile layout. Eleven HTTP confinement tests and graph checks pass. Maintainers update the timestamped snapshot after verification.",
+      "owner": "Dashboard engineering",
+      "depends_on": [
+        "github"
+      ],
+      "next_action": "Update the snapshot as additional engineering results are verified.",
+      "links": []
+    },
+    {
+      "id": "deployment",
+      "title": "Hosted webhooks & customer OAuth",
+      "stream": "Deployment",
+      "status": "todo",
+      "summary": "Documented, awaiting implementation/configuration",
+      "detail": "Customer-installed OAuth, managed identity/key custody, production source enrollment and a hosted signed webhook receiver remain deployment work. Local client-credentials access already works.",
+      "owner": "Integration + security engineering",
+      "depends_on": [
+        "security",
+        "scope"
+      ],
+      "next_action": "Configure a sandbox-hosted receiver and consent/token custody before a distributed installation.",
+      "links": []
+    },
+    {
+      "id": "final_demo",
+      "title": "Complete the native submission proof",
+      "stream": "Demonstration",
+      "status": "blocked",
+      "summary": "Internal verification and external access both matter",
+      "detail": "The strongest final demonstration combines real Ramp publication/readback, source-grounded evidence, new denial handling, approved adapter lifecycle and honest credit states. Native permission and real evidence remain open dependencies.",
+      "owner": "Orchestrator",
+      "depends_on": [
+        "native_proof",
+        "real_terms",
+        "holdout",
+        "promotion",
+        "demo",
+        "ci"
+      ],
+      "next_action": "Finish unblocked verification while the human-owned Ramp and evidence prerequisites remain visible.",
+      "links": []
+    }
+  ],
+  "activity": [
+    {
+      "at": "2026-11-05T03:39:40.671790+00:00",
+      "title": "Dependency dashboard verified locally",
+      "detail": "Desktop and mobile views, filters, search, task dependencies and expanded view checked. Eleven HTTP tests and graph validation passed.",
+      "url": "https://github.com/ronoktanvir/uptime/tree/main/progress"
+    },
+    {
+      "at": "2026-11-05T03:30:52.698741+00:00",
+      "title": "Hosted GitHub verification passed",
+      "detail": "Workflow 41959566243 completed successfully at b6666b4. Newly integrated fixes will receive a fresh run.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/41959566243"
+    },
+    {
+      "at": "2026-11-05T03:13:00Z",
+      "title": "Full frozen regression passed",
+      "detail": "2,118 Python and 34 JavaScript assertions passed on b6666b4. Final newly changed code awaits another run.",
+      "url": "https://github.com/ronoktanvir/uptime/commit/b6666b4"
+    },
+    {
+      "at": "2026-11-05T03:15:35Z",
+      "title": "Opus reviewed a new filing-reference defect",
+      "detail": "The independent cohort exposed a protocol gap. A narrow source-grounded correction is in progress.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/decisions/packets/52-grounded-filing-references.md"
+    },
+    {
+      "at": "2026-11-05T03:02:00Z",
+      "title": "Private GitHub history published",
+      "detail": "Existing SSH authentication pushed main. A fresh clone verified 264 commits with equal reachable objects.",
+      "url": "https://github.com/ronoktanvir/uptime"
+    },
+    {
+      "at": "2026-11-05T02:43:56Z",
+      "title": "Installed financial state inventoried",
+      "detail": "No real claims, awards or applications were present. No recovery is inferred from the demonstration."
+    }
+  ]
+}

@@ -79,5 +79,7 @@ The earlier table preserves its inspected-source status. The following decisions
 - [49 — Economic cardinality and compound denials](ADR-0049-economic-cardinality-and-compound-denials.md)
 - [50 — Legacy delimiter collision containment](ADR-0050-ambiguous-resource-identifiers.md)
 - [51 — Private GitHub engineering repository](ADR-0051-private-github-repository.md)
+- [52 — Signed source references for filing fields](ADR-0052-grounded-filing-references.md)
+- [53 — Local engineering dependency dashboard](ADR-0053-read-only-progress-dashboard.md)
 
 Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.

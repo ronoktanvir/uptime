@@ -324,6 +324,20 @@
         : element("p", "empty", "No tasks match these filters."),
     );
   }
+  function updateSnapshotAge() {
+    const minutes = Math.floor((Date.now() - Date.parse(snapshot?.updated_at)) / 60000);
+    const stale = !Number.isFinite(minutes) || minutes >= 360;
+    const label = $("snapshot-age");
+    label.classList.toggle("stale", stale);
+    if (!Number.isFinite(minutes)) {
+      label.textContent = "Snapshot age unavailable";
+    } else if (minutes >= 360) {
+      label.textContent = `${Math.floor(minutes / 60)} hours old; verification may have advanced`;
+    } else {
+      label.textContent = `${Math.max(0, minutes)} minutes old`;
+    }
+  }
+
   async function refresh() {
     $("refresh").disabled = true;
     try {
@@ -336,11 +350,12 @@
       if (!Array.isArray(data.nodes))
         throw new Error("Snapshot must contain a nodes array.");
       snapshot = data;
-      $("headline").textContent = data.headline || "The path to delivery.";
+      $("headline").textContent = data.headline || "Uptime engineering progress";
       $("summary").textContent = data.summary || "";
       $("updated").textContent = date(data.updated_at);
       $("read-at").textContent =
         "Read locally " + date(new Date().toISOString());
+      updateSnapshotAge();
       for (const [id, url] of [
         ["repo-link", data.repository_url],
         ["app-link", data.application_url],
@@ -414,5 +429,6 @@
     )
       $("detail").close();
   });
+  setInterval(updateSnapshotAge, 60000);
   refresh();
 })();

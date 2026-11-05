@@ -1,3 +1,8 @@
+#snapshot-age.stale {
+  color: #9a4c00;
+  font-weight: 600;
+}
+
 :root {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #20221d;
