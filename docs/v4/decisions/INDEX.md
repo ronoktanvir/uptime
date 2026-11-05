@@ -90,5 +90,6 @@ The earlier table preserves its inspected-source status. The following decisions
 - [61 — Explicit source meaning before monetary evaluation](ADR-0061-source-semantic-bindings.md)
 - [62 — Public model transport, measured refusals and limitations](../DECISION62-PUBLIC-TRANSPORT.md)
 - [64 — A coherent financial walkthrough with ordinary product views](ADR-0064-clean-walkthrough.md)
+- [67 — Current financial projections and contradictory source meanings](ADR-0067-current-semantic-containment.md)
 
 Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.

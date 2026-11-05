@@ -1,0 +1,97 @@
+{
+  "side": "customer",
+  "raw": "degraded",
+  "baseline": {
+    "currency": "USD",
+    "amount": null,
+    "trace": [
+      "0/2592000000000 UTC microseconds of qualifying downtime after overlap union and exclusion subtraction."
+    ],
+    "missing": [],
+    "filing_status": "UNDETERMINED",
+    "issuance_status": "NOT_ESTABLISHED",
+    "basis": "fc8945ddc86d6a4a37d5c8fd742d6b1e6b1b232d57d6eac6af78cfa1171654a7",
+    "observation_digest": "5b168d0c9334d1bac726d6bfaa4ce101f18a3a3973ad12dee6ba821baf3f0f0c",
+    "remedy": "future_noncash_credit",
+    "citations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "downtime_microseconds": 0,
+    "total_microseconds": 2592000000000,
+    "rate_units": 0,
+    "tier_citation": null,
+    "service_eligibility": "NO_THRESHOLD_BREACH",
+    "outcome": "INELIGIBLE"
+  },
+  "qualifying": [
+    "samples lost"
+  ],
+  "nonqualifying": [
+    "degraded"
+  ],
+  "evaluation": {
+    "currency": "USD",
+    "amount": "15.03",
+    "trace": [
+      "27000000000/2592000000000 UTC microseconds of qualifying downtime after overlap union and exclusion subtraction.",
+      "12020 eligible service cents, rate 12500000/1000000%, modeled USD 15.03."
+    ],
+    "missing": [],
+    "filing_status": "TIMELY",
+    "issuance_status": "PENDING_VENDOR_VERIFICATION",
+    "basis": "fc8945ddc86d6a4a37d5c8fd742d6b1e6b1b232d57d6eac6af78cfa1171654a7",
+    "observation_digest": "5b168d0c9334d1bac726d6bfaa4ce101f18a3a3973ad12dee6ba821baf3f0f0c",
+    "remedy": "future_noncash_credit",
+    "citations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "downtime_microseconds": 27000000000,
+    "total_microseconds": 2592000000000,
+    "rate_units": 12500000,
+    "tier_citation": 8,
+    "service_eligibility": "QUALIFYING_DOWNTIME",
+    "affected_fee_cents": 12020,
+    "service_estimate": "15.03",
+    "claim_cutoff": "2026-07-10T18:00:00+00:00",
+    "cutoff_inclusive": true,
+    "outcome": "ELIGIBLE"
+  }
+}

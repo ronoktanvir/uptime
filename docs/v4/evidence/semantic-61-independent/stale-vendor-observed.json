@@ -1,0 +1,39 @@
+{
+  "state": "REVIEW_REQUIRED",
+  "recorded_state": "ACTIVE",
+  "active_version": null,
+  "semantic_binding_status": "REVIEW_REQUIRED",
+  "checks": [
+    {
+      "actual": {
+        "amount": "12.51",
+        "outcome": "ELIGIBLE"
+      },
+      "expected": {
+        "amount": "12.51",
+        "outcome": "ELIGIBLE"
+      },
+      "name": "verified scoped outage",
+      "passed": true
+    },
+    {
+      "actual": {
+        "amount": null,
+        "outcome": "INELIGIBLE"
+      },
+      "expected": {
+        "outcome": "INELIGIBLE"
+      },
+      "name": "no incident",
+      "passed": true
+    },
+    {
+      "name": "Independent positive and refusal coverage",
+      "passed": true
+    },
+    {
+      "name": "Generated exact threshold checks",
+      "passed": true
+    }
+  ]
+}

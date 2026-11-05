@@ -146,8 +146,8 @@ def binding_context_db(db, p, vendor, state=None, artifact=None):
         latest = _tail(db,p,vendor)
         return (latest['version'] == version and latest.get('semantic_binding') == digest
                 and _compatible(artifact,version))
-    context = vendor_bindings._from_record(record,current)
     try:
+        context = vendor_bindings._from_record(record,current)
         return vendor_bindings.require_context(artifact['manifest'],artifact['overlay'],p.tenant,context)
     except vendor_bindings.SemanticBindingRequired:
         return None
@@ -170,6 +170,11 @@ def _capability(db,p,vendor,state):
             snapshot.update(semantic_binding=None, actions=[])
             if active or state['state'] in ('APPROVED','ACTIVE'):
                 snapshot.update(state='REVIEW_REQUIRED',recorded_state=state['state'],active_version=None,recorded_active_version=active)
+    # Previously reviewed results become history when their authority/dependency
+    # is stale. Newly run unreviewed controls retain their actual null results.
+    if snapshot.get('reinstall_required') or (
+            snapshot.get('semantic_binding_status') == 'REVIEW_REQUIRED' and state.get('semantic_binding')):
+        snapshot.update(recorded_checks=state.get('checks', []), checks=[], checks_status='REVIEW_REQUIRED')
     return snapshot
 
 

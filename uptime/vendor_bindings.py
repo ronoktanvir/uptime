@@ -18,10 +18,26 @@ TELEMETRY_ROLES = ('customer_status', 'provider_status', 'customer_nonqualifying
 ATTESTATIONS = ('complete_source_reviewed', 'conditions_supported', 'overrides_resolved',
                 'evidence_meaning_verified', 'scope_verified')
 _SEAL = object()
+DISJOINT_ROLES = (('provider_causes', 'exclusions'), ('fee_inclusions', 'fee_exclusions'),
+                  ('provider_status', 'provider_nonqualifying'), ('customer_status', 'customer_nonqualifying'))
 
 
 class SemanticBindingRequired(ValueError):
     pass
+
+
+def require_disjoint(entries):
+    """Use the same exact whitespace-normalized literals as BindingContext.targets.
+
+    Applies both to newly reviewed and previously stored records. It establishes
+    mechanical consistency, not the truth of a reviewer's interpretation.
+    """
+    values = {}
+    for role, _label, literals in entries:
+        values.setdefault(role, set()).update(literal(value) for value in literals)
+    for positive, negative in DISJOINT_ROLES:
+        if values.get(positive, set()) & values.get(negative, set()):
+            raise SemanticBindingRequired('A reviewed literal cannot be both qualifying and nonqualifying in the same evidence scope.')
 
 
 def literal(value):
@@ -206,12 +222,7 @@ def review_record(manifest, overlay, source_text, tenant, reviewer, submitted, a
                 raise SemanticBindingRequired('A literal names conflicting definitions in the same role.')
             collisions[key] = row['span_id']
         selected.append({**row, 'role':definition['role'], 'label':definition['label'], 'canonical_literals':canonical})
-    if ({v for role,v in collisions if role == 'provider_causes'} &
-            {v for role,v in collisions if role == 'exclusions'}):
-        raise SemanticBindingRequired('The same causal literal cannot establish both inclusion and exclusion.')
-    if ({v for role,v in collisions if role == 'fee_inclusions'} &
-            {v for role,v in collisions if role == 'fee_exclusions'}):
-        raise SemanticBindingRequired('The same fee literal cannot establish both inclusion and exclusion.')
+    require_disjoint((r['role'], r['label'], r['canonical_literals']) for r in selected)
     return {'protocol':PROTOCOL, 'tenant':tenant, 'reviewer':reviewer, 'reviewed_at':at,
             'source_sha256':needed['source_sha256'], 'manifest_sha256':needed['manifest_sha256'],
             'overlay_sha256':needed['overlay_sha256'], 'dependency_sha256':needed['dependency_sha256'],
@@ -256,9 +267,26 @@ class BindingContext:
 
 def _from_record(record, current):
     """Server loader only; request JSON cannot supply the private seal or live checker."""
+    entries = tuple((r['role'], r['label'], tuple(r['canonical_literals'])) for r in record['bindings'])
+    require_disjoint(entries)
     return BindingContext(fingerprint(record), record['tenant'], record['manifest_sha256'], record['overlay_sha256'],
-                          record['dependency_sha256'], tuple((r['role'], r['label'], tuple(r['canonical_literals']))
-                          for r in record['bindings']), current, _SEAL)
+                          record['dependency_sha256'], entries, current, _SEAL)
+
+
+def review_conflicts(db, tenant):
+    """Read-only inventory of stored mechanical contradictions; never revoke rows."""
+    import json
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='v4_vendor_semantic_review'").fetchone():
+        return []
+    conflicts = []
+    for vendor, digest, payload in db.execute(
+            'SELECT vendor,digest,payload FROM v4_vendor_semantic_review WHERE tenant=?', (tenant,)):
+        try:
+            record = json.loads(payload)
+            require_disjoint((r['role'],r['label'],r['canonical_literals']) for r in record['bindings'])
+        except (KeyError, TypeError, ValueError):
+            conflicts.append({'vendor_id':vendor, 'review_digest':digest, 'status':'REVIEW_REQUIRED'})
+    return conflicts
 
 
 def require_context(manifest, overlay, tenant, context):
