@@ -159,6 +159,39 @@ def _source_pair(quote,upper,rate,columns):
     return False
 
 
+EVIDENCE_LANGUAGE = {
+    'resource_intervals': r'interval|tim(?:e|ing)|timestamps?|logs?|duration|minutes?|seconds?|start.+end',
+    'account_records': r'account|customer.{0,20}(?:records?|logs?|identif)',
+    'itemized_fees': r'fees?|invoice|billing (?:lines?|statement)|charges?',
+    'public_status_context': r'public|status page|status report',
+    'verification': r'verif|confirm|validat|review|investigat|determin',
+    'request_contents': r'claim|request|submit|submission|must (?:identify|include)|include|contain',
+}
+
+
+def validate_material_coverage(quote, values):
+    """Refuse common controlling conditions even when a proposal assigns an unrelated effect."""
+    if re.search(r'(?:filing|processing|application|administrative) (?:fee|charge)|'
+                 r'\b(?:pay|prepay|remit|deduct)\b.{0,32}(?:fees?|charges?|deposit)|'
+                 r'(?:\$|€|£)\s*\d', quote, re.I):
+        raise ValueError('Unimplemented payment condition or monetary cap.')
+    if re.search(r'\b(?:as long as|provided (?:that|however)|only if|contingent upon|conditional on|'
+                 r'requires? (?:prior|written) (?:approval|consent)|forfeit(?:s|ed)?)\b', quote, re.I):
+        raise ValueError('Unsupported conditional eligibility clause.')
+    if re.search(r'(?:credits?|claims?|remedy)\b[^.;]{0,48}\b(?:expire[sd]?|expir(?:ation|y)|waiv(?:ed|er))', quote, re.I):
+        raise ValueError('Unimplemented credit expiry or waiver.')
+    if re.search(r'\b(?:round(?:ed|ing)?|half.cent)\b', quote, re.I) and 'rounding' not in values:
+        raise ValueError('Rounding instruction requires a typed calculation.')
+    if re.search(r'\b(?:claims?|requests?|fil(?:e|ing))\b[^.;]{0,100}\b(?:calendar days?|billing cycles?)\b', quote, re.I) and 'filing' not in values:
+        raise ValueError('Filing period lacks a source-bound deadline operator.')
+    if _PERCENT_TOKEN.search(quote) and not {'tiers', 'boundary'} & values.keys():
+        raise ValueError('Percentage condition has no applicable threshold or tier.')
+    evidence = values.get('evidence', [])
+    if not isinstance(evidence, list) or any(not isinstance(kind, str) or kind not in EVIDENCE_LANGUAGE
+            or not re.search(EVIDENCE_LANGUAGE[kind], quote, re.I) for kind in evidence):
+        raise ValueError('Proposed evidence category has no supporting source wording.')
+
+
 def compile_resource(document, clauses):
     _validate_document(document)
     spans = _clauses(document.text, [c['quote'] for c in clauses])
@@ -180,6 +213,7 @@ def compile_resource(document, clauses):
             columns=None
         if row['field'] != 'resource_terms' or not isinstance(values,dict) or not values or set(values)-fields or 'unsupported' in values:
             raise ValueError(f'Unsupported material in resource clause {index}.')
+        validate_material_coverage(quote, values)
         if re.search(r'\b(?:conflict|inconsisten\w*)\b',quote,re.I) and 'precedence' not in values:
             raise ValueError(f'Material conflict rule unresolved in clause {index}.')
         if re.search(r'(?:terminat|suspend|suspension|restrict|breach|non.complian|fail(?:ure)? to (?:comply|abide))',quote,re.I) and re.search(r'(?:account|agreement|terms|customer|access)',quote,re.I) and 'account_conditions' not in values:
@@ -268,9 +302,8 @@ def compile_resource(document, clauses):
                         previous.append(condition)
                 continue
             if key == 'evidence':
-                allowed = {'resource_intervals','account_records','itemized_fees','public_status_context','verification','request_contents'}
-                if not isinstance(value,list) or not value or any(v not in allowed for v in value):
-                    raise ValueError('Unsupported resource evidence condition.')
+                if not value:
+                    raise ValueError('Empty resource evidence condition.')
                 manifest.setdefault(key,[]).extend(v for v in value if v not in manifest.get(key,[]))
                 continue
             if key == 'tiers':

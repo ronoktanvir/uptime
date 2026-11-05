@@ -343,3 +343,18 @@ def test_omitting_an_entire_payout_band_and_reversing_filing_endpoint_fail_close
     wrong_endpoint[9]['value']['filing']['endpoint'] = 'exclusive'
     with pytest.raises(ValueError, match='clock comparator'):
         compiled(proposal=wrong_endpoint)
+
+
+@pytest.mark.parametrize(('text', 'mislabeled'), [
+    ('The customer must prepay a filing fee.', {'evidence': ['account_records']}),
+    ('Submit itemized fees only if the customer purchases priority support.', {'evidence': ['itemized_fees']}),
+    ('Public notices appear on our portal.', {'evidence': ['resource_intervals']}),
+    ('Round the result to the nearest dollar.', {'nonmaterial': 'Example calculation.'}),
+    ('Credit claims expire after a year.', {'evidence': ['request_contents']}),
+    ('Cloud support costs 9% of monthly fees.', {'fee_basis': 'affected_resource_fees'}),
+    ('The claim has a deadline of two billing cycles following month end.', {'evidence': ['request_contents']}),
+])
+def test_unmapped_conditions_cannot_hide_behind_a_valid_proposition(text, mislabeled):
+    document, proposal = extend_source([(text, mislabeled)])
+    with pytest.raises(ValueError):
+        compiled(document, proposal)
