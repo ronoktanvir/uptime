@@ -1,0 +1,57 @@
+{
+  "current_case": {
+    "amount": "2400.00",
+    "governing_fee_cents": 1200000,
+    "governing_fee_digest": "6e0659324040da7767b6962a3d4363fb0147b58efc1b388a6fad9f643543b2ff",
+    "stage": "EVALUATED",
+    "outcome": "ELIGIBLE",
+    "trace": [
+      "44505/44640 UTC minutes available; 2 completed shortfall increments; 20000000/1000000% credit after cap.",
+      "Affected fee 1200000 USD cents; source-clause future invoice credit only."
+    ],
+    "recorded_amount": null
+  },
+  "estimated_metric": {
+    "key": "estimated",
+    "label": "Estimated credit",
+    "value": "$2,400.00",
+    "amount": "2400.00",
+    "currency": "USD",
+    "note": "Provisional USD estimate only; no filing, prevention or recovery established.",
+    "case_id": "availability-4b3ab950fa148cbb7ed6f10c95eec9fddf26af3395026f70f442053cd0404dd5",
+    "case_ids": [
+      "availability-4b3ab950fa148cbb7ed6f10c95eec9fddf26af3395026f70f442053cd0404dd5"
+    ],
+    "contributions": [
+      {
+        "case_id": "availability-4b3ab950fa148cbb7ed6f10c95eec9fddf26af3395026f70f442053cd0404dd5",
+        "amount": "2400.00",
+        "sources": [
+          "DETERMINISTIC_REPLAY",
+          "SYNTHETIC_CUSTOMER",
+          "SIMULATED_VENDOR"
+        ],
+        "references": [
+          {
+            "kind": "evaluation",
+            "id": "9978b5253dce21b6401a352b440112d9d2f62b8d557574482f53f37056a1fd05",
+            "sources": [
+              "DETERMINISTIC_REPLAY",
+              "SYNTHETIC_CUSTOMER",
+              "SIMULATED_VENDOR"
+            ]
+          }
+        ],
+        "obligation_id": "671d70a670a59a85aa44095c76cb1c8e4d9c20eee93d237502b93cbeca823b40"
+      }
+    ],
+    "sources": [
+      "DETERMINISTIC_REPLAY",
+      "SIMULATED_VENDOR",
+      "SYNTHETIC_CUSTOMER"
+    ],
+    "actual_recovery": null
+  },
+  "resolve_case_amount": "2400.00",
+  "archived_history_unchanged": true
+}

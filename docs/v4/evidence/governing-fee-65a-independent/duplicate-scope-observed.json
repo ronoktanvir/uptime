@@ -1,0 +1,18 @@
+[
+  {
+    "configured_plans": [
+      "Business",
+      "Enterprise"
+    ],
+    "selected_plan": "Enterprise",
+    "fee_minor": 1200000
+  },
+  {
+    "configured_plans": [
+      "Enterprise",
+      "Business"
+    ],
+    "selected_plan": "Business",
+    "fee_minor": 1200000
+  }
+]

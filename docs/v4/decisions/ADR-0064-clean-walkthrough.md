@@ -24,6 +24,8 @@ The authored contract specifies a USD 12,000 monthly fee, 99.9% availability, 10
 
 January supplies complete eligible usage and supports USD 2,400; February supplies complete healthy usage and is ineligible; March lacks required usage coverage and remains unknown. March pricing can independently detect a USD 1,000 discrepancy against a USD 12,000 invoice. The SLA credit base is the governing eligible service fee, excluding tax and unrelated items. Successive Estimated, Claimed, Awarded, Posted and Applied amounts are never added together. Applying USD 2,400 to a USD 12,000 bill leaves USD 9,600; the unresolved USD 1,000 pricing finding is not silently subtracted.
 
+Subsequent correction: [ADR68](ADR-0068-future-invoice-application.md) supersedes this paragraph's planned application target. The existing future-invoice guard does not support applying the March2 award to the already-issued March1 invoice in this chronology. The next regular April invoice is USD11,000; applying USD2,400 leaves USD8,600. The original plan remains recorded here so the correction is traceable.
+
 Existing source-label semantics remediation (61) and dispute interpretation (60/62) continue. The exact stepped-credit operator receives its own focused review (65), and workflow composition records any additional consequential choices (66). The independent native connection fixes (63) remain execution-disabled pending retest and actual action authority.
 
 ## Validation and rollback

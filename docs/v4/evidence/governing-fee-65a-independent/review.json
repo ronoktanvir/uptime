@@ -1,0 +1,154 @@
+{
+  "review": "Independent completed-step and governing-fee Change A review",
+  "reviewed_commit": "dccfd1d5a2d921fa4eb6a91578d5282e58e8d83b",
+  "date": "2026-11-05",
+  "decision": "Hold publication pending two confirmed correctness repairs. Arithmetic and issued-context checks passed the bounded controls.",
+  "source_sha256": {
+    "uptime/credit_steps.py": "c993d4d98c4153c5d0130c00616eca1ba938a01ee67520839d7c81e4d6ea81a9",
+    "uptime/pricing_terms.py": "96171405a0f104cdbd866deee7693b24ac583076ab9c8aa5fe8d805826b6a097",
+    "uptime/pricing.py": "8fad13ef00b16131ebcd0c07b13569006dca6323d3c8f1f9953853c25188204e",
+    "uptime/governing_fees.py": "c661c6d91de2a286322f6840fb5751034bf223b875fb0f27b3be776702e17696",
+    "uptime/vendor_api.py": "c023339f55ca0b98f1e18b46bf1a546976175e444d637483ae66c114714d0bad",
+    "uptime/vendor_registry.py": "60748e5542b0e51bf0eb24f76957da96e4dbec300775ccd8d57a7d1881eddba3",
+    "uptime/vendor_eval.py": "5d895bb00a46c2d01a890adabf4154952ca793ba4ce78eb70398a25fc8090f4f",
+    "uptime/workbench.py": "ce812e56ef496f7f97428952b99df66c302416ba625cda899033efc7774403db"
+  },
+  "scope": [
+    "Exact completed-step arithmetic and final currency rounding",
+    "FixedMonthlyTerms complete-source proof and fixed quantity validation",
+    "GoverningFeeContext issued identity, input pins, stale registry/dependency refusal",
+    "FeeRegistry lookup, signed invoice snapshot scope and immutable configuration",
+    "Vendor catalog tests, preview, approval, activation, evaluation and current projections"
+  ],
+  "findings": [
+    {
+      "id": "F65A-1",
+      "priority": "P1",
+      "release_blocking": true,
+      "title": "Revalidate governing-fee dependencies at catalog lifecycle and current projection boundaries",
+      "source": [
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/vendor_registry.py",
+          "function": "_capability",
+          "line": 156
+        },
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/vendor_registry.py",
+          "function": "submit_tests",
+          "line": 404
+        },
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/vendor_registry.py",
+          "function": "require_case_semantics",
+          "line": 572
+        },
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/vendor_registry.py",
+          "function": "resolve_case",
+          "line": 584
+        },
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/vendor_api.py",
+          "function": "make_router.mutate",
+          "line": 36
+        },
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/workbench.py",
+          "function": "Workbench._present",
+          "line": 486
+        }
+      ],
+      "observation": "The suite stores a governing_fee_digest, but current catalog capability and case resolution only recheck adapter/source-literal authority. They do not resolve the stored fee dependency against a current registry. The API injects governing-fee contexts into tests, preview and dispatch, but not catalog reads or approve/activate actions.",
+      "exact_reproduction": "Use public load_package/build_fee_registry and snapshot helpers. Install Northwind; submit January expected ELIGIBLE/USD2400 and March unknown with the issued January context; then close that registry. Fresh shadow_preview with the same issued context correctly returns amount=null. get_vendor still returns actual.amount=2400.00, passed=true and an approve action; approve and activate both succeed. Separately, dispatch while the context is valid and then close it: Workbench.case, catalog.resolve_case(require_active=True), and portfolio estimated rollup still return USD2400.",
+      "affected_consumers": [
+        "Current catalog checks and approval/activation actions",
+        "Current availability case including governing_fee_cents and trace",
+        "Current portfolio estimated metric",
+        "resolve_case(require_active=True)"
+      ],
+      "expected_boundary": "Unavailable governing-fee authority must invalidate current capability and current monetary projections. Keep original test results, case versions and receipts as explicit recorded history; current positive values cannot survive registry revocation.",
+      "historical_evidence": "The case probe confirms archived case_versions are unchanged. The desired repair is current authority/projection containment, not rewriting old evidence.",
+      "qualification": "No positive dispatch with the closed context was demonstrated: fresh evaluation correctly refuses. The defect is stale lifecycle authority and current saved money. The pending correspondence composition and advance-billing join are not part of this finding.",
+      "recommended_correction": "Provide a trusted current fee-registry resolution path to catalog reads/actions and saved-case projections. Compare all positive-contributor dependency digests at the relevant boundary, suppress current checks/amounts and actions when unavailable, and preserve known zero without a fee dependency. Persist digests rather than trusted serialized contexts.",
+      "tests": [
+        "test_closed_fee_registry_invalidates_current_catalog_checks_and_actions",
+        "test_closed_fee_registry_removes_current_case_and_rollup_money"
+      ],
+      "evidence": [
+        "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/closed-registry-catalog-observed.json",
+        "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/closed-registry-case-observed.json"
+      ]
+    },
+    {
+      "id": "F65A-2",
+      "priority": "P2",
+      "release_blocking": true,
+      "title": "Reject duplicate exact authenticated-envelope lookup keys before building FeeRegistry",
+      "source": [
+        {
+          "file": "/Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4/uptime/governing_fees.py",
+          "function": "FeeRegistry.__init__",
+          "line": 136,
+          "end_line": 140
+        }
+      ],
+      "observation": "Duplicate detection uses tenant/account/vendor/contract/service/plan/month/fee_line_id, whereas the actual dictionary key is tenant plus Scope. Plan and fee_line_id are absent from Scope. Consequently two entries with identical lookup Scope but different plan or fee_line_id bypass the duplicate check and the later entry silently replaces the earlier one.",
+      "exact_reproduction": "first = entry(load_package()); other = dataclasses.replace(first, entry_id='same-envelope-other-plan', plan='Enterprise'). FeeRegistry((first,other)) resolves the unchanged public signed snapshot to Enterprise; FeeRegistry((other,first)) resolves it to Business. Both constructors succeed and both contexts carry fee_minor=1200000.",
+      "expected_boundary": "An authenticated envelope must select exactly one configured input independently of iteration order. Reject any repeated _scope_key at construction, in addition to the existing financial-overlap check.",
+      "qualification": "This requires ambiguous operator configuration, not browser-supplied entries. The normal manifest/context plan comparison may subsequently refuse the wrong-plan context; it does not make order-dependent registry selection valid.",
+      "tests": [
+        "test_duplicate_authenticated_scope_with_distinct_plan_refuses"
+      ],
+      "evidence": [
+        "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/duplicate-scope-observed.json"
+      ]
+    }
+  ],
+  "validation": {
+    "existing_public_tests": {
+      "result": "59 passed, 1 warning in 0.48s",
+      "files": [
+        "tests/test_credit_steps.py",
+        "tests/test_governing_fees.py",
+        "tests/test_northwind_inputs.py"
+      ],
+      "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/public-focused.log"
+    },
+    "independent_falsifiers": {
+      "result": "3 failed in 0.44s; original failing assertions preserved",
+      "source": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/test_fee_review.py",
+      "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/probes-run2.log",
+      "earlier_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/probes.log",
+      "reproduce_command": "cd /Users/ronoktanvir/.local/share/uptime-engineering/projects/Uptime-V4 && PYTHONPATH=\"$PWD:$PWD/tests\" /Users/ronoktanvir/.local/bin/uv run --locked pytest -q /Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/test_fee_review.py --basetemp=/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/reproduce-temp"
+    },
+    "independent_arithmetic": {
+      "result": "500 deterministic Fraction-reference vectors passed",
+      "seed": 65001,
+      "source": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/arithmetic_probe.py",
+      "evidence": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/arithmetic-observed.json"
+    },
+    "preserved_probe_setup_error": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/arithmetic-initial-failure.json",
+    "full_suite": "Not rerun by this reviewer; root independently reported 2819 passed, 1 warning in 179.97s."
+  },
+  "verified_controls": [
+    "January produces USD2400 through the current issued fee context with no advance-billing implementation.",
+    "Completed-step floor, cap and final HALF_UP cent rounding agree with the independent rational reference, including large exact integers.",
+    "FixedMonthlyTerms recompile the complete source and reject mismatched source spans/version/rate or extra qualification; invoice quantity cannot multiply the fixed monthly fee.",
+    "The flat monthly_fee_cents assertion does not set or raise the new step-family fee base.",
+    "Known zero rate remains ineligible with null nonclaimable amount and no fee digest; incomplete usage remains unknown without a rate.",
+    "Original, copied, replaced, deep-copied and pickle-round-tripped contexts have the intended identity behavior; closed registry and changed dependency are refused by direct require_governing_fee.",
+    "Signed snapshot/body scope mismatches, missing grant provenance and future-known inputs refuse in the public controls."
+  ],
+  "intentional_limits_not_findings": [
+    "March advance billing and complete-March governing fee are deferred Change B functionality; no additional defect is inferred from their unsupported results.",
+    "The bounded join is USD only, exactly one contractually fixed subscription unit, one complete-month covered invoice line, and zero separate tax. Absent/split/duplicate/credit-memo invoices and nonzero tax remain unsupported.",
+    "Correspondence composition is still in progress and is not claimed complete or reported as a missing join bug.",
+    "Exact authored grammar establishes a bounded typed operator under the recorded root decision; it is not a general prose interpreter or proof of real commercial execution."
+  ],
+  "limits": [
+    "No private holdout/gold access, credentials, network or native Ramp calls.",
+    "No root source edits or full-suite duplication.",
+    "No production readiness, actual-human approval, live vendor entitlement or native delivery claim."
+  ],
+  "root_source_modified": false
+}

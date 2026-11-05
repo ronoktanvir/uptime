@@ -1,0 +1,6 @@
+{
+  "vectors": 500,
+  "seed": 65001,
+  "result": "PASS",
+  "reference": "fractions.Fraction shortfall/floor and final half-up rounding"
+}

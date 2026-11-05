@@ -1,0 +1,10 @@
+{
+  "source_commit": "dccfd1d5a2d921fa4eb6a91578d5282e58e8d83b",
+  "command": "uv run --locked pytest --basetemp=<unique owned temporary directory>",
+  "result": "2819 passed, 1 warning in 179.97s",
+  "exit_code": 0,
+  "log_sha256": "c9b898cec319adbbc012603ce8e53445ab8c596f1d951ea721df0cdc6f2906b0",
+  "independent_findings": "3 new probes fail: stale governing-fee lifecycle/projections; ambiguous registry lookup",
+  "release_gate": "BLOCKED_PENDING_REPAIRS",
+  "publication": "Development review branch; not an accepted release"
+}

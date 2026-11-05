@@ -1,0 +1,85 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+________ test_duplicate_authenticated_scope_with_distinct_plan_refuses _________
+
+    def test_duplicate_authenticated_scope_with_distinct_plan_refuses():
+        p=load_package(); first=entry(p)
+        other=replace(first,entry_id='same-envelope-other-plan',plan='Enterprise')
+        observed=[]
+        for entries in ((first,other),(other,first)):
+            registry=FeeRegistry(entries)
+            context=registry.resolve(snapshot(p),as_of=NOW)
+            observed.append(dict(configured_plans=[e.plan for e in entries],selected_plan=context.plan,fee_minor=context.fee_minor))
+        (OUT/'duplicate-scope-observed.json').write_text(json.dumps(observed,indent=2))
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+../../tasks/independent-semantic65a-dccfd1d/test_fee_review.py:23: Failed
+___ test_closed_fee_registry_invalidates_current_catalog_checks_and_actions ____
+
+tmp_path = PosixPath('/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/probe-temp-run2/test_closed_fee_registry_inval0')
+
+    def test_closed_fee_registry_invalidates_current_catalog_checks_and_actions(tmp_path):
+        p=load_package(); path=tmp_path/'catalog.sqlite';initialize(path)
+        actor=Principal(p['tenant'],'scripted-independent-fee-review','reviewer')
+        registry=build_fee_registry(p);context=registry.resolve(snapshot(p),as_of=NOW)
+        state=catalog.install(path,actor,'northwind',dict(document=p['document'],overlay=p['overlay']))
+        tests=[dict(name='January public positive',facts=p['months'][0]['facts'],expected=dict(outcome='ELIGIBLE',amount='2400.00')),
+               dict(name='March unknown',facts=p['months'][2]['facts'],expected=dict(outcome='INSUFFICIENT_EVIDENCE'))]
+        state=catalog.submit_tests(path,actor,'northwind',catalog.TestSubmission(revision=state['revision'],tests=tests),governing_fees=(context,))
+        assert state['checks'][0]['actual']['amount']=='2400.00'
+        registry.close()
+        from uptime.vendor_api import Preview
+        fresh=catalog.shadow_preview(path,actor,'northwind',Preview(revision=state['revision'],facts=p['months'][0]['facts']),governing_fee=context)
+        stale=catalog.get_vendor(path,actor,'northwind')
+        observed={k:stale.get(k) for k in ('state','active_version','checks','actions','suite')}
+        observed['fresh_preview']=fresh['evaluation']
+        approved=catalog.act(path,actor,'northwind',next(a['id'] for a in stale['actions'] if a['operation']=='approve'))
+        activated=catalog.act(path,actor,'northwind',next(a['id'] for a in approved['actions'] if a['operation']=='activate'))
+        observed['state_after_approve']=approved['state'];observed['state_after_activate']=activated['state']
+        (OUT/'closed-registry-catalog-observed.json').write_text(json.dumps(observed,indent=2))
+        assert fresh['evaluation']['amount'] is None
+>       assert not stale['actions'] and all(c.get('actual',{}).get('amount') is None for c in stale['checks']), observed
+E       AssertionError: {'state': 'SHADOW', 'active_version': None, 'checks': [{'actual': {'amount': '2400.00', 'outcome': 'ELIGIBLE'}, 'expec...3807b29a15e115b989dda14e977d504fa9b6758bc6997036b67', 'label': 'Approve reviewed tests', 'operation': 'approve'}], ...}
+E       assert (not [{'id': 'approve~4~eba2093338f443807b29a15e115b989dda14e977d504fa9b6758bc6997036b67', 'label': 'Approve reviewed tests', 'operation': 'approve'}])
+
+../../tasks/independent-semantic65a-dccfd1d/test_fee_review.py:46: AssertionError
+________ test_closed_fee_registry_removes_current_case_and_rollup_money ________
+
+tmp_path = PosixPath('/Users/ronoktanvir/.local/share/uptime-engineering/tasks/independent-semantic65a-dccfd1d/probe-temp-run2/test_closed_fee_registry_remov0')
+
+    def test_closed_fee_registry_removes_current_case_and_rollup_money(tmp_path):
+        from uptime.workbench import Workbench
+        from uptime.storage import case_versions
+        p=load_package();p['tenant']='independent-fee-review';path=tmp_path/'case.sqlite'
+        bench=Workbench(path,'replay',tenant=p['tenant'])
+        actor=Principal(p['tenant'],'scripted-independent-fee-review','reviewer')
+        registry=build_fee_registry(p);context=registry.resolve(snapshot(p),as_of=NOW)
+        state=catalog.install(path,actor,'northwind',dict(document=p['document'],overlay=p['overlay']))
+        tests=[dict(name='January public positive',facts=p['months'][0]['facts'],expected=dict(outcome='ELIGIBLE',amount='2400.00')),
+               dict(name='March unknown',facts=p['months'][2]['facts'],expected=dict(outcome='INSUFFICIENT_EVIDENCE'))]
+        state=catalog.submit_tests(path,actor,'northwind',catalog.TestSubmission(revision=state['revision'],tests=tests),governing_fees=(context,))
+        for op in ('approve','activate'):
+            state=catalog.act(path,actor,'northwind',next(a['id'] for a in state['actions'] if a['operation']==op))
+        before=catalog.dispatch(path,actor,'northwind',p['months'][0]['facts'],governing_fee=context)
+        history=case_versions(path,p['tenant'],before['id'])
+        registry.close()
+        detail=bench.case(actor,before['id'])
+        dashboard=bench.dashboard(actor)
+        metric=next(m for m in dashboard['cohorts']['portfolio']['metrics'] if m['key']=='estimated')
+        resolved=catalog.resolve_case(path,actor,before['id'])
+        observed={'current_case':{k:detail.get(k) for k in ('amount','governing_fee_cents','governing_fee_digest','stage','outcome','trace','recorded_amount')},
+                  'estimated_metric':metric,'resolve_case_amount':resolved.get('amount'),
+                  'archived_history_unchanged':case_versions(path,p['tenant'],before['id'])==history}
+        (OUT/'closed-registry-case-observed.json').write_text(json.dumps(observed,indent=2))
+>       assert detail['amount'] is None and metric['amount'] is None, observed
+E       AssertionError: {'current_case': {'amount': '2400.00', 'governing_fee_cents': 1200000, 'governing_fee_digest': '6e0659324040da7767b696... 'value': '$2,400.00', 'amount': '2400.00', ...}, 'resolve_case_amount': '2400.00', 'archived_history_unchanged': True}
+E       assert ('2400.00' is None)
+
+../../tasks/independent-semantic65a-dccfd1d/test_fee_review.py:72: AssertionError
+=========================== short test summary info ============================
+FAILED ../../tasks/independent-semantic65a-dccfd1d/test_fee_review.py::test_duplicate_authenticated_scope_with_distinct_plan_refuses
+FAILED ../../tasks/independent-semantic65a-dccfd1d/test_fee_review.py::test_closed_fee_registry_invalidates_current_catalog_checks_and_actions
+FAILED ../../tasks/independent-semantic65a-dccfd1d/test_fee_review.py::test_closed_fee_registry_removes_current_case_and_rollup_money
+3 failed in 0.44s

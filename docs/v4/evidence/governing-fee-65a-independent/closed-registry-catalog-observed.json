@@ -1,0 +1,80 @@
+{
+  "state": "SHADOW",
+  "active_version": null,
+  "checks": [
+    {
+      "actual": {
+        "amount": "2400.00",
+        "outcome": "ELIGIBLE"
+      },
+      "expected": {
+        "amount": "2400.00",
+        "outcome": "ELIGIBLE"
+      },
+      "governing_fee_digest": "205748cfb24302c1d4df859e4b78b55c7f087bd7635a679838cf504772e66cc9",
+      "name": "January public positive",
+      "passed": true
+    },
+    {
+      "actual": {
+        "amount": null,
+        "outcome": "INSUFFICIENT_EVIDENCE"
+      },
+      "expected": {
+        "outcome": "INSUFFICIENT_EVIDENCE"
+      },
+      "name": "March unknown",
+      "passed": true
+    },
+    {
+      "name": "Independent positive and refusal coverage",
+      "passed": true
+    },
+    {
+      "name": "Generated exact threshold checks",
+      "passed": true
+    }
+  ],
+  "actions": [
+    {
+      "id": "approve~4~eba2093338f443807b29a15e115b989dda14e977d504fa9b6758bc6997036b67",
+      "label": "Approve reviewed tests",
+      "operation": "approve"
+    }
+  ],
+  "suite": "48111acf3701c260d2be4b6b1b0aaf21861c40e9b327bb614796dcc7cbda946f",
+  "fresh_preview": {
+    "outcome": "INSUFFICIENT_EVIDENCE",
+    "amount": null,
+    "currency": "USD",
+    "trace": [
+      "Trusted governing-fee pricing context is required for completed-step credit."
+    ],
+    "missing": [
+      "governing_fee_context"
+    ],
+    "filing_status": "TIMELY",
+    "issuance_status": "NOT_ESTABLISHED",
+    "basis": "7f75d8e567cae18b3f2a48e7f830ca4c01b1116adcf04d5ddf3970f2a588859e",
+    "observation_digest": "8fd1337d24c784a3c992acec554971578f1ddd5023ffd13bd40f70215cf8a1a5",
+    "remedy": "affected_monthly_fees_future_invoice",
+    "citations": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "claim_cutoff_exclusive": "2026-03-03T00:00:00+00:00",
+    "monitor_ref": "northwind-monthly-coverage-2026-01",
+    "fee_ref": "NW-2026-01:order-v1",
+    "rate_units": 20000000,
+    "completed_steps": 2,
+    "tier_citation": 6
+  },
+  "state_after_approve": "APPROVED",
+  "state_after_activate": "ACTIVE"
+}
