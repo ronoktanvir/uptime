@@ -117,7 +117,7 @@ class SourceConfig(Audience):
         for service in self.services:
             s = service.scope
             desk.provision(self.tenant, s.account, s.vendor, s.contract, s.service, s.component, s.region)
-            desk.bind_sender(self.tenant, s.account, service.source, service.subject)
+            desk.bind_sender(self.tenant, s.account, service.source, service.subject, scope=s)
 
 
 class SourceGrants(dict):
