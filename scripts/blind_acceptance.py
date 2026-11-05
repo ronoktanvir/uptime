@@ -97,7 +97,7 @@ def write_receipt(path, receipt):
 INPUT_KEYS = {"id", "account_id", "resource_id", "month", "measured_month", "as_of",
               "input_artifact_ids", "input_correspondence_ids"}
 OUTCOMES = {"ELIGIBLE", "INELIGIBLE", "INSUFFICIENT_EVIDENCE", "UNSUPPORTED_RULE"}
-STAGES = {"DRAFTED", "NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "RESPONSE_APPROVED", "HUMAN_REVIEW",
+STAGES = {"EVALUATED", "HISTORICAL_FILING", "DRAFTED", "NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "RESPONSE_APPROVED", "HUMAN_REVIEW",
           "DENIAL_ACCEPTED", "EXPIRED", "AWARDED", "PARTIAL_AWARD_REVIEW", "AWAITING_RESPONSE",
           "CLAIM_APPROVED", "AWAITING_NOTICE"}
 
@@ -292,62 +292,66 @@ def quiet_runtime():
             os.close(backup)
 
 
+TRANSPORT_MODE = "socket"
+
+
 @contextmanager
 def listener(scope, at):
-    """A disposable real socket. Operator provisioning is the only direct setup API."""
+    """Same app and Ed25519 grants for both transports; only socket proves HTTP."""
     import httpx
     import uvicorn
+    from fastapi.testclient import TestClient
     from uptime.auth import SCRIPT
     from uptime.auth_client import ReviewerClient
     from uptime.server import create_app
-    with TemporaryDirectory(prefix="blind-local-") as work, socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        sock.listen(128)
-        origin = "http://127.0.0.1:" + str(sock.getsockname()[1])
-        subjects = {role: "blind-" + role for role in ("status", "customer", "billing", "vendor")}
-        try:
-            from uptime.source_config import SourceConfig, create_source
-        except ImportError:
-            credentials = {name: secrets.token_hex(32) for name in subjects.values()}
-            senders = credentials
-            config = None
+    from uptime.source_config import SourceConfig, create_source
+    from uptime.correspondence_types import Scope
+    with TemporaryDirectory(prefix="blind-local-") as work:
+        sock = None
+        if TRANSPORT_MODE == "socket":
+            sock = socket.socket()
+            sock.bind(("127.0.0.1", 0))
+            sock.listen(128)
+            origin = "http://127.0.0.1:" + str(sock.getsockname()[1])
         else:
-            from uptime.correspondence_types import Scope
-            config = SourceConfig(version=1, channel="LOCAL_SYNTHETIC", tenant="bears", mode="replay",
-                                  origin=origin, services=[])
-            pairs = [create_source(config, name, role, Scope(**scope)) for role, name in subjects.items()]
-            config = config.model_copy(update={"services": [pair[0] for pair in pairs]})
-            credentials = config.credentials("replay", origin, "bears")
-            senders = {pair[1].subject: pair[1] for pair in pairs}
+            origin = "http://127.0.0.1:8765"
+        subjects = {role: "blind-" + role for role in ("status", "customer", "billing", "vendor")}
+        config = SourceConfig(version=1, channel="LOCAL_SYNTHETIC", tenant="bears", mode="replay",
+                              origin=origin, services=[])
+        pairs = [create_source(config, name, role, Scope(**scope)) for role, name in subjects.items()]
+        config = config.model_copy(update={"services": [pair[0] for pair in pairs]})
+        senders = {pair[1].subject: pair[1] for pair in pairs}
         secret = secrets.token_urlsafe(48)
         app = create_app(Path(work) / "private.sqlite", mode="replay", rehearsal=True,
                          approvals_enabled=True, rehearsal_secret=secret, origin=origin,
-                         service_credentials=credentials)
-        desk = app.state.correspondence
+                         service_credentials=config.credentials("replay", origin, "bears"))
         clock = [instant(at)]
-        desk.clock = lambda: clock[0]
-        if config:
-            config.bind(desk)
-        else:
-            desk.provision("bears", *(scope[k] for k in ("account", "vendor", "contract", "service", "component", "region")))
-            for role, subject in subjects.items():
-                desk.bind_sender("bears", scope["account"], role, subject, scope=Scope.model_validate(scope))
-        server = uvicorn.Server(uvicorn.Config(app, log_config=None, log_level="critical", access_log=False))
-        thread = Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
-        thread.start()
+        app.state.correspondence.clock = lambda: clock[0]
+        config.bind(app.state.correspondence)
+        server, thread = None, None
         try:
-            deadline = time.monotonic() + 15
-            while not server.started:
-                if not thread.is_alive() or time.monotonic() > deadline:
-                    raise BoundaryError("LISTENER_UNAVAILABLE")
-                time.sleep(.02)
-            with httpx.Client(base_url=origin, trust_env=False, timeout=20) as client:
+            if sock:
+                server = uvicorn.Server(uvicorn.Config(app, log_config=None, log_level="critical", access_log=False))
+                thread = Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+                thread.start()
+                deadline = time.monotonic() + 15
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        raise BoundaryError("LISTENER_UNAVAILABLE")
+                    time.sleep(.02)
+                client_context = httpx.Client(base_url=origin, trust_env=False, timeout=20)
+            else:
+                client_context = TestClient(app, base_url=origin, client=("127.0.0.1", 41000))
+            with client_context as client:
                 reviewer = ReviewerClient(client, origin, SCRIPT, secret)
                 yield Transport(client, reviewer, app, origin, subjects, senders, clock)
         finally:
-            server.should_exit = True
-            thread.join(timeout=10)
-            if thread.is_alive():
+            if server:
+                server.should_exit = True
+                thread.join(timeout=10)
+            if sock:
+                sock.close()
+            if thread and thread.is_alive():
                 raise BoundaryError("LISTENER_SHUTDOWN_FAILED")
 
 
@@ -371,6 +375,8 @@ class Transport:
 
     def deliver(self, path, role, scope, body, identifier, available_at):
         from uptime.auth_client import service_headers
+        if instant(available_at) < self.clock[0]:
+            raise BoundaryError("ARRIVAL_CLOCK_REVERSED")
         self.clock[0] = instant(available_at)
         raw = json.dumps({"event_id": identifier, "scope": scope, "body": body}, separators=(",", ":")).encode()
         subject = self.subjects[role]
@@ -390,7 +396,46 @@ def compact_case(row):
             "evidence_count": len(row.get("evidence", [])),
             "actions_count": len(row.get("actions", [])),
             "awarded": export_money(row.get("ledger", {}).get("awarded")),
+            "case_id_sha256": digest(row["id"]) if row.get("id") else None,
+            "outcome_id_sha256": digest([row.get("id"), row.get("version"), row.get("observation_digest")]),
+            "receipt_ids_sha256": [digest(r["id"]) for r in row.get("submissions", [])],
+            "preflight_outcome": row.get("preflight", {}).get("outcome"),
+            "filing_cutoff": row.get("filing_cutoff", row.get("claim_cutoff")),
+            "filing_status": row.get("filing_status"),
+            "issuance_status": row.get("issuance_status"),
             "response_sha256": digest(row)}
+
+
+def promote_and_exercise(transport, prefix, state, intake):
+    """Independently authored public controls; normal actions and case readback."""
+    from scripts.blind_mapping import promotion_scenarios
+    if transport.post(prefix + "/evaluate", {"facts": {}}, "shadow_dispatch_refused") is not None:
+        raise BoundaryError("INACTIVE_DISPATCH_ACCEPTED")
+    scenarios = promotion_scenarios(intake["document"]["text"].encode(), state["manifest"], intake["overlay"])
+    state = transport.post(prefix + "/tests", dict(revision=state["revision"], tests=scenarios), "independent_shadow_tests")
+    if not state or not all(row["passed"] for row in state.get("checks", [])):
+        raise BoundaryError("INDEPENDENT_SHADOW_CONTROL_FAILED")
+    for operation in ("interpret", "approve", "activate"):
+        actions = [row["id"] for row in state.get("actions", []) if row["operation"] == operation]
+        if operation == "interpret" and not state.get("interpretation_required"):
+            continue
+        if len(actions) != 1:
+            raise BoundaryError("INDEPENDENT_PROMOTION_ACTION_UNAVAILABLE")
+        state = transport.post(prefix + "/actions/" + actions[0], {}, "scripted_" + operation)
+        if not state:
+            raise BoundaryError("INDEPENDENT_PROMOTION_REFUSED")
+    result = {"authority": "SCRIPTED_LOCAL_SYNTHETIC", "human_authority": False, "controls": []}
+    for scenario in scenarios:
+        row = transport.post(prefix + "/evaluate", {"facts": scenario["facts"]}, "independent_dispatch")
+        if not row:
+            raise BoundaryError("INDEPENDENT_DISPATCH_UNAVAILABLE")
+        readback = transport.get("/api/cases/" + row["id"], "independent_case_readback")
+        passed = (row["outcome"] == scenario["expected"]["outcome"]
+                  and row["amount"] == scenario["expected"].get("amount")
+                  and readback is not None and readback.get("id") == row["id"])
+        result["controls"].append(dict(scenario_sha256=digest(scenario), passed=passed,
+                                       observed=compact_case(row), readback_sha256=digest(readback)))
+    return state, result
 
 
 def export_money(value):
@@ -422,11 +467,19 @@ def fresh_intake(public, overlay, account, artifacts):
     def boundary(value):
         return instant(value + "T00:00:00Z" if re.fullmatch(r"\d{4}-\d\d-\d\d", value) else value)
     last = boundary(overlay["valid_until_exclusive"]) - timedelta(microseconds=1)
+    from scripts.blind_mapping import public_identity
+    identity = public_identity(public)
     translated = dict(agreement=overlay["overlay_id"], account=account["account_id"], product=account["service"],
                       plan="Unspecified", resource_id=account["resource_id"], resource_label=account["endpoint"],
                       currency=invoices[0]["currency"] if len(invoices) == 1 else "XXX",
                       fee_line_ref=fee_ref, effective_from=boundary(overlay["valid_from"]).date().isoformat(),
                       effective_until=last.date().isoformat())
+    if identity.get("agreement"):
+        translated["public_agreement"] = identity["agreement"]
+    if identity.get("scope"):
+        translated["public_product"] = identity["scope"]["product"]
+        if identity["scope"].get("plan"):
+            translated["public_plan"] = identity["scope"]["plan"]
     document = dict(name="Independent synthetic public terms", classification="synthetic_public",
                     uri="urn:synthetic:sha256:" + digest(public), text=public.decode())
     return {"document": document, "overlay": translated}
@@ -620,7 +673,8 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
                      invoice=invoices[0]["invoice_id"] if len(invoices) == 1 else "unasserted-invoice",
                      incident=receipts[0]["id"] if len(receipts) == 1 else "unasserted-incident",
                      currency=intake["overlay"]["currency"], month=next(iter(months)), region="unasserted")
-        with listener(scope, plan["as_of"]) as transport:
+        first_arrival = min([plan["as_of"]] + [r["available_at"] for r in selected + messages], key=instant)
+        with listener(scope, first_arrival) as transport:
             observed["operations"] = transport.operations
             prefix = "/api/vendors/blind-frozen"
             state = transport.post(prefix + "/candidates", intake, "frozen_intake")
@@ -633,12 +687,8 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             if not state or state.get("state") == "QUARANTINED":
                 observed["fail_codes"].append("PUBLIC_EXTRACTION_OR_BINDING_UNSUPPORTED")
             else:
-                # Gold is not a training/promotion suite. A separate independent
-                # suite is required before approval of newly extracted terms.
-                observed["fail_codes"].append("INDEPENDENT_PROMOTION_SUITE_REQUIRED")
-            direct = transport.post(prefix + "/evaluate", {"facts": {}}, "inactive_evaluation_attempt")
-            if direct is not None:
-                observed["fail_codes"].append("INACTIVE_DISPATCH_ACCEPTED")
+                state, observed["independent_lifecycle"] = promote_and_exercise(transport, prefix, state, intake)
+                observed["candidate_state"] = state["state"]
             requested_scope = scope | {"account": account["account_id"], "component": account["resource_id"]}
             path = "/api/correspondence/claims/inbox-blind-case"
             row = transport.post("/api/correspondence/claims", dict(claim_id="inbox-blind-case", scope=requested_scope), "blind_create")
@@ -666,6 +716,11 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
                 row = transport.get(path, "blind_observed")
                 observed["observation"] = compact_case(row)
                 observed["calculation_available"] = bool(state and state.get("active_version") and row)
+            if state and state.get("active_version"):
+                actions = [a["id"] for a in state["actions"] if a["operation"] == "rollback"]
+                revoked = transport.post(prefix + "/actions/" + actions[0], {}, "scripted_rollback") if actions else None
+                refused = transport.post(prefix + "/evaluate", {"facts": {}}, "rollback_dispatch_refused")
+                observed["rollback_verified"] = bool(revoked and not revoked.get("active_version") and refused is None)
             observed["operations"] = transport.operations
     except Exception as exc:
         observed["fail_codes"].append(exc.args[0] if isinstance(exc, BoundaryError) else "CASE_RUNTIME_UNAVAILABLE")
@@ -809,9 +864,12 @@ def restrict_network():
 
 
 def run(args):
+    global TRANSPORT_MODE
+    TRANSPORT_MODE = getattr(args, "transport", "socket")
     source = args.source.resolve()
     sys.path.insert(0, str(source))
-    result = {"protocol": "blind-acceptance/1", "gate_2_pass": False, "gate_3_pass": False,
+    result = {"protocol": "blind-acceptance/2", "transport": TRANSPORT_MODE,
+              "network_proof": TRANSPORT_MODE == "socket", "gate_2_pass": False, "gate_3_pass": False,
               "fail_codes": [], "observations": [], "authority": "SCRIPTED_LOCAL_SYNTHETIC",
               "commercial_authority": False, "at": datetime.now(UTC).isoformat(),
               "runner_sha256": digest(Path(__file__).read_bytes())}
@@ -873,6 +931,7 @@ def main():
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--manifest-sha256", default=FROZEN_MANIFEST,
                         help="Explicit pin required for any different external fixture")
+    parser.add_argument("--transport", choices=("socket", "testclient"), default="socket")
     parser.add_argument("--input-plan", type=Path)
     parser.add_argument("--allow-input-projection", action="store_true",
                         help="Operator authorizes input selectors only from the combined fixture file")

@@ -184,35 +184,10 @@ def test_general_control_is_read_from_preexisting_source_only():
     assert setup["EXPECTED"] == "52.17"
 
 
-@contextmanager
-def inprocess_transport(scope, at):
-    """Unit-test transport only. The production CLI always owns a real socket."""
-    from tempfile import TemporaryDirectory
-    from fastapi.testclient import TestClient
-    from uptime.auth import SCRIPT, DEFAULT_ORIGIN
-    from uptime.auth_client import ReviewerClient
-    from uptime.server import create_app
-    from scripts.blind_acceptance import Transport, instant
-    subjects = {role: "blind-" + role for role in ("status", "customer", "billing", "vendor")}
-    keys = {name: secrets.token_hex(32) for name in subjects.values()}
-    secret = secrets.token_urlsafe(48)
-    with TemporaryDirectory() as work:
-        app = create_app(Path(work) / "unit.sqlite", mode="replay", rehearsal=True,
-                         approvals_enabled=True, rehearsal_secret=secret, service_credentials=keys)
-        desk = app.state.correspondence
-        desk.provision("bears", *(scope[k] for k in ("account", "vendor", "contract", "service", "component", "region")))
-        for role, subject in subjects.items():
-            desk.bind_sender("bears", scope["account"], role, subject)
-        clock = [instant(at)]
-        desk.clock = lambda: clock[0]
-        with TestClient(app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 41000)) as client:
-            reviewer = ReviewerClient(client, DEFAULT_ORIGIN, SCRIPT, secret)
-            yield Transport(client, reviewer, app, DEFAULT_ORIGIN, subjects, keys, clock)
-
 
 def test_separate_generality_control_reaches_signed_inbox_without_holdout_gold(monkeypatch):
     from scripts import blind_acceptance as runner
-    monkeypatch.setattr(runner, "listener", inprocess_transport)
+    monkeypatch.setattr(runner, "TRANSPORT_MODE", "testclient")
     # Entirely new harness-only message, never loaded from a private fixture.
     account = {"account_id": "harness-account", "resource_id": "harness-resource"}
     message = {"id": "harness-message", **account, "available_at": "2026-11-04T00:00:00Z",
@@ -228,7 +203,7 @@ def test_separate_generality_control_reaches_signed_inbox_without_holdout_gold(m
 
 def test_quarantined_case_still_attempts_signed_denial_and_general_control(monkeypatch):
     from scripts import blind_acceptance as runner
-    monkeypatch.setattr(runner, "listener", inprocess_transport)
+    monkeypatch.setattr(runner, "TRANSPORT_MODE", "testclient")
     account = dict(account_id="harness-account", resource_id="harness-resource", service="Harness Service",
                    endpoint="Harness Endpoint", consenting=True)
     overlay = dict(authorized_account=account["account_id"], authorized_resource=account["resource_id"],
@@ -257,3 +232,40 @@ print('SAFE')
     child = subprocess.run([sys.executable, "-c", program], capture_output=True, text=True, check=True,
                            cwd=Path(__file__).resolve().parents[1])
     assert child.stdout == "SAFE\n" and child.stderr == ""
+
+
+def test_public_promotion_scenarios_have_independent_math_and_real_cure():
+    from scripts.blind_mapping import promotion_scenarios
+    from copy import deepcopy
+    from test_vendor_resource import compiled, OVERLAY
+    manifest = compiled()
+    manifest.update(supplement="same_filing_deadline", fee_adjustment="after_discounts")
+    public = b"| Below 99.9% | 7% |\n| Below 99% | 18% |"
+    scenarios = promotion_scenarios(public, manifest, OVERLAY)
+    assert [t["expected"]["outcome"] for t in scenarios] == [
+        "ELIGIBLE", "INELIGIBLE", "INSUFFICIENT_EVIDENCE", "ELIGIBLE", "INELIGIBLE"]
+    assert scenarios[0]["expected"]["amount"] == "7.00"
+    changed = deepcopy(manifest)
+    changed["tiers"][0]["credit_units"] = 99_000_000
+    assert promotion_scenarios(public, changed, OVERLAY) == scenarios
+    missing, cure, late = (s["facts"] for s in scenarios[2:])
+    assert len(missing["filing_proof"]["fields"]) + 1 == len(scenarios[0]["facts"]["filing_proof"]["fields"])
+    assert cure["filing_proof"]["supplements"][0]["original_ref"] == cure["filing_proof"]["ref"]
+    assert late["filing_proof"]["supplements"][0]["received_at"] > cure["filing_proof"]["supplements"][0]["received_at"]
+
+
+def test_new_listener_uses_exact_ed25519_grants_without_socket_claim(monkeypatch):
+    from scripts import blind_acceptance as runner
+    from test_v4_routes_integration import SCOPE, INTERVAL
+    from uptime.source_config import SenderCredential
+    monkeypatch.setattr(runner, "TRANSPORT_MODE", "testclient")
+    with runner.listener(SCOPE, "2026-11-03T00:00:00Z") as transport:
+        assert all(isinstance(key, SenderCredential) for key in transport.senders.values())
+        path = "/api/correspondence/claims/inbox-witness"
+        assert transport.post("/api/correspondence/claims", {"claim_id": "inbox-witness", "scope": SCOPE}, "create")
+        assert transport.deliver(path, "status", SCOPE, {"kind": "status", **INTERVAL}, "status-a", "2026-11-03T00:00:00Z")
+        assert transport.deliver(path, "customer", SCOPE, {"kind": "status", **INTERVAL}, "status-b", "2026-11-03T00:00:00Z") is None
+        assert transport.deliver(path, "status", SCOPE | {"component": "ungranted"},
+                                 {"kind": "status", **INTERVAL}, "status-c", "2026-11-03T00:00:00Z") is None
+        with pytest.raises(BoundaryError, match="ARRIVAL_CLOCK_REVERSED"):
+            transport.deliver(path, "status", SCOPE, {"kind": "status", **INTERVAL}, "status-d", "2026-11-02T00:00:00Z")
