@@ -64,3 +64,20 @@ UV_OFFLINE=1 UV_CACHE_DIR=/private/tmp/uptime-adr-uv-cache uv run --locked pytes
 Result: **116 passed, 1 warning in 12.26s**, exit 0. The warning was the existing Starlette/httpx deprecation; uv also warned it could not acquire an environment lock. This is bounded synthetic/offline regression on the ADR worktree's older application base, not a rerun of the main-release audit and not a final-build test result.
 
 Documentation checks: exactly ADR-0014 through ADR-0041, no duplicate numbers, required decision/review/evidence/falsifier/rollback sections, matching packet and JSON hashes, and valid main-release-relative evidence targets. `git diff --check` passed. Only these 28 Markdown ADRs and this index are included in the commit. Per-ADR commands are focused reproduction requirements, not assertions of current execution. No merge was performed by this owner. Root must integrate the documentation, run the required `uv run --locked pytest` after each merge, review all stated dissent/statuses against the final frozen source, and update final build evidence. Application code, historical V3 records and canonical packet/review bytes remain outside this change.
+
+## Subsequent integrated decisions
+
+The earlier table preserves its inspected-source status. The following decisions and engineering status record later integrations.
+
+- [42 — Substantive release evidence and independent review](ADR-0042-release-authority-and-independent-critique.md)
+- [43 — A usable, redacted native bill finding](ADR-0043-native-review-message.md)
+- [44 — Reusable contractual evidence primitives](ADR-0044-temporal-coverage-evidence-and-filing.md)
+- [45 — Local draft intake without approval authority](ADR-0045-local-draft-staging.md)
+- [46 — Independent implementation critique](ADR-0046-integrated-code-critique.md)
+- [47 — Exact native vendor associations](ADR-0047-linked-vendor-context.md)
+- [48 — Immutable original filing source pins](ADR-0048-original-filing-terms-pin.md)
+- [49 — Economic cardinality and compound denials](ADR-0049-economic-cardinality-and-compound-denials.md)
+- [50 — Legacy delimiter collision containment](ADR-0050-ambiguous-resource-identifiers.md)
+- [51 — Private GitHub engineering repository](ADR-0051-private-github-repository.md)
+
+Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.
