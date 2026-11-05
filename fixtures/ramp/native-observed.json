@@ -1,8 +1,8 @@
 {
   "schema": "uptime-ramp-records/1",
   "origin": "https://demo-api.ramp.com",
-  "observed_at": "2026-11-05T00:28:30.936983+00:00",
-  "completed_at": "2026-11-05T00:29:19.298097+00:00",
+  "observed_at": "2026-11-05T00:36:21.156851+00:00",
+  "completed_at": "2026-11-05T00:37:07.603176+00:00",
   "resources": {
     "bills": {
       "status": "COMPLETE",
@@ -2607,5 +2607,5 @@
       }
     }
   },
-  "checksum": "d5e5c27a04449bd1aa2a403c65ab0633dd640755924e2ffa0ffdf31adf670d58"
+  "checksum": "a9279bdb0166eb9ca8720b7375a4ea6802b8694a96ad793575cff573e02e006a"
 }

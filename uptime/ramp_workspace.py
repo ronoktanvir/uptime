@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi import Depends
 
-from .contracts import Source
+from .contracts import Source, fingerprint
 from .storage import database, persist_case
 from .ramp import ORIGIN, RampError, uuid_text
 from .ramp_records import load_snapshot, _validate_snapshot
@@ -136,11 +136,24 @@ class RampWorkspace:
         return dict(snapshot,status=status),rows,custody,business
 
     def record_for_native(self,object_type,object_id):
-        _,rows,_,_=self._view()
-        try:
-            return next(c for c in rows if c["provider_object_type"]==object_type and c["provider_id"]==object_id)
-        except StopIteration as exc:
-            raise KeyError(object_id) from exc
+        snapshot,custody,business = self._observation()
+        if (self.mode != "sandbox" or custody != "operator_import" or business is None
+                or snapshot is None or object_type != "bills"):
+            raise PermissionError("A current installed sandbox bill observation is required")
+        now=datetime.now(UTC)
+        observed=datetime.fromisoformat(snapshot["observed_at"])
+        completed=datetime.fromisoformat(snapshot["completed_at"])
+        if not observed <= completed <= now <= observed+timedelta(hours=24):
+            raise PermissionError("Capture expired or after the decision clock")
+        rows=evaluate_snapshot(snapshot, as_of=completed)
+        for record in rows:
+            if record["provider_object_type"]==object_type and record["provider_id"]==object_id:
+                if (record["sources"] != [Source.RAMP.value] or record["amount"] is not None
+                        or record["data_provenance"]["classification"] != "PROVIDER_OBSERVATION"):
+                    raise PermissionError("Native informational review requires a factual observation")
+                return dict(record, workspace_tenant=self.tenant,business_id=business,observed_at=snapshot["observed_at"],
+                            finding_kind="NATIVE_OBSERVATION", capture_mode=custody)
+        raise KeyError(object_id)
 
     def _cap_case(self,snapshot):
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -176,10 +189,23 @@ class RampWorkspace:
                 case=cap
         if case is None:
             raise KeyError(case_id)
+        provenance=case.get("data_provenance",{})
+        record_digest=provenance.get("record_digest") if isinstance(provenance,dict) else None
+        source = next((r for value in snapshot["resources"].values() for r in value["records"]
+                       if r["id"] == case["provider_id"] and fingerprint(r) == record_digest),None)
+        projection={k:source.get(k) for k in ("id","kind","vendor_id","entity_id","status","approval_status",
+                    "amount","issued_at","purchase_order_id","bill_ids","reciprocal_bill_ids","merchant_id") if source and k in source}
+        if not projection and case.get("finding_kind")=="SYNTHETIC_INVOICE_CAP":
+            projection={"id":case["provider_id"],"kind":"bill","amount":case["native_amount"]}
+        case["native_projection"]=projection
+        case["native_workflow"]=self._plan(case)
         return case
 
     def workflow(self,case_id):
-        case=self.detail(case_id)
+        return self._plan(self.detail(case_id))
+
+    @staticmethod
+    def _plan(case):
         obj=case["provider_object_type"]
         destination=case["provider_id"]
         supported=obj in {"bills","draft-bills","transactions"}
@@ -209,7 +235,7 @@ class RampWorkspace:
                                  "attributable_real_recovery":None},
                     writeback={"scope_receipt_at":receipt.get("observed_at"),"comment":grants.get("bills:write","NOT_MEASURED"),
                                "blank_canvas":grants.get("blank_canvas:write","NOT_MEASURED"),"mode":"requires exact reviewed permission",
-                               "actual_writes":"Check operator delivery receipts","registered_active_trigger":None},
+                               "actual_writes":0 if not getattr(self,"native_binding",None) else "See exact-object delivery receipts","registered_active_trigger":None},
                     portfolio_note="Ramp records own financial status. Separate Uptime evidence and hypothetical findings carry their source labels.")
 
 

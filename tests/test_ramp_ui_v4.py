@@ -100,6 +100,6 @@ def test_ramp_browser_navigation_and_read_only_plan():
         assert not unexpected
         assert not console_errors
         assert all(method == "GET" for _, method, _ in requests)
-        assert sum(nav for _, _, nav in requests) == 2, "only initial load and explicit rehearsal load navigate the document"
+        assert sum(nav for _, _, nav in requests) == 1, "fragment navigation preserves the original document, including #rehearsal"
         assert any(path == "/api/ramp/records/opaque%2Fkey%3F%23/workflow" for path, _, _ in requests)
         browser.close()

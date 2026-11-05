@@ -1,0 +1,38 @@
+{
+  "schema": "uptime-rehearsal-cap/1",
+  "actor_kind": "DISPOSABLE_SCRIPTED_REHEARSAL",
+  "capture_digest": "a9279bdb0166eb9ca8720b7375a4ea6802b8694a96ad793575cff573e02e006a",
+  "tenant": "bears",
+  "bill_id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+  "operator_id": "scripted-cap-rehearsal",
+  "scripted_public_verifier": "6438655e143d5c9b7c5a78f46a8e3efad533f68ad6c51d08fb6263b736e2f4d9",
+  "binding": {
+    "payload": {
+      "bill_id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+      "capture_digest": "a9279bdb0166eb9ca8720b7375a4ea6802b8694a96ad793575cff573e02e006a",
+      "completed_at": "2026-11-05T00:37:07.603176+00:00",
+      "currency": "USD",
+      "effective_from": "2026-01-01",
+      "effective_until": "2027-01-01",
+      "entity_id": "bcc2ff39-53c5-4884-a038-1ab55e633cba",
+      "evaluator_version": "uptime-invoice-cap/1",
+      "expected_content_digest": "ebb044ae1090c750e0ba044157e8bec1f6b06c9b2dfee0235235d80b7900fad3",
+      "grant_digest": "205810862a911a1283b8b801aed334ce936b8ef690d1a9e5f23efa2ac1568e60",
+      "issued_at": "2026-10-28T00:00:00+00:00",
+      "native_approval_status": "PENDING",
+      "native_status": "OPEN",
+      "observed_at": "2026-11-05T00:36:21.156851+00:00",
+      "operator_id": "scripted-cap-rehearsal",
+      "purpose": "SYNTHETIC_REHEARSAL_ONLY",
+      "schema": "uptime-invoice-cap-binding/1",
+      "sources": [
+        "LIVE_RAMP_SANDBOX",
+        "SYNTHETIC_CUSTOMER"
+      ],
+      "tenant_id": "bears",
+      "terms_digest": "14eec9f08de1b79b5b417f6c8381511ef86db859a93c2fa7ee7b9a523a4d8a73",
+      "vendor_id": "436983ac-8c74-4512-b9af-46af645a6a83"
+    },
+    "signature": "c09c42ee50120b9299a2240b893e6d669651cc22bc4da226441f261abd2aa59493579714dedb9b19fd4aef7d938f4ceafb087b32d097cfc7264e1273878c3f04"
+  }
+}

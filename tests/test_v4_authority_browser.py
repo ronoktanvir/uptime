@@ -88,16 +88,16 @@ def test_real_browser_sibling_cannot_exfiltrate_or_replay_authority(tmp_path):
             page = context.new_page()
             requests = []
             page.on("request", lambda req: requests.append((req.url, req.headers, req.post_data)))
-            page.goto(origin)
+            page.goto(origin+"/#dashboard")
             page.get_by_label("Account name").fill(subject)
             page.get_by_label("Credential file", exact=True).set_input_files({
                 "name":"reviewer.json", "mimeType":"application/json", "buffer":json.dumps(credential).encode()})
             page.get_by_role("button", name="Sign in", exact=True).click()
-            page.get_by_role("heading", name="Contract ledger", exact=True).wait_for()
+            page.get_by_role("heading", name="Evidence ledger", exact=True).wait_for()
             assert not context.cookies()
             assert page.evaluate("window.importedReviewerKey") == {"extractable":False,"algorithm":"ECDSA"}
             assert credential["d"] not in page.evaluate("JSON.stringify(sessionStorage)")
-            assert page.url == origin+"/"
+            assert page.url == origin+"/#dashboard"
             # Positive human control uses the same UI signer and persists the named audit identity.
             case = page.evaluate("window.uptimeAPI('/api/cases/dispute-cure/actions/approve-claim', {})")
             assert case["stage"] == "CLAIM_APPROVED" and subject in str(case["timeline"])

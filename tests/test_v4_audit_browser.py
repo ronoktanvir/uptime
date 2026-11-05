@@ -70,14 +70,14 @@ def browser_sibling_origin():
                         any(route.request.url.startswith(origin+'/') for origin in (base,sibling)) else route.abort())
                     page = context.new_page()
                     if modern:
-                        page.goto(base)
+                        page.goto(base+"/#dashboard")
                         page.get_by_label('Account name', exact=True).fill(SUBJECT)
                         page.get_by_label('Credential file', exact=True).set_input_files({
                             'name':'synthetic-qa-key.json', 'mimeType':'application/json', 'buffer':json.dumps(key).encode()})
                         page.get_by_role('button', name='Sign in', exact=True).click()
                     else:
                         page.goto(base+'/session/'+secret)
-                    page.wait_for_selector('h1:has-text("Contract ledger")')
+                    page.get_by_role("heading",name=("Evidence ledger" if modern else "Contract ledger"),exact=True).wait_for()
                     case_id = 'dispute-partial'
                     path = '/api/cases/'+case_id
                     def read_case():
