@@ -63,6 +63,36 @@ def filed(env):
     return env.action("submit-claim")["submissions"][0]
 
 
+@pytest.mark.parametrize("minutes", [504.5, "504.5", "5.045e2"])
+def test_fractional_signed_status_preserves_hash_and_exact_measurement(service, minutes):
+    rows = reports()
+    content = rows[0][1]["content"]
+    content["unavailable_minutes"] = minutes
+    rows[0][1]["content_sha256"] = fingerprint(content)
+    deliver(service, rows)
+    assert service.read()["amount"] == "20.99"
+    service.action("approve-claim")
+    submitted = service.action("submit-claim")["submissions"][0]
+    assert submitted["requested"] == "20.99"
+    response = service.source("vendor-fixture", dict(kind="message", receipt_id=submitted["id"],
+                              text="Denied. We counted 500 minutes of downtime."))
+    assert response.status_code == 200, response.text
+    service.action("approve-response")
+    service.now += timedelta(days=1)
+    supplement = service.action("submit-response")["submissions"][1]
+    assert supplement["packet"]["verified_measurement"]["downtime_microseconds"] == 30_270_000_000
+
+
+@pytest.mark.parametrize("minutes", [True, "NaN", "Infinity", -0.1, "0.000000001", 44640.1])
+def test_invalid_signed_duration_is_rejected_before_eligibility(service, minutes):
+    _, body = reports()[0]
+    body["content"]["unavailable_minutes"] = minutes
+    body["content_sha256"] = fingerprint(body["content"])
+    response = service.source("status-fixture", body)
+    assert response.status_code == 422
+    assert service.read()["amount"] is None
+
+
 @pytest.mark.parametrize("text,stage,awarded", [
     ("Our service records met the availability threshold. Claim denied.", "RESPONSE_DRAFTED", "0.00"),
     ("Denied. We counted 500 minutes of downtime.", "RESPONSE_DRAFTED", "0.00"),

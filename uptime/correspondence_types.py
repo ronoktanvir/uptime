@@ -220,7 +220,14 @@ class ServiceRecord(Report):
 
 class AggregateMonitor(Strict):
     source: Literal["simulated_vendor"]
-    unavailable_minutes: int = Field(ge=0, le=44640)
+    unavailable_minutes: int | float | str
+
+    @field_validator("unavailable_minutes", mode="before")
+    @classmethod
+    def exact_duration(cls, value):
+        from .vendor_service_month import minute_microseconds
+        minute_microseconds(value)
+        return value  # Preserve the signed JSON scalar and its content hash.
 
 
 class ServiceMonitor(ServiceRecord):
