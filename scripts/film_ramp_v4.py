@@ -219,7 +219,6 @@ class RampDirector(Director):
         self.focus(self.page.get_by_role('heading', name='Decision trace', exact=True))
         self.capture('Partial simulated application', 'Only USD 50 is applied in this synthetic replay.',
                      'Disputed, awarded, recorded, and applied remain separate measures.', applied)
-        self.view('vendors')
         intake, manifest, extraction = public_intake()
         prefix = '/api/vendors/' + VENDOR
         def post(path, body):

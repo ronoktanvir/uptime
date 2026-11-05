@@ -65,7 +65,7 @@ class Director:
         if page.locator('dialog[open]').count():
             page.locator('#close-inspector').click()
         page.goto(self.origin + '/#' + route, wait_until='networkidle')
-        page.locator('#content[aria-busy=false] h1').wait_for()
+        page.locator('#content[aria-busy=false] :is(h1, h2)').first.wait_for()
         page.evaluate('window.scrollTo(0,0)')
         self.case_id = None
 
