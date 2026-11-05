@@ -1,0 +1,134 @@
+{
+  "classification": "SYNTHETIC_PUBLIC_ENGINEERING_BASELINE",
+  "head": "eae25544a4fc4dc69409652b6a8b257494758c8d",
+  "preregistration_sha256": "1594a22acb946b138af3df3d8b3cb98cb4d2ae991cb0aa9b8c5b3ca8deaba354",
+  "base_public_source_sha256": "efd15461c17c25048750ba226af64ce70f5caaf31151ae9f0d6bbb07b7a695c8",
+  "external_model_invoked": false,
+  "private_inputs_used": false,
+  "production_edits": false,
+  "cases": [
+    {
+      "id": "mid_token_polarity",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "532a1d3de9f261e6705c576ce131382092abbc893c11da688fcd2462b2273dde"
+    },
+    {
+      "id": "plain_string_mid_token",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "532a1d3de9f261e6705c576ce131382092abbc893c11da688fcd2462b2273dde"
+    },
+    {
+      "id": "explicit_negation",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "579e05c3634d6b2210133fe4091d7667d454fd0553a04abcd15428db6027d661"
+    },
+    {
+      "id": "truncated_negation",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "16692cd2898b5ab519875a850fb22da239275f1bdf8f3a40dd7399ead37f1579"
+    },
+    {
+      "id": "qualification_outside_fragment",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "1f091774ee2d1bb50af416f6ad2e90d5920c9f8261afda01dd630cf6d2a351cc"
+    },
+    {
+      "id": "quoted_nonoperative_definition",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "8ca10b69656c2589d9dc9f6c31ff13119462a6a929fdf5a3f146ab4ef6a527be"
+    },
+    {
+      "id": "reordered_words",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": false,
+      "reason": "Ungrounded symptoms labels."
+    },
+    {
+      "id": "foreign_block_definition",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": false,
+      "reason": "Ungrounded symptoms labels."
+    },
+    {
+      "id": "contrary_alias_raw_spaces",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "26dd32e30b941815f285224d9669b3a6d426e7aae39b89a355b7b86d9a6e375c"
+    },
+    {
+      "id": "opaque_alias_raw_exact_identifier",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "26dd32e30b941815f285224d9669b3a6d426e7aae39b89a355b7b86d9a6e375c"
+    },
+    {
+      "id": "negated_responsibility",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": false,
+      "reason": "Ungrounded symptoms labels."
+    },
+    {
+      "id": "negated_exclusion",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "899d553d268d3a9844ee5e443e400a81a6c66a4df77d6a2eea79c0b36b6c7f6e"
+    },
+    {
+      "id": "negated_fee_exclusion",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "INSUFFICIENT_EVIDENCE",
+      "amount": null,
+      "semantic_review_minted": false,
+      "source_sha256": "c100e7376746f9338f8f4f086ce79c96138452c31a67e7ce0f645ec01b52bfe0"
+    },
+    {
+      "id": "same_phrase_multiple_roles",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": false,
+      "reason": "Ungrounded provider_causes labels."
+    },
+    {
+      "id": "duplicate_occurrence_ambiguous_span",
+      "preregistered": "REFUSE_OR_REVIEW_WITHOUT_AMOUNT",
+      "compiles": true,
+      "outcome": "ELIGIBLE",
+      "amount": "12.51",
+      "semantic_review_minted": false,
+      "source_sha256": "72b68a214a10a27ae97124658ddc55765c542cc1264e362d58fe56005d4a01ce"
+    }
+  ]
+}
