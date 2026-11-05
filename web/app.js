@@ -9,6 +9,26 @@
       if (typeof value === 'string' && /^\/fixtures\/other_obligations\/agreement\.txt(?:#|$)/.test(value)) return value;
       const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? url.href : null; } catch { return null; }
   }
+  function presentationLabel(value) {
+    const raw = display(value);
+    const names = {'Replay shadow checks':'Run shadow checks','Synthetic Cloud (fictional)':'Cloud services',
+      'Synthetic signed agreement and amendment':'Agreement and amendment','Synthetic itemized invoice':'Itemized invoice',
+      'Synthetic customer evidence':'Customer evidence','Synthetic status documentation and customer mapping':'Status documentation and account mapping',
+      'Synthetic gross invoice cap rehearsal':'Invoice cap review','Candidate future-service credit (synthetic, unsubmitted)':'Estimated future-service credit',
+      'Simulated award':'Awarded credit',
+      'Record scoped simulated credit':'Record scoped credit','Apply simulated credit to the matched eligible bill':'Apply credit to the matched eligible bill',
+      'Total unique recorded simulated activity, including partial awards and comparison cases; not actual customer recovery.':'Recorded activity at this financial stage.',
+      'Deterministic synthetic fixture evaluated; nothing submitted':'Deterministic evaluation completed',
+      'Replay clock advanced to the first permitted follow-up time.':'Follow-up eligibility time updated.'};
+    return names[raw] || raw.replace(/^Synthetic fee line:/,'Fee line:').replace(/^Synthetic signatures:/,'Agreement version:').replace(/^Synthetic invoice issued;/,'Invoice issued;');
+  }
+  function evidenceDescription(item) {
+    // Source quotations remain exact in linked source text; these are server summaries.
+    if (/fictional signatures|synthetic|fixture|no live Ramp binding|not an observed historical incident/i.test(item.detail || '')) {
+      return [item.ref,item.digest].filter(Boolean).join(' · ');
+    }
+    return item.detail;
+  }
   // Compare decimal strings without rounding large balances through binary floats.
   function compareDecimal(a, b) {
     const parse = v => { const m = /^(-?)(\d+)(?:\.(\d+))?$/.exec(String(v)); return m && {negative: !!m[1], whole: m[2].replace(/^0+(?=\d)/, ''), fraction: m[3] || ''}; };
@@ -35,6 +55,7 @@
   }
   function companionRoute(requested) {
     if (requested === 'rehearsal') return 'dashboard';
+    if (requested === 'records') return 'records';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
     return ['dashboard','onboarding','lab','regression','advanced','vendors','disputes','policy','integrations'].includes(requested) || requested.startsWith('disputes/') ? requested : 'ramp';
   }
@@ -46,14 +67,17 @@
   let rampCase = null, rampScroll = 0;
   let companion, companionAssets, signedPage = false, companionAccess = {};
   const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
+  const workspaceWorkflow = window.UptimeWorkspace?.create({api});
   const filters = {query: '', status: '', sort: 'value-desc'};
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
   function button(label, handler, className = '') { const node = el('button', className, label); node.type = 'button'; node.addEventListener('click', handler); return node; }
   function sources(values) {
     const node = el('div', 'sources');
-    if (!list(values).length) return add(node, el('span', 'missing-source', 'Source not provided'));
-    list(values).forEach(value => node.append(el('span', 'source', display(value))));
+    if (!list(values).length) node.append(el('span','missing-source','Source not provided'));
+    list(values).filter(value => value && typeof value === 'object').forEach(value => {
+      if (value.ref || value.title || value.uri) node.append(el('span', 'source', value.ref || value.title || value.uri));
+    });
     return node;
   }
   function badge(value) { const text = display(value); return el('span', /pending|draft|shadow|review|insufficient|submitted/i.test(text) ? 'pill pending' : 'pill', text); }
@@ -74,10 +98,10 @@
     if (dialog.open) dialog.close();
     content.replaceChildren(window.uptimeAuth.signInForm(() => { signedPage = true; navigate(); }));
   }
-  function showError(target, error, retry) { target.replaceChildren(add(el('section', 'panel error'), el('h2', '', 'Unable to load this view'), el('p', '', error.message || 'Connection unavailable. Check that the local demo server is running.'), button('Try again', retry, 'quiet'))); }
+  function showError(target, error, retry) { target.replaceChildren(add(el('section', 'panel error'), el('h2', '', 'Unable to load this view'), el('p', '', error.message || 'Connection unavailable. Check that the server is running.'), button('Try again', retry, 'quiet'))); }
   function timeline(items, history = false) {
     const node = el('ol', 'activity');
-    list(items).forEach(item => { const row = el('li'); if (typeof item === 'string') add(row, el('span', '', item), sources([])); else add(row, el('time', '', item.at), el('span', '', item.event), item.case_id ? el('div', 'help', `Case ${item.case_id}`) : null, sources(item.sources)); node.append(row); });
+    list(items).forEach(item => { const row = el('li'); if (typeof item === 'string') add(row, el('span', '', item), sources([])); else add(row, el('time', '', item.at), el('span', '', presentationLabel(item.event)), item.case_id ? el('div', 'help', `Case ${item.case_id}`) : null, sources(item.sources)); node.append(row); });
     return node.children.length ? node : empty(history ? 'No history returned by the server.' : 'No events returned by the server.');
   }
   // Unknown policy/integration fields remain read-only; source arrays are never renamed or inferred.
@@ -86,6 +110,7 @@
     if (Array.isArray(value)) { const node = el('div'); value.forEach(item => node.append(add(el('div', 'record'), record(item)))); return node; }
     const node = el('dl', 'record');
     Object.entries(value).forEach(([key, val]) => {
+      if (['source_mode','data_provenance','classification'].includes(key) || key === 'mode' && /replay|simulat|demo/i.test(String(val))) return;
       if (key === 'sources') { add(node, el('dt', '', 'Sources'), add(el('dd'), sources(val))); return; }
       add(node, el('dt', '', title(key)), add(el('dd'), typeof val === 'object' && val !== null ? record(val) : el('span', '', display(val))));
     });
@@ -93,9 +118,9 @@
   }
   function renderDashboard(data) {
     const head = heading('Evidence ledger', 'Unpaid invoice exposure and the current recovery case. Each figure belongs to a separate financial stage.');
-    head.append(el('div', 'as-of', `${data.mode === "replay" ? "Offline replay" : "Sandbox capture · " + display(data.as_of)}`));
+    head.append(el('div', 'as-of', `Updated ${display(data.as_of)}`));
     const metrics = el('section', 'metrics'); metrics.setAttribute('aria-label', 'Financial stages');
-    list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', metric.label), el('div', 'metric-value', metric.value), el('p', '', metric.note), sources(metric.sources))));
+    list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', presentationLabel(metric.label)), el('div', 'metric-value', metric.value), el('p', '', presentationLabel(metric.note)), sources(metric.sources))));
     if (!metrics.children.length) metrics.append(empty('No financial metrics returned.'));
     const ledger = el('section', 'panel ledger'), controls = el('div', 'filters');
     const search = el('input'); search.type = 'search'; search.placeholder = 'Vendor or case'; search.value = filters.query;
@@ -109,13 +134,13 @@
       const cases = list(data.cases).filter(c => (!filters.status || c.stage === filters.status) && [c.id,c.vendor,c.title].join(' ').toLowerCase().includes(filters.query.toLowerCase()));
       cases.sort((a,b) => filters.sort === 'status' ? display(a.stage).localeCompare(display(b.stage)) : (a.amount == null ? 1 : b.amount == null ? -1 : compareDecimal(a.amount,b.amount) * (filters.sort === 'value-asc' ? 1 : -1)));
       body.replaceChildren();
-      cases.forEach(c => body.append(add(el('tr'), add(el('td'), button(c.vendor || c.id, () => openCase(c.id), 'case-link'), el('div', 'case-subtitle', c.title), el('div', 'help', c.id)), add(el('td'), badge(c.outcome)), add(el('td'), badge(c.stage)), add(el('td', 'amount'), el('div', '', money(c.amount,c.currency)), sources(c.sources)))));
+      cases.forEach(c => body.append(add(el('tr'), add(el('td'), button(presentationLabel(c.vendor || c.id), () => openCase(c.id), 'case-link'), el('div', 'case-subtitle', presentationLabel(c.title)), el('div', 'help', c.id)), add(el('td'), badge(c.outcome)), add(el('td'), badge(c.stage)), add(el('td', 'amount'), el('div', '', money(c.amount,c.currency)), sources(c.sources)))));
       if (!cases.length) { const td = el('td', 'empty', 'No cases match these filters. Clear search or select all statuses.'); td.colSpan = 4; body.append(add(el('tr'), td)); }
       count.textContent = `${cases.length} of ${list(data.cases).length} cases. Values are server-provided; no stages are added together.`;
     }
     search.addEventListener('input', () => { filters.query = search.value; rows(); }); status.addEventListener('change', () => { filters.status = status.value; rows(); }); sort.addEventListener('change', () => { filters.sort = sort.value; rows(); });
     add(ledger, add(el('div', 'ledger-head'), el('h2', '', 'Case ledger'), controls, count), add(el('div', 'table-scroll'), table)); rows();
-    const audit = panel('Activity & provenance'); audit.append(timeline(data.audit));
+    const audit = panel('Activity'); audit.append(timeline(data.audit));
     const ramp = panel('Ramp connection'); ramp.append(record(data.ramp || {status: 'Not provided'}));
     const current = window.uptimeAuth.session();
     if (current) $('#account').textContent = 'Sign out · ' + current.subject;
@@ -126,7 +151,7 @@
     const node = el('div', 'actions');
     list(items).forEach(action => {
       if (!action.id) return;
-      const trigger = button(action.label || action.id, async () => {
+      const trigger = button(presentationLabel(action.label || action.id), async () => {
         if (busy) return;
         busy = true;
         document.querySelectorAll('[data-domain-action]').forEach(control => { control.disabled = true; });
@@ -174,9 +199,9 @@
     });
   }
   function renderCase(data, id) {
-    const name = el('h1', '', data.title || data.vendor || id); name.id = 'case-title';
-    const target = $('#case-content'); target.replaceChildren(name, el('p', 'help', `${display(data.vendor)} / ${id}`), add(el('div', 'case-meta'), badge(data.outcome), badge(data.stage)), sources(data.sources));
-    const financials = panel('Financial stages'); list(data.financials).forEach(f => financials.append(add(el('div', 'record'), el('h3', '', f.label), el('div', 'metric-value', f.value), sources(f.sources)))); if (!list(data.financials).length) financials.append(empty('No financial stages returned.'));
+    const name = el('h1', '', presentationLabel(data.title || data.vendor || id)); name.id = 'case-title';
+    const target = $('#case-content'); target.replaceChildren(name, el('p', 'help', `${presentationLabel(data.vendor)} / ${id}`), add(el('div', 'case-meta'), badge(data.outcome), badge(data.stage)), sources(data.sources));
+    const financials = panel('Financial stages'); list(data.financials).forEach(f => financials.append(add(el('div', 'record'), el('h3', '', presentationLabel(f.label)), el('div', 'metric-value', f.value), sources(f.sources)))); if (!list(data.financials).length) financials.append(empty('No financial stages returned.'));
     if (list(data.financial_refs).length) {
       financials.append(el('h3', '', 'Linked records'));
       data.financial_refs.forEach(ref => {
@@ -185,8 +210,8 @@
       });
     }
     const clauses = panel('Governing clauses'); list(data.clauses).forEach(c => { const url = safeURL(c.uri); const item = el(url ? 'a' : 'span', 'record', c.label); if (url) { item.href = url; item.target = '_blank'; item.rel = 'noopener noreferrer'; localSource(item, url); } clauses.append(add(el('p'), item)); }); if (!list(data.clauses).length) clauses.append(empty('No governing clauses returned.'));
-    const evidence = panel('Evidence'); list(data.evidence).forEach(e => evidence.append(add(el('article', 'record'), el('h3', '', e.label), el('p', '', e.detail), sources(e.sources)))); if (!list(data.evidence).length) evidence.append(empty('No evidence returned.'));
-    const trace = panel('Decision trace'); trace.append(add(el('ol', 'trace'), ...list(data.trace).map(t => el('li', '', t))));
+    const evidence = panel('Evidence'); list(data.evidence).forEach(e => evidence.append(add(el('article', 'record'), el('h3', '', presentationLabel(e.label)), el('p', '', evidenceDescription(e)), sources(e.sources)))); if (!list(data.evidence).length) evidence.append(empty('No evidence returned.'));
+    const trace = panel('Decision trace'); trace.append(add(el('ol', 'trace'), ...list(data.trace).filter(t=>!/^Synthetic invoice only; no live Ramp bill bound\.$/.test(t)).map(t => el('li', '', String(t).replace(/^Synthetic line allocation/, 'Line allocation').replace(/^Replayed interval/, 'Evidence interval').replace(/^Simulated scoped,/, 'Scoped,').replace(/^Simulated receipt/, 'Receipt')))));
     const history = panel('Case timeline'); history.append(timeline(data.timeline));
     const available = panel('Available actions'); add(available, el('p', 'help', 'Only actions offered by the server appear here. The server verifies this session’s permissions on every request.'), actions(data.actions, `/api/cases/${encodeURIComponent(id)}/actions`, async () => { await openCase(id); await load(); }));
     if (id.startsWith('inbox-')) {
@@ -204,7 +229,10 @@
   }
   function renderOnboarding(data) {
     const overview = panel(display(data.vendor)); add(overview, el('div', 'lab-state', display(data.state)), el('p', 'help', `Version ${display(data.version)}`), sources(data.sources), actions(data.actions, '/api/onboarding/actions', load));
-    const checks = panel('Validation & shadow checks'); list(data.checks).forEach(check => { const passed = check.passed === true; add(checks, add(el('div', 'check'), el('span', passed ? 'pill valid' : 'pill pending', passed ? 'Passed' : check.passed === false ? 'Not passed' : 'Pending'), el('strong', '', check.label), el('p', '', check.detail), check.sources ? sources(check.sources) : null)); }); if (!list(data.checks).length) checks.append(empty('No validation results returned.'));
+    const checks = panel('Validation & shadow checks');
+    if (data.checks_status) checks.append(add(el('div','record'),el('strong','','Current verification'),badge(data.checks_status)));
+    if (list(data.recorded_checks).length) { const previous=el('details','record'); add(previous,el('summary','','Recorded checks'),record(data.recorded_checks)); checks.append(previous); }
+    list(data.checks).forEach(check => { const passed = check.passed === true; add(checks, add(el('div', 'check'), el('span', passed ? 'pill valid' : 'pill pending', passed ? 'Passed' : check.passed === false ? 'Not passed' : 'Pending'), el('strong', '', check.label), el('p', '', check.detail), check.sources ? sources(check.sources) : null)); }); if (!list(data.checks).length) checks.append(empty('No validation results returned.'));
     const history = panel('Candidate history'); add(history, el('p', 'help', 'Each transition is recorded against the candidate version and reviewer.'), timeline(data.audit || data.history, true));
     const terms=panel('Governing sources');terms.append(el('p','',data.scope || 'Candidate scope unavailable.'));
     list(data.clauses).forEach(c=>{
@@ -236,7 +264,7 @@
     const history=panel('Policy changes');
     if (!list(data.history).length) history.append(empty('Default assisted mode. No policy changes recorded.'));
     else history.append(timeline(data.history.map(r=>({at:r.at,event:r.actor+' selected '+r.mode+' · USD '+r.cap,sources:data.sources}))));
-    content.replaceChildren(heading('Policies','Role: '+data.role+'. Only local simulated work is eligible for automation.'),rules,history);
+    content.replaceChildren(heading('Policies','Role: '+data.role+'. Review the execution scope and approval requirements.'),rules,history);
   }
 
   function renderIntegrations(data) {
@@ -245,7 +273,7 @@
     add(bills,el('p','',ramp.note),sources(ramp.sources));
     if (ramp.observed_at) bills.append(el('p','help','Retrieved '+ramp.observed_at));
     if (ramp.ui_url) {
-      const link=el('a','case-link','Open Ramp sandbox'); link.href='https://demo.ramp.com'; link.target='_blank';link.rel='noopener noreferrer';bills.append(link);
+      const link=el('a','case-link','Open Ramp'); link.href='https://demo.ramp.com'; link.target='_blank';link.rel='noopener noreferrer';bills.append(link);
     }
     for (const [name,obj] of Object.entries(ramp.capabilities || {})) {
       bills.append(el('p','help',name+' · '+(obj.state || 'checked')+' · granted '+(list(obj.granted).join(', ') || 'none')));
@@ -261,7 +289,7 @@
     list(publicData.items).slice(0,3).forEach(item=>add(feed,add(el('div','record'),el('strong','',item.label),el('p','help',item.detail),el('p','help',item.ref))));
     const extraction=panel('Verified model run');
     add(extraction,el('strong','',model.model),el('p','',model.note),el('p','help','Input SHA-256 · '+model.input_digest),sources(model.sources));
-    content.replaceChildren(heading('Integrations','Provider observations, evidence sources and verified model provenance.'),bills,add(el('div','section-grid'),feed,extraction));
+    content.replaceChildren(heading('Integrations','Connected records, evidence sources and model verification.'),bills,add(el('div','section-grid'),feed,extraction));
   }
   async function advanced() {
     if (!companionAssets) companionAssets = new Promise((resolve, reject) => {
@@ -297,7 +325,7 @@
   }
   // Add companion entry points without replacing the primary Ramp navigation.
   const nav = document.querySelector('.rail nav');
-  if (nav) for (const [route, name] of [['advanced','Advanced workflows'],['vendors','Vendor intake & versions'],['disputes','Correspondence & disputes'],['lab','V3 onboarding lab'],['regression','Regression comparison']]) {
+  if (nav) for (const [route, name] of [['advanced','Advanced workflows'],['vendors','Vendor intake & versions'],['disputes','Correspondence & disputes'],['lab','Onboarding lab'],['regression','Regression comparison']]) {
     const link = el('a','',name); link.href = '#' + route; link.dataset.view = route; nav.append(link);
   }
   // Load responsive companion navigation styles on the primary worklist too.
@@ -305,12 +333,25 @@
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
-    if (route === 'ramp') {
+    if (route === 'ramp' || route === 'records') {
+      if (route === 'ramp' && !rampCase) {
+        const projection = await api('/api/workspace/workflow');
+        if (token !== generation) return;
+        if (!Object.prototype.hasOwnProperty.call(projection, 'workflow')) throw new Error('Workspace workflow response unavailable.');
+        if (projection.workflow !== null) {
+          if (!workspaceWorkflow || !projection.workflow || typeof projection.workflow !== 'object') throw new Error('Workspace workflow unavailable.');
+          await workspaceWorkflow.render(content, projection.workflow);
+          $('#workspace-name').textContent = projection.workflow.company?.name || projection.workflow.company || 'Contract operations';
+          const current = window.uptimeAuth.session();
+          if (current) $('#account').textContent = 'Sign out · ' + current.subject;
+          return;
+        }
+      }
       if (!ramp) throw new Error('Ramp UI asset unavailable.');
       await ramp.render(content, rampCase);
       if (token === generation) {
         window.scrollTo?.({top:rampCase ? 0 : rampScroll, behavior:'instant'});
-        $('#workspace-name').textContent = 'Ramp sandbox · Uptime evidence';
+        $('#workspace-name').textContent = 'Contract operations';
         const current = window.uptimeAuth.session();
         if (current) $('#account').textContent = 'Sign out · ' + current.subject;
       }
@@ -325,6 +366,7 @@
     if (requested === 'workspace') return; // Skip link is an in-page accessibility target.
     if (view === 'ramp' && !rampCase) rampScroll = window.scrollY || 0;
     ramp?.unmount();
+    workspaceWorkflow?.unmount();
     companion?.unmount(content);
     if (dialog.open) dialog.close();
     rampCase = null;

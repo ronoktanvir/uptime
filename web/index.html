@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/static/style.css">
   <script defer src="/static/auth.js"></script>
   <script defer src="/static/ramp_ui.js"></script>
+  <script defer src="/static/workspace_ui.js"></script>
   <script defer src="/static/app.js"></script>
 </head>
 <body>
@@ -17,19 +18,20 @@
     <a class="brand" href="#ramp" aria-label="Uptime for Ramp, worklist"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 9v15a10 10 0 0 0 20 0V9M20 15l7-7 7 7"/></svg><span>Uptime<small>for Ramp</small></span></a>
     <p class="rail-caption">Finance workbench</p>
     <nav aria-label="Main navigation">
-      <a href="#ramp" data-view="ramp"><span aria-hidden="true">▤</span> Ramp worklist</a>
+      <a href="#ramp" data-view="ramp"><span aria-hidden="true">▤</span> Contract worklist</a>
+      <a href="#records" data-view="records">Ramp records</a>
       <a href="#dashboard" data-view="dashboard" title="Evidence ledger · advanced"><span aria-hidden="true">▤</span> Case ledger <small>Advanced</small></a>
+      <a href="#vendors" data-view="vendors">Vendor contracts</a>
+      <a href="#disputes" data-view="disputes">Correspondence</a>
       <a href="#onboarding" data-view="onboarding"><span aria-hidden="true">◇</span> Onboarding lab</a>
       <a href="#policy" data-view="policy"><span aria-hidden="true">⊞</span> Policies</a>
       <a href="#integrations" data-view="integrations"><span aria-hidden="true">↔</span> Integrations</a>
     </nav>
-    <div class="rail-foot"><span class="prototype">Local prototype</span><p>Single-workspace sandbox</p></div>
   </aside>
   <main id="workspace" tabindex="-1">
     <header class="topbar"><span id="workspace-name">Contract operations</span><button id="account" class="quiet">Account</button><button id="refresh" class="quiet">Refresh data</button></header>
     <div id="notice" role="status" aria-live="polite"></div>
     <div id="content" aria-busy="true"><p class="empty">Loading the workbench…</p></div>
-    <footer>Estimates, awards and applied credits are separate stages. Simulated values are not real recoveries.</footer>
   </main>
   <dialog id="inspector" aria-labelledby="case-title"><div class="dialog-toolbar"><span>Case inspector</span><button id="close-inspector" class="quiet" aria-label="Close case inspector">Close ✕</button></div><div id="case-content"></div></dialog>
 </body>

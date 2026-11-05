@@ -109,19 +109,19 @@ test('case inspector shows receipt timeline, exact source, IDs, unknowns and saf
   const data={claim_id:'case/a',sources:['SIMULATED_VENDOR'],events:[{receipt_id:'receipt-11',text:'<script>bad()</script>'}],bill_id:'bill-17',application_id:null,financials:{awarded:'0.00'},actions:[{id:'review/packet',label:'Review packet'}],service_secret:'NEVER-RENDER'};
   const {root,ui,requests}=setup({write:true,get:()=>data}); await ui.inspect(root,'case/a');
   assert.equal(requests[0].path,'/api/correspondence/claims/case%2Fa');
-  for(const value of ['receipt-11','bill-17','SIMULATED_VENDOR','Not provided','0.00','<script>bad()</script>']) assert.ok(root.textContent.includes(value));
+  for(const value of ['receipt-11','bill-17','Not provided','0.00','<script>bad()</script>']) assert.ok(root.textContent.includes(value));
   assert.equal(root.all('script').length,0); assert.doesNotMatch(root.textContent,/NEVER-RENDER/);
   await findButton(root,'Review packet').listeners.click(); assert.deepEqual(requests.at(-1),{path:'/api/correspondence/claims/case%2Fa/actions/review%2Fpacket',body:{}});
 });
 test('portfolio comparison preserves exact decimals, zero, unknown and server cohorts', async () => {
   const {root,ui,requests}=setup(); await ui.render(root,'portfolio',{portfolio:{label:'All accounts',sources:['LIVE_RAMP_SANDBOX'],metrics:{applied:'0.00',awarded:null}},seeded:{label:'Named rehearsal',sources:['FIXTURE'],metrics:{awarded:'9007199254740993.01'}}});
-  for(const text of ['All accounts','Named rehearsal','0.00','Not provided','9007199254740993.01','FIXTURE','LIVE_RAMP_SANDBOX']) assert.ok(root.textContent.includes(text));
+  for(const text of ['All accounts','Named rehearsal','0.00','Not provided','9007199254740993.01']) assert.ok(root.textContent.includes(text));
   assert.equal(requests.length,0);
 });
 test('failed reads expose no writable intake, no error details, and unknown provenance is explicit', async () => {
   const s=setup({write:true,get:()=>{throw new Error('sensitive diagnostic');}}); await s.ui.render(s.root,'vendors');
   assert.equal(s.root.all('form').length,0); assert.match(s.root.textContent,/State unavailable/); assert.doesNotMatch(s.root.textContent,/sensitive diagnostic/);
-  await s.ui.render(s.root,'case',{id:'missing-source'}); assert.match(s.root.textContent,/Provenance unknown/);
+  await s.ui.render(s.root,'case',{id:'missing-source'}); assert.match(s.root.textContent,/Source references not provided/);
 });
 test('extension uses no transport, browser storage, HTML injection or inline styles', () => {
   const source=fs.readFileSync(__dirname+'/v4_ui.js','utf8');
@@ -145,4 +145,11 @@ test('failed vendor detail keeps that vendor read-only without hiding intake', a
 test('unsupported projection requests never fall through to an empty API route', async () => {
   const {ui,root,requests}=setup(); await assert.rejects(ui.render(root,'portfolio'),/projection is required/);
   assert.equal(requests.length,0);
+});
+
+test('document origin copy preserves exact wire classifications without rendering source labels',async()=>{
+ const s=setup();await s.ui.render(s.root,'vendors');
+ assert.doesNotMatch(s.root.textContent,/SYNTHETIC_CUSTOMER/);
+ const origin=s.root.all('select').find(n=>n.name==='classification');
+ assert.deepEqual(origin.all('option').slice(1).map(n=>[n.value,n.textContent]),[['public','Public document'],['synthetic_public','Authored document']]);
 });

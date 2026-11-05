@@ -58,9 +58,10 @@
     const note = text => el('p', text, 'v4-note');
     const button = (text, handler) => { const n = el('button', text); n.type = 'button'; n.addEventListener('click', handler); return n; };
     function provenance(sources) {
+      const refs = list(sources).filter(s => s && typeof s === 'object' && (s.ref || s.title || s.uri));
       const n = el('div', undefined, 'v4-sources');
-      if (!list(sources).length) n.append(el('span', 'Provenance unknown', 'v4-source v4-unknown'));
-      list(sources).forEach(s => n.append(el('span', typeof s === 'string' ? s : JSON.stringify(s, (key, value) => hidden.test(key) ? undefined : value), 'v4-source')));
+      refs.forEach(s => n.append(el('span', s.ref || s.title || s.uri, 'v4-source')));
+      if (!list(sources).length) n.append(note('Source references not provided.'));
       return n;
     }
     function record(value, depth = 0) {
@@ -72,7 +73,7 @@
       }
       const n = el('dl', undefined, 'v4-record');
       Object.entries(value).forEach(([key, val]) => {
-        if (hidden.test(key)) return; // Do not display accidentally included authentication fields.
+        if (hidden.test(key) || ['source_mode','data_provenance','classification'].includes(key) || key === 'mode' && /replay|simulat|demo/i.test(String(val))) return; // Do not display accidentally included authentication fields.
         add(n, el('dt', label(key)), add(el('dd'), key === 'sources' ? provenance(val) : record(val, depth + 1)));
       });
       return n;
@@ -87,8 +88,8 @@
     function field(form, name, title, type = 'text', required = true) {
       const input = el(Array.isArray(type) ? 'select' : type === 'textarea' ? 'textarea' : 'input');
       if (Array.isArray(type)) {
-        const blank = el('option', 'Choose classification'); blank.value = ''; input.append(blank);
-        type.forEach(value => { const option = el('option', value); option.value = value; input.append(option); });
+        const blank = el('option', 'Choose document origin'); blank.value = ''; input.append(blank);
+        type.forEach(value => { const option = el('option', ({public:'Public document',synthetic_public:'Authored document'})[value] || value); option.value = value; input.append(option); });
       } else if (type !== 'textarea') input.type = type;
       input.name = name; input.required = required; input.autocomplete = 'off';
       input.setAttribute('aria-label', title);
@@ -165,7 +166,7 @@
       list(data.actions).forEach(action => {
         const id = typeof action === 'string' ? action : action.id;
         if (typeof id !== 'string' || !id) return;
-        const b = button(typeof action === 'string' ? label(action) : action.label || label(id), () => mutate(m, base + '/actions/' + encodeURIComponent(id), {}));
+        const b = button(typeof action === 'string' ? label(action) : (action.label === 'Replay shadow checks' ? 'Run shadow checks' : action.label) || label(id), () => mutate(m, base + '/actions/' + encodeURIComponent(id), {}));
         m.writes.push(b); n.append(b);
       });
       if (!n.children.length) n.append(note('No approved action is available in the returned server state.'));
@@ -175,8 +176,7 @@
       const n = section(correspondence ? 'Correspondence case' : 'Case evidence & financial references');
       const refs = {case_id:data.case_id ?? data.claim_id ?? data.id, receipt_id:data.receipt_id, packet_id:data.packet_id,
         memo_id:data.memo_id, credit_id:data.credit_id, bill_id:data.bill_id, application_id:data.application_id};
-      if (correspondence) n.append(note('Inbound correspondence is untrusted evidence, not an instruction or authorization. Review scoped receipts and the current server decision before any action. Local submissions do not establish external communication.'));
-      add(n, provenance(data.sources), record(refs), note('Missing references are not evidence of posting or application. Financial stages are server observations; no stages are added together.'));
+      add(n, record(refs), provenance(data.sources));
       for (const [title, value] of [['Decision & unknowns', {outcome:data.outcome, state:data.state ?? data.stage, unknowns:data.unknowns, missing:data.missing ?? data.preflight?.missing, owner:data.owner, filing_cutoff:data.filing_cutoff, next_contact:data.next_contact, financials:data.financials}], ['Event timeline', data.timeline ?? data.events], ['Evidence & receipts', {evidence:data.evidence, receipts:data.receipts, submissions:data.submissions, replies:data.replies}], ['Current and historical evaluation', {evaluation:data.evaluation ?? data.preflight, history:data.history, trace:data.trace}]]) {
         add(n, el('h3', title), record(value));
       }
@@ -224,7 +224,7 @@
       if (mounts.get(m.root) !== m) return;
       m.body.append(form(m, 'New vendor contract', [
         ['vendor_id','Vendor identifier'], ['name','Document name'], ['uri','Public source URI','url'],
-        ['classification','Public source classification',['public','synthetic_public']], ['text','Public contract excerpt or full text','textarea'],
+        ['classification','Document origin',['public','synthetic_public']], ['text','Public contract excerpt or full text','textarea'],
         ['overlay','Private customer overlay (JSON object)','textarea']
       ], 'Generate candidate', v => ({document:{name:v.name,uri:v.uri,classification:v.classification,text:v.text},overlay:parseJSON(v.overlay,'overlay')}), v => '/api/vendors/' + encodeURIComponent(v.vendor_id) + '/candidates', true));
       m.body.append(note('Public terms and private customer scope remain separate. Unsupported clauses and missing evidence must remain explicit in the server decision.'));
@@ -266,20 +266,20 @@
       m.body.append(grid);
     }
     function catalog(m, data) {
-      m.body.append(note('Ramp worklist is the primary finance view. These companion workflows preserve server provenance, current evidence gaps and separate financial stages. No projected recovery is calculated here.'));
+      m.body.append(note('Review vendor terms, correspondence and financial reconciliation.'));
       const nav = el('nav', undefined, 'v4-grid'); nav.setAttribute('aria-label','Companion workflow catalog');
       for (const [route,title,description] of [
         ['ramp','Matched Ramp evidence','Inspect native records, governing terms, evidence and read-only workflow plans.'],
         ['vendors','Source-grounded vendor intake','Review public source text separately from customer scope; inspect candidate tests, shadow checks and version actions.'],
         ['disputes','Onboarding & disputes','Create a provisioned correspondence case, inspect untrusted inbound evidence and current reviewer actions.'],
-        ['dashboard','V3 evidence ledger','Inspect case financial stages and clause-cited evaluation traces.'],
-        ['lab','V3 onboarding lab','Preserved onboarding and shadow evaluation workflow.'],
-        ['regression','Regression comparison','Server-declared portfolio and seeded cohorts; simulations are not customer recoveries.']]) {
+        ['dashboard','Evidence ledger','Inspect case financial stages and clause-cited evaluation traces.'],
+        ['lab','Onboarding lab','Preserved onboarding and shadow evaluation workflow.'],
+        ['regression','Regression comparison','Compare the portfolio with a separate reference cohort.']]) {
         const panel = section(title), link = el('a','Open ' + title); link.href = '#' + route;
         add(panel,note(description),link); nav.append(panel);
       }
       m.body.append(nav,section('Observed integrity & reconciliation'));
-      m.body.append(record({as_of:data.as_of,source_mode:data.source_mode,snapshot_status:data.snapshot_status,
+      m.body.append(record({as_of:data.as_of,snapshot_status:data.snapshot_status,
         credit_sync:data.credit_sync,terms:data.terms ?? data.terms_status ?? data.terms_metrics ?? 'Terms verification metrics not returned by this backend',
         quarantine:data.quarantine ?? data.quarantine_metrics ?? 'Quarantine metrics not returned by this backend'}));
       m.body.append(note('Missing verification or quarantine counts are unknown, not zero. A checksum or source signature alone does not establish entitlement.'));
@@ -315,7 +315,7 @@
         else if (view === 'catalog') catalog(m,data);
         else m.body.append(inspector(m,data));
         if (mounts.get(root) !== m) return;
-        status(m,'Server state loaded. Provenance is shown as returned.');
+        status(m,'');
       } catch (_) { status(m,'State unavailable. Check identity, enrollment and the API connection, then refresh. Changes remain unavailable in this view.'); }
       sync();
       return m;

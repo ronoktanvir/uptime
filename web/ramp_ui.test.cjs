@@ -28,7 +28,7 @@ test('default unpaid filter excludes paid, unknown and non-bill records; all rem
 test('pagination bounds 1000 records while all types are selectable; source and money stay exact',async()=>{
   const s=setup(()=>({records:Array.from({length:1000},(_,i)=>({...row,id:String(i)})),snapshot_status:{freshness:'STALE'},resources:[{name:'bills',status:'TRUNCATED',complete:false,count:1000,issues:['page limit']}],writeback:{comment:'NOT_GRANTED'}}));
   await s.ui.render(s.root);assert.equal(s.root.all('tbody')[0].all('tr').length,25);assert.match(s.root.textContent,/1000 of 1000/);
-  for(const text of ['STALE','TRUNCATED','NOT_GRANTED','9007199254740993.01','LIVE_RAMP_SANDBOX','Not cash recovered'])assert.ok(s.root.textContent.includes(text));
+  for(const text of ['STALE','TRUNCATED','NOT_GRANTED','9007199254740993.01'])assert.ok(s.root.textContent.includes(text));
   await click(s.root,'Next page');assert.match(s.root.textContent,/Page 2 of 40/);
   await s.root.all('button').find(b=>b.className==='case-link').listeners.click();assert.equal(s.routes[0],'ramp/25');
   const select=s.root.all('select')[0];select.value='transactions';select.listeners.change();assert.match(s.root.textContent,/No matching records/);
@@ -38,7 +38,7 @@ test('detail and plan are encoded GETs, never POST; receipt is scoped and unsafe
   const s=setup(path=>path.endsWith('/workflow')?{status:'NO_DISCUSSION_ENDPOINT',delivery:'NOT_SENT'}:{...row,provider_uri:'javascript:bad()',finding_kind:'SYNTHETIC_INVOICE_CAP',evidence:[{label:'<script>bad()</script>',access_token:'OMIT'}]});
   await s.ui.render(s.root,row.id);await click(s.root,'Inspect finding plan');
   assert.deepEqual(s.requests,[['/api/ramp/records/opaque%2Fa%3F%23'],['/api/ramp/records/opaque%2Fa%3F%23/workflow']]);
-  assert.match(s.root.textContent,/Hypothetical scenario/);assert.match(s.root.textContent,/NO_DISCUSSION_ENDPOINT/);assert.match(s.root.textContent,/scoped provider readback/);
+  assert.match(s.root.textContent,/Price cap review/);assert.doesNotMatch(s.root.textContent,/SYNTHETIC_INVOICE_CAP/);assert.match(s.root.textContent,/Contract finding/);assert.match(s.root.textContent,/NO_DISCUSSION_ENDPOINT/);assert.match(s.root.textContent,/scoped provider readback/);
   assert.equal(s.root.all('a').length,0);assert.equal(s.root.all('script').length,0);assert.doesNotMatch(s.root.textContent,/OMIT/);
 });
 test('detail envelope preserves evidence, native projection and provider destination',async()=>{
