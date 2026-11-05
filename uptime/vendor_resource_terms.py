@@ -25,6 +25,11 @@ provider_causes: list of VERBATIM phrases identifying the required provider resp
 exclusions: list of VERBATIM excluded causes. Multiple clauses may contribute these lists.
 evidence: list selected from "resource_intervals", "account_records", "itemized_fees", "public_status_context",
 "verification", "request_contents". Use for obligations to supply scoped logs, interval records, requests or invoice lines.
+"verification" requires an express provider verification process or a verification condition on issuing credits.
+A customer or custodian verifying its recording system or records establishes claimant evidence custody only.
+Represent that obligation with the scoped telemetry/custodian operators and record categories actually stated.
+Provider incident records and customer operation intervals remain separately attributed even when both use
+the resource_intervals evidence category. Do not infer issuer verification from a signature or the word "verifying".
 request_fields: list of verbatim items the request MUST identify/include. submission_channel: exact stated address or channel.
 fee_basis: "affected_resource_fees". fee_exclusions: list of verbatim fee categories outside the remedy.
 tiers: list of {"below":"exclusive upper availability % as decimal string without %","credit":"credit % as decimal string",
@@ -215,6 +220,18 @@ def claimant_proof_required(quote, values):
             and re.search(r'\b(?:evidence|proof|documentation) (?:of|that|linking|tying|showing|demonstrating)\b', quote, re.I))
 
 
+def issuer_verification_required(quote, values):
+    explicit = (r'(?:The )?(?:provider|vendor|issuer) (?:must |will |shall )?'
+                r'(?:verify|verifies|validate|validates|review|reviews|confirm|confirms) '
+                r'(?:the |each )?(?:claim|credit request|eligibility)'
+                r'(?: before (?:issuing|granting|awarding) (?:a |the )?(?:noncash |service )?credits?)?\.')
+    issuance = (r'(?:After|Following) verification, [A-Za-z0-9 &()\x27/-]{1,100} '
+                r'(?:will|shall) (?:issue|grant|award) (?:a |the )?(?:noncash |service )?credit '
+                r'on a future (?:invoice|bill)\.')
+    return bool(re.fullmatch(explicit, quote, re.I) or
+                values.get('remedy') == 'future_noncash_credit' and re.fullmatch(issuance, quote, re.I))
+
+
 def validate_material_coverage(quote, values):
     """Refuse common controlling conditions even when a proposal assigns an unrelated effect."""
     if re.search(r'(?:filing|processing|application|administrative) (?:fee|charge)|'
@@ -241,6 +258,8 @@ def validate_material_coverage(quote, values):
             raise ValueError('Unsupported resource evidence category.')
         if kind == 'verification' and claimant_proof_required(quote, values):
             continue
+        if kind == 'verification' and not issuer_verification_required(quote, values):
+            raise ValueError('Issuer verification is not established by this public source block.')
         if not re.search(EVIDENCE_LANGUAGE[kind], quote, re.I):
             raise ValueError('Proposed evidence category lacks source wording: ' + kind)
 
