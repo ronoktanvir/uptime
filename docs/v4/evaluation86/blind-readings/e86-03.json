@@ -1,0 +1,56 @@
+{
+  "opaque_case_id": "e86-03",
+  "public_source": "fixtures/evaluation84_public/disputes/03_availability_denial/source.json",
+  "source_file_sha256": "1fae827bc79e60531cf33c2822b2979b9b45eb7525808197e77176ae9fa7f3cb",
+  "reply_sha256": "c37dd07999a302c9565d99c16df9d162f6ee0dacdffdd8132a4f68aaf28d8463",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "Availability meeting the threshold and the consequent denial are separate current assertions.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "availability",
+        "source": {
+          "start": 0,
+          "end": 122,
+          "quote": "Our finding is that monthly availability met the contractual threshold. Accordingly, we deny the requested service credit."
+        },
+        "polarity": "positive",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      },
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 122,
+          "quote": "Our finding is that monthly availability met the contractual threshold. Accordingly, we deny the requested service credit."
+        },
+        "polarity": "negative",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 122,
+          "quote": "Our finding is that monthly availability met the contractual threshold. Accordingly, we deny the requested service credit."
+        },
+        "role": "substantive"
+      }
+    ]
+  }
+}

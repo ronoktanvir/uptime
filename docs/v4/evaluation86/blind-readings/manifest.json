@@ -1,0 +1,70 @@
+{
+  "corpus_commit": "042d701da9c6c05f44c523939241b18ee1d579ed",
+  "corpus_manifest_sha256": "1b2ecd449c7eea2b6fe0bcaae9b58304a7bffa02579a43e246230cc09bcd8619",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "gold_read": false,
+  "provider_results_seen": false,
+  "normal_runtime_outcomes_seen": false,
+  "readings": [
+    {
+      "id": "e86-01",
+      "path": "docs/v4/evaluation86/blind-readings/e86-01.json",
+      "sha256": "73b57c3a9092ffa52324b85060b0b7eef31f62a11edc8fc3c4e502e60f97b185"
+    },
+    {
+      "id": "e86-02",
+      "path": "docs/v4/evaluation86/blind-readings/e86-02.json",
+      "sha256": "9a9a90776a84e61f5108780224c1304b79247a8679701f4e29c6d8a1e0466377"
+    },
+    {
+      "id": "e86-03",
+      "path": "docs/v4/evaluation86/blind-readings/e86-03.json",
+      "sha256": "6ec0fe559f90b7bec11714eed0c6c33fdf755e80e628ad7dfca0f326dc3055ae"
+    },
+    {
+      "id": "e86-04",
+      "path": "docs/v4/evaluation86/blind-readings/e86-04.json",
+      "sha256": "779a6172b0b89a02f5ed73b5f243c95756c27fa04f7eab277a2e52bc9fab39ca"
+    },
+    {
+      "id": "e86-05",
+      "path": "docs/v4/evaluation86/blind-readings/e86-05.json",
+      "sha256": "0339ec36e44932a1ec822eb1afbd07106588eb07047fed07684b0b172c509f56"
+    },
+    {
+      "id": "e86-06",
+      "path": "docs/v4/evaluation86/blind-readings/e86-06.json",
+      "sha256": "bbc0483c3cddab65cd95562efbfc149e45db53e31d7f8694bb00527bca68b728"
+    },
+    {
+      "id": "e86-07",
+      "path": "docs/v4/evaluation86/blind-readings/e86-07.json",
+      "sha256": "ff0e36001251e9e00faa71db9913319664fa13f145dabc76f20951f1b81557f3"
+    },
+    {
+      "id": "e86-08",
+      "path": "docs/v4/evaluation86/blind-readings/e86-08.json",
+      "sha256": "759f487fd97e07f804d95bcf2ac51549ff729e20db330c21e7c9913ba6c49721"
+    },
+    {
+      "id": "e86-09",
+      "path": "docs/v4/evaluation86/blind-readings/e86-09.json",
+      "sha256": "b1b5e56d1304e24f310cafef9b3dd148ce998dfffd7d35a394419735b0dfa4d8"
+    },
+    {
+      "id": "e86-10",
+      "path": "docs/v4/evaluation86/blind-readings/e86-10.json",
+      "sha256": "d5ae626f0d80f49a7874d623eb6d726aae954248289852d1e15d5e984e10f92b"
+    },
+    {
+      "id": "e86-11",
+      "path": "docs/v4/evaluation86/blind-readings/e86-11.json",
+      "sha256": "5ac8e3eec51feec0ca228b49ace0095bc3e0edfaadc0bfc9999a38a86c1a5c3c"
+    },
+    {
+      "id": "e86-12",
+      "path": "docs/v4/evaluation86/blind-readings/e86-12.json",
+      "sha256": "4e9d20a27128f2021b9dc631631e1ba7c97ec8654ee5034865b99d919c90f1dc"
+    }
+  ]
+}

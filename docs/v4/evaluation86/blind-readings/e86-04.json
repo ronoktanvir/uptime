@@ -1,0 +1,56 @@
+{
+  "opaque_case_id": "e86-04",
+  "public_source": "fixtures/evaluation84_public/disputes/04_maintenance_denial/source.json",
+  "source_file_sha256": "391e6f9c251ec43702fca5a26ba2441dd658288b561cd6b3f88311e71831cdf5",
+  "reply_sha256": "9de50c908fbcc1baa045c863de3f288f9702dd138d5d33f601fc18d6c87722ec",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "Maintenance exclusion and the consequent denial are separate current assertions.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "maintenance",
+        "source": {
+          "start": 0,
+          "end": 128,
+          "quote": "The reported interruption was scheduled maintenance and is excluded from covered downtime. We therefore deny the service credit."
+        },
+        "polarity": "positive",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      },
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 128,
+          "quote": "The reported interruption was scheduled maintenance and is excluded from covered downtime. We therefore deny the service credit."
+        },
+        "polarity": "negative",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 128,
+          "quote": "The reported interruption was scheduled maintenance and is excluded from covered downtime. We therefore deny the service credit."
+        },
+        "role": "substantive"
+      }
+    ]
+  }
+}
