@@ -1,0 +1,67 @@
+{
+  "process_status": "timeout",
+  "returncode": -9,
+  "duration_seconds": 600.0561633750003,
+  "stream_sha256": "d513786dc2620df0424135af8e3d17bead99618d2fba5491f9e610e7938473d4",
+  "prompt_sha256": "131e1a9a22a32b12a43abb351a3306b3e0f52fcaaf2dcf880309afaf4ab75277",
+  "init": [
+    {
+      "model": "claude-opus-5-5",
+      "session_id": "6f6b9555-dc19-4f7f-abc2-96c8324547c7",
+      "tools": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "mcp_servers": []
+    }
+  ],
+  "tool_calls": [
+    "Read",
+    "Glob",
+    "Read",
+    "Read",
+    "Read",
+    "Grep",
+    "Read",
+    "Read",
+    "Read",
+    "Read",
+    "Grep",
+    "Grep",
+    "Read",
+    "Grep",
+    "Grep",
+    "Grep",
+    "Grep",
+    "Grep",
+    "Read",
+    "Read",
+    "Grep",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Read"
+  ],
+  "result": [],
+  "contribution": {
+    "edited_files_and_tool_counts": {
+      "uptime/correspondence_interpretation.py": 1,
+      "uptime/correspondence_review.py": 6,
+      "web/interpretation.js": 5
+    },
+    "terminal_success": false,
+    "parent_completed": "New regression tests, documentation, offline replay and a percentage-clause loss correction after the600s timeout."
+  }
+}

@@ -151,13 +151,139 @@ def _period(raw):
     raise ValueError('An explicit period must identify one exact month.')
 
 
+# --- Decision 78: one narrow reviewed denial bundle -------------------------------------
+# Exactly two propositions: one positive primary (availability/time_bar/maintenance) and one
+# negative, slot-free award statement ("no credit"). The denial is retained for display only;
+# it never carries award authority. The guard below is a conservative loss check over the
+# complete source, not a semantic proof; mandatory human review remains.
+BUNDLE_PRIMARY_FAMILIES = frozenset({'availability', 'time_bar', 'maintenance'})
+
+_CURRENCY_CODE = re.compile(r'\b(?:USD|US\$|EUR|GBP|JPY|CAD|AUD|NZD|CHF|CNY|RMB|HKD|SGD|INR|MXN|BRL|SEK|NOK|DKK|ZAR|KRW|PLN|ILS|AED)\b')
+_CURRENCY_CODE_ANY_CASE = re.compile(r'\b(?:usd|eur|gbp|jpy|chf|nzd|hkd|sgd|mxn|krw)\b', re.I)
+_MONEY_WORD = re.compile(r'\b(?:dollars?|cents?|euros?|pounds?|sterling|pence|penny|pennies|yen|yuan|renminbi|rupees?|francs?|pesos?'
+                         r'|kron(?:a|e|or|er)|rands?|bucks?|quid|money|monetary|cash|refund\w*|reimburs\w*)\b', re.I)
+_CREDIT_QUALIFIER = re.compile(r'\b(?:partial|goodwill|good[- ]will|courtesy|further|remaining|additional|pro[- ]?rated|pro[- ]rata)\b'
+                               r'(?:[ \t]+[\w-]+){0,2}?[ \t]+(?:credits?|refunds?|compensation|awards?|amounts?|balance)\b'
+                               r'|\b(?:goodwill|good[- ]will|courtesy|gesture)\b', re.I)
+_CONDITION_CUE = re.compile(r'\b(?:unless|if|until|till|pending|provided|providing|subject[ \t]+to|once|upon|except\w*)\b', re.I)
+_DURATION_UNIT = r'(?:milliseconds?|seconds?|minutes?|hours?|days?|weeks?|fortnights?|months?|years?)'
+_DURATION_QUAL = r'(?:(?:business|calendar|working|full|consecutive|clock)[ \t]+)?'
+_DURATION_WORD = (r'(?:an?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen'
+                  r'|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|several|few|half)')
+_DURATION = re.compile(
+    rf'[0-9]+(?:[.,][0-9]+)*[ \t]*-?[ \t]*{_DURATION_QUAL}(?:{_DURATION_UNIT}|ms|secs?|mins?|hrs?|wks?|yrs?|h|m|s|d)\b'
+    rf'|\b{_DURATION_WORD}(?:[ \t]+|-){_DURATION_QUAL}{_DURATION_UNIT}\b'
+    r'|\bP(?:T?[0-9]+[YMWDHS])+\b', re.I)
+_PERCENT = re.compile(r'[0-9]+(?:[.,][0-9]+)*[ \t]*(?:[%％‰]|percent(?:age)?s?\b|per[ \t]?cent\b|pct\b)'
+                      r'|[%％‰]|\b(?:percent(?:age)?s?|per[ \t]cent|pct)\b', re.I)
+_PERCENT_TIED = re.compile(r'\b(?:credit\w*|award\w*|refund\w*|rebate\w*|discount\w*|fees?|charges?|invoice\w*|bill\w*|payment\w*'
+                           r'|compensat\w*|courtesy|partial\w*|goodwill|reimburs\w*)\b', re.I)
+_PERFORMANCE_PERCENT = re.compile(r'\b(?:availability|uptime|target|threshold|service[ \t]+levels?)\b', re.I)
+_CLAUSE_BREAK = re.compile(r'[;,!?:\n]|\.(?=\s|$)')
+_MONTH_NAME = r'(?:january|february|march|april|may|june|july|august|september|october|november|december)'
+_MONTH_ANY = rf'(?:{_MONTH_NAME}|(?:jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec)\.?)'
+_DAY = r'(?:[0-9]{1,2}(?:st|nd|rd|th)?)'
+# Ordered most specific first; finditer consumes the leftmost specific form before bare forms.
+_DATE = re.compile(
+    rf'\b(?:{_DAY}[ \t]+(?:of[ \t]+)?{_MONTH_ANY}(?:,?[ \t]+[0-9]{{4}})?'
+    rf'|{_MONTH_ANY}[ \t]+{_DAY}(?:,?[ \t]+[0-9]{{4}})?'
+    rf'|{_MONTH_ANY},?[ \t]+[0-9]{{4}}'
+    r'|(?:19|20)[0-9]{2}-[0-9]{1,2}(?:-[0-9]{1,2})?'
+    r'|[0-9]{1,2}[/.][0-9]{1,2}[/.][0-9]{2,4}'
+    r'|[0-9]{1,2}/[0-9]{4}'
+    rf'|{_MONTH_NAME}'
+    r'|(?:19|20)[0-9]{2}'
+    r')\b', re.I)
+
+
+def _byte_span(text, match):
+    start = len(text[:match.start()].encode('utf-8'))
+    return start, start + len(match.group().encode('utf-8'))
+
+
+def _clause(text, start, end):
+    left = 0
+    for brk in _CLAUSE_BREAK.finditer(text):
+        if brk.end() <= start:
+            left = brk.end()
+        elif brk.start() >= end:
+            return text[left:brk.start()]
+    return text[left:]
+
+
+def _unconditional_current(p, polarity):
+    return p.polarity == polarity and p.modality == 'asserted' and p.referent == 'current_claim' and not p.conditions
+
+
+def _bundle_primary(p):
+    return (p.family in BUNDLE_PRIMARY_FAMILIES and _unconditional_current(p, 'positive')
+            and {s.name for s in p.slots} <= {'period'} and not p.filing_fields
+            and p.artifact_type is None and p.scope_field is None)
+
+
+def _bundle_denial(p):
+    return (p.family == 'award' and _unconditional_current(p, 'negative') and not p.slots and not p.filing_fields
+            and p.artifact_type is None and p.scope_field is None)
+
+
+def bundle_loses_meaning(text, primary):
+    """True when the complete source holds content this narrow bundle could silently drop."""
+    if any(unicodedata.category(c) == 'Sc' for c in text):
+        return True
+    if any(p.search(text) for p in (_CURRENCY_CODE, _CURRENCY_CODE_ANY_CASE, _MONEY_WORD, _CREDIT_QUALIFIER, _CONDITION_CUE, _DURATION)):
+        return True
+    for match in _PERCENT.finditer(text):
+        start, end = _byte_span(text, match)
+        # Percentages may only be availability measurements/targets inside the primary itself.
+        if (primary.family != 'availability' or not primary.source.start <= start < end <= primary.source.end
+                or _PERCENT_TIED.search(_clause(text, match.start(), match.end()))
+                or not _PERFORMANCE_PERCENT.search(_clause(text, match.start(), match.end()))):
+            return True
+    periods = {(s.source.start, s.source.end) for s in primary.slots if s.name == 'period'}
+    if {_byte_span(text, m) for m in _DATE.finditer(text)} != periods:
+        return True
+    return False
+
+
+def primary_proposition_index(context, interpretation):
+    """Deterministic index of the proposition that may drive the existing engine, else None.
+
+    One proposition: index 0 (the existing single gate still decides). Two propositions: only
+    the narrow reviewed denial bundle, in either order. Every other plural shape is None.
+    """
+    text = context['text']
+    validate_grounding(text, interpretation)
+    props = interpretation.propositions
+    if len(props) == 1:
+        return 0
+    if (len(props) != 2 or any(s.role == 'unsupported' for s in interpretation.segments)
+            or any(unicodedata.category(c) == 'Cf' for c in text)):
+        return None
+    primary = [i for i, p in enumerate(props) if _bundle_primary(p)]
+    denial = [i for i, p in enumerate(props) if _bundle_denial(p)]
+    if len(primary) != 1 or len(denial) != 1:
+        return None
+    p = props[primary[0]]
+    for slot in p.slots:
+        try:
+            _period(slot.source.quote)
+        except ValueError:
+            return None
+    if bundle_loses_meaning(text, p):
+        return None
+    return primary[0]
+
+
 def proposal_for_review(context, interpretation):
     """A reviewed semantic mapping is still an allegation for deterministic checking."""
     validate_grounding(context['text'], interpretation)
-    if (len(interpretation.propositions) != 1 or any(s.role == 'unsupported' for s in interpretation.segments)
+    if (any(s.role == 'unsupported' for s in interpretation.segments)
             or any(unicodedata.category(c) == 'Cf' for c in context['text'])):
         return Proposal('unknown')
-    p = interpretation.propositions[0]
+    index = primary_proposition_index(context, interpretation)
+    if index is None:
+        return Proposal('unknown')
+    p = interpretation.propositions[index]
     if p.family == 'unsupported' or p.polarity != 'positive' or p.modality != 'asserted' or p.referent != 'current_claim' or p.conditions:
         return Proposal('unknown')
     slots = {slot.name:slot.source.quote for slot in p.slots}
