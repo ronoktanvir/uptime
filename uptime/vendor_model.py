@@ -23,7 +23,14 @@ period (use "utc_calendar_month" only when explicit); filing_days (integer days 
 remedy (use "affected_monthly_fees_future_invoice" only when explicit);
 tier (object with product, plan, below and credit; below and credit are *strings* in percent units,
 without percent signs). A scope clause may have field "scope" and value {"product": "exact name", "plan": "exact name"}
-for a later table that omits these names. Use null for value of heading, table_header or table_separator. Any unrecognized
+for a later table that omits these names.
+credit_rule (only for one sentence stating a monthly uptime target where each *completed* percentage-point shortfall
+step earns a credit up to a cap; quote that whole sentence as one element): object with exactly "kind": "completed_steps",
+"product", "plan", "target", "step", "credit" and "cap". target, step, credit and cap are *strings* in percent units
+without percent signs, in shortest plain decimal form with no extra leading or trailing zeros (for example "99.8", "0.2",
+"7.5", "30"). credit_rounding (use "nearest_cent_half_up" only when the source explicitly says to round the resulting
+credit once to the nearest cent with half cents rounded up). Never add identifiers, internal units or computed values.
+Use null for value of heading, table_header or table_separator. Any unrecognized
 material or unsupported condition must be included as field "unsupported", value null.
 Treat a Markdown table's column headers as governing the meaning of figures.
 Never produce source code, actions or tool requests.
@@ -42,6 +49,37 @@ def _typed_values(manifest):
             yield field, manifest.get(field)
 
 
+# Public completed-step wire form. Percent strings use the compiler's own exact
+# percent_units scale; the compiler, never the model, supplies the citation id
+# of the already independently compiled span. This only changes representation.
+STEP_WIRE_FIELDS = frozenset({'kind', 'product', 'plan', 'target', 'step', 'credit', 'cap'})
+_STEP_PERCENTS = ('target', 'step', 'credit', 'cap')
+# Shortest plain ASCII decimal: no sign, exponent, whitespace, percent sign,
+# extra leading zero or trailing fractional zero; at most six fractional digits.
+_CANONICAL_PERCENT = re.compile(r'(?:0|[1-9][0-9]{0,2})(?:\.[0-9]{0,5}[1-9])?')
+
+
+def _proposed_step_rule(value, citation):
+    """Return the proposal in compiler form; refuse instead of repairing or inferring."""
+    from .credit_steps import FIELDS, KIND, validate
+    from .vendor_terms import percent_units
+    if not isinstance(value, dict):
+        raise ValueError('Missing or ambiguous proposed credit rule.')
+    if set(value) == FIELDS:
+        # Legacy normalized form: unchanged exact acceptance, typed before full equality.
+        return validate(value)
+    if set(value) != STEP_WIRE_FIELDS:
+        raise ValueError('Missing, mixed or extra proposed credit rule fields.')
+    if any(type(value[key]) is not str for key in STEP_WIRE_FIELDS):
+        raise ValueError('Proposed credit rule fields must be strings.')
+    if value['kind'] != KIND:
+        raise ValueError('Unsupported proposed credit rule kind.')
+    if not all(_CANONICAL_PERCENT.fullmatch(value[key]) for key in _STEP_PERCENTS):
+        raise ValueError('Proposed credit rule percentages must be canonical decimal strings without percent signs.')
+    return {'kind': KIND, 'product': value['product'], 'plan': value['plan'], 'citation': citation,
+            **{key + '_units': percent_units(value[key]) for key in _STEP_PERCENTS}}
+
+
 def validate_proposal(document, clauses, *, allow_propositions=False):
     from .vendor_terms import percent_units
     if not isinstance(clauses, list) or not all(isinstance(c, dict) and set(c) == {'quote', 'field', 'value'} for c in clauses):
@@ -57,7 +95,7 @@ def validate_proposal(document, clauses, *, allow_propositions=False):
         if not allow_propositions:
             raise
         return compile_propositions(document, clauses)
-    for row, (field, expected) in zip(clauses, _typed_values(manifest), strict=True):
+    for row, citation, (field, expected) in zip(clauses, manifest['citations'], _typed_values(manifest), strict=True):
         value = row['value']
         if field == 'tier':
             if not isinstance(value, dict) or set(value) != {'product', 'plan', 'below', 'credit'}:
@@ -66,6 +104,8 @@ def validate_proposal(document, clauses, *, allow_propositions=False):
                 raise ValueError('Unsupported proposed tier fields.')
             value = {'product': value['product'], 'plan': value['plan'],
                      'below_units': percent_units(value['below']), 'credit_units': percent_units(value['credit'])}
+        elif field == 'credit_rule':
+            value = _proposed_step_rule(value, citation['id'])
         if row['field'] != field or fingerprint(value) != fingerprint(expected):
             raise ValueError('Proposed value does not match its independently interpreted source span.')
     return manifest
