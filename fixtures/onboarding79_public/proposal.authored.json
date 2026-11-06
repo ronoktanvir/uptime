@@ -1,0 +1,65 @@
+{
+  "clauses": [
+    {
+      "quote": "The service provider under this agreement is Juniper Reach Cloud.",
+      "field": "vendor",
+      "value": "Juniper Reach Cloud"
+    },
+    {
+      "quote": "This contract is identified as JRC-2026-05.",
+      "field": "agreement",
+      "value": "JRC-2026-05"
+    },
+    {
+      "quote": "This service level agreement is effective on 2026-03-01.",
+      "field": "effective",
+      "value": [
+        "2026-03-01",
+        null
+      ]
+    },
+    {
+      "quote": "We calculate availability for full calendar months using UTC.",
+      "field": "period",
+      "value": "utc_calendar_month"
+    },
+    {
+      "quote": "The availability commitment applies to the Event Archive product and the Standard plan.",
+      "field": "scope",
+      "value": {
+        "product": "Event Archive",
+        "plan": "Standard"
+      }
+    },
+    {
+      "quote": "| Monthly availability below | Service credit |",
+      "field": "table_header",
+      "value": null
+    },
+    {
+      "quote": "| --- | --- |",
+      "field": "table_separator",
+      "value": null
+    },
+    {
+      "quote": "| 99.6% | 12% |",
+      "field": "tier",
+      "value": {
+        "product": "Event Archive",
+        "plan": "Standard",
+        "below": "99.6",
+        "credit": "12"
+      }
+    },
+    {
+      "quote": "A claim must be submitted within 18 calendar days following month end.",
+      "field": "filing_days",
+      "value": 18
+    },
+    {
+      "quote": "The credit is calculated from the affected monthly service fees and credited to your next invoice.",
+      "field": "remedy",
+      "value": "affected_monthly_fees_future_invoice"
+    }
+  ]
+}
