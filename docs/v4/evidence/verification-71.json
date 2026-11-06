@@ -1,0 +1,65 @@
+{
+  "decision": 71,
+  "verified_source_commit": "2c180e2e8e022c6898ba43aa5940491271c44486",
+  "source_sha256": {
+    "uptime/correspondence_blocks.py": "a468805f5fb74ab44e0b0a1eb8f9b29a3f45bb3e352a8efacfc7d7d4640f99a1",
+    "uptime/correspondence_block_model.py": "103b2d95e67409ab7b661aef1fb459664fd118f4e982cf2928ec1cdd1c03631d",
+    "tests/test_correspondence_blocks_71.py": "a13434f1a6c57e80c869882565b3303cb6d722077b797ce0b55ad9e551dff55e",
+    "tests/test_correspondence_literal_71.py": "7a43b979b24071a4bd2037b0d373ede62b9766f00a961fbf7f2b321a48dcd6af",
+    "scripts/propose_correspondence_blocks_public_71.py": "0f9a4d65b8b9101d4a57d34229b22b9cb58704ab999dbd6e87c931f668c33e31"
+  },
+  "checks": [
+    {
+      "label": "baseline_focused",
+      "command": "uv run --locked pytest -q tests/test_correspondence_interpretation.py tests/test_correspondence_model_transport.py --basetemp=/tmp/uptime-71-baseline",
+      "exit_code": 0,
+      "result": "76 passed, 1 warning",
+      "local_log": null,
+      "log_sha256": null
+    },
+    {
+      "label": "interrupted_merge_suite",
+      "command": "uv run --locked pytest -q --basetemp=/tmp/uptime-71-merge-3449bbe",
+      "exit_code": 2,
+      "result": "Interrupted after 946 passed; not a full-suite pass",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/disputes-71/full-merge-3449bbe.log",
+      "log_sha256": "023f3ac3cccd00cab0b97f75ee8bb9e71e303a18968c38e358e21d136fc46669"
+    },
+    {
+      "label": "interrupted_before_prompt_clarification",
+      "command": "uv run --locked pytest -q --basetemp=/tmp/uptime-71-final-stable",
+      "exit_code": 2,
+      "result": "Interrupted after 1086 passed; not a full-suite pass",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/disputes-71/full-final-stable.log",
+      "log_sha256": "9853f37cde7bbcf2fc83496512659a6d00051ad040283cd761b9fd21a2367d8d"
+    },
+    {
+      "label": "focused_final_v2",
+      "command": "uv run --locked pytest -q tests/test_correspondence_blocks_71.py tests/test_correspondence_literal_71.py tests/test_correspondence_interpretation.py tests/test_correspondence_model_transport.py --basetemp=/tmp/uptime-71-focused-v2",
+      "exit_code": 0,
+      "result": "150 passed, 1 warning in 2.08s",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/disputes-71/focused-v2.log",
+      "log_sha256": "f0774c8d1e73a707da3db5f4a88e335c5c27d6189d756c54e6c3a893650e7aed"
+    },
+    {
+      "label": "full_final_v2",
+      "command": "uv run --locked pytest -q --basetemp=/tmp/uptime-71-final-v2",
+      "exit_code": 0,
+      "result": "3023 passed, 1 warning in 206.74s",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/disputes-71/full-final-v2.log",
+      "log_sha256": "ce4e7628dd9f7afdcb8b7c76a7a4303b213881e543cc7f2d98019b075d002a81"
+    }
+  ],
+  "public_experiments": {
+    "receipt": "docs/v4/evidence/disputes-71-public.json",
+    "actual_runner": "external bounded public-only runner using serialized_block_request/PublicBlockInterpretationAdapter/SafePublicClaude",
+    "initial_runner_sha256": "5845d53e573792c535ee93d404e3293c6631cc3f037d5450149dbc141e2a1b00",
+    "revised_runner_sha256": "f3cc034d6765cb9b2badfd2743829f78e1a06f142d8c8822222d57941d6c867d",
+    "committed_reproduction": "scripts/propose_correspondence_blocks_public_71.py",
+    "committed_cli_checked": "Omitting --execute-public refused with exit 2 before provider initialization; no extra live calls."
+  },
+  "source_state": "Production modules and test files unchanged during final v2 suite. Public reproduction script was added during evidence packaging and separately checked for default-disabled refusal; it is not claimed as the caller used for recorded live batches. Final source and fixtures committed before this result receipt.",
+  "customer_model_processing": false,
+  "private_holdouts_accessed": false,
+  "financial_or_external_actions": 0
+}
