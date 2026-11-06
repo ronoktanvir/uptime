@@ -19,20 +19,28 @@ class Preview(Observation):
     revision: int
 
 
-def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=None, trusted_now=None):
+def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=None, trusted_now=None,
+                proposal_jobs=None):
+    """`proposal_jobs` is the server-injected shared PublicProposalJobs service, or None (fail closed)."""
     from .governing_fees import FeeRegistry
+    from .vendor_model_jobs import ProposalCandidate, ProposalRequest, VendorModelJobs, unconfigured_access
     if governing_fees is not None and type(governing_fees) is not FeeRegistry:
         raise TypeError('A fixed server FeeRegistry is required; arbitrary fee callbacks are not supported.')
     clock=trusted_now or (lambda:datetime.now(UTC))
     router = APIRouter(prefix='/api/vendors')
+    jobs = None if proposal_jobs is None else VendorModelJobs(proposal_jobs)
 
-    def mutate(p, fn, *args):
+    def mutate(p, fn, *args, resolve=None):
         with mutex:
             if not isinstance(p, DraftReviewer):
                 check_write(p)
             elif fn not in {registry.install, registry.submit_tests, registry.shadow_preview}:
                 raise PermissionError("Draft capability cannot authorize this operation.")
             extra={}
+            if resolve is not None:
+                # Server-only arguments resolved after authorization, inside the same mutex.
+                args, resolved = resolve(p)
+                extra.update(resolved)
             if fn in {registry.act,registry.dispatch}:
                 extra.update(governing_fees=governing_fees or (),trusted_now=clock)
             if governing_fees is not None and not isinstance(p,DraftReviewer) and fn in {registry.submit_tests,registry.shadow_preview,registry.dispatch}:
@@ -56,6 +64,45 @@ def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=
     @router.post('/{vendor_id}/candidates')
     def candidate(vendor_id: str, body: dict, p=Depends(reviewer)):
         return mutate(p, registry.install, vendor_id, body)
+
+    # ---- Public proposal generation: draft-level operations only, zero provider calls here ----
+
+    def permit_proposal(p, vendor_id):
+        """Same reviewer/draft authority as candidate intake; no domain mutation and no provider call."""
+        with mutex:
+            if not isinstance(p, DraftReviewer):
+                check_write(p)
+            with registry.transaction(db_path, p, vendor_id, write=True, draft=True):
+                pass
+
+    def configured():
+        if jobs is None:
+            raise PermissionError('Public proposal generation is not configured for this deployment.')
+        return jobs
+
+    @router.post('/{vendor_id}/proposal-access')
+    def proposal_access(vendor_id: str, body: ProposalRequest, p=Depends(reviewer)):
+        permit_proposal(p, vendor_id)
+        return unconfigured_access(vendor_id, body) if jobs is None else jobs.access(p, vendor_id, body)
+
+    @router.post('/{vendor_id}/proposal-jobs')
+    def proposal_job(vendor_id: str, body: ProposalRequest, p=Depends(reviewer)):
+        service = configured()
+        permit_proposal(p, vendor_id)
+        return service.submit(p, vendor_id, body)
+
+    @router.get('/{vendor_id}/proposal-jobs/{job_id}')
+    def proposal_job_status(vendor_id: str, job_id: str, p=Depends(actor)):
+        return configured().status(p, vendor_id, job_id)
+
+    @router.post('/{vendor_id}/proposal-jobs/{job_id}/candidate')
+    def proposal_candidate(vendor_id: str, job_id: str, body: ProposalCandidate, p=Depends(reviewer)):
+        service = configured()
+
+        def resolve(principal):
+            intake, receipt = service.candidate(principal, vendor_id, job_id, body.overlay)
+            return (vendor_id, intake), {'public_receipt': receipt}
+        return mutate(p, registry.install, resolve=resolve)
 
     @router.post('/{vendor_id}/tests')
     def tests(vendor_id: str, body: registry.TestSubmission, p=Depends(reviewer)):

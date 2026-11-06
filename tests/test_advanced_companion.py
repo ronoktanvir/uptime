@@ -63,7 +63,7 @@ def login(page, origin, key, subject='companion-reviewer'):
     page.get_by_label('Credential file', exact=True).set_input_files({
         'name': 'generated-test-account.json', 'mimeType': 'application/json', 'buffer': json.dumps(key).encode()})
     page.get_by_role('button', name='Sign in', exact=True).click()
-    page.get_by_role('button', name='Generate candidate', exact=True).wait_for()
+    page.get_by_role('button', name='Stage local candidate', exact=True).wait_for()
 
 
 def test_signed_wizard_refresh_routes_and_mobile(portal):
@@ -80,15 +80,15 @@ def test_signed_wizard_refresh_routes_and_mobile(portal):
                          ('Public contract excerpt or full text',TEXT), ('Private customer overlay (JSON object)',json.dumps(overlay))]:
         page.get_by_label(label, exact=True).fill(value)
     page.get_by_label('Document origin', exact=True).select_option('synthetic_public')
-    page.get_by_role('button', name='Generate candidate', exact=True).click()
+    page.get_by_role('button', name='Stage local candidate', exact=True).click()
     page.get_by_role('heading', name='Review exact local request').wait_for()
     assert not writes
     # Changing reviewed data invalidates that review without sending stale bytes.
     page.get_by_label('Document name', exact=True).fill('Revised synthetic test terms')
-    page.get_by_role('button', name='Generate candidate', exact=True).click()
+    page.get_by_role('button', name='Stage local candidate', exact=True).click()
     assert not writes
     with page.expect_response(lambda r: '/candidates' in r.url and r.request.method == 'POST') as response:
-        page.get_by_role('button', name='Confirm generate candidate', exact=True).click()
+        page.get_by_role('button', name='Confirm stage local candidate', exact=True).click()
     assert response.value.status == 200
     page.get_by_role('button', name='Submit independent tests', exact=True).wait_for()
     assert len(writes) == 1
@@ -101,21 +101,21 @@ def test_signed_wizard_refresh_routes_and_mobile(portal):
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), route
     assert not errors
     page.evaluate("location.hash = 'vendors'")
-    page.get_by_role('button', name='Generate candidate', exact=True).wait_for()
+    page.get_by_role('button', name='Stage local candidate', exact=True).wait_for()
     page.reload()
-    page.get_by_role('button', name='Generate candidate', exact=True).wait_for()
-    assert page.get_by_role('button', name='Generate candidate', exact=True).is_disabled()
+    page.get_by_role('button', name='Stage local candidate', exact=True).wait_for()
+    assert page.get_by_role('button', name='Stage local candidate', exact=True).is_disabled()
 
 
 def test_viewer_and_disabled_gate_are_read_only(portal):
     page, origin, key, viewer, app = portal
     login(page, origin, viewer, 'companion-viewer')
-    assert page.get_by_role('button', name='Generate candidate', exact=True).is_disabled()
+    assert page.get_by_role('button', name='Stage local candidate', exact=True).is_disabled()
     with page.expect_navigation(wait_until='domcontentloaded'):
         page.evaluate('() => window.uptimeAuth.signOut()')
     app.state.auth.approvals_enabled = False
     login(page, origin, key)
-    assert page.get_by_role('button', name='Generate candidate', exact=True).is_enabled()
+    assert page.get_by_role('button', name='Stage local candidate', exact=True).is_enabled()
 
 
 def test_source_audit_preserves_boundaries():
