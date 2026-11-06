@@ -1,0 +1,102 @@
+{
+  "id": "onboarding-04",
+  "classification": "AUTHORED_PUBLIC",
+  "fictional": true,
+  "authorized_for_external_inference": true,
+  "customer_data": false,
+  "requested_profile": "resource-month",
+  "document": {
+    "name": "Lattice Oriole SLA",
+    "uri": "urn:synthetic:public-evaluation76:onboarding-04",
+    "classification": "synthetic_public",
+    "text": "Lattice Oriole April Service Commitment\nVendor: Lattice Oriole.\nThis commitment covers Oriole Index Business for the UTC calendar month April 2026, from 2026-04-01T00:00:00Z until 2026-05-01T00:00:00Z. That month contains 43,200 minutes.\nThe vendor's complete account-scoped April unavailable-minute report is authoritative for unavailable minutes.\nAvailability equals 100 multiplied by (1 minus unavailable minutes divided by 43,200).\nAvailability below 99.5% earns a service credit equal to 12% of the paid recurring subscription fee for Oriole Index Business for April 2026. Support, tax and one-time fees are excluded.\nThe credit is noncash only and does not promise application to a future invoice.\nThe vendor report and invoice must each be complete, separately verified, bound to this account and month, and retain their content hashes.\nClaims must be received no later than 2026-05-15T23:59:59Z, which is 15 calendar days after the end of April 2026.\n"
+  },
+  "overlay": {
+    "agreement": "Lattice Oriole April Service Commitment",
+    "account": "public76-account-4",
+    "product": "Oriole Index",
+    "plan": "Business",
+    "fee_line_ref": "public76-fee-4",
+    "currency": "USD",
+    "effective_from": "2026-01-01",
+    "effective_until": "2026-12-31",
+    "resource_id": "aggregate-service"
+  },
+  "scope": {
+    "vendor": "Lattice Oriole",
+    "agreement": "Lattice Oriole April Service Commitment",
+    "account": "public76-account-4",
+    "product": "Oriole Index",
+    "plan": "Business",
+    "month": "2026-04",
+    "fee_line_ref": "public76-fee-4",
+    "currency": "USD",
+    "resource_id": "aggregate-service"
+  },
+  "evidence": {
+    "service_monitor": {
+      "agreement": "Lattice Oriole April Service Commitment",
+      "account": "public76-account-4",
+      "product": "Oriole Index",
+      "plan": "Business",
+      "month": "2026-04",
+      "ref": "public76-service-monitor-4",
+      "recorded_at": "2026-05-03T10:00:00Z",
+      "complete": true,
+      "verified": true,
+      "content": {
+        "source": "simulated_vendor",
+        "unavailable_minutes": 432
+      },
+      "content_sha256": "133c70858f825123fbf69fe0609cb45441d1987ba4aee2a64512f77376fa5f78"
+    },
+    "service_invoice": {
+      "agreement": "Lattice Oriole April Service Commitment",
+      "account": "public76-account-4",
+      "product": "Oriole Index",
+      "plan": "Business",
+      "month": "2026-04",
+      "ref": "public76-service-invoice-4",
+      "recorded_at": "2026-05-03T10:00:00Z",
+      "complete": true,
+      "verified": true,
+      "content": {
+        "paid": true,
+        "currency": "USD",
+        "lines": [
+          {
+            "ref": "public76-fee-4",
+            "kind": "recurring_subscription",
+            "category": "recurring_subscription",
+            "amount_cents": 62500
+          },
+          {
+            "ref": "public76-support-4",
+            "kind": "support",
+            "category": "support",
+            "amount_cents": 4000
+          },
+          {
+            "ref": "public76-tax-4",
+            "kind": "tax",
+            "category": "tax",
+            "amount_cents": 2500
+          }
+        ]
+      },
+      "content_sha256": "a6eaa2cce593b937613132905f23127509d6d5d6ee6028e5651674aa74a7f5fb"
+    },
+    "filing_proof": {
+      "verified": true,
+      "ref": "public76-filing-4",
+      "account": "public76-account-4",
+      "agreement": "Lattice Oriole April Service Commitment",
+      "product": "Oriole Index",
+      "plan": "Business",
+      "resource_id": "aggregate-service",
+      "month": "2026-04",
+      "received_at": "2026-05-15T12:00:00Z"
+    },
+    "received_at": "2026-05-15T12:00:00Z"
+  }
+}

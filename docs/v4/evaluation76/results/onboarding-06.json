@@ -1,0 +1,148 @@
+{
+  "elapsed_seconds": 8.003241166999942,
+  "error": "Public model proposal rejected: Model proposal dropped or invented source material.; model=claude-opus-5-5; session=a76b57b1-be97-4894-9fff-bee754a10836; source_sha256=f5cb6ad992eddc769b5c71634332a4879e0cc115971f99ec17d562499cdb9b92; proposal_sha256=cd68363f3cbe06ec2c4b90d19f255cd872f825d6e62aae5f4946c6120d4b750a",
+  "error_type": "RejectedProposal",
+  "evaluator_called": false,
+  "extraction_accepted": false,
+  "financial_mutation": false,
+  "human_approval": false,
+  "id": "onboarding-06",
+  "kind": "onboarding",
+  "legacy_raw_output": {
+    "legacy_fence_normalization_eligible": true,
+    "model_usage": {
+      "claude-opus-5-5": {
+        "cacheCreationEphemeral1hInputTokens": 766,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationInputTokens": 766,
+        "cacheReadInputTokens": 710,
+        "canonicalModel": "claude-opus-5-5",
+        "contextWindow": 1000000,
+        "costBasis": "list",
+        "costUSD": 0.022218,
+        "inputTokens": 2,
+        "maxOutputTokens": 128000,
+        "outputTokens": 797,
+        "provider": "firstParty",
+        "thinkingTokens": 263,
+        "webSearchRequests": 0
+      }
+    },
+    "provider_is_error": false,
+    "raw_result_sha256": "ebf644a5ad9bb1a65aa4214fa995cdd2976dd6e0cef7c6452afc30b2643b5c32",
+    "session": "a76b57b1-be97-4894-9fff-bee754a10836",
+    "strict_json_output": false
+  },
+  "process_output": {
+    "provider.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "provider.stdout": {
+      "bytes": 3229,
+      "sha256": "47fe01a8bddfda888b386a994ceeab0261fed63a50ff8841657ccab706b9a979"
+    }
+  },
+  "rejection": {
+    "allow_propositions": true,
+    "at": "2026-11-06T01:49:20.108653+00:00",
+    "model": "claude-opus-5-5",
+    "profile": "monthly",
+    "raw_proposal": {
+      "clauses": [
+        {
+          "field": "heading",
+          "quote": "PUBLIC CONTRACT TEXT",
+          "value": null
+        },
+        {
+          "field": "agreement",
+          "quote": "Tern Vale Discretionary Service Promise",
+          "value": "Tern Vale Discretionary Service Promise"
+        },
+        {
+          "field": "vendor",
+          "quote": "Vendor: Tern Vale.",
+          "value": "Tern Vale"
+        },
+        {
+          "field": "effective",
+          "quote": "This promise covers Vale Batch Studio during 2026.",
+          "value": [
+            "2026-01-01",
+            "2026-12-31"
+          ]
+        },
+        {
+          "field": "unsupported",
+          "quote": "If monthly performance is materially below the expected target, an appropriate service credit may be considered.",
+          "value": null
+        },
+        {
+          "field": "unsupported",
+          "quote": "The meaning of materially below, the expected target, the credit rate and whether a credit will be granted are determined by mutual discussion after the incident.",
+          "value": null
+        },
+        {
+          "field": "unsupported",
+          "quote": "No numerical threshold or rate is fixed in this promise.",
+          "value": null
+        },
+        {
+          "field": "unsupported",
+          "quote": "The monthly access fee is USD 460.00.",
+          "value": null
+        },
+        {
+          "field": "unsupported",
+          "quote": "A separately invoiced USD 80.00 recovery service does not establish an SLA credit.",
+          "value": null
+        }
+      ]
+    },
+    "raw_proposal_sha256": "cd68363f3cbe06ec2c4b90d19f255cd872f825d6e62aae5f4946c6120d4b750a",
+    "reason": "Model proposal dropped or invented source material.",
+    "session": "a76b57b1-be97-4894-9fff-bee754a10836",
+    "source_sha256": "f5cb6ad992eddc769b5c71634332a4879e0cc115971f99ec17d562499cdb9b92",
+    "status": "REJECTED"
+  },
+  "request_attempts": 1,
+  "request_sha256": "e4577c665c6337936425395df0feb719d8f1b7f99998f8a62ecd8025ab8aebd2",
+  "schema_grounding_accepted": false,
+  "stage": "proposal_validation_refusal",
+  "transport_class": "LEGACY_VENDOR_MODEL_SUBPROCESS_NOT_SAFEPUBLICCLAUDE",
+  "classification": "AUTHORED_PUBLIC",
+  "actual_provider_identity": {
+    "model": "claude-opus-5-5",
+    "session": "a76b57b1-be97-4894-9fff-bee754a10836",
+    "identity_basis": "legacy JSON modelUsage checked by frozen generate",
+    "requested_tool_inventory": [],
+    "initialized_tool_inventory": null,
+    "initialized_inventory_verified": false
+  },
+  "raw_model_response": "```json\n{\n  \"clauses\": [\n    {\n      \"quote\": \"PUBLIC CONTRACT TEXT\",\n      \"field\": \"heading\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"Tern Vale Discretionary Service Promise\",\n      \"field\": \"agreement\",\n      \"value\": \"Tern Vale Discretionary Service Promise\"\n    },\n    {\n      \"quote\": \"Vendor: Tern Vale.\",\n      \"field\": \"vendor\",\n      \"value\": \"Tern Vale\"\n    },\n    {\n      \"quote\": \"This promise covers Vale Batch Studio during 2026.\",\n      \"field\": \"effective\",\n      \"value\": [\"2026-01-01\", \"2026-12-31\"]\n    },\n    {\n      \"quote\": \"If monthly performance is materially below the expected target, an appropriate service credit may be considered.\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"The meaning of materially below, the expected target, the credit rate and whether a credit will be granted are determined by mutual discussion after the incident.\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"No numerical threshold or rate is fixed in this promise.\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"The monthly access fee is USD 460.00.\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"A separately invoiced USD 80.00 recovery service does not establish an SLA credit.\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    }\n  ]\n}\n```",
+  "raw_model_response_sha256": "ebf644a5ad9bb1a65aa4214fa995cdd2976dd6e0cef7c6452afc30b2643b5c32",
+  "protected_result_sha256": "5c03a17eb2dd181358f3816918a7bac2b9125b7ed4b782bfab829bbc68df1a2f",
+  "protected_stream_sha256": "47fe01a8bddfda888b386a994ceeab0261fed63a50ff8841657ccab706b9a979",
+  "protected_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "score": {
+    "error": "Public model proposal rejected: Model proposal dropped or invented source material.; model=claude-opus-5-5; session=a76b57b1-be97-4894-9fff-bee754a10836; source_sha256=f5cb6ad992eddc769b5c71634332a4879e0cc115971f99ec17d562499cdb9b92; proposal_sha256=cd68363f3cbe06ec2c4b90d19f255cd872f825d6e62aae5f4946c6120d4b750a",
+    "evaluation_missing": [],
+    "expected_amount": null,
+    "expected_math_observed": false,
+    "expected_outcome": "UNSUPPORTED_RULE",
+    "extraction_accepted": false,
+    "id": "onboarding-06",
+    "observed_amount": null,
+    "observed_outcome": null,
+    "pass_expected": false,
+    "request_attempts": 1,
+    "result_sha256": "5c03a17eb2dd181358f3816918a7bac2b9125b7ed4b782bfab829bbc68df1a2f",
+    "safe_refusal_without_positive_money": true,
+    "schema_grounding_accepted": false,
+    "stage": "proposal_validation_refusal",
+    "strict_json_output": false
+  },
+  "action_authority_evaluated": false,
+  "actions_executed": 0
+}

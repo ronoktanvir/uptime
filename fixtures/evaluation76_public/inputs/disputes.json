@@ -1,0 +1,266 @@
+{
+  "classification": "AUTHORED_PUBLIC",
+  "fictional": true,
+  "authorized_for_external_inference": true,
+  "customer_data": false,
+  "cases": [
+    {
+      "id": "dispute-01",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "Your claim was received after the filing deadline, so we deny the request.",
+      "context": {
+        "claim_id": "public76-claim-01",
+        "scope_month": "2026-07",
+        "claimed": "47.60",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 01",
+        "service": "Public76 Service 01"
+      },
+      "supporting_facts": {
+        "filing_window_days_after_month_end": 20,
+        "deadline": "2026-08-20T23:59:59Z",
+        "original_received_at": "2026-08-22T10:00:00Z",
+        "deadline_immutable": true
+      }
+    },
+    {
+      "id": "dispute-02",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "The request log request-log-76B is missing from your claim. Please provide that request log.",
+      "context": {
+        "claim_id": "public76-claim-02",
+        "scope_month": "2026-08",
+        "claimed": "36.40",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 02",
+        "service": "Public76 Service 02"
+      },
+      "supporting_facts": {
+        "required_artifacts": [
+          "request-log-76B"
+        ],
+        "received_artifacts": [],
+        "missing_artifact_confirmed": true
+      }
+    },
+    {
+      "id": "dispute-03",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "Your service availability for June 2026 was 99.96%, which meets the 99.90% target. No service credit is due.",
+      "context": {
+        "claim_id": "public76-claim-03",
+        "scope_month": "2026-06",
+        "claimed": "19.80",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 03",
+        "service": "Public76 Service 03"
+      },
+      "supporting_facts": {
+        "month_minutes": 43200,
+        "eligible_downtime_minutes": "17.28",
+        "availability_percent": "99.96",
+        "threshold_percent": "99.90",
+        "credit_comparator": "strictly_below",
+        "evidence_complete": true
+      }
+    },
+    {
+      "id": "dispute-04",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "We deny your claim because all reported downtime occurred during scheduled maintenance.",
+      "context": {
+        "claim_id": "public76-claim-04",
+        "scope_month": "2026-05",
+        "claimed": "55.20",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 04",
+        "service": "Public76 Service 04"
+      },
+      "supporting_facts": {
+        "maintenance_notice_required_hours": 48,
+        "announcement": "2026-05-09T01:00:00Z",
+        "maintenance_start": "2026-05-12T01:00:00Z",
+        "maintenance_end": "2026-05-12T03:00:00Z",
+        "outage_start": "2026-05-12T01:00:00Z",
+        "outage_end": "2026-05-12T03:00:00Z",
+        "maintenance_record_verified": true
+      }
+    },
+    {
+      "id": "dispute-05",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "We grant a service credit of USD 84.25 for your claim.",
+      "context": {
+        "claim_id": "public76-claim-05",
+        "scope_month": "2026-03",
+        "claimed": "84.25",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 05",
+        "service": "Public76 Service 05"
+      },
+      "supporting_facts": {
+        "original_filed_amount": "84.25",
+        "current_claim_only": true
+      }
+    },
+    {
+      "id": "dispute-06",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "We grant a service credit of USD 28.80 and deny the remaining USD 19.20 of your USD 48.00 claim.",
+      "context": {
+        "claim_id": "public76-claim-06",
+        "scope_month": "2026-09",
+        "claimed": "48.00",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 06",
+        "service": "Public76 Service 06"
+      },
+      "supporting_facts": {
+        "original_filed_amount": "48.00",
+        "current_claim_only": true
+      }
+    },
+    {
+      "id": "dispute-07",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "We are not saying that your claim was late; its receipt timestamp is still under review.",
+      "context": {
+        "claim_id": "public76-claim-07",
+        "scope_month": "2026-10",
+        "claimed": "21.65",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 07",
+        "service": "Public76 Service 07"
+      },
+      "supporting_facts": {
+        "original_received_at": null,
+        "receipt_verification": "unresolved"
+      }
+    },
+    {
+      "id": "dispute-08",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "If corrected logs substantiate the outage, we will approve a service credit of USD 63.70. No credit has been approved yet.",
+      "context": {
+        "claim_id": "public76-claim-08",
+        "scope_month": "2026-02",
+        "claimed": "63.70",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 08",
+        "service": "Public76 Service 08"
+      },
+      "supporting_facts": {
+        "corrected_logs_received": false,
+        "current_award_confirmation": null
+      }
+    },
+    {
+      "id": "dispute-09",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "The approved USD 52.40 credit belongs to claim OLD-76 for February 2026. Your March 2026 claim remains undecided.",
+      "context": {
+        "claim_id": "public76-claim-09",
+        "scope_month": "2026-03",
+        "claimed": "52.40",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 09",
+        "service": "Public76 Service 09"
+      },
+      "supporting_facts": {
+        "other_claim_id": "OLD-76",
+        "other_claim_month": "2026-02",
+        "current_claim_month": "2026-03",
+        "current_award_confirmation": null
+      }
+    },
+    {
+      "id": "dispute-10",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "Your email says, \"We were promised a USD 11.35 credit.\" That is your allegation; our investigation remains open.",
+      "context": {
+        "claim_id": "public76-claim-10",
+        "scope_month": "2026-04",
+        "claimed": "11.35",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 10",
+        "service": "Public76 Service 10"
+      },
+      "supporting_facts": {
+        "quoted_speaker": "claimant",
+        "vendor_adopts_quoted_statement": false,
+        "current_award_confirmation": null
+      }
+    },
+    {
+      "id": "dispute-11",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "Either the June request was late or the July request lacked logs; we cannot yet determine which statement is correct.",
+      "context": {
+        "claim_id": "public76-claim-11",
+        "scope_month": "2026-06",
+        "claimed": "29.45",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 11",
+        "service": "Public76 Service 11"
+      },
+      "supporting_facts": {
+        "current_claim_month": "2026-06",
+        "alternative_claim_month": "2026-07",
+        "resolved_alternative": null
+      }
+    },
+    {
+      "id": "dispute-12",
+      "classification": "AUTHORED_PUBLIC",
+      "fictional": true,
+      "authorized_for_external_inference": true,
+      "customer_data": false,
+      "text": "We grant USD 24.10 in service credit for your USD 40.00 claim and deny the remaining USD 18.90.",
+      "context": {
+        "claim_id": "public76-claim-12",
+        "scope_month": "2026-11",
+        "claimed": "40.00",
+        "currency": "USD",
+        "vendor": "Fictional Public76 Vendor 12",
+        "service": "Public76 Service 12"
+      },
+      "supporting_facts": {
+        "original_filed_amount": "40.00",
+        "current_claim_only": true
+      }
+    }
+  ]
+}

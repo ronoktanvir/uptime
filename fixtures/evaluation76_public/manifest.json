@@ -1,0 +1,188 @@
+{
+  "schema": "uptime-public-evaluation/1",
+  "evaluation_id": 76,
+  "classification": "AUTHORED_PUBLIC",
+  "authorized_for_external_inference": true,
+  "fictional": true,
+  "customer_data": false,
+  "implementation_commit": "fd6537cc4e3118a9b6e29f4804a505ed591ea9ea",
+  "authored_before_execution": true,
+  "engine_derived_expectations": false,
+  "model_derived_expectations": false,
+  "private_or_blind_evaluation": false,
+  "counts": {
+    "onboarding": 6,
+    "onboarding_supported": 4,
+    "onboarding_refusal": 2,
+    "disputes": 12,
+    "disputes_supported": 6,
+    "disputes_mandatory_review": 6
+  },
+  "maximum_calls_per_pinned_request": 1,
+  "expected_files_excluded_from_model_input": true,
+  "complete_outbound_request_hashes_required_before_inference": true,
+  "inputs_and_expected_files": [
+    {
+      "path": "expected/disputes.json",
+      "sha256": "0c0f07b7dd7b82c627d3accc5f4953274459b6025b25b137a59493eeb5c139a4",
+      "bytes": 6601
+    },
+    {
+      "path": "expected/onboarding.json",
+      "sha256": "9d30d53d6e82f3e49c71ba8cef7a9b96ebfe4f69b51f4c0c1b40f3efcd5a3ae8",
+      "bytes": 4075
+    },
+    {
+      "path": "inputs/disputes.json",
+      "sha256": "ea0f61704c02b75b7af48b6cb32582e50ea0df4463bd6e0f330b2933af3cf88a",
+      "bytes": 8904
+    },
+    {
+      "path": "inputs/onboarding/onboarding-01.json",
+      "sha256": "ee4a97b02b726558b8039a9421761e9ebfc6f67463336255b7b3fa23c54cc5c2",
+      "bytes": 2613
+    },
+    {
+      "path": "inputs/onboarding/onboarding-02.json",
+      "sha256": "59c3f11501f56ff4c2685006c3be64acd9b488dfd95d55741e4c497a10f747c4",
+      "bytes": 2666
+    },
+    {
+      "path": "inputs/onboarding/onboarding-03.json",
+      "sha256": "ad4f95eb52359284cdfbd66dc1b8721dc2465304e466b782901100856737f3ff",
+      "bytes": 4011
+    },
+    {
+      "path": "inputs/onboarding/onboarding-04.json",
+      "sha256": "b9c145f7b8bedaa8ba2c50ef40ecdb76dce8ea2ebda4f395ee064456ed1f595e",
+      "bytes": 4041
+    },
+    {
+      "path": "inputs/onboarding/onboarding-05.json",
+      "sha256": "b874cf24c6dbc036ead973d35e6c84a0dc14404f2b4b7f11c08e205f3b748972",
+      "bytes": 1866
+    },
+    {
+      "path": "inputs/onboarding/onboarding-06.json",
+      "sha256": "7292b87f423799b60d0051cf5bfda202808ed1ebf43497e2790e112365ab18a6",
+      "bytes": 1881
+    },
+    {
+      "path": "inputs/onboarding-index.json",
+      "sha256": "e8a8d24ee0d89f029a2ee46fd98b20a6c316826655f8dfb2c5ac0a181aceec70",
+      "bytes": 909
+    }
+  ],
+  "file_list_sha256": "f698047ef6b92c55d8c853e01bfdadcc61585f5610223939254656367def5fe9",
+  "source_text_pins": [
+    {
+      "case_id": "onboarding-01",
+      "kind": "onboarding_document_text",
+      "sha256": "b189b82d72d2064cc30e4bb38ff38c9ad75c6642b6a2f3f607db6c845ab4b356",
+      "source_file": "inputs/onboarding/onboarding-01.json"
+    },
+    {
+      "case_id": "onboarding-02",
+      "kind": "onboarding_document_text",
+      "sha256": "6b3fbcc32c0a16d0a9db5cc8cc28e92d63860db52fec150cdeeb33dffe9c023f",
+      "source_file": "inputs/onboarding/onboarding-02.json"
+    },
+    {
+      "case_id": "onboarding-03",
+      "kind": "onboarding_document_text",
+      "sha256": "477b0492298f7b7c9ea051bde217e5f9ffea396de53d80571199420234387680",
+      "source_file": "inputs/onboarding/onboarding-03.json"
+    },
+    {
+      "case_id": "onboarding-04",
+      "kind": "onboarding_document_text",
+      "sha256": "7bb27dce869fb53b52e62b11a70f4f9aa8119adbeabb7ba1072ee62666e013b6",
+      "source_file": "inputs/onboarding/onboarding-04.json"
+    },
+    {
+      "case_id": "onboarding-05",
+      "kind": "onboarding_document_text",
+      "sha256": "a870d8917745e9568d7766e58def7f03babdb74c910569c65f8dabc08950bf5a",
+      "source_file": "inputs/onboarding/onboarding-05.json"
+    },
+    {
+      "case_id": "onboarding-06",
+      "kind": "onboarding_document_text",
+      "sha256": "f5cb6ad992eddc769b5c71634332a4879e0cc115971f99ec17d562499cdb9b92",
+      "source_file": "inputs/onboarding/onboarding-06.json"
+    },
+    {
+      "case_id": "dispute-01",
+      "kind": "vendor_reply_text",
+      "sha256": "82c808b72632aa2a41f11dde774095ba4a20603c324b2a806ec118c3f5467a78",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-02",
+      "kind": "vendor_reply_text",
+      "sha256": "9c60fdf40bd13d5d0aa656e3d5d97f279c2987cf5e3ee40b36f88ead2280a9e6",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-03",
+      "kind": "vendor_reply_text",
+      "sha256": "6c356076ce625049b95f4c914a095dba2b98423354beeb969d1957e0d7a07df9",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-04",
+      "kind": "vendor_reply_text",
+      "sha256": "028975b820614f38aa36cfaee2be9e8cfbff8a12ce72f70a56a80fddfd5112c5",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-05",
+      "kind": "vendor_reply_text",
+      "sha256": "c9a78bd5f9a83c7601e22d1258b3d28c6e6716ab24c71adc7c7848625bb867c5",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-06",
+      "kind": "vendor_reply_text",
+      "sha256": "3b2585f1693fe9f6da18bfef66ce40711ac990853cdf89b50bbd7f917d88cfe9",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-07",
+      "kind": "vendor_reply_text",
+      "sha256": "851871b15a6854f9e80545c7c01f4f9b907448f35e3e5a68cfc19760db11b2d0",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-08",
+      "kind": "vendor_reply_text",
+      "sha256": "9ae8063b100c0b2dd496d674ded43e19aa380479047a3f067ee4d882d9ac889d",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-09",
+      "kind": "vendor_reply_text",
+      "sha256": "660032597e61823022e282fbf17f231e98d93ea73c7096e5d7d0b2e60e97d9c9",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-10",
+      "kind": "vendor_reply_text",
+      "sha256": "6b9f1ab7071b39a16717f7d35d614adc8983321e620d067a4c83bd377f57b003",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-11",
+      "kind": "vendor_reply_text",
+      "sha256": "0c530ab07552bb9ed6408b4afcb3318546c8da980574344b86d794337247164f",
+      "source_file": "inputs/disputes.json"
+    },
+    {
+      "case_id": "dispute-12",
+      "kind": "vendor_reply_text",
+      "sha256": "72c669d45ec9ccd9181374c61ee7479d1fa663f80c86205ebd95c047d56cd8fa",
+      "source_file": "inputs/disputes.json"
+    }
+  ],
+  "execution_status": "NOT_RUN_AT_FREEZE"
+}

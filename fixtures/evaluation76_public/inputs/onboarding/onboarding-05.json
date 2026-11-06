@@ -1,0 +1,44 @@
+{
+  "id": "onboarding-05",
+  "classification": "AUTHORED_PUBLIC",
+  "fictional": true,
+  "authorized_for_external_inference": true,
+  "customer_data": false,
+  "requested_profile": "monthly",
+  "document": {
+    "name": "Vesper Chisel Policy",
+    "uri": "urn:synthetic:public-evaluation76:onboarding-05",
+    "classification": "synthetic_public",
+    "text": "Vesper Chisel Adaptive Credit Policy\nVendor: Vesper Chisel.\nThis policy applies to Chisel Search Flex during 2026.\nMonthly availability below 99.8% qualifies a request for consideration.\nThe service-credit percentage is the median of the percentages offered by three comparable vendors selected by Vesper Chisel when the claim is reviewed. The comparison vendors and their controlling terms are not fixed by this policy.\nThe amount is based on the customer's affected monthly subscription fee. No minimum credit percentage is promised.\nA request must be submitted within 20 calendar days after the month ends.\n"
+  },
+  "overlay": {
+    "agreement": "Vesper Chisel Adaptive Credit Policy",
+    "account": "public76-account-5",
+    "product": "Chisel Search",
+    "plan": "Flex",
+    "fee_line_ref": "public76-fee-5",
+    "currency": "USD",
+    "effective_from": "2026-01-01",
+    "effective_until": "2026-12-31"
+  },
+  "scope": {
+    "vendor": "Vesper Chisel",
+    "agreement": "Vesper Chisel Adaptive Credit Policy",
+    "account": "public76-account-5",
+    "product": "Chisel Search",
+    "plan": "Flex",
+    "month": "2026-08",
+    "fee_line_ref": "public76-fee-5",
+    "currency": "USD"
+  },
+  "evidence": {
+    "eligible_downtime_minutes": 1000,
+    "monitor_source": "simulated_vendor",
+    "month_complete": true,
+    "exclusions_removed": true,
+    "monthly_fee_cents": 26000,
+    "received_at": "2026-09-10T09:00:00Z",
+    "comparison_vendors": null,
+    "comparison_contracts": null
+  }
+}

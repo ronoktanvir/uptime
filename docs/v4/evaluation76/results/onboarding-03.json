@@ -1,0 +1,198 @@
+{
+  "elapsed_seconds": 15.956071083001007,
+  "error": "Public model proposal rejected: Unsupported material in resource clause 9.; model=claude-opus-5-5; session=85656174-6869-4820-9d2e-2eff16cba734; source_sha256=477b0492298f7b7c9ea051bde217e5f9ffea396de53d80571199420234387680; proposal_sha256=81e83cca2a23384c79d63a1d0c6053f76be1534ae8ffc5512a3bc8af0eb652a9",
+  "error_type": "RejectedProposal",
+  "evaluator_called": false,
+  "extraction_accepted": false,
+  "financial_mutation": false,
+  "human_approval": false,
+  "id": "onboarding-03",
+  "kind": "onboarding",
+  "legacy_raw_output": {
+    "legacy_fence_normalization_eligible": true,
+    "model_usage": {
+      "claude-opus-5-5": {
+        "cacheCreationEphemeral1hInputTokens": 5894,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationInputTokens": 5894,
+        "cacheReadInputTokens": 0,
+        "canonicalModel": "claude-opus-5-5",
+        "contextWindow": 1000000,
+        "costBasis": "list",
+        "costUSD": 0.07236000000000001,
+        "inputTokens": 2,
+        "maxOutputTokens": 128000,
+        "outputTokens": 1260,
+        "provider": "firstParty",
+        "thinkingTokens": 755,
+        "webSearchRequests": 0
+      }
+    },
+    "provider_is_error": false,
+    "raw_result_sha256": "29ff91b25a69a54ef63cfa581590ca459e3ed9db39cdaf4766df90e32ba488e5",
+    "session": "85656174-6869-4820-9d2e-2eff16cba734",
+    "strict_json_output": false
+  },
+  "process_output": {
+    "provider.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "provider.stdout": {
+      "bytes": 2934,
+      "sha256": "6835962ac4cb1698de734215f6ebd4a9ee56d869daca9ac67a8b7a0ddf225c0c"
+    }
+  },
+  "rejection": {
+    "allow_propositions": true,
+    "at": "2026-11-06T01:49:03.064322+00:00",
+    "model": "claude-opus-5-5",
+    "profile": "resource-month",
+    "protocol": "public_block_ids/1",
+    "raw_proposal": {
+      "blocks": [
+        {
+          "id": 1,
+          "value": {
+            "agreement": "Cedar Meridian Storage SLA 2026"
+          }
+        },
+        {
+          "id": 2,
+          "value": {
+            "vendor": "Cedar Meridian"
+          }
+        },
+        {
+          "id": 3,
+          "value": {
+            "effective": [
+              "2026-01-01",
+              "2026-12-31"
+            ],
+            "scope": {
+              "plan": null,
+              "product": "Beacon Store Standard"
+            }
+          }
+        },
+        {
+          "id": 4,
+          "value": {
+            "period": "resource_utc_calendar_month"
+          }
+        },
+        {
+          "id": 5,
+          "value": {
+            "exclusions": [
+              "customer configuration"
+            ],
+            "interval_measurement": [
+              "union_overlaps",
+              "exact_elapsed",
+              "no_minimum_duration"
+            ],
+            "provider_causes": [
+              "provider equipment failure"
+            ],
+            "symptoms": [
+              "read requests fail"
+            ]
+          }
+        },
+        {
+          "id": 6,
+          "value": {
+            "interval_measurement": [
+              "availability_ratio"
+            ]
+          }
+        },
+        {
+          "id": 7,
+          "value": {
+            "tiers": [
+              {
+                "at_least": null,
+                "below": "99.5",
+                "credit": "10"
+              },
+              {
+                "at_least": null,
+                "below": "99.0",
+                "credit": "20"
+              }
+            ]
+          }
+        },
+        {
+          "id": 8,
+          "value": {
+            "fee_basis": "affected_resource_fees",
+            "fee_exclusions": [
+              "Support",
+              "tax",
+              "one-time charges"
+            ],
+            "remedy": "future_noncash_credit"
+          }
+        },
+        {
+          "id": 9,
+          "value": {
+            "fixed_filing": {
+              "at": "2026-12-20T23:59:59Z",
+              "endpoint": "inclusive"
+            },
+            "unsupported": "The receipt cutoff is stated only for the November 2026 service month. No filing deadline is given for other covered months."
+          }
+        }
+      ]
+    },
+    "raw_proposal_sha256": "81e83cca2a23384c79d63a1d0c6053f76be1534ae8ffc5512a3bc8af0eb652a9",
+    "reason": "Unsupported material in resource clause 9.",
+    "session": "85656174-6869-4820-9d2e-2eff16cba734",
+    "source_sha256": "477b0492298f7b7c9ea051bde217e5f9ffea396de53d80571199420234387680",
+    "status": "REJECTED"
+  },
+  "request_attempts": 1,
+  "request_sha256": "456a61e86cc60b9337dde59c662dadf6d0d893791bea87b14b2967c0dde80c40",
+  "schema_grounding_accepted": false,
+  "stage": "proposal_validation_refusal",
+  "transport_class": "LEGACY_VENDOR_MODEL_SUBPROCESS_NOT_SAFEPUBLICCLAUDE",
+  "classification": "AUTHORED_PUBLIC",
+  "actual_provider_identity": {
+    "model": "claude-opus-5-5",
+    "session": "85656174-6869-4820-9d2e-2eff16cba734",
+    "identity_basis": "legacy JSON modelUsage checked by frozen generate",
+    "requested_tool_inventory": [],
+    "initialized_tool_inventory": null,
+    "initialized_inventory_verified": false
+  },
+  "raw_model_response": "```json\n{\"blocks\":[{\"id\":1,\"value\":{\"agreement\":\"Cedar Meridian Storage SLA 2026\"}},{\"id\":2,\"value\":{\"vendor\":\"Cedar Meridian\"}},{\"id\":3,\"value\":{\"scope\":{\"product\":\"Beacon Store Standard\",\"plan\":null},\"effective\":[\"2026-01-01\",\"2026-12-31\"]}},{\"id\":4,\"value\":{\"period\":\"resource_utc_calendar_month\"}},{\"id\":5,\"value\":{\"symptoms\":[\"read requests fail\"],\"provider_causes\":[\"provider equipment failure\"],\"exclusions\":[\"customer configuration\"],\"interval_measurement\":[\"union_overlaps\",\"exact_elapsed\",\"no_minimum_duration\"]}},{\"id\":6,\"value\":{\"interval_measurement\":[\"availability_ratio\"]}},{\"id\":7,\"value\":{\"tiers\":[{\"below\":\"99.5\",\"credit\":\"10\",\"at_least\":null},{\"below\":\"99.0\",\"credit\":\"20\",\"at_least\":null}]}},{\"id\":8,\"value\":{\"fee_basis\":\"affected_resource_fees\",\"fee_exclusions\":[\"Support\",\"tax\",\"one-time charges\"],\"remedy\":\"future_noncash_credit\"}},{\"id\":9,\"value\":{\"fixed_filing\":{\"at\":\"2026-12-20T23:59:59Z\",\"endpoint\":\"inclusive\"},\"unsupported\":\"The receipt cutoff is stated only for the November 2026 service month. No filing deadline is given for other covered months.\"}}]}\n```",
+  "raw_model_response_sha256": "29ff91b25a69a54ef63cfa581590ca459e3ed9db39cdaf4766df90e32ba488e5",
+  "protected_result_sha256": "d8e62f6bec68b2371ce282aae7308989c282362b304d69102f83ce09b8678e76",
+  "protected_stream_sha256": "6835962ac4cb1698de734215f6ebd4a9ee56d869daca9ac67a8b7a0ddf225c0c",
+  "protected_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "score": {
+    "error": "Public model proposal rejected: Unsupported material in resource clause 9.; model=claude-opus-5-5; session=85656174-6869-4820-9d2e-2eff16cba734; source_sha256=477b0492298f7b7c9ea051bde217e5f9ffea396de53d80571199420234387680; proposal_sha256=81e83cca2a23384c79d63a1d0c6053f76be1534ae8ffc5512a3bc8af0eb652a9",
+    "evaluation_missing": [],
+    "expected_amount": "170.00",
+    "expected_math_observed": false,
+    "expected_outcome": "ELIGIBLE",
+    "extraction_accepted": false,
+    "id": "onboarding-03",
+    "observed_amount": null,
+    "observed_outcome": null,
+    "pass_expected": false,
+    "request_attempts": 1,
+    "result_sha256": "d8e62f6bec68b2371ce282aae7308989c282362b304d69102f83ce09b8678e76",
+    "safe_refusal_without_positive_money": false,
+    "schema_grounding_accepted": false,
+    "stage": "proposal_validation_refusal",
+    "strict_json_output": false
+  },
+  "action_authority_evaluated": false,
+  "actions_executed": 0
+}
