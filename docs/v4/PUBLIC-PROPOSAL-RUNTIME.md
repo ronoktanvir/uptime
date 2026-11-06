@@ -15,6 +15,8 @@ Keep runtime configuration and its approval catalog outside Git, in an operator-
 
 Create an empty approval catalog with `version: 1`, `limits: {"daily_jobs":20,"daily_budget_usd":"20.00"}` and `approvals: []`. Enable only the kinds needed. Start the existing local server with `--public-proposal-config /absolute/private/path/config.json`. The configuration uses the existing authenticated Claude Code installation and the reviewed tool-free profile. No credential is read into a prompt, copied into this configuration, or stored in Git.
 
+The existing authored Northwind workspace can use the same protected configuration with `scripts/setup_northwind.py --directory /absolute/workspace/path --resume --serve --public-proposal-config /absolute/private/path/config.json`. Its financial ledger and existing source identity are preserved. Model permissions still require each exact source request; resuming a workspace does not approve new inputs.
+
 The application exports the complete request and its binding after normal account/source permission checks. Its JSON has `tenant`, `subject`, `kind`, `target`, `context_sha256`, `request` and `source_references`; each source reference has `reference` and `sha256`. The request includes model, prompt, schema, source bytes and pinned transport settings. Source whitespace is preserved. Overlays and private fee data are not part of vendor generation. A request export is not permission to send it.
 
 Review and explicitly authorize an authored-public request offline:

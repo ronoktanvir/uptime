@@ -70,7 +70,7 @@ def prepare(directory,origin):
     return open_workspace(directory)
 
 
-def open_workspace(directory):
+def open_workspace(directory, *, proposal_config=None):
     directory=Path(directory).resolve()
     from uptime.source_config import _protected_path,_check_file
     path=_protected_path(directory/'workspace.json')
@@ -87,7 +87,8 @@ def open_workspace(directory):
         senders=senders,clock_start='2026-03-01T12:00:00Z',clock_steps={},
         correspondence=package['correspondence'],provider_path=directory/'local-ledger.db',governing_fees=build_fee_registry(package))
     app=create_app(directory/'workspace.db',mode='replay',rehearsal=True,approvals_enabled=True,
-        rehearsal_secret=private['rehearsal_secret'],service_credentials=registry,origin=private['origin'],workflow_config=config)
+        rehearsal_secret=private['rehearsal_secret'],service_credentials=registry,origin=private['origin'],workflow_config=config,
+        proposal_config=proposal_config)
     return app,private,events
 
 
@@ -189,7 +190,10 @@ def main():
     parser.add_argument('--origin',default='http://127.0.0.1:8776')
     parser.add_argument('--resume',action='store_true')
     parser.add_argument('--serve',action='store_true')
+    parser.add_argument('--public-proposal-config',type=Path,help='Protected exact-request model configuration for the served workspace')
     args=parser.parse_args()
+    if args.public_proposal_config and not args.serve:
+        parser.error('--public-proposal-config requires --serve')
     app,private,events=open_workspace(args.directory) if args.resume else prepare(args.directory,args.origin)
     if not args.resume:
         from fastapi.testclient import TestClient
@@ -200,6 +204,10 @@ def main():
     print(json.dumps(dict(directory=str(args.directory),origin=private['origin'],account=SCRIPT,
                           reviewer_credential_file=str(args.directory/'scripted-reviewer.jwk'))),flush=True)
     if args.serve:
+        if args.public_proposal_config:
+            # Seeding closes its TestClient lifecycle. Construct the configured
+            # job service only for the process that will serve requests.
+            app,private,events=open_workspace(args.directory,proposal_config=args.public_proposal_config)
         import uvicorn
         uvicorn.run(app,host='127.0.0.1',port=int(private['origin'].rsplit(':',1)[1]),log_level='warning')
 
