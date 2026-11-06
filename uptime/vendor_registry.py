@@ -11,7 +11,7 @@ from .claim_identity import EconomicScopeReviewRequired, claim_key, vendor_econo
 from .onboarding import _atomic
 from .storage import database, now, persist_case, _read_versions
 from .vendor_eval import evaluate, generated_checks, rate_for
-from .vendor_model import staged_extraction
+from .vendor_model import job_extraction, staged_extraction
 from .vendor_terms import Document, Intake, Strict, bind_overlay, candidate_version, semantics_revision
 from .vendor_public_diagnostics import selected_attachment, public_issues
 from . import vendor_bindings
@@ -275,13 +275,21 @@ def _fresh(old, vendor):
                 checks=[], tests=[], suite=None, test_author=None,semantic_binding=None)
 
 
-def install(path, p, vendor, body):
+def install(path, p, vendor, body, *, public_receipt=None):
+    """`public_receipt` is a server-only seam resolved from an owned, pinned public proposal job.
+
+    HTTP bodies never reach it. It is completely revalidated against the intake document
+    here, and every other intake, quarantine, version and review gate is unchanged.
+    """
     with transaction(path, p, vendor, write=True, draft=True) as db:
         old = _tail(db, p, vendor, required=False)
         state = _fresh(old, vendor)
         try:
             intake = Intake.model_validate(body)
-            manifest, extraction = staged_extraction(intake.document)
+            if public_receipt is None:
+                manifest, extraction = staged_extraction(intake.document)
+            else:
+                manifest, extraction = job_extraction(intake.document, public_receipt)
             overlay = bind_overlay(manifest, intake.overlay)
         except (ValueError, OSError, TypeError, OverflowError) as exc:
             # Retain a safe digest and error category, never echo malformed/private raw inputs.

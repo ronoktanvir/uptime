@@ -41,11 +41,11 @@ test('starts read-only even with returned actions; fields contain no sample valu
   const activation = findButton(root,'Activate reviewed version'); assert.equal(activation.disabled,true);
   await activation.listeners.click();
   assert.equal(requests.length,1);
-  assert.ok([...root.all('input'),...root.all('textarea')].every(n=>n.value===''));
+  assert.ok([...root.all('input'),...root.all('textarea')].every(n=>n.name==='attempt_nonce' ? n.value==='initial' : n.value===''));
 });
 test('vendor intake sends exact separate public document and overlay through injected client', async () => {
   const {root,ui,requests} = setup({write:true}); await ui.render(root,'vendors');
-  const f = findForm(root,'Generate candidate'); fill(f,intake); await submit(f);
+  const f = findForm(root,'Stage local candidate'); fill(f,intake); await submit(f);
   const r = requests.at(-1);
   assert.equal(r.path,'/api/vendors/new%2Fvendor/candidates');
   assert.deepEqual(r.body,{document:{name:intake.name,uri:intake.uri,classification:intake.classification,text:intake.text},overlay:{account:'customer-a',currency:'USD'}});
@@ -54,7 +54,7 @@ test('vendor intake sends exact separate public document and overlay through inj
 });
 test('invalid JSON never sends a request and leaves form data intact', async () => {
   const {root,ui,requests} = setup({write:true}); await ui.render(root,'vendors');
-  const f = findForm(root,'Generate candidate'); fill(f,{...intake,overlay:'not JSON'}); await submit(f);
+  const f = findForm(root,'Stage local candidate'); fill(f,{...intake,overlay:'not JSON'}); await submit(f);
   assert.equal(requests.length,1); assert.match(root.textContent,/Enter valid JSON for overlay/);
   assert.equal(f.all('textarea').find(n=>n.name==='text').value,intake.text);
   assert.throws(()=>parseJSON('[]','overlay'),/JSON object/);
@@ -140,7 +140,7 @@ test('failed vendor detail keeps that vendor read-only without hiding intake', a
   const {root,ui}=setup({write:true,get:path=>{ if(path==='/api/vendors') return {vendors:[{vendor_id:'unavailable',revision:4}]}; throw new Error('unavailable'); }});
   await ui.render(root,'vendors'); assert.match(root.textContent,/Vendor details unavailable/);
   assert.equal(findButton(root,'Evaluate into a case'),undefined);
-  assert.ok(findForm(root,'Generate candidate'));
+  assert.ok(findForm(root,'Stage local candidate'));
 });
 test('unsupported projection requests never fall through to an empty API route', async () => {
   const {ui,root,requests}=setup(); await assert.rejects(ui.render(root,'portfolio'),/projection is required/);
