@@ -95,6 +95,9 @@
     return data;
   }
   function account() {
+    generation++; signedPage = false; companionAccess = {};
+    content.setAttribute('aria-busy', 'false');
+    ramp?.unmount(); workspaceWorkflow?.unmount(); companion?.unmount(content);
     if (dialog.open) dialog.close();
     content.replaceChildren(window.uptimeAuth.signInForm(() => { signedPage = true; navigate(); }));
   }
@@ -299,7 +302,7 @@
       document.head.append(script);
     });
     await companionAssets;
-    companion ||= window.UptimeV4.create({api, getAccess:() => companionAccess, onCase:openCase,
+    companion ||= window.UptimeV4.create({api, getAccess:() => companionAccess, onCase:openCase, onUnauthorized:account,
       reviewForms:true, onRefresh:load, reloadAfterMutation:true});
     return companion;
   }
