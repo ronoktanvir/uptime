@@ -168,6 +168,7 @@
         if(count>1)box.append(el('p',`Suggested proposition ${index+1} of ${count}`,'interpretation-meta'));
         box.append(el('p',`${p.family} · ${p.polarity} · ${p.modality} · ${p.referent}`),el('p','Source: '+where(p.source),'interpretation-meta'),el('blockquote',p.source.quote));for(const s of p.slots)box.append(el('p',`${s.name}: “${s.source.quote}” — ${where(s.source)}`));for(const c of p.conditions)box.append(el('p',`Condition: “${c.quote}” — ${where(c)}`));
         if(p.artifact_type)box.append(el('p','Document type: '+p.artifact_type));
+        else if(p.family==='artifact')box.append(el('p','Document type not recorded. Reference-only matching can still be legitimate; check the original wording and choose a document type explicitly only if the source supports it.','interpretation-artifact-note'));
         if(p.scope_field)box.append(el('p','Incorrect scoped identifier: '+p.scope_field));
         if(p.filing_fields.length)box.append(el('p','Filing items: '+p.filing_fields.join('; ')));}
       for(const s of candidate.interpretation.segments){if(s.role==='unsupported')box.append(el('p','Unresolved content remains in review: '+where(s.source)));else if(s.role==='courtesy')box.append(el('p','Courtesy text: '+where(s.source)));}

@@ -1,0 +1,12 @@
+{
+  "classification": "AUTHORED_PUBLIC",
+  "purpose": "Post-unblinding deterministic category-guidance and human-repair controls, not a blind extraction evaluation",
+  "cases": [
+    {"id": "request-record", "text": "Please supply the request log TRACE-Q with this claim.", "reviewed_type": "resource_log"},
+    {"id": "invoice-record", "text": "Please supply itemized invoice detail BILL-Q with this claim.", "reviewed_type": "invoice_detail"},
+    {"id": "scope-record", "text": "Please supply the account-to-resource mapping MAP-Q with this claim.", "reviewed_type": "scope_mapping"},
+    {"id": "identifier-only", "text": "Please supply document resource-log-Q with this claim.", "reviewed_type": null},
+    {"id": "mixed-categories", "text": "We require either invoice detail or a request log; the missing item is undecided.", "reviewed_type": null, "mandatory_review": true},
+    {"id": "negated-category", "text": "A request log is not required for this claim.", "reviewed_type": null, "mandatory_review": true}
+  ]
+}

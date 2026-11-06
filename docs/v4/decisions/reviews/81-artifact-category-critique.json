@@ -1,0 +1,44 @@
+{
+  "process_status": "completed",
+  "returncode": 0,
+  "duration_seconds": 67.20309624999936,
+  "stream_sha256": "fd335eea3961aa72d749708b0a240f8979b7532c2ae4bce674d0ee379c080fd3",
+  "prompt_sha256": "0326e8e539ee71e37f94bf4895dcfa12d397b21ae99ddb090e23bf13058c5438",
+  "init": [
+    {
+      "model": "claude-opus-5-5",
+      "session_id": "a98da485-d845-451b-8175-e241c405f805",
+      "tools": [
+        "Glob",
+        "Grep",
+        "Read"
+      ],
+      "mcp_servers": []
+    }
+  ],
+  "tool_calls": [
+    "Glob",
+    "Glob",
+    "Grep",
+    "Read",
+    "Read",
+    "Read",
+    "Read",
+    "Grep",
+    "Read",
+    "Grep",
+    "Grep"
+  ],
+  "result": [
+    {
+      "session_id": "a98da485-d845-451b-8175-e241c405f805",
+      "subtype": "success",
+      "is_error": false,
+      "result": "I concur with the bounded repair, on two conditions below. A missing type is not dangerous here; the risk is in how the change is put together.\n\n**Strongest objection: the change can stop the frozen76 replay check from verifying, and the field description may never reach the model.**\n\n1. `parse_block_result` (`correspondence_block_model.py:86-92`) rebuilds the expected request from the *current* `BLOCK_SYSTEM`, `BLOCK_SCHEMA` and `BLOCK_VERSION`. As soon as you change the prompt, schema or version, the frozen76 request bytes no longer match. The files stay untouched, but their verification fails. Keep the v2 system/schema/version as a frozen, replay-only request builder. Add v3 next to it instead of replacing it, and add a control that the frozen76 replay still passes.\n2. `_same` (`correspondence_blocks.py:22-26`) copies `field.metadata`, which holds constraints, not `FieldInfo.description`. A description added to `Proposition.artifact_type` won't show up in `BlockProposition`'s schema, so the model won't see it. Put the description on `BlockProposition` directly, and assert that it appears in `BLOCK_SCHEMA`.\n3. The version bump is not what protects approvals. System and schema are already inside the hashed request bytes, so any prompt change invalidates old allowlist digests by itself. The bump is still worth doing so provenance shows which representation produced a result. Just don't describe it as the safety mechanism.\n\n**Do the definitions overreach?** Not inherently, but there would now be three sources of truth: the regexes in `correspondence_reason.py:118-120` and `correspondence_language.py:166-168`, the UI labels in `interpretation.js:66` (\"Itemized billing record\", \"Incident or telemetry record\", \"Account or resource mapping\"), and the new prompt text. Two specific concerns:\n- **scope_mapping:** the regex includes \"ownership record\" and \"account linkage\", but the UI label doesn't mention ownership. Make the definitions match the UI labels word for word, or say why they differ.\n- **\"request log\":** this can mean an HTTP request log or a history of support or claim requests. Define resource_log as a record of the affected service's operation (incidents, telemetry, request or access logs). If the source doesn't tie the log to the service, the type should be null.\n\nAlso, don't write the definitions as synonym lists. That turns the model into the keyword classifier you are rejecting.\n\n**Limits of whole-block grounding.** `artifact_type` has no span of its own; its source is the whole block. Hydration can't tell \"category stated\" apart from \"category guessed from an opaque ID\". So \"never infer a type from an identifier\" is an instruction, not something the code enforces. The opaque-identifier control only checks annotations you supplied, as you already say. The same applies to a reviewer's correction: the only witness is the explanation, which needs just 12 characters (`correspondence_interpretation.py:67`).\n\n**Is a stronger schema needed now? No.** Mistakes in this field fail safe:\n- A null type keeps the existing reference-only match.\n- A non-null type only narrows matching (`correspondence_artifacts.py:44,62`), so a wrong type blocks progress but can't create a result.\n- A type on any family other than artifact already produces `unknown` (`correspondence_interpretation.py:303`).\n- The preview refuses any change to awarded money (`correspondence_review.py:266`).\n\nOne thing to know: resource_log and scope_mapping share the same verification kind and evidence families (`correspondence_artifacts.py:9,80-81`). The only thing separating them is the type-equality filter. A category quote selector becomes necessary if the type ever drives anything beyond that filter, or if review stops being mandatory.\n\n**Controls to add:**\n- **Frozen76 replay:** the v2 builder still accepts the frozen bytes, and v3 bytes produce a different digest that the old allowlist rejects.\n- **Schema:** the description appears in `BLOCK_SCHEMA`, null is still allowed, and the output shape is unchanged.\n- **Mixed categories:** either null or split propositions. A split must produce `unknown` through `primary_proposition_index`, never a primary.\n- **Negated requirement** (e.g. \"no invoice detail needed, send the log\"): the negated category is never the type of the positive proposition.\n- **Missing-type flag in the UI:** shown on the candidate only (line 170), visible only after the blind entry, with no change to `e.artifact` (line 104 leaves it at 'none') and no default selection.\n- **Reviewer repair:**\n  - Accepting a changed row is refused (line 224); `correct` with an explanation succeeds.\n  - The source span and the `artifact_ref` slot are byte-identical.\n  - The alignment shows the reviewed row matching neither blind nor candidate.\n  - `ledger_unchanged`, `external_actions=[]` and awarded money stay unchanged.\n  - `prepare_allowed` is still controlled by the evidence-backed stage.\n- **Reviewer adds a type to a non-artifact family:** the result is `unknown`.\n- **Correction is stricter, not looser:** after the type is added, a verification with the same reference but a different type no longer matches.\n\n**Concurrence:** I agree with rejecting category guessed from an identifier, a mandatory non-null type and the witness migration. I agree that no model rerun is needed for this limited claim, and that the Public76 evidence supports a guidance diagnosis rather than an expected improvement. I dissent only until the frozen-replay path and the description placement are fixed and the definitions match the UI labels.",
+      "permission_denials": [],
+      "models_in_usage": [
+        "claude-opus-5-5"
+      ]
+    }
+  ]
+}

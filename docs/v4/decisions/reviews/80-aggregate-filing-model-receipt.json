@@ -1,0 +1,89 @@
+{
+  "schema": "uptime-model-review-receipt/1",
+  "decision": 80,
+  "status": "completed",
+  "input_classification": "AUTHORED_PUBLIC_SOURCE_CODE_AND_TESTS",
+  "runs": [
+    {
+      "role": "critique",
+      "model": "claude-opus-5-5",
+      "session_id": "d25670b6-b502-40f0-a49d-dc81a52c8a0c",
+      "tool_inventory": [],
+      "mcp_servers": [],
+      "status": "success",
+      "is_error": false,
+      "process": {
+        "pid": 41518,
+        "timeout_seconds": 300,
+        "status": "completed",
+        "exit_code": 0
+      },
+      "stream_sha256": "6939b4b24851c5c2b7279c63ccb322a466f64dfe46e3232cc454cbcd7a844084",
+      "actual_final_critique_text": "# Decision80 critique: fixed_filing source binding\n\n**Verdict:** Proceed with bounded full matching. Before coding, fix three gaps in the decision: the unit of consumption, the mutation order, and how companion statements are enumerated.\n\n## Decisive failure modes in the current branch (beyond the documented bug)\n\n1. **Negation passes as inclusive.** `exactly.{0,40}permitted` matches \"Filing exactly at that timestamp is **not** permitted.\" The pattern `inclusive` also matches inside \"non-inclusive.\"\n2. **Mutation on failure.** `fixed_filing_days` is written before the common tail rejects a conflicting `fixed_filing`. It also silently overwrites an existing `fixed_filing_days` without an equality check.\n3. **Days from the wrong obligation.** The first \"within N days after\" anywhere wins. For example, \"credits are issued within 30 days after\" would supply the filing days.\n4. **Recipient \"by\" is read as a comparator.** \"by the vendor\" satisfies the inclusive-cutoff check, as the packet already identifies.\n\n## Decisive risks in the proposed correction\n\n**A. \"Full source block\" is undefined.** Aggregate sources may put the period, credit, amount and filing text in one block.\n- If the block must be fully consumed by filing assertions, valid aggregates such as CalyxQuay and Northwind will refuse.\n- Naive sentence splitting on \".\" breaks on amounts like \"10.00\".\n- **Correction:** Name the unit precisely.\n  - Run full-match over the filing-assertion sentences.\n  - Refuse if any *other* sentence in the block contains filing or deadline vocabulary (claim, file, filed, filing, receive, deadline, due, cutoff, late) or a second ISO timestamp that the grammar did not consume.\n  - Split sentences only at `. ` followed by an uppercase letter or end of text, applied after normalization.\n\n**B. Companions must be an enumerated set, not \"semantically consistent.\"** Allow exactly two:\n- `filing exactly at that timestamp is permitted.` Valid only with an inclusive endpoint.\n- `a claim filed later receives no credit.` Valid with either endpoint.\n\nAny other companion, including any negated form, refuses. Do not add an exclusive \"exactly \u2026 not permitted\" form now, because no known source uses it.\n\n**C. Comparator table must be total and explicit.**\n\n| Phrase | Result |\n|---|---|\n| `no later than T inclusive` | inclusive |\n| `no later than T` | inclusive |\n| `by T` (where T is the timestamp token itself) | inclusive |\n| `before T` / `before T exclusive` | exclusive |\n| Anything else, including `no later than T exclusive`, `before T inclusive`, `by the <party>` | refuse |\n\n- Decide `received by the vendor no later than T`: either support it explicitly with a test, or let it refuse. My recommendation is refuse, because it is outside the three known forms.\n\n**D. Clock origins should be a closed list.** Allow only `after the service month` and `after the monthly period ends`. Optional `calendar` is acceptable only if an existing form uses it. Anything else refuses. Relative days must appear in the same sentence as the timestamp, and a second relative-days phrase anywhere in the filing span refuses.\n\n**E. Normalization must be explicit.** Lowercase the source, collapse ASCII whitespace, and refuse non-ASCII whitespace and quotes rather than normalizing them. Compare the timestamp token textually after `utc()`. A proposal in `+00:00` form against a source in `Z` form should refuse (fail closed) and needs a test.\n\n**F. Atomic commit.**\n1. Compute `endpoint` and optional `days` as locals.\n2. Check the existing `manifest['fixed_filing']` and `manifest.get('fixed_filing_days')` for equality.\n3. Raise before any write.\n4. Write both values together only on success.\n\n## Required falsification controls (additions to the packet list)\n\n- `deepcopy(manifest)` is unchanged after every refusal path, including the case where `fixed_filing_days` is pre-set and conflicting.\n- Re-validating an identical value is idempotent.\n- Exactly-permitted negation; `non-inclusive`; an exactly-permitted companion combined with an exclusive endpoint.\n- A credits-issued-within-N-days sentence in the same block, with and without a filing-days phrase.\n- A second timestamp, such as the period end, in a separate sentence of the same block. This should be accepted only when that sentence has no filing vocabulary, and the test must assert which outcome the grammar gives.\n- Decimal amounts in the same block, to catch sentence-split regressions.\n- `Z` vs `+00:00` mismatch; a timestamp appearing only inside a longer token or a URL.\n- Recipient-only \"by\" together with an otherwise valid inclusive cutoff elsewhere. This must refuse, unless the recipient form is explicitly supported.\n- **Aggregate bug control:** assert that compilation raises and that no eligibility preview, amount or TIMELY status object is constructed. Checking only the final label is not enough.\n- Byte-identical compile output for the three known forms and for the unchanged CalyxQuay and Northwind fixtures, compared before and after the change. Checking only that they pass is not enough.\n\n## Scope check\n\nOwnership is correctly narrow. One boundary needs care: refusing filing vocabulary in non-filing sentences must not reach into the `fixed_period` or `scoped_filing` parsing. Implement it as a read-only scan inside the `fixed_filing` branch. If the CalyxQuay or Northwind compatibility fixtures fail under the vocabulary scan, stop and narrow the vocabulary. Do not add exceptions.",
+      "sanitization": "Source/test-only criticism retained verbatim. Full process stream protected outside Git."
+    },
+    {
+      "role": "implementation",
+      "model": "claude-opus-5-5",
+      "session_id": "c859a7fc-89f8-4e51-a4c0-5a739c140894",
+      "tool_inventory": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "mcp_servers": [],
+      "tools_used": [
+        "Edit",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "status": "success",
+      "is_error": false,
+      "process": {
+        "pid": 42022,
+        "timeout_seconds": 900,
+        "status": "completed",
+        "exit_code": 0
+      },
+      "stream_sha256": "b41fc70be7c9fb6a00353d6df62c229823438cb1ebfabf58eb116bb4dbb7f582",
+      "edit_or_write_calls": 4,
+      "edited_files": [
+        "tests/test_vendor_fixed_filing_80.py",
+        "uptime/vendor_service_month.py"
+      ],
+      "actual_final_implementation_text": "I've replaced the `fixed_filing` keyword search with one finite full-block grammar and written focused tests. **I have not run any tests**: no tests, Bash or Git were used, so everything below is unverified until you run it.\n\n## Files changed\n1. **`uptime/vendor_service_month.py`**\n   - New constants `_FILING_COMPARATORS`, `_FILING_DEADLINE` and `_FILING_COMPANIONS`, plus one helper `_filing_assertion` (lines 119\u2013148).\n   - The `fixed_filing` branch of `validate()` was rewritten. Nothing else changed: `fixed_period`, `utc()`, the scoped helpers, `evaluate`, `PROMPT` and the shared tail are as they were.\n2. **`tests/test_vendor_fixed_filing_80.py`** (new).\n\n## What the new grammar accepts\n- **Whole block:** the first sentence must be one complete claim deadline: `the [timestamped] claim` + `is due` / `must|shall be filed` / `must|shall be received [by the vendor|provider]` + an optional relative-days phrase + comparator + timestamp + optional `inclusive|exclusive` + `.`. Every later sentence must be one of the two allowed companions, each used at most once. Sentences are split only at `\". \"`. Anything left unconsumed refuses.\n- **Comparators:** `no later than`, `by`, `at or before` and `on or before` mean inclusive. `before` and `strictly before` mean exclusive. A suffix must agree with its comparator, and the result must equal the proposed endpoint. `non-inclusive`, `no later than \u2026 exclusive` and `before \u2026 inclusive` all refuse.\n- **Recipient:** `by the vendor/provider` is only accepted straight after `be received`, and an actual comparator must follow it. So the original bug, `received by the vendor at T`, refuses.\n- **Timestamp:** the source token must equal `value['at']` character for character. That means `Z` vs `+00:00` and lowercase timestamps refuse. `utc()` restrictions are unchanged, and matching is ASCII-only, so ligatures and non-ASCII digits refuse.\n- **Relative days:** taken only from the same sentence. The count is 1\u2013999 with no leading zero, and `calendar` is optional. Allowed origins: `after the service month`, `following the service month`, `after the monthly period ends`. Checking the days against the period end is still the compiler's job, which hasn't changed.\n- **Companions:** `Filing exactly at that timestamp is permitted.` is valid only with an inclusive endpoint. `A claim filed later receives no credit.` is valid with either.\n- **Writes:** all checks run before anything is written. A conflicting stored `fixed_filing` or `fixed_filing_days` raises with the manifest untouched. Repeating an identical validation changes nothing. An identical absolute assertion without days keeps days already stored. The stored value is the same object as before, so key order and fingerprints shouldn't change.\n\n## Tests cover\n- The three known blocks, verbatim, with exact manifests.\n- The comparator table, recipient forms and companions.\n- About 60 refusal cases, each checking the manifest is unchanged and that the source also fails to compile.\n- A frozen copy of the old keyword gate, as a before/after witness.\n- Malformed proposals and non-UTC timestamps.\n- Conflicting stored state, idempotence, and repeats in either order.\n- The original bug: compilation refuses.\n- Simulated evaluation before, at and after the cutoff, for both inclusive and exclusive.\n- The existing relative-days mismatch error.\n\nAll evaluation goes through the existing scripted review helper; nothing in the tests implies human approval, a real filing or an award.\n\n## Limitations and risks\n- **Form 3 is only tested by direct validation.** I didn't build a full compile for it because I couldn't predict the compiler's other material checks; your CalyxQuay replay covers it.\n- **Byte-identical comparison** of the known and baseline manifests is left to you.\n- **Exclusive compile untested in practice:** the exclusive compile test assumes no other compiler check objects to `before` wording. That's untested.\n- **Compile-time refusal reasons vary:** some refusal cases may be rejected at compile time for a different reason, such as the existing `unless`/`except` checks. Those tests only assert `ValueError`.\n- **Narrower than before (deliberate):**\n  - Plural `Claims \u2026`, `earlier than` / `prior to`, and companions in any other wording now refuse.\n  - The main sentence must come first.\n  - The case-insensitive timestamp match the old code allowed is gone.\n- **Recipient with comparator is supported:** `received by the vendor no later than T` is accepted, following your disposition rather than the critic's.\n- **Out of scope:** `PROMPT` text and `vendor_resource_operators.normalize_source_block` were left unchanged. I recommend no edits outside my ownership.",
+      "tool_error_count": 0
+    }
+  ],
+  "lead_disposition": "Accept total comparator table, same-obligation relative clocks, finite companions, atomic mutation and idempotence. Reject discarding arbitrary non-filing sentences; known filing compatibility blocks are fully supported without that relaxation. Preserve compiler normalization rather than add an unrelated whitespace policy. Explicit recipient by the vendor/provider is supported only before a genuine timestamp comparator.",
+  "process_configuration": {
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "safe_mode": true,
+    "restricted": true,
+    "permission_mode": "acceptEdits",
+    "permission_prompts": "none",
+    "strict_mcp_config": true,
+    "mcp_servers": {},
+    "chrome": false,
+    "session_persistence": false,
+    "critique_tools": [],
+    "implementation_working_directory": "uptime",
+    "implementation_additional_directories": [
+      "tests"
+    ],
+    "shell_tool": false,
+    "network_tool": false
+  },
+  "limits": [
+    "No external model extraction was measured.",
+    "No native provider, real filing, award or recovery action was attempted.",
+    "No private holdout, credential, customer or native qualification content was supplied."
+  ],
+  "lead_changes_after_delegation": [
+    "Preserved singular/plural claim subjects with optional article and is/are due, retaining mandatory obligation and exact timestamp comparator binding; added four full-compile and contrary-qualification controls. No other source changes."
+  ]
+}

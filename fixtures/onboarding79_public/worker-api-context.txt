@@ -1,0 +1,11 @@
+Public existing interfaces (read-only context):
+- uptime.source_config._protected_path(path): absolute resolved path, no symlink/traversal, outside repository (reject any ancestor .git), operator-owned parent not writable by others. Does not require 0700; export must additionally require that.
+- load_private(path, PublicProposalConfig): 0600 owned single-link regular protected JSON; strict model.
+- PublicProposalConfig has version=1, executable:str, approvals_path:str, kinds:list Literal vendor/correspondence.
+- build_vendor_provider(executable): constructs pinned SafePublicClaude; constructor invokes only --help and --version, never inference. Config must enable vendor once and absolute executable must be a real file. Do not open PublicProposalJobs or approval file just to export.
+- public_approval_request(provider, principal, target, body): validates ProposalRequest, creates full readable JSON {tenant,subject,kind:'vendor',target,context_sha256,request:<JSON object>,source_references:[{reference,sha256}]}; no provider call or queue/DB/approval.
+- ProposalRequest(document:Document, profile:fixed Literal, attempt_nonce='initial'); parent adds monthly-propositions, keeping monthly/resource-month. Document strict fields name,classification(synthetic_public/public),uri,text. Load JSON strictly, no duplicate/nonfinite. Source text must remain exact.
+- DraftReviewer(tenant,subject,'reviewer') is only a data binding for export, not evidence of enrolled/human authority.
+- canonical(value)->sorted compact UTF8 JSON bytes; strict_json(bytes/text) rejects duplicate/nonfinite JSON.
+- scripts.public_proposals.read_export limits export100000bytes, request80000bytes; approve remains separate.
+- Identity fields should reject empty/control/non-string (use bounded <=200 safe opaque string as shared service does); target is validated by helper. No credential inputs.

@@ -1,0 +1,41 @@
+{
+  "base": "c5dd4e4",
+  "classification": "AUTHORED_PUBLIC_CONTROL",
+  "source_quote": "Claims may be received by the vendor at 2026-05-15T00:00:00Z; no filing deadline applies.",
+  "proposed_value": {
+    "at": "2026-05-15T00:00:00Z",
+    "endpoint": "inclusive"
+  },
+  "isolated_manifest": {
+    "fixed_filing": {
+      "at": "2026-05-15T00:00:00Z",
+      "endpoint": "inclusive"
+    }
+  },
+  "expected_safe_result": "Refuse: no deadline is established; recipient by is not a comparator.",
+  "full_compile": {
+    "accepted": true,
+    "fixed_filing": {
+      "at": "2026-05-15T00:00:00Z",
+      "endpoint": "inclusive"
+    }
+  },
+  "scripted_review_evaluation": {
+    "outcome": "ELIGIBLE",
+    "amount": "10.00",
+    "claim_cutoff": "2026-05-15T00:00:00+00:00",
+    "cutoff_inclusive": true,
+    "issuance_status": "NONCASH_SERVICE_CREDIT_UNCONFIRMED",
+    "filing_status": "TIMELY"
+  },
+  "limits": [
+    "Proposition is manually authored; no model extraction or automatic semantic approval demonstrated.",
+    "The first run uses the existing SCRIPTED reviewer helper. The second direct run has no binding context because the aggregate control has no literal roles requiring it. Neither is actual human approval.",
+    "No external filing, award, posting or recovery demonstrated."
+  ],
+  "without_meaning_review": {
+    "outcome": "ELIGIBLE",
+    "amount": "10.00",
+    "missing": []
+  }
+}
