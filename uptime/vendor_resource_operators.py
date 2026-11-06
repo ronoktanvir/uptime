@@ -1,4 +1,6 @@
 """Source-grounded extensions for resource-month terms. This module never executes proposals."""
+from calendar import monthrange
+from datetime import UTC, datetime, timedelta
 import re
 
 from . import vendor_resource_predicates as scoped, vendor_service_month as service
@@ -25,6 +27,11 @@ month reduce its remaining payable credit. Do not apply this operator to unrelat
 Separate source-defined governance and financial conditions. For percentage tables, use the header's actual column
 order and map each positive band, its exclusive upper bound, any explicit inclusive floor, and the rate.
 The filing endpoint is inclusive for 'by' or an explicitly included cutoff. A printed UTC time must be preserved.
+scoped_filing: {"month":"YYYY-MM","at":"exact ISO UTC cutoff","endpoint":"inclusive" or "exclusive","basis":"received"}
+for a receipt deadline explicitly limited to one named service month and year. Preserve the exact timestamp and
+comparator. Use only for ordinary resource terms; aggregate service-month terms use fixed_filing. Each scoped
+cutoff must have its own complete source assertion. Do not infer a year, a filed-at clock, deadlines for other
+months, or a relative day count; do not narrow the agreement's effective dates to its only known filing month.
 A clause requiring a timely initial filing AND allowing timely supplementation may contain filing, supplement,
 evidence and request_fields together. Always mark genuinely unresolved other conditions unsupported.
 Additional exact measurement operators: interval_measurement may contain "half_open" for including starts and excluding
@@ -44,7 +51,51 @@ requires actual delivery, recipient and exact notice scope, independently from t
 
 """ + scoped.PROMPT + service.PROMPT
 
-OPERATORS = {'maintenance', 'interval_measurement', 'fee_adjustment', 'supplement', 'prior_credit','measurement_symbols','zero_band','monthly_limit'} | scoped.FIELDS | service.FIELDS
+OPERATORS = {'maintenance', 'interval_measurement', 'fee_adjustment', 'supplement', 'prior_credit','measurement_symbols','zero_band','monthly_limit',
+             'scoped_filing'} | scoped.FIELDS | service.FIELDS
+
+# scoped_filing={"month":"YYYY-MM","at":"explicit UTC whole-second timestamp","endpoint":"inclusive"|"exclusive",
+# "basis":"received"} is a source-bound absolute receipt cutoff for ONE named service month. It is compiled into the
+# ordinary resource filing slot as {"kind":"scoped_absolute","policies":{month: ...}} and never yields a relative
+# day count or a deadline for any other month. Its finite grammar is one complete sentence per source block.
+_SCOPED_SUBJECT = r'(?:claims|credit claims|service credit claims|credit requests|claims for service credits)'
+_SCOPED_COMPARATOR = r'(?P<comparator>no later than|on or before|at or before|by|strictly before|before|earlier than|prior to)'
+_SCOPED_RECEIPT = _SCOPED_SUBJECT + r' (?:must|shall) be received (?:by the (?:vendor|provider) )?' + _SCOPED_COMPARATOR
+_SCOPED_MONTH = (r'(?:the )?(?P<label>' + '|'.join(service.MONTH_NAMES) + r') (?P<year>\d{4}) (?:UTC )?service month')
+_SCOPED_FORMS = tuple(re.compile(form, re.I) for form in (
+    _SCOPED_RECEIPT + r' (?P<at>' + service.STAMP + r') for ' + _SCOPED_MONTH + r'\.',
+    r'for ' + _SCOPED_MONTH + r', ' + _SCOPED_RECEIPT + r' (?P<at>' + service.STAMP + r')\.',
+))
+_SCOPED_INCLUSIVE = {'no later than', 'on or before', 'at or before', 'by'}
+
+
+def _scoped_filing(manifest, value, quote):
+    if (not isinstance(value, dict) or set(value) != {'month', 'at', 'endpoint', 'basis'}
+            or not isinstance(value['month'], str) or not re.fullmatch(r'\d{4}-(?:0[1-9]|1[0-2])', value['month'])
+            or value['endpoint'] not in ('inclusive', 'exclusive') or value['basis'] != 'received'):
+        raise ValueError('Unsupported scoped filing deadline.')
+    cutoff = service.utc(value['at'])
+    sentence = normalize_source_block(quote)
+    match = next((m for m in (form.fullmatch(sentence) for form in _SCOPED_FORMS) if m), None)
+    if (match is None or match['at'] != value['at']
+            or f"{match['year']}-{service.MONTH_NAMES.index(match['label'].casefold()) + 1:02d}" != value['month']
+            or ('inclusive' if match['comparator'].casefold() in _SCOPED_INCLUSIVE else 'exclusive') != value['endpoint']):
+        raise ValueError('Source does not establish this service month, receipt cutoff and comparator.')
+    year, number = (int(part) for part in value['month'].split('-'))
+    closing = datetime(year, number, 1, tzinfo=UTC) + timedelta(days=monthrange(year, number)[1])
+    if cutoff < closing or cutoff == closing and value['endpoint'] == 'exclusive':
+        raise ValueError('Scoped filing cutoff precedes the end of its service month.')
+    existing = manifest.get('filing')
+    if existing is not None and (not isinstance(existing, dict) or existing.get('kind') != 'scoped_absolute'):
+        raise ValueError('A scoped absolute filing deadline cannot coexist with a relative filing rule.')
+    policies = dict(existing['policies']) if existing else {}
+    if value['month'] in policies:
+        raise ValueError('Duplicate scoped filing deadline for one service month.')
+    citation = manifest['citations'][-1]
+    policies[value['month']] = {'at': value['at'], 'endpoint': value['endpoint'], 'basis': 'received',
+                                'citation': citation['id'], 'block_sha256': citation['block_sha256']}
+    manifest['filing'] = {'kind': 'scoped_absolute', 'policies': policies}
+
 
 _MEASURES = {
     'union_overlaps': (r'overlap|concurrent|intersect|union|simultaneous|double.count|(?:count|measure)[^.;]{0,30}once',
@@ -182,6 +233,9 @@ def apply_operator(manifest, key, value, quote):
             if value['one_per_scope'] is not True or not _cites([r'one|single',r'remedy|credit|entitlement',r'month'],quote):
                 raise ValueError('Uncited single monthly remedy.')
             manifest['one_per_scope']=True
+        return
+    if key == 'scoped_filing':
+        _scoped_filing(manifest, value, quote)
         return
     if key in service.FIELDS:
         service.validate(manifest, key, value, quote)

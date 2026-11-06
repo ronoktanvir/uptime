@@ -1,0 +1,83 @@
+{
+  "schema": "uptime-model-review-receipt/1",
+  "decision": 77,
+  "status": "completed",
+  "input_classification": "AUTHORED_PUBLIC_SOURCE_CODE_AND_TESTS",
+  "packet_summary": "Finite exact full UTC calendar-month source binding and month-scoped received-at filing cutoffs. Preserved public evaluation76 controls are remediation evidence; no customer, credential or private evaluation material.",
+  "runs": [
+    {
+      "role": "critique",
+      "model": "claude-opus-5-5",
+      "session_id": "e85236fb-3ee4-4ade-b634-d2e4b73d82f1",
+      "tool_inventory": [],
+      "mcp_servers": [],
+      "status": "success",
+      "is_error": false,
+      "stream_sha256": "dfd8c2c0ad06ed9bf9fb632d6be8795fbfc6970866c8ee0b8e1abeb2add1a98d",
+      "actual_final_critique_text": "# Decision 77 Critique\n\n## Strongest concrete semantic risk: clause binding, not \"until\"\n\nThe current validator never binds its evidence together. It checks that the start string, end string, `inclusive|including` and `exclusive|excluding` each appear somewhere in the casefolded quote. Several consequences follow from the code as written:\n\n- **Reversed comparators already pass.** \"Start exclusive, end inclusive\" is accepted.\n- **Negated or unrelated words satisfy the keywords.** \"Non-exclusive\", \"not inclusive\" and \"including fees\" all count.\n- **Endpoints and keywords can come from different clauses.** An interval in one sentence plus a qualifier in another passes.\n\nIf the new complete-UTC-month form is added as another substring alternative ORed into this check, it inherits the same flaw. A month label in one clause and endpoints in another would pass. \"Not a complete UTC calendar month\" is only caught if negation is detected in the same span. The proposal's phrase \"tying the named month and both exact endpoints together\" is the hard part, and the regex style shown cannot deliver it. Support needs:\n\n- a finite template matched against a single bounded assertion span, and\n- refusal if the quote contains any other interval, month label or qualifier outside that span.\n\nThe same risk sits in `fixed_filing`:\n\n- **Comparators are not bound to the timestamp.** `\\bby\\b` matches \"by the vendor\". The presence of both \"before\" and \"no later than\" satisfies either endpoint.\n- **A day count leaks globally.** `within N days after` silently writes `fixed_filing_days` into the manifest. If the scoped operator reuses or shares this path, it recreates the rejected global relative-day translation through a side channel.\n\n## Period: representation or missing primitive?\n\nThe period issue is a representation gap. `fixed_period` types and month arithmetic are already correct: day 1, midnight, and end equal to start plus `monthrange`.\n\nTwo caveats:\n\n- `start.replace(hour=0, minute=0, second=0)` ignores microseconds. Whether `utc()` accepts non-`Z` offsets is unstated. A literal `+02:00` endpoint could normalize to a UTC midnight without the source saying \"UTC\".\n- The month label must be checked against `start.year/month`. If the label has no year, the year comes from the endpoints only, and that should be documented.\n\nFiling is a missing primitive, as stated. `fixed_filing`'s strict `{'at','endpoint'}` key set and aggregate semantics make a separate key correct. Overloading it with an optional month would be worse.\n\n## Safe filing-scope shape\n\n`{month, at, endpoint}` is under-specified:\n\n- **Basis is not carried.** The packet requires the source to assert the receipt/filing role but does not store it. Evaluation then cannot know whether to compare `filed_at` or `received_at`. Carry `basis: filed|received` explicitly and require it to match the comparator text.\n- **Year resolution is unspecified.** \"November\" without a year must resolve to a unique month inside the agreement interval. Coverage spanning two Novembers, or a November outside coverage, must refuse.\n- **Store policies keyed by month.** Duplicates should refuse.\n- **Claim-to-month mapping is undefined.** Dispatch needs an explicit rule for which service month a claim belongs to. A claim spanning months should refuse rather than pick one.\n- **Precedence with a relative `filing` rule is undefined.** A general relative rule plus a November absolute override is a plausible legitimate source pattern. \"Conflicting must refuse\" is safe, but the packet should state that coexistence refuses unless the source explicitly states precedence. Otherwise the implementer will choose one.\n\n## Minimal falsification tests (additions)\n\n1. Old form with reversed comparators (\"start exclusive \u2026 end inclusive\") is rejected. It is currently accepted.\n2. \"Non-exclusive\" or \"including taxes\" does not count as endpoint semantics.\n3. Cross-clause case: label in sentence A, endpoints in sentence B \u2192 reject.\n4. A scoped filing quote containing \"within 30 days after\" does not set `fixed_filing_days` or any global relative rule.\n5. Coverage containing two Novembers with a yearless \"November\" \u2192 reject.\n6. Relative rule plus scoped November rule \u2192 refuse, or apply only stated precedence. The off-month claim must not get the November cutoff.\n7. Basis mismatch: source says \"received by\", claim has only a filing time \u2192 unknown, not compared.\n8. A non-`Z` offset or sub-second endpoint string behaves as decided and is pinned by the test.\n9. A claim spanning October and November \u2192 refuse.\n\n## Dissent and scope flags\n\n- **Old-form tightening is hidden scope.** \"Retain old inclusive/exclusive forms only when they establish the same exact bounds\" implies tightening the old branch, given test 1. That fixes a real bug but can regress previously passing cases. Either scope it explicitly with a regression review, or document the old branch's weakness as a known out-of-scope defect. Don't leave it implicit.\n- **Ownership may be wrong.** If a new manifest key must be registered in `vendor_registry.py` or typed in `vendor_model.py` (both excluded), the approved file list cannot hold. Verify this before delegating so the coding agent doesn't route around the exclusion.\n- **\"Until\" is a red herring.** Don't grant \"until\" any endpoint meaning. The complete-month assertion is the authority, and the endpoints are corroboration that must equal it exactly. A test should confirm that \"from X until Y\" without the month assertion still fails.",
+      "sanitization": "Public source/test-only criticism retained verbatim; full stream remains protected outside Git."
+    },
+    {
+      "role": "implementation",
+      "model": "claude-opus-5-5",
+      "session_id": "22ff930f-68c4-4564-bd68-abcc60e03413",
+      "tool_inventory": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "mcp_servers": [],
+      "tools_used": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "status": "success",
+      "is_error": false,
+      "stream_sha256": "f0c6bf90e322a8122e8b1bf5e49332fd9c0ce2477ffdc706ce02cea5aea321bd",
+      "edit_or_write_calls": 13,
+      "edited_files": [
+        "tests/test_vendor_resource_period_scope_77.py",
+        "uptime/vendor_resource_eval.py",
+        "uptime/vendor_resource_operators.py",
+        "uptime/vendor_resource_terms.py",
+        "uptime/vendor_service_month.py"
+      ],
+      "actual_final_implementation_text": "I've implemented the Decision 77 repair, but I haven't run anything: no tests, shell or Git. Every test below was checked by hand against the code and none has been executed. While checking by hand I found and fixed one wrong expectation in my own test (`unresolved_semantics` reports the cutoff as `+00:00`, not `Z`).\n\n## Edit scope\n\n**`uptime/vendor_service_month.py`** (only the `fixed_period` part)\n- The existing validator is fixed in place, not wrapped or duplicated. The keyword-presence check is gone.\n- In its place is a fixed set of five supported sentence forms. Each binds its comparator to its own timestamp:\n  - **Three new calendar-month forms.** Each states \"the UTC calendar month <Month> <YYYY>\" plus both exact endpoints in one sentence. The month and year must match the start timestamp; no year is ever inferred. \"until\" or \"to\" alone gives no authority.\n  - **Two old forms, kept:** `<start> inclusive to <end> exclusive` and `from and including \u2026 to but excluding \u2026`.\n- The existing checks for first-day midnight, the exact next-month end and Z/+00:00 whole-second timestamps are kept (plus microsecond=0).\n- Every sentence in the block must be consumed. The only extra sentence allowed is the one right after the assertion stating the month's minutes, and only if it equals the period's duration.\n- Introductory scope wording (\"This commitment covers Oriole Index Business\") is allowed only as a capitalized name. A small reserved-word check stops qualifiers or month names hiding inside it.\n- `fixed_filing` (aggregate) is untouched.\n\n**`uptime/vendor_resource_operators.py`**\n- New `scoped_filing` operator with exactly the fields `month`, `at`, `endpoint` and `basis` (`received` only).\n- It accepts two sentence forms only, covering one sentence per block, with an explicit month and year, an explicit timestamp and a comparator. \"By the vendor\" is treated as who receives the claim, not as a comparator.\n- It compiles to `manifest['filing'] = {'kind':'scoped_absolute','policies':{YYYY-MM:{at, endpoint, basis, citation, block_sha256}}}`.\n- It refuses a duplicate month, an existing relative `filing` rule, or a cutoff before the month ends. It never writes `fixed_filing_days`.\n\n**`uptime/vendor_resource_terms.py`**\n- The aggregate profile now refuses a `scoped_absolute` filing.\n- After compilation, each scoped month must lie wholly inside the source's effective dates. A relative `filing` in either order already refuses through the existing conflict check.\n\n**`uptime/vendor_resource_eval.py`**\n- New `scoped_deadline`, dispatched first in `deadline`. It requires:\n  - an exact `facts.month` key in the policies,\n  - matching month bounds,\n  - valid existing `received_at`.\n- A missing, different or spanning month raises `Gap`, giving INSUFFICIENT_EVIDENCE with a null amount. A private override, or a damaged basis, endpoint or timestamp, raises `Unsupported`.\n- The `calendar_days` and `billing_cycles` paths are unchanged.\n\n**New: `tests/test_vendor_resource_period_scope_77.py`**\n\n## Tests (results not claimed)\n`test_unchanged_april_clause_was_refused_by_keyword_gate_and_now_binds_exact_endpoints`, `test_other_month_and_year_templates_bind_label_and_both_endpoints`, `test_old_explicit_start_inclusive_end_exclusive_forms_are_preserved`, `test_unsupported_or_contradictory_period_assertions_refuse` (29 cases), `test_keyword_gate_accepted_cross_clause_and_reversed_forms_that_now_refuse`, `test_non_utc_subsecond_and_incomplete_bounds_refuse`, `test_april_aggregate_source_compiles_end_to_end_with_scope_and_original_citation`, `test_aggregate_profile_refuses_a_scoped_filing_primitive`, `test_source_bound_november_policy_compiles_with_exact_citation_and_no_relative_count`, `test_matching_month_inclusive_boundary`, `test_matching_month_exclusive_boundary`, `test_otherwise_complete_off_month_claim_stays_unknown_and_never_inherits_november`, `test_distinct_named_month_policies_coexist_and_each_governs_only_its_month`, `test_direct_deadline_requires_exact_month_matching_bounds_and_receipt_evidence`, `test_relative_filing_paths_are_unchanged_by_the_scoped_dispatch`, `test_private_relative_override_cannot_replace_a_scoped_deadline`, `test_conflicting_duplicate_or_out_of_coverage_scoped_policies_refuse`, `test_scoped_month_must_lie_wholly_inside_a_bounded_effective_interval`, `test_ungrounded_qualified_or_contradictory_scoped_filing_refuses_without_side_effects` (26 cases), `test_accepted_scoped_forms_never_write_a_relative_day_count`.\n\nReview uses the scripted `reviewed_context` test fixture; no test claims a real human review.\n\n## Remaining limitations\n- **Not advertised to the model.** I didn't change the model-facing `PROMPT` text, because that would change the bytes of pinned model requests. The compiler accepts `scoped_filing`, but a model won't propose it until a separate, authorized prompt change.\n- **Old forms are stricter.** Reversed, cross-clause and \"including fees\" wordings that the keyword check used to accept now refuse. Only the one existing authored old-form test was checked against this; there may be other sources I couldn't see.\n- **Strict block rule.** A `fixed_period` block that also contains unrelated sentences now refuses. So does a `scoped_filing` block with anything beyond its one sentence; several months need separate blocks.\n- **Aggregate `fixed_filing` is unchanged.** Its weak comparator matching (for example `\\bby\\b`) and the \"within N days\" rule that writes `fixed_filing_days` remain. That code was outside my ownership.\n- **Other callers fail closed.** `correspondence_history.py:70` calls `deadline` without a month, so it raises `Gap` for scoped manifests.\n- **Re-review needed.** Any stored semantic reviews for `resource-month/1` will need redoing, because the review fingerprints cover these files.\n- **Baseline 76 not checked.** I didn't read the frozen proposal, so I can't say what it does now beyond the authored April clause in the tests.\n- **No documentation.** No Decision 77 doc was written; you limited my edits to these files."
+    }
+  ],
+  "lead_disposition": "Accept clause binding over keyword presence, exact complete UTC month arithmetic, explicit source month and received-at basis, duplicate/conflicting policy refusal and off-month unknown. Existing UTC parser already refuses fractions/nonzero offsets. Filed-at clocks, year inference and relative/absolute precedence are outside scope.",
+  "limits": [
+    "No captured evaluation76 input, expected answer, outbound request or first model response is rewritten.",
+    "No new extraction score, template promotion, actual human approval or external filing is established."
+  ],
+  "process_configuration": {
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "safe_mode": true,
+    "restricted": true,
+    "permission_mode": "acceptEdits",
+    "permission_prompts": "none",
+    "strict_mcp_config": true,
+    "mcp_servers": {},
+    "chrome": false,
+    "session_persistence": false,
+    "critique_tool_inventory": [],
+    "implementation_working_directory": "uptime",
+    "implementation_additional_directories": [
+      "tests"
+    ],
+    "shell_tool": false,
+    "network_tool": false
+  },
+  "lead_changes_after_delegation": [
+    "Advertised scoped_filing in the owned resource operator prompt. This changes future request bytes, not frozen evaluation76 manifests.",
+    "Added refusal of supported scoped filing alongside an explicitly unsupported discretionary extension.",
+    "Preserved the first new-suite failure: 3 timestamp-spelling assertions failed; coding worker independently corrected its own new assertion before completing.",
+    "At integration-lead request, wired correspondence_history.procedure to verified scope.month and original receipt body.received_at, preserving billing_cycles; added matching/off-month signed historical receipt controls. No current-time or model-date substitution."
+  ]
+}

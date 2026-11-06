@@ -67,7 +67,10 @@ def procedure(scope, events, manifest, overlay, *, bindings=None):
     original, supplement = chain
     first, following = calendar_bounds(instant(scope.month + "-01T00:00:00Z").date(), "UTC")
     calendar = groups.get("billing_calendar")
-    cutoff, inclusive = deadline({"billing_cycles":calendar["body"]["cycles"]} if calendar else {}, overlay, manifest, following)
+    deadline_facts = {"month":scope.month, "received_at":original["body"]["received_at"]}
+    if calendar:
+        deadline_facts["billing_cycles"] = calendar["body"]["cycles"]
+    cutoff, inclusive = deadline(deadline_facts, overlay, manifest, following)
     cutoff += timedelta(microseconds=int(inclusive))
     channel = manifest.get("submission_channel")
     if not channel or original["body"]["submitted_to"] != channel or instant(original["body"]["received_at"]) < following:

@@ -317,8 +317,32 @@ def fees(facts,overlay,manifest,bindings):
     return sum(included)
 
 
+def scoped_deadline(facts,overlay,policy,end):
+    """A source-bound absolute receipt cutoff governs only its exact named UTC service month."""
+    if overlay.get('override'):
+        raise Unsupported('A private relative filing amendment cannot replace a scoped absolute deadline.')
+    month=facts.get('month')
+    rule=policy['policies'].get(month) if isinstance(month,str) else None
+    if rule is None:
+        # Never inherit another month's cutoff or synthesize a relative count.
+        raise Gap('No source-bound filing deadline is established for this service month.')
+    if month_bounds(month)[1]!=end:
+        raise Gap('Scoped filing deadline does not match the evaluated service month.')
+    instant(facts.get('received_at'))
+    if rule.get('basis')!='received' or rule.get('endpoint') not in ('inclusive','exclusive'):
+        raise Unsupported('Unsupported scoped filing basis or endpoint.')
+    from .vendor_service_month import utc
+    try:
+        cutoff=utc(rule.get('at'))
+    except ValueError as exc:
+        raise Unsupported('Scoped filing cutoff is not an explicit UTC instant.') from exc
+    return cutoff,rule['endpoint']=='inclusive'
+
+
 def deadline(facts,overlay,manifest,end):
     policy=manifest['filing']
+    if policy.get('kind')=='scoped_absolute':
+        return scoped_deadline(facts,overlay,policy,end)
     count=overlay.get('override',{}).get('filing_days',policy['count'])
     endpoint=policy['endpoint']
     if endpoint=='unclear':
