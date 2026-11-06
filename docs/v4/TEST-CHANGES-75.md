@@ -31,4 +31,9 @@ New tests use authored public data and scripted reviewers. They do not establish
 
 The new pure-parser test was corrected before its first commit: it checks context/prompt/schema/canonical-byte integrity, while the configured transport and exact operator-approved request bind the provider profile. The parser does not cryptographically attest provider execution.
 
-Focused stable-source validation and actual shared-queue evidence are pending.
+Additional real shared-queue control:
+
+- `tests/test_correspondence_public_queue_75.py::test_real_queue_releases_signed_write_lock_and_guards_current_source[False]`: the signed enqueue and another signed write return while inference is pending; completion attaches exactly one inert candidate and duplicate submission does not repeat inference.
+- `tests/test_correspondence_public_queue_75.py::test_real_queue_releases_signed_write_lock_and_guards_current_source[True]`: a newer signed response invalidates attachment; the old interpretation context returns 409 and no candidate is stored.
+
+The new source-change test initially assumed its interpretation view would remain readable. Two preserved runs reported one pass and one failure. The new test now requires the observed safe 409 closure and independently verifies zero candidate rows; production code and financial assertions were not relaxed. The two-case shared-queue rerun passed. Final focused stable-source verification is pending.
