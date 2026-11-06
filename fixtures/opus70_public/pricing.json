@@ -1,0 +1,26 @@
+{
+  "agreement_id": "ACC-2026-17",
+  "customer": "Clearwater Analytics",
+  "vendor": "Aster Cove Compute",
+  "version": "order-v1",
+  "signed_at": "2025-12-15T15:00:00Z",
+  "effective_at": "2026-01-01T00:00:00Z",
+  "expires_at": "2027-01-01T00:00:00Z",
+  "monthly_fee": "730.00",
+  "currency": "USD",
+  "fixed_schedule": "For Queue Relay, the fixed fee for exactly one subscription unit for each complete UTC calendar month is USD 730.00. Invoice quantity must equal one; taxes are separate and excluded.",
+  "invoice": {
+    "id": "ACC-2026-01",
+    "issued_at": "2026-02-01T09:00:00Z",
+    "payment_status": "paid",
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-02-01T00:00:00Z",
+    "quantity": "1",
+    "unit": "service-month",
+    "net": "730.00",
+    "tax": "0.00",
+    "allocation_ref": "clearwater-subscription-2026-01",
+    "allocation_complete": true
+  },
+  "observed_at": "2026-02-02T12:00:00Z"
+}

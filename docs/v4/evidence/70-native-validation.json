@@ -1,0 +1,41 @@
+{
+  "classification": "native_validation_of_authored_public_controls",
+  "final_integrated_full_suite": "root-owned after merge, pending; branch full is not claimed passing",
+  "runs": [
+    {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus70-public-worker/pytest-first.log",
+      "sha256": "8ead33116d8f42b00d88bdacdedd80a174d0e7a4284569b9dcf51bf4b16102d3",
+      "summary": "7 failed, 127 passed in 0.41s"
+    },
+    {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus70-public-worker/pytest-focused.log",
+      "sha256": "9737669e606513c21168be3ca05680bae65dbcca13c5d14968fe638588624236",
+      "summary": "238 passed, 1 warning in 1.29s"
+    },
+    {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus70-public-worker/pytest-decoder.log",
+      "sha256": "2797e52d634e9e5a03039534ecce0ebc5c943f9bb3769541a1e05122443a9dfe",
+      "summary": "180 passed in 1.23s"
+    },
+    {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus70-public-worker/pytest-merged-full.log",
+      "sha256": "c2de88f63bab6414c06cabd6e281889f9acd7a9153a89d8b1e486e210e7b7ecb",
+      "summary": "1433 passed, 1 warning in 161.72s (0:02:41)"
+    },
+    {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus70-public-worker/pytest-final-focused.log",
+      "sha256": "9f7f6affba6ce306057c935c7441f9b1477105a4211e1579567e6bdad43bb410",
+      "summary": "230 passed, 1 warning in 1.82s"
+    },
+    {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus70-public-worker/pytest-final-full.log",
+      "sha256": "2d96cc528bd3127cdd9fd8a5ed6b068f72168fe718e33f01e86d78343f926b78",
+      "summary": "1 failed, 3117 passed, 1 warning in 197.87s (0:03:17)"
+    },
+    {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus70-public-worker/pytest-auth-compat.log",
+      "sha256": "a710bd23e632c2809922e9f0bff1911638761adf3d5bef1d626c0892ac3ce075",
+      "summary": "224 passed in 1.57s"
+    }
+  ]
+}

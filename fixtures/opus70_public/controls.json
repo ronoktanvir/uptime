@@ -1,0 +1,85 @@
+{
+  "classification": "authored_public_controls_not_blind",
+  "positive_wire": "proposal.authored.json",
+  "ratio_vectors": [
+    {
+      "available": 996001,
+      "total": 1000000,
+      "credit_units": 0
+    },
+    {
+      "available": 996000,
+      "total": 1000000,
+      "credit_units": 7500000
+    },
+    {
+      "available": 994000,
+      "total": 1000000,
+      "credit_units": 15000000
+    },
+    {
+      "available": 990000,
+      "total": 1000000,
+      "credit_units": 30000000
+    }
+  ],
+  "monthly_cases": [
+    {
+      "name": "two-completed-steps",
+      "month": "2026-01",
+      "downtime": 300,
+      "outcome": "ELIGIBLE",
+      "amount": "109.50"
+    },
+    {
+      "name": "cap",
+      "month": "2026-01",
+      "downtime": 1000,
+      "outcome": "ELIGIBLE",
+      "amount": "219.00"
+    },
+    {
+      "name": "no-completed-step",
+      "month": "2026-01",
+      "downtime": 90,
+      "outcome": "INELIGIBLE",
+      "amount": null
+    },
+    {
+      "name": "incomplete",
+      "month": "2026-01",
+      "downtime": null,
+      "outcome": "INSUFFICIENT_EVIDENCE",
+      "amount": null
+    }
+  ],
+  "negative_mutations": [
+    "wrong target",
+    "wrong step",
+    "wrong credit",
+    "wrong cap",
+    "wrong product",
+    "wrong plan",
+    "numeric float",
+    "boolean",
+    "exponent percentage",
+    "percent sign in value",
+    "mixed internal/external fields",
+    "unknown kind",
+    "extra citation or units on external shape",
+    "missing rounding",
+    "alternate rounding",
+    "source started step",
+    "source conditional exception",
+    "missing source block",
+    "wrong copied quote",
+    "legacy internal citation mismatch"
+  ],
+  "authority_controls": [
+    "positive without governing fee context remains null",
+    "missing current pricing authority prevents approve/activate",
+    "wrong tenant overlay source pins refuse",
+    "named reviewer lifecycle retained",
+    "rollback leaves no active adapter"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Aster Cove Compute Service Level Agreement",
+  "classification": "synthetic_public",
+  "uri": "urn:authored:opus70:aster-cove:sla",
+  "text": "Service Level Agreement\nVendor: Aster Cove Compute\nAgreement: ACC-2026-17\nEffective: 2026-01-01 through 2026-12-31\nAvailability is measured over each UTC calendar month.\nFor Queue Relay on the Scale plan, the monthly uptime target is 99.8%; each completed 0.2 percentage point of shortfall below the target earns a 7.5% service credit, capped at 30%.\nRound the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.\nClaims must be received within 21 calendar days after month end.\nService credits apply to affected monthly fees on a future invoice."
+}
