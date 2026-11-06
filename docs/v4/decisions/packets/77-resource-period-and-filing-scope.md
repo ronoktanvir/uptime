@@ -34,3 +34,7 @@ The strongest concern with the preferred design is overinterpreting “until” 
 - Evaluate a matching month at, before and after the cutoff; evaluate an otherwise complete off-month claim and require unknown amount with no inherited cutoff. Preserve all prior resource/service-month regressions and their authority assertions.
 
 The lead requests one concise actual tool-free Opus criticism, then actual restricted Opus coding delegation. Parent supervision runs tests/Git, records actual sessions/tools/edits and preserves failure receipts. Freeze implementation before final tests; root runs the merge suite. No model decides expected truth, and no captured 76 response or gold is rewritten.
+
+## Post-criticism bounded caller wiring
+
+The integration lead subsequently approved `correspondence_history.procedure` as narrow additional ownership: forward verified scope.month and original receipt body.received_at into the existing deadline call, retaining billing_cycles. This lead-authored routine wiring follows the reviewed primitive and preserves channel/receipt-chain checks; no further model review was requested. Matching/off-month signed receipt controls were added. The separate preexisting aggregate fixed_filing comparator bug is recorded with an unchanged-base reproduction, not repaired in this decision.

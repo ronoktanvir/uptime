@@ -1,6 +1,6 @@
 # Decision 77: preserve resource periods and filing scope
 
-Status: implementation under verification. Base: `d253553`. Authored public remediation controls; no unseen evaluation claim.
+Status: implemented; focused checks passed. Base: `d253553`. Authored public remediation controls; no unseen evaluation claim.
 
 A source that explicitly identifies one complete UTC calendar month and gives its exact endpoints should retain those endpoints even when it says “from … until …”. A filing cutoff for one named service month must remain scoped to that month. The first correction adds a finite representation to an existing period primitive; the second adds a missing typed filing primitive.
 
@@ -30,7 +30,7 @@ The lead added the new scoped operator description to the model-facing prompt af
 
 ## Verification and limits
 
-Before implementation, the existing resource, operator and service-month suites passed: 92 tests. Final focused results and exact test additions will be recorded in [TEST-CHANGES-77](../TEST-CHANGES-77.md) after source freeze.
+Before implementation, the existing resource, operator and service-month suites passed: 92 tests. After source freeze `ee44b3872e7d41847360b1f90e5d9b7ecc97e48f`, the eleven focused suites passed **352 tests in 20.78s**, with one existing Starlette/httpx deprecation warning. The [verification receipt](reviews/77-focused-verification.json) pins source hashes, command and output hash; [TEST-CHANGES-77](../TEST-CHANGES-77.md) records exact additions and failed preliminary assertions. No production or test source changed after this run. Root owns merge/full-suite verification.
 
 The frozen evaluation76 inputs, independent expected outcomes, request manifests and first model outputs remain unchanged. These known examples are remediation controls. This decision does not establish that a new model request can extract every remaining condition in those contracts, and it does not promote a template or authorize a filing.
 

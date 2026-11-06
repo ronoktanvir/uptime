@@ -79,5 +79,6 @@
     "Added refusal of supported scoped filing alongside an explicitly unsupported discretionary extension.",
     "Preserved the first new-suite failure: 3 timestamp-spelling assertions failed; coding worker independently corrected its own new assertion before completing.",
     "At integration-lead request, wired correspondence_history.procedure to verified scope.month and original receipt body.received_at, preserving billing_cycles; added matching/off-month signed historical receipt controls. No current-time or model-date substitution."
-  ]
+  ],
+  "access_note": "The worker attempted three repository-root Grep calls; --restricted refused each before reading any content because only uptime and tests were permitted. It continued with permitted source/test paths. No repository-root access was added; no fixture, customer, credential or private evaluation contents were supplied."
 }
