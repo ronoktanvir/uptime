@@ -1,6 +1,6 @@
 # Decision80: ground aggregate filing deadlines in complete source assertions
 
-Status: implementation under verification. Base `c5dd4e4`. Inputs are authored public sources and local source/test code.
+Status: implemented; focused verification passed. Base `c5dd4e4`. Inputs are authored public sources and local source/test code.
 
 The aggregate fixed-filing validator must bind its exact timestamp and endpoint comparator to the claim obligation. A recipient phrase such as “by the vendor” cannot establish an inclusive deadline, and a source stating that no deadline applies cannot be compiled into one.
 
@@ -33,3 +33,9 @@ Rollback: revert the bounded implementation commit. No stored source, receipt or
 The delegated patch adds one filing assertion helper and three finite grammar tables, and replaces only the fixed_filing branch. The lead retained optional-article/singular/plural claim wording with explicit obligations and comparator binding. Relative counts are limited to 1–999 decimal days with no leading zero; unsupported origins, companion wording and other material remain refused. This is finite source support, not general contractual interpretation. Existing interpreter-dependency review checks remain in force; no stored approvals are migrated or manufactured.
 
 [The exact test ledger](../TEST-CHANGES-80.md) distinguishes new controls from unchanged compatibility checks.
+
+## Frozen verification
+
+At source freeze `b009c3323f41309622ba236fffe579e29c89c003`, **352 tests passed in 76.90s**, with one existing Starlette/httpx warning. This includes the new 177 controls, unchanged aggregate/service and Decision77 controls, and all 34 Northwind workflow tests. The unchanged CalyxQuay public intake succeeds, and all three known valid manifests remain byte-identical under canonical JSON serialization. The original contradictory source now fails at block 8 fixed_filing before a preview is constructed.
+
+The [verification receipt](reviews/80-focused-verification.json) preserves exact command, source/output hashes, compatibility comparisons and refusal. Existing functions other than validate are AST-identical, and validate's tail after fixed_filing is byte-identical; period/resource semantics are unchanged. No source changed after the final run. Root performs the combined integration suite.

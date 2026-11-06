@@ -1,0 +1,45 @@
+{
+  "source_freeze": "b009c3323f41309622ba236fffe579e29c89c003",
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_vendor_fixed_filing_80.py",
+    "tests/test_vendor_service_month.py",
+    "tests/test_vendor_resource_period_scope_77.py",
+    "tests/test_correspondence_service.py",
+    "tests/test_northwind_workflow.py",
+    "-q",
+    "--basetemp=/tmp/aggregate80-frozen-final"
+  ],
+  "exit_code": 0,
+  "source_sha256": {
+    "uptime/vendor_service_month.py": "cae91e2daf51242d8e53671e0380e64f6eafc9fed1fe1a63f74e7b8e0cd7119b",
+    "tests/test_vendor_fixed_filing_80.py": "b841a9a687b0ce533a6cc8fe9032bb04903fc9a7f858cd9111f1995939fe6b9d"
+  },
+  "output_sha256": "137df6c11eb80117fb5175ea2682214fbc23947f64de85175f86e2c376665bd3",
+  "valid_manifest_canonical_json_identical": {
+    "heliograph": true,
+    "april": true,
+    "calyx": true
+  },
+  "valid_manifest_sha256": {
+    "heliograph": "3c4c5a0e4da101491ec57472b3d13432a0ed9d7d36f2d1ea123e2aed803e71b8",
+    "april": "4a394f071f25c6bddb47e15889e4eb6ae2b75c9e0621683898af431bc0332555",
+    "calyx": "2eafbe3b8bcca2b77c9c546d324a5da7664631f06a1856d658333162f0705f56"
+  },
+  "original_bad_source_after": {
+    "compiled": false,
+    "error": "Block 8 field fixed_filing: Source does not establish the stated filing cutoff and comparator."
+  },
+  "unchanged_public_intake": {
+    "model_in_saved_artifact": "claude-opus-5-5",
+    "saved_session": "609751b5-43c2-4ddf-947d-799f6e5431ec",
+    "new_model_calls": 0
+  },
+  "result": "352 passed, 1 warning in 76.90s",
+  "warning": "Existing Starlette/httpx TestClient deprecation warning",
+  "source_unchanged_after_run": true,
+  "existing_functions_other_than_validate_ast_unchanged": true,
+  "validate_tail_after_fixed_filing_byte_unchanged": true
+}
