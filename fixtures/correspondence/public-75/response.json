@@ -1,0 +1,8 @@
+{
+  "classification": "AUTHORED_PUBLIC_SYNTHETIC_NOT_BLIND",
+  "purpose": "Public case response for operator-approved runtime job integration; no customer or native proof.",
+  "response": "The cutoff elapsed before the record entered our intake queue.",
+  "expected_family": "time_bar",
+  "expected_financial_effect": "none",
+  "semantic_review_authority": "scripted integration only; no actual human review claim"
+}

@@ -1,6 +1,6 @@
 # Remaining engineering risks and priorities
 
-Fresh independent public evaluation 76 now measures a separate current gap:0/4 supported contract extractions accepted and3/6 complete supported reply meanings, with 6/6 review controls safely unresolved. Source-grounding passed 12/12 replies. These are single samples, not new private scores; source/proposal compatibility and multi-proposition mapping are concrete remaining work. [Preserved baseline](evaluation 76/BASELINE.md)
+Fresh independent public evaluation 76 now measures a separate current gap:0/4 supported contract extractions accepted and3/6 complete supported reply meanings, with 6/6 review controls safely unresolved. Source-grounding passed 12/12 replies. These are single samples, not new private scores; source/proposal compatibility and multi-proposition mapping are concrete remaining work. [Preserved baseline](evaluation76/BASELINE.md)
 
 The central release criterion is a claim whose terms, evidence, authority and native financial state all agree. A passing helper or an attractive worklist covers only part of that chain. This report distinguishes corrections to faulty behavior from capabilities that still need evidence or implementation.
 

@@ -1,6 +1,6 @@
 # Uptime V4 engineering status
 
-The fresh independent public baseline exposes **0/4 supported contract extractions**, **3/6 complete supported reply meanings**, and **6/6 appropriate mandatory-review outcomes** from 18 single attempts. Those failures remain unchanged. The merged evidence and shared queue pass **3,238 tests, 1 warning in 217.95s** at `d253553`; passing regression does not resolve the language gaps. [Fresh baseline](evaluation 76/BASELINE.md) · [Merge receipt](evidence/verification-d253553.json)
+The fresh independent public baseline exposes **0/4 supported contract extractions**, **3/6 complete supported reply meanings**, and **6/6 appropriate mandatory-review outcomes** from 18 single attempts. Those failures remain unchanged. The merged evidence and shared queue pass **3,238 tests, 1 warning in 217.95s** at `d253553`; passing regression does not resolve the language gaps. [Fresh baseline](evaluation76/BASELINE.md) · [Merge receipt](evidence/verification-d253553.json)
 
 The opt-in shared proposal queue at `a5c6c93` passed **3,238 tests, 1 warning in 203.44s**. Application wrappers are still in parallel implementation. [Queue regression receipt](evidence/verification-a5c6c93.json)
 
