@@ -1,0 +1,37 @@
+{
+  "source_commit": "46e427cfa902bd9eb8eac5ec31e2cf3b0c379b69",
+  "at": "2026-11-06T00:35:28.571298+00:00",
+  "reason": "Extraction dependency changed; recorded approvals correctly required reinstall and fresh review.",
+  "reviewer": "scripted-test-reviewer",
+  "reviewer_kind": "SCRIPTED_REVIEWER",
+  "transport": "Signed normal service routes through local TestClient; separately verify actual loopback readback.",
+  "public_provider_calls": 0,
+  "native_ramp_actions": 0,
+  "financial_workflow_actions": 0,
+  "ledger_unchanged": true,
+  "states_before": {
+    "northwind-cloud": {
+      "state": "REVIEW_REQUIRED",
+      "revision": 6
+    },
+    "calyxquay": {
+      "state": "REVIEW_REQUIRED",
+      "revision": 14
+    }
+  },
+  "states_after": {
+    "northwind-cloud": {
+      "state": "ACTIVE",
+      "revision": 12,
+      "active_version": "6f8f4d202628ec6c775cfdbd8c986edc5b706dded7cac2ad5addba897dd3005a"
+    },
+    "calyxquay": {
+      "state": "ACTIVE",
+      "revision": 28,
+      "active_version": "62d5ccb6a688c4cd9e3fbf1cc27deb27bbe73dd439489894caeba5089ecc524b"
+    }
+  },
+  "history_count_before": 14,
+  "history_count_after": 28,
+  "prior_attempt": "TestClient default peer failed loopback validation before login; repeated with documented setup peer. No catalog mutation occurred in that refused attempt."
+}

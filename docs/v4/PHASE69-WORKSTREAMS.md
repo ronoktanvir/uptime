@@ -2,6 +2,8 @@
 
 Base `4f44767` preserves the passing Northwind application and its source-linked CI receipts. The user authorized continued implementation, frequent focused GitHub updates, and actual Claude Code Opus 5.5 coding delegation. No strategic workstream was removed.
 
+All three workstreams are now integrated at `46e427c`: **3,203 passed, 1 warning in 193.64s**. Onboarding's unchanged actual Opus proposal passes four authored shadow controls, with missing fee authority still producing null and no activation. The existing walkthrough was restarted; its code dependency correctly invalidated old adapter approvals. Normal signed fixture reinstallation and fresh review restored both adapters to ACTIVE, preserving the original financial ledger and record IDs. CalyxQuay history grew from 14 to 28 events; no human approval or native financial action was manufactured. [Final tests](evidence/verification-46e427c.json) · [Onboarding](decisions/ADR-0070-public-step-proposal-representation.md) · [Runtime readback](evidence/resume-46e427c.json)
+
 First verified increment: `3449bbe` rejects ambiguous model results and mismatched model/session identity. Full regression produced **2,971 passed, 1 warning in 201.33s**. The proposed CLI structured profile was refused after its actual probe exposed an internal tool; no exception or automatic fallback was added. [Decision 69](decisions/ADR-0069-public-model-framing.md) · [Test receipt](evidence/verification-3449bbe.json)
 
 The Ramp business-identity repair is now integrated at `b9bf640`: **3,003 passed, 1 warning in 207.13s**. The new capture imports into a fresh local verification workspace with the real business pin preserved; repeating the import is a duplicate and creates no new credit. Recorded/applied amounts remain null because no native credit was observed. This validation uses actual saved Ramp reads and makes no external write. [Regression](evidence/verification-b9bf640.json) · [Import verification](evidence/native-credit-scope-72.json) · [Repair and migration limits](RAMP-RECONCILIATION-72.md)
@@ -28,6 +30,10 @@ Coding workers use safe/restricted CLI settings, explicitly assigned source/test
 ## Publication and verification
 
 Each integrated workstream receives a focused merge and the requested `uv run --locked pytest` run with a unique temporary directory. Actual failures and outputs are retained. Verified increments, decision references and the dependency map are pushed to the private repository. The previously published application remains the usable checkpoint until those checks pass.
+
+Completed full integration results: decision 69 — 2,971 passed; decision 72 merge — 3,003 passed; decision 71 merge — 3,055 passed; final decision 70 merge — 3,203 passed. Each had the same existing deprecation warning. The 3,003-test Ramp increment also passed hosted CI; later hosted results are recorded separately. These counts measure regression coverage, not production readiness.
+
+The next bounded work remains native posting once its restriction is resolved, independently authored new contract/reply evaluation with retained human review, and a reviewed resolution path for legacy unscoped financial history. Onboarding and disputes retain equal priority. The completed workers are stopped; this record does not imply agents continue after the runtime ends.
 
 ## Native restriction remains
 

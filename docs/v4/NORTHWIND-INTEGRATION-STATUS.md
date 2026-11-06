@@ -24,3 +24,6 @@ Authentic customer terms, a genuine vendor award, native credit/application obse
 ## Run and resume
 
 Follow [workspace setup](NORTHWIND-WORKFLOW.md) and the [current two-minute script](DEMO.md#current-northwind-walkthrough). Each new run needs a fresh private directory outside Git. `--resume` restores an existing source-stable workspace; it does not reset or duplicate its financial actions. No agent or server is guaranteed to continue after its execution environment stops.
+# November 5 continuation
+
+The saved workspace now runs integrated source `46e427c`. The financial ledger and all credit/application IDs remain identical to the prior completed flow. Changed extraction code correctly required new adapter reviews; the normal signed scripted fixture workflow renewed them. Both adapters are ACTIVE, and CalyxQuay retains the first 14 events plus 14 new review/activation/rollback events. A fresh workspace still follows the documented initial setup. [Current verification](evidence/verification-46e427c.json) · [Actual socket readback](evidence/resume-46e427c.json) · [Review history](evidence/adapter-refresh-46e427c.json)

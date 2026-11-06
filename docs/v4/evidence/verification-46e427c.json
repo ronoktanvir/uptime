@@ -1,0 +1,26 @@
+{
+  "commit": "46e427cfa902bd9eb8eac5ec31e2cf3b0c379b69",
+  "command": "uv run --locked pytest --basetemp /Users/ronoktanvir/.local/share/uptime-engineering/tasks/pytest70-root-final",
+  "result": "3203 passed, 1 warning in 193.64s (0:03:13)",
+  "exit_code": 0,
+  "log_sha256": "d300e4c7f1fc7c99af5baaa87fd58bc3ca023bc86df9ad87a0fe4ddf69c26223",
+  "log_reference": "W/receipts/phase70-final-merge-001.log",
+  "warning": "Existing Starlette/httpx deprecation",
+  "javascript_checks": {
+    "result": "47 passed, 0 failed",
+    "source": "a9cb1bc; web files unchanged by46e427c",
+    "receipt": "verification-a9cb1bc.json"
+  },
+  "replay": {
+    "command": "uv run --locked python scripts/rehearse.py",
+    "exit_code": 0,
+    "log_sha256": "97c6cc4a19d2229e192bfc8ef04b16a444a0ca610ebcc8a4b90c5622fb6b78af"
+  },
+  "runtime": "Existing workspace resumed on46e427c; dependency-invalidated fixture approvals renewed through signed services; actual socket confirms original ledger andIDs unchanged.",
+  "runtime_receipts": [
+    "resume-46e427c.json",
+    "adapter-refresh-46e427c.json"
+  ],
+  "native_write_verified": false,
+  "independent_unseen_reply_scores_changed": false
+}

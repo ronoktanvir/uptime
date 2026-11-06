@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-11-06T00:28:11.320416+00:00",
+  "updated_at": "2026-11-06T00:37:42.640132+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Northwind verified. Actual Opus coding work is active on vendor extraction, dispute interpretation and Ramp credit business identity; native posting remains blocked.",
+  "summary": "Opus-assisted onboarding, dispute proposals and Ramp credit-scope repair are integrated and verified. Native posting and independent unseen-language coverage remain open.",
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "3,055 passed",
-      "detail": "a9cb1bc:3,055 passed,1 warning in203.15s after dispute merge;47 JavaScript checks passed.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-a9cb1bc.json"
+      "value": "3,203 passed",
+      "detail": "46e427c: 3,203 passed, 1 warning in 193.64s after all three merges. 47 unchanged JavaScript checks passed.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-46e427c.json"
     },
     {
       "label": "Hosted verification",
-      "value": "CI passed",
-      "detail": "Exact application checkpoint3561836 passed on Linux: 2,949 tests in341.39s, 47 JavaScript checks, graph/replay/secret checks.",
-      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42122411200"
+      "value": "CI passed prior increment",
+      "detail": "9722cd3 passed on Linux: 3,003 tests, 47 JavaScript checks, graph, replay and repository scan. Later integration awaits its own hosted result.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42136360822"
     },
     {
       "label": "Northwind workflow",
@@ -72,7 +72,7 @@
       "stream": "Foundation",
       "status": "done",
       "summary": "Focused implementation and verification commits",
-      "detail": "Private ronoktanvir/uptime preserves the baseline, workstream merges and separate browser fixes. Current verified source is 3f5b856; receipts and failed attempts are versioned. Credentials, runtime databases and private evaluation corpora stay outside Git.",
+      "detail": "Private ronoktanvir/uptime preserves focused implementation, merge and verification commits. All three current workstreams join at46e427c with 3,203 passing Python tests. Credentials and private evaluation inputs stay outside Git.",
       "owner": "Orchestrator",
       "depends_on": [
         "audit"
@@ -195,14 +195,14 @@
       "title": "Declarative vendor onboarding",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Reviewed lifecycle works; broader generalization remains",
+      "summary": "Actual completed-step extraction reaches verified shadow controls",
       "detail": "CalyxQuay completed source review, shadow controls, approval, activation, rollback and reactivation with 14 immutable history events and scripted authority. Known source/fee-authority defects are repaired. No new independent unseen-vendor success is claimed.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
         "security"
       ],
-      "next_action": "Integrate exact decimal external proposals for completed-step credit clauses; retain independent compilation and all promotion gates.",
+      "next_action": "Evaluate additional public language families independently; keep source, fee and human promotion requirements.",
       "links": [
         {
           "label": "Onboarding design",
@@ -579,7 +579,7 @@
       "stream": "Disputes",
       "status": "active",
       "summary": "Authored public block proposals improve; blind score unchanged",
-      "detail": "Actual revised public model batch:8/8 structurally grounded,3/3 expected positive mappings,5/5 negative UNKNOWN. First batch failures retained. Human semantic review remains required; prior independent0/50 result unchanged.",
+      "detail": "Actual revised public model batch: 8/8 structurally grounded, 3/3 expected positive mappings, 5/5 negative UNKNOWN. First batch failures retained. Human semantic review remains required; prior independent 0/50 result unchanged.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -631,7 +631,7 @@
         "response_coverage",
         "companion"
       ],
-      "next_action": "Use the reproducible setup and two-minute script; keep native acceptance gates open.",
+      "next_action": "Use the resumed current application. Original credit/application IDs and 8,600 balance are unchanged; fresh fixture reviews preserve the source-version guard.",
       "links": [
         {
           "label": "Execution checkpoint",
@@ -641,6 +641,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-06T00:37:42.640132+00:00",
+      "title": "All Opus-assisted workstreams integrated",
+      "detail": "Full suite: 3,203 passed, 1 warning. Onboarding extracts the frozen public source and passes four shadow controls. Saved walkthrough retains its ledger; CalyxQuay is active after version-bound fixture re-review.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/PHASE69-WORKSTREAMS.md"
+    },
     {
       "at": "2026-11-06T00:28:11.320416+00:00",
       "title": "Grounded dispute proposals integrated",

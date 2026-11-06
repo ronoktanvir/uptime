@@ -1,0 +1,14 @@
+{
+  "commit": "9722cd3e1289b83f49c1f5671f1ef71af33d8110",
+  "run_id": 42136360822,
+  "job_id": 127625400991,
+  "url": "https://github.com/ronoktanvir/uptime/actions/runs/42136360822",
+  "conclusion": "success",
+  "pytest": "3003 passed, 1 warning in 437.65s (0:07:17)",
+  "javascript": "47 passed, 0 failed",
+  "graph": "passed",
+  "rehearsal": "passed",
+  "repository_scan": "passed",
+  "source": "Actual GitHub job status and decoded job log, fetched through connected GitHub tools",
+  "later_integrations_included": false
+}

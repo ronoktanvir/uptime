@@ -1,0 +1,25 @@
+{
+  "code_commit": "46e427cfa902bd9eb8eac5ec31e2cf3b0c379b69",
+  "transport": "REAL_LOOPBACK_HTTP",
+  "financial_actions_performed": 0,
+  "resumed_existing_workspace": true,
+  "workspace_instance": "e08f911c-4046-4604-8d9c-c3036e2d2c8e",
+  "record_ids_unchanged": true,
+  "ledger_unchanged": true,
+  "credit_applied": "2400.00",
+  "application_bill": "NW-2026-04",
+  "outstanding": "8600.00",
+  "destination": "Local ledger",
+  "calyxquay_state": "ACTIVE",
+  "calyxquay_version": "62d5ccb6a688c4cd9e3fbf1cc27deb27bbe73dd439489894caeba5089ecc524b",
+  "calyxquay_history_events": 28,
+  "record_ids": {
+    "award": "inbox-award:3160bf112449fbd5eff4bb7f68d45005e72e13fc3be823c6f1f6e190a511c93e",
+    "credit": "local-ledger:23bb4b8b-3625-5438-b396-f5e336a01da8",
+    "application": "local-ledger:a9bbcbd4-7235-5929-8352-dbb798157c5c"
+  },
+  "observed_at": "2026-11-06T00:35:47.448019+00:00",
+  "complete_local_receipt_sha256": "60d84584c7590c31aacd3e533f676dd9ba633e3be67f72f54b5e6779df073197",
+  "native_ramp_write": false,
+  "adapter_reapproval": "Scripted normal service reinstallation/review was required by dependency change; original history preserved. See adapter-refresh-46e427c.json."
+}
