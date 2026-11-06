@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from uptime.correspondence_model_transport import bounded_run, persistence_delta, public_environment
+from uptime.correspondence_model_transport import bounded_run, persistence_delta, public_environment, strict_json
 
 
 def test_environment_drops_inherited_credentials_and_execution_overrides(monkeypatch):
@@ -57,8 +57,8 @@ def test_only_current_owned_project_persistence_is_attributed(tmp_path):
 def test_pinned_transport_refuses_changed_authority_or_execution_surface(tmp_path,monkeypatch,fault):
     import uptime.correspondence_model_transport as transport
     executable=tmp_path/'public-fake-cli'; executable.write_text('public fixture binary')
-    init=dict(type='system',subtype='init',tools=[],mcp_servers=[])
-    result=dict(type='result',is_error=False,modelUsage={'public-model':{}},result='{}')
+    init=dict(type='system',subtype='init',tools=[],mcp_servers=[],model='public-model',session_id='public-session')
+    result=dict(type='result',subtype='success',session_id='public-session',is_error=False,modelUsage={'public-model':{}},result='{}')
     events=[init,result]
     if fault=='tools': init['tools']=['Read']
     if fault=='mcp': init['mcp_servers']=[{'name':'unexpected'}]
@@ -80,4 +80,70 @@ def test_pinned_transport_refuses_changed_authority_or_execution_surface(tmp_pat
     assert len(calls)==(2 if fault in {'binary','request_profile'} else 3)
     if fault in {'tools','mcp','tool_event','persistence'}:
         with pytest.raises(PermissionError):provider(json.dumps(request).encode())
+        assert len(calls)==3
+
+
+@pytest.mark.parametrize('value',[
+    '{"eligible":false,"eligible":true}',
+    '{"nested":{"amount":"12","amount":"1200"}}',
+    '{"amount":NaN}', '{"amount":Infinity}', '{"amount":-Infinity}',
+    '{"amount":1e999}', b'\xff',
+])
+def test_strict_model_json_rejects_ambiguous_or_nonfinite_values(value):
+    with pytest.raises(ValueError):
+        strict_json(value)
+
+
+def test_strict_model_json_preserves_exact_money_strings_and_utf8():
+    assert strict_json('{"quote":"Crédit de $2,400.00","amount":"2400.00","fraction":0.5}') == {
+        'quote':'Crédit de $2,400.00','amount':'2400.00','fraction':0.5}
+
+
+@pytest.mark.parametrize('fault',[
+    None, 'init_model', 'fallback_model', 'session', 'missing_session', 'result_error',
+    'result_subtype', 'duplicate_result', 'structured_inventory', 'structured_tool',
+    'structured_field', 'non_object', 'duplicate_key', 'nonfinite',
+])
+def test_public_transport_accepts_only_one_plain_matching_model_result(tmp_path, monkeypatch, fault):
+    import uptime.correspondence_model_transport as transport
+    executable=tmp_path/'public-fake-cli'; executable.write_text('public fixture binary')
+    init=dict(type='system',subtype='init',tools=[],mcp_servers=[],model='public-model',session_id='session-a')
+    result=dict(type='result',subtype='success',session_id='session-a',is_error=False,
+                modelUsage={'public-model':{}},result='{"blocks":[]}')
+    events=[init,result]
+    if fault=='init_model':init['model']='other-model'
+    if fault=='fallback_model':result['modelUsage']['other-model']={}
+    if fault=='session':result['session_id']='session-b'
+    if fault=='missing_session':init.pop('session_id');result.pop('session_id')
+    if fault=='result_error':result['is_error']=True
+    if fault=='result_subtype':result['subtype']='error_max_turns'
+    if fault=='duplicate_result':events.append(result)
+    if fault=='structured_inventory':init['tools']=['StructuredOutput']
+    if fault=='structured_tool':events.insert(1,dict(type='assistant',message={'content':[{'type':'tool_use','name':'StructuredOutput','input':{'blocks':[]}}]}))
+    if fault=='structured_field':result['structured_output']={'blocks':[]}
+    if fault=='non_object':events.insert(1,[])
+    stream=b'\n'.join(json.dumps(event).encode() for event in events)
+    if fault=='duplicate_key':stream=stream.replace(b'"is_error": false',b'"is_error": true, "is_error": false')
+    if fault=='nonfinite':stream+=b'\n{"cost":NaN}'
+    calls=[]
+    def run(argv,**kwargs):
+        calls.append(argv)
+        if '--help' in argv:return 0,b'--safe-mode --tools --json-schema',b''
+        if '--version' in argv:return 0,b'public fixture version',b''
+        return 0,stream,b''
+    monkeypatch.setattr(transport,'bounded_run',run)
+    monkeypatch.setattr(transport,'metadata_inventory',lambda:{})
+    provider=transport.SafePublicClaude(executable,model='public-model',system='public-system')
+    request=json.dumps(dict(model='public-model',system='public-system',tools=[],transport=provider.profile)).encode()
+    if fault is None:
+        answer=provider(request)
+        assert answer['text']=='{"blocks":[]}' and answer['session']=='session-a'
+        assert answer['transport']['tool_inventory']==[]
+        assert '--json-schema' not in calls[-1]
+        assert provider.profile['name']=='safe-public-experimental-v2'
+    else:
+        with pytest.raises(ValueError):provider(request)
+    assert len(calls)==3
+    if fault in {'structured_inventory','structured_tool'}:
+        with pytest.raises(PermissionError):provider(request)
         assert len(calls)==3
