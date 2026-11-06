@@ -1,0 +1,139 @@
+{
+  "model": "claude-opus-5-5",
+  "text": "# Decision 73 Review: Verified Proposals in Application Workflows\n\n## Recommendation\n\n**Accept with corrections.** The design is sound: an opt-in local queue, exact-request operator approval, one provider call, inert proposals, and conservative handling of uncertain outcomes. Before merge, it has to fix three things:\n- The **job state machine**, so retry and restart behavior is actually defined.\n- The **approval artifact**, so operators know what they are approving.\n- The **data-scope boundary**, which operator approval cannot widen.\n\n## Required Corrections\n\n1. **Operator approval cannot widen transport scope.** The transport declares `customer_processing:false`. Dispute and correspondence inputs need a deterministic server-side public-source check (an allowlist serializer) that runs before hashing. Approving a hash must not become a way to send customer data. Onboarding's exclusion of overlays and fees must also be enforced by construction, not by convention.\n\n2. **Specify canonical serialization.** Define encoding, key order, number and newline handling, and exactly which fields are included: model, prompt, schema, the binary/help/environment hashes, argv, and input bytes. Without this you get spurious mismatches or ambiguous approvals.\n\n3. **Make the approval artifact human-readable.** Provide an operator CLI that renders the full request and its source references, then writes the approval. Approving an opaque SHA256 is rubber-stamping. Record who approved and when. Expiry is checked at invocation; a run already in flight when expiry passes completes and is labeled as such.\n\n4. **Make durable states explicit.** Use `RESERVED \u2192 DISPATCHING` (committed *before* spawn) `\u2192 COMPLETED | REFUSED | FAILED | UNCERTAIN`.\n   - On restart, only `DISPATCHING` becomes `UNCERTAIN`. `RESERVED` jobs can be cancelled safely.\n   - Timeout or kill after spawn means `UNCERTAIN`, never silent failure.\n   - Kill the whole process group on timeout.\n\n5. **Define a retry path.** The unique tuple plus \"never resubmit\" deadlocks legitimate retries. Require a new operator approval carrying an attempt nonce in the hash, so retries are explicit, auditable, and still deduplicated.\n\n6. **Define subject visibility.** The subject is remembered but is not in the tuple. State whether subject B in the same tenant sees, receives, or is refused A's proposal. My recommendation: tenant-scoped deduplication, with visibility governed by ordinary source permission, and that behavior tested.\n\n7. **Use a robust single-owner lock.** Use `flock` on a separate lock file rather than SQLite row state. Enable SQLite WAL. Refuse to start if the lock is held, and document that network filesystems are unsupported.\n\n8. **Validate and recheck at completion.**\n   - Recompute the context digest at storage time; drift yields `REFUSED(stale)` with no partial store.\n   - Validate that every cited source reference exists in the approved input.\n   - Store only the typed, validated result. Never store raw stdout.\n\n9. **Do not claim things the receipt cannot support.**\n   - Model identity in stream output is self-reported, and the receipt scope is adapter-supplied only. Label it as reported, not verified.\n   - `user_scope_suppression: NOT_ESTABLISHED` must either be established (`HOME` points at an owned empty directory) or surfaced as a stated limitation of \"tool-free.\"\n\n10. **Cap cost and lifecycle.**\n    - Add an aggregate spend and job-count cap per tenant and per window, alongside the existing per-call budget.\n    - On rollback, `RESERVED` jobs become `REFUSED(disabled)` and are not run.\n\n11. **Protect the HTTP surface.** Generation POSTs need CSRF/signature protection and idempotency keys. GET handlers must have no side effects, enforced by a test that replaces the provider with a call counter.\n\n## Dissent\n\nBecause every run already requires an operator to approve exact request bytes, an **operator-run CLI batch** that writes proposals into the same table, with the UI only displaying and reviewing them, would be simpler. It removes web-triggered subprocess spawning, the in-server worker, and the lock-ownership question, while still connecting proposals to the application workflow.\n\nThe UI-triggered queue is defensible only if the expected workflow is a UI user requesting generation against something the operator approved in advance. If approvals are in practice per-click, the queue is unnecessary complexity. Decide this explicitly.\n\nThe separate Opus coding workers and the third-party case freezing are fine as process choices, but they are not evidence of correctness. Do not cite them as such.\n\n## Tests\n\n**HTTP and authorization**\n- Signed HTTP flows for valid, missing, expired, wrong-tenant, wrong-subject, and wrong-kind approvals.\n- A one-byte request mismatch is refused.\n- Customer-field or overlay/fee injection is rejected before hashing.\n\n**Concurrency and restart**\n- Concurrent identical submissions result in exactly one provider call.\n- Crash injected at each state transition; restart maps `DISPATCHING \u2192 UNCERTAIN` and `RESERVED` \u2192 cancelled, with zero automatic resubmission.\n- A second process fails to acquire the lock.\n- Timeout kills the process group and yields `UNCERTAIN`.\n\n**Response validation**\n- Oversized, malformed, schema-invalid, and fabricated-reference outputs are refused.\n- No stderr, exception text, or secrets appear in API responses.\n- Context or source-revision change mid-run yields stale refusal and invalidates attachment.\n\n**Boundaries and rollback**\n- GET polling never invokes the provider.\n- Terminal records are immutable.\n- Proposals cannot trigger adapter approval, fees, correspondence authorization, credits, or Ramp posting.\n- Human review and deterministic checks are unchanged.\n- The retry nonce path works.\n- Rollback leaves records intact and refuses pending jobs.\n- The aggregate spend cap is enforced.",
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2633,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 3692,
+    "output_tokens_details": {
+      "thinking_tokens": 1641
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 2633,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "session": "31695d3d-a349-443c-8972-0ec818a95924",
+  "cost_usd": 0.094912,
+  "transport": {
+    "profile": {
+      "name": "safe-public-experimental-v2",
+      "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d",
+      "help_sha256": "5ca3a9dac2026e56c221fdd34380c7d7d45ebbb51c1d01b7c17c75cb076a0be8",
+      "version": "2.1.318 (Claude Code)",
+      "argv": [
+        "<pinned-executable>",
+        "-p",
+        "--safe-mode",
+        "--model",
+        "claude-opus-5-5",
+        "--tools",
+        "",
+        "--strict-mcp-config",
+        "--mcp-config",
+        "{\"mcpServers\":{}}",
+        "--disable-slash-commands",
+        "--no-chrome",
+        "--max-budget-usd",
+        "1.00",
+        "--system-prompt-snapshot",
+        "off",
+        "--setting-sources",
+        "",
+        "--no-session-persistence",
+        "--system-prompt",
+        "Independently criticize the proposed public engineering decision. Be concise: recommendation, required corrections, dissent, tests. No tools or private context.",
+        "--output-format",
+        "stream-json",
+        "--verbose"
+      ],
+      "environment_keys": [
+        "CLAUDE_CODE_DISABLE_AUTO_MEMORY",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+        "DISABLE_AUTOUPDATER",
+        "DISABLE_UPDATES",
+        "HOME",
+        "LANG",
+        "LC_ALL",
+        "LOGNAME",
+        "PATH",
+        "USER"
+      ],
+      "environment_sha256": "21fa842be2a2017dd5984f619bb3c9dfb80b8d44952966b88f1572a7d4fa0893",
+      "cwd": "fresh-owned-temporary-directory",
+      "timeout_seconds": 60,
+      "output_limit_bytes": 300000,
+      "retry_count": 0,
+      "receipt_scope": "adapter-supplied content/settings only",
+      "user_scope_suppression": "NOT_ESTABLISHED",
+      "customer_processing": false
+    },
+    "before": {
+      "metadata_sha256": "e2d900c3e0aef4e42d5dce4a8f27726edb61f31d67cf3697c4658e2220cdc0a7",
+      "entry_count": 6429,
+      "content_read": false,
+      "user_claude_md_present": false,
+      "user_settings_present": true,
+      "policy_present": false,
+      "user_scope_suppression": "NOT_ESTABLISHED"
+    },
+    "after": {
+      "metadata_sha256": "d51e2b68be8983b239c2958c867b8188f219c11b4132ee42d858f4e5beeea0c6",
+      "entry_count": 6423,
+      "content_read": false,
+      "user_claude_md_present": false,
+      "user_settings_present": true,
+      "policy_present": false,
+      "user_scope_suppression": "NOT_ESTABLISHED"
+    },
+    "persistence": {
+      "project_entries_changed": 0,
+      "changed_path_hashes": [],
+      "all_metadata_changed": 4,
+      "scope": "owned-cwd project metadata; other sessions not attributed"
+    },
+    "output_sha256": "ce82b6bf32702c6d75010dd9164b42bb546ce199e798cc8a89f880496d179c13",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "returncode": 0,
+    "tool_events": 0,
+    "tool_inventory": [],
+    "mcp_inventory": [],
+    "client_reported_cost_usd": 0.094912,
+    "hard_cost_cap": false,
+    "model": "claude-opus-5-5",
+    "session": "31695d3d-a349-443c-8972-0ec818a95924",
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 2633,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 3692,
+      "output_tokens_details": {
+        "thinking_tokens": 1641
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 2633,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "result_sha256": "25fd65c33de4afa7cc2a52eca55b8b167b86e7b32d4b43d914e293d07c06f975"
+  }
+}
