@@ -3,6 +3,7 @@ import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
+from uuid import UUID
 
 from fastapi import Depends
 
@@ -35,8 +36,12 @@ def _links(rows, output_key, input_key):
     return [{output_key:r[input_key],"amount":_raw_money(r["amount"])} for r in rows]
 
 
-def credit_observation(snapshot):
-    """Project canonical readbacks into the documented bill/credit pair. Carry nulls across."""
+def credit_observation(snapshot, provider_business_id=None):
+    """Project canonical readbacks into the documented bill/credit pair. Carry nulls across.
+
+    provider_business_id is the caller's already validated business context (not
+    OAuth proof). Unknown stays omitted so unscoped observation digests are unchanged.
+    """
     resources=snapshot["resources"]
     credits=resources["credits"]
     bills=resources["bills"]
@@ -52,9 +57,12 @@ def credit_observation(snapshot):
                for r in bills["records"] if r["kind"]=="bill"]
     accepted={"COMPLETE","EMPTY","PARTIAL","TRUNCATED"}
     granted=sorted(set((credits.get("grant") or {}).get("granted",[]))|set((bills.get("grant") or {}).get("granted",[])))
-    return dict(id=snapshot["checksum"],observed_at=snapshot["observed_at"],source=Source.RAMP.value,
+    result=dict(id=snapshot["checksum"],observed_at=snapshot["observed_at"],source=Source.RAMP.value,
                 provenance_ref="sha256:"+snapshot["checksum"],scopes=granted,
                 available=credits["status"] in accepted,list_complete=credits["complete"],credits=credit_rows,bills=bill_rows)
+    if provider_business_id is not None:
+        result["provider_business_id"]=provider_business_id
+    return result
 
 
 class RampWorkspace:
@@ -87,8 +95,10 @@ class RampWorkspace:
         """Publish an import after the idempotent credit projection succeeds. Retrying resumes an interrupted import."""
         if self.mode != "sandbox":
             raise ValueError("Live observations require a sandbox installation")
-        _validate_snapshot(snapshot)
         uuid_text(business_id)
+        if not UUID(business_id).int:
+            raise ValueError("Nonzero Ramp business required")
+        _validate_snapshot(snapshot)
         data=json.dumps(snapshot,sort_keys=True,separators=(",",":"),allow_nan=False)
         with database(self.path) as db, db:
             db.execute("BEGIN IMMEDIATE")
@@ -104,7 +114,7 @@ class RampWorkspace:
                 return {"digest":snapshot["checksum"],"status":"ready","observed_at":snapshot["observed_at"],"duplicate":True}
             db.execute("INSERT OR IGNORE INTO native_capture VALUES(?,?,?,?,'pending')",
                        (self.tenant,snapshot["checksum"],snapshot["observed_at"],data))
-        self.credits.import_snapshot(self.tenant,credit_observation(snapshot))
+        self.credits.import_snapshot(self.tenant,credit_observation(snapshot,business_id))
         cases=evaluate_snapshot(snapshot,as_of=datetime.fromisoformat(snapshot["completed_at"]))
         with database(self.path) as db, db:
             db.execute("BEGIN IMMEDIATE")

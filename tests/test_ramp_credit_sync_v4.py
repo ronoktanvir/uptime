@@ -17,6 +17,7 @@ def uid(n):
 
 
 CREDIT, BILL, VENDOR, ENTITY, DRAFT = map(uid, range(1, 6))
+BUSINESS = uid(0xB72)  # Authored caller-asserted business context for Decision72 scoping.
 AT = "2026-11-04T12:00:00+00:00"
 SCOPE = dict(vendor_id=VENDOR, account_id="synthetic-account", product_id="synthetic-product",
              contract_id="synthetic-contract", contract_version="v1", currency="USD")
@@ -29,6 +30,7 @@ def money(amount, currency="USD", rate=100):
 def snapshot(ident="snapshot-1", applied=200, draft=100, at=AT):
     return dict(id=ident, observed_at=at, source="LIVE_RAMP_SANDBOX", provenance_ref="synthetic:receipt:"+ident,
         scopes=["vendors:read", "bills:read"], available=True, list_complete=True,
+        provider_business_id=BUSINESS,
         credits=[dict(id=CREDIT, vendor_id=VENDOR, entity_id=ENTITY, reference_bill_id=None,
             accounting_date="2026-10-01", archived_at=None, total_amount=money(1000),
             remaining_amount=money(1000-applied-draft), total_applied_amount=money(applied+draft),
@@ -56,7 +58,7 @@ def binding(s=None):
     return dict(SCOPE, credit_id=CREDIT, award_id="award", bill_id=BILL,
         observation_id=s["id"], provider_provenance_ref=s["provenance_ref"],
         provenance_ref="synthetic:independent-scope-confirmation", award_source="SIMULATED_VENDOR",
-        award_source_ref="synthetic:award", memo_ref="synthetic:memo")
+        award_source_ref="synthetic:award", memo_ref="synthetic:memo", provider_business_id=BUSINESS)
 
 
 def link(sync, s=None):
@@ -70,7 +72,7 @@ def test_official_fields_unmatched_and_draft_are_not_attributed(tmp_path):
     sync.import_snapshot("t", snapshot(), as_of=AT)
     state = sync.summary("t", as_of=AT)
     assert state["captured_credits"] == state["unmatched_credits"] == 1
-    assert state["recorded_cents"] == state["applied_cents"] == 0
+    assert state["recorded_cents"] is state["applied_cents"] is None
     assert state["awards_without_native_credit"] == 1
     assert state["actual_recovery"] is state["claimed_only"] is None
     assert state["observed_totals"] == [dict(currency="USD", minor_unit_conversion_rate=100,
@@ -172,7 +174,8 @@ def test_conflicts_durably_quarantined_without_ledger_mutation(tmp_path, change,
     s = snapshot()
     change(s)
     before = sync.ledger.history("t")
-    assert sync.import_snapshot("t", s, as_of=AT) == dict(id=s["id"], status="CONFLICT", issues=[code], actual_recovery=None)
+    assert sync.import_snapshot("t", s, as_of=AT) == dict(id=s["id"], status="CONFLICT", issues=[code],
+        actual_recovery=None, provider_business_id=BUSINESS)
     assert RampCreditSync(path).history("t")[0]["issues"] == [code]
     assert sync.ledger.history("t") == before
 
@@ -258,7 +261,7 @@ def test_unavailable_partial_stale_future_no_confirmation(tmp_path, changes, sta
     assert sync.import_snapshot("t", s, as_of=AT)["status"] == status
     with pytest.raises(ValueError):
         sync.link_award("t", binding(s), as_of=AT)
-    assert sync.summary("t")["recorded_cents"] == 0
+    assert sync.summary("t")["recorded_cents"] is None
 
 
 def test_late_compatible_readback_does_not_add_again(tmp_path):
@@ -275,7 +278,7 @@ def test_duplicate_ids_conflicting_payload_and_tenant_isolation(tmp_path):
     with pytest.raises(ValueError, match="OBSERVATION_ID_CONFLICT"):
         sync.import_snapshot("t", snapshot(applied=201), as_of=AT)
     assert sync.summary("other", as_of=AT)["captured_credits"] is None
-    assert sync.summary("other", as_of=AT)["recorded_cents"] == 0
+    assert sync.summary("other", as_of=AT)["recorded_cents"] is None
     sync.import_snapshot("other", snapshot(), as_of=AT)
     with pytest.raises(ValueError, match="INDEPENDENT_AWARD_REQUIRED"):
         sync.link_award("other", binding(), as_of=AT)
