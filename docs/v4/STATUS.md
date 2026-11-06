@@ -1,5 +1,9 @@
 # Uptime V4 engineering status
 
+The published recovery checkpoint `70f9cc2` passed GitHub CI: **3,763 passed, 1 warning in 393.40s**, 75 JavaScript checks, dependency graph, replay and repository scan. [Hosted receipt](evidence/ci-70f9cc2.json)
+
+Fresh normal-path evaluation is now active in parallel. An independent GPT-family author freezes new public contract and reply sources with expected outcomes held separately. Onboarding and dispute owners build small current-application runners; actual Claude Opus 5.5 supplies bounded coding support. One actual Opus critique informed [decision84](decisions/ADR-0084-fresh-normal-path-evaluation.md). No fresh inference result or new independent score is claimed yet. Native posting remains restricted and is outside this evaluation.
+
 The current repair batch is verified at `50e041c`: **3,763 passed, 1 warning in 238.48s**, plus **75 JavaScript checks**. Expired sessions return to sign-in and invalidate old controls; after login, an explicit access check recovers the same completed job without generating again. Candidate installation still requires an explicit confirmation. The controlled browser test uses an identified provider double; the separate phase82 browser proof used actual Opus. [Final regression](evidence/verification-50e041c.json) · [Recovery proof](decisions/reviews/83-expired-session-recovery.json) · [Changed-test ledger](TEST-CHANGES-83.md)
 
 The first full run failed when local storage filled: 55 failed, 3,110 passed, 1 skipped and 946 errors, with one warning. Its log and terminal result remain preserved. The unchanged source passed after completed temporary test trees were removed. This closes the current repair batch, not native Ramp posting, human promotion, independent language coverage or deployment.

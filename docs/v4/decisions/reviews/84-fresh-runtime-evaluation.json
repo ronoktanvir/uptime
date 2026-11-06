@@ -1,0 +1,30 @@
+{
+  "process_status": "completed",
+  "returncode": 0,
+  "duration_seconds": 93.82587120800235,
+  "stream_sha256": "13af0f81108ed235bf914a2e16e3556c63cecd565fcd90a924b3b75b4ae4ff07",
+  "prompt_sha256": "c4dbeb6f4139ac88a3e5ee3b5f75f816799b7dde6254c2283cb83534350b4c72",
+  "init": [
+    {
+      "model": "claude-opus-5-5",
+      "session_id": "f1defaed-a177-4618-a953-472abab72e5d",
+      "tools": [],
+      "mcp_servers": []
+    }
+  ],
+  "tool_calls": [],
+  "result": [
+    {
+      "session_id": "f1defaed-a177-4618-a953-472abab72e5d",
+      "subtype": "success",
+      "is_error": false,
+      "result": "**Recommendation: proceed, with six amendments made before any expected file is readable by the implementer or harness author.** The protocol correctly uses the real application path and separates outcomes by stage. It still has gaps that could let a favorable result appear without fresh understanding.\n\n## Failure risks and required corrections\n\n1. **Correlated oracle.** If the \"independent high-reasoning author\" is a Claude-family model, cases and gold share priors with the system under test. The model may parse its sibling's prose easily, and both may share the same misreading.\n   *Correction:* Use a different model family or a human for authoring. At minimum, have a human independently recompute every financial figure and refusal rationale. Disclose same-family authorship in the result.\n\n2. **Family declaration leaks part of the label.** \"Profiles selected from their declared family\" is oracle routing if the author declares the family. Production will not receive that hint.\n   *Correction:* State the source of the declaration. If it comes from the author, report routing as supplied and score family identification separately, or let the app classify and score that too.\n\n3. **Expectations visible during harness construction.** Committing expectations before inference does not stop root from reading them while building or debugging harnesses. That allows quiet tuning.\n   *Correction:* Commit only a hash of the expected files, sealed until both harnesses are frozen at a recorded commit and all 18 first attempts are complete. Only the scorer unseals them.\n\n4. **Degenerate strategies score well.** A refuse-everything system gets 2/6 contracts and 6/12 replies. A route-everything-to-review system gets every review case right.\n   *Correction:* Pre-register paired metrics: supported-case correctness and negative-case correctness, reported jointly. Pre-register the required refusal or review stage and reason for each negative case. A refusal at the wrong stage (transport, grounding, missing authority) is not a correct negative.\n\n5. **No decision rule.** With 4 positive contracts and 6 supported replies, almost any outcome is ambiguous.\n   *Correction:* Before running, write down which results mean \"extraction remains unsupported,\" \"bounded progress,\" or \"worth a larger cohort.\" Without that, the evaluation cannot change a decision.\n\n6. **Gold errors have no path.** \"Gold is never altered\" is right, but a gold arithmetic error would otherwise be scored as an implementation failure, or silently argued away.\n   *Correction:* Add a gold-defect category. A disputed case must be confirmed by a second derivation, reported separately, excluded from neither numerator silently, and never repaired.\n\n## Lesser risks\n\n- **Scripted UNKNOWN setup parity.** Create the scripted claim and reading through the same public application calls used in production, not fixtures that skip validation. Record a receipt for each and list any divergence.\n- **One draw per case.** Keep the single attempt, but report results as one sample, not stable behavior.\n- **Scorer normalization.** The scorer compares raw retained candidate output. Any equivalence rules (rounding, date formats, label synonyms) are pre-registered and hashed with the gold.\n- **Remediation overfitting.** Repairs on now-studied cases show regression safety only. A claim of improvement needs a second, unseen cohort authored under the same rules.\n\n## Disagreements\n\n- The packet says the mitigations \"address\" oracle leakage. They cover answer leakage but not routing leakage (item 2), stylistic correlation (item 1), or exposure during harness construction (item 3).\n- Six fictional contracts from one author do not test \"unfamiliar vendors.\" They test unfamiliar wording within one author's distribution. The result should say so explicitly.\n- Showing a scripted review, fee attestation or overlay in the same table as inference outcomes invites misreading, even with labels. Use separate tables: inference outcomes, then downstream stages reached under scripted authority.\n\n## Verification conditions (all required before reporting)\n\n1. Hashes of the case manifest, sealed expectations and harness commit are recorded, with timestamps preceding the first provider call.\n2. Access logs or file guards show no expected file was opened before the scorer phase.\n3. Provider-double tests show that drift, missing approval and fabricated receipts all refuse before invocation.\n4. All 18 receipts have request/core/input hashes, model and session inventory matching Opus 5.5, retained partial output, and a stage-specific outcome code.\n5. Each negative case's actual refusal stage is compared against its pre-registered expected stage.\n6. Paired metrics and the pre-registered decision rule are applied as written. Gold defects are listed separately.\n7. `uv run --locked pytest` passes after integration. Failures are preserved verbatim.\n8. The published claim is limited to: \"one independently authored fictional public cohort, single attempt, current application path; not generalization, not customer readiness, no native authority exercised.\"",
+      "permission_denials": [],
+      "models_in_usage": [
+        "claude-opus-5-5"
+      ]
+    }
+  ],
+  "stream_reference": "W/tasks/evaluation84-critic/critique.jsonl",
+  "prompt_reference": "W/tasks/evaluation84-critic/critique.prompt.txt"
+}

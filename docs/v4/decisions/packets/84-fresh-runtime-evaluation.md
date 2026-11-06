@@ -1,0 +1,27 @@
+# Decision 84: fresh evaluation through the current application
+
+The user wants a Ramp-native contract enforcement platform, useful onboarding of unfamiliar vendors, useful handling of new vendor replies, and actual Claude Opus 5.5 coding delegation. Current implementation `70f9cc2` has 3,763 passing Python tests, but the preserved independent public baseline had 0/4 supported contract extractions and 3/6 complete reply meanings. Subsequent bounded fixes and a studied-source browser success do not establish fresh coverage. Native posting is separately restricted and is excluded from this work; its blocker cannot be bypassed through a model or another tool.
+
+## Preferred implementation
+
+An independent high-reasoning author, without implementation, prior cases or model outputs, freezes six fictional public contracts and twelve fictional replies with separate hand-derived expectations. Four contracts cover documented monthly tiers, completed steps, resource months and aggregate fixed months; two require refusal. Six replies cover supported meanings and six require review. Inputs, expectations, source citations and financial arithmetic are committed before any inference. This is a new independently authored public cohort, not a private blind score or a population estimate.
+
+Two bounded harnesses use the current application paths in separate local evaluation workspaces. Onboarding uses SafePublicClaude, exact request approvals, VendorModelJobs and explicit candidate staging. Disputes use signed correspondence jobs, current source_blocks_v3 and the ordinary review bridge. Root grants only exact authored-public model requests after inspection. The six contract profiles are selected from their declared family before results; no automatic family fallback is allowed. No credentials, Ramp captures, private evaluation inputs, customer data or expected answers enter a model request.
+
+Each case has one create-only attempt, complete request/core/input hashes, the existing timeout and output bounds, retained partial stdout/stderr and actual model/session/tool inventory checks. Each workstream runs one call at a time, so total inference concurrency is at most two. A transport refusal, unsupported source, grounding failure, candidate refusal, missing authority and wrong financial result remain distinct outcomes. A failed attempt is not silently retried after interruption. Existing runtime authorization, source, fee and human-review gates remain intact.
+
+A current dispute job requires a preexisting claim and source reading. The harness may create an explicitly scripted neutral UNKNOWN reading to establish that normal interface, but may not supply a target semantic label or treat that setup as actual human review. Any scripted downstream review, fee attestation or overlay used to reach an evaluator is identified separately from inference and native authority. Cases that cannot reach downstream evaluation are reported at the actual blocked stage, without changing gold or counting safe transport failure as semantic understanding.
+
+After all first attempts, an independent scorer reads expectations. Source and gold are never altered to match implementation. A newly exposed defect can receive a bounded subsequent repair, actual Opus criticism/coding as needed, and regression checks; remediation on those now-studied cases must remain separate from the frozen first-attempt score. No production change is currently proposed by this packet.
+
+## Alternatives and costs
+
+Replaying saved proposals is inexpensive and useful for regressions, but cannot measure fresh extraction. Calling the legacy generation helper is simpler than application setup, but misses the installed safe transport, request approvals and job/candidate path. The preferred normal-path evaluation costs two small harnesses and eighteen bounded calls. A broad new evaluation platform, automatic retries or a review council would add time and confound the immediate question, so none is proposed.
+
+The main failure risks are oracle leakage, a harness quietly normalizing an output, wrong application setup being mistaken for language failure, a refused negative case being counted as correct understanding, and scripted authority being reported as real approval. Frozen source manifests, separate expected files, stage-specific receipts, immutable first attempts and unchanged production APIs address those risks. They do not prove unrestricted semantic interpretation or customer readiness.
+
+## Verification and rollback
+
+Test the small harnesses with explicit provider doubles before any actual call. Verify no expected file is read during preparation or inference, no successful receipt can be fabricated, and request/source drift refuses before provider invocation. Root reviews exact request manifests before authorizing the bounded calls. Run `uv run --locked pytest` after integration, preserve failures and publish focused commits. Rollback removes only the evaluation runners or reverts a later independently verified patch; original sources, first responses and failed receipts remain. No native action, live vendor communication, ledger effect or production customer enablement occurs.
+
+The requested Opus review is concise criticism of this preferred protocol, especially independent expectations, current runtime parity and the distinction between extraction, scripted review and financial authority. Root remains responsible for the decision and implementation.
