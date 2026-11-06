@@ -34,4 +34,6 @@ New tests validate a bounded source-block interface and preserve the distinction
 
 The provisional structured-output test written during the initial uncommitted coding attempt was replaced before commit by `test_plain_mode_refuses_output_schema_profiles_without_fallback`, because the actual CLI probe exposed a tool invocation. This change strengthens refusal and does not alter an existing repository test.
 
-Validation results will be recorded after the final source is frozen.
+Final focused v2 verification: **150 passed**, one existing deprecation warning. Final full suite: **3023 passed**, one existing deprecation warning, in 206.74 seconds. Production/test source remained unchanged during the final run. [The verification receipt](evidence/verification-71.json) pins implementation commit `2c180e2`, source hashes and exact commands/log hashes.
+
+Two prior full-suite attempts were interrupted (exit 2) after 946 and 1086 tests, respectively; they are preserved and are not counted as full-suite passes. The first overlapped an active coding follow-up; the second stopped before the evidence-driven generic prompt clarification. The new tests `test_exact_allowlist_pins_text_schema_profile_and_domain` and `test_enabled_adapter_hydrates_once_with_block_provenance` were updated before their initial commit to expect version `source_blocks_v2`, reflecting the manifested prompt-contract change, without weakening any assertion.

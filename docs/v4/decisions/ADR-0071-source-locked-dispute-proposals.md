@@ -1,6 +1,6 @@
 # Decision 71: source-locked public dispute proposals
 
-Date: 2026-11-05. Status: implemented; authored-public validation complete; final full suite in progress.
+Date: 2026-11-05. Status: implemented and verified on authored public controls; customer runtime remains disabled.
 
 ## Decision and evidence boundary
 
@@ -29,7 +29,7 @@ The first frozen authored batch produced 5/8 strict JSON/schema/grounding-compat
 
 `source_blocks_v2` clarifies those generic field meanings and requires bare JSON explicitly. It changes the complete request and hash; it does not retry the same request, strip fences, change expectations or relax authority. One separately labeled revised authored batch then produced **8/8 strict schema/grounding-compatible responses, 3/3 expected supported positive mappings, and 5/5 negative UNKNOWN mappings**. The award control maps exactly USD 17.20. No actual human review or operational compatibility was evaluated. These are single samples on authored controls, not a blind generalization result or a substitute for the unchanged private score. Both complete public request/response sets and model/session/stream hashes are in [the public evidence](../evidence/disputes-71-public.json).
 
-Final focused verification passed **150 tests**. The existing manual-review/authority tests remain unchanged, including the rule that a reviewed award does not book a financial award. A new test explicitly demonstrates that structurally valid annotations can still omit a negation; human semantic review remains essential. The exact test ledger is [TEST-CHANGES-71.md](../TEST-CHANGES-71.md). An earlier full run was interrupted because source edits overlapped it; another was interrupted before the evidence-driven prompt clarification. Neither is counted as a full-suite pass. Final full-suite result is pending.
+Final focused verification passed **150 tests**. The existing manual-review/authority tests remain unchanged, including the rule that a reviewed award does not book a financial award. A new test explicitly demonstrates that structurally valid annotations can still omit a negation; human semantic review remains essential. The exact test ledger is [TEST-CHANGES-71.md](../TEST-CHANGES-71.md). An earlier full run was interrupted because source edits overlapped it; another was interrupted before the evidence-driven prompt clarification. Neither is counted as a full-suite pass. The final stable-source full suite passed **3023 tests**, with one existing Starlette deprecation warning, in 206.74 seconds. The [source-specific verification receipt](../evidence/verification-71.json) pins implementation commit `2c180e2`, source hashes and every retained check log.
 
 The committed public-only evaluator is `scripts/propose_correspondence_blocks_public_71.py`; the [fixture README](../../../fixtures/correspondence/public-71/README.md) documents its explicit command. Omitting `--execute-public` was checked locally and refused with exit 2 before any provider initialization. The runtime customer model adapter remains disabled.
 
