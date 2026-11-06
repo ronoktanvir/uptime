@@ -244,7 +244,7 @@ class Authority:
 
     @staticmethod
     def draft_path(path):
-        return bool(re.fullmatch(r"/api/vendors/[a-z0-9][a-z0-9_-]{0,79}/(?:candidates|tests|shadow-preview)", path))
+        return bool(re.fullmatch(r"/api/vendors/[a-z0-9][a-z0-9_-]{0,79}/(?:candidates|tests|shadow-preview|proposal-access|proposal-jobs|proposal-jobs/[a-f0-9-]{36}/candidate)", path))
 
     def require_gate(self, path=""):
         if self.draft_path(path):

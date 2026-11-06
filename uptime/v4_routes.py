@@ -309,9 +309,10 @@ def resolve_active(path, tenant, scope, events, at, *, governing_fees=None):
                         governing_pricing_version=raw.get('governing_pricing_version') if raw else None)
 
 
-def register_v4_routes(app, bench, auth, *, governing_fees=None, trusted_now=None):
+def register_v4_routes(app, bench, auth, *, governing_fees=None, trusted_now=None, proposal_jobs=None):
     inbox = CorrespondenceDesk(bench.path, active_resolver=partial(resolve_active, bench.path,governing_fees=governing_fees))
     app.state.correspondence = bench.inbox = inbox
+    inbox.public_proposal_jobs = proposal_jobs
 
     def reader(p=Depends(auth.actor)):
         if not auth.approvals_enabled or bench.setting(p)["mode"] == "OBSERVE":
@@ -323,6 +324,7 @@ def register_v4_routes(app, bench, auth, *, governing_fees=None, trusted_now=Non
             return DraftReviewer(p.tenant, p.subject, p.role)
         return p
 
+    proposal_options = {'proposal_jobs': proposal_jobs} if proposal_jobs is not None else {}
     app.include_router(make_router(bench.path, vendor_reader, auth.reviewer, bench.check_write, bench.mutex,
-                                  governing_fees=governing_fees,trusted_now=trusted_now))
+                                  governing_fees=governing_fees,trusted_now=trusted_now, **proposal_options))
     app.include_router(make_correspondence_router(inbox, reader, auth.reviewer, bench.check_write, auth.service))
