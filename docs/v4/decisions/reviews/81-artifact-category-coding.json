@@ -1,0 +1,63 @@
+{
+  "process_status": "completed",
+  "returncode": 0,
+  "duration_seconds": 203.26652650000142,
+  "stream_sha256": "3e6bf614cd31f14cfbe393e7f6069fddbc4c273870c972e3417116d5cb18e4fc",
+  "prompt_sha256": "e279ebe8d4155bd209caa7d34134d2f1f01a7b75b7faf424e661a5b7586a2961",
+  "init": [
+    {
+      "model": "claude-opus-5-5",
+      "session_id": "27471efc-7a93-4b52-9c91-033201c4191d",
+      "tools": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "mcp_servers": []
+    }
+  ],
+  "tool_calls": [
+    "Grep",
+    "Glob",
+    "Read",
+    "Read",
+    "Grep",
+    "Read",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Grep",
+    "Read",
+    "Grep",
+    "Grep",
+    "Edit",
+    "Grep",
+    "Grep",
+    "Read",
+    "Grep",
+    "Grep",
+    "Grep",
+    "Read",
+    "Read",
+    "Grep",
+    "Read",
+    "Write",
+    "Edit",
+    "Edit",
+    "Write"
+  ],
+  "result": [
+    {
+      "session_id": "27471efc-7a93-4b52-9c91-033201c4191d",
+      "subtype": "success",
+      "is_error": false,
+      "result": "I've implemented decision81 in the three owned source files and added the two new test files. Nothing has been run (no Bash), so all tests are unverified.\n\n**Edited files**\n1. `uptime/correspondence_blocks.py`\n   - Adds a shared `ARTIFACT_CATEGORY_GUIDANCE` string covering the three definitions (prefixes match the UI labels exactly), the rule not to infer type from `artifact_ref` or identifier spelling, and null for unstated, ambiguous or competing categories.\n   - It also says negated, quoted and conditional requirements keep their polarity, modality and referent, and that the advice can't make unsupported text supported.\n   - The guidance goes directly into `BlockProposition.artifact_type = Field(default=None, description=...)`, since `_same` drops descriptions. The type, enum and default are unchanged.\n   - Hydration is unchanged: no auto-fill and no classifier.\n2. `uptime/correspondence_block_model.py`\n   - Imports the guidance into `BLOCK_SYSTEM`. `artifact_ref` is now described as an independent literal identifier that is never derived from the type.\n   - `BLOCK_VERSION = 'source_blocks_v3'`. There is no v2 fallback. Because the hash covers the complete request, old version, system or schema bytes no longer match, and old allowlist hashes don't either.\n3. `web/interpretation.js`\n   - In `showCandidates`, adds a note only for `family==='artifact'` with a null `artifact_type`: \"Document type not recorded. Reference-only matching can still be legitimate; check the original wording and choose a document type explicitly only if the source supports it.\" It uses the class `interpretation-artifact-note`.\n   - Candidates still only render after the blind entry. Selection, loading, the dropdown and the decision flow are untouched.\n4. **New** `tests/test_correspondence_artifact_category_81.py`\n   - **Schema and request:** the schema description has all three meanings and the output shape is otherwise identical to `Proposition`'s. A label-match check runs against the JS. The serialized request carries v3 and the guidance.\n   - **Stale requests:** v2 version, system and schema bytes are refused by `parse_block_result`, and their hashes are refused by the adapter with zero provider calls. A positive control shows only the current hash is admitted.\n   - **Hydration:** missing-type annotations stay null with the exact reference, including the opaque `resource-log-Q`. Explicit categories survive unchanged. Negated, mixed, ambiguous and unsupported annotations, and `artifact_type` on other families, stay unknown or are refused.\n   - **Review desk:** after a blind entry plus an untyped candidate, `accept` on the changed row is refused and `correct` succeeds. The alignment's `reviewed` fingerprint differs from both `blind` and `candidate`. The preview has `resource_log` with exact source and reference, `external_actions == []`, `ledger_unchanged`, and state unchanged. A reference-only reading also stays reviewable.\n5. **New** `tests/test_correspondence_artifact_category_ui_81.py` (75 harness)\n   - The note is absent before the blind entry.\n   - After it, the note is visible and the type select stays `none` through the load.\n   - Changing the type by hand resets the decision. The `correct` review body differs from the original only in `artifact_type`.\n   - The call sequence is exactly `interpretation, reviews, preview`, with no model, prepare, submit or action calls.\n\n**Limitations**\n- **Branching prepare check:** I didn't confirm whether the existing gates allow prepare for an artifact reading with no evidence. The test asserts a refusal if `prepare_allowed` is false; otherwise it asserts no approval and an unchanged ledger. It does not pin down which outcome happens.\n- **Loose refusal assertions:** the `accept` refusal uses a bare `ValueError` with no message match. `_unknown` treats either a hydration refusal or a mapper `unknown` as passing.\n- **Guessed labels:** some UI labels I didn't read directly, such as \"Save independent reading\" and \"Your decision\", are assumed from the 75 tests and may need adjusting.\n- **Not a quality measure:** the supplied annotations are scripted controls. They say nothing about extraction quality, and there's no model rerun.\n- **Frozen76:** I didn't touch or read it; its replay is left to you as the parent.",
+      "permission_denials": [],
+      "models_in_usage": [
+        "claude-opus-5-5"
+      ]
+    }
+  ]
+}

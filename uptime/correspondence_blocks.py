@@ -39,6 +39,20 @@ class BlockSlot(QuoteSelector):
     name: _same(Slot, 'name')
 
 
+# Category advice only. It narrows nothing by itself and cannot make unsupported text supported;
+# the existing mapper gates and explicit human review still decide every meaning.
+ARTIFACT_CATEGORY_GUIDANCE = (
+    'artifact_type is the requested evidence category stated by the source wording, or null. '
+    'resource_log = Incident or telemetry record (evidence of affected service operations; request/access '
+    'logs when the source establishes operational context). '
+    'invoice_detail = Itemized billing record (charges, fees or invoice detail). '
+    'scope_mapping = Account or resource mapping (records linking account/resource ownership or scope). '
+    'Never infer the type from artifact_ref or identifier spelling. Use null for an unstated, ambiguous or '
+    'competing category. Negated, quoted or conditional requirements keep their polarity, modality and referent; '
+    'do not choose a category solely from a negated mention. Category advice cannot assign a supported positive '
+    'meaning to unsupported text.')
+
+
 class BlockProposition(Strict):
     """Existing Proposition fields without a source; the source is always the whole block."""
     family: _same(Proposition, 'family')
@@ -47,7 +61,8 @@ class BlockProposition(Strict):
     referent: _same(Proposition, 'referent')
     conditions: _same(Proposition, 'conditions', list[QuoteSelector])
     slots: _same(Proposition, 'slots', list[BlockSlot])
-    artifact_type: _same(Proposition, 'artifact_type') = None
+    # Description set here directly: _same() reuses type/metadata but not descriptions.
+    artifact_type: _same(Proposition, 'artifact_type') = Field(default=None, description=ARTIFACT_CATEGORY_GUIDANCE)
     scope_field: _same(Proposition, 'scope_field') = None
     filing_fields: _same(Proposition, 'filing_fields')
 

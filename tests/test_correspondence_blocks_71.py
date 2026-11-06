@@ -297,7 +297,7 @@ def test_request_is_public_scope_only_with_existing_budgets():
         assert new[key] == old[key]
     assert new['tools'] == [] and new['model'] == MODEL == 'claude-opus-5-5'
     assert new['domain'] != old.get('domain') and new['system'] != old['system'] and new['schema'] != old['schema']
-    assert new['version'] == 'source_blocks_v2' and new['schema'] == BlockInterpretation.model_json_schema()
+    assert new['version'] == 'source_blocks_v3' and new['schema'] == BlockInterpretation.model_json_schema()
     assert set(new['input']) == {'source_blocks', 'scope_month', 'currency', 'requested', 'filing_fields'}
     encoded = serialized_block_request(context)
     assert b'acct-private-991' not in encoded and b'inv-private-7' not in encoded
@@ -334,7 +334,7 @@ def test_enabled_adapter_hydrates_once_with_block_provenance():
     result = adapter.propose(context)
     assert len(provider.calls) == 1 and sha256(provider.calls[0]).hexdigest() == digest
     provenance = result['provenance']
-    assert provenance['representation'] == 'source_blocks_v2'
+    assert provenance['representation'] == 'source_blocks_v3'
     assert provenance['structural_grounding_not_semantic_validation'] is True
     assert (provenance['model'], provenance['request_sha256'], provenance['session']) == (MODEL, digest, 'session-1')
     assert provenance['response_sha256'] == sha256(body.encode()).hexdigest()
