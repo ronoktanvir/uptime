@@ -226,6 +226,7 @@
     // from the server's access answer for these exact fields, and any edit invalidates it. Job status is read with
     // GET only; a lost reservation response is recovered by an explicit access recheck, never by a second POST.
     const PROFILES = [['monthly','Monthly availability terms'],
+      ['monthly-propositions','Monthly terms with prose interpretation'],
       ['resource-month','Resource or service-month terms (interpretation review required)']];
     const REASONS = {PROPOSAL_SERVICE_UNCONFIGURED:'proposal generation is not configured in this deployment',
       PROVIDER_UNCONFIGURED:'no public proposal provider is configured', NOT_SUCCEEDED:'the job has not succeeded',

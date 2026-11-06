@@ -28,7 +28,7 @@ from pydantic import Field
 
 from .contracts import fingerprint
 from . import vendor_terms
-from .vendor_model import (MODEL, PROPOSAL_PROFILES, VENDOR_SYSTEM, ProposalEnvelopeError, job_extraction,
+from .vendor_model import (MODEL, PROPOSAL_FAMILIES, PROPOSAL_PROFILES, VENDOR_SYSTEM, ProposalEnvelopeError, job_extraction,
                            proposal_input, proposal_receipt, serialize_proposal_request)
 from .vendor_terms import Document, Strict
 
@@ -37,7 +37,7 @@ __all__ = ['VENDOR_SYSTEM', 'build_vendor_provider', 'VendorModelJobs', 'Proposa
 
 KIND = 'vendor'
 SERVICE_PROVIDER = 'vendor'
-PROFILE_FAMILIES = {'monthly': 'monthly-availability/1', 'resource-month': 'resource-month/1'}
+PROFILE_FAMILIES = PROPOSAL_FAMILIES
 JOB_ID_FIELD = 'job_id'        # The single identifier field of the shared job record.
 JOB_REASON_FIELD = 'reason'    # Optional bounded status code; free text is never projected.
 JOB_PIN_FIELDS = ('kind', 'target', 'context_sha256', 'request_sha256')
@@ -55,7 +55,7 @@ _MODULE_SHA256 = sha256(Path(__file__).read_bytes()).hexdigest()
 class ProposalRequest(Strict):
     """Exact public input only. No provider, model, command, path, receipt, hash or approval field exists."""
     document: Document
-    profile: Literal['monthly', 'resource-month']
+    profile: Literal['monthly', 'monthly-propositions', 'resource-month']
     attempt_nonce: str = Field(default='initial', min_length=1, max_length=30)
 
 
