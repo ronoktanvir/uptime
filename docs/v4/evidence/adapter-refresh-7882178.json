@@ -1,0 +1,43 @@
+{
+  "source_commit": "788217898d3d4bc347f463da261c755ae890c384",
+  "at": "2026-11-06T04:48:16.990304+00:00",
+  "reviewer": "scripted-test-reviewer",
+  "reviewer_kind": "SCRIPTED_REVIEWER",
+  "public_provider_calls": 0,
+  "native_ramp_actions": 0,
+  "financial_workflow_actions": 0,
+  "transport": "Signed normal service routes through local TestClient",
+  "states_before": {
+    "northwind-cloud": {
+      "state": "REVIEW_REQUIRED",
+      "revision": 12,
+      "active_version": null
+    },
+    "calyxquay": {
+      "state": "REVIEW_REQUIRED",
+      "revision": 28,
+      "active_version": null
+    }
+  },
+  "states_after": {
+    "northwind-cloud": {
+      "state": "ACTIVE",
+      "revision": 18,
+      "active_version": "3b0d7f558a3f2f4cbf96e22224abc157597d0b091b5ecdda305c4b9bc3408096"
+    },
+    "calyxquay": {
+      "state": "ACTIVE",
+      "revision": 42,
+      "active_version": "6bb75a3ac329ce8ed2d6916db76450b774e137a3339d5c3b1d8b379eea1e8620"
+    }
+  },
+  "ledger_unchanged": true,
+  "record_ids": {
+    "award": "inbox-award:3160bf112449fbd5eff4bb7f68d45005e72e13fc3be823c6f1f6e190a511c93e",
+    "credit": "local-ledger:23bb4b8b-3625-5438-b396-f5e336a01da8",
+    "application": "local-ledger:a9bbcbd4-7235-5929-8352-dbb798157c5c"
+  },
+  "applied": "2400.00",
+  "outstanding": "8600.00",
+  "destination": "Local ledger"
+}

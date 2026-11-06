@@ -19,6 +19,8 @@ The existing authored Northwind workspace can use the same protected configurati
 
 The application exports the complete request and its binding after normal account/source permission checks. Its JSON has `tenant`, `subject`, `kind`, `target`, `context_sha256`, `request` and `source_references`; each source reference has `reference` and `sha256`. The request includes model, prompt, schema, source bytes and pinned transport settings. Source whitespace is preserved. Overlays and private fee data are not part of vendor generation. A request export is not permission to send it.
 
+For vendor requests, prepare the complete export with `scripts/public_proposals.py export-vendor --document /public/vendor.json --config /protected/config.json --output /protected/exports/request.json --tenant WORKSPACE --subject ACCOUNT --target VENDOR --profile monthly`. The protected output directory must already exist with mode0700, and the output file must be new. Supported named profiles are `monthly`, `monthly-propositions` and `resource-month`; each requires its own exact permission. Export makes no model call and grants no permission. [Full operator procedure and limits](decisions/ADR-0079-monthly-profile-and-offline-export.md)
+
 Review and explicitly authorize an authored-public request offline:
 
 ```sh

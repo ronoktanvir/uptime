@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-11-06T03:00:04.164787+00:00",
+  "updated_at": "2026-11-06T08:44:30.508250+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Signed onboarding and dispute model jobs are integrated. Review now retains complete supported denial bundles; 3,540 regression tests pass. Independent language scores and native posting remain separate unresolved gates.",
+  "summary": "Onboarding setup, contract deadline validation and explicit dispute-category review are integrated. An actual browser model job produced a SHADOW candidate; the saved financial ledger remains unchanged.3,761 tests pass. Native posting and broad independent language coverage remain unresolved.",
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "3,540 passed",
-      "detail": "21f2a93: 3,540 tests, 1 warning in 239.00s; 61 JavaScript checks passed.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-21f2a93.json"
+      "value": "3,761 passed",
+      "detail": "7882178: 3,761 tests,1 warning in235.88s;62 JavaScript controls passed. Actual browser provider job reached SHADOW.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-7882178.json"
     },
     {
       "label": "Hosted verification",
-      "value": "CI passed 05b2978",
-      "detail": "3,288 tests, 1 warning in 278.31s; 47 web checks, graph, replay and repository scan passed. Later onboarding integration has separate local verification.",
-      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42148913516"
+      "value": "CI passed 099b903",
+      "detail": "3,540 tests,1 warning in296.45s;47 web checks,graph,replay and repository scan passed.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42153818685"
     },
     {
       "label": "Northwind workflow",
@@ -78,7 +78,7 @@
       "stream": "Foundation",
       "status": "done",
       "summary": "Focused implementation and verification commits",
-      "detail": "Focused implementation and verification commits preserve working code and failed attempts. Integration21f2a93 has3,540 passing Python tests. Credentials and private holdouts remain outside Git.",
+      "detail": "Focused verified increments and model/test receipts remain in private GitHub history. Integration7882178 passes3,761 tests; native actions and independent scores remain separately tracked.",
       "owner": "Orchestrator",
       "depends_on": [
         "audit"
@@ -208,7 +208,7 @@
         "rules",
         "security"
       ],
-      "next_action": "Close explicit monthly-propositions runtime parity and reproducible operator request export; retain source, fee and human review gates.",
+      "next_action": "Evaluate fresh independently authored sources; the successful studied Aster browser job is not an unseen score.",
       "links": [
         {
           "label": "Onboarding design",
@@ -450,8 +450,8 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "3,540 Python tests; 61 JavaScript checks",
-      "detail": "Frozen integration21f2a93 passed 3,540 tests, one existing warning in239.00s.61 web/helper checks passed; failed probes remain beside fixes.",
+      "summary": "3,761 Python tests;62 JavaScript checks",
+      "detail": "Integrated7882178 passes full regression. The first deadline defect and browser interruption remain recorded, not recast as successes.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
@@ -470,8 +470,8 @@
       "title": "GitHub CI verification",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "GitHub verified 05b2978",
-      "detail": "3,288 Python tests, 47 web checks, graph validation, replay and repository scan passed in the hosted run.",
+      "summary": "GitHub verified099b903",
+      "detail": "3,540 tests,47 web checks,graph,replay and secret scan passed. Hosted helper discovery is expanded for the next publication.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
@@ -601,7 +601,7 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/public-reply-harness-532c8d8.txt"
         }
       ],
-      "next_action": "Correct missing artifact-category guidance and verify explicit human repair without selecting a category automatically."
+      "next_action": "Evaluate fresh independent replies; keep explicit category correction and multi-assertion review separate from model accuracy."
     },
     {
       "id": "source_meaning",
@@ -637,7 +637,7 @@
         "response_coverage",
         "companion"
       ],
-      "next_action": "Use the resumed current application. Original credit/application IDs and 8,600 balance are unchanged; fresh fixture reviews preserve the source-version guard.",
+      "next_action": "Current7882178 backend retains exact ledger IDs and8,600 balance; CalyxQuay ACTIVE revision42 after recorded scripted renewal.",
       "links": [
         {
           "label": "Execution checkpoint",
@@ -647,6 +647,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-06T08:44:30.508250+00:00",
+      "title": "Three Opus-assisted fixes integrated; actual browser job succeeds",
+      "detail": "3,761 tests and62 JavaScript controls pass. Aster reached SHADOW using one actual model call; original ledger unchanged. Controlled session-recovery repair is next.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/browser-public-onboarding-82.json"
+    },
     {
       "at": "2026-11-06T03:00:04.164787+00:00",
       "title": "Complete denial-bundle review integrated",

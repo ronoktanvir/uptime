@@ -1,0 +1,19 @@
+{
+  "source_commit": "788217898d3d4bc347f463da261c755ae890c384",
+  "observed_at": "2026-11-06T08:42:53.043258+00:00",
+  "transport": "REAL_LOOPBACK_HTTP and actual browser",
+  "financial_actions_performed": 0,
+  "ledger_unchanged": true,
+  "record_ids": {
+    "award": "inbox-award:3160bf112449fbd5eff4bb7f68d45005e72e13fc3be823c6f1f6e190a511c93e",
+    "credit": "local-ledger:23bb4b8b-3625-5438-b396-f5e336a01da8",
+    "application": "local-ledger:a9bbcbd4-7235-5929-8352-dbb798157c5c"
+  },
+  "applied": "2400.00",
+  "outstanding": "8600.00",
+  "destination": "Local ledger",
+  "calyxquay_state": "ACTIVE",
+  "calyxquay_revision": 42,
+  "source_reviews": "Renewed through normal signed services by scripted-test-reviewer; original history retained.",
+  "native_ramp_write": false
+}

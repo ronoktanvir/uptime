@@ -1,0 +1,22 @@
+{
+  "commit": "788217898d3d4bc347f463da261c755ae890c384",
+  "command": "uv run --locked pytest --basetemp W/tasks/pytest82-root-merge",
+  "result": "3761 passed, 1 warning in 235.88s (0:03:55)",
+  "exit_code": 0,
+  "log_reference": "W/receipts/phase82-root-merge-full.log",
+  "log_sha256": "351e4b18bf54c0e1e7474b3884d1cf1016fb773fae14fba0b7276e78cfc39837",
+  "javascript": {
+    "command": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+    "result": "62 passed, 0 failed, 0 skipped"
+  },
+  "secret_checks": {
+    "tracked_text_objects": 1903,
+    "head_reachable_blobs": 1892,
+    "protected_ramp_profiles_compared": 2,
+    "result": "PASS"
+  },
+  "actual_browser_proof": "browser-public-onboarding-82.json",
+  "runtime_resume": "resume-7882178.json",
+  "remaining_ui_work": "Controlled401 recovery and terminal status announcement, phase83.",
+  "native_ramp_write_verified": false
+}
