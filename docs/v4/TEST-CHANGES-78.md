@@ -28,3 +28,5 @@ Final stable-source verification and exact command/log hashes are in `evidence/v
 - `test_explicit_candidate_load_preserves_slots_conditions_and_duplicate_spans`
 - `test_add_assertion_clears_decisions_and_renders_separate_editor`
 - `test_edit_during_save_does_not_publish_stale_preview`
+
+Final frozen-source run at `f4ec198ad6f9cc8202e8283acc1285b63f242a7f`: **241 passed**, one existing Starlette deprecation warning,13.16s. Browser execution was required and no tests were skipped. Source and test files were unchanged throughout that run.
