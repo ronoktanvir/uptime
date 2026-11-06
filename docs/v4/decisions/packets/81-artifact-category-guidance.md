@@ -1,0 +1,11 @@
+# Decision81 packet: explicit document category guidance and reviewer repair
+
+Public76 reply02 explicitly requests a request log, while the actual model returned a correctly grounded artifact_ref and artifact_type=null. The wire enum offers resource_log/invoice_detail/scope_mapping without category definitions; the prompt says category, not how the enum corresponds to source terminology. This supports a representation-guidance diagnosis, not proof that a prompt change will improve extraction.
+
+Preferred bounded repair: define all three category concepts in the block wire field description and prompt, keep null explicit for missing/ambiguous/mixed/negated evidence, never infer a type from an identifier, and increment the block request version so old approvals cannot authorize different bytes. Preserve output shape, hydration and the existing reference-only mapping; do not auto-fill category. Visibly flag a missing type in the existing review interface without selecting one. Prove the existing reviewer can correct the missing field, retaining source/reference, explaining the correction, and leaving financial/action gates intact.
+
+Alternatives: automatically classify category from identifier (reject); add a new category-witness quote selector everywhere (stronger local grounding but schema migration and compatibility work exceeds this omission repair); require a nonnull type for every artifact (rejects reference-only/ambiguous source and invites guessing); merely document the miss (leaves product guidance unclear).
+
+New authored controls cover explicit request-log/invoice-detail/account-mapping source, opaque misleading identifier, mixed categories and negated requirement. Deterministic tests validate supplied annotations and explicit reviewer repair; they do not measure a model's new extraction quality. Frozen76 inputs/gold/requests/responses/annotations remain immutable. No model rerun is needed to claim this limited outcome; any later same-case extraction is remediation only. Customer runtime inference stays opt-in and exact-request approved.
+
+Critic: identify safety defects, whether the definitions overreach, limits of whole-proposition source grounding, and whether a stronger schema is actually necessary for this bounded repair. One concise actual Opus review only.
