@@ -214,6 +214,7 @@ def _project(document,profile,proposal,block_protocol='public_block_ids/1'):
 
 
 def generate(document, approved_digest, *, allow_propositions=False, profile='monthly'):
+    from .correspondence_model_transport import public_environment, strict_json
     _validate_document(document)
     digest = sha256(document.text.encode()).hexdigest()
     if not re.fullmatch('[a-f0-9]{64}', approved_digest) or digest != approved_digest:
@@ -235,7 +236,11 @@ def generate(document, approved_digest, *, allow_propositions=False, profile='mo
             for block in blocks]}, ensure_ascii=False)
     elif profile != 'monthly':
         raise ValueError('Unknown extraction profile.')
-    env = {k: os.environ[k] for k in ('HOME', 'PATH', 'LANG', 'TMPDIR', 'CLAUDE_CODE_OAUTH_TOKEN') if k in os.environ}
+    # Retain the established login identity without inheriting execution overrides
+    # or provider credentials. PATH still locates this operator's existing CLI;
+    # this legacy launcher does not claim SafePublicClaude binary/profile pinning.
+    env = public_environment()
+    env['PATH'] = os.environ.get('PATH', env['PATH'])
     with TemporaryDirectory() as cwd:
         proc = subprocess.run(
             ['claude', '-p', '--safe-mode', '--model', MODEL, '--tools', '', '--strict-mcp-config',
@@ -244,13 +249,13 @@ def generate(document, approved_digest, *, allow_propositions=False, profile='mo
             capture_output=True, text=True, timeout=180)
     if proc.returncode:
         raise ValueError('Tool-free public extraction unavailable.')
-    envelope = json.loads(proc.stdout)
+    envelope = strict_json(proc.stdout)
     if envelope.get('is_error') is not False or MODEL not in envelope.get('modelUsage', {}):
         raise ValueError('Model identity unverified.')
     raw = envelope['result'].strip()
     if raw.startswith('```json') and raw.endswith('```'):
         raw = raw[7:-3]
-    proposal = json.loads(raw)
+    proposal = strict_json(raw)
     try:
         clauses,protocol=_project(document,profile,proposal,block_protocol)
         validate_proposal(document,clauses,allow_propositions=allow_propositions)

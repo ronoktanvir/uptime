@@ -367,7 +367,54 @@ def test_tool_free_generator_accepts_wire_and_rejects_mismatch_in_memory_only(mo
     assert caught.value.receipt['status'] == 'REJECTED' and caught.value.receipt['raw_proposal'] == {'clauses': bad}
 
 
+def test_generator_retains_os_login_identity_without_execution_overrides(monkeypatch):
+    import os
+    import pwd
+    from types import SimpleNamespace
+    captured = []
+    overrides = {'USER': 'not-the-os-user', 'LOGNAME': 'not-the-os-user',
+                 'NODE_OPTIONS': '--require /public-test-override', 'BASH_ENV': '/public-test-override',
+                 'DYLD_INSERT_LIBRARIES': '/public-test-override', 'LD_PRELOAD': '/public-test-override',
+                 'HTTPS_PROXY': 'http://public-test.invalid', 'ANTHROPIC_BASE_URL': 'http://public-test.invalid',
+                 'ANTHROPIC_API_KEY': 'synthetic-not-a-credential',
+                 'CLAUDE_CODE_OAUTH_TOKEN': 'synthetic-not-a-credential'}
+    for key, value in overrides.items():
+        monkeypatch.setenv(key, value)
+    def fake_run(argv, **kwargs):
+        captured.append(kwargs['env'])
+        return SimpleNamespace(returncode=0, stdout=json.dumps({
+            'is_error': False, 'modelUsage': {MODEL: {}}, 'session_id': 'synthetic-environment-check',
+            'result': json.dumps({'clauses': proposal()})}))
+    monkeypatch.setattr('uptime.vendor_model.subprocess.run', fake_run)
+    generate(Document(**DOC), sha256(DOC['text'].encode()).hexdigest())
+    env = captured[0]
+    assert env['USER'] == env['LOGNAME'] == pwd.getpwuid(os.getuid()).pw_name
+    assert env['HOME'] == str(Path.home()) and env['PATH'] == os.environ['PATH']
+    assert not (set(overrides) - {'USER', 'LOGNAME'}) & env.keys()
+    assert env['CLAUDE_CODE_DISABLE_AUTO_MEMORY'] == '1'
+
+
 # ---- engine controls and pricing authority ----
+
+@pytest.mark.parametrize('invalid', [
+    '{"clauses":[],"clauses":[]}',
+    '{"clauses":[{"value":{"cap":"30","cap":"25"}}]}',
+    '{"clauses":[],"extra":NaN}',
+    '{"clauses":[],"extra":Infinity}',
+    '{"clauses":[],"extra":-Infinity}',
+    '{"clauses":[],"extra":1e999}',
+])
+@pytest.mark.parametrize('layer', ['envelope', 'proposal'])
+def test_generator_refuses_ambiguous_json_before_proposal_validation(monkeypatch, invalid, layer):
+    from types import SimpleNamespace
+    envelope = {'is_error': False, 'modelUsage': {MODEL: {}},
+                'session_id': 'synthetic-json-rejection', 'result': invalid}
+    output = invalid if layer == 'envelope' else json.dumps(envelope)
+    monkeypatch.setattr('uptime.vendor_model.subprocess.run',
+                        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout=output))
+    with pytest.raises(ValueError, match='Duplicate JSON key|Non-finite JSON'):
+        generate(Document(**DOC), sha256(DOC['text'].encode()).hexdigest())
+
 
 def test_frozen_ratio_and_monthly_controls_use_engine_results():
     manifest, overlay = compiled()
