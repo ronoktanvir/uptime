@@ -31,3 +31,7 @@ After the harness/request commit, the authorized command is:
 ```
 
 The scorer reads gold only after execution. Full process output remains protected outside Git; a later public receipt will preserve request/response hashes, actual identities, all errors and separate denominators. No runtime result was known when this protocol and its requests were committed.
+
+## Completed baseline
+
+The unchanged frozen target has now completed all eighteen one-attempt requests. [Results and failure taxonomy](evaluation76/BASELINE.md) retain the 0/4 supported onboarding acceptance result, 3/6 complete supported reply mappings, 6/6 review abstentions, actual identities and original errors. No case, request or expected answer was revised.

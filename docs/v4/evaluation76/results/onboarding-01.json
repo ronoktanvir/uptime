@@ -1,0 +1,168 @@
+{
+  "elapsed_seconds": 27.056590333000713,
+  "error": "Public model proposal rejected: Ungrounded vendor or agreement identifier.; model=claude-opus-5-5; session=42791e85-39a6-4f7f-a1dd-c61785601878; source_sha256=b189b82d72d2064cc30e4bb38ff38c9ad75c6642b6a2f3f607db6c845ab4b356; proposal_sha256=464070954f4e0bb73214bce7f64393d7f3ce1d1b346775680e9af6d1fd9f5206",
+  "error_type": "RejectedProposal",
+  "evaluator_called": false,
+  "extraction_accepted": false,
+  "financial_mutation": false,
+  "human_approval": false,
+  "id": "onboarding-01",
+  "kind": "onboarding",
+  "legacy_raw_output": {
+    "legacy_fence_normalization_eligible": true,
+    "model_usage": {
+      "claude-opus-5-5": {
+        "cacheCreationEphemeral1hInputTokens": 1546,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationInputTokens": 1546,
+        "cacheReadInputTokens": 0,
+        "canonicalModel": "claude-opus-5-5",
+        "contextWindow": 1000000,
+        "costBasis": "list",
+        "costUSD": 0.045056,
+        "inputTokens": 2,
+        "maxOutputTokens": 128000,
+        "outputTokens": 1634,
+        "provider": "firstParty",
+        "thinkingTokens": 855,
+        "webSearchRequests": 0
+      }
+    },
+    "provider_is_error": false,
+    "raw_result_sha256": "0d1257259ee935eeddd04760d63554898d2cc7a04a7241129e92ef91fb5dbacd",
+    "session": "42791e85-39a6-4f7f-a1dd-c61785601878",
+    "strict_json_output": false
+  },
+  "process_output": {
+    "provider.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "provider.stdout": {
+      "bytes": 3889,
+      "sha256": "679f67fb4c7d571156a778a54438ccd1ba8bd77aaeaa70db78a679fe13de1ddf"
+    }
+  },
+  "rejection": {
+    "allow_propositions": true,
+    "at": "2026-11-06T01:48:59.192566+00:00",
+    "model": "claude-opus-5-5",
+    "profile": "monthly",
+    "raw_proposal": {
+      "clauses": [
+        {
+          "field": "agreement",
+          "quote": "Morrowfin Relay Availability Terms 2026",
+          "value": "Morrowfin Relay Availability Terms 2026"
+        },
+        {
+          "field": "vendor",
+          "quote": "Vendor: Morrowfin Relay.",
+          "value": "Morrowfin Relay"
+        },
+        {
+          "field": "effective",
+          "quote": "Effective from 2026-01-01 through 2026-12-31.",
+          "value": [
+            "2026-01-01",
+            "2026-12-31"
+          ]
+        },
+        {
+          "field": "period",
+          "quote": "For Relay Queue on the Core plan, monthly availability is 100 multiplied by (1 minus eligible downtime minutes divided by all minutes in the UTC calendar month).",
+          "value": "utc_calendar_month"
+        },
+        {
+          "field": "tier",
+          "quote": "For Relay Queue on the Core plan, monthly availability below 99.9% earns a 10% service credit;",
+          "value": {
+            "below": "99.9",
+            "credit": "10",
+            "plan": "Core",
+            "product": "Relay Queue"
+          }
+        },
+        {
+          "field": "tier",
+          "quote": "monthly availability below 99.0% earns a 25% service credit.",
+          "value": {
+            "below": "99.0",
+            "credit": "25",
+            "plan": "Core",
+            "product": "Relay Queue"
+          }
+        },
+        {
+          "field": "unsupported",
+          "quote": "Only the highest applicable percentage applies.",
+          "value": null
+        },
+        {
+          "field": "remedy",
+          "quote": "Service credits are calculated from the affected monthly subscription fee,",
+          "value": "affected_monthly_fees_future_invoice"
+        },
+        {
+          "field": "unsupported",
+          "quote": "excluding tax, support and one-time charges,",
+          "value": null
+        },
+        {
+          "field": "remedy",
+          "quote": "and apply to a future invoice.",
+          "value": "affected_monthly_fees_future_invoice"
+        },
+        {
+          "field": "filing_days",
+          "quote": "Claims must be received within 20 calendar days after the end of the affected month.",
+          "value": 20
+        }
+      ]
+    },
+    "raw_proposal_sha256": "464070954f4e0bb73214bce7f64393d7f3ce1d1b346775680e9af6d1fd9f5206",
+    "reason": "Ungrounded vendor or agreement identifier.",
+    "session": "42791e85-39a6-4f7f-a1dd-c61785601878",
+    "source_sha256": "b189b82d72d2064cc30e4bb38ff38c9ad75c6642b6a2f3f607db6c845ab4b356",
+    "status": "REJECTED"
+  },
+  "request_attempts": 1,
+  "request_sha256": "75ea81848a1d5303ab4acf3d4f2336b7f67fc6f0b912e196bb54fceca3064723",
+  "schema_grounding_accepted": false,
+  "stage": "proposal_validation_refusal",
+  "transport_class": "LEGACY_VENDOR_MODEL_SUBPROCESS_NOT_SAFEPUBLICCLAUDE",
+  "classification": "AUTHORED_PUBLIC",
+  "actual_provider_identity": {
+    "model": "claude-opus-5-5",
+    "session": "42791e85-39a6-4f7f-a1dd-c61785601878",
+    "identity_basis": "legacy JSON modelUsage checked by frozen generate",
+    "requested_tool_inventory": [],
+    "initialized_tool_inventory": null,
+    "initialized_inventory_verified": false
+  },
+  "raw_model_response": "```json\n{\n  \"clauses\": [\n    {\n      \"quote\": \"Morrowfin Relay Availability Terms 2026\",\n      \"field\": \"agreement\",\n      \"value\": \"Morrowfin Relay Availability Terms 2026\"\n    },\n    {\n      \"quote\": \"Vendor: Morrowfin Relay.\",\n      \"field\": \"vendor\",\n      \"value\": \"Morrowfin Relay\"\n    },\n    {\n      \"quote\": \"Effective from 2026-01-01 through 2026-12-31.\",\n      \"field\": \"effective\",\n      \"value\": [\"2026-01-01\", \"2026-12-31\"]\n    },\n    {\n      \"quote\": \"For Relay Queue on the Core plan, monthly availability is 100 multiplied by (1 minus eligible downtime minutes divided by all minutes in the UTC calendar month).\",\n      \"field\": \"period\",\n      \"value\": \"utc_calendar_month\"\n    },\n    {\n      \"quote\": \"For Relay Queue on the Core plan, monthly availability below 99.9% earns a 10% service credit;\",\n      \"field\": \"tier\",\n      \"value\": {\n        \"product\": \"Relay Queue\",\n        \"plan\": \"Core\",\n        \"below\": \"99.9\",\n        \"credit\": \"10\"\n      }\n    },\n    {\n      \"quote\": \"monthly availability below 99.0% earns a 25% service credit.\",\n      \"field\": \"tier\",\n      \"value\": {\n        \"product\": \"Relay Queue\",\n        \"plan\": \"Core\",\n        \"below\": \"99.0\",\n        \"credit\": \"25\"\n      }\n    },\n    {\n      \"quote\": \"Only the highest applicable percentage applies.\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"Service credits are calculated from the affected monthly subscription fee,\",\n      \"field\": \"remedy\",\n      \"value\": \"affected_monthly_fees_future_invoice\"\n    },\n    {\n      \"quote\": \"excluding tax, support and one-time charges,\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"and apply to a future invoice.\",\n      \"field\": \"remedy\",\n      \"value\": \"affected_monthly_fees_future_invoice\"\n    },\n    {\n      \"quote\": \"Claims must be received within 20 calendar days after the end of the affected month.\",\n      \"field\": \"filing_days\",\n      \"value\": 20\n    }\n  ]\n}\n```",
+  "raw_model_response_sha256": "0d1257259ee935eeddd04760d63554898d2cc7a04a7241129e92ef91fb5dbacd",
+  "protected_result_sha256": "ab0eaf7e3cffb6e03ec1ac266445484e1c9ad4b0115bb2148debd93ff82f142f",
+  "protected_stream_sha256": "679f67fb4c7d571156a778a54438ccd1ba8bd77aaeaa70db78a679fe13de1ddf",
+  "protected_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "score": {
+    "error": "Public model proposal rejected: Ungrounded vendor or agreement identifier.; model=claude-opus-5-5; session=42791e85-39a6-4f7f-a1dd-c61785601878; source_sha256=b189b82d72d2064cc30e4bb38ff38c9ad75c6642b6a2f3f607db6c845ab4b356; proposal_sha256=464070954f4e0bb73214bce7f64393d7f3ce1d1b346775680e9af6d1fd9f5206",
+    "evaluation_missing": [],
+    "expected_amount": "62.00",
+    "expected_math_observed": false,
+    "expected_outcome": "ELIGIBLE",
+    "extraction_accepted": false,
+    "id": "onboarding-01",
+    "observed_amount": null,
+    "observed_outcome": null,
+    "pass_expected": false,
+    "request_attempts": 1,
+    "result_sha256": "ab0eaf7e3cffb6e03ec1ac266445484e1c9ad4b0115bb2148debd93ff82f142f",
+    "safe_refusal_without_positive_money": false,
+    "schema_grounding_accepted": false,
+    "stage": "proposal_validation_refusal",
+    "strict_json_output": false
+  },
+  "action_authority_evaluated": false,
+  "actions_executed": 0
+}

@@ -1,0 +1,167 @@
+{
+  "schema": "uptime-public-evaluation76-baseline/1",
+  "classification": "AUTHORED_PUBLIC",
+  "implementation_commit": "fd6537cc4e3118a9b6e29f4804a505ed591ea9ea",
+  "corpus_freeze_commit": "388b5ebed34dbb32be3d0c82b7ec732ec1097aff",
+  "request_harness_commit": "227ee912f03c7718d02cf7f496480a108420a9fb",
+  "corpus_manifest_sha256": "6dc212c296dea38dc5ad7a39ccdda3fe8ad64e5e902d93d1329c66c8060ce82d",
+  "request_manifest_sha256": "067e9089eba0dfb876927d456967f8d13379778991d56e9194bb04308be33455",
+  "protected_score_sha256": "826f6331f5c8c07ef6de292ef373c1ba91990a724e47bacc4b133c4b0a3c6932",
+  "request_attempts": 18,
+  "per_case_request_attempts": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "retries": 0,
+  "transport_failure_count": 0,
+  "timeout_count": 0,
+  "metrics": {
+    "onboarding": {
+      "cases": 6,
+      "strict_raw_json": 0,
+      "native_legacy_fence_normalization": 6,
+      "accepted_extractions": 0,
+      "supported_cases": 4,
+      "supported_accepted": 0,
+      "unsupported_or_ambiguous_cases": 2,
+      "unsupported_no_positive_money": 2,
+      "unsupported_semantic_classification_proven": false,
+      "downstream_evaluator_calls": 0,
+      "hand_expected_amounts_observed": 0
+    },
+    "disputes": {
+      "cases": 12,
+      "schema_grounding_compatible": 12,
+      "supported_cases": 6,
+      "supported_reason_family_matches": 4,
+      "full_expected_supported_mappings": 3,
+      "mandatory_review_cases": 6,
+      "mandatory_review_unknown_mappings": 6,
+      "mandatory_review_false_supported_mappings": 0,
+      "exact_reported_award_mappings": 2
+    }
+  },
+  "actions_executed": 0,
+  "action_authority_evaluated": false,
+  "actual_human_approval": false,
+  "actual_native_recovery": null,
+  "public_authored_not_blind": true,
+  "expected_truth_unchanged": true,
+  "core_unchanged": true,
+  "results": [
+    {
+      "id": "onboarding-01",
+      "path": "results/onboarding-01.json",
+      "sha256": "78aaba229fc89e3dda517ac48436b417e1c245e68d55d44156c224be5070461c"
+    },
+    {
+      "id": "onboarding-02",
+      "path": "results/onboarding-02.json",
+      "sha256": "9ada56e1a5d4aa03ed53441a7236a26ad18fc10d5d83d23c16eb3a3932fe5cd7"
+    },
+    {
+      "id": "onboarding-03",
+      "path": "results/onboarding-03.json",
+      "sha256": "1f79aa7937102ff43be194b8f92a9ddd47918c218bc306fd00af710261d759e7"
+    },
+    {
+      "id": "onboarding-04",
+      "path": "results/onboarding-04.json",
+      "sha256": "fe6df824b4936e4bcd3488825bc55035a9aa74e4d29dc9b9ae212f5a4c744e2c"
+    },
+    {
+      "id": "onboarding-05",
+      "path": "results/onboarding-05.json",
+      "sha256": "a44ede3c91da9949fc62a09efe19d8659e29172aad1dfb5a71e31c875a372643"
+    },
+    {
+      "id": "onboarding-06",
+      "path": "results/onboarding-06.json",
+      "sha256": "5fbc421abb7a426f44ae1a4283da8dc5f6805c5aab9aa16f26bab3f53c7add6b"
+    },
+    {
+      "id": "dispute-01",
+      "path": "results/dispute-01.json",
+      "sha256": "168d8c656b98cb45f39175496f83d8d61fbe13662d0972c95d088698ae8ee744"
+    },
+    {
+      "id": "dispute-02",
+      "path": "results/dispute-02.json",
+      "sha256": "97c9f2de375aa3cec88a66fb8ea8aa12eae5a8b397395f24e3a94052bdb6dfcd"
+    },
+    {
+      "id": "dispute-03",
+      "path": "results/dispute-03.json",
+      "sha256": "cf5767e88950208898fe3b7a6527671bd52adf2749157dd2e3b6dba8a4bfa1fd"
+    },
+    {
+      "id": "dispute-04",
+      "path": "results/dispute-04.json",
+      "sha256": "221c5fd5097703dd88fc80c39f26be18ea4b248075e7b06a53cccd2caa90e546"
+    },
+    {
+      "id": "dispute-05",
+      "path": "results/dispute-05.json",
+      "sha256": "e74e9e56bba5625993a33e94de4ad71273ec0c63c339ba9c8fabf0e2b54ec22b"
+    },
+    {
+      "id": "dispute-06",
+      "path": "results/dispute-06.json",
+      "sha256": "58e634b9340ca8aea406c72411fb10136613625dd5454c444340eb10bb5fd331"
+    },
+    {
+      "id": "dispute-07",
+      "path": "results/dispute-07.json",
+      "sha256": "9cd41540daa6e1727de7db9ec17512c87fd30c71efe7b4d6753faadb2df42da9"
+    },
+    {
+      "id": "dispute-08",
+      "path": "results/dispute-08.json",
+      "sha256": "97fcec3eeb109ca11a1f25c7fcd7c7ef449fb3758a233f3b54e556973dba278a"
+    },
+    {
+      "id": "dispute-09",
+      "path": "results/dispute-09.json",
+      "sha256": "d826288e9826d1da8b7637c143e0ec25077f19c35fdb4e05910a3101ab94b094"
+    },
+    {
+      "id": "dispute-10",
+      "path": "results/dispute-10.json",
+      "sha256": "22c7fd6b7a13680404a0218ac4e3b958c7b5b34a9bb2828d340fa61364d7fe37"
+    },
+    {
+      "id": "dispute-11",
+      "path": "results/dispute-11.json",
+      "sha256": "43f50882e83efbfe7167053c6043ab93987237b3f13ec3c529adcebd39fe374f"
+    },
+    {
+      "id": "dispute-12",
+      "path": "results/dispute-12.json",
+      "sha256": "cdb17697dfc382196b2cf5a18ef33ce072570666c318b7cd8be249478bdd160b"
+    }
+  ],
+  "limitations": [
+    "One sample per exact pinned request; no generalization estimate.",
+    "Onboarding uses the weaker legacy transport; initial tool inventory is unverified.",
+    "All six onboarding outputs had JSON fences; built-in legacy normalization did not make any proposal acceptable.",
+    "Unsupported onboarding refusals arose at source/proposal validation and do not prove correct semantic classification.",
+    "No downstream onboarding arithmetic ran because every extraction failed.",
+    "No runtime action authority or human review was evaluated."
+  ]
+}

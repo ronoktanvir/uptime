@@ -1,0 +1,163 @@
+{
+  "elapsed_seconds": 14.781863457999862,
+  "error": "Public model proposal rejected: Model proposal dropped or invented source material.; model=claude-opus-5-5; session=a9c2584b-ebab-44c2-82e0-597909e653fa; source_sha256=6b3fbcc32c0a16d0a9db5cc8cc28e92d63860db52fec150cdeeb33dffe9c023f; proposal_sha256=b5e418e87842c424c14d04015568eda20d1bd0630cc61e91501913bf45ac3ac9",
+  "error_type": "RejectedProposal",
+  "evaluator_called": false,
+  "extraction_accepted": false,
+  "financial_mutation": false,
+  "human_approval": false,
+  "id": "onboarding-02",
+  "kind": "onboarding",
+  "legacy_raw_output": {
+    "legacy_fence_normalization_eligible": true,
+    "model_usage": {
+      "claude-opus-5-5": {
+        "cacheCreationEphemeral1hInputTokens": 1565,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationInputTokens": 1565,
+        "cacheReadInputTokens": 0,
+        "canonicalModel": "claude-opus-5-5",
+        "contextWindow": 1000000,
+        "costBasis": "list",
+        "costUSD": 0.04532799999999999,
+        "inputTokens": 2,
+        "maxOutputTokens": 128000,
+        "outputTokens": 1640,
+        "provider": "firstParty",
+        "thinkingTokens": 886,
+        "webSearchRequests": 0
+      }
+    },
+    "provider_is_error": false,
+    "raw_result_sha256": "3124ab0b079c2bfafe569b5ba2bbeee48676aacf8161458c0853b71f307b6a1c",
+    "session": "a9c2584b-ebab-44c2-82e0-597909e653fa",
+    "strict_json_output": false
+  },
+  "process_output": {
+    "provider.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "provider.stdout": {
+      "bytes": 3824,
+      "sha256": "88df416eba029f4bc754867db37da861b7662622114341d2693afa4bc3400411"
+    }
+  },
+  "rejection": {
+    "allow_propositions": true,
+    "at": "2026-11-06T01:48:46.918220+00:00",
+    "model": "claude-opus-5-5",
+    "profile": "monthly",
+    "raw_proposal": {
+      "clauses": [
+        {
+          "field": "heading",
+          "quote": "PUBLIC CONTRACT TEXT",
+          "value": null
+        },
+        {
+          "field": "agreement",
+          "quote": "Bracken Loom Service Commitment 2026",
+          "value": "Bracken Loom Service Commitment 2026"
+        },
+        {
+          "field": "vendor",
+          "quote": "Vendor: Bracken Loom.",
+          "value": "Bracken Loom"
+        },
+        {
+          "field": "effective",
+          "quote": "Effective from 2026-01-01 through 2026-12-31.",
+          "value": [
+            "2026-01-01",
+            "2026-12-31"
+          ]
+        },
+        {
+          "field": "period",
+          "quote": "Monthly availability for Loom Compute on the Harbor plan is 100 multiplied by (1 minus eligible downtime minutes divided by all minutes in the UTC calendar month).",
+          "value": "utc_calendar_month"
+        },
+        {
+          "field": "unsupported",
+          "quote": "The monthly availability target is 99.9%.",
+          "value": null
+        },
+        {
+          "field": "unsupported",
+          "quote": "For Loom Compute on the Harbor plan, each completed 0.2 percentage point shortfall below the target earns a 7% service credit, capped at 21% of the affected monthly subscription fee.",
+          "value": null
+        },
+        {
+          "field": "unsupported",
+          "quote": "An incomplete step earns no credit for that step.",
+          "value": null
+        },
+        {
+          "field": "remedy",
+          "quote": "Credits are based solely on the affected monthly subscription fee,",
+          "value": "affected_monthly_fees_future_invoice"
+        },
+        {
+          "field": "unsupported",
+          "quote": "excluding tax, support and one-time charges,",
+          "value": null
+        },
+        {
+          "field": "remedy",
+          "quote": "and apply to a future invoice.",
+          "value": "affected_monthly_fees_future_invoice"
+        },
+        {
+          "field": "filing_days",
+          "quote": "Claims must be received within 20 calendar days after the end of the affected month.",
+          "value": 20
+        }
+      ]
+    },
+    "raw_proposal_sha256": "b5e418e87842c424c14d04015568eda20d1bd0630cc61e91501913bf45ac3ac9",
+    "reason": "Model proposal dropped or invented source material.",
+    "session": "a9c2584b-ebab-44c2-82e0-597909e653fa",
+    "source_sha256": "6b3fbcc32c0a16d0a9db5cc8cc28e92d63860db52fec150cdeeb33dffe9c023f",
+    "status": "REJECTED"
+  },
+  "request_attempts": 1,
+  "request_sha256": "22a8655f27df3138865f43428119da3b7e4ec77f13fc33b05b089adf6bd3f7b5",
+  "schema_grounding_accepted": false,
+  "stage": "proposal_validation_refusal",
+  "transport_class": "LEGACY_VENDOR_MODEL_SUBPROCESS_NOT_SAFEPUBLICCLAUDE",
+  "classification": "AUTHORED_PUBLIC",
+  "actual_provider_identity": {
+    "model": "claude-opus-5-5",
+    "session": "a9c2584b-ebab-44c2-82e0-597909e653fa",
+    "identity_basis": "legacy JSON modelUsage checked by frozen generate",
+    "requested_tool_inventory": [],
+    "initialized_tool_inventory": null,
+    "initialized_inventory_verified": false
+  },
+  "raw_model_response": "```json\n{\n  \"clauses\": [\n    {\n      \"quote\": \"PUBLIC CONTRACT TEXT\",\n      \"field\": \"heading\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"Bracken Loom Service Commitment 2026\",\n      \"field\": \"agreement\",\n      \"value\": \"Bracken Loom Service Commitment 2026\"\n    },\n    {\n      \"quote\": \"Vendor: Bracken Loom.\",\n      \"field\": \"vendor\",\n      \"value\": \"Bracken Loom\"\n    },\n    {\n      \"quote\": \"Effective from 2026-01-01 through 2026-12-31.\",\n      \"field\": \"effective\",\n      \"value\": [\"2026-01-01\", \"2026-12-31\"]\n    },\n    {\n      \"quote\": \"Monthly availability for Loom Compute on the Harbor plan is 100 multiplied by (1 minus eligible downtime minutes divided by all minutes in the UTC calendar month).\",\n      \"field\": \"period\",\n      \"value\": \"utc_calendar_month\"\n    },\n    {\n      \"quote\": \"The monthly availability target is 99.9%.\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"For Loom Compute on the Harbor plan, each completed 0.2 percentage point shortfall below the target earns a 7% service credit, capped at 21% of the affected monthly subscription fee.\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"An incomplete step earns no credit for that step.\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"Credits are based solely on the affected monthly subscription fee,\",\n      \"field\": \"remedy\",\n      \"value\": \"affected_monthly_fees_future_invoice\"\n    },\n    {\n      \"quote\": \"excluding tax, support and one-time charges,\",\n      \"field\": \"unsupported\",\n      \"value\": null\n    },\n    {\n      \"quote\": \"and apply to a future invoice.\",\n      \"field\": \"remedy\",\n      \"value\": \"affected_monthly_fees_future_invoice\"\n    },\n    {\n      \"quote\": \"Claims must be received within 20 calendar days after the end of the affected month.\",\n      \"field\": \"filing_days\",\n      \"value\": 20\n    }\n  ]\n}\n```",
+  "raw_model_response_sha256": "3124ab0b079c2bfafe569b5ba2bbeee48676aacf8161458c0853b71f307b6a1c",
+  "protected_result_sha256": "5e78aeeef3fe6923ecc2efbf293ad5ec9f8960036f3fca03d6ef114472558574",
+  "protected_stream_sha256": "88df416eba029f4bc754867db37da861b7662622114341d2693afa4bc3400411",
+  "protected_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "score": {
+    "error": "Public model proposal rejected: Model proposal dropped or invented source material.; model=claude-opus-5-5; session=a9c2584b-ebab-44c2-82e0-597909e653fa; source_sha256=6b3fbcc32c0a16d0a9db5cc8cc28e92d63860db52fec150cdeeb33dffe9c023f; proposal_sha256=b5e418e87842c424c14d04015568eda20d1bd0630cc61e91501913bf45ac3ac9",
+    "evaluation_missing": [],
+    "expected_amount": "59.50",
+    "expected_math_observed": false,
+    "expected_outcome": "ELIGIBLE",
+    "extraction_accepted": false,
+    "id": "onboarding-02",
+    "observed_amount": null,
+    "observed_outcome": null,
+    "pass_expected": false,
+    "request_attempts": 1,
+    "result_sha256": "5e78aeeef3fe6923ecc2efbf293ad5ec9f8960036f3fca03d6ef114472558574",
+    "safe_refusal_without_positive_money": false,
+    "schema_grounding_accepted": false,
+    "stage": "proposal_validation_refusal",
+    "strict_json_output": false
+  },
+  "action_authority_evaluated": false,
+  "actions_executed": 0
+}
