@@ -1,0 +1,102 @@
+{
+  "id": "onboarding-03",
+  "classification": "AUTHORED_PUBLIC",
+  "fictional": true,
+  "authorized_for_external_inference": true,
+  "customer_data": false,
+  "requested_profile": "resource-month",
+  "document": {
+    "name": "Cedar Meridian SLA",
+    "uri": "urn:synthetic:public-evaluation76:onboarding-03",
+    "classification": "synthetic_public",
+    "text": "Cedar Meridian Storage SLA 2026\nVendor: Cedar Meridian.\nThis agreement covers Beacon Store Standard from 2026-01-01 through 2026-12-31.\nAvailability is measured separately for each covered storage resource over a UTC calendar month.\nQualifying downtime is elapsed time when read requests fail because of provider equipment failure. Overlapping qualifying intervals count once. Downtime caused by customer configuration is excluded. There is no minimum outage duration.\nMonthly availability equals 100 multiplied by (1 minus qualifying downtime minutes divided by all minutes in the UTC calendar month).\nMonthly availability below 99.5% earns a 10% service credit; monthly availability below 99.0% earns a 20% service credit. Only the highest applicable percentage applies.\nThe credit base consists only of recurring service charges for the affected resource and month. Support, tax and one-time charges are excluded. The credit is applied to a future invoice.\nClaims must be received no later than 2026-12-20T23:59:59Z for the November 2026 service month.\n"
+  },
+  "overlay": {
+    "agreement": "Cedar Meridian Storage SLA 2026",
+    "account": "public76-account-3",
+    "product": "Beacon Store",
+    "plan": "Standard",
+    "fee_line_ref": "public76-fee-3",
+    "currency": "USD",
+    "effective_from": "2026-01-01",
+    "effective_until": "2026-12-31",
+    "resource_id": "cedar-rack-8"
+  },
+  "scope": {
+    "vendor": "Cedar Meridian",
+    "agreement": "Cedar Meridian Storage SLA 2026",
+    "account": "public76-account-3",
+    "product": "Beacon Store",
+    "plan": "Standard",
+    "month": "2026-11",
+    "fee_line_ref": "public76-fee-3",
+    "currency": "USD",
+    "resource_id": "cedar-rack-8"
+  },
+  "evidence": {
+    "monitor_source": "simulated_vendor",
+    "monitor_ref": "public76-monitor-3",
+    "month_complete": true,
+    "intervals": [
+      {
+        "ref": "public76-outage-3a",
+        "account": "public76-account-3",
+        "resource_id": "cedar-rack-8",
+        "start": "2026-11-03T00:00:00Z",
+        "end": "2026-11-03T06:00:00Z",
+        "symptom": "read requests fail",
+        "cause": "provider equipment failure"
+      },
+      {
+        "ref": "public76-outage-3b",
+        "account": "public76-account-3",
+        "resource_id": "cedar-rack-8",
+        "start": "2026-11-03T04:00:00Z",
+        "end": "2026-11-03T10:00:00Z",
+        "symptom": "read requests fail",
+        "cause": "provider equipment failure"
+      },
+      {
+        "ref": "public76-outage-3c",
+        "account": "public76-account-3",
+        "resource_id": "cedar-rack-8",
+        "start": "2026-11-04T00:00:00Z",
+        "end": "2026-11-04T02:00:00Z",
+        "symptom": "read requests fail",
+        "cause": "customer configuration"
+      }
+    ],
+    "itemized_complete": true,
+    "fee_lines": [
+      {
+        "ref": "public76-fee-3",
+        "kind": "resource_service",
+        "account": "public76-account-3",
+        "resource_id": "cedar-rack-8",
+        "month": "2026-11",
+        "currency": "USD",
+        "amount_cents": 85000
+      },
+      {
+        "ref": "public76-support-3",
+        "kind": "support",
+        "account": "public76-account-3",
+        "resource_id": "cedar-rack-8",
+        "month": "2026-11",
+        "currency": "USD",
+        "amount_cents": 12000
+      },
+      {
+        "ref": "public76-tax-3",
+        "kind": "tax",
+        "account": "public76-account-3",
+        "resource_id": "cedar-rack-8",
+        "month": "2026-11",
+        "currency": "USD",
+        "amount_cents": 3400
+      }
+    ],
+    "received_at": "2026-12-12T10:00:00Z",
+    "filing_ref": "public76-filing-3"
+  }
+}

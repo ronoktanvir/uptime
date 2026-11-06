@@ -1,0 +1,59 @@
+{
+  "id": "onboarding-02",
+  "classification": "AUTHORED_PUBLIC",
+  "fictional": true,
+  "authorized_for_external_inference": true,
+  "customer_data": false,
+  "requested_profile": "monthly",
+  "document": {
+    "name": "Bracken Loom SLA",
+    "uri": "urn:synthetic:public-evaluation76:onboarding-02",
+    "classification": "synthetic_public",
+    "text": "Bracken Loom Service Commitment 2026\nVendor: Bracken Loom.\nEffective from 2026-01-01 through 2026-12-31.\nMonthly availability for Loom Compute on the Harbor plan is 100 multiplied by (1 minus eligible downtime minutes divided by all minutes in the UTC calendar month).\nThe monthly availability target is 99.9%. For Loom Compute on the Harbor plan, each completed 0.2 percentage point shortfall below the target earns a 7% service credit, capped at 21% of the affected monthly subscription fee. An incomplete step earns no credit for that step.\nCredits are based solely on the affected monthly subscription fee, excluding tax, support and one-time charges, and apply to a future invoice.\nClaims must be received within 20 calendar days after the end of the affected month.\n"
+  },
+  "overlay": {
+    "agreement": "Bracken Loom Service Commitment 2026",
+    "account": "public76-account-2",
+    "product": "Loom Compute",
+    "plan": "Harbor",
+    "fee_line_ref": "public76-fee-2",
+    "currency": "USD",
+    "effective_from": "2026-01-01",
+    "effective_until": "2026-12-31"
+  },
+  "scope": {
+    "vendor": "Bracken Loom",
+    "agreement": "Bracken Loom Service Commitment 2026",
+    "account": "public76-account-2",
+    "product": "Loom Compute",
+    "plan": "Harbor",
+    "month": "2026-06",
+    "fee_line_ref": "public76-fee-2",
+    "currency": "USD"
+  },
+  "evidence": {
+    "eligible_downtime_minutes": 216,
+    "monitor_source": "simulated_vendor",
+    "monitor_ref": "public76-monitor-2",
+    "monitor_month": "2026-06",
+    "month_complete": true,
+    "exclusions_removed": true,
+    "monthly_fee_cents": 42500,
+    "fee_ref": "public76-invoice-2",
+    "fee_month": "2026-06",
+    "received_at": "2026-07-10T12:00:00Z"
+  },
+  "pricing_evidence": {
+    "classification": "AUTHORED_PUBLIC",
+    "agreement": "Bracken Loom Service Commitment 2026",
+    "source_ref": "public76-pricing-2",
+    "text": "For Loom Compute Harbor, the fixed monthly subscription price is USD 425.00 for one complete UTC calendar month. Billing occurs after the service month.",
+    "quantity": "1",
+    "net_amount": "425.00",
+    "tax_amount": "0.00",
+    "invoice_line_ref": "public76-fee-2",
+    "invoice_received_at": "2026-07-02T08:00:00Z",
+    "service_start": "2026-06-01",
+    "service_end": "2026-06-30"
+  }
+}
