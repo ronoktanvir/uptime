@@ -172,3 +172,18 @@ def test_fenced_runtime_output_is_retained_and_refused_without_candidate(runtime
         raw = connection.execute('SELECT response_json FROM public_proposal_jobs WHERE id=?', (complete['job_id'],)).fetchone()[0]
     assert json.loads(raw)['text'] == provider.raw_text
     assert len(provider.calls) == 1 and vendor_registry.catalog(db, P)['vendors'] == []
+
+
+@pytest.mark.parametrize('profile,consumed,unused', [
+    ('monthly', 'monthly-availability/1', 'resource-month/1'),
+    ('resource-month', 'resource-month/1', 'monthly-availability/1'),
+])
+def test_proposal_context_pins_only_consumed_family(monkeypatch, profile, consumed, unused):
+    from uptime import vendor_terms
+    from uptime.vendor_model_jobs import proposal_context
+    document = vendor_terms.Document.model_validate(DOC)
+    before = proposal_context(VENDOR, document, profile)
+    monkeypatch.setitem(vendor_terms.SEMANTICS_REVISIONS, unused, 'unused-family-revision')
+    assert proposal_context(VENDOR, document, profile) == before
+    monkeypatch.setitem(vendor_terms.SEMANTICS_REVISIONS, consumed, 'consumed-family-revision')
+    assert proposal_context(VENDOR, document, profile) != before

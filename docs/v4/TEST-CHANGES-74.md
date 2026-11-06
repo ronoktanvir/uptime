@@ -21,7 +21,7 @@ Final signed HTTP/browser integration and the lead-owned merged full suite are s
 
 Final native controls (new tests, no existing assertion changes):
 
-- `tests/test_vendor_model_jobs_runtime.py::test_fenced_output_is_preserved_and_refused_without_candidate`: the runtime applies strict JSON decoding to the original provider text; fenced output remains in private queue evidence and cannot produce a candidate. Legacy `generate()` fence behavior is unchanged.
+- `tests/test_vendor_model_jobs_runtime.py::test_fenced_runtime_output_is_retained_and_refused_without_candidate`: the runtime applies strict JSON decoding to the original provider text; fenced output remains in private queue evidence and cannot produce a candidate. Legacy `generate()` fence behavior is unchanged.
 - `tests/test_vendor_model_jobs_browser.py::test_signed_job_routes_require_approval_and_cannot_grant_financial_actions`: actual signed routes, exact protected permission, one invocation, idempotent SHADOW installation, foreign-owner refusal and disabled financial actions.
 - `::test_provider_work_does_not_hold_the_application_post_lock`: a blocked provider does not block a second signed application POST.
 - `::test_browser_checks_permission_generates_and_stages_separate_overlay[manual]` and `[utf8_file]`: real Chrome against a loopback server and the actual durable service with an explicit provider double. UTF-8 file import preserves original CRLF in the approved request despite textarea display normalization. Editing creates a different unapproved source; reimporting the original restores the original request. Both paths reach SHADOW with no review/activation authority, no overlay disclosure, no page errors and no mobile horizontal overflow.
@@ -34,3 +34,7 @@ New test-fixture corrections retain their failed receipts: reserved `scripted-` 
 - `onboarding74-dom-file.log`: eight DOM controls passed with the optional file input.
 
 The final integrated full suite remains lead-owned; these are focused results.
+
+`test_proposal_context_pins_only_consumed_family` (both fixed profiles) verifies that only the consumed evaluator family affects the proposal context. Every selected family's existing common and profile source dependencies remain pinned. Resource-only changes cannot invalidate a strict monthly request through an unused family digest; common-source changes still alter the monthly family digest. Decision77 source was merged before the final request freeze.
+
+`onboarding74-final-pins.log`: 106 passed, one existing warning, 10.44 seconds on the decision77 merge plus the scoped dependency change (runtime, signed/browser, source-period and scoped-filing controls). The lead owns the integrated full-suite gate after the final merge.

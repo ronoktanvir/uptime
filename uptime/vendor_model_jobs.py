@@ -37,6 +37,7 @@ __all__ = ['VENDOR_SYSTEM', 'build_vendor_provider', 'VendorModelJobs', 'Proposa
 
 KIND = 'vendor'
 SERVICE_PROVIDER = 'vendor'
+PROFILE_FAMILIES = {'monthly': 'monthly-availability/1', 'resource-month': 'resource-month/1'}
 JOB_ID_FIELD = 'job_id'        # The single identifier field of the shared job record.
 JOB_REASON_FIELD = 'reason'    # Optional bounded status code; free text is never projected.
 JOB_PIN_FIELDS = ('kind', 'target', 'context_sha256', 'request_sha256')
@@ -117,7 +118,8 @@ def proposal_context(vendor, document, profile):
                         'document': document.model_dump(), 'source_sha256': sha256(document.text.encode()).hexdigest(),
                         'profile': profile, 'allow_propositions': PROPOSAL_PROFILES[profile],
                         'system_sha256': sha256(VENDOR_SYSTEM.encode()).hexdigest(),
-                        'semantics': vendor_terms.SEMANTICS_REVISIONS, 'module_sha256': _MODULE_SHA256})
+                        'semantics': {PROFILE_FAMILIES[profile]: vendor_terms.SEMANTICS_REVISIONS[PROFILE_FAMILIES[profile]]},
+                        'module_sha256': _MODULE_SHA256})
 
 
 def _disclosure(document, body, request):
