@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-11-06T02:12:38.409811+00:00",
+  "updated_at": "2026-11-06T02:51:19.206068+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "The durable public proposal queue is verified. Actual Opus workers are connecting onboarding and disputes to the application; a fresh independent public baseline exposes remaining extraction and interpretation gaps. Native posting remains unverified.",
+  "summary": "Approved public model proposals now run through the signed onboarding and dispute workflows. The latest integrated suite passes 3,396 tests; independent extraction and interpretation gaps remain measured separately. Native posting is still unverified.",
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "3,288 passed",
-      "detail": "c14df32: signed dispute jobs and operator configuration passed 3,288 tests, 1 warning in 214.72s. All 47 JavaScript checks passed.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-c14df32.json"
+      "value": "3,396 passed",
+      "detail": "c5dd4e4: onboarding jobs, resource-period correction and scoped filing. 3,396 tests, 1 warning in 258.65s; 47 web checks and eight onboarding controls passed.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-c5dd4e4.json"
     },
     {
       "label": "Hosted verification",
-      "value": "CI passed 88a72e5",
-      "detail": "3,238 tests, 1 warning in 352.29s; 47 JavaScript checks, graph, replay and repository scan passed. Latest dispute integration has separate local verification.",
-      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42146953611"
+      "value": "CI passed 05b2978",
+      "detail": "3,288 tests, 1 warning in 278.31s; 47 web checks, graph, replay and repository scan passed. Later onboarding integration has separate local verification.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42148913516"
     },
     {
       "label": "Northwind workflow",
@@ -78,7 +78,7 @@
       "stream": "Foundation",
       "status": "done",
       "summary": "Focused implementation and verification commits",
-      "detail": "Private ronoktanvir/uptime preserves focused implementation, merge and verification commits. All three current workstreams join at46e427c with 3,203 passing Python tests. Credentials and private evaluation inputs stay outside Git.",
+      "detail": "Private ronoktanvir/uptime preserves focused implementation, merge, failed attempts and verification commits. c5dd4e4 integrates the onboarding runtime with 3,396 passing Python tests. Credentials and private evaluation inputs stay outside Git.",
       "owner": "Orchestrator",
       "depends_on": [
         "audit"
@@ -208,7 +208,7 @@
         "rules",
         "security"
       ],
-      "next_action": "Finish application generation and repair generic source/period representations without vendor-name branches.",
+      "next_action": "Close explicit monthly-propositions runtime parity and reproducible operator request export; retain source, fee and human review gates.",
       "links": [
         {
           "label": "Onboarding design",
@@ -265,7 +265,7 @@
       "title": "Credit reconciliation & attribution",
       "stream": "Ramp integration",
       "status": "done",
-      "summary": "Award \u2192 native credit \u2192 applied bill stages",
+      "summary": "Award → native credit → applied bill stages",
       "detail": "Implemented native observation joins, independent original-filing and award witnesses, amount/currency bounds and allocation controls. The actual sandbox contains zero credits and the installed workspace has zero awards.",
       "owner": "Reconciliation engineering",
       "depends_on": [
@@ -450,14 +450,14 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "3,288 Python and 47 JavaScript checks passed",
-      "detail": "c14df32 full merge suite: 3,288 passed, 1 warning in 214.72s. Premature pre-commit run was stopped and retained; committed source passed independently.",
+      "summary": "3,396 Python tests; 55 JavaScript controls",
+      "detail": "c5dd4e4 passed 3,396 tests, 1 warning in 258.65s. All 47 existing web and eight new onboarding controls passed. Initial period compatibility failure and its unchanged-test correction remain recorded.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
         "companion"
       ],
-      "next_action": "Run full regression after each application integration.",
+      "next_action": "Run the complete suite after the next integration merge.",
       "links": [
         {
           "label": "Frozen verification",
@@ -470,14 +470,14 @@
       "title": "GitHub CI verification",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "GitHub CI passed 88a72e5",
-      "detail": "Run 42146953611 passed 3,238 tests, 1 warning in 352.29s, plus all 47 JavaScript checks and other workflow steps.",
+      "summary": "GitHub verified 05b2978",
+      "detail": "3,288 Python tests, 47 web checks, graph validation, replay and repository scan passed in the hosted run.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
         "regression"
       ],
-      "next_action": "Verify the latest application integration on GitHub after publication.",
+      "next_action": "Verify the published onboarding increment in a separate hosted run.",
       "links": [
         {
           "label": "Successful GitHub run",
@@ -585,7 +585,7 @@
       "stream": "Disputes",
       "status": "active",
       "summary": "Fresh public baseline:3/6 complete supported mappings",
-      "detail": "12/12 source-block structures grounded; 3/6 complete supported meanings, 6/6 mandatory-review UNKNOWN. Correct objections combined with negative award statements expose a representation limit. Actual queued proposal\u2192review\u2192inert draft proof passed; submission without approval stayed blocked.",
+      "detail": "12/12 source-block structures grounded; 3/6 complete supported meanings, 6/6 mandatory-review UNKNOWN. Correct objections combined with negative award statements expose a representation limit. Actual queued proposal→review→inert draft proof passed; submission without approval stayed blocked.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -647,6 +647,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-06T02:51:19.206068+00:00",
+      "title": "Onboarding jobs and contract correction verified",
+      "detail": "3,396 tests passed, one warning. An actual approved public Opus proposal reached SHADOW. The original 28-failure period regression remains preserved beside the correction.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-c5dd4e4.json"
+    },
     {
       "at": "2026-11-06T02:12:38.409811+00:00",
       "title": "Dispute model workflow integrated",

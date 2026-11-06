@@ -1,0 +1,29 @@
+{
+  "commit": "c5dd4e4d5928ecac069bcf92438c7a873dee2291",
+  "verified_at": "2026-11-06T02:51:19.206068+00:00",
+  "command": "uv run --locked pytest --basetemp W/tasks/pytest74-root-merge",
+  "result": "3396 passed, 1 warning in 258.65s (0:04:18)",
+  "exit_code": 0,
+  "log_reference": "W/receipts/phase74-root-merge-full.log",
+  "log_sha256": "dcf314e050db9f480348f36d0071e35cd37117ab2cdec4fae42133ff2c854b27",
+  "javascript": {
+    "web": "47 passed, 0 failed",
+    "vendor_job_controls": "8 passed, 0 failed",
+    "graph": "dependency ordering, invalid graphs, and link safety passed"
+  },
+  "prior_failed_integration": {
+    "commit": "53bd7be71ca927ac2028b1e60387553fd9d45483",
+    "result": "28 failed, 3355 passed, 1 warning in 158.87s",
+    "log_reference": "W/receipts/phase77-root-merge-full.log",
+    "log_sha256": "91ee567f33bb596abe3827100563db81d80a251ff39a7350aa5868e6c57d46d2",
+    "cause": "Finite period grammar omitted existing valid combined supplier/period/duration/UTC wording. Fixed without changing the input contract, recorded proposal or existing expected outcomes.",
+    "correction": "b27409b"
+  },
+  "actual_public_vendor_job": "decisions/reviews/74-actual-public-queue.json",
+  "limits": [
+    "One studied public source job reached SHADOW; no new unseen-vendor score or human activation.",
+    "Customer model processing remains disabled.",
+    "No native Ramp write or real recovery established.",
+    "Known aggregate fixed_filing qualification defect remains separately recorded."
+  ]
+}
