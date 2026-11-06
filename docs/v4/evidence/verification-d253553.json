@@ -1,0 +1,9 @@
+{
+  "commit": "d25355337620fd803d8838d473ff5a54ccd2c801",
+  "command": "uv run --locked pytest --basetemp W/tasks/pytest76-merge",
+  "result": "3238 passed, 1 warning in 217.95s (0:03:37)",
+  "exit_code": 0,
+  "log_sha256": "54536761aba21185ff80b38d121c3545fbf73411e5e9dc3240aa07b43da823cc",
+  "log_reference": "W/receipts/phase76-merge-full.log",
+  "scope": "Integration of frozen public evaluation evidence; no changed expectations or repeat model calls."
+}

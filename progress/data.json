@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-11-06T00:37:42.640132+00:00",
+  "updated_at": "2026-11-06T02:03:09.819512+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Opus-assisted onboarding, dispute proposals and Ramp credit-scope repair are integrated and verified. Native posting and independent unseen-language coverage remain open.",
+  "summary": "The durable public proposal queue is verified. Actual Opus workers are connecting onboarding and disputes to the application; a fresh independent public baseline exposes remaining extraction and interpretation gaps. Native posting remains unverified.",
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "3,203 passed",
-      "detail": "46e427c: 3,203 passed, 1 warning in 193.64s after all three merges. 47 unchanged JavaScript checks passed.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-46e427c.json"
+      "value": "3,238 passed",
+      "detail": "d253553: 3,238 passed, 1 warning in 217.95s after evaluation 76 merge. Application runtime wrappers are not integrated yet.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-d253553.json"
     },
     {
       "label": "Hosted verification",
-      "value": "CI passed prior increment",
-      "detail": "9722cd3 passed on Linux: 3,003 tests, 47 JavaScript checks, graph, replay and repository scan. Later integration awaits its own hosted result.",
-      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42136360822"
+      "value": "CI passed fd6537c",
+      "detail": "GitHub run 42138346878 passed 3,203 tests with 1 warning in 364.30s. The newer shared queue has its own local full-suite proof; hosted verification is tracked separately.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42138346878"
     },
     {
       "label": "Northwind workflow",
@@ -46,6 +46,12 @@
       "value": "0 / 50 recognized",
       "detail": "50/50 unsafe or ambiguous controls abstained. Safe refusal alone is not useful generalization.",
       "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/independent-replies-532c8d8.txt"
+    },
+    {
+      "label": "Fresh public evaluation",
+      "value": "0/4 contracts; 3/6 replies",
+      "detail": "All 18 requests ran once. Four supported contracts failed extraction; 3/6 replies met complete semantics and6/6 review controls stayed UNKNOWN. No expected answers changed.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evaluation76/BASELINE.md"
     }
   ],
   "nodes": [
@@ -195,14 +201,14 @@
       "title": "Declarative vendor onboarding",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Actual completed-step extraction reaches verified shadow controls",
-      "detail": "CalyxQuay completed source review, shadow controls, approval, activation, rollback and reactivation with 14 immutable history events and scripted authority. Known source/fee-authority defects are repaired. No new independent unseen-vendor success is claimed.",
+      "summary": "New public contracts expose extraction gaps",
+      "detail": "The independently authored76 baseline accepted 0/4 documented supported contracts. App generation is being connected through actual Opus jobs; bounded resource period/filing repairs proceed separately. Existing activation/rollback remains intact.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
         "security"
       ],
-      "next_action": "Evaluate additional public language families independently; keep source, fee and human promotion requirements.",
+      "next_action": "Finish application generation and repair generic source/period representations without vendor-name branches.",
       "links": [
         {
           "label": "Onboarding design",
@@ -370,7 +376,7 @@
       "stream": "Independent QA",
       "status": "active",
       "summary": "Studied cohort: 5/8 complete; unseen replies: 0/50",
-      "detail": "The unchanged supplied 8-case socket cohort completes 5/8 cases with 141/146 checks and exactly one response submitted. The original 10-case cohort remains 2/10 complete. The independent 100-reply set recognizes 0/50 supported replies and abstains on 50/50 mandatory-review cases.",
+      "detail": "The unchanged supplied 8-case socket cohort completes 5/8 cases with 141/146 checks and exactly one response submitted. The original 10-case cohort remains 2/10 complete. The independent 100-reply set recognizes 0/50 supported replies and abstains on 50/50 mandatory-review cases. Separate fresh public76 baseline:0/4 supported contract extractions, 3/6 complete supported replies, 6/6 review controls. This does not replace the original private scores.",
       "owner": "Independent witness",
       "depends_on": [
         "adapter",
@@ -395,8 +401,8 @@
       "title": "Additional contract families",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Bounded source and advance-month rules integrated",
-      "detail": "Current Northwind uses typed fixed calendar-month advance pricing, cited amendment timing and exact fee contexts. This does not cover arbitrary proration, retroactive changes or unrestricted contractual prose.",
+      "summary": "Resource period and month-scoped cutoff repair active",
+      "detail": "Fresh public sources exposed an explicit UTC calendar period refusal and missing month scope for absolute filing cutoffs. Decision77 is being criticized and implemented under bounded ownership; no source or expected outcome is being rewritten.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
@@ -444,14 +450,14 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "2,949 Python and 47 JavaScript checks passed",
-      "detail": "Source 3f5b856 passed the locked full suite:2,949 passed, 1 warning in 218.30s. Browser verification caught and repaired an HTMLCollection action defect that the Node stub missed. Original failures and interrupted runs remain preserved.",
+      "summary": "3,238 Python checks passed",
+      "detail": "d253553 passed 3,238 tests, 1 warning in 217.95s after shared queue and frozen baseline evidence. Original and new failed attempts remain preserved.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
         "companion"
       ],
-      "next_action": "Run the hosted workflow for the published checkpoint.",
+      "next_action": "Run full regression after each application integration.",
       "links": [
         {
           "label": "Frozen verification",
@@ -464,14 +470,14 @@
       "title": "GitHub CI verification",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "GitHub CI passed on3561836",
-      "detail": "Main run42122411200 passed: 2,949 Python tests, 47 JavaScript checks, dependency validation, replay and repository scan. This snapshot update changes metadata only; application code is unchanged.",
+      "summary": "GitHub CI passed fd6537c",
+      "detail": "Run 42138346878 passed 3,203 tests, 1 warning in 364.30s. Newer queue/application changes need their own hosted result.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
         "regression"
       ],
-      "next_action": "Repeat the configured checks after the next application change.",
+      "next_action": "Track the pushed88a72e5 workflow to completion.",
       "links": [
         {
           "label": "Successful GitHub run",
@@ -578,8 +584,8 @@
       "title": "New vendor response coverage",
       "stream": "Disputes",
       "status": "active",
-      "summary": "Authored public block proposals improve; blind score unchanged",
-      "detail": "Actual revised public model batch: 8/8 structurally grounded, 3/3 expected positive mappings, 5/5 negative UNKNOWN. First batch failures retained. Human semantic review remains required; prior independent 0/50 result unchanged.",
+      "summary": "Fresh public baseline:3/6 complete supported mappings",
+      "detail": "12/12 source-block structures grounded; 3/6 complete supported meanings, 6/6 mandatory-review UNKNOWN. Correct objections combined with negative award statements expose a representation limit. Actual queued proposal\u2192review\u2192inert draft proof passed; submission without approval stayed blocked.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -595,7 +601,7 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/public-reply-harness-532c8d8.txt"
         }
       ],
-      "next_action": "Measure genuinely new material separately; retain human semantic review and default-disabled customer inference."
+      "next_action": "Integrate the signed proposal job workflow and retain separate structural, semantic and action denominators."
     },
     {
       "id": "source_meaning",
@@ -642,6 +648,12 @@
   ],
   "activity": [
     {
+      "at": "2026-11-06T02:03:09.819512+00:00",
+      "title": "Shared queue verified; fresh baseline published",
+      "detail": "Queue and baseline integration:3,238 passed, 1 warning. Independent public controls expose 0/4 supported extraction and3/6 complete reply mapping; no retry or expected-answer edits.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evaluation76/BASELINE.md"
+    },
+    {
       "at": "2026-11-06T00:37:42.640132+00:00",
       "title": "All Opus-assisted workstreams integrated",
       "detail": "Full suite: 3,203 passed, 1 warning. Onboarding extracts the frozen public source and passes four shadow controls. Saved walkthrough retains its ledger; CalyxQuay is active after version-bound fixture re-review.",
@@ -650,19 +662,19 @@
     {
       "at": "2026-11-06T00:28:11.320416+00:00",
       "title": "Grounded dispute proposals integrated",
-      "detail": "Full merge regression3,055 passed,1 warning. Authored model controls improve to3/3 positive and5/5 appropriate UNKNOWN; independent score unchanged.",
+      "detail": "Full merge regression3,055 passed, 1 warning. Authored model controls improve to3/3 positive and5/5 appropriate UNKNOWN; independent score unchanged.",
       "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/decisions/ADR-0071-source-locked-dispute-proposals.md"
     },
     {
       "at": "2026-11-06T00:19:37.941901+00:00",
       "title": "Ramp reconciliation preserves business identity",
-      "detail": "Fixed foreign-business credit advancement; current real capture imports idempotently with scope retained and unverified amounts null. Full merge regression:3,003 passed,1 warning.",
+      "detail": "Fixed foreign-business credit advancement; current real capture imports idempotently with scope retained and unverified amounts null. Full merge regression:3,003 passed, 1 warning.",
       "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/RAMP-RECONCILIATION-72.md"
     },
     {
       "at": "2026-11-05T23:38:19.264891+00:00",
       "title": "Public model framing correction verified",
-      "detail": "Full regression: 2,971 passed, 1 warning in201.33s. Exact Ramp bill/business read reverified; no native write performed.",
+      "detail": "Full regression: 2,971 passed, 1 warning in 201.33s. Exact Ramp bill/business read reverified; no native write performed.",
       "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-3449bbe.json"
     },
     {
