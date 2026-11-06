@@ -5,7 +5,7 @@
  * 2. const v4 = window.UptimeV4.create({
  *      api: (path, body) => signedApi(path, body), // absent body = GET; body = POST
  *      getAccess: () => ({identity, enrollment, gate, canWrite}),
- *      onCase: id => openCase(id)
+ *      onCase: id => openCase(id), onUnauthorized: () => showSignIn()
  *    });
  *    getAccess is a projection of SERVER auth-helper state, never user input. canWrite
  *    must be true only after enrollment and security gate pass. Default is read-only.
@@ -54,9 +54,10 @@
     const mounts = new Map();
     let busy = false;
     // A mutation with a lost response may have committed. Reconcile before retrying.
-    let uncertain = false;
+    let uncertain = false, authRequired = false;
+    const active = m => mounts.get(m.root) === m;
     const access = () => typeof options.getAccess === 'function' ? options.getAccess() || {} : {};
-    const writable = (draft = false) => (access().canWrite === true || draft && access().canDraft === true) && !busy && !uncertain;
+    const writable = (draft = false) => (access().canWrite === true || draft && access().canDraft === true) && !busy && !uncertain && !authRequired;
     const el = (tag, text, cls) => { const n = doc.createElement(tag); if (text !== undefined) n.textContent = shown(text); if (cls) n.className = cls; return n; };
     const add = (node, ...children) => { children.filter(Boolean).forEach(child => node.append(child)); return node; };
     const section = title => add(el('section', undefined, 'v4-panel'), el('h2', title));
@@ -104,32 +105,53 @@
     }
     function sync() {
       mounts.forEach(m => {
-        (m.writes || []).forEach(n => { n.disabled = !writable(n.draftAllowed === true); });
+        (m.writes || []).forEach(n => { n.disabled = !writable(n.draftAllowed === true) || (typeof n.stillCurrent === 'function' && !n.stillCurrent()); });
         (m.syncs || []).forEach(update => update());
       });
     }
-    async function request(path, body) {
-      if (typeof options.api !== 'function') throw new Error('Authenticated API client is not connected.');
-      return body === undefined ? options.api(path) : options.api(path, body);
+    function disable(root) {
+      for (const child of root?.children || []) {
+        if (['button','input','select','textarea'].includes(String(child.tagName).toLowerCase())) child.disabled = true;
+        disable(child);
+      }
     }
-    function status(m, message) { m.status.textContent = message; }
+    function unmount(root) { disable(root); mounts.delete(root); }
+    async function request(m, path, body) {
+      if (typeof options.api !== 'function') throw new Error('Authenticated API client is not connected.');
+      try {
+        const result = await (body === undefined ? options.api(path) : options.api(path, body));
+        if (body === undefined && active(m)) authRequired = false;
+        return result;
+      } catch (error) {
+        if (error?.status === 401 && active(m)) {
+          authRequired = true;
+          const roots = [...mounts.keys()];
+          roots.forEach(unmount);
+          roots.forEach(root => root.replaceChildren(note('Sign in again to load current server state. Nothing is retried automatically.')));
+          if (typeof options.onUnauthorized === 'function') options.onUnauthorized();
+        }
+        throw error;
+      }
+    }
+    function status(m, message) { if (active(m)) m.status.textContent = message; }
     async function mutate(m, path, body, onSuccess, draft = false) {
       if (!writable(draft) || mounts.get(m.root) !== m) return;
       busy = true; sync(); status(m, 'Submitting for server authorization…');
       let recorded = false, generatedCase = null;
       try {
-        const result = await request(path, body);
+        const result = await request(m, path, body);
         recorded = true;
         if (path.endsWith('/evaluate') && typeof result?.id === 'string') generatedCase = result.id;
+        if (!active(m)) return;
         uncertain = true;
-        if (mounts.get(m.root) !== m) return;
         status(m, 'Server recorded the request. Refresh to inspect current state.');
         m.result.replaceChildren(details('Server response', result));
         if (path.endsWith('/evaluate') && typeof result?.id === 'string' && typeof options.onCase === 'function') {
-          m.result.append(button('Inspect generated case ' + result.id, () => options.onCase(result.id)));
+          m.result.append(button('Inspect generated case ' + result.id, () => active(m) && options.onCase(result.id)));
         }
         if (onSuccess) onSuccess(result);
       } catch (_) {
+        if (!active(m)) return;
         uncertain = true;
         status(m, 'Request did not complete reliably. Its outcome may be unknown. Refresh server state before another change.');
       } finally {
@@ -149,7 +171,7 @@
       const submit = el('button', submitLabel); submit.type = 'submit'; submit.draftAllowed = draft; m.writes.push(submit);
       node.addEventListener('submit', async event => {
         event.preventDefault();
-        if (!writable(draft) || !node.reportValidity()) return;
+        if (!active(m) || !writable(draft) || !node.reportValidity()) return;
         try {
           const values = Object.fromEntries(Object.entries(inputs).map(([k, v]) => [k, v.value.trim()]));
           const body = build(values);
@@ -270,7 +292,7 @@
       const sourceFile = field(box, 'source_file', 'Import UTF-8 source file (optional)', 'file', false);
       sourceFile.accept = '.txt,text/plain';
       let fileText = null, fileDisplay = null;
-      const state = {token:0, inflight:0, confirmed:null, lost:false, job:null, shown:null, polls:0};
+      const state = {token:0, read:0, inflight:0, confirmed:null, lost:false, job:null, shown:null, polls:0};
       const accessOut = el('div', undefined, 'v4-review'), jobOut = el('div', undefined, 'v4-review');
       const live = () => mounts.get(m.root) === m;
       const values = () => {
@@ -299,7 +321,7 @@
       }
       function invalidate() {
         state.token++; state.confirmed = null; state.lost = false; state.job = null; state.shown = null; state.polls = 0;
-        accessOut.replaceChildren(); jobOut.replaceChildren(); update();
+        accessOut.replaceChildren(); disable(jobOut); jobOut.replaceChildren(); update();
       }
       function edited() {
         const had = state.confirmed || state.job || state.lost || state.inflight;
@@ -317,6 +339,7 @@
         input.addEventListener('input', change); input.addEventListener('change', change);
       });
       sourceFile.addEventListener('change', async () => {
+        if (!live()) return;
         const file = sourceFile.files && sourceFile.files[0];
         fileText = null; fileDisplay = null; inputs.text.value = ''; invalidate();
         if (!file) return;
@@ -346,8 +369,11 @@
         const preview = el('div', undefined, 'v4-review');
         const path = vendorPath(vendor) + '/proposal-jobs/' + encodeURIComponent(job.job_id) + '/candidate';
         let reviewed = null;
+        const token = state.token;
+        const candidateLive = () => live() && token === state.token && state.job?.job_id === job.job_id
+          && state.shown === [job.job_id, 'SUCCEEDED', true].join(':');
         const attach = button('Review shadow candidate request', async () => {
-          if (!writable(true) || !live()) return;
+          if (!writable(true) || !candidateLive()) return;
           let body;
           try { body = {overlay:parseJSON(overlay.value, 'overlay')}; } catch (error) { status(m, error.message); return; }
           const exactBody = JSON.stringify([path, body]);
@@ -361,7 +387,7 @@
           }
           await mutate(m, path, body, undefined, true);
         });
-        attach.draftAllowed = true; attach.disabled = !writable(true); m.writes.push(attach);
+        attach.draftAllowed = true; attach.stillCurrent = candidateLive; attach.disabled = !writable(true); m.writes.push(attach);
         overlay.addEventListener('input', () => { reviewed = null; preview.replaceChildren(); attach.textContent = 'Review shadow candidate request'; });
         return add(n, preview, attach);
       }
@@ -388,11 +414,12 @@
         const displayed = [job.job_id, job.status, job.candidate_available === true].join(':');
         if (state.shown === displayed) return; // Keep an overlay being typed for an already displayed result.
         state.shown = displayed;
+        status(m, 'Proposal job ' + job.job_id + ' is ' + shown(job.status) + '. Status is read-only from here.');
         const n = add(el('div', undefined, 'v4-job'), el('h3', 'Proposal job'),
           record({job_id:job.job_id, status:job.status, reason:job.reason, request_sha256:job.request_sha256, context_sha256:job.context_sha256}),
           note(JOB_MESSAGES[job.status] || 'Unrecognized job status. No action is available.'));
         if (job.status === 'SUCCEEDED') n.append(proposal(vendor, job));
-        jobOut.replaceChildren(n);
+        disable(jobOut); jobOut.replaceChildren(n);
       }
       function poll(job) {
         if (!['QUEUED','RUNNING'].includes(job.status) || state.polls >= 60) return;
@@ -406,14 +433,14 @@
       }
       async function loadJob() {
         if (!live() || !state.job) return;
-        const {vendor, job_id} = state.job, token = state.token;
+        const {vendor, job_id} = state.job, token = state.token, read = ++state.read;
         try {
-          const job = await request(vendorPath(vendor) + '/proposal-jobs/' + encodeURIComponent(job_id));
-          if (token !== state.token || !live() || !state.job || state.job.job_id !== job_id) return;
+          const job = await request(m, vendorPath(vendor) + '/proposal-jobs/' + encodeURIComponent(job_id));
+          if (token !== state.token || read !== state.read || !live() || !state.job || state.job.job_id !== job_id) return;
           if (!job || typeof job !== 'object' || job.job_id !== job_id) throw new Error('Mismatched proposal job.');
           show(vendor, job); poll(job);
         } catch (_) {
-          if (token === state.token && live()) status(m, 'Proposal status is unavailable. Use Refresh proposal status; nothing was resent.');
+          if (token === state.token && read === state.read && live()) status(m, 'Proposal status is unavailable. Use Refresh proposal status; nothing was resent.');
         }
       }
       async function checkAccess() {
@@ -425,7 +452,7 @@
         state.inflight++; update();
         status(m, 'Checking server generation access for these exact fields. Nothing is generated by this check.');
         try {
-          const answer = await request(vendorPath(v.vendor_id) + '/proposal-access', body);
+          const answer = await request(m, vendorPath(v.vendor_id) + '/proposal-access', body);
           if (token !== state.token || !live()) return;
           if (!answer || typeof answer !== 'object' || typeof answer.enabled !== 'boolean') throw new Error('Malformed access state.');
           const existing = !!answer.existing_job && typeof answer.existing_job === 'object' && typeof answer.existing_job.job_id === 'string';
@@ -433,7 +460,7 @@
           accessOut.replaceChildren(accessView(answer));
           if (existing) {
             adopt(v.vendor_id, answer.existing_job);
-            status(m, 'This exact request already has a proposal job. Showing it; no new model call is requested.');
+            status(m, 'This exact request already has a proposal job. Current state: ' + shown(answer.existing_job.status) + '. Showing it; no new model call is requested.');
           } else status(m, answer.enabled ? 'Generation is permitted for this exact request. Review what will be transmitted, then choose Generate proposal.'
             : 'Generation is not available for this exact request: ' + reasonText(answer.reason) + '.');
         } catch (_) {
@@ -452,7 +479,7 @@
         state.inflight++; update();
         status(m, 'Reserving one proposal job for this exact approved request…');
         try {
-          const job = await request(vendorPath(c.vendor) + '/proposal-jobs', c.body);
+          const job = await request(m, vendorPath(c.vendor) + '/proposal-jobs', c.body);
           if (token !== state.token || !live()) return;
           if (!job || typeof job !== 'object' || typeof job.job_id !== 'string' || !job.job_id) throw new Error('Malformed proposal job.');
           state.confirmed = {...c, existing:true};
@@ -474,7 +501,7 @@
       const items = await Promise.all(summaries.map(async item => {
         const id = item.vendor_id ?? item.id;
         if (Array.isArray(item.actions) || typeof id !== 'string' || !id) return item;
-        try { return await request('/api/vendors/' + encodeURIComponent(id)); }
+        try { return await request(m, '/api/vendors/' + encodeURIComponent(id)); }
         catch (_) { return {...item, detail_unavailable:true}; }
       }));
       if (mounts.get(m.root) !== m) return;
@@ -500,7 +527,7 @@
         const id = typeof item === 'string' ? item : item.claim_id ?? item.id;
         const n = section(shown(id));
         if (typeof item === 'object') add(n, provenance(item.sources), record(item));
-        if (typeof id === 'string' && id) n.append(button('Inspect case ' + id, () => inspect(m.root, id)));
+        if (typeof id === 'string' && id) n.append(button('Inspect case ' + id, () => active(m) && inspect(m.root, id)));
         m.body.append(n);
       });
       if (!items.length) m.body.append(note('No correspondence cases returned.'));
@@ -515,7 +542,7 @@
           add(n, note(shown(cohort.label)), provenance(cohort.sources), record(cohort.metrics));
           list(cohort.cases).forEach(c => {
             const row = add(el('div', undefined, 'v4-case'), record(c));
-            if (typeof c.id === 'string' && typeof options.onCase === 'function') row.append(button('Inspect ' + c.id, () => options.onCase(c.id)));
+            if (typeof c.id === 'string' && typeof options.onCase === 'function') row.append(button('Inspect ' + c.id, () => active(m) && options.onCase(c.id)));
             n.append(row);
           });
         }
@@ -548,11 +575,11 @@
       if (!['vendors','disputes','portfolio','case','catalog'].includes(view)) throw new Error('Unknown Uptime V4 view.');
       const m = {root,view,writes:[],syncs:[],status:el('p', '', 'v4-status'),result:el('div'),body:el('div')};
       m.status.setAttribute('role','status'); m.status.setAttribute('aria-live','polite');
-      mounts.set(root,m);
+      unmount(root); mounts.set(root,m);
       const wrap = el('div', undefined, 'uptime-v4');
       const title = {vendors:'Vendor intake & versions',disputes:'Correspondence & disputes',portfolio:'Portfolio comparison',case:'Case inspector',catalog:'Advanced companion workflows'}[view];
       const refresh = button('Refresh server state', async () => {
-        if (busy) return;
+        if (busy || !active(m)) return;
         // Supplied projections must be refreshed by their owner, not reclassified as current.
         if (supplied !== undefined) {
           if (typeof options.onRefresh === 'function') options.onRefresh(view);
@@ -563,7 +590,7 @@
       });
       add(wrap, el('h2',title), identity(), refresh, m.status, m.result, m.body); root.replaceChildren(wrap);
       try {
-        const data = supplied === undefined ? await request(view === 'vendors' ? '/api/vendors' : view === 'disputes' ? '/api/correspondence/claims' : '') : supplied;
+        const data = supplied === undefined ? await request(m, view === 'vendors' ? '/api/vendors' : view === 'disputes' ? '/api/correspondence/claims' : '') : supplied;
         if (mounts.get(root) !== m) return;
         if (data === null || data === undefined) throw new Error('No state');
         if (supplied === undefined) uncertain = false;
@@ -579,23 +606,23 @@
       return m;
     }
     async function inspect(root, id) {
-      const marker = {};
-      mounts.set(root,marker);
+      const marker = {root};
+      unmount(root); mounts.set(root,marker);
       root.replaceChildren(note('Loading correspondence case…'));
       try {
-        const data = await request('/api/correspondence/claims/' + encodeURIComponent(id));
+        const data = await request(marker, '/api/correspondence/claims/' + encodeURIComponent(id));
         if (mounts.get(root) !== marker) return;
         const m = await render(root,'case',data);
         if (!m || mounts.get(root) !== m) return;
         m.claimId = id;
         m.body.replaceChildren(inspector(m,data,true));
-        m.body.prepend(button('Back to correspondence', () => render(root,'disputes')), button('Refresh case receipts', () => inspect(root,id)));
+        m.body.prepend(button('Back to correspondence', () => active(m) && render(root,'disputes')), button('Refresh case receipts', () => active(m) && inspect(root,id)));
         uncertain = false; sync();
       } catch (_) {
-        if (mounts.get(root) === marker) root.replaceChildren(note('Case unavailable. No changes were sent.'), button('Back to correspondence', () => render(root,'disputes')));
+        if (mounts.get(root) === marker) root.replaceChildren(note('Case unavailable. No changes were sent.'), button('Back to correspondence', () => active(marker) && render(root,'disputes')));
       }
     }
-    return Object.freeze({render, inspect, unmount: root => mounts.delete(root), refreshAccess: sync});
+    return Object.freeze({render, inspect, unmount, refreshAccess: sync});
   }
   const api = Object.freeze({create, parseJSON});
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
