@@ -1,0 +1,10 @@
+{
+  "commit": "b9bf6406628b8344f009d6f7eda45e30ba483918",
+  "command": "uv run --locked pytest --basetemp /Users/ronoktanvir/.local/share/uptime-engineering/tasks/pytest72-root-full",
+  "result": "3003 passed, 1 warning in 207.13s (0:03:27)",
+  "exit_code": 0,
+  "log_sha256": "7dba155de85f4c03041fdc9e0ca563843828370d4ac078721ac1a2117628ee5b",
+  "log_reference": "W/receipts/phase72-merge-001.log",
+  "warning": "Existing Starlette/httpx deprecation",
+  "native_write_verified": false
+}

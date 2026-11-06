@@ -5,6 +5,12 @@ observations and links them to an independently recorded local award only after
 exact scope and reciprocal bill checks. It performs no network calls and exposes
 no vendor-credit create/apply operation. Original V3 modules remain unchanged.
 
+Decision 72 now requires explicit provider business identity for new financial
+links and prevents cross-business observation advancement. See the current
+[association and migration rules](RAMP-RECONCILIATION-72.md) and actual
+[Opus review](decisions/reviews/72-ramp-credit-business-scope.json). Earlier
+review availability statements below describe the original implementation.
+
 ## Evidence and financial boundaries
 
 The reviewed local official OpenAPI defines:
@@ -54,11 +60,13 @@ history = sync.history(tenant)
 result = sync.link_award(tenant, binding)
 ```
 
-The original workspace's constructor, `import_snapshot`, `summary`, and
-`credit_observation(snapshot)` envelope remain compatible. The envelope contains:
+The constructor, `import_snapshot`, and `summary` entrypoints remain. The
+workspace supplies `credit_observation(snapshot, provider_business_id=...)`.
+Omitting the business retains observation-only compatibility; it cannot create
+or advance financial links. The envelope contains:
 
 ```text
-id, observed_at, source, provenance_ref, scopes,
+id, observed_at, source, provenance_ref, scopes, provider_business_id,
 available, list_complete, credits, bills
 ```
 
@@ -73,13 +81,16 @@ receipt metadata, normalized-payload digests and reason codes, never raw records
 `link_award(tenant, binding)` requires all these fields:
 
 ```text
-credit_id, award_id, bill_id, observation_id,
+credit_id, award_id, bill_id, observation_id, provider_business_id,
 provider_provenance_ref, provenance_ref,
 award_source, award_source_ref, memo_ref,
 vendor_id, account_id, product_id, contract_id, contract_version, currency
 ```
 
 `provider_provenance_ref` must equal the selected current observation receipt.
+`provider_business_id` must equal the immutable tenant business pin and the
+explicit business on that observation. Historical unknown scope is never
+backfilled from a new observation.
 `provenance_ref` identifies upstream independent confirmation of the mapping and
 scope. `award_source`, `award_source_ref`, and `memo_ref` must match an already
 confirmed AllocationLedger award. `bill_id` names an explicitly scoped bill with
@@ -136,7 +147,8 @@ Summary distinguishes:
 - `observed_totals`: per-currency recorded, provider-applied, bill-applied,
   draft-applied, remaining quantities and archived record counts.
 - `recorded_cents` and `applied_cents`: historical linked USD ledger quantities,
-  carrying `award_provenance: SIMULATED_VENDOR` and `recovery_status: UNVERIFIED`.
+  null before linked evidence exists, carrying `award_provenance: SIMULATED_VENDOR`
+  and `recovery_status: UNVERIFIED`.
 - `awards_without_native_credit`: confirmed local awards lacking a native link.
 - `claimed_only` and `claims_balance`: `null`, with `claims_status: NOT_SUPPLIED`.
   Claims are outside this module's inputs and cannot be inferred from credits.

@@ -4,6 +4,8 @@ Base `4f44767` preserves the passing Northwind application and its source-linked
 
 First verified increment: `3449bbe` rejects ambiguous model results and mismatched model/session identity. Full regression produced **2,971 passed, 1 warning in 201.33s**. The proposed CLI structured profile was refused after its actual probe exposed an internal tool; no exception or automatic fallback was added. [Decision 69](decisions/ADR-0069-public-model-framing.md) · [Test receipt](evidence/verification-3449bbe.json)
 
+The Ramp business-identity repair is now integrated at `b9bf640`: **3,003 passed, 1 warning in 207.13s**. The new capture imports into a fresh local verification workspace with the real business pin preserved; repeating the import is a duplicate and creates no new credit. Recorded/applied amounts remain null because no native credit was observed. This validation uses actual saved Ramp reads and makes no external write. [Regression](evidence/verification-b9bf640.json) · [Import verification](evidence/native-credit-scope-72.json) · [Repair and migration limits](RAMP-RECONCILIATION-72.md)
+
 The same previously observed Ramp bill and business were read successfully again. The fresh bounded capture contains six complete bills, sampled vendors/transactions/POs/approvals, and empty completed agreement, credit and comment lists. This is new read evidence, not write or recovery proof. Raw captures remain outside Git. [Read receipt](evidence/native-demo-read-20261105.json)
 
 | Owner / branch | Concrete deliverable | Dependency and acceptance |

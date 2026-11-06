@@ -1,0 +1,25 @@
+{
+  "source_commit": "b9bf6406628b8344f009d6f7eda45e30ba483918",
+  "capture_checksum": "048d5b2f471f2b41072cae7a212624d5ba702dc20297a0993715ce596fa9c0e1",
+  "business_id": "1569e402-460e-4952-adad-9df27db628a0",
+  "first_import": {
+    "digest": "048d5b2f471f2b41072cae7a212624d5ba702dc20297a0993715ce596fa9c0e1",
+    "status": "ready",
+    "observed_at": "2026-11-05T23:35:01.383900+00:00",
+    "records": 42
+  },
+  "second_import": {
+    "digest": "048d5b2f471f2b41072cae7a212624d5ba702dc20297a0993715ce596fa9c0e1",
+    "status": "ready",
+    "observed_at": "2026-11-05T23:35:01.383900+00:00",
+    "duplicate": true
+  },
+  "credit_status": "EMPTY",
+  "scope_status": "SCOPED",
+  "recorded_cents": null,
+  "applied_cents": null,
+  "actual_recovery": null,
+  "snapshot_source": "Actual Ramp read saved immediately before verification",
+  "external_writes": false,
+  "verification_type": "Local import and duplicate-read validation of actual captured provider records; no new provider request during validation"
+}
