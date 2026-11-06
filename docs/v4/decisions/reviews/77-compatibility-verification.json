@@ -1,0 +1,50 @@
+{
+  "source_freeze": "1c3304f1a5e23fa68b2e2952d116afef544f5957",
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_vendor_resource.py",
+    "tests/test_vendor_resource_operators.py",
+    "tests/test_vendor_service_month.py",
+    "tests/test_vendor_resource_scoped.py",
+    "tests/test_vendor_semantic_bindings.py",
+    "tests/test_vendor_resource_period_scope_77.py",
+    "tests/test_correspondence_scoped_filing_77.py",
+    "tests/test_correspondence_resource.py",
+    "tests/test_correspondence_regional.py",
+    "tests/test_correspondence_plan_refs.py",
+    "tests/test_correspondence_service.py",
+    "tests/test_northwind_workflow.py",
+    "-q",
+    "--basetemp=/tmp/resource77-compat-frozen-final"
+  ],
+  "exit_code": 0,
+  "source_sha256": {
+    "uptime/vendor_service_month.py": "562646143a58212a35c02f2e817d55cf3d654b3471d88afdb1a205601970f036",
+    "tests/test_vendor_resource_period_scope_77.py": "bb0482dc3ac1cdf0d590c48a2c1c190257169e9a61509b21b6a704967850b94d"
+  },
+  "output_sha256": "7dbbd3424da902c9f14f1ff9a69b34fac79af31f43eb69fa0769aa7641cd1f73",
+  "result": "388 passed, 1 warning in 96.10s",
+  "warning": "Existing Starlette/httpx TestClient deprecation warning",
+  "source_unchanged_after_run": true,
+  "new_model_calls": 0,
+  "unchanged_public_intake": {
+    "kind": "UNCHANGED_PUBLIC_STAGED_INTAKE_REPLAY",
+    "source_freeze": "1c3304f",
+    "source_sha256": "697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1",
+    "fixed_period": {
+      "start": "2031-04-01T00:00:00Z",
+      "end": "2031-05-01T00:00:00Z"
+    },
+    "recorded_extraction_model": "claude-opus-5-5",
+    "recorded_extraction_session": "609751b5-43c2-4ddf-947d-799f6e5431ec",
+    "new_model_calls": 0,
+    "source_or_proposal_rewritten": false
+  },
+  "prior_root_failure": {
+    "commit": "53bd7be",
+    "result": "28 failed, 3355 passed, 1 warning in 158.87s",
+    "cause": "New finite fixed_period grammar omitted existing explicit monthly-period surface form and bounded combined source context."
+  }
+}
