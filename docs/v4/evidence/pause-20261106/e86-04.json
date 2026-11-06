@@ -1,0 +1,108 @@
+{
+  "opaque_case_id": "e86-04",
+  "phase": "PRE_MODEL_NATIVE_SETUP_VALIDATION",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "source_file_sha256": "391e6f9c251ec43702fca5a26ba2441dd658288b561cd6b3f88311e71831cdf5",
+  "route": "/api/correspondence/claims",
+  "request": {
+    "claim_id": "inbox-e86-04",
+    "scope": {
+      "account": "Cedar Orrery Studio",
+      "vendor": "Harbor Fern",
+      "contract": "Harbor Fern Resource SLA",
+      "service": "Queue Basin",
+      "currency": "USD",
+      "month": "2035-09",
+      "component": "basin-42"
+    }
+  },
+  "http_status": 422,
+  "response": {
+    "detail": [
+      {
+        "type": "string_pattern_mismatch",
+        "loc": [
+          "body",
+          "scope",
+          "account"
+        ],
+        "msg": "String should match pattern '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$'",
+        "input": "Cedar Orrery Studio",
+        "ctx": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$"
+        }
+      },
+      {
+        "type": "string_pattern_mismatch",
+        "loc": [
+          "body",
+          "scope",
+          "contract"
+        ],
+        "msg": "String should match pattern '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$'",
+        "input": "Harbor Fern Resource SLA",
+        "ctx": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$"
+        }
+      },
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "scope",
+          "invoice"
+        ],
+        "msg": "Field required",
+        "input": {
+          "account": "Cedar Orrery Studio",
+          "vendor": "Harbor Fern",
+          "contract": "Harbor Fern Resource SLA",
+          "service": "Queue Basin",
+          "currency": "USD",
+          "month": "2035-09",
+          "component": "basin-42"
+        }
+      },
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "scope",
+          "incident"
+        ],
+        "msg": "Field required",
+        "input": {
+          "account": "Cedar Orrery Studio",
+          "vendor": "Harbor Fern",
+          "contract": "Harbor Fern Resource SLA",
+          "service": "Queue Basin",
+          "currency": "USD",
+          "month": "2035-09",
+          "component": "basin-42"
+        }
+      },
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "scope",
+          "region"
+        ],
+        "msg": "Field required",
+        "input": {
+          "account": "Cedar Orrery Studio",
+          "vendor": "Harbor Fern",
+          "contract": "Harbor Fern Resource SLA",
+          "service": "Queue Basin",
+          "currency": "USD",
+          "month": "2035-09",
+          "component": "basin-42"
+        }
+      }
+    ]
+  },
+  "model_calls": 0,
+  "financial_or_external_actions": 0,
+  "normalized_or_invented_scope_values": false,
+  "limitation": "Input-domain refusal before qualification or native claim preparation; not a model-comprehension result or completed semantic evaluation."
+}

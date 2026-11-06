@@ -1,5 +1,7 @@
 # Uptime V4 engineering status
 
+**Development is paused for team decisions.** The [consolidated handoff](TEAM-DECISION-HANDOFF.md) records pending choices, all currently identified concerns, recommended defaults and an execution policy intended to replace repeated council-style review once accepted. No new corpus inference ran. Two signed claim-intake probes exposed account/agreement format mismatches and missing scope fields; these are pre-model admission results, not new semantic scores. Worktrees and private state are preserved. [Pause checkpoint](evidence/pause-20261106/checkpoint.json)
+
 The published recovery checkpoint `70f9cc2` passed GitHub CI: **3,763 passed, 1 warning in 393.40s**, 75 JavaScript checks, dependency graph, replay and repository scan. [Hosted receipt](evidence/ci-70f9cc2.json)
 
 Fresh normal-path evaluation is now active in parallel. An independent GPT-family author freezes new public contract and reply sources with expected outcomes held separately. Onboarding and dispute owners build small current-application runners; actual Claude Opus 5.5 supplies bounded coding support. One actual Opus critique informed [decision84](decisions/ADR-0084-fresh-normal-path-evaluation.md). No fresh inference result or new independent score is claimed yet. Native posting remains restricted and is outside this evaluation.

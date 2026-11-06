@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-11-06T09:45:57.935169+00:00",
+  "updated_at": "2026-11-06T21:30:19.294803+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "The repair batch passed local and GitHub verification. Fresh contract and reply cases are being frozen independently for current-application evaluation. Native Ramp posting and broad independent language coverage remain unresolved.",
+  "summary": "Development paused for team decisions. The verified build and unfinished work are preserved. Read the consolidated decision handoff before resuming; no new corpus model evaluation has run.",
   "evidence": [
     {
       "label": "Latest Python regression",
@@ -200,15 +200,15 @@
       "id": "adapter",
       "title": "Declarative vendor onboarding",
       "stream": "Onboarding",
-      "status": "active",
+      "status": "todo",
       "summary": "New public contracts expose extraction gaps",
-      "detail": "Actual public Opus jobs and explicit customer overlays are connected in the application. The studied Aster browser job reached SHADOW; controlled expired-session recovery keeps one generation. The original independent 0/4 baseline remains unchanged.",
+      "detail": "Paused at the team\u2019s request. Actual public Opus jobs and explicit customer overlays are connected in the application. The studied Aster browser job reached SHADOW; controlled expired-session recovery keeps one generation. The original independent 0/4 baseline remains unchanged.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
         "security"
       ],
-      "next_action": "Run six fresh sources through the current job/candidate path with supplied family routing; keep missing fee/review authority separate.",
+      "next_action": "Review the consolidated team decisions and explicitly resume this workstream.",
       "links": [
         {
           "label": "Onboarding design",
@@ -374,9 +374,9 @@
       "id": "holdout",
       "title": "Independent onboarding & denial acceptance",
       "stream": "Independent QA",
-      "status": "active",
+      "status": "todo",
       "summary": "Fresh current-application evaluation in preparation",
-      "detail": "Original private and public scores remain unchanged. A different-family independent author prepares new public sources and sealed expectations; no new attempts have run.",
+      "detail": "Paused at the team\u2019s request. Original private and public scores remain unchanged. A different-family independent author prepares new public sources and sealed expectations; no new attempts have run.",
       "owner": "Independent witness",
       "depends_on": [
         "adapter",
@@ -384,7 +384,7 @@
         "response_coverage",
         "source_meaning"
       ],
-      "next_action": "Freeze source, expectations and runners, then execute exact approved first attempts.",
+      "next_action": "Review the consolidated team decisions and explicitly resume this workstream.",
       "links": [
         {
           "label": "Independent socket diagnosis",
@@ -400,14 +400,14 @@
       "id": "grammar",
       "title": "Additional contract families",
       "stream": "Onboarding",
-      "status": "active",
+      "status": "todo",
       "summary": "Period and filing repairs verified; broader coverage open",
-      "detail": "Decisions 77 and 80 implement source-bound periods and filing cutoffs. The reproduced no-deadline clause is rejected, and three valid manifests remain byte-identical. More independent source coverage remains necessary.",
+      "detail": "Paused at the team\u2019s request. Decisions 77 and 80 implement source-bound periods and filing cutoffs. The reproduced no-deadline clause is rejected, and three valid manifests remain byte-identical. More independent source coverage remains necessary.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Add the next justified contract primitive against new source-grounded cases.",
+      "next_action": "Review the consolidated team decisions and explicitly resume this workstream.",
       "links": []
     },
     {
@@ -583,9 +583,9 @@
       "id": "response_coverage",
       "title": "New vendor response coverage",
       "stream": "Disputes",
-      "status": "active",
+      "status": "todo",
       "summary": "Reviewed denial bundles preserve both assertions",
-      "detail": "Unchanged public annotations now map5/6 complete meanings versus original3/6;6/6 mandatory-review controls remain UNKNOWN. This is remediation on known cases, not a fresh independent score. Every proposition has separate review and audit alignment.",
+      "detail": "Paused at the team\u2019s request. Unchanged public annotations now map5/6 complete meanings versus original3/6;6/6 mandatory-review controls remain UNKNOWN. This is remediation on known cases, not a fresh independent score. Every proposition has separate review and audit alignment.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -601,7 +601,7 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/public-reply-harness-532c8d8.txt"
         }
       ],
-      "next_action": "Run twelve fresh replies through normal parser handling, then model-assisted interpretation only where the existing runtime permits."
+      "next_action": "Review the consolidated team decisions and explicitly resume this workstream."
     },
     {
       "id": "source_meaning",
@@ -647,6 +647,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-06T21:30:19.294803+00:00",
+      "title": "Development paused; team decision handoff prepared",
+      "detail": "Confirmed identity admission mismatch and contract-scope gaps are separated from missing functionality. Recommended decisions are pending team review; no engineering workers continue.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/TEAM-DECISION-HANDOFF.md"
+    },
     {
       "at": "2026-11-06T09:45:57.935169+00:00",
       "title": "Hosted verification passed; fresh evaluation underway",

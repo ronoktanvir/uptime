@@ -1,3 +1,7 @@
+## November 6 team review checkpoint
+
+Engineering is paused at the user's request while the team reviews [the consolidated decision handoff](docs/v4/TEAM-DECISION-HANDOFF.md). Preserve all working and uncommitted worktree files. Do not resume implementation, inference, native actions or new advisory reviews merely to prepare that handoff. The handoff's recommended defaults and replacement execution policy are not team approvals. When explicitly resumed, apply recorded team decisions; the proposed removal of blanket Opus consultations takes effect only when the team accepts it. Routine implementation under already accepted decisions still needs no repeated council. The latest request to continue the handoff is being fulfilled as documentation, not treated as approval of its pending choices.
+
 Read docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md and its companion specification, DAG and credential guide. Preserve working code and recorded evidence. Follow approved file ownership and keep onboarding and disputes active in parallel.
 
 The November 4 presentation direction supersedes earlier requirements for repeated environment banners and source-classification badges in product screens. Build a coherent Northwind contract, invoice, usage, dispute and credit walkthrough using the existing financial engines. Product views should use ordinary document references, financial stages, connection destinations and verification states. Do not add hidden mode flags or manufacture evidence to make the walkthrough appear complete.

@@ -4,6 +4,10 @@
 **Goal:** Build, verify, and integrate a compelling Ramp-native **contract enforcement, prevention, autonomous claims/disputes, reconciliation, and self-expanding vendor onboarding** hackathon application. The team chose to pursue ambitious implementation concurrently and decide any scope reduction themselves.  
 **Use with:** `Uptime_V3_Product_Technical_Spec.md`, `Uptime_V3_Work_DAG.md`, `Uptime_V3_Credentials.md`.
 
+## November 6 team decision handoff
+
+Development is paused for team review. The current [decision handoff](../v4/TEAM-DECISION-HANDOFF.md) separates established defects, implementation gaps, external prerequisites and proposed defaults. Preserve the paused worktrees and follow the recorded resume boundary. Its proposed team-owned execution policy is pending acceptance and must not be mistaken for already granted scope, financial or external-action authorization. Do not launch more advisory reviews while preparing this handoff.
+
 ## November 4 presentation and collaboration amendment
 
 The current user requests a coherent Northwind walkthrough and ordinary product screens without repetitive demo, synthetic, simulated or replay labels. This supersedes the earlier UI-label requirements below. Do not add hidden mode indicators. Keep existing source identities, authority kinds and receipt verification intact in APIs and audit exports; use normal document references, connection names and financial stages in the product. The configured write destination must remain accurate. A local ledger write cannot be called a verified Ramp write, and a seeded reviewer cannot become actual human approval.

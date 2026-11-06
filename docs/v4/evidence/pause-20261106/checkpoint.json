@@ -1,0 +1,91 @@
+{
+  "at": "2026-11-06T10:28:07.904553+00:00",
+  "goal_status": "paused",
+  "application_commit": "50e041caad50b177f6bb88239edc961595c30be2",
+  "published_main_before_handoff": "92d9766c0fc4211ceef20f0e0e7188c3c2ec7cb9",
+  "engineering_agents_interrupted": true,
+  "owned_tests_or_model_workers_observed_running": false,
+  "local_view_servers_stopped": false,
+  "fresh_corpus_model_calls": 0,
+  "fresh_dispute_setup_cases_executed": 2,
+  "full_fresh_cohort_complete": false,
+  "sealed_gold_opened_by_root_or_implementers": false,
+  "onboarding85_focused_log": {
+    "reference": "W/tasks/onboarding85-focused-tests-corrected.log",
+    "sha256": "4ba8abab27a0dfc5b881022a78cc0bde412531656a8ac7e82349b2669f57475a",
+    "result": "110 passed, 1 warning in 4.91s",
+    "qualification": "Pre-pause run, completion observed from saved log after pause; uncommitted worktree, not integrated/full-suite validation."
+  },
+  "worktrees": [
+    {
+      "worktree": "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/onboarding-evaluation-85",
+      "head": "a542a21db6227b44904f15a673e3a25195fb527d",
+      "status": [
+        " M docs/v4/evaluation85/HARNESS-INTERFACE.md",
+        " M tests/test_onboarding_evaluation_85.py",
+        "?? docs/v4/evaluation85/coding-receipt.json",
+        "?? scripts/evaluate_onboarding_85.py"
+      ],
+      "uncommitted_files": [
+        {
+          "path": "docs/v4/evaluation85/HARNESS-INTERFACE.md",
+          "sha256": "0f845c7a8fd4f94e1c5dd0c15eedb240c4ff51a77fa5f1fdfaca98824c330a6f",
+          "bytes": 4248
+        },
+        {
+          "path": "tests/test_onboarding_evaluation_85.py",
+          "sha256": "3f739ffbcbb24d8754c65ac537e94762ed5e9364df555272f4c94b81cc81bf64",
+          "bytes": 26177
+        },
+        {
+          "path": "docs/v4/evaluation85/coding-receipt.json",
+          "sha256": "b9dd1c93c89fcec6be8860535bb8bb72534a8a4228cdc19f5f6f8f52abdcd058",
+          "bytes": 6399
+        },
+        {
+          "path": "scripts/evaluate_onboarding_85.py",
+          "sha256": "ed381d85f0a67e71314deeea4c928d1f3de3db0f8e9d62a8bb2e495e2f991674",
+          "bytes": 17441
+        }
+      ]
+    },
+    {
+      "worktree": "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/dispute-evaluation-86",
+      "head": "9e49ac981f51abaa1cb9881bbabcf257c45d1147",
+      "status": [
+        "?? docs/v4/evaluation86/setup-refusals/e86-01.json",
+        "?? docs/v4/evaluation86/setup-refusals/e86-04.json",
+        "?? scripts/evaluate_disputes_86.py",
+        "?? tests/test_disputes_evaluation_86.py"
+      ],
+      "uncommitted_files": [
+        {
+          "path": "docs/v4/evaluation86/setup-refusals/e86-01.json",
+          "sha256": "9e1584aee5207a6b9a2e23631acf2ac1331437ae964e9a5ed7b936ea7cd596f1",
+          "bytes": 3096
+        },
+        {
+          "path": "docs/v4/evaluation86/setup-refusals/e86-04.json",
+          "sha256": "6461e6d9bb7ec13f46f721f8c3400f6b8933ab56e624270252aa662ce48c07f1",
+          "bytes": 2951
+        },
+        {
+          "path": "scripts/evaluate_disputes_86.py",
+          "sha256": "c86a6f31d51f77f6f15af3caf8a234e2fe9a59f54e5395ee7f844999274106f2",
+          "bytes": 16649
+        },
+        {
+          "path": "tests/test_disputes_evaluation_86.py",
+          "sha256": "8c844121ecf0e2bea4dfa9b2ff7fb997b3fd591faaa3250f06029616c42ec893",
+          "bytes": 12669
+        }
+      ]
+    },
+    {
+      "worktree": "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/independent-corpus-84",
+      "head": "042d701da9c6c05f44c523939241b18ee1d579ed",
+      "status": [],
+      "uncommitted_files": []
+    }
+  ]
+}
