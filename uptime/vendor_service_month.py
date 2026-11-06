@@ -116,6 +116,38 @@ def _period_assertion(quote, start_text, end_text, start, end):
     return not following
 
 
+# Decision80 finite fixed-filing grammar. The complete source block must be one affirmative
+# claim-obligation sentence binding its own comparator to its own exact UTC timestamp, followed
+# only by the enumerated companion assertions. "by the vendor/provider" after "be received" names
+# the recipient and never supplies a comparator. Relative days come only from the same sentence
+# and only from an explicit service-month end origin. Anything else in the block refuses.
+_FILING_COMPARATORS = {'no later than':'inclusive', 'by':'inclusive', 'at or before':'inclusive',
+                       'on or before':'inclusive', 'before':'exclusive', 'strictly before':'exclusive'}
+_FILING_DEADLINE = re.compile(
+    r'(?:the )?(?:timestamped )?claims? (?:(?:is|are) due|(?:must|shall) be filed|(?:must|shall) be received(?: by the (?:vendor|provider))?)'
+    r'(?: within (?P<days>[1-9][0-9]{0,2}) (?:calendar )?days? '
+    r'(?:after the service month|following the service month|after the monthly period ends),)?'
+    r' (?P<comparator>' + '|'.join(re.escape(c) for c in _FILING_COMPARATORS) + r') (?P<at>' + STAMP + r')'
+    r'(?: (?P<suffix>inclusive|exclusive))?\.', re.I | re.A)
+# Companion assertion -> the only endpoint it is consistent with (None: either endpoint).
+_FILING_COMPANIONS = {re.compile(r'filing exactly at that timestamp is permitted\.', re.I | re.A): 'inclusive',
+                      re.compile(r'a claim filed later receives no credit\.', re.I | re.A): None}
+
+
+def _filing_assertion(quote, value):
+    """Relative day count (or None) for one complete supported cutoff block; raise otherwise."""
+    sentences = re.split(r'(?<=\.) ', ' '.join(quote.split()))
+    match = _FILING_DEADLINE.fullmatch(sentences[0])
+    endpoint = _FILING_COMPARATORS[match['comparator'].lower()] if match else None
+    companions = [next((form for form in _FILING_COMPANIONS if form.fullmatch(s)), None) for s in sentences[1:]]
+    if (match is None or match['at'] != value['at'] or endpoint != value['endpoint']
+            or (match['suffix'] is not None and match['suffix'].lower() != endpoint)
+            or None in companions or len(set(companions)) != len(companions)
+            or any(_FILING_COMPANIONS[form] not in (None, endpoint) for form in companions)):
+        raise ValueError('Source does not establish the stated filing cutoff and comparator.')
+    return int(match['days']) if match['days'] is not None else None
+
+
 def validate(manifest, key, value, quote):
     text = ' '.join(quote.casefold().split())
     if key == 'fixed_period':
@@ -127,16 +159,20 @@ def validate(manifest, key, value, quote):
                 or not _period_assertion(quote, value['start'], value['end'], start, end)):
             raise ValueError('Fixed period is not one explicit complete UTC calendar month.')
     elif key == 'fixed_filing':
-        if (not isinstance(value, dict) or set(value) != {'at','endpoint'} or value['endpoint'] not in ('inclusive','exclusive')
-                or not re.search('claim|filing|filed|receive',text)):
+        if not isinstance(value, dict) or set(value) != {'at','endpoint'} or value['endpoint'] not in ('inclusive','exclusive'):
             raise ValueError('Unsupported fixed filing clock.')
         utc(value['at'])
-        if value['at'].lower() not in text or not re.search(
-                r'no later than|inclusive|exactly.{0,40}permitted|\bby\b' if value['endpoint']=='inclusive' else r'\bbefore\b|exclusive', text):
-            raise ValueError('Source does not establish the stated filing cutoff and comparator.')
-        count = re.search(r'within (\d+) (?:calendar )?days? (?:after|following)', text)
-        if count:
-            manifest['fixed_filing_days'] = int(count[1])
+        days = _filing_assertion(quote, value)
+        # Atomic: every conflict is checked before either key is written. A repeated identical
+        # absolute assertion that omits relative days keeps the previously established count.
+        if 'fixed_filing' in manifest and manifest['fixed_filing'] != value:
+            raise ValueError('Conflicting service month term.')
+        if days is not None and manifest.get('fixed_filing_days', days) != days:
+            raise ValueError('Conflicting relative filing interval.')
+        if days is not None:
+            manifest['fixed_filing_days'] = days
+        manifest['fixed_filing'] = value
+        return
     elif key == 'aggregate_monitor':
         if (value != 'authoritative_vendor_minutes' or not re.search(r'status|provider|vendor',text)
                 or not re.search(r'unavailab.{0,20}minutes?|authoritative.{0,30}availability',text)):
