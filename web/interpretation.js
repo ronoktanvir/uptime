@@ -7,19 +7,41 @@
     if (!quote || index < 0 || text.indexOf(quote, index + 1) >= 0) throw new Error('Each quotation must occur exactly once in the original reply.');
     return {start:enc.encode(text.slice(0,index)).length,end:enc.encode(text.slice(0,index+quote.length)).length,quote};
   }
-  async function mount(root, api, claim) {
+  const JOB_TEXT={QUEUED:'Request queued. It runs only as the exact approved request; nothing is applied automatically.',
+    RUNNING:'Request running. You can keep working; nothing is applied automatically.',
+    SUCCEEDED:'Request completed. The proposal is listed below and still needs your review.',
+    REFUSED:'Request refused or its result failed the source checks. No proposal was added. Refresh the original source before continuing.',
+    CANCELLED:'Request cancelled before it ran. It is not sent again automatically.',
+    UNCERTAIN:'Request outcome uncertain. A validated proposal may already appear below; check its request reference. This request is not sent again automatically.'};
+  const STALE=/changed|stale|expired/i;
+  async function mount(root, api, claim, options) {
     if (!/^inbox-[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/.test(claim)) throw new Error('Choose a correspondence case.');
+    const pollMs=Math.max(10,Number(options?.pollMs??1000)), maxPolls=Math.min(60,Math.max(1,Number(options?.maxPolls??60)));
     root.classList.add('interpretation-review');
     const base = '/api/correspondence/claims/' + encodeURIComponent(claim) + '/interpretation';
     const el = (tag,text,cls) => { const n=document.createElement(tag); if(text!==undefined)n.textContent=text; if(cls)n.className=cls; return n; };
     const status=el('p','',undefined); status.setAttribute('role','status');
     root.replaceChildren(el('h1','Review the vendor’s meaning'),status);
     const data=await api(base), context=data.context, original=context.text;
-    root.append(el('p','First record your own reading. Any model suggestion appears only after that reading is saved. Interpretation does not authorize a filing, financial entry, waiver or denial closure.','interpretation-note'));
+    root.append(el('p','First record your own reading. Any requested interpretation appears only after that reading is saved. Interpretation does not authorize a filing, financial entry, waiver or denial closure.','interpretation-note'));
     root.append(el('h2','Complete signed reply'),el('pre',data.visible_text));
     root.append(el('p',`Claim month: ${context.scope.month} · Filed amount: ${context.requested===null?'Not recorded; procedural review only':context.currency+' '+context.requested}`));
     root.append(el('p',`Case ${context.claim} · Vendor ${context.scope.vendor} · Service ${context.scope.service} · Region ${context.scope.region}`));
     const provenance=el('details'); provenance.append(el('summary','Original source and governing terms'),el('p',`Reply ${context.event_digest} · Text ${context.text_sha256} · Terms ${context.contract_version} · Document ${context.contract_source_sha256}`,'interpretation-meta')); root.append(provenance);
+    // Exact original blocks (textContent only; never normalized or rendered as markup).
+    const blocks=Array.isArray(data.source_blocks)?data.source_blocks:null, ranges=[];
+    if(blocks){let cursor=0;const list=el('details',undefined,'interpretation-blocks');list.append(el('summary','Original reply by line'));
+      blocks.forEach((b,i)=>{const size=enc.encode(b.text).length;ranges.push([cursor,cursor+size]);cursor+=size;list.append(el('p',`Line ${i+1} · ${b.id}`,'interpretation-meta'),el('pre',b.text));});
+      provenance.after(list);}
+    function where(span){const i=ranges.findIndex(([s,e])=>s<=span.start&&span.start<e);return i<0?`bytes ${span.start}–${span.end} of the reply`:`line ${i+1}, bytes ${span.start-ranges[i][0]}–${span.end-ranges[i][0]} of that line`;}
+    let jobInfo=data.model_job||null, job=jobInfo?.job||null, polling=false;
+    const permission=el('details',undefined,'interpretation-permission');
+    function showPermission(){if(!jobInfo)return;permission.replaceChildren(el('summary','Interpretation request permission'),el('p',jobInfo.message||'Permission status unavailable.'),
+      el('p',`Request reference ${jobInfo.request_sha256||'not available'} · Size ${jobInfo.request_bytes??'not available'} bytes · Profile ${jobInfo.profile||'not configured'}`,'interpretation-meta'),
+      el('p',`Case ${jobInfo.target} · Source context ${jobInfo.context_digest} · Request type ${jobInfo.kind}`,'interpretation-meta'),
+      el('p','An operator approves this exact request reference outside this page. This page cannot grant permission.'));
+      if(jobInfo.approval_request){const exportView=el('details');exportView.append(el('summary','Complete request for operator approval'),el('pre',JSON.stringify(jobInfo.approval_request,null,2)));permission.append(exportView);}}
+    if(jobInfo){showPermission();(blocks?provenance.nextSibling:provenance).after(permission);}
     const form=el('div'), grid=el('div',undefined,'interpretation-grid'); form.append(el('h2','Your independent reading'),grid); root.append(form);
     function field(parent,label,options,multiline=false) {
       const wrap=el('label',label), node=el(options?'select':multiline?'textarea':'input'); node.setAttribute('aria-label',label);
@@ -37,7 +59,8 @@
     const filing=field(form,'Contractual filing items, if requested (one exact name per line)',null,true);
     if(context.filing_fields.length)form.append(el('p','Declared missing items: '+context.filing_fields.join('; ')));
     const residual=field(form,'Additional objection or unresolved meaning?', [['no','None after reviewing the complete reply'],['yes','Yes; keep this in human review']]);
-    let blind=data.blind_entry, selected=null, preview=null;
+    let blind=data.blind_entry, selected=null, preview=null, rows=[];
+    const reviewed=new Set();
     function annotation(){
       if(!family.value||!polarity.value||!modality.value||!referent.value||!residual.value)throw new Error('Complete the independent semantic judgments.');
       const source=quoteSpan(original,original);
@@ -45,13 +68,56 @@
     }
     function fill(value){const p=value.propositions[0];family.value=p.family;polarity.value=p.polarity;modality.value=p.modality;referent.value=p.referent;artifact.value=p.artifact_type||'none';scopeField.value=p.scope_field||'none';residual.value=value.segments.some(s=>s.role==='unsupported')?'yes':'no';condition.value=p.conditions.map(c=>c.quote).join('\n');filing.value=p.filing_fields.join('\n');for(const n of Object.values(quotes))n.value='';for(const slot of p.slots)if(quotes[slot.name])quotes[slot.name].value=slot.source.quote;}
     const controls=el('div'), candidates=el('section'), decisions=el('section');root.append(controls,candidates,decisions);
-    async function run(button,work){button.disabled=true;status.textContent='Checking the exact source and current state…';try{await work();status.textContent='Saved. No financial or external action was authorized.';}catch(e){status.textContent=e.message;}finally{button.disabled=false;}}
+    async function run(button,work){button.disabled=true;status.textContent='Checking the exact source and current state…';try{const note=await work();status.textContent=note||'Saved. No financial or external action was authorized.';}catch(e){status.textContent=e.message+(STALE.test(e.message)?' Refresh the page to review the current original source.':'');}finally{button.disabled=false;if(button===model)updateRequest();}}
     function button(label,handler){const b=el('button',label);b.type='button';b.addEventListener('click',()=>run(b,handler));return b;}
-    const save=button('Save independent reading',async()=>{const interpretation=annotation();await api(base+'/blind-entry',{context_digest:context.digest,interpretation});blind=interpretation;showReview();save.hidden=true;});controls.append(save);
-    const model=button('Request a public-only model suggestion',async()=>{await api(base+'/candidates/model',{context_digest:context.digest});const latest=await api(base);showCandidates(latest.candidates);});controls.append(model);model.hidden=true;
-    function showCandidates(rows){candidates.replaceChildren(el('h2','Untrusted suggestions'));for(const candidate of rows){const box=el('details');box.append(el('summary',candidate.origin==='model'?'Model suggestion — requires your review':'Saved manual suggestion'));for(const p of candidate.interpretation.propositions){box.append(el('p',`${p.family} · ${p.polarity} · ${p.modality} · ${p.referent}`),el('blockquote',p.source.quote));for(const s of p.slots)box.append(el('p',s.name+': '+s.source.quote));for(const c of p.conditions)box.append(el('p','Condition: '+c.quote));}box.append(button('Compare this suggestion',async()=>{selected=candidate;showReview();}));candidates.append(box);}}
+    const save=button('Save independent reading',async()=>{const interpretation=annotation();await api(base+'/blind-entry',{context_digest:context.digest,interpretation});blind=interpretation;
+      if(jobInfo){const latest=await api(base);if(latest.context.digest!==context.digest)throw new Error('The original source changed. Refresh the page to review the current original source.');jobInfo=latest.model_job||jobInfo;job=jobInfo.job||job;showPermission();}
+      showReview();save.hidden=true;showJob();if(job&&!job.terminal)poll();});controls.append(save);
+    const model=button('Request interpretation',async()=>{
+      if(jobInfo){job=await api(base+'/model-jobs',{context_digest:context.digest});showJob();poll();return 'Request recorded. Nothing is applied until you review it.';}
+      await api(base+'/candidates/model',{context_digest:context.digest});const latest=await api(base);showCandidates(latest.candidates);});
+    const requestNote=el('p','','interpretation-note'); requestNote.id='interpretation-request-reason'; model.setAttribute('aria-describedby',requestNote.id);
+    const jobState=el('p',''); jobState.setAttribute('aria-live','polite');
+    const refresh=el('button','Refresh request status'); refresh.type='button'; refresh.hidden=true;
+    refresh.addEventListener('click',async()=>{if(!job||polling)return;refresh.disabled=true;try{job=await api(base+'/model-jobs/'+encodeURIComponent(job.id));showJob();if(job.state==='SUCCEEDED'||job.state==='UNCERTAIN')await loadCandidates();else if(!job.terminal)poll();}catch(e){jobState.textContent=e.message+' Refresh the original source before continuing.';}finally{refresh.disabled=false;}});
+    controls.append(model,requestNote,jobState,refresh);model.hidden=true;
+    if(jobInfo){controls.append(button('Refresh request permission',async()=>{
+      const latest=await api(base);if(latest.context.digest!==context.digest)throw new Error('The original source changed. Refresh the page.');
+      jobInfo=latest.model_job;job=jobInfo?.job||job;showPermission();showJob();
+      return jobInfo?.message||'Permission status unavailable.';
+    }));}
+    function updateRequest(){
+      if(!jobInfo){model.hidden=!blind||!data.model_enabled;requestNote.hidden=true;return;}
+      model.hidden=!blind;model.disabled=!jobInfo.can_request||!!job;
+      requestNote.textContent=job?'A request for this exact source already exists. It is never sent again automatically.':(jobInfo.message||'Permission status unavailable.');
+    }
+    function showJob(){refresh.hidden=!job;jobState.textContent=job?`Request ${job.id}: ${JOB_TEXT[job.state]||JOB_TEXT.UNCERTAIN}`:'';updateRequest();}
+    const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    async function loadCandidates(){
+      const latest=await api(base);
+      if(latest.context.digest!==context.digest){jobState.textContent='The original source changed. Refresh the page to review the current original source.';return;}
+      if(latest.model_job){jobInfo=latest.model_job;showPermission();}
+      showCandidates(latest.candidates);updateRequest();
+    }
+    async function poll(){
+      if(polling||!job)return;polling=true;
+      try{
+        for(let i=0;i<maxPolls&&!job.terminal;i++){await sleep(pollMs);job=await api(base+'/model-jobs/'+encodeURIComponent(job.id));showJob();}
+        if(job.state==='SUCCEEDED'||job.state==='UNCERTAIN')await loadCandidates();
+        else if(!job.terminal)jobState.textContent+=' Still pending after the status check limit; use Refresh request status.';
+      }catch(e){jobState.textContent=e.message+' Refresh the original source before continuing.';}
+      finally{polling=false;}
+    }
+    function showCandidates(list){rows=list;candidates.replaceChildren(el('h2','Untrusted suggestions'));for(const candidate of list){const box=el('details');box.append(el('summary',candidate.origin==='model'?'Requested interpretation — requires your review':'Saved manual suggestion'));
+      box.append(el('p',reviewed.has(candidate.id)?'State: reviewed by you; preview only':'State: proposed; not reviewed'));
+      if(candidate.provenance?.request_sha256)box.append(el('p','Request reference '+candidate.provenance.request_sha256,'interpretation-meta'));
+      const count=candidate.interpretation.propositions.length;
+      if(count>1)box.append(el('p',`${count} separate propositions. Each needs its own decision; they are never combined into your single reading.`));
+      for(const p of candidate.interpretation.propositions){box.append(el('p',`${p.family} · ${p.polarity} · ${p.modality} · ${p.referent}`),el('p','Source: '+where(p.source),'interpretation-meta'),el('blockquote',p.source.quote));for(const s of p.slots)box.append(el('p',`${s.name}: “${s.source.quote}” — ${where(s.source)}`));for(const c of p.conditions)box.append(el('p',`Condition: “${c.quote}” — ${where(c)}`));}
+      for(const s of candidate.interpretation.segments)if(s.role==='unsupported')box.append(el('p','Unresolved content remains in review: '+where(s.source)));
+      box.append(button('Compare this suggestion',async()=>{selected=candidate;showReview();}));candidates.append(box);}}
     function showReview(){
-      model.hidden=!data.model_enabled;
+      updateRequest();
       decisions.replaceChildren(el('h2','Reconcile and attest the meaning'),el('p','You may correct your reading above. Explain each changed proposition; any rejected proposition remains review-only. No automatic agreement is selected.'));
       const count=Math.max(blind.propositions.length,selected?selected.interpretation.propositions.length:0), resolutions=[];
       for(let i=0;i<count;i++){const box=el('fieldset');box.append(el('legend','Proposition '+(i+1)));const source=selected?.interpretation.propositions[i]?.source.quote||blind.propositions[i]?.source.quote;box.append(el('p',source||'Additional proposition'));const verdict=field(box,'Your decision',[['accept','Accept unchanged meaning'],['correct','Correct the meaning with explanation'],['reject','Reject; keep in human review']]);const explanation=field(box,'Explanation of source meaning and any difference');resolutions.push({i,verdict,explanation});decisions.append(box);}
@@ -62,6 +128,7 @@
         const body={context_digest:context.digest,interpretation:annotation(),candidate_id:selected?.id||null,resolutions:resolutions.map(r=>({proposition:r.i,verdict:r.verdict.value,explanation:r.explanation.value})),residuals_reviewed:rest.checked,complete_meaning_reviewed:full.checked};
         if(!full.checked||!rest.checked)throw new Error('Complete both source-review attestations.');
         const review=await api(base+'/reviews',body);preview=await api(base+'/reviews/'+review.id+'/preview');
+        if(selected){reviewed.add(selected.id);showCandidates(rows);}
         const result=el('section');result.append(el('h2','Deterministic preview'),el('p',preview.disposition),el('p',preview.reported_award?'Interpreted reported award: USD '+preview.reported_award+'; no ledger entry.':'No awarded, posted or applied money changes.'));
         if(preview.closure_suggested)result.append(el('p','The evidence supports a denial; closure remains a separate review decision.'));
         if(preview.prepare_allowed)result.append(button('Prepare evidence-backed response draft',async()=>{const changed=await api(base+'/prepare-response',{review_id:review.id,preview_digest:preview.digest});result.replaceChildren(el('h2','Draft prepared'),el('p',changed.stage+' · Existing exact approval and submission permissions still apply.'));}));
@@ -69,7 +136,8 @@
         decisions.append(result);
       }));
     }
-    if(blind){fill(blind);save.hidden=true;showReview();showCandidates(data.candidates);}
+    updateRequest();showJob();
+    if(blind){fill(blind);save.hidden=true;showReview();showCandidates(data.candidates);if(job&&!job.terminal)poll();}
   }
   global.UptimeInterpretation={mount,quoteSpan};
   const root=document.getElementById('interpretation-root');

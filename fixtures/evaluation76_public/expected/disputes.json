@@ -1,0 +1,145 @@
+{
+  "classification": "AUTHORED_PUBLIC",
+  "fictional": true,
+  "authorized_for_external_inference": true,
+  "customer_data": false,
+  "oracle_author": "Independent source interpretation and hand arithmetic; no engine/model-derived gold",
+  "cases": [
+    {
+      "id": "dispute-01",
+      "expected_semantic_family": "LATE_FILING",
+      "expected_supported_mapping": true,
+      "mandatory_review": false,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "The independently authored original receipt is two days after the contractual cutoff. This is a definite objection to the current filing, not a condition or a new clock. No award is asserted."
+    },
+    {
+      "id": "dispute-02",
+      "expected_semantic_family": "MISSING_EVIDENCE",
+      "expected_supported_mapping": true,
+      "mandatory_review": false,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "One definite missing artifact is named. The following reference has that same unique target. This supports an evidence request, not denial closure or an award.",
+      "artifact": {
+        "kind": "request_log",
+        "reference": "request-log-76B"
+      }
+    },
+    {
+      "id": "dispute-03",
+      "expected_semantic_family": "THRESHOLD_NOT_BREACHED",
+      "expected_supported_mapping": true,
+      "mandatory_review": false,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "The source requires availability strictly below 99.90 percent. 99.96 meets that target;17.28/43200=0.0004 unavailable proportion. The vendor states a definite same-month performance objection. No reported award exists."
+    },
+    {
+      "id": "dispute-04",
+      "expected_semantic_family": "EXCLUDED_DOWNTIME",
+      "expected_supported_mapping": true,
+      "mandatory_review": false,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "The authored contract excludes maintenance announced at least 48 hours before its start. The announcement precedes the full outage window by 72 hours, so every reported minute is excluded. The reply asserts that actual cause, not a hypothetical."
+    },
+    {
+      "id": "dispute-05",
+      "expected_semantic_family": "AWARD",
+      "expected_supported_mapping": true,
+      "mandatory_review": false,
+      "reported_award": "84.25",
+      "denied_remainder": "0.00",
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "A single unconditional vendor grant namesUSD 84.25, exactly the filed amount. Zero unawarded remainder follows 84.25-84.25. Semantic recognition reports the vendor assertion; it does not verify issuance or mutate any ledger."
+    },
+    {
+      "id": "dispute-06",
+      "expected_semantic_family": "PARTIAL_AWARD",
+      "expected_supported_mapping": true,
+      "mandatory_review": false,
+      "reported_award": "28.80",
+      "denied_remainder": "19.20",
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "The unconditional current-claim grant is 28.80 and the denied remainder is 19.20;28.80+19.20=48.00 exactly. This is one combined disposition, not two competing awards. The remaining amount cannot be waived or posted by model interpretation."
+    },
+    {
+      "id": "dispute-07",
+      "expected_semantic_family": "UNKNOWN",
+      "expected_supported_mapping": false,
+      "mandatory_review": true,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "The lateness proposition is expressly negated and the relevant fact is unresolved. A positive late-filing mapping would reverse the meaning. No award or final disposition is established."
+    },
+    {
+      "id": "dispute-08",
+      "expected_semantic_family": "UNKNOWN",
+      "expected_supported_mapping": false,
+      "mandatory_review": true,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "TheUSD 63.70 is a conditional future amount and current approval is explicitly denied. It must not become a present vendor-reported award or a numeric zero recovery."
+    },
+    {
+      "id": "dispute-09",
+      "expected_semantic_family": "UNKNOWN",
+      "expected_supported_mapping": false,
+      "mandatory_review": true,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "The only grant belongs to another claim and another month. The currentMarch claim is expressly undecided. Equal monetary amounts do not join economic identity."
+    },
+    {
+      "id": "dispute-10",
+      "expected_semantic_family": "UNKNOWN",
+      "expected_supported_mapping": false,
+      "mandatory_review": true,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "The quotedUSD 11.35 claim is attributed to the customer and is not adopted by the vendor. Quotation coverage cannot turn that allegation into a vendor grant."
+    },
+    {
+      "id": "dispute-11",
+      "expected_semantic_family": "UNKNOWN",
+      "expected_supported_mapping": false,
+      "mandatory_review": true,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "The vendor offers unresolved alternatives across two periods. Neither a definite lateness objection toJune nor a missing-log objection toJune is asserted. Selecting either familiar family loses the unresolved disjunction."
+    },
+    {
+      "id": "dispute-12",
+      "expected_semantic_family": "UNKNOWN",
+      "expected_supported_mapping": false,
+      "mandatory_review": true,
+      "reported_award": null,
+      "denied_remainder": null,
+      "currency": "USD",
+      "expected_financial_mutation": false,
+      "manual_reasoning": "The stated amounts conflict:24.10+18.90=43.00, not 40.00. The reported residual would need 15.90 to conserve the claim. Neither correcting the reply nor treating 18.90 as another award is authorized."
+    }
+  ]
+}

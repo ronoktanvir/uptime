@@ -1,0 +1,94 @@
+{
+  "process_status": "completed",
+  "returncode": 0,
+  "duration_seconds": 598.4261373749996,
+  "stream_sha256": "d53e7b28516d0d6765c6ce54a19c16daede57c6eca34289039d7c33f041a6a45",
+  "prompt_sha256": "df64ea580231215147d724d84851a0aa49c669f3e3771bad73f51860658cb4d3",
+  "init": [
+    {
+      "model": "claude-opus-5-5",
+      "session_id": "6cd955be-2fa5-4b85-96aa-4b8de46982a4",
+      "tools": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "mcp_servers": []
+    }
+  ],
+  "tool_calls": [
+    "Glob",
+    "Glob",
+    "Glob",
+    "Read",
+    "Read",
+    "Read",
+    "Read",
+    "Read",
+    "Read",
+    "Read",
+    "Read",
+    "Read",
+    "Read",
+    "Grep",
+    "Grep",
+    "Grep",
+    "Read",
+    "Grep",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Grep",
+    "Grep",
+    "Write",
+    "Edit",
+    "Edit",
+    "Grep",
+    "Write",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Grep",
+    "Write",
+    "Grep",
+    "Grep",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Write",
+    "Read",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Edit",
+    "Read"
+  ],
+  "result": [
+    {
+      "session_id": "6cd955be-2fa5-4b85-96aa-4b8de46982a4",
+      "subtype": "success",
+      "is_error": false,
+      "result": "I've implemented everything in scope: the new job wrapper and endpoints, the hooks on the existing review desk, the pure parsing helper, the UI and the tests. I ran nothing (no shell), so none of the new or changed tests have been run yet.\n\n## Changed files\n- **NEW** `uptime/correspondence_model_jobs.py`\n- `uptime/correspondence_review.py`\n- `uptime/correspondence_block_model.py`\n- `uptime/correspondence_api.py`\n- `web/interpretation.js` (no CSS changes)\n- **NEW** `tests/test_correspondence_model_jobs_75.py`\n- **NEW** `tests/test_correspondence_model_jobs_ui_75.py`\n- `tests/test_correspondence_interpretation_ui.py`: only two labels changed. The button is now \"Request interpretation\" and the model proposal heading is now \"Requested interpretation \u2014 requires your review\". The call sequence and every authority/financial assertion are unchanged.\n\n## What changed\n- **Parsing helper:** `parse_block_result(context, provider_result, request_bytes, elapsed_seconds=None)` keeps all the existing checks. It also rejects request bytes that aren't exactly `serialized_block_request(context, parsed['transport'])`. The request bytes, prompt, schema and version are unchanged. `PublicBlockInterpretationAdapter` still does the allowlist check, the disabled check and exactly one provider call, then hands off to the helper.\n- **Review desk hooks:**\n  - `snapshot(p, claim, expected_digest, require_blind)`. When a reading is required it keeps the existing write and observe-only check; status reads use a plain read.\n  - `store_model_result(p, claim, digest, result)`. In one write transaction it checks the current context, the actor's own blind reading, the result's shape and its grounding. It records the provenance plus a `source` field (context, event, text and original-filing digests).\n  - The existing `model()` now reuses both hooks, so there is one set of authority checks.\n  - Expiry, blind immutability, reviews, preview and prepare are untouched.\n- **Job wrapper:**\n  - Kind is `correspondence_interpretation`, target is the claim id, and the provider is looked up as `provider('correspondence')`.\n  - Showing permission status runs `inspect` only and never calls the provider. It reports the request hash, size, profile, existing job and a readable reason.\n  - Submitting requires a reviewer, the exact current context digest and the actor's own blind reading. It returns an existing job instead of submitting again, and it never calls the provider itself.\n  - The validator only parses and stores the result. Its job result holds `candidate_id`, the context and request references, `external_actions=[]` and `ledger_unchanged=True`.\n- **API:**\n  - The existing `GET \u2026/interpretation` keeps all its fields and adds `source_blocks` and `model_job`.\n  - New `POST \u2026/interpretation/model-jobs` takes `ModelRequest` (context digest only; extra fields are rejected) and requires a reviewer plus `check_write`.\n  - New `GET \u2026/interpretation/model-jobs/{job_id}` is available to any actor and returns 404 on a mismatch.\n  - The service is looked up on each request, so it doesn't matter when the root installs it.\n- **UI:**\n  - **Request flow:** the \"Request interpretation\" button stays hidden until your own reading is saved. It is disabled, with a readable reason, unless permission is granted. Status checks run every second, at most 60 times, with a manual \"Refresh request status\" button. A request is never sent again automatically.\n  - **Source references:** a \"Interpretation request permission\" panel shows the request reference for operators. The original reply is listed line by line, and each slot or condition shows its location using text only (never rendered as HTML).\n  - **Review:** proposals show \"proposed; not reviewed\" or \"reviewed by you; preview only\". Nothing is preselected or pre-checked. Multi-proposition proposals are labelled as separate, never merged. Stale states and errors tell the reviewer to refresh the original source.\n  - If there's no `model_job` field, the old synchronous path still works under the new label.\n\n## Limitations and risks\n1. **Guessed shared-service field names.** I don't have the root service's shapes, so I read results that may be dicts or objects. I assumed the job has `id`/`job_id`, `state`/`status`, `kind`, `target`, `result`, `context_sha256` and `request_sha256`. If a job is missing `kind` or `target`, it is treated as not found (404, or \"request_mismatch\" in the status panel). The root needs to expose those two fields.\n2. **Rejection exceptions.** The validator raises `ValueError`, `PermissionError` or a pydantic validation error (which is a `ValueError`) when it rejects a result. I assumed the shared service turns these into REFUSED.\n3. **Provider elapsed time.** The job path passes `elapsed_seconds=None` because the validator doesn't see how long the provider took. In the adapter path, elapsed time is now measured before parsing rather than after, a sub-millisecond difference.\n4. **Conditional-credit test text.** That control uses new text and assumes the existing reply classifier leaves it in `HUMAN_REVIEW`. The test checks this, so if it fails, the fix is to change the text, not the code.\n5. **Error codes in the API test.** I accept 400 or 422 for rejected extra fields. I expect 403 for an unsigned POST and 401 for an unsigned GET, matching the existing tests.",
+      "permission_denials": [],
+      "models_in_usage": [
+        "claude-opus-5-5"
+      ]
+    }
+  ],
+  "design_review": {
+    "decision": 73,
+    "model": "claude-opus-5-5",
+    "session": "31695d3d-a349-443c-8972-0ec818a95924",
+    "scope": "Root-owned shared proposal runtime; no second design review."
+  },
+  "parent_corrections": [
+    "Aligned provider and kind to correspondence.",
+    "Added exact operator approval-request export without HTTP grant authority.",
+    "Added initial-only runtime nonce while preserving standalone request bytes.",
+    "Corrected uncertain-state UI to admit an inert candidate may already have committed.",
+    "Corrected a new pure-parser test that assumed it independently attested a provider profile; the approved request and transport bind that profile."
+  ]
+}

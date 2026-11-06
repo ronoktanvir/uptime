@@ -1,0 +1,46 @@
+{
+  "id": "onboarding-06",
+  "classification": "AUTHORED_PUBLIC",
+  "fictional": true,
+  "authorized_for_external_inference": true,
+  "customer_data": false,
+  "requested_profile": "monthly",
+  "document": {
+    "name": "Tern Vale Promise",
+    "uri": "urn:synthetic:public-evaluation76:onboarding-06",
+    "classification": "synthetic_public",
+    "text": "Tern Vale Discretionary Service Promise\nVendor: Tern Vale.\nThis promise covers Vale Batch Studio during 2026.\nIf monthly performance is materially below the expected target, an appropriate service credit may be considered.\nThe meaning of materially below, the expected target, the credit rate and whether a credit will be granted are determined by mutual discussion after the incident. No numerical threshold or rate is fixed in this promise.\nThe monthly access fee is USD 460.00. A separately invoiced USD 80.00 recovery service does not establish an SLA credit.\n"
+  },
+  "overlay": {
+    "agreement": "Tern Vale Discretionary Service Promise",
+    "account": "public76-account-6",
+    "product": "Vale Batch",
+    "plan": "Studio",
+    "fee_line_ref": "public76-fee-6",
+    "currency": "USD",
+    "effective_from": "2026-01-01",
+    "effective_until": "2026-12-31"
+  },
+  "scope": {
+    "vendor": "Tern Vale",
+    "agreement": "Tern Vale Discretionary Service Promise",
+    "account": "public76-account-6",
+    "product": "Vale Batch",
+    "plan": "Studio",
+    "month": "2026-10",
+    "fee_line_ref": "public76-fee-6",
+    "currency": "USD"
+  },
+  "evidence": {
+    "eligible_downtime_minutes": 800,
+    "monitor_source": "simulated_vendor",
+    "month_complete": true,
+    "exclusions_removed": true,
+    "monthly_fee_cents": 46000,
+    "separate_recovery_service_cents": 8000,
+    "received_at": "2026-11-09T10:00:00Z",
+    "agreed_threshold": null,
+    "agreed_rate": null,
+    "award_confirmation": null
+  }
+}

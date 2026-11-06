@@ -1,0 +1,187 @@
+{
+  "elapsed_seconds": 21.924664083000607,
+  "error": "Public model proposal rejected: Block 3 field fixed_period: Fixed period is not one explicit complete UTC calendar month.; model=claude-opus-5-5; session=9c306840-6d02-471f-ac58-e1419e337b03; source_sha256=7bb27dce869fb53b52e62b11a70f4f9aa8119adbeabb7ba1072ee62666e013b6; proposal_sha256=6acb0b44f6dbb43ca7859971784ba6e0cb17872a5bb8bd5bc283ecb063611c32",
+  "error_type": "RejectedProposal",
+  "evaluator_called": false,
+  "extraction_accepted": false,
+  "financial_mutation": false,
+  "human_approval": false,
+  "id": "onboarding-04",
+  "kind": "onboarding",
+  "legacy_raw_output": {
+    "legacy_fence_normalization_eligible": true,
+    "model_usage": {
+      "claude-opus-5-5": {
+        "cacheCreationEphemeral1hInputTokens": 1131,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationInputTokens": 1131,
+        "cacheReadInputTokens": 4709,
+        "canonicalModel": "claude-opus-5-5",
+        "contextWindow": 1000000,
+        "costBasis": "list",
+        "costUSD": 0.038377800000000004,
+        "inputTokens": 2,
+        "maxOutputTokens": 128000,
+        "outputTokens": 1419,
+        "provider": "firstParty",
+        "thinkingTokens": 904,
+        "webSearchRequests": 0
+      }
+    },
+    "provider_is_error": false,
+    "raw_result_sha256": "064bc190defc7ebae455e77ecd8ed28c9632c45d4c954db5af92c505acd4aeae",
+    "session": "9c306840-6d02-471f-ac58-e1419e337b03",
+    "strict_json_output": false
+  },
+  "process_output": {
+    "provider.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "provider.stdout": {
+      "bytes": 2963,
+      "sha256": "209b1597a5ae0f191d28fa1b5777c7118e3f9951fdb9a1e99ac2201754d99e67"
+    }
+  },
+  "rejection": {
+    "allow_propositions": true,
+    "at": "2026-11-06T01:49:21.270250+00:00",
+    "model": "claude-opus-5-5",
+    "profile": "resource-month",
+    "protocol": "public_block_ids/1",
+    "raw_proposal": {
+      "blocks": [
+        {
+          "id": 1,
+          "value": {
+            "agreement": "Lattice Oriole April Service Commitment"
+          }
+        },
+        {
+          "id": 2,
+          "value": {
+            "vendor": "Lattice Oriole"
+          }
+        },
+        {
+          "id": 3,
+          "value": {
+            "fixed_period": {
+              "end": "2026-05-01T00:00:00Z",
+              "start": "2026-04-01T00:00:00Z"
+            },
+            "scope": {
+              "plan": null,
+              "product": "Oriole Index Business"
+            }
+          }
+        },
+        {
+          "id": 4,
+          "value": {
+            "aggregate_monitor": "authoritative_vendor_minutes"
+          }
+        },
+        {
+          "id": 5,
+          "value": {
+            "unsupported": "explicit availability formula stated but block's interval_measurement vocabulary is empty, so availability_ratio cannot be emitted"
+          }
+        },
+        {
+          "id": 6,
+          "value": {
+            "fee_exclusions": [
+              "Support",
+              "tax",
+              "one-time fees"
+            ],
+            "fee_settlement": [
+              "paid_recurring_only"
+            ],
+            "service_fee": "paid_recurring_subscription",
+            "tiers": [
+              {
+                "at_least": null,
+                "below": "99.5",
+                "credit": "12"
+              }
+            ]
+          }
+        },
+        {
+          "id": 7,
+          "value": {
+            "remedy": "noncash_service_credit"
+          }
+        },
+        {
+          "id": 8,
+          "value": {
+            "evidence": [
+              "account_records",
+              "itemized_fees"
+            ],
+            "record_integrity": [
+              "content_hash"
+            ],
+            "unsupported": "'separately verified' names no verifier or verification process; completeness and verification conditions are unresolved"
+          }
+        },
+        {
+          "id": 9,
+          "value": {
+            "fixed_filing": {
+              "at": "2026-05-15T23:59:59Z",
+              "endpoint": "inclusive"
+            }
+          }
+        }
+      ]
+    },
+    "raw_proposal_sha256": "6acb0b44f6dbb43ca7859971784ba6e0cb17872a5bb8bd5bc283ecb063611c32",
+    "reason": "Block 3 field fixed_period: Fixed period is not one explicit complete UTC calendar month.",
+    "session": "9c306840-6d02-471f-ac58-e1419e337b03",
+    "source_sha256": "7bb27dce869fb53b52e62b11a70f4f9aa8119adbeabb7ba1072ee62666e013b6",
+    "status": "REJECTED"
+  },
+  "request_attempts": 1,
+  "request_sha256": "571619e625d190be740e15c3f164720ed22af2189c6ebdbefb42b6b25376f91b",
+  "schema_grounding_accepted": false,
+  "stage": "proposal_validation_refusal",
+  "transport_class": "LEGACY_VENDOR_MODEL_SUBPROCESS_NOT_SAFEPUBLICCLAUDE",
+  "classification": "AUTHORED_PUBLIC",
+  "actual_provider_identity": {
+    "model": "claude-opus-5-5",
+    "session": "9c306840-6d02-471f-ac58-e1419e337b03",
+    "identity_basis": "legacy JSON modelUsage checked by frozen generate",
+    "requested_tool_inventory": [],
+    "initialized_tool_inventory": null,
+    "initialized_inventory_verified": false
+  },
+  "raw_model_response": "```json\n{\"blocks\":[{\"id\":1,\"value\":{\"agreement\":\"Lattice Oriole April Service Commitment\"}},{\"id\":2,\"value\":{\"vendor\":\"Lattice Oriole\"}},{\"id\":3,\"value\":{\"scope\":{\"product\":\"Oriole Index Business\",\"plan\":null},\"fixed_period\":{\"start\":\"2026-04-01T00:00:00Z\",\"end\":\"2026-05-01T00:00:00Z\"}}},{\"id\":4,\"value\":{\"aggregate_monitor\":\"authoritative_vendor_minutes\"}},{\"id\":5,\"value\":{\"unsupported\":\"explicit availability formula stated but block's interval_measurement vocabulary is empty, so availability_ratio cannot be emitted\"}},{\"id\":6,\"value\":{\"tiers\":[{\"below\":\"99.5\",\"credit\":\"12\",\"at_least\":null}],\"service_fee\":\"paid_recurring_subscription\",\"fee_settlement\":[\"paid_recurring_only\"],\"fee_exclusions\":[\"Support\",\"tax\",\"one-time fees\"]}},{\"id\":7,\"value\":{\"remedy\":\"noncash_service_credit\"}},{\"id\":8,\"value\":{\"evidence\":[\"account_records\",\"itemized_fees\"],\"record_integrity\":[\"content_hash\"],\"unsupported\":\"'separately verified' names no verifier or verification process; completeness and verification conditions are unresolved\"}},{\"id\":9,\"value\":{\"fixed_filing\":{\"at\":\"2026-05-15T23:59:59Z\",\"endpoint\":\"inclusive\"}}}]}\n```",
+  "raw_model_response_sha256": "064bc190defc7ebae455e77ecd8ed28c9632c45d4c954db5af92c505acd4aeae",
+  "protected_result_sha256": "570f6e1212ef80041f098ca7444248f3cb8cabd163378bdb138e65d70eca113c",
+  "protected_stream_sha256": "209b1597a5ae0f191d28fa1b5777c7118e3f9951fdb9a1e99ac2201754d99e67",
+  "protected_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "score": {
+    "error": "Public model proposal rejected: Block 3 field fixed_period: Fixed period is not one explicit complete UTC calendar month.; model=claude-opus-5-5; session=9c306840-6d02-471f-ac58-e1419e337b03; source_sha256=7bb27dce869fb53b52e62b11a70f4f9aa8119adbeabb7ba1072ee62666e013b6; proposal_sha256=6acb0b44f6dbb43ca7859971784ba6e0cb17872a5bb8bd5bc283ecb063611c32",
+    "evaluation_missing": [],
+    "expected_amount": "75.00",
+    "expected_math_observed": false,
+    "expected_outcome": "ELIGIBLE",
+    "extraction_accepted": false,
+    "id": "onboarding-04",
+    "observed_amount": null,
+    "observed_outcome": null,
+    "pass_expected": false,
+    "request_attempts": 1,
+    "result_sha256": "570f6e1212ef80041f098ca7444248f3cb8cabd163378bdb138e65d70eca113c",
+    "safe_refusal_without_positive_money": false,
+    "schema_grounding_accepted": false,
+    "stage": "proposal_validation_refusal",
+    "strict_json_output": false
+  },
+  "action_authority_evaluated": false,
+  "actions_executed": 0
+}

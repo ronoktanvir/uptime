@@ -66,6 +66,44 @@ def serialized_block_request(context, transport=None):
     return _canonical(_request(context, transport))
 
 
+MAX_REQUEST_BYTES = 80000
+
+
+def parse_block_result(context, provider_result, request_bytes, elapsed_seconds=None):
+    """Pure check of one provider result against the exact request bytes. Never calls a provider.
+
+    The request bytes must be exactly the current serialized request for this context and
+    the transport profile they name, so a result for another source, scope, amount, prompt,
+    or schema cannot acquire this context's provenance. The caller supplies an already
+    approved request; its transport owns the provider/profile binding, not this parser.
+    """
+    if not isinstance(request_bytes, (bytes, bytearray)) or len(request_bytes) > MAX_REQUEST_BYTES:
+        raise ValueError('Model request exceeds the explicit budget.')
+    request_bytes = bytes(request_bytes)
+    parsed = strict_json(request_bytes)
+    if not isinstance(parsed, dict):
+        raise ValueError('The model request is not an explicit manifest.')
+    expected = _request(context, parsed.get('transport'))
+    if 'attempt_nonce' in parsed:
+        if parsed['attempt_nonce'] != 'initial':
+            raise ValueError('Only an explicitly approved initial runtime attempt is supported.')
+        expected['attempt_nonce'] = 'initial'
+    if request_bytes != _canonical(expected):
+        raise ValueError('The model request does not match the current source context.')
+    if (not isinstance(provider_result, dict) or provider_result.get('model') != MODEL
+            or not isinstance(provider_result.get('text'), str) or len(provider_result['text']) > 30000):
+        raise ValueError('The provider result or model identity is invalid.')
+    annotation = BlockInterpretation.model_validate(strict_json(provider_result['text']))
+    hydrated = hydrate_blocks(context['text'], annotation)
+    return dict(interpretation=hydrated.model_dump(), provenance=dict(
+        model=MODEL, request_sha256=sha256(request_bytes).hexdigest(),
+        response_sha256=sha256(provider_result['text'].encode('utf-8')).hexdigest(),
+        elapsed_seconds=elapsed_seconds, processing='explicit_public_synthetic_only',
+        representation=BLOCK_VERSION, structural_grounding_not_semantic_validation=True,
+        output_mode=parsed['output_mode'], usage=provider_result.get('usage'), session=provider_result.get('session'),
+        client_reported_cost_usd=provider_result.get('cost_usd'), transport=provider_result.get('transport')))
+
+
 class PublicBlockInterpretationAdapter:
     def __init__(self, *, allowed_requests=(), provider=None, enabled=False):
         self.allowed_requests = frozenset(allowed_requests)
@@ -78,18 +116,8 @@ class PublicBlockInterpretationAdapter:
         digest = sha256(encoded).hexdigest()
         if not self.enabled or self.provider is None or digest not in self.allowed_requests:
             raise PermissionError('The complete public block request is not explicitly enabled and allowlisted.')
-        if len(encoded) > 80000:
+        if len(encoded) > MAX_REQUEST_BYTES:
             raise ValueError('Model request exceeds the explicit budget.')
         started = monotonic()
         result = self.provider(encoded)  # Exactly one attempt; no retries, fallback mode or retrieval.
-        if (not isinstance(result, dict) or result.get('model') != MODEL or not isinstance(result.get('text'), str)
-                or len(result['text']) > 30000):
-            raise ValueError('The provider result or model identity is invalid.')
-        annotation = BlockInterpretation.model_validate(strict_json(result['text']))
-        parsed = hydrate_blocks(context['text'], annotation)
-        return dict(interpretation=parsed.model_dump(), provenance=dict(
-            model=MODEL, request_sha256=digest, response_sha256=sha256(result['text'].encode('utf-8')).hexdigest(),
-            elapsed_seconds=monotonic() - started, processing='explicit_public_synthetic_only',
-            representation=BLOCK_VERSION, structural_grounding_not_semantic_validation=True,
-            output_mode=request['output_mode'], usage=result.get('usage'), session=result.get('session'),
-            client_reported_cost_usd=result.get('cost_usd'), transport=result.get('transport')))
+        return parse_block_result(context, result, encoded, monotonic() - started)

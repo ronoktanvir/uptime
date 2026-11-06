@@ -1,0 +1,10 @@
+{
+  "commit": "a5c6c93e590c6f5fa4fb1b37e60c622ec4aae35b",
+  "command": "uv run --locked pytest --basetemp W/tasks/pytest73-core-final",
+  "result": "3238 passed, 1 warning in 203.44s (0:03:23)",
+  "exit_code": 0,
+  "log_sha256": "eec3638700fafa0e536552bd20b65a3f7e9bb0c3cc6edb6c026f5c63820190f1",
+  "log_reference": "W/receipts/phase73-core-full.log",
+  "scope": "Shared opt-in queue and existing application regression; vendor/dispute wrappers not integrated yet.",
+  "native_write_verified": false
+}

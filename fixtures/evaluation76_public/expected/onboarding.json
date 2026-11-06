@@ -1,0 +1,78 @@
+{
+  "classification": "AUTHORED_PUBLIC",
+  "fictional": true,
+  "authorized_for_external_inference": true,
+  "customer_data": false,
+  "oracle_author": "Independent authored arithmetic and source interpretation; no engine/model-derived gold",
+  "cases": [
+    {
+      "id": "onboarding-01",
+      "semantic_family": "SUPPORTED_MONTHLY_TIERS",
+      "expected_outcome": "ELIGIBLE",
+      "expected_amount": "62.00",
+      "currency": "USD",
+      "eligible_fee_cents": 24800,
+      "downtime_minutes": "720",
+      "month_minutes": 43200,
+      "availability_exact": "100 * (43200 - 720) / 43200 = 295 / 3 percent",
+      "selected_rate_percent": "25",
+      "manual_reasoning": "September has 30*24*60=43200 minutes. 720 unavailable minutes give 98 1/3 percent availability, below 99.0. Highest applicable rate 25 percent times USD 248.00 = USD 62.00. Receipt 14 October precedes 20 October cutoff."
+    },
+    {
+      "id": "onboarding-02",
+      "semantic_family": "SUPPORTED_COMPLETED_STEPS",
+      "expected_outcome": "ELIGIBLE",
+      "expected_amount": "59.50",
+      "currency": "USD",
+      "eligible_fee_cents": 42500,
+      "downtime_minutes": "216",
+      "month_minutes": 43200,
+      "availability_exact": "100 * (43200 - 216) / 43200 = 99.5 percent",
+      "completed_steps": 2,
+      "selected_rate_percent": "14",
+      "manual_reasoning": "June has 43200 minutes. 216/43200=0.005 gives 99.5 percent availability. Shortfall 99.9-99.5=0.4 percentage points. floor(0.4/0.2)=2 completed steps;2*7=14 percent is below 21 percent cap. USD 425.00*0.14= USD 59.50. Receipt 10 July is timely."
+    },
+    {
+      "id": "onboarding-03",
+      "semantic_family": "SUPPORTED_RESOURCE_INTERVALS",
+      "expected_outcome": "ELIGIBLE",
+      "expected_amount": "170.00",
+      "currency": "USD",
+      "eligible_fee_cents": 85000,
+      "downtime_minutes": "600",
+      "month_minutes": 43200,
+      "availability_exact": "100 * (43200 - 600) / 43200 = 1775 / 18 percent",
+      "selected_rate_percent": "20",
+      "manual_reasoning": "Provider intervals 00:00-06:00 and 04:00-10:00 union to 10 hours=600 minutes, not 720. Separate 120 customer-configuration minutes are excluded. Availability 98.611... is below 99.0. OnlyUSD 850 recurring resource service belongs to the base;USD 120 support andUSD 34 tax do not. 20 percent of USD 850= USD 170. Receipt 12 December precedes inclusive 20 December cutoff."
+    },
+    {
+      "id": "onboarding-04",
+      "semantic_family": "SUPPORTED_FIXED_SERVICE_AGGREGATE",
+      "expected_outcome": "ELIGIBLE",
+      "expected_amount": "75.00",
+      "currency": "USD",
+      "eligible_fee_cents": 62500,
+      "downtime_minutes": "432",
+      "month_minutes": 43200,
+      "availability_exact": "100 * (43200 - 432) / 43200 = 99 percent",
+      "selected_rate_percent": "12",
+      "manual_reasoning": "April has 43200 minutes. The complete vendor report states 432 unavailable minutes, exactly 1 percent. Availability 99 is below 99.5. Paid recurring feeUSD 625 excludes supportUSD 40 and taxUSD 25. USD 625*0.12= USD 75. Receipt 15 May 12:00 is before the inclusive 23:59:59 deadline. Noncash credit is not posted or applied money."
+    },
+    {
+      "id": "onboarding-05",
+      "semantic_family": "UNSUPPORTED_VARIABLE_EXTERNAL_RATE",
+      "expected_outcome": "UNSUPPORTED_RULE",
+      "expected_amount": null,
+      "currency": "USD",
+      "manual_reasoning": "The contract does not fix the comparison vendors, their controlling terms or any credit percentage. Knowing aUSD 260 fee and downtime cannot determine the median rate. No rate or credit amount may be invented."
+    },
+    {
+      "id": "onboarding-06",
+      "semantic_family": "AMBIGUOUS_DISCRETIONARY_ENTITLEMENT",
+      "expected_outcome": "UNSUPPORTED_RULE",
+      "expected_amount": null,
+      "currency": "USD",
+      "manual_reasoning": "Materiality, target, rate and grant discretion are unresolved. NeitherUSD 460 access fees norUSD 80 separate recovery service supplies a numerical SLA credit. No earned or awarded amount is established."
+    }
+  ]
+}

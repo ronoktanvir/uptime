@@ -1,5 +1,6 @@
 """Local authenticated finance workbench. Serve through scripts/serve.py."""
 from asyncio import Lock
+from contextlib import asynccontextmanager
 from importlib.util import find_spec
 from ipaddress import ip_address
 from pathlib import Path
@@ -33,13 +34,28 @@ class ModeRequest(Empty):
 
 def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=False, rehearsal_secret=None,
                service_credentials=None, origin=DEFAULT_ORIGIN, tenant=TENANT, native_config=None, award_office=None,
-               workflow_config=None):
+               workflow_config=None, proposal_jobs=None, proposal_config=None):
     if workflow_config is not None and (native_config is not None or mode != 'replay' or not rehearsal or tenant != TENANT):
         raise PermissionError('A configured local workflow requires its isolated rehearsal workspace, without a native connection.')
     auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant)
     bench = Workbench(db_path, mode) if tenant == TENANT else Workbench(db_path, mode, tenant=tenant)
-    app = FastAPI(title="Uptime for Ramp", docs_url=None, redoc_url=None, openapi_url=None)
+    if proposal_jobs is not None and proposal_config is not None:
+        raise ValueError('Select one server-side proposal configuration.')
+    if proposal_config is not None:
+        from .public_proposal_config import open_public_jobs
+        proposal_jobs = open_public_jobs(db_path, proposal_config)
+
+    @asynccontextmanager
+    async def lifecycle(app):
+        try:
+            yield
+        finally:
+            if proposal_jobs is not None:
+                proposal_jobs.close()
+
+    app = FastAPI(title="Uptime for Ramp", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifecycle)
     app.state.bench, app.state.auth = bench, auth
+    app.state.public_proposal_jobs = proposal_jobs
     write_lock = Lock()
 
     @app.middleware("http")
@@ -158,7 +174,8 @@ def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=Fal
         from .v4_routes import register_v4_routes
         register_v4_routes(app, bench, auth,
             governing_fees=workflow_config.get('governing_fees') if workflow_config is not None else None,
-            trusted_now=(lambda:app.state.workflow.now()) if workflow_config is not None else None)
+            trusted_now=(lambda:app.state.workflow.now()) if workflow_config is not None else None,
+            proposal_jobs=proposal_jobs)
     from .ramp_workspace import register_ramp_workspace
     native_workspace = register_ramp_workspace(app, bench, auth, award_office=award_office)
     if native_config is not None:

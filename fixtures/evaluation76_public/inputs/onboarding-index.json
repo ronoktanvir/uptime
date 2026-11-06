@@ -1,0 +1,38 @@
+{
+  "classification": "AUTHORED_PUBLIC",
+  "fictional": true,
+  "authorized_for_external_inference": true,
+  "customer_data": false,
+  "cases": [
+    {
+      "id": "onboarding-01",
+      "profile": "monthly",
+      "input": "inputs/onboarding/onboarding-01.json"
+    },
+    {
+      "id": "onboarding-02",
+      "profile": "monthly",
+      "input": "inputs/onboarding/onboarding-02.json"
+    },
+    {
+      "id": "onboarding-03",
+      "profile": "resource-month",
+      "input": "inputs/onboarding/onboarding-03.json"
+    },
+    {
+      "id": "onboarding-04",
+      "profile": "resource-month",
+      "input": "inputs/onboarding/onboarding-04.json"
+    },
+    {
+      "id": "onboarding-05",
+      "profile": "monthly",
+      "input": "inputs/onboarding/onboarding-05.json"
+    },
+    {
+      "id": "onboarding-06",
+      "profile": "monthly",
+      "input": "inputs/onboarding/onboarding-06.json"
+    }
+  ]
+}
