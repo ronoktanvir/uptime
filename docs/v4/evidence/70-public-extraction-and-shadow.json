@@ -409,6 +409,317 @@
     {
       "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus70-public-extraction-identity-preserved/ee180cf751326c965bda4b1a4dd2fa58389cdf7e1618c1750c83dc806c887bfa.json",
       "sha256": "0c2d3c64f652dc10c1764d05ecad183052ef0d1cda496f3d0607dcec89aad248"
+    },
+    {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/opus70-public-extraction-identity-preserved/shadow-replay-final.json",
+      "sha256": "765304296360bbc00a74b169b710969703c4bb22a44d57938446da182ba0e227"
     }
-  ]
+  ],
+  "final_source_shadow_replay": {
+    "source_commit": "c11e0cc",
+    "result": {
+      "classification": "authored_public_source_not_blind",
+      "extraction": {
+        "method": "tool_free_model_validated",
+        "source_sha256": "ee180cf751326c965bda4b1a4dd2fa58389cdf7e1618c1750c83dc806c887bfa",
+        "model": "claude-opus-5-5",
+        "session": "25601b97-eb4e-4bcf-85f3-44d95999ddca",
+        "at": "2026-11-06T00:19:33.939914+00:00",
+        "proposal_sha256": "035e51be9f404f3219600b258b91a77d5d1d5a263d2ea7a48a821d076450a032"
+      },
+      "candidate_state": "SHADOW",
+      "final_state": "SHADOW",
+      "generated_checks": [
+        {
+          "actual": 0,
+          "available": 199600001,
+          "expected": 0,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 0,
+          "available": 199600000,
+          "expected": 0,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 0,
+          "available": 199599999,
+          "expected": 0,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 0,
+          "available": 199200001,
+          "expected": 0,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 7500000,
+          "available": 199200000,
+          "expected": 7500000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 7500000,
+          "available": 199199999,
+          "expected": 7500000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 7500000,
+          "available": 198800001,
+          "expected": 7500000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 15000000,
+          "available": 198800000,
+          "expected": 15000000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 15000000,
+          "available": 198799999,
+          "expected": 15000000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 15000000,
+          "available": 198400001,
+          "expected": 15000000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 22500000,
+          "available": 198400000,
+          "expected": 22500000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 22500000,
+          "available": 198399999,
+          "expected": 22500000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 22500000,
+          "available": 198000001,
+          "expected": 22500000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 30000000,
+          "available": 198000000,
+          "expected": 30000000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 30000000,
+          "available": 197999999,
+          "expected": 30000000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 30000000,
+          "available": 197600001,
+          "expected": 30000000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 30000000,
+          "available": 197600000,
+          "expected": 30000000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        },
+        {
+          "actual": 30000000,
+          "available": 197599999,
+          "expected": 30000000,
+          "passed": true,
+          "plan": "Scale",
+          "product": "Queue Relay",
+          "total": 200000000
+        }
+      ],
+      "unpriced_checks": [
+        {
+          "name": "two-completed-steps",
+          "expected": {
+            "outcome": "ELIGIBLE",
+            "amount": "109.50"
+          },
+          "actual": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "passed": false
+        },
+        {
+          "name": "cap",
+          "expected": {
+            "outcome": "ELIGIBLE",
+            "amount": "219.00"
+          },
+          "actual": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "passed": false
+        },
+        {
+          "name": "no-completed-step",
+          "expected": {
+            "outcome": "INELIGIBLE"
+          },
+          "actual": {
+            "outcome": "INELIGIBLE",
+            "amount": null
+          },
+          "passed": true
+        },
+        {
+          "name": "incomplete",
+          "expected": {
+            "outcome": "INSUFFICIENT_EVIDENCE"
+          },
+          "actual": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "passed": true
+        },
+        {
+          "name": "Independent positive and refusal coverage",
+          "passed": true
+        },
+        {
+          "name": "Generated exact threshold checks",
+          "passed": true
+        }
+      ],
+      "priced_checks": [
+        {
+          "name": "two-completed-steps",
+          "expected": {
+            "outcome": "ELIGIBLE",
+            "amount": "109.50"
+          },
+          "actual": {
+            "outcome": "ELIGIBLE",
+            "amount": "109.50"
+          },
+          "passed": true,
+          "governing_fee_digest": "9ca1f092145b52978660f111e1c9b665c3f02d0a9acb550546eeefafe3e905a3"
+        },
+        {
+          "name": "cap",
+          "expected": {
+            "outcome": "ELIGIBLE",
+            "amount": "219.00"
+          },
+          "actual": {
+            "outcome": "ELIGIBLE",
+            "amount": "219.00"
+          },
+          "passed": true,
+          "governing_fee_digest": "9ca1f092145b52978660f111e1c9b665c3f02d0a9acb550546eeefafe3e905a3"
+        },
+        {
+          "name": "no-completed-step",
+          "expected": {
+            "outcome": "INELIGIBLE"
+          },
+          "actual": {
+            "outcome": "INELIGIBLE",
+            "amount": null
+          },
+          "passed": true
+        },
+        {
+          "name": "incomplete",
+          "expected": {
+            "outcome": "INSUFFICIENT_EVIDENCE"
+          },
+          "actual": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "passed": true
+        },
+        {
+          "name": "Independent positive and refusal coverage",
+          "passed": true
+        },
+        {
+          "name": "Generated exact threshold checks",
+          "passed": true
+        }
+      ],
+      "actions": [
+        {
+          "id": "approve~5~8f996c824c4a8c3e96d2172fd83a7fe3c1b83cba2a5aa16066caed7bf413913c",
+          "label": "Approve reviewed tests",
+          "operation": "approve"
+        }
+      ],
+      "reviewer": null,
+      "activation_performed": false,
+      "pricing_evidence": "explicit synthetic unit-test snapshot, not authenticated provider proof",
+      "reviewer_evidence": "scripted test principal, not ACTUAL_HUMAN",
+      "source_sha256": "ee180cf751326c965bda4b1a4dd2fa58389cdf7e1618c1750c83dc806c887bfa"
+    },
+    "note": "Fresh disposable DB replay of unchanged actual proposal after the production login environment repair; original shadow replay remains above."
+  }
 }

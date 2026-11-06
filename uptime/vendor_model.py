@@ -236,11 +236,14 @@ def generate(document, approved_digest, *, allow_propositions=False, profile='mo
             for block in blocks]}, ensure_ascii=False)
     elif profile != 'monthly':
         raise ValueError('Unknown extraction profile.')
-    # Retain the established login identity without inheriting execution overrides
-    # or provider credentials. PATH still locates this operator's existing CLI;
+    # Retain the established login identity without inheriting execution overrides.
+    # PATH still locates this operator's existing CLI;
     # this legacy launcher does not claim SafePublicClaude binary/profile pinning.
     env = public_environment()
     env['PATH'] = os.environ.get('PATH', env['PATH'])
+    if 'CLAUDE_CODE_OAUTH_TOKEN' in os.environ:
+        # Existing explicit caller authentication, never part of prompts or receipts.
+        env['CLAUDE_CODE_OAUTH_TOKEN'] = os.environ['CLAUDE_CODE_OAUTH_TOKEN']
     with TemporaryDirectory() as cwd:
         proc = subprocess.run(
             ['claude', '-p', '--safe-mode', '--model', MODEL, '--tools', '', '--strict-mcp-config',

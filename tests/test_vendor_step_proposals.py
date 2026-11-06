@@ -367,7 +367,8 @@ def test_tool_free_generator_accepts_wire_and_rejects_mismatch_in_memory_only(mo
     assert caught.value.receipt['status'] == 'REJECTED' and caught.value.receipt['raw_proposal'] == {'clauses': bad}
 
 
-def test_generator_retains_os_login_identity_without_execution_overrides(monkeypatch):
+@pytest.mark.parametrize('explicit_token', [False, True])
+def test_generator_retains_os_login_identity_without_execution_overrides(monkeypatch, explicit_token):
     import os
     import pwd
     from types import SimpleNamespace
@@ -376,21 +377,27 @@ def test_generator_retains_os_login_identity_without_execution_overrides(monkeyp
                  'NODE_OPTIONS': '--require /public-test-override', 'BASH_ENV': '/public-test-override',
                  'DYLD_INSERT_LIBRARIES': '/public-test-override', 'LD_PRELOAD': '/public-test-override',
                  'HTTPS_PROXY': 'http://public-test.invalid', 'ANTHROPIC_BASE_URL': 'http://public-test.invalid',
-                 'ANTHROPIC_API_KEY': 'synthetic-not-a-credential',
-                 'CLAUDE_CODE_OAUTH_TOKEN': 'synthetic-not-a-credential'}
+                 'ANTHROPIC_API_KEY': 'synthetic-not-a-credential'}
     for key, value in overrides.items():
         monkeypatch.setenv(key, value)
+    if explicit_token:
+        monkeypatch.setenv('CLAUDE_CODE_OAUTH_TOKEN', 'synthetic-not-a-credential')
+    else:
+        monkeypatch.delenv('CLAUDE_CODE_OAUTH_TOKEN', raising=False)
     def fake_run(argv, **kwargs):
         captured.append(kwargs['env'])
+        assert 'synthetic-not-a-credential' not in kwargs['input'] and 'synthetic-not-a-credential' not in str(argv)
         return SimpleNamespace(returncode=0, stdout=json.dumps({
             'is_error': False, 'modelUsage': {MODEL: {}}, 'session_id': 'synthetic-environment-check',
             'result': json.dumps({'clauses': proposal()})}))
     monkeypatch.setattr('uptime.vendor_model.subprocess.run', fake_run)
-    generate(Document(**DOC), sha256(DOC['text'].encode()).hexdigest())
+    artifact = generate(Document(**DOC), sha256(DOC['text'].encode()).hexdigest())
     env = captured[0]
     assert env['USER'] == env['LOGNAME'] == pwd.getpwuid(os.getuid()).pw_name
     assert env['HOME'] == str(Path.home()) and env['PATH'] == os.environ['PATH']
     assert not (set(overrides) - {'USER', 'LOGNAME'}) & env.keys()
+    assert env.get('CLAUDE_CODE_OAUTH_TOKEN') == ('synthetic-not-a-credential' if explicit_token else None)
+    assert 'synthetic-not-a-credential' not in str(artifact)
     assert env['CLAUDE_CODE_DISABLE_AUTO_MEMORY'] == '1'
 
 
