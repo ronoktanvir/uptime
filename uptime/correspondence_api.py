@@ -8,12 +8,15 @@ from fastapi import APIRouter, Depends
 from .correspondence import CorrespondenceDesk
 from .correspondence_types import Claim, Delivery, Empty
 from .correspondence_interpretation import Entry, CandidateRequest, ModelRequest, Review, Prepare
+from .correspondence_model_jobs import CorrespondenceModelJobs
 from .correspondence_review import InterpretationDesk
 
 
 def make_correspondence_router(desk: CorrespondenceDesk, actor, reviewer, check_write, service):
     router = APIRouter(prefix="/api/correspondence/claims")
     interpretations = InterpretationDesk(desk, getattr(desk, "interpretation_adapter", None))
+    # The shared proposal-job service is looked up on each request, so route creation order does not matter.
+    model_jobs = CorrespondenceModelJobs(desk, interpretations)
 
     @router.get("")
     def cases(p=Depends(actor)):
@@ -39,7 +42,16 @@ def make_correspondence_router(desk: CorrespondenceDesk, actor, reviewer, check_
 
     @router.get("/{claim_id}/interpretation")
     def interpretation(claim_id: str, p=Depends(actor)):
-        return interpretations.view(p, claim_id)
+        return model_jobs.view(p, claim_id)
+
+    @router.post("/{claim_id}/interpretation/model-jobs")
+    def request_interpretation(claim_id: str, body: ModelRequest, p=Depends(reviewer)):
+        check_write(p)
+        return model_jobs.submit(p, claim_id, body)
+
+    @router.get("/{claim_id}/interpretation/model-jobs/{job_id}")
+    def interpretation_request_status(claim_id: str, job_id: str, p=Depends(actor)):
+        return model_jobs.get(p, claim_id, job_id)
 
     @router.post("/{claim_id}/interpretation/blind-entry")
     def blind(claim_id: str, body: Entry, p=Depends(reviewer)):

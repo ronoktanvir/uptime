@@ -125,24 +125,58 @@ class InterpretationDesk:
             body=dict(origin='manual',interpretation=entry.interpretation.model_dump())
             return dict(id=self._put(db,p,claim_id,'candidate',context['digest'],body))
 
+    def snapshot(self,p,claim_id,expected_digest=None,require_blind=False):
+        """Current server-derived context only; no candidate, provider or write effect."""
+        if require_blind:
+            authorize(p,True)
+        # Submissions keep the existing write-mode (observe-only) gate; status reads do not.
+        with (self.desk._write(p.tenant) if require_blind else database(self.desk.path)) as db:
+            context,*_=self._context(db,p,claim_id)
+            if expected_digest is not None:
+                self._same(context,expected_digest)
+            if require_blind:
+                self._blind(db,p,claim_id,context)
+        return context
+
+    def has_blind(self,p,claim_id,context):
+        with database(self.desk.path) as db:
+            try:
+                self._blind(db,p,claim_id,context)
+            except ValueError:
+                return False
+        return True
+
+    def store_model_result(self,p,claim_id,context_digest,result):
+        """Attach one inert model candidate atomically, only to the exact current context.
+
+        Re-checks the actor's own blind entry, candidate shape and grounding in the same
+        write transaction. Never reviews, previews, prepares or acts.
+        """
+        authorize(p,True)
+        if (not isinstance(result,dict) or set(result)!={'interpretation','provenance'}
+                or not isinstance(result['provenance'],dict) or not isinstance(result['provenance'].get('request_sha256'),str)):
+            raise ValueError('The model result is not an inert, attributable proposal.')
+        interpretation=Interpretation.model_validate(result['interpretation'])
+        with self.desk._write(p.tenant) as db:
+            latest,*_=self._context(db,p,claim_id)
+            self._same(latest,context_digest)
+            self._blind(db,p,claim_id,latest)
+            validate_grounding(latest['text'],interpretation)
+            body=dict(origin='model',interpretation=interpretation.model_dump(),provenance=result['provenance'],
+                      source=dict(context_digest=latest['digest'],event_digest=latest['event_digest'],
+                                  text_sha256=latest['text_sha256'],original_digest=latest['original_digest']))
+            return self._put(db,p,claim_id,'candidate',latest['digest'],body)
+
     def model(self,p,claim_id,entry):
         authorize(p,True)
         # No database write lock or privileged source is held across provider IO.
-        with self.desk._write(p.tenant) as db:
-            context,*_=self._context(db,p,claim_id)
-            self._same(context,entry.context_digest)
-            self._blind(db,p,claim_id,context)
+        context=self.snapshot(p,claim_id,entry.context_digest,require_blind=True)
         if self.adapter is None:
             raise PermissionError('External interpretation is disabled.')
         result=self.adapter.propose(context)
         interpretation=Interpretation.model_validate(result['interpretation'])
         validate_grounding(context['text'],interpretation)
-        with self.desk._write(p.tenant) as db:
-            latest,*_=self._context(db,p,claim_id)
-            self._same(latest,context['digest'])
-            self._blind(db,p,claim_id,latest)
-            body=dict(origin='model',interpretation=interpretation.model_dump(),provenance=result['provenance'])
-            return dict(id=self._put(db,p,claim_id,'candidate',context['digest'],body))
+        return dict(id=self.store_model_result(p,claim_id,context['digest'],result))
 
     def review(self,p,claim_id,entry):
         authorize(p,True)
