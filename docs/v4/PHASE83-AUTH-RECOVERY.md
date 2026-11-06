@@ -11,3 +11,5 @@ The original actual browser incident showed generic uncertainty and unavailable 
 This is routine parity with the existing account recovery design under decisions73/74, implemented natively as authorized by the lead. No new architecture/model review was run. Exact tests and retained intermediate failures are in [the phase83 ledger](TEST-CHANGES-83.md).
 
 Frozen source `5b750db` passed27 focused tests, including real browser recovery and the13 authored auth/status DOM controls. The [safe recovery receipt](decisions/reviews/83-expired-session-recovery.json) retains the captured401, unchanged job ID, single generation/provider counts, SHADOW outcome, screenshots and source hashes. The lead owns merge/full verification.
+
+Integrated at `50e041c` and verified with the full requested suite: **3,763 passed, 1 warning in 238.48s**; **75 JavaScript checks**. The original disk-full attempt remains preserved. No backend, authentication lifetime or financial policy changed. [Integration receipt](evidence/verification-50e041c.json)

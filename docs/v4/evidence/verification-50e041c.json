@@ -1,0 +1,34 @@
+{
+  "commit": "50e041caad50b177f6bb88239edc961595c30be2",
+  "observed_at": "2026-11-06T09:08:06.806717+00:00",
+  "command": "uv run --locked pytest --basetemp W/tasks/pytest83-root-retry",
+  "result": "3763 passed, 1 warning in 238.48s (0:03:58)",
+  "exit_code": 0,
+  "log_reference": "W/receipts/phase83-root-retry-full.log",
+  "log_sha256": "3a9020cbe74165fbce202c0211f30815254926ef0a3cd7d0ca69bca2526c05cc",
+  "first_attempt": {
+    "commit": "50e041caad50b177f6bb88239edc961595c30be2",
+    "result": "55 failed, 3110 passed, 1 skipped, 1 warning, 946 errors in 190.25s (0:03:10)",
+    "exit_code": 1,
+    "log": "receipts/phase83-root-merge-full.log",
+    "log_sha256": "bcb328482707058a56c59a1924e9f3a9d41f5b66f9a5eb990be70ebe70c2f1ed",
+    "log_incomplete": true,
+    "limitation": "tee reported No space left on device; terminal result retained separately. Failure causes require unchanged-source rerun."
+  },
+  "retry_change": "No source or test changes. Removed nine completed generated pytest temporary trees; source, runtime databases, prior logs and failed run retained.",
+  "javascript": {
+    "command": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+    "result": "75 passed, 0 failed, 0 skipped"
+  },
+  "secret_checks": {
+    "tracked_text_objects": 1923,
+    "head_reachable_blobs": 1912,
+    "protected_ramp_profiles_compared": 2,
+    "result": "PASS",
+    "scope": "Frozen implementation commit before this metadata-only record."
+  },
+  "browser_recovery": "../decisions/reviews/83-expired-session-recovery.json",
+  "actual_model_browser_proof": "browser-public-onboarding-82.json",
+  "native_ramp_write_verified": false,
+  "production_readiness_claimed": false
+}

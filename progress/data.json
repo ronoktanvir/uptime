@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-11-06T08:44:30.508250+00:00",
+  "updated_at": "2026-11-06T09:08:06.806717+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Onboarding setup, contract deadline validation and explicit dispute-category review are integrated. An actual browser model job produced a SHADOW candidate; the saved financial ledger remains unchanged.3,761 tests pass. Native posting and broad independent language coverage remain unresolved.",
+  "summary": "The current repair batch is complete: onboarding, dispute review, contract deadlines and expired-session recovery are integrated. 3,763 Python tests and 75 JavaScript checks pass. Native Ramp posting and independent language coverage remain unresolved.",
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "3,761 passed",
-      "detail": "7882178: 3,761 tests,1 warning in235.88s;62 JavaScript controls passed. Actual browser provider job reached SHADOW.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-7882178.json"
+      "value": "3,763 passed",
+      "detail": "50e041c: 3,763 tests, 1 warning in 238.48s; 75 JavaScript checks. First storage failure retained; unchanged source passed after cleanup.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-50e041c.json"
     },
     {
       "label": "Hosted verification",
-      "value": "CI passed 099b903",
-      "detail": "3,540 tests,1 warning in296.45s;47 web checks,graph,replay and repository scan passed.",
-      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42153818685"
+      "value": "CI passed 6a02284",
+      "detail": "Preceding checkpoint: 3,761 tests, 1 warning in 274.25s; 62 JavaScript checks, graph, replay and repository scan. Latest correction has local verification.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42189954889"
     },
     {
       "label": "Northwind workflow",
@@ -78,7 +78,7 @@
       "stream": "Foundation",
       "status": "done",
       "summary": "Focused implementation and verification commits",
-      "detail": "Focused verified increments and model/test receipts remain in private GitHub history. Integration7882178 passes3,761 tests; native actions and independent scores remain separately tracked.",
+      "detail": "Focused implementation and evidence commits remain in private GitHub history. Frozen 50e041c passes 3,763 tests; native actions and independent scores remain separately tracked.",
       "owner": "Orchestrator",
       "depends_on": [
         "audit"
@@ -202,7 +202,7 @@
       "stream": "Onboarding",
       "status": "active",
       "summary": "New public contracts expose extraction gaps",
-      "detail": "The independently authored76 baseline accepted 0/4 documented supported contracts. App generation is being connected through actual Opus jobs; bounded resource period/filing repairs proceed separately. Existing activation/rollback remains intact.",
+      "detail": "Actual public Opus jobs and explicit customer overlays are connected in the application. The studied Aster browser job reached SHADOW; controlled expired-session recovery keeps one generation. The original independent 0/4 baseline remains unchanged.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
@@ -265,7 +265,7 @@
       "title": "Credit reconciliation & attribution",
       "stream": "Ramp integration",
       "status": "done",
-      "summary": "Award → native credit → applied bill stages",
+      "summary": "Award \u2192 native credit \u2192 applied bill stages",
       "detail": "Implemented native observation joins, independent original-filing and award witnesses, amount/currency bounds and allocation controls. The actual sandbox contains zero credits and the installed workspace has zero awards.",
       "owner": "Reconciliation engineering",
       "depends_on": [
@@ -401,8 +401,8 @@
       "title": "Additional contract families",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Resource period and month-scoped cutoff repair active",
-      "detail": "Fresh public sources exposed an explicit UTC calendar period refusal and missing month scope for absolute filing cutoffs. Decision77 is being criticized and implemented under bounded ownership; no source or expected outcome is being rewritten.",
+      "summary": "Period and filing repairs verified; broader coverage open",
+      "detail": "Decisions 77 and 80 implement source-bound periods and filing cutoffs. The reproduced no-deadline clause is rejected, and three valid manifests remain byte-identical. More independent source coverage remains necessary.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
@@ -430,18 +430,18 @@
       "stream": "Application",
       "status": "done",
       "summary": "Native worklist plus evidence and dispute views",
-      "detail": "The local application opens on Ramp records. Advanced evidence inspection, vendor intake, correspondence and case history remain companion workflows. Read-only defaults preserve effect boundaries.",
+      "detail": "The local application opens on Ramp records. Advanced evidence, onboarding jobs, correspondence and audit history remain companion workflows. Expired sessions return to sign-in without replaying actions.",
       "owner": "Application engineering",
       "depends_on": [
         "capture",
         "adapter",
         "disputes"
       ],
-      "next_action": "Refresh the operator process on the final verified build.",
+      "next_action": "Keep advanced companion workflows aligned with the native Ramp demonstration.",
       "links": [
         {
           "label": "Open Uptime",
-          "url": "http://127.0.0.1:8765"
+          "url": "http://127.0.0.1:8776"
         }
       ]
     },
@@ -450,8 +450,8 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "3,761 Python tests;62 JavaScript checks",
-      "detail": "Integrated7882178 passes full regression. The first deadline defect and browser interruption remain recorded, not recast as successes.",
+      "summary": "3,763 Python tests; 75 JavaScript checks",
+      "detail": "Frozen 50e041c passes the full suite. The initial disk-full result remains recorded; no source or assertions changed before retry.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
@@ -460,8 +460,8 @@
       "next_action": "Run the complete suite after the next integration merge.",
       "links": [
         {
-          "label": "Frozen verification",
-          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-797c3d0.json"
+          "label": "Current frozen verification",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-50e041c.json"
         }
       ]
     },
@@ -470,18 +470,18 @@
       "title": "GitHub CI verification",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "GitHub verified099b903",
-      "detail": "3,540 tests,47 web checks,graph,replay and secret scan passed. Hosted helper discovery is expanded for the next publication.",
+      "summary": "GitHub verified 6a02284",
+      "detail": "Preceding checkpoint: 3,761 tests, 1 warning in 274.25s; 62 JavaScript checks, graph, replay and repository scan. Latest correction has local verification.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
         "regression"
       ],
-      "next_action": "Verify the published onboarding increment in a separate hosted run.",
+      "next_action": "Observe the new hosted run after publishing the locally verified recovery correction.",
       "links": [
         {
           "label": "Successful GitHub run",
-          "url": "https://github.com/ronoktanvir/uptime/actions/runs/42122411200"
+          "url": "https://github.com/ronoktanvir/uptime/actions/runs/42189954889"
         }
       ]
     },
@@ -647,6 +647,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-06T09:08:06.806717+00:00",
+      "title": "Session recovery verified; repair batch complete",
+      "detail": "3,763 Python tests and 75 JavaScript checks passed. Controlled expired-session recovery preserves the same job and requires explicit candidate confirmation. Native and independent coverage gates remain open.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/PHASE83-AUTH-RECOVERY.md"
+    },
     {
       "at": "2026-11-06T08:44:30.508250+00:00",
       "title": "Three Opus-assisted fixes integrated; actual browser job succeeds",

@@ -1,8 +1,14 @@
 # Uptime V4 engineering status
 
+The current repair batch is verified at `50e041c`: **3,763 passed, 1 warning in 238.48s**, plus **75 JavaScript checks**. Expired sessions return to sign-in and invalidate old controls; after login, an explicit access check recovers the same completed job without generating again. Candidate installation still requires an explicit confirmation. The controlled browser test uses an identified provider double; the separate phase82 browser proof used actual Opus. [Final regression](evidence/verification-50e041c.json) · [Recovery proof](decisions/reviews/83-expired-session-recovery.json) · [Changed-test ledger](TEST-CHANGES-83.md)
+
+The first full run failed when local storage filled: 55 failed, 3,110 passed, 1 skipped and 946 errors, with one warning. Its log and terminal result remain preserved. The unchanged source passed after completed temporary test trees were removed. This closes the current repair batch, not native Ramp posting, human promotion, independent language coverage or deployment.
+
+GitHub independently verified the preceding published checkpoint `6a02284`: **3,761 passed, 1 warning in 274.25s**, plus 62 JavaScript checks, graph validation, replay and repository scan. The latest session-recovery correction has local full verification; its new hosted run is separate. [Hosted receipt](evidence/ci-6a02284.json)
+
 The three parallel fixes are integrated at `7882178`: **3,761 passed, 1 warning in 235.88s**, plus **62 JavaScript checks**. The deadline validator now rejects the reproduced no-deadline clause; the three valid contract manifests remain byte-identical. Monthly prose proposals have an explicit separately approved profile and reproducible protected request export. Dispute category guidance keeps unknown categories explicit and supports an explained reviewer correction. [Integrated receipt](evidence/verification-7882178.json) · [79](decisions/ADR-0079-monthly-profile-and-offline-export.md) · [80](decisions/ADR-0080-aggregate-filing-source-grounding.md) · [81](PHASE81-ARTIFACT-CATEGORY-REPAIR.md)
 
-An actual browser request invoked `claude-opus-5-5` once, session `d7053c5a-1d22-4507-bc51-7e93792d14c9`, and staged the studied Aster source as **SHADOW**. An interrupted candidate response was recovered by signing in and retrieving the same successful job; no second generation occurred. The original browser HTTP failure was not directly captured. A separate controlled401 recovery correction is in progress. [Browser/provider proof](evidence/browser-public-onboarding-82.json)
+An actual browser request invoked `claude-opus-5-5` once, session `d7053c5a-1d22-4507-bc51-7e93792d14c9`, and staged the studied Aster source as **SHADOW**. An interrupted candidate response was recovered by signing in and retrieving the same successful job; no second generation occurred. The original browser HTTP failure was not directly captured. The separate controlled 401 recovery correction is now verified at `50e041c`; it does not establish the cause of the earlier uncaptured incident. [Browser/provider proof](evidence/browser-public-onboarding-82.json)
 
 The refreshed local workspace preserves the exact credit/application IDs, $2,400 applied and $8,600 outstanding. Scripted source reviews renewed dependency-invalidated adapters: Northwind is ACTIVE revision18 and CalyxQuay ACTIVE revision42, retaining all prior history. No financial workflow action was repeated. [Resume receipt](evidence/resume-7882178.json)
 
@@ -14,7 +20,7 @@ The in-app onboarding jobs and source-bound contract period/deadline changes are
 
 GitHub verified the preceding dispute integration `05b2978`: **3,288 passed, 1 warning in 278.31s**, 47 web checks, graph validation, replay and repository scan. [Hosted receipt](evidence/ci-05b2978.json)
 
-Those bounded gaps are addressed in7882178 above. Remaining work includes controlled session recovery, fresh independent language evaluation and native qualification, which remains disabled.
+Those bounded gaps are addressed in `7882178`, and controlled session recovery is verified at `50e041c`. Remaining work includes fresh independent language evaluation and native qualification, which remains disabled.
 
 The signed dispute model workflow and protected operator configuration are integrated at `c14df32`: **3,288 passed, 1 warning in 214.72s**, plus **47 JavaScript checks**. An actual approved Opus queue call produced an inert candidate; scripted review prepared a draft and submission without action approval returned 409. Onboarding UI integration is now verified in the newer checkpoint above. [Merge receipt](evidence/verification-c14df32.json) · [Actual public queue proof](evidence/dispute-runtime-75-public-queue.json) · [Operator setup](PUBLIC-PROPOSAL-RUNTIME.md)
 
