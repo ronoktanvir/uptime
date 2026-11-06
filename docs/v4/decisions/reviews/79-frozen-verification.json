@@ -1,0 +1,31 @@
+{
+  "source_commit": "0c3dc023ef1cbe93f58806b951a3d9decbc94438",
+  "classification": "authored public export control; no inference",
+  "actual_cli_version": "2.1.318 (Claude Code)",
+  "request_sha256": "bf329fa3857334953a038eed1e5aabb7f8e5162814fb0dec10eadef5fa5a5a82",
+  "context_sha256": "858d52401129691a7353eb4844ce081f42adea3b548a602a581c9d59eb75ccd6",
+  "source_sha256": "6392d8fe7bbdd29663633ecea3d5e7cc670cb8310a80216557761bfde68297a8",
+  "export_file_sha256": "6008fb7a2fcce2aab32ef9f205ee4c11c803d1ed65a65f4a0fd9e4923d5dd061",
+  "actual_helper_equal": true,
+  "provider_receipt": null,
+  "approval_created": false,
+  "queue_created": false,
+  "database_created": false,
+  "output_mode": "0o600",
+  "model_invocations": 0,
+  "evidence_scope": "Actual export CLI with installed provider; executable help/version pinning only. Separate subprocess test permits exactly those probes and rejects any model invocation.",
+  "protected_artifacts": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/onboarding79-export-proof",
+  "verification": {
+    "focused_tests": 332,
+    "warnings": 1,
+    "elapsed_seconds": "15.71",
+    "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/onboarding79-frozen.log",
+    "full_integration_gate": "root-owned; not claimed here"
+  },
+  "source_files_sha256": {
+    "uptime/vendor_model.py": "3941500669fbe48bc611c2077045e80d0bf745fd0e6f93fcb4d00427c0a86a1e",
+    "uptime/vendor_model_jobs.py": "b90f74d8cc6c1bc0c0ba42031fd752b76e8d71fefa612c4c18cd60f8aa70268c",
+    "scripts/public_proposals.py": "50717367dc329f5393970cf225a2d9d5d24e1cc536dcddd7367c439d2b3c91ad",
+    "web/v4_ui.js": "8f674ec8ee6959246e622de5736f115fc3e8fbb47dbc0e83af94edff043bc117"
+  }
+}

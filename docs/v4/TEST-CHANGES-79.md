@@ -24,3 +24,7 @@ Retained export checks:
 - `onboarding79-export-entrypoint.log`: 12 export tests passed, 0.65 seconds, including the real subprocess entrypoint/transport pinning control.
 
 All fixture corrections affect newly added phase79 tests: provider identity/profile now matches the real helper, `retry-cli1` uses the existing nonce syntax, and the shared service's 160-character identity bound is tested. No preexisting test was modified or weakened. Final frozen-source combined verification follows separately.
+
+Final frozen production source `0c3dc02`: `onboarding79-frozen.log` reports **332 passed**, one existing Starlette warning, 15.71 seconds. It includes all phase79 controls, previous runtime/signed-browser tests, catalog/step/resource tests, shared public-job configuration/service tests and advanced companion checks (including DOM assertions). No source changed during this run.
+
+The normal export command also ran with the installed Claude Code2.1.318 provider configuration and the authored Juniper source. It produced a new 0600 request outside Git, exactly equal to the runtime's actual pure helper. Only CLI help/version pinning ran; no model invocation, approval file, queue or database was created. The protected receipt and final source hashes are referenced by `decisions/reviews/79-frozen-verification.json`. Subsequent commits add documentation/evidence only. The combined root merge/full-suite result is not claimed here.
