@@ -1,0 +1,33 @@
+{
+  "model": "claude-opus-5-5",
+  "session": "e91f309c-2e2f-404d-8b3e-7d0e480fc102",
+  "response": "**Assessment:** The preferred choice is sound. It is additive, explicitly selected, never repairs or falls back, and keeps financial and customer authority unchanged. Its value depends on controls the packet assumes but does not yet specify.\n\n**Essential corrections**\n\n1. **Verify the empty-tool claim before writing code.** `--json-schema` may be implemented through an internal synthetic tool, such as a \"StructuredOutput\" tool call in the stream. Run one public probe with the pinned binary and record the init event's tool and MCP inventory plus every content block. Then decide whether a synthetic structured-output tool is a \"tool call.\"\n   - Define the rule now: any `tool_use` block of any name means refuse.\n   - Otherwise someone will be tempted to whitelist it later, which is the weakening the packet forbids.\n\n2. **Pin the help output to the structured profile.** The pinned `help_sha256` covers the current argv. Confirm `--json-schema` appears in that exact help text. Pin the flag spelling, argument form (inline JSON versus file path) and schema bytes by hash in the profile. Treat a binary or help hash mismatch as blocked, not as degraded.\n\n3. **Specify where the structured result comes from.** Read it only from the single terminal `result` event's designated structured field.\n   - Do not parse assistant text.\n   - Reject if the text payload and structured payload both exist and disagree.\n   - Reject on multiple result events, `is_error`, a non-success subtype, or a model ID other than the exact one requested.\n\n4. **Validate against the schema locally.** Do not trust the CLI's schema enforcement. Re-validate the returned dictionary with your own pinned validator before canonicalization.\n   - Reject duplicate keys, NaN/Infinity, and numbers that don't round-trip.\n   - Reject unexpected keys if the schema is closed. Set `additionalProperties: false` explicitly.\n\n5. **Close the user-scope gap.** The transport reports `user_scope_suppression: NOT_ESTABLISHED`. With `--setting-sources \"\"` and a controlled HOME this may be fine, but the receipt then covers only adapter-supplied settings.\n   - Either establish suppression (fresh empty HOME, no inherited `~/.claude`) or record it as an explicit limitation on every structured receipt.\n   - Don't claim the tool inventory proves isolation if user settings could still contribute hooks.\n\n6. **Keep the profiles separate.** The structured profile needs its own name, its own hash and a separate receipt label. Mixing its results into the four prior plain-text runs would contaminate the comparison. Tests should assert that the default profile's argv is byte-identical to before.\n\n**Implementation pitfalls**\n\n- Budget and timeout: schema-constrained runs may use more turns. Keep `--max-budget-usd` and the 60-second timeout unchanged, and treat budget exhaustion as a failure rather than a reason to retry.\n- The stream-json output cap of 300 KB applies to the whole stream. Make sure truncation is rejected, not parsed as a partial result.\n- Block identifiers: until the parallel change lands, the schema should not include byte-offset fields. Otherwise you are measuring a format you are about to discard. Sequence the work: block IDs first, then structured output.\n\n**Optional**\n\n- Add a recorded negative fixture in which the CLI emits a tool block, to prove the refusal path works.\n- Log the schema hash in each receipt.\n\n**Delegation scope:** As described, it is acceptable. Assign exact directory paths, deny Bash and network to delegates, and have the parent review diffs before running tests. No further user authorization is needed for this public engineering work, and the native-posting path correctly stays out of scope.",
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2681,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1308,
+    "output_tokens_details": {
+      "thinking_tokens": 62
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 2681,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "client_reported_cost_usd": 0.047616,
+  "tool_inventory": [],
+  "mcp_inventory": [],
+  "packet_sha256": "fdbcf306df8a673a75e685fb7a7f3a09efa3f1a8f7c0c94bb94aa5b85d6c05a6",
+  "original_response_sha256": "3afe6a33632b4bf41d99783c2169ac5b350c048757a70ed907a95b8d236986c5",
+  "user_scope_suppression": "NOT_ESTABLISHED"
+}

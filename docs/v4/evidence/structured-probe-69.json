@@ -1,0 +1,47 @@
+{
+  "status": "REFUSED",
+  "reason": "Predeclared empty-tool requirement failed: StructuredOutput advertised and invoked. No structured transport enabled.",
+  "model": "claude-opus-5-5",
+  "session": "9af289bc-8dfe-45d9-8251-3d0baaa62775",
+  "output_sha256": "91ee2596b1cbdc672ed4c27d47904a634985794fbf873ae706001a1fbb5766e7",
+  "returncode": 0,
+  "init": [
+    {
+      "model": "claude-opus-5-5",
+      "session_id": "9af289bc-8dfe-45d9-8251-3d0baaa62775",
+      "tools": [
+        "StructuredOutput"
+      ],
+      "mcp_servers": []
+    }
+  ],
+  "tool_names": [
+    "StructuredOutput"
+  ],
+  "result_subtype": "success",
+  "client_reported_cost_usd": 0.012124,
+  "request_sha256": "b8135703c00fcafcf7b3bd381180fa2e60d693e27212c1953afb391fc72827f0",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "block_id": {
+        "type": "string",
+        "enum": [
+          "b0001"
+        ]
+      },
+      "verdict": {
+        "type": "string",
+        "enum": [
+          "needs_evidence"
+        ]
+      }
+    },
+    "required": [
+      "block_id",
+      "verdict"
+    ]
+  },
+  "retry_count": 0
+}

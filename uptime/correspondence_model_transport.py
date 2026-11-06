@@ -1,6 +1,7 @@
 """Pinned public-experiment transport; no claim of provider or user-scope isolation."""
 from hashlib import sha256
 import json
+import math
 import os
 from pathlib import Path
 import pwd
@@ -13,6 +14,31 @@ from time import monotonic
 
 def digest(value):
     return sha256(value).hexdigest()
+
+
+def strict_json(value):
+    """Decode model JSON without duplicate-key or non-finite ambiguity."""
+    def pairs(items):
+        result = {}
+        for key, item in items:
+            if key in result:
+                raise ValueError('Duplicate JSON key in public model output.')
+            result[key] = item
+        return result
+
+    def number(text):
+        result = float(text)
+        if not math.isfinite(result):
+            raise ValueError('Non-finite JSON number in public model output.')
+        return result
+
+    def constant(_):
+        raise ValueError('Non-finite JSON constant in public model output.')
+
+    if isinstance(value, bytes):
+        value = value.decode('utf-8')
+    return json.loads(value, object_pairs_hook=pairs, parse_float=number,
+                      parse_constant=constant)
 
 
 def public_environment():
@@ -137,7 +163,7 @@ class SafePublicClaude:
         if self.blocked:
             raise PermissionError('This transport was blocked by a prior control failure.')
         self._verify_binary()
-        value=json.loads(request)
+        value=strict_json(request)
         if value.get('transport')!=self.profile or value['model']!=self.model or value['system']!=self.system or value['tools']!=[]:
             raise ValueError('Unexpected or unmanifested public invocation settings.')
         with tempfile.TemporaryDirectory(prefix='uptime-public-request-') as empty:
@@ -156,14 +182,25 @@ class SafePublicClaude:
         self.last_receipt.update(output_sha256=digest(output),stderr_sha256=digest(error),returncode=code)
         if code:
             raise ValueError('The public proposal provider failed; no retry was attempted.')
-        events=[json.loads(line) for line in output.splitlines() if line.strip()]
+        events=[strict_json(line) for line in output.splitlines() if line.strip()]
+        if any(not isinstance(event,dict) for event in events):
+            raise ValueError('The public provider stream contains a non-object event.')
         init=[e for e in events if e.get('type')=='system' and e.get('subtype')=='init']
         tool_events=[part for e in events for part in e.get('message',{}).get('content',[]) if isinstance(part,dict) and part.get('type')=='tool_use']
         if len(init)!=1 or init[0].get('tools')!=[] or init[0].get('mcp_servers')!=[] or tool_events:
             self.blocked=True
             raise ValueError('Unexpected tool/MCP capability or use; further calls blocked.')
         results=[e for e in events if e.get('type')=='result']
-        if len(results)!=1 or results[0].get('is_error') is not False or self.model not in results[0].get('modelUsage',{}):
+        if (len(results)!=1 or results[0].get('is_error') is not False
+                or results[0].get('subtype')!='success'
+                or init[0].get('model')!=self.model
+                or not isinstance(results[0].get('modelUsage'),dict)
+                or set(results[0]['modelUsage'])!={self.model}
+                or not isinstance(init[0].get('session_id'),str)
+                or not init[0]['session_id']
+                or results[0].get('session_id')!=init[0]['session_id']
+                or not isinstance(results[0].get('result'),str)
+                or 'structured_output' in results[0]):
             raise ValueError('The actual proposal provider identity could not be verified.')
         result=results[0]
         self.last_receipt.update(tool_events=0,tool_inventory=[],mcp_inventory=[],client_reported_cost_usd=result.get('total_cost_usd'),hard_cost_cap=False,
