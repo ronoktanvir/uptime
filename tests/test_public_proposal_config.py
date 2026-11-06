@@ -109,3 +109,23 @@ def test_runtime_config_cannot_enable_unknown_kinds_or_processing_flags():
     for changed in ({'kinds': ['customer']}, {'customer_processing': True}, {'url': 'http://example.invalid'}):
         with pytest.raises(ValueError):
             PublicProposalConfig.model_validate({**base, **changed})
+
+
+def test_correspondence_only_service_binds_to_app_and_closes_with_lifecycle(tmp_path):
+    from fastapi.testclient import TestClient
+    from uptime.public_proposal_jobs import PublicProposalJobs
+    from uptime.auth import bind_workspace
+    from uptime.server import create_app
+    source, approval, value = exported(tmp_path)
+    approve(source, approval, approved_by='operator', expected_digest=sha256(canonical(value['request'])).hexdigest(), public_confirmed=True)
+    provider_calls = []
+    db = tmp_path/'workspace.sqlite'
+    bind_workspace(db, 'replay', False)
+    jobs = PublicProposalJobs(db, approval, {'correspondence': lambda request: provider_calls.append(request)})
+    app = create_app(db, proposal_jobs=jobs)
+    with TestClient(app, base_url='http://127.0.0.1:8765', client=('127.0.0.1', 4312)) as client:
+        assert client.get('/health').status_code == 200
+        assert app.state.correspondence.public_proposal_jobs is jobs
+        assert not jobs.closed
+    assert jobs.closed
+    assert provider_calls == []

@@ -324,7 +324,8 @@ def register_v4_routes(app, bench, auth, *, governing_fees=None, trusted_now=Non
             return DraftReviewer(p.tenant, p.subject, p.role)
         return p
 
-    proposal_options = {'proposal_jobs': proposal_jobs} if proposal_jobs is not None else {}
+    proposal_options = ({'proposal_jobs': proposal_jobs}
+                        if proposal_jobs is not None and 'vendor' in proposal_jobs.providers else {})
     app.include_router(make_router(bench.path, vendor_reader, auth.reviewer, bench.check_write, bench.mutex,
                                   governing_fees=governing_fees,trusted_now=trusted_now, **proposal_options))
     app.include_router(make_correspondence_router(inbox, reader, auth.reviewer, bench.check_write, auth.service))
