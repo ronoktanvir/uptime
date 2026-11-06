@@ -1,0 +1,80 @@
+{
+  "schema": "uptime-model-review-receipt/1",
+  "decision": 72,
+  "status": "completed",
+  "input_classification": "SOURCE_CODE_AND_AUTHORED_OFFLINE_TESTS",
+  "packet_summary": "Preserve explicit Ramp business identity from installed workspace through the offline credit journal; prevent same-UUID cross-business ledger advancement; retain legacy immutable identity without guessing; distinguish absent linked evidence from zero. No provider transport, actual capture, credential or private evaluation content was supplied.",
+  "process_configuration": {
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "safe_mode": true,
+    "restricted": true,
+    "permission_mode": "acceptEdits",
+    "permission_prompts": "none",
+    "strict_mcp_config": true,
+    "mcp_servers": {},
+    "chrome": false,
+    "session_persistence": false,
+    "working_directory": "uptime",
+    "additional_directories": [
+      "tests"
+    ],
+    "shell_tool": false,
+    "network_tool": false
+  },
+  "runs": [
+    {
+      "role": "critique",
+      "model": "claude-opus-5-5",
+      "session_id": "49c03fb7-9bd3-45b2-a6c0-424d6d6b6d62",
+      "tool_inventory": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "tools_used": [
+        "Read"
+      ],
+      "permission_mode": "acceptEdits",
+      "status": "success",
+      "is_error": false,
+      "stream_sha256": "87e96a982190eaddbfa2897b5d6dba333b511eab62f35754594e5582fb3fb50b",
+      "edit_or_write_calls": 0,
+      "actual_final_critique_text": "I read only the four files you named. I didn't edit anything or use shell or network tools.\n\n## Criticism\n\n1. **Splitting history by business inside one tenant doesn't separate the ledger.** `allocation_credit`, `allocation_bill`, `allocation_observation` and `allocation_application` are keyed by `(tenant, native UUID)` and have no business column. `ramp_credit_binding` is keyed by `(tenant, credit_id)`. If two businesses in one tenant reuse a credit or bill UUID, they still collide on one ledger row, even if snapshots and bindings are compared business by business. The workspace already avoids this with `native_installation` (tenant as primary key), but direct and CLI imports don't. Since `allocations.py` must not change, the safe rule is **one Ramp business per tenant inside credit sync too**, not a split.\n2. **Quarantine can never be lifted.** `_quarantined` has no resolution path in the code, so returning CONFLICT for a scoped import after legacy history would block that tenant for good. It also gets the categories wrong: missing scope is missing evidence, not a contradiction.\n3. **Retries of legacy imports must stay byte-identical.** The digest is taken over `_json(_normalize(...))`. If `_normalize` writes `provider_business_id: null` when the field is absent, retrying an existing legacy import fails with `OBSERVATION_ID_CONFLICT`. The key must be left out when it's absent.\n4. **`status == \"RECORDED\"` is not enough to allow linking.** `link_award` trusts RECORDED alone. Once unscoped or legacy imports can be recorded but must not link, the check must also require `issues == []` and a matching business. Otherwise a future change could quietly let them link.\n5. **Unscoped data must be skipped, not rejected.** Bindings are currently projected with `_fail`. If an observation-only import is blocked from projecting by an error, it becomes CONFLICT and quarantines the tenant. Unscoped imports must skip projection without raising.\n6. **Remaining gaps the scope field can't close:**\n   - `allocation_bill` capacity isn't tied to a business, so a bill recorded by the operator from another business can't be detected. Pinning only limits this within the tenant.\n   - `business_id` is an operator's custody claim, not proven by Ramp. Label it that way in receipts.\n   - `import_observation` throws away the return value of `uuid_text(business_id)`. I haven't read `uuid_text`, so check whether it normalizes. Pass a canonical value to credit sync, and leave the stored `native_installation` value alone.\n   - Making the summary amounts nullable will break any dashboard code that expects integers. The parent should grep for consumers.\n\n## Preferred migration rule\n\n- **R1 Pin.** Add an immutable `ramp_credit_scope(tenant PK, provider_business_id NOT NULL)` table, with no-update and no-delete triggers. The first scoped snapshot that gets stored, whatever its status, pins the tenant. A different business is rejected before anything is stored with `BUSINESS_CONFLICT`, like `TENANT_CONFLICT`: no row, no quarantine. This runs in the same `BEGIN IMMEDIATE` transaction, so parallel imports are serialized.\n- **R2 Unscoped new imports** (field absent or null) are observation-only. They are stored with their factual status plus the issue `BUSINESS_SCOPE_MISSING`. They are compared only with other unscoped history (today's behavior), never project, and can never be the observation used for a link.\n- **R3 Legacy money history: keep it, don't promote it.** A tenant counts as `LEGACY_UNSCOPED` if it has any unscoped evidential row (RECORDED, PARTIAL or STALE) with at least one credit, or any binding without a business.\n  - In such a tenant, scoped imports are validated and compared only with history from the same business. They are stored with factual status plus `LEGACY_UNSCOPED_HISTORY`. They never project, and `link_award` fails.\n  - Legacy amounts stay as historical summary figures, flagged as legacy. There's no backfill, and no comparison across scopes, which would risk false quarantines.\n  - Getting out of this state needs a separate reviewed resolution, which is out of scope.\n- **R4 Legacy rows with no money are ignored** for the legacy check: EMPTY rows, evidential rows with `credits == []`, and UNAVAILABLE or INSUFFICIENT_EVIDENCE rows. A new scoped capture sets the scope.\n- **Result:** linked records can't mix scoped and legacy data. Legacy tenants can't create scoped bindings, and EMPTY rows can't link, so all bindings in a tenant are either legacy or belong to the pinned business. Assert this.\n\n## Falsification tests\n\n1. **Same UUIDs, different business.** Link under business A, then import the same credit and bill UUIDs under business B with `applied=500`. Expect `BUSINESS_CONFLICT`, no snapshot row, ledger history unchanged, `applied_cents == 200`. Today this advances to 500.\n2. **Parallel pin race.** Two parallel scoped imports with different businesses into an empty tenant: exactly one is stored and the other gets `BUSINESS_CONFLICT`.\n3. **Unscoped import after a scoped link** with higher `applied`. Expect factual status plus `BUSINESS_SCOPE_MISSING`, ledger unchanged, and `link_award` on that observation fails.\n4. **Legacy money tenant.** Build legacy state with raw INSERTs (triggers only block UPDATE and DELETE), plus `record_credit` and `observe_application`. Then a scoped import gives `LEGACY_UNSCOPED_HISTORY`, `quarantined is False`, legacy amounts are kept, and linking fails.\n5. **Legacy EMPTY row first.** Then a scoped import is RECORDED with no issues, and the link succeeds.\n6. **Legacy retry.** Re-importing an unscoped snapshot with the same id and content returns the stored receipt. The stored payload contains no `provider_business_id` key.\n7. **Strict UUID.** `\"\"`, `\"x\"`, `123`, `True` and `[...]` give `INVALID_BUSINESS_SCOPE` before anything is stored. A braced or uppercase form of the pinned UUID gives the same digest and pin.\n8. **Binding checks.**\n   - A binding with no business gives `BUSINESS_SCOPE_REQUIRED`.\n   - A binding with the wrong business gives `BUSINESS_CONFLICT`.\n   - Neither changes the ledger.\n9. **Summary values.**\n   - No links: `recorded_cents` and `applied_cents` are both `None`. This changes the current assertions at lines 73, 261 and 278.\n   - A linked `snapshot(applied=0, draft=0)` gives `(1000, 0)`.\n10. **Receipts and workspace.** Import receipts and `history()` show `provider_business_id` (legacy gives `None`). `credit_observation(snapshot, business_id)` passes the business through.\n\n## Bounded implementation plan\n\nOnly `ramp_credit_sync.py`, one small change in `ramp_workspace.py`, and the test file change. `allocations.py` stays untouched.\n\n1. **`_normalize`:** take the field if present and not null, using `_native` and requiring a `str`; otherwise leave it out.\n2. **Schema:** add the `ramp_credit_scope` table and its triggers.\n3. **`import_snapshot`:**\n   - Do the pin check and set `scope_issue` (R2 or R3) before the savepoint.\n   - In `_history_check`, filter by `payload.get(\"provider_business_id\")`.\n   - Project only when the snapshot is scoped and `scope_issue` is empty. Leave the `newer` check tenant-wide, which is conservative.\n   - Add `scope_issue` to the factual status's issues.\n4. **`link_award`:**\n   - Add `provider_business_id` to `BINDING_FIELDS` and validate it with `_native`.\n   - Check it against the pin and against the latest row's payload.\n   - Require `RECORDED` with `issues == []` and no legacy flag.\n   - Retrying a legacy binding will now be rejected rather than returning LINKED. That's acceptable and should be documented.\n5. **Receipts:** `_receipt`, `history` and the import return value gain `provider_business_id` (from the payload, `None` for legacy).\n6. **`summary`:**\n   - `recorded_cents`: a plain `SUM`, so it's `None` when nothing is linked.\n   - `applied_cents`: `COALESCE(...,0)` only when linked credits exist, otherwise `None`.\n   - Add `provider_business_id` (the pin) and `scope_status` (`SCOPED` / `UNSCOPED` / `LEGACY_UNSCOPED`).\n   - `actual_recovery` stays `None`.\n7. **`ramp_workspace.py`:** add an optional `provider_business_id` to `credit_observation` and pass the canonical `business_id` from `import_observation`.\n8. **Tests:** add the business to the `snapshot()` and `binding()` helpers, update the three zero assertions to `None`, and add the tests above.\n\nUpdating `docs/v4/RAMP-CREDIT-SYNC.md` is optional; I didn't read it.",
+      "sanitization": "Final source/test-only critique copied verbatim; no redactions necessary. Full process stream remains protected outside Git."
+    },
+    {
+      "role": "implementation",
+      "model": "claude-opus-5-5",
+      "session_id": "71662529-d690-45c5-b6fb-bcc3819f9a69",
+      "tool_inventory": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "tools_used": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "permission_mode": "acceptEdits",
+      "status": "success",
+      "is_error": false,
+      "stream_sha256": "689f9dcf1d6000498abf7933ae93bef7554dad968d47b8b24a5bf08460bc40cf",
+      "edit_or_write_calls": 27
+    }
+  ],
+  "lead_disposition": "Accepted immutable one-business-per-tenant pin, legacy digest preservation, conservative handling of old unscoped financial evidence and null absent-link amounts. Adopted implementation distinction for newly marked observation-only imports. Lead added business identity to import receipts despite one extra exact-test update and rejected zero business before workspace persistence.",
+  "access_note": "Only authorized source and authored test contents were read. The implementation also globbed repository-root configuration filenames; no configuration contents were read and repository root was not added as a permitted directory.",
+  "limits": [
+    "Operator-asserted business context is not OAuth proof.",
+    "No actual Ramp credit, posting, application, cash recovery or native qualification result is established.",
+    "No new model review was requested for this public receipt."
+  ]
+}

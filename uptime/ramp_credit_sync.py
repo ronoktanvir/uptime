@@ -3,12 +3,17 @@
 This module has no provider transport. Caller-supplied provenance is an upstream
 custody assertion, not OAuth identity or commercial authority. Never makes awards,
 bills, payments or real-recovery claims. See docs/v4/RAMP-CREDIT-SYNC.md.
+
+Decision72: provider_business_id is caller-asserted Ramp business context, never
+OAuth proof. The first explicitly scoped stored observation immutably pins the
+tenant; unscoped or legacy-unscoped evidence is retained but never projected.
 """
 import argparse
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 import json
 from pathlib import Path
+from uuid import UUID
 
 from .allocations import (
     AllocationLedger, MAX_CENTS, SCOPE_FIELDS, _connect, _json, _native,
@@ -25,6 +30,10 @@ BILL_FIELDS = ("id", "vendor", "entity_id", "issued_at", "archived_at", "status"
 BINDING_FIELDS = (*SCOPE_FIELDS, "credit_id", "award_id", "bill_id", "observation_id",
                   "provider_provenance_ref", "provenance_ref", "award_source",
                   "award_source_ref", "memo_ref")
+BUSINESS_FIELD = "provider_business_id"
+ZERO_BUSINESS = str(UUID(int=0))
+BUSINESS_CUSTODY = "CALLER_ASSERTED_BUSINESS_CONTEXT_NOT_OAUTH_PROOF"
+EVIDENTIAL = ("RECORDED", "PARTIAL", "STALE")
 
 
 class CreditSyncError(ValueError):
@@ -33,6 +42,19 @@ class CreditSyncError(ValueError):
 
 def _fail(code):
     raise CreditSyncError(code)
+
+
+def _business(value):
+    """Normalize an explicit caller-asserted business UUID; never an OAuth identity proof."""
+    ident = None
+    if isinstance(value, str):
+        try:
+            ident = str(UUID(value))
+        except ValueError:
+            ident = None
+    if ident is None or ident == ZERO_BUSINESS:
+        _fail("INVALID_BUSINESS")
+    return ident
 
 
 def _money(value):
@@ -115,6 +137,10 @@ def _normalize(snapshot):
     result = dict(id=canonical(snapshot.get("id")), observed_at=instant(snapshot.get("observed_at")),
                   source=source, provenance_ref=canonical(snapshot.get("provenance_ref")),
                   scopes=sorted(set(scopes)) if scopes is not None else None)
+    # Missing/null business is unknown and stays absent so pre-Decision72
+    # normalized payloads (and their immutable digests) are unchanged.
+    if snapshot.get(BUSINESS_FIELD) is not None:
+        result[BUSINESS_FIELD] = _business(snapshot[BUSINESS_FIELD])
     for key in ("available", "list_complete"):
         value = snapshot.get(key)
         if value is not None and type(value) is not bool:
@@ -224,17 +250,44 @@ class RampCreditSync:
             db.execute("""CREATE TABLE IF NOT EXISTS ramp_credit_binding (
                 tenant TEXT NOT NULL, credit_id TEXT NOT NULL, payload TEXT NOT NULL,
                 PRIMARY KEY(tenant,credit_id))""")
-            for table in ("ramp_credit_snapshot", "ramp_credit_binding"):
+            # Caller-asserted business context pin; immutable, never inferred/backfilled.
+            db.execute("""CREATE TABLE IF NOT EXISTS ramp_credit_scope (
+                tenant TEXT PRIMARY KEY, provider_business_id TEXT NOT NULL)""")
+            for table in ("ramp_credit_snapshot", "ramp_credit_binding", "ramp_credit_scope"):
                 for operation in ("UPDATE", "DELETE"):
                     db.execute(f"""CREATE TRIGGER IF NOT EXISTS {table}_no_{operation.lower()}
                         BEFORE {operation} ON {table} BEGIN
                         SELECT RAISE(ABORT,'Credit sync history is immutable'); END""")
+
+    @staticmethod
+    def _pin(db, tenant):
+        row = db.execute("SELECT provider_business_id FROM ramp_credit_scope WHERE tenant=?", (tenant,)).fetchone()
+        return row[0] if row else None
+
+    @staticmethod
+    def _legacy(db, tenant):
+        """Pre-Decision72 unscoped financial evidence or any unscoped binding.
+
+        Post-repair unscoped rows always carry BUSINESS_SCOPE_MISSING and never
+        project, so only unmarked historical rows freeze scoped projection.
+        Empty or non-evidential historical rows do not.
+        """
+        for row in db.execute(f"""SELECT payload,issues FROM ramp_credit_snapshot WHERE tenant=?
+                AND status IN ({",".join("?" for _ in EVIDENTIAL)})""", (tenant, *EVIDENTIAL)):
+            payload = json.loads(row["payload"])
+            if (payload.get(BUSINESS_FIELD) is None and payload.get("credits")
+                    and "BUSINESS_SCOPE_MISSING" not in json.loads(row["issues"])):
+                return True
+        return any(json.loads(row[0]).get(BUSINESS_FIELD) is None for row in db.execute(
+            "SELECT payload FROM ramp_credit_binding WHERE tenant=?", (tenant,)))
 
     def _history_check(self, db, tenant, snapshot, credits):
         for old in db.execute("SELECT payload,status FROM ramp_credit_snapshot WHERE tenant=?", (tenant,)):
             if old["status"] not in ("RECORDED", "EMPTY", "PARTIAL", "STALE"):
                 continue
             earlier = json.loads(old["payload"])
+            if earlier.get(BUSINESS_FIELD) != snapshot.get(BUSINESS_FIELD):
+                continue  # Same provider IDs under another (or unknown) business are unrelated.
             if earlier["source"] != snapshot["source"]:
                 if any(r["id"] in credits for r in earlier["credits"] or []):
                     _fail("PROVENANCE_CONFLICT")
@@ -267,6 +320,7 @@ class RampCreditSync:
         if isinstance(snapshot, dict) and "tenant" in snapshot and canonical(snapshot["tenant"]) != canonical(tenant):
             _fail("TENANT_CONFLICT")
         tenant, snapshot = canonical(tenant), _normalize(snapshot)
+        business = snapshot.get(BUSINESS_FIELD)
         now = as_of or datetime.now(timezone.utc).isoformat()
         payload = _json(snapshot)
         digest = sha256(payload.encode()).hexdigest()
@@ -277,6 +331,14 @@ class RampCreditSync:
                 if old["digest"] != digest:
                     _fail("OBSERVATION_ID_CONFLICT")
                 return self._receipt(old)
+            pin = self._pin(db, tenant)
+            if business is not None and pin is not None and pin != business:
+                # Rejected before storage or ledger mutation; not a quarantine.
+                _fail("BUSINESS_CONFLICT")
+            if business is not None and pin is None:
+                db.execute("INSERT INTO ramp_credit_scope VALUES(?,?)", (tenant, business))
+            legacy = self._legacy(db, tenant)
+            project = business is not None and not legacy
             status, issues = "RECORDED", []
             db.execute("SAVEPOINT projection")
             try:
@@ -292,7 +354,7 @@ class RampCreditSync:
                     status = "RECORDED" if credits else "EMPTY"
                     newer = db.execute("SELECT 1 FROM ramp_credit_snapshot WHERE tenant=? AND observed_at>? LIMIT 1",
                                        (tenant, snapshot["observed_at"])).fetchone()
-                    bindings = [] if newer else db.execute(
+                    bindings = [] if newer or not project else db.execute(
                         "SELECT payload FROM ramp_credit_binding WHERE tenant=?", (tenant,)).fetchall()
                     for row in bindings:
                         binding = json.loads(row[0])
@@ -310,14 +372,20 @@ class RampCreditSync:
                 status, issues = "CONFLICT", ["LEDGER_OR_RECORD_CONFLICT"]
             finally:
                 db.execute("RELEASE projection")
+            if business is None:
+                issues = [*issues, "BUSINESS_SCOPE_MISSING"]
+            elif legacy:
+                issues = [*issues, "LEGACY_UNSCOPED_HISTORY"]
             db.execute("""INSERT INTO ramp_credit_snapshot
                 (tenant,id,observed_at,payload,digest,status,issues) VALUES(?,?,?,?,?,?,?)""",
                        (tenant, snapshot["id"], snapshot["observed_at"], payload, digest, status, _json(issues)))
-            return dict(id=snapshot["id"], status=status, issues=issues, actual_recovery=None)
+            return dict(id=snapshot["id"], status=status, issues=issues, actual_recovery=None,
+                        provider_business_id=business)
 
     @staticmethod
     def _receipt(row):
-        return dict(id=row["id"], status=row["status"], issues=json.loads(row["issues"]), actual_recovery=None)
+        return dict(id=row["id"], status=row["status"], issues=json.loads(row["issues"]), actual_recovery=None,
+                    provider_business_id=json.loads(row["payload"]).get(BUSINESS_FIELD))
 
     def link_award(self, tenant, binding, *, as_of=None):
         """Bind an existing confirmed ledger award; never creates one from a claim."""
@@ -326,25 +394,42 @@ class RampCreditSync:
             _fail("INVALID_BINDING")
         if "tenant" in binding and canonical(binding["tenant"]) != tenant:
             _fail("TENANT_CONFLICT")
+        # Checked before the retry path: a prior unscoped binding never reports LINKED again.
+        if binding.get(BUSINESS_FIELD) is None:
+            _fail("BUSINESS_SCOPE_MISSING")
+        business = _business(binding[BUSINESS_FIELD])
         binding = {k: canonical(binding.get(k), k) for k in BINDING_FIELDS}
         for key in ("credit_id", "bill_id", "vendor_id"):
             binding[key] = _native(binding[key])
+        binding[BUSINESS_FIELD] = business
         if binding["currency"] != "USD":
             _fail("UNSUPPORTED_SETTLEMENT_CURRENCY")
+        receipt = dict(credit_id=binding["credit_id"], status="LINKED", actual_recovery=None,
+                       provider_business_id=business)
         with _connect(self.path, write=True) as db:
             old = db.execute("SELECT payload FROM ramp_credit_binding WHERE tenant=? AND credit_id=?",
                              (tenant, binding["credit_id"])).fetchone()
             if old:
                 if old[0] != _json(binding):
                     _fail("BINDING_CONFLICT")
-                return dict(credit_id=binding["credit_id"], status="LINKED", actual_recovery=None)
+                return receipt  # Idempotent historical success of an identical scoped binding.
             if self._quarantined(db, tenant):
                 _fail("PRIOR_CONFLICT_REQUIRES_REVIEW")
+            pin = self._pin(db, tenant)
+            if pin is None:
+                _fail("BUSINESS_SCOPE_MISSING")
+            if pin != business:
+                _fail("BUSINESS_CONFLICT")
+            if self._legacy(db, tenant):
+                _fail("LEGACY_UNSCOPED_HISTORY")
             row = db.execute("SELECT * FROM ramp_credit_snapshot WHERE tenant=? ORDER BY observed_at DESC,sequence DESC LIMIT 1",
                              (tenant,)).fetchone()
-            if not row or row["id"] != binding["observation_id"] or row["status"] != "RECORDED":
+            if (not row or row["id"] != binding["observation_id"] or row["status"] != "RECORDED"
+                    or json.loads(row["issues"])):
                 _fail("CURRENT_COMPLETE_OBSERVATION_REQUIRED")
             snapshot = json.loads(row["payload"])
+            if snapshot.get(BUSINESS_FIELD) != business:
+                _fail("BUSINESS_CONFLICT")
             if snapshot["provenance_ref"] != binding["provider_provenance_ref"]:
                 _fail("PROVENANCE_CONFLICT")
             if not _fresh(snapshot, as_of or datetime.now(timezone.utc).isoformat()):
@@ -353,9 +438,15 @@ class RampCreditSync:
             self._project(db, tenant, binding, snapshot, credits, bills)
             db.execute("INSERT INTO ramp_credit_binding VALUES(?,?,?)",
                        (tenant, binding["credit_id"], _json(binding)))
-        return dict(credit_id=binding["credit_id"], status="LINKED", actual_recovery=None)
+        return receipt
 
     def _project(self, db, tenant, binding, snapshot, credits, bills):
+        # Defensive: callers already gate on pin/legacy; projection needs exact explicit identity.
+        business = snapshot.get(BUSINESS_FIELD)
+        if business is None or binding.get(BUSINESS_FIELD) is None:
+            _fail("BUSINESS_SCOPE_MISSING")
+        if binding[BUSINESS_FIELD] != business:
+            _fail("BUSINESS_CONFLICT")
         if snapshot["source"] != Source.RAMP.value:
             _fail("REPLAY_CANNOT_CONFIRM_NATIVE_LINK")
         if "bills:read" not in (snapshot["scopes"] or []):
@@ -416,7 +507,8 @@ class RampCreditSync:
 
     def history(self, tenant):
         with _connect(self.path) as db:
-            return [dict(self._receipt(r), observed_at=r["observed_at"], digest=r["digest"])
+            return [dict(self._receipt(r), observed_at=r["observed_at"], digest=r["digest"],
+                         business_scope_custody=BUSINESS_CUSTODY)
                     for r in db.execute("SELECT * FROM ramp_credit_snapshot WHERE tenant=? ORDER BY sequence",
                                         (canonical(tenant),))]
 
@@ -426,31 +518,39 @@ class RampCreditSync:
         with _connect(self.path) as db:
             row = db.execute("SELECT * FROM ramp_credit_snapshot WHERE tenant=? ORDER BY observed_at DESC,sequence DESC LIMIT 1",
                              (tenant,)).fetchone()
-            bindings = {r["credit_id"] for r in db.execute(
-                "SELECT credit_id FROM ramp_credit_binding WHERE tenant=?", (tenant,))}
-            amounts = db.execute("""SELECT COALESCE(SUM(c.amount_cents),0) FROM allocation_credit c
-                JOIN ramp_credit_binding b ON b.tenant=c.tenant AND b.credit_id=c.id WHERE c.tenant=?""", (tenant,)).fetchone()[0]
+            binding_rows = [(r["credit_id"], json.loads(r["payload"]).get(BUSINESS_FIELD)) for r in db.execute(
+                "SELECT credit_id,payload FROM ramp_credit_binding WHERE tenant=?", (tenant,))]
+            linked, amounts = db.execute("""SELECT COUNT(*),COALESCE(SUM(c.amount_cents),0) FROM allocation_credit c
+                JOIN ramp_credit_binding b ON b.tenant=c.tenant AND b.credit_id=c.id WHERE c.tenant=?""", (tenant,)).fetchone()
             applied = db.execute("""SELECT COALESCE(SUM(a.amount_cents),0) FROM allocation_application a
                 JOIN ramp_credit_binding b ON b.tenant=a.tenant AND b.credit_id=a.credit_id WHERE a.tenant=?""", (tenant,)).fetchone()[0]
+            if not linked:
+                amounts = applied = None  # Unknown without linked ledger evidence, never zero.
+            pin, legacy = self._pin(db, tenant), self._legacy(db, tenant)
             unlinked_awards = db.execute("""SELECT COUNT(*) FROM allocation_award a WHERE a.tenant=?
                 AND NOT EXISTS (SELECT 1 FROM allocation_credit c JOIN ramp_credit_binding b
                 ON b.tenant=c.tenant AND b.credit_id=c.id WHERE c.tenant=a.tenant AND c.award_id=a.id)""", (tenant,)).fetchone()[0]
             quarantined = self._quarantined(db, tenant)
         result = dict(status="UNAVAILABLE", observed_at=None, captured_credits=None,
-                      unmatched_credits=None, linked_credits=len(bindings), recorded_cents=amounts,
+                      unmatched_credits=None, linked_credits=len(binding_rows), recorded_cents=amounts,
                       applied_cents=applied, currency="USD", awards_without_native_credit=unlinked_awards,
                       claimed_only=None, claims_balance=None, actual_recovery=None,
                       claims_status="NOT_SUPPLIED", award_provenance=Source.VENDOR.value,
                       recovery_status="UNVERIFIED",
-                      quarantined=quarantined,
+                      quarantined=quarantined, provider_business_id=pin,
+                      scope_status="LEGACY_UNSCOPED" if legacy else "SCOPED" if pin else "UNSCOPED",
+                      business_scope_custody=BUSINESS_CUSTODY, observation_provider_business_id=None,
                       external_writes=False, amounts_are_historical=True, observed_totals=[], issues=[])
         if not row:
             return result
         snapshot = json.loads(row["payload"])
-        result.update(status=row["status"], observed_at=row["observed_at"], issues=json.loads(row["issues"]))
+        result.update(status=row["status"], observed_at=row["observed_at"], issues=json.loads(row["issues"]),
+                      observation_provider_business_id=snapshot.get(BUSINESS_FIELD))
         if quarantined and row["status"] != "CONFLICT":
             result.update(status="CONFLICT", issues=["PRIOR_CONFLICT_REQUIRES_REVIEW"])
         if snapshot["available"] is True and snapshot["credits"] is not None:
+            # A binding only matches credits observed under the same (or same unknown) business.
+            bindings = {cid for cid, business in binding_rows if business == snapshot.get(BUSINESS_FIELD)}
             result["captured_credits"] = len(snapshot["credits"])
             result["unmatched_credits"] = sum(r["id"] not in bindings for r in snapshot["credits"])
         if not _fresh(snapshot, now):
