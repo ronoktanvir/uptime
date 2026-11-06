@@ -1,4 +1,5 @@
 """Reviewed operator-staged model propositions for account/resource-month availability."""
+from calendar import monthrange
 from collections import Counter
 from contextlib import contextmanager
 from copy import deepcopy
@@ -526,6 +527,8 @@ def _compile_resource(document, clauses, issues):
         needed = {'fixed_period','fixed_filing','service_fee','scope'}
         if needed - manifest.keys():
             raise ValueError('Aggregate service-month profile requires fixed period, filing clock, scope and paid fee.')
+        if isinstance(manifest.get('filing'), dict) and manifest['filing'].get('kind') == 'scoped_absolute':
+            raise ValueError('Aggregate service profile uses its fixed filing clock; a scoped filing deadline is unsupported.')
         if any(key in manifest for key in ('prior_credit','maintenance','subscription','telemetry','fee_adjustment','supplement',
                                            'cure_clock','account_conditions','original_receipt','precedence')) or set(manifest.get('fee_settlement',[]))-{'paid_recurring_only','usd_only'}:
             raise ValueError('Aggregate service profile cannot silently accept extra resource conditions.')
@@ -552,6 +555,14 @@ def _compile_resource(document, clauses, issues):
         required -= {'symptoms','provider_causes','fee_basis','filing'}
     if required-set(manifest) or not manifest['tiers']:
         raise ValueError('Incomplete resource-month source propositions: '+', '.join(sorted(required-set(manifest))))
+    if isinstance(manifest.get('filing'), dict) and manifest['filing'].get('kind') == 'scoped_absolute':
+        # Each scoped month must lie wholly inside the agreement's own coverage; coverage is never narrowed.
+        first, last = manifest['effective']
+        for month in manifest['filing']['policies']:
+            year, number = (int(part) for part in month.split('-'))
+            if (date(year, number, 1).isoformat() < first
+                    or last is not None and date(year, number, monthrange(year, number)[1]).isoformat() > last):
+                raise ValueError('Scoped filing month lies outside the source effective coverage.')
     if not re.search(r'below|less than|lower than|<',all_text):
         raise ValueError('Exclusive availability comparison absent from the document.')
     if 'request_contents' in manifest['evidence'] and not manifest.get('request_fields'):

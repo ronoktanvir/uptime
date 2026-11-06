@@ -1,0 +1,47 @@
+{
+  "source_freeze": "ee44b3872e7d41847360b1f90e5d9b7ecc97e48f",
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_vendor_resource.py",
+    "tests/test_vendor_resource_operators.py",
+    "tests/test_vendor_service_month.py",
+    "tests/test_vendor_resource_scoped.py",
+    "tests/test_vendor_semantic_bindings.py",
+    "tests/test_vendor_resource_period_scope_77.py",
+    "tests/test_correspondence_scoped_filing_77.py",
+    "tests/test_correspondence_resource.py",
+    "tests/test_correspondence_regional.py",
+    "tests/test_correspondence_plan_refs.py",
+    "tests/test_correspondence_service.py",
+    "-q",
+    "--basetemp=/tmp/resource77-frozen-final"
+  ],
+  "exit_code": 0,
+  "source_sha256": {
+    "tests/test_correspondence_scoped_filing_77.py": "6fbf1f8564c2b95a0a04fe04e4f07fa91aadb0bfa6300a8009f7f15ab5b461ad",
+    "tests/test_vendor_resource_period_scope_77.py": "a2af3be6d59f09ea4539b5ef1092d1f13bd67b4ece94584cbe8debebe011cf7e",
+    "uptime/correspondence_history.py": "089ebd2249b49d7682d1fc7829f124cefb7a948247ee0967b3fa90c0edac5f09",
+    "uptime/vendor_resource_eval.py": "984d9eb8de3c83fd07dd74250b76f4b253d216a58d99fd3df357acc256239cb1",
+    "uptime/vendor_resource_operators.py": "c82e4cb5e844618a51f2699c8be748e8aa3dc9e540df023aac85aebb6a55b9f3",
+    "uptime/vendor_resource_terms.py": "b5637d10e71b396b0c1867744be74bfda213359bf9b9f237dd1a023fbee04f2a",
+    "uptime/vendor_service_month.py": "b1d17daac31df8161c9d88eae2566dd40b2203ef99bb1b214bb63b88358ecd4c"
+  },
+  "output_sha256": "63bd06de23f6b4c33a529b17427e729a3eff42c489f29bf2661de385be633d3d",
+  "result": "352 passed, 1 warning in 20.78s",
+  "warning": "Existing Starlette/httpx TestClient deprecation warning",
+  "classification": "AUTHORED_PUBLIC_REGRESSION_CHECKS",
+  "source_unchanged_after_run": true,
+  "baseline_preserved": {
+    "base": "d253553",
+    "core_76": "fd6537cc4e3118a9b6e29f4804a505ed591ea9ea",
+    "corpus_freeze_76": "388b5ebed34dbb32be3d0c82b7ec732ec1097aff",
+    "paths_untouched": [
+      "fixtures/evaluation76_public",
+      "docs/v4/evaluation76",
+      "scripts/evaluate_public_76.py"
+    ]
+  },
+  "new_model_extraction_calls": 0
+}

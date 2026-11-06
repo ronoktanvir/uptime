@@ -1,0 +1,32 @@
+{
+  "classification": "AUTHORED_PUBLIC_SOURCE_CODE_PROBE",
+  "finding": "Existing aggregate fixed_filing confuses recipient by with cutoff comparator and ignores contrary no-deadline qualification.",
+  "source_quote": "Claims may be received by the vendor at 2026-05-15T00:00:00Z; no filing deadline applies.",
+  "proposed_value": {
+    "at": "2026-05-15T00:00:00Z",
+    "endpoint": "inclusive"
+  },
+  "expected_safe_result": "Refuse: the block states no filing deadline; by the vendor names the recipient, not an inclusive cutoff.",
+  "observed": {
+    "base_d253553": {
+      "accepted": true,
+      "manifest": {
+        "fixed_filing": {
+          "at": "2026-05-15T00:00:00Z",
+          "endpoint": "inclusive"
+        }
+      }
+    },
+    "decision77": {
+      "accepted": true,
+      "manifest": {
+        "fixed_filing": {
+          "at": "2026-05-15T00:00:00Z",
+          "endpoint": "inclusive"
+        }
+      }
+    }
+  },
+  "status": "DEMONSTRATED_PREEXISTING_NOT_FIXED",
+  "limit": "Isolated unchanged fixed_filing validator reproduction. No full source acceptance, financial result, authority change or model extraction result claimed."
+}

@@ -37,16 +37,66 @@ def utc(value):
     return datetime.fromisoformat(value)
 
 
+# Finite fixed-period grammar. Each supported sentence binds its own comparator to
+# its own timestamp; a calendar-month form also binds an explicit month and year.
+# Nothing here grants "until"/"to" endpoint meaning: the complete UTC calendar-month
+# assertion (or the explicit inclusive/exclusive markers) is the authority, and the
+# endpoints must equal that month exactly. Unconsumed material in the block refuses.
+MONTH_NAMES = ('january','february','march','april','may','june','july','august','september','october',
+               'november','december')
+STAMP = r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:Z|\+00:00)'
+_MONTH_LABEL = r'(?P<label>' + '|'.join(MONTH_NAMES) + r') (?P<year>\d{4})'
+_UTC_MONTH = r'the (?:complete |entire |whole |full )?UTC calendar month(?: of)? ' + _MONTH_LABEL
+_SPAN = r'(?P<start>' + STAMP + r')(?: inclusive)? (?:until|to) (?P<end>' + STAMP + r')(?: exclusive)?'
+_WORD = r"[A-Z][A-Za-z0-9&'’-]*"
+_PREFIX = (r'(?:(?:this|the) (?:commitment|subscription|agreement|schedule|sla|service level (?:agreement|commitment)|coverage) '
+           r'(?:covers|applies to|runs)(?: (?P<object>(?-i:' + _WORD + r'(?: ' + _WORD + r'){0,7})))? )?')
+_PERIOD_FORMS = tuple((calendar, re.compile(_PREFIX + form + r'\.', re.I)) for calendar, form in (
+    (True, r'(?:for|during|over|in) ' + _UTC_MONTH + r', from ' + _SPAN),
+    (True, r'(?:for|during|over|in) ' + _UTC_MONTH + r' \(from ' + _SPAN + r'\)'),
+    (True, r'from ' + _SPAN + r', (?:which is |being )?' + _UTC_MONTH),
+    (False, r'(?:from )?(?P<start>' + STAMP + r') (?:inclusive|\(inclusive\)) (?:to|until) (?P<end>' + STAMP
+            + r') (?:exclusive|\(exclusive\))'),
+    (False, r'from and including (?P<start>' + STAMP + r') (?:to|until|up to) but excluding (?P<end>' + STAMP + r')'),
+))
+_MONTH_MINUTES = re.compile(r'(?:that|this|the) (?:(?:utc|calendar|service) )*month (?:contains|has|comprises|is) '
+                            r'(?P<minutes>\d{1,3}(?:,\d{3})+|\d+) minutes\.', re.I)
+# Introductory scope wording is consumed only as a capitalized name; these words would
+# carry period, polarity or condition meaning and therefore cannot hide inside it.
+_RESERVED_OBJECT = {'not','no','non','except','excluding','including','unless','only','partial','if','provided','utc',
+                    'calendar','month','months','from','until','through','between','inclusive','exclusive','day','days'}
+
+
+def _period_assertion(quote, start_text, end_text, start, end):
+    """True only for one bounded supported assertion of exactly these UTC month endpoints."""
+    sentences = [s for s in re.split(r'(?<=\.) ', ' '.join(quote.split())) if s]
+    found = [(index, calendar, match) for index, sentence in enumerate(sentences)
+             for calendar, pattern in _PERIOD_FORMS for match in [pattern.fullmatch(sentence)] if match]
+    if len(found) != 1:
+        return False
+    index, calendar, match = found[0]
+    if match['start'] != start_text or match['end'] != end_text:
+        return False
+    if match['object'] and ({w.casefold() for w in match['object'].split()} & (_RESERVED_OBJECT | set(MONTH_NAMES))):
+        return False
+    if calendar and (MONTH_NAMES.index(match['label'].casefold()) + 1 != start.month or int(match['year']) != start.year):
+        return False
+    rest = sentences[:index] + sentences[index + 1:]
+    if not rest:
+        return True
+    minutes = _MONTH_MINUTES.fullmatch(sentences[index + 1]) if len(rest) == 1 and index + 1 < len(sentences) else None
+    return bool(minutes) and int(minutes['minutes'].replace(',', '')) == (end - start) // timedelta(minutes=1)
+
+
 def validate(manifest, key, value, quote):
     text = ' '.join(quote.casefold().split())
     if key == 'fixed_period':
         if not isinstance(value, dict) or set(value) != {'start','end'}:
             raise ValueError('Expected fixed service-month bounds.')
         start,end = utc(value['start']),utc(value['end'])
-        if (value['start'].lower() not in text or value['end'].lower() not in text
-                or not re.search('inclusive|including',text) or not re.search('exclusive|excluding',text)
-                or start.day != 1 or start != start.replace(hour=0,minute=0,second=0)
-                or end != start + timedelta(days=monthrange(start.year,start.month)[1])):
+        if (start.day != 1 or start != start.replace(hour=0,minute=0,second=0,microsecond=0)
+                or end != start + timedelta(days=monthrange(start.year,start.month)[1])
+                or not _period_assertion(quote, value['start'], value['end'], start, end)):
             raise ValueError('Fixed period is not one explicit complete UTC calendar month.')
     elif key == 'fixed_filing':
         if (not isinstance(value, dict) or set(value) != {'at','endpoint'} or value['endpoint'] not in ('inclusive','exclusive')
