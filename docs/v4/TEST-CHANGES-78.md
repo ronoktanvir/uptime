@@ -30,3 +30,11 @@ Final stable-source verification and exact command/log hashes are in `evidence/v
 - `test_edit_during_save_does_not_publish_stale_preview`
 
 Final frozen-source run at `f4ec198ad6f9cc8202e8283acc1285b63f242a7f`: **241 passed**, one existing Starlette deprecation warning,13.16s. Browser execution was required and no tests were skipped. Source and test files were unchanged throughout that run.
+
+## Money-boundary correction before integration
+
+Root review identified inconsistent case handling across the already-listed currency codes. New authored tests `test_all_listed_currency_codes_veto_source_money_regardless_of_case` and `test_unassigned_decimal_issuance_cannot_be_dropped_by_denial_bundle` keep their source and annotation unchanged across correction. Before the fix: **33 failed,43 passed,56 deselected**, one warning,0.48s. The failing cases mapped an availability objection despite a separate monetary clause; no financial/action execution occurred.
+
+All existing currency codes now use the same case-insensitive match. A bare decimal paired with an issuance verb in its own clause also forces UNKNOWN without guessing an amount or currency. The controls for availability measurements and target percentages retain their original expectations. After correction, the focused78/71 and interpretation/browser run passed **253 tests**, one existing warning,6.42s, with browser execution required. No existing test was edited and no expected result was weakened. Exact commands, failed nodes, file hashes and both retained logs are in `evidence/verification-78-money-correction.json`.
+
+The offline unchanged-public76-annotation replay remains6/6 supported-family matches,5/6 full semantics and6/6 UNKNOWN controls. Earlier source-specific results and evaluation76 baseline artifacts remain preserved. These finite lexical checks do not establish complete semantics.

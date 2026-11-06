@@ -158,8 +158,7 @@ def _period(raw):
 # complete source, not a semantic proof; mandatory human review remains.
 BUNDLE_PRIMARY_FAMILIES = frozenset({'availability', 'time_bar', 'maintenance'})
 
-_CURRENCY_CODE = re.compile(r'\b(?:USD|US\$|EUR|GBP|JPY|CAD|AUD|NZD|CHF|CNY|RMB|HKD|SGD|INR|MXN|BRL|SEK|NOK|DKK|ZAR|KRW|PLN|ILS|AED)\b')
-_CURRENCY_CODE_ANY_CASE = re.compile(r'\b(?:usd|eur|gbp|jpy|chf|nzd|hkd|sgd|mxn|krw)\b', re.I)
+_CURRENCY_CODE = re.compile(r'\b(?:USD|US\$|EUR|GBP|JPY|CAD|AUD|NZD|CHF|CNY|RMB|HKD|SGD|INR|MXN|BRL|SEK|NOK|DKK|ZAR|KRW|PLN|ILS|AED)\b', re.I)
 _MONEY_WORD = re.compile(r'\b(?:dollars?|cents?|euros?|pounds?|sterling|pence|penny|pennies|yen|yuan|renminbi|rupees?|francs?|pesos?'
                          r'|kron(?:a|e|or|er)|rands?|bucks?|quid|money|monetary|cash|refund\w*|reimburs\w*)\b', re.I)
 _CREDIT_QUALIFIER = re.compile(r'\b(?:partial|goodwill|good[- ]will|courtesy|further|remaining|additional|pro[- ]?rated|pro[- ]rata)\b'
@@ -179,6 +178,8 @@ _PERCENT = re.compile(r'[0-9]+(?:[.,][0-9]+)*[ \t]*(?:[%％‰]|percent(?:age)?s
 _PERCENT_TIED = re.compile(r'\b(?:credit\w*|award\w*|refund\w*|rebate\w*|discount\w*|fees?|charges?|invoice\w*|bill\w*|payment\w*'
                            r'|compensat\w*|courtesy|partial\w*|goodwill|reimburs\w*)\b', re.I)
 _PERFORMANCE_PERCENT = re.compile(r'\b(?:availability|uptime|target|threshold|service[ \t]+levels?)\b', re.I)
+_DECIMAL_LITERAL = re.compile(r'\b[0-9]+[.,][0-9]+\b')
+_ISSUANCE_VERB = re.compile(r'\b(?:issued|credited|paid|disbursed|remitted|refunded|reimbursed|posted)\b', re.I)
 _CLAUSE_BREAK = re.compile(r'[;,!?:\n]|\.(?=\s|$)')
 _MONTH_NAME = r'(?:january|february|march|april|may|june|july|august|september|october|november|december)'
 _MONTH_ANY = rf'(?:{_MONTH_NAME}|(?:jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec)\.?)'
@@ -230,8 +231,13 @@ def bundle_loses_meaning(text, primary):
     """True when the complete source holds content this narrow bundle could silently drop."""
     if any(unicodedata.category(c) == 'Sc' for c in text):
         return True
-    if any(p.search(text) for p in (_CURRENCY_CODE, _CURRENCY_CODE_ANY_CASE, _MONEY_WORD, _CREDIT_QUALIFIER, _CONDITION_CUE, _DURATION)):
+    if any(p.search(text) for p in (_CURRENCY_CODE, _MONEY_WORD, _CREDIT_QUALIFIER, _CONDITION_CUE, _DURATION)):
         return True
+    # An issued value with no currency token still exceeds this slot-free denial's meaning.
+    # This conservative clause check refuses the bundle; it never infers money or a currency.
+    for match in _DECIMAL_LITERAL.finditer(text):
+        if _ISSUANCE_VERB.search(_clause(text, match.start(), match.end())):
+            return True
     for match in _PERCENT.finditer(text):
         start, end = _byte_span(text, match)
         # Percentages may only be availability measurements/targets inside the primary itself.

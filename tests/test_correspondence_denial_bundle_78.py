@@ -160,3 +160,26 @@ def test_candidate_only_secondary_cannot_disappear_as_correction(env):
     assert preview['alignment'][1]['blind'] is None
     assert preview['alignment'][1]['candidate']==fingerprint(suggested.model_dump()['propositions'][1])
     assert preview['alignment'][1]['reviewed'] is None and preview['alignment'][1]['verdict']=='reject'
+
+
+@pytest.mark.parametrize('code',['USD','EUR','GBP','JPY','CAD','AUD','NZD','CHF','CNY','RMB','HKD','SGD','INR','MXN','BRL','SEK','NOK','DKK','ZAR','KRW','PLN','ILS','AED'])
+@pytest.mark.parametrize('case',['upper','lower','title'])
+def test_all_listed_currency_codes_veto_source_money_regardless_of_case(code,case):
+    # 'recorded' deliberately isolates the currency guard from the issuance guard.
+    text=f'Availability met the target. {getattr(code,case)()} 10.00 was recorded. No credit is due.'
+    annotation=bundle(text,'availability')
+    before=annotation.model_dump()
+    assert proposal_for_review(context(text),annotation).reason=='unknown'
+    assert annotation.model_dump()==before
+
+
+@pytest.mark.parametrize('clause',[
+    'cad 10.00 was issued.', '10.00 was issued.', 'We credited 10.00.', 'We paid 10.00.',
+    '10.00 was disbursed.', 'A payment of 10.00 was issued.', 'A credit of 10.00 was posted.',
+])
+def test_unassigned_decimal_issuance_cannot_be_dropped_by_denial_bundle(clause):
+    text=f'Availability met the target. {clause} No credit is due.'
+    annotation=bundle(text,'availability')
+    before=annotation.model_dump()
+    assert proposal_for_review(context(text),annotation).reason=='unknown'
+    assert annotation.model_dump()==before
