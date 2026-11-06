@@ -28,3 +28,5 @@ The first stable worker-output run passed **61 tests**, one existing Starlette w
 
 - `test_note_is_absent_before_blind_entry`
 - `test_untyped_candidate_note_then_explicit_category_correction_keeps_source_and_ref`
+
+Final source `e05864a121ab365e9d3374159d91c87c8fd0a2eb`: **312 passed**, one existing Starlette warning,13.09s. Browser was required; none skipped. No failed test run occurred in81. All source/tests remained frozen through the final run.

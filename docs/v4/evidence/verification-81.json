@@ -1,0 +1,109 @@
+{
+  "workstream": 81,
+  "source_commit": "e05864a121ab365e9d3374159d91c87c8fd0a2eb",
+  "source_sha256": {
+    "uptime/correspondence_blocks.py": "5dc23c0e865c4ee9602b376ff80d3f14fd26867f46616e6eff7b6e765c6825fb",
+    "uptime/correspondence_block_model.py": "7322f2c2a53df2b6a39c9433fa8f9c9c13f3e495c6497d601d8046d85470285d",
+    "web/interpretation.js": "5c64887fcd17ee2572c15997a84fee982f3814aef2ce1b27b40e225b2e41e026",
+    "tests/test_correspondence_artifact_category_81.py": "de691f7671a4ce7ef55ac2f9e77cb0aa00555c6ec6aba963b0752244b3c2ef28",
+    "tests/test_correspondence_artifact_category_ui_81.py": "96f07deb9da4ebda564b47593c8d66b4665e09091f5dd167b00f1ba041cae754",
+    "tests/test_correspondence_blocks_71.py": "012f86124e5507e4965719c05a2ac1ad87893ea94f1e9ba617a81c0b4710ad93",
+    "fixtures/correspondence/public-81/controls.json": "ffdcba460f4ed86aa86255612620c85e2586e707935de44999d25c7e0cf9fd65"
+  },
+  "source_frozen_during_final_checks": true,
+  "checks": [
+    {
+      "name": "tests-first",
+      "result": "61 passed,1 warning in5.15s",
+      "command": [
+        "uv",
+        "run",
+        "--locked",
+        "pytest",
+        "-q",
+        "tests/test_correspondence_artifact_category_81.py",
+        "tests/test_correspondence_artifact_category_ui_81.py",
+        "tests/test_correspondence_blocks_71.py",
+        "--basetemp=/tmp/uptime-artifact81-first"
+      ],
+      "returncode": 0,
+      "required_browser": true,
+      "log_sha256": "4726d8a2653e1b66cece735cae0b238474149070f01295d824194de72011a889",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-artifact-81/tests-first.log"
+    },
+    {
+      "name": "tests-final",
+      "result": "312 passed,1 warning in13.09s",
+      "command": [
+        "uv",
+        "run",
+        "--locked",
+        "pytest",
+        "-q",
+        "tests/test_correspondence_artifact_category_81.py",
+        "tests/test_correspondence_artifact_category_ui_81.py",
+        "tests/test_correspondence_blocks_71.py",
+        "tests/test_correspondence_literal_71.py",
+        "tests/test_correspondence_interpretation.py",
+        "tests/test_correspondence_interpretation_ui.py",
+        "tests/test_correspondence_model_jobs_75.py",
+        "tests/test_correspondence_model_jobs_ui_75.py",
+        "tests/test_correspondence_public_queue_75.py",
+        "tests/test_correspondence_denial_bundle_78.py",
+        "tests/test_correspondence_denial_bundle_ui_78.py",
+        "--basetemp=/tmp/uptime-artifact81-final"
+      ],
+      "returncode": 0,
+      "required_browser": true,
+      "log_sha256": "80b85a787ac1973703bd92633aef7b669847d41aba477336c83604df4d044c73",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-artifact-81/tests-final.log"
+    }
+  ],
+  "actual_opus": {
+    "critique_session": "a98da485-d845-451b-8175-e241c405f805",
+    "coding_session": "27471efc-7a93-4b52-9c91-033201c4191d",
+    "model": "claude-opus-5-5",
+    "critique_completed": true,
+    "coding_completed": true,
+    "coding_stream_sha256": "3e6bf614cd31f14cfbe393e7f6069fddbc4c273870c972e3417116d5cb18e4fc",
+    "coding_tools": [
+      "Edit",
+      "Glob",
+      "Grep",
+      "Read",
+      "Write"
+    ],
+    "coding_mcp": [],
+    "identity_basis": "Actual self-reported CLI init/result/modelUsage; not cryptographic attestation."
+  },
+  "external_extraction_calls": 0,
+  "independent_blind_score_changed": false,
+  "original76_files_sha256": {
+    "fixtures/evaluation76_public/inputs/disputes.json": "ea0f61704c02b75b7af48b6cb32582e50ea0df4463bd6e0f330b2933af3cf88a",
+    "fixtures/evaluation76_public/expected/disputes.json": "0c0f07b7dd7b82c627d3accc5f4953274459b6025b25b137a59493eeb5c139a4",
+    "docs/v4/evaluation76/results/dispute-02.json": "97c9f2de375aa3cec88a66fb8ea8aa12eae5a8b397395f24e3a94052bdb6dfcd",
+    "docs/v4/evaluation76/requests/dispute-02.request.json": "b3e7882a76f19cf0c9a5993da058f5ae9c6e65c2c9a999655dca0cc686ec59a4",
+    "docs/v4/evaluation76/requests/dispute-02.local.json": "d7ebd5a2b1d00540a6e0b274f9ba114571ff60785c295fff7934b1337858e622",
+    "docs/v4/evaluation76/baseline.json": "30ad31512b62af8155eac358ccc5d24b04ac7fb5363499d6ed904f7572b87995"
+  },
+  "offline_unchanged_annotation_replay": {
+    "grounded": 12,
+    "review_controls_total": 6,
+    "supported_family_matches": 6,
+    "supported_full_semantics_matches": 5,
+    "supported_total": 6,
+    "total": 12,
+    "unknown_review_controls": 6
+  },
+  "offline_replay_source_commit": "e05864a121ab365e9d3374159d91c87c8fd0a2eb",
+  "offline_replay_sha256": "836e90bc0c8a76abec12bfd55467613d11d648682edf4b23ce6d3ddc061e32ba",
+  "workflow_result": "Scripted reviewer explicitly changes artifact_type while preserving exact source/reference; accept refuses changed meaning, correct records alignment. Without actual artifact evidence, only NEEDS_EVIDENCE is prepared; no response packet, approval, submission or money.",
+  "model_extraction_accuracy_measured": false,
+  "human_review_accuracy_measured": false,
+  "financial_or_external_authority_added": false,
+  "limits": [
+    "Whole-block grounding and guidance do not prove category semantics.",
+    "Reference-only matching remains legitimate when independent evidence establishes the named record.",
+    "Frozen76 artifact-category omission remains in baseline and unchanged-annotation remediation score."
+  ]
+}
