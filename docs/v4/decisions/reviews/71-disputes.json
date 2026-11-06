@@ -1,0 +1,97 @@
+{
+  "decision": 71,
+  "records": [
+    {
+      "role": "criticism",
+      "model": "claude-opus-5-5",
+      "session": "d629ff10-01e1-4842-9aa2-560c2f694198",
+      "tools": [
+        "Glob",
+        "Grep",
+        "Read"
+      ],
+      "mcp_servers": [],
+      "stream_sha256": "1ecd00ea7421b1b348a64d7c88c0a3fb8f1bb4bbe8d3027a9e4a281eae6a7494",
+      "terminal_is_error": false,
+      "terminal_subtype": "success",
+      "models_in_usage": [
+        "claude-opus-5-5"
+      ],
+      "actual_tool_calls": [
+        "Glob",
+        "Read",
+        "Read",
+        "Read"
+      ],
+      "contribution": "**Verdict:** I'd adopt the lead design, with three additions below. Going back to raw offsets is the weaker option. Models are bad at counting UTF-8 bytes, the public run scored 0/4, and better prompts don't fix that. Weakening grounding stays rejected.\n\n**Most consequential false-confidence risk: the coverage check becomes automatic**\n\nEach proposition spans its whole block, so full byte coverage (`correspondence_interpretation.py:120-129`) passes by construction. It no longer tells you anything about whether the meaning was captured. \"Grounded, full coverage\" will look like evidence when it is only a structural fact.\n\nThe failure case: one substantive block plus courtesy blocks. The model emits one proposition that is `positive`, `asserted` and `current_claim`, with an `award` slot. It drops a condition (\"if you send the resource log…\"), a negation, a second objection or a reference to another claim. That passes `validate_grounding`. It also passes the `len(propositions)==1` gate in `proposal_for_review` (`:157`) and returns an actionable `Proposal`. Every check reports green and semantic review is the only defense, so reviewers will tend to trust the green badge.\n\nThe \"multiple propositions stay safely unknown\" property also creates an incentive problem. A model that collapses everything into one proposition becomes \"compatible\". So compatibility rate will go up partly by rewarding over-simplification.\n\n**Required additions (they only make results more cautious, and `validate_grounding` stays unchanged)**\n\n1. **Literal inventory tripwire.** After hydration, scan each substantive block for money, period and duration literals. If any literal isn't covered by a slot, or a block has more than one literal of a slot type, return unknown.\n2. **Cue tripwire.** If a block contains condition, negation, future-tense, question or quotation markers (`if|unless|once|provided|not|n't|would|will|?|\"`) and the proposition has no `conditions` or isn't `asserted`, return unknown. A deterministic sentence-boundary count above 1 should also return unknown, even if crudely.\n3. **Token-boundary hydration.** As written, a slot quote `$4` inside `$40` passes `_MONEY.fullmatch`, and so does `$1` inside `$1,000`. A slot must start and end on a non-alphanumeric boundary within its block. The old offset path had the same hole, but the new path makes it easier to hit.\n\n**Other risks**\n\n- **Characters vs bytes.** `str.find` returns character indices, but `Span` uses bytes. Hydration must convert, or multibyte text before a slot will misplace it silently.\n- **Occurrence semantics.** Pin down whether the index is 0-based, whether overlapping matches count (`aa` in `aaa`), and reject an index that is out of range.\n- **Block IDs.** If IDs are content-hashed, identical blocks collide. Use index plus hash. Split on `\\n` only, keep `\\r` as a byte, and keep the block-length cap at or below `Span.quote` max 3000 and segment count at or below 64.\n- **Request domain separation.** The new adapter needs its own `SYSTEM`, schema and profile name. A digest allowlisted for the old offset adapter must not authorize the new one, and the reverse.\n- **Evidence.** The eight controls in 303ebed were authored and are not blind. Any improvement over 0/4 measures schema compatibility, not semantic accuracy, and says nothing about the private 0/50. Report compatibility, actionable count and reviewer-overturn count separately, and never as \"recognized\".\n\n**Concrete tests**\n\n- A conditional award (\"If the log confirms, we'll credit $40 for March 2026.\"), with the model omitting `conditions`, returns unknown via the tripwire.\n- Two money literals in one block with one slotted returns unknown.\n- Slot `$4` occurrence 0 in \"$40\" is rejected, as is `$1` in \"$1,000\".\n- Multibyte text (é or emoji) before a slot hydrates to correct byte offsets, checked by `source_bytes`.\n- Unknown, duplicate or omitted block IDs; an out-of-range occurrence; a quote missing from the block: each rejects with no repair.\n- Duplicate identical blocks get distinct IDs.\n- CRLF text round-trips byte-identically.\n- An over-long block, or more than 64 blocks, is rejected before any model call.\n- A block that is only whitespace or punctuation is labelled courtesy and passes the `_COURTESY` regex. \"Thanks, but we dispute downtime\" labelled courtesy is rejected.\n- An old adapter digest is refused by the new adapter, and the reverse.\n- With the runtime enabled flag false, the call is refused before the provider is touched.\n- A transport stream containing any `tool_use` event blocks the transport (existing behavior, now asserted for the new adapter).\n- A golden test: hydrated `Interpretation` from public controls equals the hand-authored offset `Interpretation` field for field.\n\n**Dissent:** Whole-block propositions throw away the one partly meaningful signal the old design had, which was where propositions start and stop inside a block. If the tripwires turn out too blunt, deterministic sentence-level blocks are the better fallback than going back to offsets. They keep the same mechanism, finer coverage means something again, and they still involve no normalization.",
+      "denied_tool_calls": [],
+      "local_transcript": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/disputes-71/critique.jsonl"
+    },
+    {
+      "role": "coding_followup",
+      "model": "claude-opus-5-5",
+      "session": "0c9adcbd-739e-4e61-8cd2-f3c219646bb0",
+      "tools": [
+        "Edit",
+        "Glob",
+        "Grep",
+        "Read",
+        "Write"
+      ],
+      "mcp_servers": [],
+      "stream_sha256": "2d7dcc24954f8a9774181168be23a927c3d1b8c33c7c2f317f15d7ef478ad60f",
+      "terminal_is_error": false,
+      "terminal_subtype": "success",
+      "models_in_usage": [
+        "claude-opus-5-5"
+      ],
+      "actual_tool_calls": [
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Grep",
+        "Grep",
+        "Grep"
+      ],
+      "contribution": "I made the edits in two files. I didn't run anything, as you asked, so none of this has been tested yet.\n\n**`uptime/correspondence_block_model.py`**\n- Removed the block model's own JSON parsing helpers (`_unique_keys`, `_no_constant`). Model replies are now parsed with `strict_json` from `correspondence_model_transport`. That also means non-finite floats are now rejected, not just `NaN`/`Infinity` constants.\n- Removed structured mode completely: `BLOCK_SCHEMA_SHA256`, `output_schema()`, the `deepcopy` import, and the `structured_schema` / `structured_output` request fields.\n- `_request` now raises `ValueError('Structured-output transport profiles are refused; plain profile only.')` for any transport profile that has an `output_schema_sha256` key, whatever its value. There's no fallback. Because this check runs before the allowlist check, both `serialized_block_request` and `propose` refuse such profiles before the provider is called.\n- The schema still goes into the request, so it stays in the prompt. `output_mode='plain_profile'` and the rest of the substantive code are unchanged.\n\n**`tests/test_correspondence_blocks_71.py`**\n- Removed the imports of `BLOCK_SCHEMA_SHA256` and `output_schema`.\n- Replaced `test_structured_output_only_with_pinned_schema_profile` with `test_plain_mode_refuses_output_schema_profiles_without_fallback`. It checks that:\n  - plain mode is used and the schema is in the request;\n  - the removed names are no longer in the module;\n  - profiles with an `output_schema_sha256` of the matching hash, a wrong hash, or `None` are all refused, both by `serialized_block_request` and by an enabled adapter whose allowlist contains the plain request's digest;\n  - the provider is never called.\n\nI didn't touch the existing transport, the old model adapter, the interpretation module, the frozen fixture controls, or `correspondence_blocks.py`.",
+      "denied_tool_calls": [
+        {
+          "name": "Grep",
+          "scope": "worktree-root search outside allowed directories; refused"
+        }
+      ],
+      "local_transcript": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/disputes-71/finish.jsonl"
+    }
+  ],
+  "preserved_failures": [
+    {
+      "kind": "local executable not found",
+      "provider_contacted": false,
+      "detail": "Initial supplied claude2.1.318 path did not exist; valid claude symlink was used thereafter."
+    },
+    {
+      "kind": "initial coding process timeout",
+      "timeout_seconds": 600,
+      "source_files_written": [
+        "uptime/correspondence_blocks.py",
+        "uptime/correspondence_block_model.py",
+        "tests/test_correspondence_blocks_71.py"
+      ],
+      "partial_stream_retained": false,
+      "model_session_verified": false,
+      "detail": "Selected Opus5.5 process wrote code but timeout discarded stream; no completed-run or session identity claim for this attempt."
+    },
+    {
+      "kind": "followup receipt summarizer failure",
+      "detail": "Actual model run completed successfully; local receipt parsing assumed message was always an object. Reparsed retained stream with a type guard; no new inference."
+    }
+  ]
+}
