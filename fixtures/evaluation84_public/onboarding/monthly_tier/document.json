@@ -1,0 +1,6 @@
+{
+  "name": "Talus Signal Availability Agreement",
+  "uri": "urn:uptime:evaluation84:monthly_tier",
+  "classification": "synthetic_public",
+  "text": "Talus Signal Availability Agreement\nTalus Signal provides Event Relay on the Orchard plan. This agreement takes effect on 2033-01-01 and ends on 2033-12-31.\nAvailability is measured for each UTC calendar month. Monthly availability is 100 multiplied by (1 minus eligible downtime minutes divided by the total minutes in that month).\nFor Event Relay on the Orchard plan, monthly availability below 99.8% earns a 9% service credit. Monthly availability below 99.1% earns a 23% service credit. Only the highest applicable percentage applies; the percentages do not accumulate.\nThe credit percentage applies to the affected monthly service fee in USD. Credits are applied to a future invoice.\nA claim must be received within 22 calendar days after the end of the affected month.\n"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Thistle Meridian Response Agreement",
+  "uri": "urn:uptime:evaluation84:unsupported_variable_fee",
+  "classification": "synthetic_public",
+  "text": "Thistle Meridian Response Agreement\nThistle Meridian provides Packet Orchard on the Amber plan from 2037-01-01 through 2037-12-31. Availability is measured over each UTC calendar month as 100 multiplied by (1 minus unavailable minutes divided by all minutes in the month).\nFor availability below 99.4%, the customer receives a future invoice credit equal to 13% of its lost gross profit attributable to the outage. Lost gross profit must be determined by an independent accountant using the customer's contemporaneous sales and avoidable-cost records; it is not the subscription fee.\nClaims must be received within 26 calendar days after the affected month ends.\n"
+}

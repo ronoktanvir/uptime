@@ -1,0 +1,6 @@
+{
+  "name": "Harbor Fern Resource SLA",
+  "uri": "urn:uptime:evaluation84:resource_month",
+  "classification": "synthetic_public",
+  "text": "Harbor Fern Resource SLA\nHarbor Fern offers Queue Basin on the Cobalt plan. Coverage begins on 2035-01-01 and ends on 2035-12-31.\nAvailability is measured separately for each covered resource during each UTC calendar month. A resource is unavailable while it cannot accept queue writes because of a failure of Harbor Fern equipment. No minimum incident duration applies.\nTime caused by scheduled maintenance is excluded from unavailable time. Monthly availability is 100 multiplied by (1 minus qualifying unavailable minutes divided by the total minutes in the month).\nIf monthly availability is below 99.5%, the credit is 12% of the affected resource's monthly service fees. If monthly availability is below 98.0%, the credit is 24%. Apply only the largest qualifying rate.\nOnly USD recurring service charges for the affected resource are included. Taxes, support charges, and one-time charges are excluded. Round the final credit to the nearest cent, rounding a half cent upward. Credits are applied to a future invoice.\nFor the September 2035 service month, the claim must be received no later than 2035-10-19T18:00:00Z.\n"
+}

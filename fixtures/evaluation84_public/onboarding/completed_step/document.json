@@ -1,0 +1,6 @@
+{
+  "name": "Mistral Loom Service Promise",
+  "uri": "urn:uptime:evaluation84:completed_step",
+  "classification": "synthetic_public",
+  "text": "Mistral Loom Service Promise\nMistral Loom supplies Archive Shuttle under the Lantern plan. These terms apply from 2034-01-01 through 2034-12-31.\nThe measurement period is a UTC calendar month. Monthly availability equals 100 multiplied by (1 minus unavailable minutes divided by all minutes in the month).\nFor each complete 0.2 percentage-point shortfall of monthly availability below 99.7%, the service credit is 6% of the affected monthly service fee in USD. Count only completed steps, discard any remaining fraction of a step, and cap the resulting credit at 30% of that fee.\nRound only the final credit amount to the nearest cent, with half a cent rounded upward. The credit is applied against a future invoice.\nClaims must be received within 17 calendar days following the end of the service month.\n"
+}
