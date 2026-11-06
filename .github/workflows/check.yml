@@ -17,7 +17,7 @@ jobs:
         env:
           UPTIME_QA_REQUIRE_SERVER: "1"
           UPTIME_REQUIRE_BROWSER: "1"
-      - run: node --test web/*.test.cjs
+      - run: node --test web/*.test.cjs tests/helpers/*.test.cjs
       - run: node scripts/test_progress_graph.cjs
       - run: uv run --locked python scripts/rehearse.py
       - run: uv run --locked python scripts/check_repo.py

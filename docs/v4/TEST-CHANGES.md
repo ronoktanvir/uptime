@@ -21,4 +21,6 @@ This ledger records presentation and fixture changes for the Northwind walkthrou
 
 Every merge requires `uv run --locked pytest`. Use a unique temporary base directory for concurrent suites, preserve the first failure output, and record subsequent results without overwriting earlier evidence.
 
+Hosted JavaScript discovery now includes `tests/helpers/*.test.cjs` alongside `web/*.test.cjs`, so the new onboarding job and profile controls run on GitHub. No existing test or expected outcome changes. The local combined command passed 61 checks at `21f2a93`; later added controls have their own integration count.
+
 Decision67 adds `test_semantic_current_projection.py` for four independently reproduced failures and five additional containment controls. It changes no existing test assertions. The source review and failed evidence remain in [the independent report](evidence/semantic-61-independent/review.json); the repair decision is [ADR67](decisions/ADR-0067-current-semantic-containment.md).
