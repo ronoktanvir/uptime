@@ -4,6 +4,7 @@ This ledger records presentation and fixture changes for the Northwind walkthrou
 
 | Workstream | Exact test names and reasons | Integration status |
 | --- | --- | --- |
+| Reviewed denial bundles | [Workstream 78 ledger](TEST-CHANGES-78.md) records new semantic, money-loss, indexed review and real-browser controls; no existing test changed. Three distinct failed money-loss probes and their fixes remain recorded. | Integrated at `21f2a93`: 3,540 passed, 1 warning in 239.00s; 61 JavaScript checks. |
 | In-app vendor proposal jobs | [Workstream 74 ledger](TEST-CHANGES-74.md) names each existing caption/nonce assertion change and explains new signed, queue and real-browser controls. | Integrated at `c5dd4e4`: 3,396 passed, 1 warning in 258.65s; 47 web checks and eight new onboarding controls. |
 | Source-bound periods and scoped filing | [Workstream 77 ledger](TEST-CHANGES-77.md) lists new tests; no existing test or frozen evaluation input changed. The original 28-failure compatibility result is preserved. | Fixed integration passes the same full `c5dd4e4` suite. |
 | In-app dispute proposal jobs | [Workstream 75 ledger](TEST-CHANGES-75.md) names the one existing browser-label test changed; every authority and monetary assertion remains. New tests cover queued execution, complete request exports, source drift, real shared queue and browser review. | Full integrated suite at `c14df32`: 3,288 passed, 1 warning in 214.72s; 47 JavaScript checks. |

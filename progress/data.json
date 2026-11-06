@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-11-06T02:51:19.206068+00:00",
+  "updated_at": "2026-11-06T03:00:04.164787+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Approved public model proposals now run through the signed onboarding and dispute workflows. The latest integrated suite passes 3,396 tests; independent extraction and interpretation gaps remain measured separately. Native posting is still unverified.",
+  "summary": "Signed onboarding and dispute model jobs are integrated. Review now retains complete supported denial bundles; 3,540 regression tests pass. Independent language scores and native posting remain separate unresolved gates.",
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "3,396 passed",
-      "detail": "c5dd4e4: onboarding jobs, resource-period correction and scoped filing. 3,396 tests, 1 warning in 258.65s; 47 web checks and eight onboarding controls passed.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-c5dd4e4.json"
+      "value": "3,540 passed",
+      "detail": "21f2a93: 3,540 tests, 1 warning in 239.00s; 61 JavaScript checks passed.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-21f2a93.json"
     },
     {
       "label": "Hosted verification",
@@ -78,7 +78,7 @@
       "stream": "Foundation",
       "status": "done",
       "summary": "Focused implementation and verification commits",
-      "detail": "Private ronoktanvir/uptime preserves focused implementation, merge, failed attempts and verification commits. c5dd4e4 integrates the onboarding runtime with 3,396 passing Python tests. Credentials and private evaluation inputs stay outside Git.",
+      "detail": "Focused implementation and verification commits preserve working code and failed attempts. Integration21f2a93 has3,540 passing Python tests. Credentials and private holdouts remain outside Git.",
       "owner": "Orchestrator",
       "depends_on": [
         "audit"
@@ -450,8 +450,8 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "3,396 Python tests; 55 JavaScript controls",
-      "detail": "c5dd4e4 passed 3,396 tests, 1 warning in 258.65s. All 47 existing web and eight new onboarding controls passed. Initial period compatibility failure and its unchanged-test correction remain recorded.",
+      "summary": "3,540 Python tests; 61 JavaScript checks",
+      "detail": "Frozen integration21f2a93 passed 3,540 tests, one existing warning in239.00s.61 web/helper checks passed; failed probes remain beside fixes.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
@@ -584,8 +584,8 @@
       "title": "New vendor response coverage",
       "stream": "Disputes",
       "status": "active",
-      "summary": "Fresh public baseline:3/6 complete supported mappings",
-      "detail": "12/12 source-block structures grounded; 3/6 complete supported meanings, 6/6 mandatory-review UNKNOWN. Correct objections combined with negative award statements expose a representation limit. Actual queued proposal→review→inert draft proof passed; submission without approval stayed blocked.",
+      "summary": "Reviewed denial bundles preserve both assertions",
+      "detail": "Unchanged public annotations now map5/6 complete meanings versus original3/6;6/6 mandatory-review controls remain UNKNOWN. This is remediation on known cases, not a fresh independent score. Every proposition has separate review and audit alignment.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -601,7 +601,7 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/public-reply-harness-532c8d8.txt"
         }
       ],
-      "next_action": "Integrate the signed proposal job workflow and retain separate structural, semantic and action denominators."
+      "next_action": "Correct missing artifact-category guidance and verify explicit human repair without selecting a category automatically."
     },
     {
       "id": "source_meaning",
@@ -647,6 +647,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-06T03:00:04.164787+00:00",
+      "title": "Complete denial-bundle review integrated",
+      "detail": "3,540 tests and61 JavaScript checks passed. Saved-annotation repair improves complete meaning from3/6 to5/6 while preserving the original baseline and six UNKNOWN controls.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/PHASE78-REVIEWED-DENIAL-BUNDLE.md"
+    },
     {
       "at": "2026-11-06T02:51:19.206068+00:00",
       "title": "Onboarding jobs and contract correction verified",

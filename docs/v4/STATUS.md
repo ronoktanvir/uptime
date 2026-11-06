@@ -1,10 +1,12 @@
 # Uptime V4 engineering status
 
+The denial-bundle integration at `21f2a93` passes **3,540 tests, 1 warning in 239.00s**, plus **61 JavaScript checks**. The browser preserves and reviews every proposition; one supported objection plus an explicit credit denial can enter the existing deterministic evaluation after review. Currency, unassigned issuance amounts, conditions and unsupported combinations retain UNKNOWN. The same saved public annotations now map 5/6 complete supported meanings, up from 3/6; no new model call or independent-score claim. [Merge receipt](evidence/verification-21f2a93.json) · [Implementation and limits](PHASE78-REVIEWED-DENIAL-BUNDLE.md)
+
 The in-app onboarding jobs and source-bound contract period/deadline changes are integrated at `c5dd4e4`: **3,396 passed, 1 warning in 258.65s**, plus 47 existing web checks and eight new onboarding interface controls. One actual approved Opus job generated a SHADOW candidate from the studied Aster source; customer overlays stayed local and no activation authority was granted. The first period integration failed 28 Northwind setup tests; a general grammar correction now passes those unchanged tests. [Merge receipt](evidence/verification-c5dd4e4.json) · [Actual provider receipt](decisions/reviews/74-actual-public-queue.json) · [Decision 77](decisions/ADR-0077-source-bound-resource-periods.md)
 
 GitHub verified the preceding dispute integration `05b2978`: **3,288 passed, 1 warning in 278.31s**, 47 web checks, graph validation, replay and repository scan. [Hosted receipt](evidence/ci-05b2978.json)
 
-Next bounded work: integrate the reviewed denial bundle; close named onboarding-profile and operator-export gaps; repair the confirmed aggregate fixed-filing qualification bug; improve artifact-category capture without changing the independent baseline. Native qualification remains disabled.
+Next bounded work: close named onboarding-profile and operator-export gaps; repair the confirmed aggregate fixed-filing qualification bug; improve artifact-category capture without changing the independent baseline. Native qualification remains disabled.
 
 The signed dispute model workflow and protected operator configuration are integrated at `c14df32`: **3,288 passed, 1 warning in 214.72s**, plus **47 JavaScript checks**. An actual approved Opus queue call produced an inert candidate; scripted review prepared a draft and submission without action approval returned 409. Onboarding UI integration is now verified in the newer checkpoint above. [Merge receipt](evidence/verification-c14df32.json) · [Actual public queue proof](evidence/dispute-runtime-75-public-queue.json) · [Operator setup](PUBLIC-PROPOSAL-RUNTIME.md)
 

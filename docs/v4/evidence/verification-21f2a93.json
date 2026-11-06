@@ -1,0 +1,33 @@
+{
+  "commit": "21f2a93e3aca94094a20d85d849d4a89a4bcff83",
+  "verified_at": "2026-11-06T03:00:04.164787+00:00",
+  "command": "uv run --locked pytest --basetemp W/tasks/pytest78-root-merge",
+  "result": "3540 passed, 1 warning in 239.00s (0:03:58)",
+  "exit_code": 0,
+  "log_reference": "W/receipts/phase78-root-merge-full.log",
+  "log_sha256": "33c6790215adfb2aec45aec6ac8a0ad47b84225936ca0b7a66b44877479e8695",
+  "javascript": {
+    "command": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+    "result": "61 passed, 0 failed, 0 skipped"
+  },
+  "secret_checks": {
+    "tracked_text_objects": 1864,
+    "head_reachable_blobs": 1840,
+    "protected_ramp_profiles_compared": 2,
+    "result": "PASS"
+  },
+  "unchanged_annotation_replay": {
+    "supported_family": "6/6",
+    "supported_complete_semantics": "5/6",
+    "review_controls_unknown": "6/6",
+    "model_calls": 0,
+    "independent_new_score": false
+  },
+  "preserved_failures": [
+    "verification-78.json",
+    "verification-78-money-correction.json",
+    "verification-78-numeric-correction.json"
+  ],
+  "native_ramp_actions": 0,
+  "customer_model_processing_enabled": false
+}
