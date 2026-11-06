@@ -1,0 +1,16 @@
+{
+  "commit": "a9cb1bcca7268cf0717a44413efdb4e12cea4abe",
+  "command": "uv run --locked pytest --basetemp /Users/ronoktanvir/.local/share/uptime-engineering/tasks/pytest71-root-full",
+  "result": "3055 passed, 1 warning in 203.15s (0:03:23)",
+  "exit_code": 0,
+  "log_sha256": "928f87b019516db3a3cb231126e00dd63e6f2b7010c32f7058ccf7faf6b188b7",
+  "log_reference": "W/receipts/phase71-merge-001.log",
+  "javascript_checks": {
+    "command": "node --test web/*.test.cjs",
+    "result": "47 passed, 0 failed, 0 skipped",
+    "duration_ms": 121.582792
+  },
+  "warning": "Existing Starlette/httpx deprecation",
+  "native_write_verified": false,
+  "private_unseen_reply_result_unchanged": true
+}

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-06T00:19:37.941901+00:00",
+  "updated_at": "2026-11-06T00:28:11.320416+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
@@ -7,9 +7,9 @@
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "3,003 passed",
-      "detail": "b9bf640: 3,003 passed, 1 warning in207.13s after Ramp business-scope merge.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-b9bf640.json"
+      "value": "3,055 passed",
+      "detail": "a9cb1bc:3,055 passed,1 warning in203.15s after dispute merge;47 JavaScript checks passed.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-a9cb1bc.json"
     },
     {
       "label": "Hosted verification",
@@ -578,8 +578,8 @@
       "title": "New vendor response coverage",
       "stream": "Disputes",
       "status": "active",
-      "summary": "Reviewed bridge and Northwind cure work; blind score unchanged",
-      "detail": "The source-locked interpretation bridge and signed Northwind evidence cure work. The prior unseen set remains 0/50 supported replies recognized; the public model proposal experiment remains 0/4 fully grounded compatible candidates.",
+      "summary": "Authored public block proposals improve; blind score unchanged",
+      "detail": "Actual revised public model batch:8/8 structurally grounded,3/3 expected positive mappings,5/5 negative UNKNOWN. First batch failures retained. Human semantic review remains required; prior independent0/50 result unchanged.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -595,7 +595,7 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/public-reply-harness-532c8d8.txt"
         }
       ],
-      "next_action": "Integrate source-locked block proposals after authored public controls and actual Opus implementation; preserve private independent scores."
+      "next_action": "Measure genuinely new material separately; retain human semantic review and default-disabled customer inference."
     },
     {
       "id": "source_meaning",
@@ -641,6 +641,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-06T00:28:11.320416+00:00",
+      "title": "Grounded dispute proposals integrated",
+      "detail": "Full merge regression3,055 passed,1 warning. Authored model controls improve to3/3 positive and5/5 appropriate UNKNOWN; independent score unchanged.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/decisions/ADR-0071-source-locked-dispute-proposals.md"
+    },
     {
       "at": "2026-11-06T00:19:37.941901+00:00",
       "title": "Ramp reconciliation preserves business identity",

@@ -1,0 +1,77 @@
+{
+  "mode": "token metadata only",
+  "origin": "https://demo-api.ramp.com",
+  "observed_at": "2026-11-06T00:25:29.749620+00:00",
+  "requests": [
+    {
+      "granted": [
+        "vendors:read"
+      ],
+      "requested": [
+        "vendors:read"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "scope_reported": true,
+      "diagnosis": "EXACT_GRANT",
+      "state": "GRANTED",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    },
+    {
+      "granted": [
+        "bills:read"
+      ],
+      "requested": [
+        "bills:read"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "scope_reported": true,
+      "diagnosis": "EXACT_GRANT",
+      "state": "GRANTED",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    },
+    {
+      "granted": [
+        "bills:read",
+        "bills:write"
+      ],
+      "requested": [
+        "bills:read",
+        "bills:write"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "scope_reported": true,
+      "diagnosis": "EXACT_GRANT",
+      "state": "GRANTED",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    },
+    {
+      "granted": [
+        "bills:write"
+      ],
+      "requested": [
+        "bills:write"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "scope_reported": true,
+      "diagnosis": "EXACT_GRANT",
+      "state": "GRANTED",
+      "sources": [
+        "LIVE_RAMP_SANDBOX"
+      ]
+    }
+  ],
+  "app_allowed_scopes": "NOT_OBSERVABLE_FROM_TOKEN_RESPONSE",
+  "admin_configuration": "NOT_INSPECTED",
+  "records_read": false,
+  "writes_attempted": false
+}

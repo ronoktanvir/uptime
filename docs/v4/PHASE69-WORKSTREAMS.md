@@ -6,6 +6,10 @@ First verified increment: `3449bbe` rejects ambiguous model results and mismatch
 
 The Ramp business-identity repair is now integrated at `b9bf640`: **3,003 passed, 1 warning in 207.13s**. The new capture imports into a fresh local verification workspace with the real business pin preserved; repeating the import is a duplicate and creates no new credit. Recorded/applied amounts remain null because no native credit was observed. This validation uses actual saved Ramp reads and makes no external write. [Regression](evidence/verification-b9bf640.json) · [Import verification](evidence/native-credit-scope-72.json) · [Repair and migration limits](RAMP-RECONCILIATION-72.md)
 
+The dispute adapter is integrated at `a9cb1bc`: **3,055 passed, 1 warning in 203.15s**, plus 47 JavaScript checks. Revised authored public requests produced 8/8 structurally grounded proposals, 3/3 expected positive mappings and 5/5 negative UNKNOWN mappings. The first batch and unchanged private 0/50 score remain recorded. Source coverage does not establish semantic truth; human review and customer-runtime restrictions remain. [Decision 71](decisions/ADR-0071-source-locked-dispute-proposals.md) · [Regression](evidence/verification-a9cb1bc.json)
+
+A new token-only check at 2026-11-06 00:25 UTC again returned exact `bills:write`, combined bill read/write and separate vendor/bill read grants. No bill was mutated. This establishes that missing API write scope is not the currently observed blocker. [Scope receipt](evidence/native-demo-grants-20261106.json)
+
 The same previously observed Ramp bill and business were read successfully again. The fresh bounded capture contains six complete bills, sampled vendors/transactions/POs/approvals, and empty completed agreement, credit and comment lists. This is new read evidence, not write or recovery proof. Raw captures remain outside Git. [Read receipt](evidence/native-demo-read-20261105.json)
 
 | Owner / branch | Concrete deliverable | Dependency and acceptance |
