@@ -5,3 +5,5 @@ No existing test was changed or weakened. `tests/test_public_proposal_jobs.py` a
 Initial collection failed because a parametrized argument used pytest's reserved name `request`. Renaming that new test argument to `encoded` resolved collection without changing behavior or assertions. The next run reported **35 passed in 0.40s**. This is focused queue validation, not application integration or generalization evidence. Wrapper and signed HTTP tests are owned by workstreams 74 and 75. Required full integration tests remain pending until those merges.
 
 The queue, pinned transport and source-block suites then passed **110 tests in 1.41s**, including private rejection-evidence retention with no public response leakage. No model inference occurred in these unit controls.
+
+The frozen shared core at `a5c6c93` passed the complete requested regression: **3,238 passed, 1 warning in 203.44s**. No existing test expectation changed.
