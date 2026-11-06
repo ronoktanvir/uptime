@@ -1,0 +1,51 @@
+{
+  "workstream": 78,
+  "source_commit": "f4ec198ad6f9cc8202e8283acc1285b63f242a7f",
+  "source_sha256": {
+    "uptime/correspondence_interpretation.py": "7acf3d5c65d2586b227cf89bbc03f959a6fa7c2bde7d8a794d91d1ae28eb8a0a",
+    "uptime/correspondence_review.py": "2b89bc252a27ce6fcf12abdd8c2bf347e75f4a301a53de767818259b3745cd39",
+    "web/interpretation.js": "c92a2174354a57a493fd5b9efda5768732aa3b192f8d2e15582cb97645384abc",
+    "tests/test_correspondence_denial_bundle_78.py": "dc45a60b62fe50ce17e8d13e9d2b92be607c255e22c52838e8c6f104ca51e47b",
+    "tests/test_correspondence_denial_bundle_ui_78.py": "7d66ee9c69f4dd3d721496dd421d61dd8bd472bac9877388b730b39d0b420d09",
+    "scripts/replay_dispute_annotations_78.py": "b29dfe9c94ed33e6bdf8017396f2243070363d0399ab0247852459a2ef92ea1e"
+  },
+  "source_frozen_during_final_checks": true,
+  "final_command": "UPTIME_REQUIRE_BROWSER=1 uv run --locked pytest -q tests/test_correspondence_denial_bundle_78.py tests/test_correspondence_denial_bundle_ui_78.py tests/test_correspondence_interpretation.py tests/test_correspondence_interpretation_ui.py tests/test_correspondence_model_jobs_75.py tests/test_correspondence_model_jobs_ui_75.py tests/test_correspondence_public_queue_75.py tests/test_correspondence_blocks_71.py tests/test_correspondence_literal_71.py tests/test_public_proposal_jobs.py --basetemp=/tmp/uptime-bundle78-final",
+  "final_command_exit_code": 0,
+  "checks": [
+    {
+      "name": "tests-first",
+      "result": "1 failed,54 passed,1 warning in1.82s",
+      "exit_code": null,
+      "log_sha256": "dcd4ab8252fa413071e8dd7681e2b7cecd4b09ce6a9f9c45b9407433203435fc",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-bundle-78/tests-first.log",
+      "failure": "Percentage clause without performance context mapped availability; preserved UNKNOWN expectation and tightened source loss guard. Shell wrapper returned tail status; underlying pytest exit was not separately captured."
+    },
+    {
+      "name": "tests-second",
+      "result": "130 passed,1 warning in12.28s",
+      "exit_code": 0,
+      "log_sha256": "4e3804e65efdc0563df1a1d9a4b44da118f5ceaf25fe550f270bdcab84e2145a",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-bundle-78/tests-second.log"
+    },
+    {
+      "name": "tests-final",
+      "result": "241 passed,1 warning in13.16s",
+      "exit_code": 0,
+      "log_sha256": "85590ee85f7857860269a85018a2a932689957c8741763a25fbfa45a6cddbd6e",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-bundle-78/tests-final.log"
+    }
+  ],
+  "original_evaluation76_unchanged": true,
+  "public_model_calls": 0,
+  "remediation": "Offline identical saved annotations, not a new blind score;6/6 supported families,5/6 full expected semantics,6/6 UNKNOWN controls.",
+  "human_review_performance_evaluated": false,
+  "customer_processing_enabled": false,
+  "financial_or_external_authority_added": false,
+  "actual_opus": {
+    "critique_session": "cc9dd07d-5ee6-4817-9908-2f45506ed6a3",
+    "coding_session": "6f6b9555-dc19-4f7f-abc2-96c8324547c7",
+    "coding_process": "timeout_at600s_with_preserved_substantive_edits",
+    "identity_basis": "Actual CLI stream init with requested model and initialized restricted tool inventory; coding had no terminal result, not cryptographic attestation."
+  }
+}

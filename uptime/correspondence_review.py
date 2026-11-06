@@ -7,7 +7,7 @@ import json
 from .contracts import fingerprint
 from .correspondence import authorize, audit
 from .correspondence_history import apply_response_state, historical_reply, receipt_chain
-from .correspondence_interpretation import Interpretation, proposal_for_review, text_digest, validate_grounding, visible_source
+from .correspondence_interpretation import Interpretation, primary_proposition_index, proposal_for_review, text_digest, validate_grounding, visible_source
 from .correspondence_types import instant
 from .storage import database
 
@@ -19,6 +19,26 @@ CREATE TABLE IF NOT EXISTS inbox_interpretation_effect (
  review_id TEXT PRIMARY KEY, tenant TEXT NOT NULL, claim_id TEXT NOT NULL,
  preview TEXT NOT NULL, actor TEXT NOT NULL, created_at TEXT NOT NULL);
 '''
+
+
+def _fingerprint_at(rows, i):
+    return fingerprint(rows[i]) if rows is not None and i < len(rows) else None
+
+
+def alignment(proposed, blind_rows, candidate_rows, verdicts, count):
+    """Positional audit: stable identity of blind, candidate and reviewed meaning at each index.
+
+    Matches list every original index holding the identical reviewed proposition, so a
+    reorder (allowed only as an explained correction) is explicit rather than inferred.
+    """
+    rows = []
+    for i in range(count):
+        reviewed = proposed[i] if i < len(proposed) else None
+        rows.append(dict(index=i, verdict=verdicts[i], blind=_fingerprint_at(blind_rows, i),
+                         candidate=_fingerprint_at(candidate_rows, i), reviewed=_fingerprint_at(proposed, i),
+                         reviewed_matches_blind=[j for j, row in enumerate(blind_rows) if reviewed is not None and row == reviewed],
+                         reviewed_matches_candidate=[j for j, row in enumerate(candidate_rows or []) if reviewed is not None and row == reviewed]))
+    return rows
 
 
 class InterpretationDesk:
@@ -188,17 +208,23 @@ class InterpretationDesk:
             candidate=None
             if entry.candidate_id:
                 _, candidate=self._row(db,p,claim_id,'candidate',entry.candidate_id,context)
-            count=max(len(entry.interpretation.propositions),len(blind['propositions']),len(candidate['interpretation']['propositions']) if candidate else 0)
+            proposed=entry.interpretation.model_dump()['propositions']
+            blind_rows=blind['propositions']
+            candidate_rows=candidate['interpretation']['propositions'] if candidate else None
+            originals=[blind_rows] + ([candidate_rows] if candidate else [])
+            count=max(len(proposed),len(blind_rows),len(candidate_rows) if candidate else 0)
             if (not entry.residuals_reviewed or not entry.complete_meaning_reviewed
                     or sorted(r.proposition for r in entry.resolutions) != list(range(count))):
                 raise ValueError('A separate decision for each proposition and all residual obligations is required.')
-            for resolution in entry.resolutions:
-                i=resolution.proposition
-                proposed=entry.interpretation.model_dump()['propositions']
-                originals=[blind['propositions']] + ([candidate['interpretation']['propositions']] if candidate else [])
-                if resolution.verdict == 'accept' and any(i>=len(proposed) or i>=len(rows) or proposed[i]!=rows[i] for rows in originals):
+            verdicts={r.proposition:r.verdict for r in entry.resolutions}
+            for i in range(count):
+                if i>=len(proposed) and verdicts[i]!='reject':
+                    # A correction or acceptance can never silently remove an original meaning.
+                    raise ValueError('A proposition absent from the reviewed meaning must be explicitly rejected.')
+                if verdicts[i]=='accept' and any(i>=len(proposed) or i>=len(rows) or proposed[i]!=rows[i] for rows in originals):
                     raise ValueError('Changed semantic judgments require an explicit correction and explanation.')
             body=entry.model_dump()
+            body['alignment']=alignment(proposed,blind_rows,candidate_rows,verdicts,count)
             body['actor']=p.subject
             body['authority']='authenticated_reviewer_interpretation_only'
             return dict(id=self._put(db,p,claim_id,'review',context['digest'],body))
@@ -210,17 +236,20 @@ class InterpretationDesk:
         row,review=self._row(db,p,claim_id,'review',review_id,context)
         interpretation=Interpretation.model_validate(review['interpretation'])
         proposal=proposal_for_review(context,interpretation)
+        primary=primary_proposition_index(context,interpretation)
         projected=deepcopy(state)
         stage='HUMAN_REVIEW'
         if any(r['verdict']=='reject' for r in review['resolutions']):
             proposal=type(proposal)('unknown')
+        if proposal.reason=='unknown':
+            primary=None
         if proposal.reason not in {'unknown','award'}:
             projected['replies'].pop()
             if receipt_chain(projected):
                 reply=historical_reply(projected,fact,self.desk._now(),proposal)
                 reply['sources']=state['replies'][-1].get('sources',[])
                 if proposal.reason=='filing_fields':
-                    reply['requested_fields']=interpretation.propositions[0].filing_fields
+                    reply['requested_fields']=interpretation.propositions[primary].filing_fields
                 projected['replies'].append(reply)
                 apply_response_state(projected,current)
             else:
@@ -240,7 +269,13 @@ class InterpretationDesk:
                      disposition=stage if prepare else 'INFORMATIONAL_REVIEW',prepare_allowed=prepare,packet=packet,
                      reported_award=proposal.amount if proposal.reason=='award' else None,
                      closure_suggested=stage=='DENIAL_ACCEPTED',ledger_unchanged=True,external_actions=[],
-                     reviewer=row['actor'],expires_at=row['expires_at'])
+                     reviewer=row['actor'],expires_at=row['expires_at'],
+                     reviewed_interpretation=interpretation.model_dump(),primary_proposition_index=primary,
+                     # Every other proposition is retained for display only; never award or action authority.
+                     retained_propositions=[dict(index=i,family=q.family,polarity=q.polarity,modality=q.modality,referent=q.referent,
+                                                 source=q.source.model_dump(),effect='informational_only')
+                                            for i,q in enumerate(interpretation.propositions) if i!=primary],
+                     alignment=review.get('alignment',[]))
         preview['digest']=fingerprint(preview)
         return preview,projected,context,scope
 

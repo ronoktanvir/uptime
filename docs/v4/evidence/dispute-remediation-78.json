@@ -1,0 +1,446 @@
+{
+  "baseline_commit": "c14df32",
+  "cases": [
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "time_bar",
+        "reference": null,
+        "scope_field": null,
+        "span": [
+          0,
+          74
+        ]
+      },
+      "expected_reason": "time_bar",
+      "expected_supported": true,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-01",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "time_bar",
+        "reference": null,
+        "scope_field": null,
+        "span": [
+          0,
+          74
+        ]
+      },
+      "unchanged_annotation_sha256": "b758831463771120cb559d9ce48aeb294779156b381a9a4f69ec6abe17816b23"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "artifact",
+        "reference": "request-log-76B",
+        "scope_field": null,
+        "span": [
+          0,
+          92
+        ]
+      },
+      "expected_reason": "artifact",
+      "expected_supported": true,
+      "full_semantics_match": false,
+      "human_review_performed": false,
+      "id": "dispute-02",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "artifact",
+        "reference": "request-log-76B",
+        "scope_field": null,
+        "span": [
+          0,
+          92
+        ]
+      },
+      "unchanged_annotation_sha256": "3d3468ad455ac5ee1f4ebb2861d60a9eb63dc93b7993f1c5d8ea1d3135b236a8"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "expected_reason": "availability",
+      "expected_supported": true,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-03",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "availability",
+        "reference": null,
+        "scope_field": null,
+        "span": [
+          0,
+          108
+        ]
+      },
+      "unchanged_annotation_sha256": "804f77bfb8c85fdbcb1f0382d077ae04b7aec9e658605a8bd7de2bf42e50df89"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "expected_reason": "maintenance",
+      "expected_supported": true,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-04",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "maintenance",
+        "reference": null,
+        "scope_field": null,
+        "span": [
+          0,
+          87
+        ]
+      },
+      "unchanged_annotation_sha256": "e10ca419c20bb8ebf3f730be5366e88298f3b382a66d0fad2ceef13763f6c18e"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": "84.25",
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "award",
+        "reference": null,
+        "scope_field": null,
+        "span": [
+          0,
+          54
+        ]
+      },
+      "expected_reason": "award",
+      "expected_supported": true,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-05",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": "84.25",
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "award",
+        "reference": null,
+        "scope_field": null,
+        "span": [
+          0,
+          54
+        ]
+      },
+      "unchanged_annotation_sha256": "3166db4fd69b152c6e5ca5eadff494700ea8951ff5b562ea04af06eabccf9b60"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": "28.80",
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "award",
+        "reference": null,
+        "scope_field": null,
+        "span": [
+          0,
+          96
+        ]
+      },
+      "expected_reason": "award",
+      "expected_supported": true,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-06",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": "28.80",
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "award",
+        "reference": null,
+        "scope_field": null,
+        "span": [
+          0,
+          96
+        ]
+      },
+      "unchanged_annotation_sha256": "e98fc22b8486ed1ac5cc09d8db5cdbc0e73ccb1d97436f8d6861a861c5c2c015"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "expected_reason": "unknown",
+      "expected_supported": false,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-07",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "unchanged_annotation_sha256": "198e88bba4ec4f5321419e8db711ac546d80e09b75fe9e288e85d8d0f63c50e4"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "expected_reason": "unknown",
+      "expected_supported": false,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-08",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "unchanged_annotation_sha256": "a1b005543384fc4d585a088a7f9ef8e3f5054ea8fff2cca73fa5d87b721870c7"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "expected_reason": "unknown",
+      "expected_supported": false,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-09",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "unchanged_annotation_sha256": "f4d122cb11d6bfbdb343e2403b6471e93e357df592723248e0e580a0647b799a"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "expected_reason": "unknown",
+      "expected_supported": false,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-10",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "unchanged_annotation_sha256": "9e38ccb5ef677ecda2f26b992a99ff0ea779c2b2c7e30e24646c739ff6a807ed"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "expected_reason": "unknown",
+      "expected_supported": false,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-11",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "unchanged_annotation_sha256": "b149ffd6dbd9d2074b604628ef22bd9b157d1fd2151984a97bbca641c45cc268"
+    },
+    {
+      "action_authority_evaluated": false,
+      "actions_executed": 0,
+      "baseline_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "expected_reason": "unknown",
+      "expected_supported": false,
+      "full_semantics_match": true,
+      "human_review_performed": false,
+      "id": "dispute-12",
+      "mapping_error": null,
+      "reason_matches": true,
+      "remediated_mapping": {
+        "amount": null,
+        "artifact_type": null,
+        "downtime_us": null,
+        "reason": "unknown",
+        "reference": null,
+        "scope_field": null,
+        "span": null
+      },
+      "unchanged_annotation_sha256": "6c5fe2c562030ee2954d2298a886f533f66dcde42a49d9a74faf9d96238994e5"
+    }
+  ],
+  "frozen_inputs_sha256": {
+    "docs/v4/evaluation76/requests/dispute-01.local.json": "73f78c4a4aa89c9292161c084eecd194fddee74cc5595e357355372eec6cf786",
+    "docs/v4/evaluation76/requests/dispute-02.local.json": "d7ebd5a2b1d00540a6e0b274f9ba114571ff60785c295fff7934b1337858e622",
+    "docs/v4/evaluation76/requests/dispute-03.local.json": "e7fcb94a5d904bd3beeaaec180724acb913d450f38883554bf00fcfe714764fe",
+    "docs/v4/evaluation76/requests/dispute-04.local.json": "0f1b844a687ef628abbf3173b1134636358f8101f274f90f631f80f32b6a722e",
+    "docs/v4/evaluation76/requests/dispute-05.local.json": "568c6f399bcb1d376fdb0885e2929aba57f646d8c4083115239a05066f3f9fb7",
+    "docs/v4/evaluation76/requests/dispute-06.local.json": "911937dd905fea7d1831241db6b83b0057c3943e59675c16d1845f630a641b3f",
+    "docs/v4/evaluation76/requests/dispute-07.local.json": "15821045d213c1bb988e42fd105d8c57914510afb2c5b1136780a76537bd5207",
+    "docs/v4/evaluation76/requests/dispute-08.local.json": "93d905c8ac3f55e4c5bdef076c232b8f3d54a552d483b760bcd04e599c285daf",
+    "docs/v4/evaluation76/requests/dispute-09.local.json": "338bdd8afd33db54c7653f13bf1d63b3239e2f9f7e99f19b5aae64d060d2b67b",
+    "docs/v4/evaluation76/requests/dispute-10.local.json": "73583a754de4a31fdd8e0e8a92b6a3501e7e73e1cb41d102712c7d2348a4eaa7",
+    "docs/v4/evaluation76/requests/dispute-11.local.json": "58b227c50084ac4c594ec6b98ad45554c60f4d0631b15aa476e2548762c088bb",
+    "docs/v4/evaluation76/requests/dispute-12.local.json": "75d17c29e7666831b869f9d85f5ea7e2dee1ffac2b318bf19bad4e9a9c08185e",
+    "docs/v4/evaluation76/results/dispute-01.json": "168d8c656b98cb45f39175496f83d8d61fbe13662d0972c95d088698ae8ee744",
+    "docs/v4/evaluation76/results/dispute-02.json": "97c9f2de375aa3cec88a66fb8ea8aa12eae5a8b397395f24e3a94052bdb6dfcd",
+    "docs/v4/evaluation76/results/dispute-03.json": "cf5767e88950208898fe3b7a6527671bd52adf2749157dd2e3b6dba8a4bfa1fd",
+    "docs/v4/evaluation76/results/dispute-04.json": "221c5fd5097703dd88fc80c39f26be18ea4b248075e7b06a53cccd2caa90e546",
+    "docs/v4/evaluation76/results/dispute-05.json": "e74e9e56bba5625993a33e94de4ad71273ec0c63c339ba9c8fabf0e2b54ec22b",
+    "docs/v4/evaluation76/results/dispute-06.json": "58e634b9340ca8aea406c72411fb10136613625dd5454c444340eb10bb5fd331",
+    "docs/v4/evaluation76/results/dispute-07.json": "9cd41540daa6e1727de7db9ec17512c87fd30c71efe7b4d6753faadb2df42da9",
+    "docs/v4/evaluation76/results/dispute-08.json": "97fcec3eeb109ca11a1f25c7fcd7c7ef449fb3758a233f3b54e556973dba278a",
+    "docs/v4/evaluation76/results/dispute-09.json": "d826288e9826d1da8b7637c143e0ec25077f19c35fdb4e05910a3101ab94b094",
+    "docs/v4/evaluation76/results/dispute-10.json": "22c7fd6b7a13680404a0218ac4e3b958c7b5b34a9bb2828d340fa61364d7fe37",
+    "docs/v4/evaluation76/results/dispute-11.json": "43f50882e83efbfe7167053c6043ab93987237b3f13ec3c529adcebd39fe374f",
+    "docs/v4/evaluation76/results/dispute-12.json": "cdb17697dfc382196b2cf5a18ef33ce072570666c318b7cd8be249478bdd160b",
+    "fixtures/evaluation76_public/expected/disputes.json": "0c0f07b7dd7b82c627d3accc5f4953274459b6025b25b137a59493eeb5c139a4",
+    "fixtures/evaluation76_public/manifest.json": "6dc212c296dea38dc5ad7a39ccdda3fe8ad64e5e902d93d1329c66c8060ce82d"
+  },
+  "label": "OFFLINE_UNCHANGED_PUBLIC76_ANNOTATIONS_NOT_NEW_BLIND_SCORE",
+  "limitations": [
+    "Frozen76 baseline remains 4/6 supported family mappings and3/6 full semantics.",
+    "No new extraction, independent unseen score, actual human review, preparation or financial action.",
+    "Artifact category is not inferred from a document identifier."
+  ],
+  "model_calls": 0,
+  "schema": "uptime-dispute-remediation78/1",
+  "source_commit": "f4ec198ad6f9cc8202e8283acc1285b63f242a7f",
+  "source_files_sha256": {
+    "uptime/correspondence_interpretation.py": "7acf3d5c65d2586b227cf89bbc03f959a6fa7c2bde7d8a794d91d1ae28eb8a0a",
+    "uptime/correspondence_review.py": "2b89bc252a27ce6fcf12abdd8c2bf347e75f4a301a53de767818259b3745cd39",
+    "web/interpretation.js": "c92a2174354a57a493fd5b9efda5768732aa3b192f8d2e15582cb97645384abc"
+  },
+  "summary": {
+    "grounded": 12,
+    "review_controls_total": 6,
+    "supported_family_matches": 6,
+    "supported_full_semantics_matches": 5,
+    "supported_total": 6,
+    "total": 12,
+    "unknown_review_controls": 6
+  }
+}
