@@ -1,0 +1,63 @@
+{
+  "workstream": 75,
+  "source_commit": "054cb6fa6b90ed1cb5fd15bc98a739e93be0d3c6",
+  "source_sha256": {
+    "uptime/correspondence_model_jobs.py": "30e3c395f9251b3c0e9f1d29dc2eb90fd4cb3388b319f1a73101aeebce720160",
+    "uptime/correspondence_api.py": "ba91737aaf08f125c5a62312c9072a1ae5cad5709eca49e46e8255fcb553feeb",
+    "uptime/correspondence_review.py": "a77e57d3952afc88873f551e443b3a9d458eba46d4ed683235964b1e8c4d400e",
+    "uptime/correspondence_block_model.py": "84cdf6077fd8dd2b1642813c5a0559a56733d8e583518183903df44dd2396331",
+    "uptime/public_proposal_jobs.py": "8267ee9f222cf8fe745ecda625dd6cc130c9d80124ec07beb616ad1afaa5528d",
+    "web/interpretation.js": "b244df3f4dc97fbcef48a2b740fb8aca73b9f1995247ea2cd9f9bcbb663a59d8",
+    "tests/test_correspondence_model_jobs_75.py": "627425728ace364677a5bd0016a7b25857f1860d9ad60d703a9fa3459e0d68eb",
+    "tests/test_correspondence_model_jobs_ui_75.py": "fdf1c03c91aa06cf9d278aec39ebcfb271d2c26026a08ff53d30e662f74d686c",
+    "tests/test_correspondence_public_queue_75.py": "9f72324b2847771233993c05ec674f2c085e18700ae96521a32e7e4003d9e47b",
+    "tests/test_correspondence_interpretation_ui.py": "6473c77c26d1dee1066b9911b85c0cd2205c7f09b86c35947f00ccd47770d6ad",
+    "fixtures/correspondence/public-75/response.json": "f26dcb5b36b0632acb7aea67a65c2b19645b47f50180e0cfeff49149ec8318ed"
+  },
+  "source_frozen_during_final_checks": true,
+  "final_command": "uv run --locked pytest -q tests/test_correspondence_model_jobs_75.py tests/test_correspondence_model_jobs_ui_75.py tests/test_correspondence_public_queue_75.py tests/test_correspondence_interpretation_ui.py tests/test_correspondence_interpretation.py tests/test_correspondence_blocks_71.py tests/test_correspondence_literal_71.py tests/test_public_proposal_jobs.py --basetemp=/tmp/uptime-runtime75-focused-final",
+  "checks": [
+    {
+      "name": "focused-1",
+      "result": "179 passed, 1 warning in 12.38s",
+      "exit_code": 0,
+      "log_sha256": "a2f64eefc37a66dd9e9028588cf2c0347f97dca3b8552ab2a2491c6451d3b237",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-runtime-75/focused-1.log"
+    },
+    {
+      "name": "queue-1",
+      "result": "1 failed, 1 passed: new test assumed stale interpretation view remained readable",
+      "exit_code": 1,
+      "log_sha256": "c3c439fdff5b34c0265cd9cd319243f02c08a6f6965084350b2c0426edd0d822",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-runtime-75/queue-1.log"
+    },
+    {
+      "name": "queue-2",
+      "result": "1 failed, 1 passed: explicit assertion exposed safe 409 closure",
+      "exit_code": 1,
+      "log_sha256": "8e9023519142477c816f92c9aac17682645d2fe6f6ee7e3bfdf29531bbfe9c5e",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-runtime-75/queue-2.log"
+    },
+    {
+      "name": "queue-3",
+      "result": "2 passed, 1 warning in 1.08s",
+      "exit_code": 0,
+      "log_sha256": "624d1400d7bfa866ca9602730a5338ff6ea0102f2f03f6a10ec2936ec8fb22e0",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-runtime-75/queue-3.log"
+    },
+    {
+      "name": "focused-final",
+      "result": "181 passed, 1 warning in 8.87s",
+      "exit_code": 0,
+      "log_sha256": "76dfce2f30e22a2bb8f74caf976a4763747f7dd099859898445b92f19ffcc51a",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-runtime-75/focused-final.log"
+    }
+  ],
+  "actual_provider_proof": "docs/v4/evidence/dispute-runtime-75-public-queue.json",
+  "actual_provider_session": "2cd18831-62df-4260-8e6a-ff1b9177d6fb",
+  "actual_coding_session": "6cd955be-2fa5-4b85-96aa-4b8de46982a4",
+  "customer_or_private_inputs": false,
+  "actual_human_review": false,
+  "external_actions": 0,
+  "root_integration": "Root will merge startup/configuration wiring and run the complete suite; this branch does not claim that integration check."
+}
