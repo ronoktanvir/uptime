@@ -139,3 +139,12 @@ def test_opt_in_profile_cannot_mint_governing_fee_authority():
     observation = facts(next(case for case in CASES.values() if case['outcome'] == 'ELIGIBLE'))
     observed = evaluate(manifest, bound, observation | {'monthly_fee_cents':999999999}, P.tenant)
     assert observed['outcome'] == 'INSUFFICIENT_EVIDENCE' and observed['amount'] is None
+
+
+def test_monthly_profile_browser_selector_contract():
+    import subprocess
+    root = Path(__file__).resolve().parent.parent
+    checked = subprocess.run(['node', '--test', 'tests/helpers/vendor_monthly_profile79.test.cjs',
+                              'tests/helpers/vendor_model_jobs.test.cjs'],
+                             cwd=root, capture_output=True, text=True, timeout=20)
+    assert checked.returncode == 0, checked.stdout + checked.stderr
