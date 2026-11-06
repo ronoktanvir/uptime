@@ -229,6 +229,13 @@
       ['resource-month','Resource or service-month terms (interpretation review required)']];
     const REASONS = {PROPOSAL_SERVICE_UNCONFIGURED:'proposal generation is not configured in this deployment',
       PROVIDER_UNCONFIGURED:'no public proposal provider is configured', NOT_SUCCEEDED:'the job has not succeeded',
+      exact_request_not_approved:'this exact document request needs operator approval',
+      proposal_validation_failed:'the returned proposal did not pass source validation',
+      approval_unavailable_before_dispatch:'source permission was unavailable when the job was ready',
+      provider_timeout:'the model did not finish within the allowed time',
+      provider_outcome_unknown:'the model outcome could not be confirmed',
+      restart_before_dispatch:'the pending job was cancelled when the service restarted',
+      restart_after_dispatch:'the service restarted after the model call began',
       RESULT_INTEGRITY:'the stored result failed its integrity pins',
       STALE_CONTEXT:'the source, profile or evaluator semantics changed after generation',
       REQUEST_CHANGED:'the configured transport changed after generation'};
@@ -259,10 +266,18 @@
       inputs.attempt_nonce.value = 'initial';
       inputs.text = field(box, 'text', 'Exact public source text (sent exactly as entered)', 'textarea');
       inputs.text.rows = 12;
+      const sourceFile = field(box, 'source_file', 'Import UTF-8 source file (optional)', 'file', false);
+      sourceFile.accept = '.txt,text/plain';
+      let fileText = null, fileDisplay = null;
       const state = {token:0, inflight:0, confirmed:null, lost:false, job:null, shown:null, polls:0};
       const accessOut = el('div', undefined, 'v4-review'), jobOut = el('div', undefined, 'v4-review');
       const live = () => mounts.get(m.root) === m;
-      const values = () => Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value]));
+      const values = () => {
+        // Textareas normalize line endings. Keep imported text separately until an explicit edit.
+        if (fileText !== null && inputs.text.value !== fileDisplay) fileText = null;
+        return {...Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value])),
+          text:fileText === null ? inputs.text.value : fileText};
+      };
       const payload = v => ({document:{name:v.name, uri:v.uri, classification:v.classification, text:v.text},
         profile:v.profile, attempt_nonce:v.attempt_nonce});
       const exact = v => JSON.stringify([v.vendor_id, payload(v)]);
@@ -290,7 +305,32 @@
         invalidate();
         if (had) status(m, 'The proposal fields changed. Check generation access again before generating.');
       }
-      Object.values(inputs).forEach(input => { input.addEventListener('input', edited); input.addEventListener('change', edited); });
+      Object.values(inputs).forEach(input => {
+        const change = () => {
+          if (input === inputs.text && fileText !== null) {
+            fileText = null;
+            edited();
+            status(m, 'Text edited. This is a new source request; check generation access again.');
+          } else edited();
+        };
+        input.addEventListener('input', change); input.addEventListener('change', change);
+      });
+      sourceFile.addEventListener('change', async () => {
+        const file = sourceFile.files && sourceFile.files[0];
+        fileText = null; fileDisplay = null; inputs.text.value = ''; invalidate();
+        if (!file) return;
+        const token = state.token; state.inflight++; update();
+        try {
+          if (file.size > 200000) throw new Error('Source too large');
+          const text = new TextDecoder('utf-8', {fatal:true, ignoreBOM:true}).decode(await file.arrayBuffer());
+          if (token !== state.token || !live()) return;
+          if (!text || text.length > 50000) throw new Error('Source too large');
+          fileText = text; inputs.text.value = text; fileDisplay = inputs.text.value;
+          status(m, 'Source file loaded. Original line endings are retained until you edit the text. Check generation access before sending.');
+        } catch (_) {
+          if (token === state.token && live()) status(m, 'Choose a valid UTF-8 text file within the source limit. Nothing was sent.');
+        } finally { state.inflight--; update(); }
+      });
       function accessView(answer) {
         const n = add(el('div', undefined, 'v4-access'), el('h3', 'Server generation access'),
           record({enabled:answer.enabled, reason:answer.reason, request_sha256:answer.request_sha256, context_sha256:answer.context_sha256}));

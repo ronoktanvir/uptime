@@ -8,6 +8,7 @@ import time
 
 import pytest
 
+from uptime.auth import bind_workspace
 from uptime.contracts import DraftReviewer, fingerprint
 from uptime.public_proposal_jobs import PublicProposalJobs, canonical
 from uptime.storage import database, initialize
@@ -19,7 +20,8 @@ FIXTURE = Path(__file__).resolve().parent.parent/'fixtures/opus70_public'
 DOC = json.loads((FIXTURE/'document.json').read_text())
 OVERLAY = json.loads((FIXTURE/'overlay.json').read_text())
 PROPOSAL = json.loads((FIXTURE/'proposal.authored.json').read_text())
-P = DraftReviewer('runtime74-test', 'scripted-runtime74-reviewer', 'reviewer')
+# Disposable generated-key account used only for draft tests; never human approval.
+P = DraftReviewer('runtime74-test', 'runtime74-test-reviewer', 'reviewer')
 VENDOR = 'new-approved-vendor'
 NOW = datetime(2026, 11, 5, 12, tzinfo=UTC)
 
@@ -31,11 +33,12 @@ class PublicProviderDouble:
     def __init__(self, proposal=None):
         self.calls = []
         self.proposal = deepcopy(PROPOSAL if proposal is None else proposal)
+        self.raw_text = None
 
     def __call__(self, request):
         self.calls.append(request)
         return {'model': MODEL, 'session': 'scripted-runtime74-provider',
-                'text': json.dumps({'clauses': self.proposal})}
+                'text': self.raw_text if self.raw_text is not None else json.dumps({'clauses': self.proposal})}
 
 
 def write_manifest(path, approvals=()):
@@ -48,7 +51,9 @@ def write_manifest(path, approvals=()):
 def runtime(tmp_path):
     root = tmp_path/'protected'; root.mkdir(mode=0o700)
     manifest = root/'approvals.json'; write_manifest(manifest)
-    db = tmp_path/'runtime.sqlite'; initialize(db)
+    db = tmp_path/'runtime.sqlite'
+    bind_workspace(db, 'replay', False, P.tenant)
+    initialize(db)
     provider = PublicProviderDouble()
     service = PublicProposalJobs(db, manifest, {'vendor': provider}, clock=lambda: NOW)
     adapter = VendorModelJobs(service)
@@ -56,15 +61,14 @@ def runtime(tmp_path):
     service.close()
 
 
-def approved(runtime):
+def approved(runtime, document=None):
     db, manifest, provider, service, adapter = runtime
-    body = ProposalRequest(document=DOC, profile='monthly')
+    body = ProposalRequest(document=DOC if document is None else document, profile='monthly')
     document, context, request = adapter._prepare(VENDOR, body)
     record = public_approval_request(provider, P, VENDOR, body)
     assert record['context_sha256'] == context and canonical(record['request']) == request
     record.update({'approved_by': 'scripted-public-engineering-operator',
-              'approved_at': '2026-11-01T00:00:00Z', 'expires_at': '2026-12-01T00:00:00Z',
-              'source_references': [{'reference': DOC['uri'], 'sha256': sha256(DOC['text'].encode()).hexdigest()}]})
+              'approved_at': '2026-11-01T00:00:00Z', 'expires_at': '2026-12-01T00:00:00Z'})
     write_manifest(manifest, [record])
     return body, request
 
@@ -153,3 +157,18 @@ def test_corrupt_job_receipt_cannot_advertise_or_create_candidate(runtime):
     with pytest.raises((ValueError, PermissionError)):
         adapter.candidate(P, VENDOR, complete['job_id'], OVERLAY)
     assert vendor_registry.catalog(db, P)['vendors'] == []
+
+
+def test_fenced_runtime_output_is_retained_and_refused_without_candidate(runtime):
+    db, manifest, provider, service, adapter = runtime
+    body, _ = approved(runtime)
+    provider.raw_text = '```json\n'+json.dumps({'clauses': PROPOSAL})+'\n```'
+    complete = finished(service, adapter.submit(P, VENDOR, body))
+    assert complete['status'] == 'REFUSED' and complete['result'] is None
+    assert adapter.status(P, VENDOR, complete['job_id'])['candidate_available'] is False
+    with pytest.raises(ValueError):
+        adapter.candidate(P, VENDOR, complete['job_id'], OVERLAY)
+    with database(db) as connection:
+        raw = connection.execute('SELECT response_json FROM public_proposal_jobs WHERE id=?', (complete['job_id'],)).fetchone()[0]
+    assert json.loads(raw)['text'] == provider.raw_text
+    assert len(provider.calls) == 1 and vendor_registry.catalog(db, P)['vendors'] == []

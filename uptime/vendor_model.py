@@ -228,10 +228,7 @@ def proposal_receipt(document, profile, provider_result, *, at):
             or type(provider_result.get('text')) is not str
             or len(provider_result['text'].encode('utf-8')) > MAX_PROVIDER_TEXT_BYTES):
         raise ProposalEnvelopeError('Public proposal provider identity or output envelope unverified.')
-    raw = provider_result['text'].strip()
-    if raw.startswith('```json') and raw.endswith('```'):
-        raw = raw[7:-3]  # identical to the legacy envelope; the proposal itself is never altered
-    proposal = strict_json(raw)
+    proposal = strict_json(provider_result['text'])
     block_protocol = _resource_protocol(document)[1] if profile == 'resource-month' else 'public_block_ids/1'
     clauses, protocol = _project(document, profile, proposal, block_protocol)
     allow = PROPOSAL_PROFILES[profile]

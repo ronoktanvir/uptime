@@ -18,3 +18,19 @@ Retained native receipts under `W/tasks`:
 - `onboarding74-dom-first.log`: 14 DOM tests passed, including the worker's exact-source, permission, edit invalidation, polling, lost-response recovery and inert-result controls.
 
 Final signed HTTP/browser integration and the lead-owned merged full suite are separate gates. No final full-suite or genuine runtime model result is claimed by these focused controls.
+
+Final native controls (new tests, no existing assertion changes):
+
+- `tests/test_vendor_model_jobs_runtime.py::test_fenced_output_is_preserved_and_refused_without_candidate`: the runtime applies strict JSON decoding to the original provider text; fenced output remains in private queue evidence and cannot produce a candidate. Legacy `generate()` fence behavior is unchanged.
+- `tests/test_vendor_model_jobs_browser.py::test_signed_job_routes_require_approval_and_cannot_grant_financial_actions`: actual signed routes, exact protected permission, one invocation, idempotent SHADOW installation, foreign-owner refusal and disabled financial actions.
+- `::test_provider_work_does_not_hold_the_application_post_lock`: a blocked provider does not block a second signed application POST.
+- `::test_browser_checks_permission_generates_and_stages_separate_overlay[manual]` and `[utf8_file]`: real Chrome against a loopback server and the actual durable service with an explicit provider double. UTF-8 file import preserves original CRLF in the approved request despite textarea display normalization. Editing creates a different unapproved source; reimporting the original restores the original request. Both paths reach SHADOW with no review/activation authority, no overlay disclosure, no page errors and no mobile horizontal overflow.
+
+New test-fixture corrections retain their failed receipts: reserved `scripted-` account names were replaced with generated-key draft-test names; workspace binding now precedes service initialization; financial refusal is checked at the authentication challenge; the browser assertion reads the actual structured `input.text` field. No source, output or authority assertions were weakened.
+
+- `onboarding74-http-browser.log`, `onboarding74-http-browser2.log`, `onboarding74-http-browser3.log` and `onboarding74-frozen.log` preserve those failures.
+- `onboarding74-ready.log`: 252 passed, one existing warning, 14.07 seconds.
+- `onboarding74-file-edit.log`: four signed/browser tests passed, one existing warning, 10.14 seconds, after the explicit edit/reimport control and bounded permission copy.
+- `onboarding74-dom-file.log`: eight DOM controls passed with the optional file input.
+
+The final integrated full suite remains lead-owned; these are focused results.
