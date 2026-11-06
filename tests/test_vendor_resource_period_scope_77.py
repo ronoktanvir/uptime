@@ -428,3 +428,29 @@ def test_supported_scoped_filing_never_discards_an_unsupported_neighbor():
          {'unsupported':'Discretionary filing extension has no finite decision rule.'})]
     with pytest.raises(ValueError, match='Unsupported material'):
         compile_rows(rows)
+
+
+@pytest.mark.parametrize('year,month,end,days', [(2032, '02', '2032-03-01', 29), (2029, '12', '2030-01-01', 31)])
+def test_explicit_period_retains_finite_supplier_duration_and_closed_scope_context(year, month, end, days):
+    start = f'{year}-{month}-01T00:00:00Z'
+    stop = end + 'T00:00:00Z'
+    quote = (f'Birch Harbor supplies Queue Store on the Silver plan. This agreement covers that service '
+             f'for the single monthly period from {start} inclusive to {stop} exclusive. '
+             f'The monthly period is exactly {days} days, or {days * 1440:,} minutes. '
+             'All times are UTC. There are no other covered services or periods.')
+    value = {'start':start, 'end':stop}
+    assert period(quote, value) == value
+    for malformed in (
+        quote.replace(f'{days} days', f'{days + 1} days'),
+        quote.replace(f'{days * 1440:,} minutes', '1 minutes'),
+        quote.replace(f'{start} inclusive', f'{start} exclusive'),
+        quote.replace(f'{stop} exclusive', f'{stop} inclusive'),
+        quote.replace('covers that service', 'does not cover that service'),
+        quote.replace(' supplies ', ' does not supply '),
+        quote.replace('All times are UTC.', 'All times are local.'),
+        quote.replace('There are no other covered services or periods.', 'There are other covered services or periods.'),
+        quote + ' Except the last day.',
+        quote + f' The next period starts at {stop}.',
+    ):
+        with pytest.raises(ValueError, match='Fixed period'):
+            period(malformed, value)

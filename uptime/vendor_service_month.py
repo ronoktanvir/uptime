@@ -58,9 +58,20 @@ _PERIOD_FORMS = tuple((calendar, re.compile(_PREFIX + form + r'\.', re.I)) for c
     (False, r'(?:from )?(?P<start>' + STAMP + r') (?:inclusive|\(inclusive\)) (?:to|until) (?P<end>' + STAMP
             + r') (?:exclusive|\(exclusive\))'),
     (False, r'from and including (?P<start>' + STAMP + r') (?:to|until|up to) but excluding (?P<end>' + STAMP + r')'),
+    (False, r'that service for the (?:single )?monthly period from (?P<start>' + STAMP
+            + r') inclusive (?:to|until) (?P<end>' + STAMP + r') exclusive'),
 ))
 _MONTH_MINUTES = re.compile(r'(?:that|this|the) (?:(?:utc|calendar|service) )*month (?:contains|has|comprises|is) '
                             r'(?P<minutes>\d{1,3}(?:,\d{3})+|\d+) minutes\.', re.I)
+_NAME = r'(?-i:' + _WORD + r'(?: ' + _WORD + r'){0,7})'
+_SUPPLY_CONTEXT = re.compile(r'(?P<vendor>' + _NAME + r') supplies (?P<product>' + _NAME
+                             + r') on the (?P<plan>' + _NAME + r') plan\.', re.I)
+_PERIOD_DURATION = re.compile(r'the monthly period is exactly (?P<days>\d+) days, or '
+                              r'(?P<minutes>\d{1,3}(?:,\d{3})+|\d+) minutes\.', re.I)
+# These complete assertions establish only a UTC clock and closed coverage. They
+# cannot absorb an exception, contrary qualifier or another period's endpoints.
+_PERIOD_CONTEXT = ('all times are utc.', 'there are no other covered services or periods.')
+
 # Introductory scope wording is consumed only as a capitalized name; these words would
 # carry period, polarity or condition meaning and therefore cannot hide inside it.
 _RESERVED_OBJECT = {'not','no','non','except','excluding','including','unless','only','partial','if','provided','utc',
@@ -81,11 +92,28 @@ def _period_assertion(quote, start_text, end_text, start, end):
         return False
     if calendar and (MONTH_NAMES.index(match['label'].casefold()) + 1 != start.month or int(match['year']) != start.year):
         return False
-    rest = sentences[:index] + sentences[index + 1:]
-    if not rest:
-        return True
-    minutes = _MONTH_MINUTES.fullmatch(sentences[index + 1]) if len(rest) == 1 and index + 1 < len(sentences) else None
-    return bool(minutes) and int(minutes['minutes'].replace(',', '')) == (end - start) // timedelta(minutes=1)
+    if index:
+        # A combined source block may first identify its supplier/product/plan.
+        # Consume that affirmative sentence, rather than dropping arbitrary context.
+        supplied = _SUPPLY_CONTEXT.fullmatch(sentences[0]) if index == 1 else None
+        if not supplied or any({w.casefold() for w in name.split()} & (_RESERVED_OBJECT | set(MONTH_NAMES))
+                               for name in supplied.groupdict().values()):
+            return False
+    following = sentences[index + 1:]
+    if following:
+        minutes = _MONTH_MINUTES.fullmatch(following[0])
+        duration = _PERIOD_DURATION.fullmatch(following[0])
+        if minutes or duration:
+            stated = minutes or duration
+            if int(stated['minutes'].replace(',', '')) != (end - start) // timedelta(minutes=1):
+                return False
+            if duration and int(duration['days']) != (end - start) // timedelta(days=1):
+                return False
+            following = following[1:]
+    for assertion in _PERIOD_CONTEXT:
+        if following and following[0].casefold() == assertion:
+            following = following[1:]
+    return not following
 
 
 def validate(manifest, key, value, quote):

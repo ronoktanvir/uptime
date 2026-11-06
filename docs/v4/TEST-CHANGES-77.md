@@ -43,3 +43,9 @@ The lead-authored integration test `test_signed_historical_receipt_uses_its_veri
 - Final focused checks against source freeze `ee44b3872e7d41847360b1f90e5d9b7ecc97e48f`: **352 passed, 1 warning in 20.78s**. Covered vendor resource/operators/service-month/scoped/semantic bindings; both new77 files; correspondence resource/regional/plan references/service. The warning is the existing Starlette/httpx TestClient deprecation. Source hashes remained unchanged afterward. [Exact command and receipt](decisions/reviews/77-focused-verification.json). Root owns merge/full-suite verification.
 
 Protected startup-spooled model streams and test receipts live under the local `review/decision77` directory outside Git. The public model receipt records actual sessions, tool inventory, status, edits and stream hashes.
+
+## Compatibility correction after root integration
+
+Root full-suite result `53bd7be`: 28 failed,3355 passed,1 warning in158.87s. All reported initial failures rejected existing CalyxQuay block4, cascading through Northwind setup. The unchanged exact workflow regression reproduced the failure locally (1 failed,1 existing warning in0.89s). No existing test or source/proposal fixture was modified.
+
+Added `test_explicit_period_retains_finite_supplier_duration_and_closed_scope_context` (two parameterizations) in the existing new77 test module. It covers a general combined source block with explicit period endpoints, supplier scope, exact days/minutes, UTC and closed coverage for leap February2032 and December2029. It rejects wrong days/minutes, reversed endpoint markers, negated coverage/supply, local-clock substitution, open coverage, exceptions and an extra period. This verifies the missing representation independently of the existing CalyxQuay names.

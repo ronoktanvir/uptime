@@ -35,3 +35,13 @@ Before implementation, the existing resource, operator and service-month suites 
 The frozen evaluation76 inputs, independent expected outcomes, request manifests and first model outputs remain unchanged. These known examples are remediation controls. This decision does not establish that a new model request can extract every remaining condition in those contracts, and it does not promote a template or authorize a filing.
 
 Rollback: revert the bounded implementation commit and its new tests. Existing immutable source and baseline evidence need no migration or rewriting.
+
+## Integration correction: existing combined source blocks
+
+The root full suite at `53bd7be` found **28 failed, 3355 passed, 1 warning in 158.87s**. The initial focused suite missed the existing CalyxQuay public block used by Northwind setup. Reproducing `test_public_signed_setup_and_scripted_calyx_history_preserve_unknowns` failed at block4 `fixed_period`, as reported. The earlier focused success did not establish whole-application compatibility.
+
+The block contains an affirmative supplier/product/plan sentence, an explicitly inclusive-start/exclusive-end monthly period, exact days/minutes, a UTC assertion and a closed-coverage assertion. The new grammar omitted “that service for the single monthly period” and refused the bounded neighboring context. This was a compatibility regression introduced by77.
+
+The correction adds that general explicit-period form and consumes only finite affirmative supply, mathematically exact duration, UTC and closed-coverage assertions. It retains the original full block and exact endpoint comparisons; arbitrary context, mismatched durations, reversed endpoints, contrary qualifiers, extra periods and exceptions still refuse. Added independent February leap-year and December rollover controls use different authored supplier/product/plan names. Existing sources, staged model responses and tests remain unchanged. This is lead-authored routine correction under the existing decision; no model call was made.
+
+The unchanged `scripts.film_ramp_v4.public_intake` now returns the original April2031 endpoints and original accepted extraction session. Its direct invocation requires the existing reviewed-proposition opt-in; an initial probe without that setting refused before validation, and the corrected probe used the same setting as normal setup. Final legacy and new checks are recorded after the correction source freeze.
