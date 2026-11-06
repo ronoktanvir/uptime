@@ -1,0 +1,178 @@
+{
+  "source_commit": "5b750db",
+  "focused_verification": {
+    "passed": 27,
+    "warnings": 1,
+    "elapsed_seconds": "22.13",
+    "log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/onboarding83-frozen.log"
+  },
+  "case": "Disposable test session expired before explicit shadow candidate confirmation; actual Chrome and signed application with explicit public provider double.",
+  "original_incident_qualification": "The original actual browser incident did not capture an HTTP status; this deterministic401 evidence is a separate regression, not a reinterpretation of that incident.",
+  "evidence": {
+    "responses": [
+      [
+        "GET",
+        "/",
+        200
+      ],
+      [
+        "GET",
+        "/static/style.css",
+        200
+      ],
+      [
+        "GET",
+        "/static/auth.js",
+        200
+      ],
+      [
+        "GET",
+        "/static/ramp_ui.js",
+        200
+      ],
+      [
+        "GET",
+        "/static/workspace_ui.js",
+        200
+      ],
+      [
+        "GET",
+        "/static/app.js",
+        200
+      ],
+      [
+        "GET",
+        "/static/v4_style.css",
+        200
+      ],
+      [
+        "GET",
+        "/static/v4_ui.js",
+        200
+      ],
+      [
+        "GET",
+        "/static/favicon.svg",
+        200
+      ],
+      [
+        "POST",
+        "/api/auth/challenge",
+        200
+      ],
+      [
+        "POST",
+        "/api/auth/login",
+        200
+      ],
+      [
+        "GET",
+        "/api/policy",
+        200
+      ],
+      [
+        "GET",
+        "/api/vendors",
+        200
+      ],
+      [
+        "POST",
+        "/api/auth/challenge",
+        200
+      ],
+      [
+        "POST",
+        "/api/vendors/new-approved-vendor/proposal-access",
+        200
+      ],
+      [
+        "POST",
+        "/api/auth/challenge",
+        200
+      ],
+      [
+        "POST",
+        "/api/vendors/new-approved-vendor/proposal-jobs",
+        200
+      ],
+      [
+        "GET",
+        "/api/vendors/new-approved-vendor/proposal-jobs/87c79217-4840-4dc6-98bc-2078c75756b6",
+        200
+      ],
+      [
+        "POST",
+        "/api/auth/challenge",
+        401
+      ],
+      [
+        "POST",
+        "/api/auth/challenge",
+        200
+      ],
+      [
+        "POST",
+        "/api/auth/login",
+        200
+      ],
+      [
+        "GET",
+        "/api/policy",
+        200
+      ],
+      [
+        "GET",
+        "/api/vendors",
+        200
+      ],
+      [
+        "POST",
+        "/api/auth/challenge",
+        200
+      ],
+      [
+        "POST",
+        "/api/vendors/new-approved-vendor/proposal-access",
+        200
+      ],
+      [
+        "POST",
+        "/api/auth/challenge",
+        200
+      ],
+      [
+        "POST",
+        "/api/vendors/new-approved-vendor/proposal-jobs/87c79217-4840-4dc6-98bc-2078c75756b6/candidate",
+        200
+      ],
+      [
+        "GET",
+        "/api/policy",
+        200
+      ],
+      [
+        "GET",
+        "/api/vendors",
+        200
+      ],
+      [
+        "GET",
+        "/api/vendors/new-approved-vendor",
+        200
+      ]
+    ],
+    "job_id": "87c79217-4840-4dc6-98bc-2078c75756b6",
+    "provider_calls": 1,
+    "candidate_state": "SHADOW"
+  },
+  "screenshots": [
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/pytest-onboarding83-frozen/test_expired_browser_session_r0/expired-session-sign-in.png",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/pytest-onboarding83-frozen/test_expired_browser_session_r0/expired-session-recovered-shadow.png"
+  ],
+  "source_files_sha256": {
+    "web/app.js": "0857be0c83a04598bb1a9e927f738620bc7531f754a7671f618d9d8b0ec5bd6c",
+    "web/v4_ui.js": "35115fdd101544b97b520f6ecd8c9fd59a9ae4322b712381c3beab5d9b44e109"
+  },
+  "full_integration": "root-owned; not claimed here",
+  "real_model_calls": 0
+}
