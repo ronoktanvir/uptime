@@ -1,0 +1,63 @@
+{
+  "workstream": 78,
+  "kind": "NUMERIC_ISSUANCE_GUARD_CORRECTION",
+  "base_commit": "e8840a2a3dd1fd07f79dbc06970aead54c158a74",
+  "source_sha256": {
+    "uptime/correspondence_interpretation.py": "ef682679f1c3619f866feb7c6883e64aebe30746fb17930bfe104ac50d684235",
+    "tests/test_correspondence_denial_bundle_78.py": "ebb28790750986e7a39e997a1c0ae7f12d774a277ef50212fd31fea2f6ea7de2"
+  },
+  "checks": [
+    {
+      "name": "integer-before",
+      "result": "4 failed,4 passed,132 deselected,1 warning in0.37s",
+      "command": [
+        "uv",
+        "run",
+        "--locked",
+        "pytest",
+        "-q",
+        "tests/test_correspondence_denial_bundle_78.py",
+        "-k",
+        "integer_or_grouped",
+        "--basetemp=/tmp/uptime-bundle78-integer-before"
+      ],
+      "returncode": 1,
+      "log_sha256": "05d790c5017f1308930e0baac522847352b7874f23c6ee39614a47ba914ce0d5",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-bundle-78/integer-before.log"
+    },
+    {
+      "name": "integer-after",
+      "result": "261 passed,1 warning in6.01s",
+      "command": [
+        "uv",
+        "run",
+        "--locked",
+        "pytest",
+        "-q",
+        "tests/test_correspondence_denial_bundle_78.py",
+        "tests/test_correspondence_denial_bundle_ui_78.py",
+        "tests/test_correspondence_interpretation.py",
+        "tests/test_correspondence_interpretation_ui.py",
+        "tests/test_correspondence_blocks_71.py",
+        "tests/test_correspondence_literal_71.py",
+        "--basetemp=/tmp/uptime-bundle78-integer-after"
+      ],
+      "returncode": 0,
+      "required_browser": true,
+      "log_sha256": "7c610412debf8617acb5288bde7fbd51cf34229c8b94cb7b9c1eb77ce2f1e052",
+      "local_log": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/dispute-bundle-78/integer-after.log"
+    }
+  ],
+  "source_frozen_during_after_checks": true,
+  "failing_expectations_and_annotations_unchanged": true,
+  "reproduced_failures": [
+    "FAILED tests/test_correspondence_denial_bundle_78.py::test_unassigned_integer_or_grouped_issuance_cannot_be_dropped[30]",
+    "FAILED tests/test_correspondence_denial_bundle_78.py::test_unassigned_integer_or_grouped_issuance_cannot_be_dropped[1 000]",
+    "FAILED tests/test_correspondence_denial_bundle_78.py::test_unassigned_integer_or_grouped_issuance_cannot_be_dropped[1\\xa0000]",
+    "FAILED tests/test_correspondence_denial_bundle_78.py::test_unassigned_integer_or_grouped_issuance_cannot_be_dropped[1\\u202f000]"
+  ],
+  "correction": "Generalize the existing same-clause issuance refusal from decimal to numeric literals, including integers and grouped forms. No currency, value or locale is inferred.",
+  "model_calls": 0,
+  "financial_or_external_actions_executed": 0,
+  "limitation": "This conservative lexical loss guard does not establish complete semantics; explicit source review and existing financial/action controls remain mandatory."
+}

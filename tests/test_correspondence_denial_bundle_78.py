@@ -183,3 +183,12 @@ def test_unassigned_decimal_issuance_cannot_be_dropped_by_denial_bundle(clause):
     before=annotation.model_dump()
     assert proposal_for_review(context(text),annotation).reason=='unknown'
     assert annotation.model_dump()==before
+
+
+@pytest.mark.parametrize('value',['30','1,000','1.000','1 000','1\u00a0000','1\u202f000','1,000.00','1.000,00'])
+def test_unassigned_integer_or_grouped_issuance_cannot_be_dropped(value):
+    text=f'Availability met the target. We issued {value}. No credit is due.'
+    annotation=bundle(text,'availability')
+    before=annotation.model_dump()
+    assert proposal_for_review(context(text),annotation).reason=='unknown'
+    assert annotation.model_dump()==before
