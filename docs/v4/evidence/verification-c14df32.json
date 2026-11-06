@@ -1,0 +1,20 @@
+{
+  "commit": "c14df32",
+  "command": "uv run --locked pytest --basetemp W/tasks/pytest75-root-final",
+  "result": "3288 passed, 1 warning in 214.72s (0:03:34)",
+  "exit_code": 0,
+  "log_sha256": "8398aeed08061870bc78e2017c3da38bcba7131be39899e882947903366a05a3",
+  "log_reference": "W/receipts/phase75-root-final-full.log",
+  "javascript": {
+    "result": "47 passed, 0 failed",
+    "log_sha256": "6de51d3f28efe857708f9344f41b5abdc9001021735beb51ddc97cfdaf65a185"
+  },
+  "prior_attempt": {
+    "result": "641 passed, 1 warning before KeyboardInterrupt; not a complete run",
+    "reason": "Started prematurely while documentation merge conflicts remained; stopped, preserved, resolved and restarted on the committed source.",
+    "exit_code": 2,
+    "log_sha256": "b16664264adddc42bd728b1fcf35c047250445be439ce309eb3a0ed56df17b45"
+  },
+  "native_write_verified": false,
+  "customer_model_processing_enabled": false
+}

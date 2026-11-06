@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-06T02:03:09.819512+00:00",
+  "updated_at": "2026-11-06T02:12:38.409811+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
@@ -7,15 +7,15 @@
   "evidence": [
     {
       "label": "Latest Python regression",
-      "value": "3,238 passed",
-      "detail": "d253553: 3,238 passed, 1 warning in 217.95s after evaluation 76 merge. Application runtime wrappers are not integrated yet.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-d253553.json"
+      "value": "3,288 passed",
+      "detail": "c14df32: signed dispute jobs and operator configuration passed 3,288 tests, 1 warning in 214.72s. All 47 JavaScript checks passed.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-c14df32.json"
     },
     {
       "label": "Hosted verification",
-      "value": "CI passed fd6537c",
-      "detail": "GitHub run 42138346878 passed 3,203 tests with 1 warning in 364.30s. The newer shared queue has its own local full-suite proof; hosted verification is tracked separately.",
-      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42138346878"
+      "value": "CI passed 88a72e5",
+      "detail": "3,238 tests, 1 warning in 352.29s; 47 JavaScript checks, graph, replay and repository scan passed. Latest dispute integration has separate local verification.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42146953611"
     },
     {
       "label": "Northwind workflow",
@@ -450,8 +450,8 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "3,238 Python checks passed",
-      "detail": "d253553 passed 3,238 tests, 1 warning in 217.95s after shared queue and frozen baseline evidence. Original and new failed attempts remain preserved.",
+      "summary": "3,288 Python and 47 JavaScript checks passed",
+      "detail": "c14df32 full merge suite: 3,288 passed, 1 warning in 214.72s. Premature pre-commit run was stopped and retained; committed source passed independently.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
@@ -470,14 +470,14 @@
       "title": "GitHub CI verification",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "GitHub CI passed fd6537c",
-      "detail": "Run 42138346878 passed 3,203 tests, 1 warning in 364.30s. Newer queue/application changes need their own hosted result.",
+      "summary": "GitHub CI passed 88a72e5",
+      "detail": "Run 42146953611 passed 3,238 tests, 1 warning in 352.29s, plus all 47 JavaScript checks and other workflow steps.",
       "owner": "Integration QA",
       "depends_on": [
         "github",
         "regression"
       ],
-      "next_action": "Track the pushed88a72e5 workflow to completion.",
+      "next_action": "Verify the latest application integration on GitHub after publication.",
       "links": [
         {
           "label": "Successful GitHub run",
@@ -647,6 +647,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-06T02:12:38.409811+00:00",
+      "title": "Dispute model workflow integrated",
+      "detail": "Actual approved Opus proposal remains inert until review; unauthorized submission stayed blocked. Full suite: 3,288 passed, 1 warning; 47 JavaScript checks.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/PHASE75-DISPUTE-RUNTIME.md"
+    },
     {
       "at": "2026-11-06T02:03:09.819512+00:00",
       "title": "Shared queue verified; fresh baseline published",
