@@ -64,6 +64,34 @@ def advance(client,actor):
     return setup.checked(actor.post('/api/workspace/workflow/actions/'+action['id'],{}))['workflow']
 
 
+def test_result_calculations_use_current_evaluator_and_citations_keep_original_bytes(tmp_path):
+    from decimal import localcontext
+    from hashlib import sha256
+    app,client,actor,_=seeded(tmp_path)
+    try:
+        with localcontext() as context:
+            context.prec=2
+            value=read(client,actor)
+        january,february,march=value['months']
+        assert january['calculation']==[
+            '2 completed shortfall increments; 20% credit after the contractual cap.',
+            'USD 12000.00 × 20% = USD 2400.00 after final-cent rounding.']
+        assert february['calculation']==['0 completed shortfall increments; 0% credit after the contractual cap.']
+        assert february['amount'] is None and march['amount'] is None and march['calculation']==[]
+        source=app.state.workflow.package['document']['text']
+        for month in value['months']:
+            assert month['citations']
+            for citation in month['citations']:
+                assert citation['quote']==source[citation['start']:citation['end']]
+                assert citation['source_sha256']==sha256(source.encode()).hexdigest()
+            assert any('each completed 0.1 percentage point' in c['quote'] for c in month['citations'])
+        assert any('USD 11,000.00' in c['quote'] for c in value['price_finding']['citations'])
+        app.state.workflow.governing_fees.close()
+        revoked=read(client,actor)['months'][0]
+        assert revoked['amount'] is None and revoked['calculation']==[]
+    finally:client.close()
+
+
 def test_real_services_complete_denial_cure_award_and_idempotent_post(tmp_path):
     from uptime.storage import database
     app,client,actor,_=seeded(tmp_path)
