@@ -4,6 +4,23 @@ This binding publishes only a fixed informational comment on an exact sandbox bi
 
 The implementation uses `RampWorkflow` and `ScopedSandboxWorkflowProvider.post_comment()` from `uptime/ramp_workflow.py`, and canonicalization/time utilities from `uptime/ramp_webhooks.py`. It adds authorization inside the provider's injected HTTP adapter. There is no direct provider command in the operator CLI.
 
+## Approved person-operated presentation route
+
+The November7 team decision permits a person to post the evidence-gap note directly in Ramp's UI. [Exact bill, note and evidence requirements](DEMO-PATH-87.md). This does not invoke the operator API flow below and does not prove Uptime-origin API posting. The agent-run native-posting retest remains disabled after automatic approval review rejected it as “possible cybersecurity risk.” Do not reroute it through another model, browser or credential.
+
+Optional read-back uses only existing protected credentials and resource reads. It verifies the expected business/bill, a complete paginated discussion, and a second fresh match of the same ID/body/author ID/timestamp. The CLI writes a new0600 receipt outside Git; it never posts, retries or creates a receipt ID locally. A matching note is not an authorship attestation or proof of recovered money.
+
+```sh
+RAMP_ENV=sandbox \
+UPTIME_RAMP_CREDENTIAL_FILE="$HOME/.config/uptime/ramp-demo-native.json" \
+uv run --locked python scripts/verify_ramp_comment.py \
+  --business-id 1569e402-460e-4952-adad-9df27db628a0 \
+  --bill-url https://demo.ramp.com/bill-pay/bills/list/f74ba12c-95d0-582d-9f62-26d8057d1d37 \
+  --receipt /absolute/owner-only-directory/new-comment-readback.json
+```
+
+The output directory must already exist and be owner-only. Never overwrite an old receipt. A person choosing the full operator flow below still needs its independent mandates and signed release; the manual-note decision does not waive those prerequisites.
+
 ## Root registration and configuration
 
 Run the loopback launcher with `--mode sandbox --tenant TENANT --db DB --native-config PRIVATE_CONFIG` for an authorized native installation. The launcher mounts native routes only for an explicit protected configuration. A current separately signed native release binds the database realm, business, tested source and exact configuration bytes. Global approvals stay disabled. See [release evidence](RELEASE-EVIDENCE.md) for the independent release and installation proof formats. The binding rechecks both proofs at dispatch and still requires the per-action issuer mandate and reviewer proof.

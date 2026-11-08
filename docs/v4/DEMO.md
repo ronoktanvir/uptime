@@ -15,13 +15,16 @@ uv run --locked python scripts/setup_northwind.py \
 
 Open `http://127.0.0.1:8776`, sign in as `scripted-test-reviewer`, and select `scripted-reviewer.jwk` from that directory. Do not copy the key into chat or Git. If the page reloads, the in-memory signing key is discarded and the next write asks for sign-in again. To restart without resetting state, use the same command with `--resume`.
 
+Before the clock starts, a person posts the approved evidence-gap note in the connected Ramp bill and completes the source review for the separate CalyxQuay session. Follow [the current person-operated path](DEMO-PATH-87.md). Calyx promotion is release-gated; if that prerequisite is still open, show the refusal honestly and do not claim this full sequence is complete.
+
 | Time | Show and do | Explain |
 |---|---|---|
-| 0–25 seconds | March price review, governing amendment and January/February/March evaluations | The March cap is USD 11,000 against a USD 12,000 invoice: USD 1,000 requires review before payment. January earns USD 2,400; February is ineligible; incomplete March evidence prevents an SLA estimate. |
-| 25–45 seconds | Approve January claim → File January claim → Receive vendor response | Filing preserves the exact contract and evidence. The vendor requests the missing resource log; a denial does not automatically end the case. |
-| 45–75 seconds | Attach requested log → Verify supplied log → Approve response → Send response | The new artifact and separate verification must satisfy the requested proof. Authorization and the follow-up clock remain enforced. |
-| 75–100 seconds | Receive credit decision → Post to Local ledger → Receive next invoice → Apply credit to eligible invoice | Award, posting and application are distinct. The same verified credit is applied once to April's USD 11,000 invoice, leaving USD 8,600. The March finding remains unresolved. |
-| 100–120 seconds | Bill reconciliation and CalyxQuay contract coverage; expand Agreement & review record | Show the credit/application IDs, adapter hash, shadow/review/activation/rollback history and actual reviewer principal. Ramp remains the intended financial system of record; native publication and real credit synchronization are separate uncompleted proof gates. |
+| 0–10 seconds | Open Northwind contract review | “This contract and its usage records are authored for the demo.” |
+| 10–28 seconds | March cap amendment, price finding and three monthly results; expand clause and calculation | March12000−11000=1000 remains open. January12000×20%=2400; February is ineligible; March SLA evidence is incomplete. |
+| 28–43 seconds | Show the person's already-posted note in Ramp, with author/time/URL and optional API read-back | “The connected Ramp bill needs its own agreement; this authored contract is not evidence against it.” The note requests evidence and does not approve or stop payment. |
+| 43–78 seconds | Approve/file January → Receive response → Attach log → Verify log → Approve/send response | The authored vendor reply requests additional proof. Separate evidence verification, authorization and the follow-up clock still apply. |
+| 78–101 seconds | Receive2400 award → Post to Local ledger → Receive April invoice → Apply credit | April11000−2400=8600; March1000 stays separate. “This application is in Local ledger, not money recovered in Ramp.” Do not add financial stages together. |
+| 101–120 seconds | Ronok's separate Calyx session: approve exact reviewed version → activate → inspect audit → roll back | “Ronok Tanvir is acting as the contract reviewer.” Show his actual clicks, timestamp and version. If the release is unavailable, show SHADOW/release refusal instead and state this gate is unfinished. |
 
 The 11-step socket receipt checks duplicate requests and independent readbacks. The normal browser also completed all 11 steps. A restart readback preserves the final IDs and balances. [Execution evidence](validation/northwind/browser-verification.json) · [Socket receipt](validation/northwind/final-socket.json) · [Complete screen](validation/northwind/browser-applied.png)
 
