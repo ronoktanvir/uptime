@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-11-08T01:55:13.417549+00:00",
+  "updated_at": "2026-11-08T02:16:42.192925+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "The person-posted Ramp note is verified by two same-ID API reads. The updated financial walkthrough passes 3,884 tests and keeps April at $8,600. Ronok’s review session is prepared in SHADOW; promotion still needs release authorization.",
+  "summary": "The financial walkthrough and actual human-posted Ramp note are verified. A narrowly scoped Ronok/CalyxQuay permission proposal is prepared after 3,967 passing tests; it remains unsigned and inactive pending review.",
   "evidence": [
     {
-      "label": "Latest integrated verification",
-      "value": "3,884 passed",
-      "detail": "58ac441: 3,884 tests, 1 warning in 223.23s; 75 JavaScript checks. Fresh 11-step Northwind run and actual human-posted Ramp note read-back passed.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/demo-path-87/verification.json"
+      "label": "Latest local verification",
+      "value": "3,967 passed",
+      "detail": "6bedefc: 3,967 tests, 1 warning in 232.13s. Includes 83 new limited-permission and financial/dispute denial cases; actual grant remains inactive.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/local-review-88/verification.json"
     },
     {
       "label": "Latest Python regression",
@@ -421,14 +421,19 @@
       "title": "Actual human adapter promotion",
       "stream": "External dependencies",
       "status": "blocked",
-      "summary": "Ronok selected; signed release still required",
-      "detail": "Ronok’s separate named-reviewer workspace is SHADOW with 3 passing source controls. No current release attestation exists, so named promotion remains blocked. The old Northwind Calyx activation history is scripted.",
+      "summary": "Exact 48-hour proposal prepared; approval pending",
+      "detail": "Ronok’s workspace remains SHADOW revision 5. Proposal pins one adapter version, tested source, local origin and expiry. No owner approval, signature, activation or human review action has occurred.",
       "owner": "Authorized contract reviewer",
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Finish and test the approved exception preparation; present the exact unsigned proposal for human review. Activation and Ronok’s clicks remain pending.",
-      "links": []
+      "next_action": "Review the exact unsigned proposal, then complete its explicit operator approval/signing before Ronok uses the ordinary review and rollback controls.",
+      "links": [
+        {
+          "label": "Review exact proposal",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/LOCAL-REVIEW-EXCEPTION.md"
+        }
+      ]
     },
     {
       "id": "companion",

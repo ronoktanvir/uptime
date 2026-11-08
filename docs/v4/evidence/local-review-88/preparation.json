@@ -1,0 +1,17 @@
+{
+  "proposal_sha256": "71de8eddfe7e39b7f11191a7315a3c79e66ca3e07105e2398974e42ad1d48556",
+  "mode": "0o600",
+  "owner_approval_exists": false,
+  "authority_journal_exists": false,
+  "signed_envelope_exists": false,
+  "starts_pacific": "2026-11-07T18:15:02-08:00",
+  "expires_pacific": "2026-11-09T18:15:02-08:00",
+  "state": "SHADOW",
+  "revision": 5,
+  "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+  "reviewer": null,
+  "active_version": null,
+  "audit_actors": [
+    "scripted-test-reviewer"
+  ]
+}

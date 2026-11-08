@@ -1,0 +1,21 @@
+{
+  "schema": "uptime-local-review-verification/1",
+  "observed_at": "2026-11-08T02:15:02.258915+00:00",
+  "tested_commit": "6bedefc4550dc5bee3187645f4ead9068b1ebbc3",
+  "command": "uv run --locked pytest --basetemp=/tmp/uptime-88-merged-full",
+  "exit_code": 0,
+  "actual_summary": "3967 passed, 1 warning in 232.13s (0:03:52)",
+  "warning": "StarletteDeprecationWarning: httpx usage in starlette.testclient is deprecated.",
+  "log_sha256": "a012347eba0093d697346d878507d1c84c15b25f2f3ab73618be4823856a9138",
+  "new_cases": 83,
+  "focused_core": "14 passed, 1 warning in 2.90s",
+  "focused_independent_denials": "69 passed, 1 warning in 18.43s",
+  "existing_test_assertions_changed": false,
+  "repository_scan": "Secret check passed for 2031 versioned text objects.",
+  "actual_owner_approval": false,
+  "actual_reviewer_signature": false,
+  "actual_exception_installed": false,
+  "actual_reviewer_actions_performed": false,
+  "native_writes_attempted": false,
+  "production_readiness_claimed": false
+}
