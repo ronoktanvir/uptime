@@ -11,6 +11,8 @@ import json
 import os
 from pathlib import Path
 import stat
+import sqlite3
+import subprocess
 import sys
 from unittest.mock import patch
 from urllib.parse import urlsplit
@@ -120,7 +122,7 @@ def _load_metadata(directory):
     return value
 
 
-def open_workspace(directory):
+def open_workspace(directory, *, review_exception=None):
     directory = _directory(directory)
     metadata = _load_metadata(directory)
     app = create_app(directory / "workspace.db", mode="replay", rehearsal=False,
@@ -128,6 +130,9 @@ def open_workspace(directory):
                      approvals_enabled=local_release_ready())
     # Recheck at every consequential request, including expiration after startup.
     app.state.auth.local_gate = local_release_ready
+    if review_exception is not None:
+        from uptime.local_review_exception import attach
+        attach(app, directory, review_exception)
     return app, metadata
 
 
@@ -175,27 +180,35 @@ def main(argv=None):
     parser.add_argument("--origin", help="Exact listener for a fresh workspace; default http://127.0.0.1:8777")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--serve", action="store_true")
+    parser.add_argument("--review-exception", type=Path,
+                        help="Explicit protected signed local-review envelope; requires --resume --serve")
     keys = parser.add_mutually_exclusive_group()
     keys.add_argument("--public-key", type=Path, help="Preferred: enroll the teammate's existing public P-256 JWK only")
     keys.add_argument("--credential-file", type=Path, help="Alternatively create a private key at this new protected path")
     args = parser.parse_args(argv)
     os.umask(0o077)
     try:
+        if args.review_exception and not (args.resume and args.serve):
+            raise ValueError("An exception is only accepted by the resumed dedicated listener")
         if args.resume:
             if args.subject or args.origin or args.public_key or args.credential_file:
                 raise ValueError("Resume uses the saved reviewer, origin and enrollment without overrides")
-            app, metadata = open_workspace(args.directory)
+            app, metadata = open_workspace(args.directory, review_exception=args.review_exception)
         else:
             if not args.subject:
                 raise ValueError("A named teammate account is required")
             app, metadata, _ = prepare(args.directory, args.origin or "http://127.0.0.1:8777", args.subject,
                                       public_key=args.public_key, credential_file=args.credential_file)
-    except (ValueError, OSError, KeyError, TypeError):
+    except (ValueError, OSError, KeyError, TypeError, sqlite3.Error, subprocess.SubprocessError):
         parser.exit(1, "Reviewer workspace could not be prepared or verified. Preserve any existing directory.\n")
     print(json.dumps({
         "directory": str(args.directory), "origin": metadata["origin"], "account": metadata["subject"],
         "reviewer_credential_file": metadata["credential_file"],
-        "local_approvals": "RELEASE_VERIFIED" if app.state.auth.approvals_enabled else "RELEASE_PENDING",
+        "local_approvals": ("LOCAL_REVIEW_EXCEPTION" if args.review_exception else
+                            "RELEASE_VERIFIED" if app.state.auth.approvals_enabled else "RELEASE_PENDING"),
+        "local_review_permission": (dict(scope="CalyxQuay interpretation, approval, activation and terminal rollback",
+                                         expires_at=app.state.local_review_exception.envelope.proposal.expires_at)
+                                    if args.review_exception else None),
         "human_actions_performed": False, "provider_actions_performed": False,
     }), flush=True)
     if args.serve:
