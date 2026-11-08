@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-11-08T01:44:49.852782+00:00",
+  "updated_at": "2026-11-08T01:55:13.417549+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Scoped presentation work resumed: clearer contract calculations, a separate Ronok reviewer session and read-only confirmation of a person-posted Ramp note. The release gate and broader engineering decisions remain open.",
+  "summary": "The person-posted Ramp note is verified by two same-ID API reads. The updated financial walkthrough passes 3,884 tests and keeps April at $8,600. Ronok’s review session is prepared in SHADOW; promotion still needs release authorization.",
   "evidence": [
     {
-      "label": "Current presentation checks",
-      "value": "105 passed",
-      "detail": "Unchanged Northwind financial/workflow suite:105 passed,1 warning in59.32s. Fresh Ramp bill read succeeds; discussion is empty. New patch not yet merged.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/DEMO-PATH-87.md"
+      "label": "Latest integrated verification",
+      "value": "3,884 passed",
+      "detail": "58ac441: 3,884 tests, 1 warning in 223.23s; 75 JavaScript checks. Fresh 11-step Northwind run and actual human-posted Ramp note read-back passed.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/demo-path-87/verification.json"
     },
     {
       "label": "Latest Python regression",
@@ -422,12 +422,12 @@
       "stream": "External dependencies",
       "status": "blocked",
       "summary": "Ronok selected; signed release still required",
-      "detail": "Prepare a separate named-reviewer SHADOW workspace. Existing Northwind Calyx history is scripted and ACTIVE; it is not Ronok’s approval. No current release attestation exists, so named promotion remains blocked.",
+      "detail": "Ronok’s separate named-reviewer workspace is SHADOW with 3 passing source controls. No current release attestation exists, so named promotion remains blocked. The old Northwind Calyx activation history is scripted.",
       "owner": "Authorized contract reviewer",
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Complete the existing signed release gate, then Ronok reviews the exact source/version and performs approval, activation and rollback.",
+      "next_action": "Resolve the pending release-policy choice, then Ronok reviews the exact source/version and performs approval, activation and rollback.",
       "links": []
     },
     {
@@ -495,15 +495,15 @@
       "id": "demo",
       "title": "Two-minute deterministic demonstration",
       "stream": "Demonstration",
-      "status": "active",
-      "summary": "Preparing the person-operated presentation path",
-      "detail": "All11 actions completed in the actual browser and signed socket. The current script targets 120 seconds with a saved-screen and socket fallback. The existing 120-second video is historical and has not been regenerated for Northwind.",
+      "status": "done",
+      "summary": "Updated financial flow verified; combined live presentation gated",
+      "detail": "Exact clauses and decimal explanations are visible. Fresh 11-step socket run completes denial cure, award and April application. Prepared browser session remains unfiled for presentation. Ronok’s live review is separate and still release-gated.",
       "owner": "Demo engineering",
       "depends_on": [
         "companion",
         "publication"
       ],
-      "next_action": "Finish readable clause arithmetic, named review preparation and the revised continuous script; record remaining human gates.",
+      "next_action": "Complete the live review prerequisite, then rehearse the combined 120-second presentation with the already-verified human Ramp note.",
       "links": [
         {
           "label": "Demo script",
@@ -648,6 +648,25 @@
         {
           "label": "Execution checkpoint",
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/NORTHWIND-INTEGRATION-STATUS.md"
+        }
+      ]
+    },
+    {
+      "id": "human_ramp_note",
+      "title": "Human-posted Ramp review note",
+      "stream": "Demonstration",
+      "status": "done",
+      "summary": "Actual comment verified twice with the same ID and text",
+      "detail": "A person posted the evidence-gap note in the exact demo bill. API reads returned comment 376563cf-950c-409d-b3d8-a68599c45fa0 and matching body/author ID/timestamp. The verifier made no writes; this does not prove Uptime API posting or recovery.",
+      "owner": "Human operator and read-only verification",
+      "depends_on": [
+        "capture"
+      ],
+      "next_action": "Show the posted Activity entry with the bill URL during the presentation.",
+      "links": [
+        {
+          "label": "Read-back receipt",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/demo-path-87/human-ramp-note.json"
         }
       ]
     }

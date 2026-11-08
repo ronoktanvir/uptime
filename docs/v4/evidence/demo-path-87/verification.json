@@ -1,0 +1,60 @@
+{
+  "schema": "uptime-demo-path-verification/1",
+  "observed_at": "2026-11-08T01:55:13.414365+00:00",
+  "tested_commit": "58ac4415f75ad8ace23fc24c464bf90053b3340e",
+  "command": "uv run --locked pytest --basetemp=/tmp/uptime-87-merged-full",
+  "exit_code": 0,
+  "actual_summary": "3884 passed, 1 warning in 223.23s (0:03:43)",
+  "warning": "StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead.",
+  "full_log_sha256": "05ab57763e6f76db387eab0654865b9653699164022f2910068bb1d6dd68e7f8",
+  "javascript": {
+    "command": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+    "tests": 75,
+    "passed": 75,
+    "failed": 0,
+    "duration_ms": 421.68175,
+    "log_sha256": "521c2b71f91f57d7b7b7652688a2378a2e153cee38e27e1a599f2586d93d0b16"
+  },
+  "progress_graph": "PASSED",
+  "repository_scan": {
+    "result": "PASSED",
+    "versioned_text_objects": 2007
+  },
+  "generic_rehearsal": "PASSED",
+  "fresh_northwind": {
+    "receipt": "northwind-socket.json",
+    "actions": 11,
+    "remaining": 0,
+    "every_duplicate_unchanged": true,
+    "every_readback_equal": true,
+    "applied": "2400.00",
+    "april_original": "11000.00",
+    "april_outstanding": "8600.00",
+    "march_price_exposure": "1000.00",
+    "destination": "Local ledger"
+  },
+  "native_note": {
+    "receipt": "human-ramp-note.json",
+    "status": "VERIFIED_READBACK",
+    "human_posted": true,
+    "agent_write_attempted": false,
+    "api_origin_write_proven": false,
+    "money_recovered": null
+  },
+  "teammate_review": {
+    "account": "ronok-tanvir",
+    "state": "SHADOW",
+    "source_controls_passed": 3,
+    "human_actions_performed": false,
+    "release_status": "RELEASE_PENDING"
+  },
+  "browser_observation": {
+    "northwind_login": "SCRIPTED_REVIEWER",
+    "month_equation_visible": "USD 12000.00 × 20% = USD 2400.00 after final-cent rounding.",
+    "expandable_clause_opened": true,
+    "named_review_session": "SIGN_IN_SCREEN_ONLY",
+    "human_login_performed_by_agent": false
+  },
+  "hosted_ci": "NOT_YET_OBSERVED",
+  "production_readiness_claimed": false
+}

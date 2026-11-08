@@ -4,6 +4,7 @@ This ledger records presentation and fixture changes for the Northwind walkthrou
 
 | Workstream | Exact test names and reasons | Integration status |
 | --- | --- | --- |
+| Person-operated demo path | [87 ledger](TEST-CHANGES-87.md): two new functions in existing files,15new named-reviewer setup cases and104new comment read-back cases. No existing function or assertion changed. Two initially faulty uppercase-UUID fixtures were corrected without weakening checks. | Integrated at `58ac441`; full verification recorded with the current evidence. |
 | Expired-session recovery | [83 ledger](TEST-CHANGES-83.md) lists thirteen new DOM controls and two new Python controls, including actual browser recovery. No existing test or assertion changed. | `50e041c`: 3,763 passed, one warning in 238.48s; 75 JavaScript checks. Initial storage failure preserved. |
 | Explicit monthly profile and offline export | [79 ledger](TEST-CHANGES-79.md) records new profile, source, permission and protected-file controls; existing tests are unchanged. | Combined7882178: 3,761 passed, one warning;62 JavaScript checks. |
 | Full-clause filing deadlines | [80 ledger](TEST-CHANGES-80.md) records177 new deadline/contradiction/atomicity controls; no existing tests or source fixtures changed. | Included in7882178 full verification; three valid manifests remain byte-identical. |

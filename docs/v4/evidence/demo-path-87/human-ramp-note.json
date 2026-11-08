@@ -1,0 +1,26 @@
+{
+  "actual_money_recovered": null,
+  "api_write_proven": false,
+  "authorship_proven": false,
+  "bill_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+  "body": "Uptime review: governing agreement or usage evidence is missing for this bill. Unable to verify charges against contract terms. Please attach the signed agreement or usage records.",
+  "business_id": "1569e402-460e-4952-adad-9df27db628a0",
+  "comment_id": "376563cf-950c-409d-b3d8-a68599c45fa0",
+  "created_at": "2026-11-08T01:46:45+00:00",
+  "evidence": "LOCAL_OBSERVATION_NOT_PROVIDER_SIGNED",
+  "note": "Local read-only observation recorded by this machine; not signed or attested by Ramp. Intended to verify a separately posted note; this verifier did not create, edit or post it. author_user_id is the user_id that Ramp reports on the comment and proves no identity, permission or authorship. No money recovery is claimed.",
+  "observed_at": "2026-11-08T01:50:35.733930+00:00",
+  "origin": "https://demo-api.ramp.com",
+  "read_passes": 2,
+  "schema": "uptime-human-ramp-note-readback/1",
+  "status": "VERIFIED_READBACK",
+  "verified_read_scopes": [
+    "business:read",
+    "bills:read"
+  ],
+  "write_attempted": false,
+  "code_commit": "58ac4415f75ad8ace23fc24c464bf90053b3340e",
+  "private_receipt_sha256": "02ed65e0094e86e0ea50c8080862610a1ce214d47de24f6ade66b2a67deb1771",
+  "author_user_id_omitted": true,
+  "human_ui_evidence": "User-supplied Activity screenshot shows exact note under David Wallace, the displayed Ramp demo account. Screenshot is retained privately; API does not establish personal authorship."
+}
