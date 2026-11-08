@@ -6,7 +6,7 @@ self-consistency check, never an external provider or human attestation.
 from copy import deepcopy
 from dataclasses import asdict
 from datetime import UTC, datetime
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -241,8 +241,28 @@ class WorkspaceWorkflow:
 
     @staticmethod
     def _citations(rows):
-        return [dict(label=c.get('label') or c.get('section') or c.get('document') or 'Source document',
-                     ref=c.get('uri') or c.get('ref') or c.get('source_sha256') or '') for c in rows]
+        return [dict(label=('Clause '+str(c['id'])) if c.get('id') and c.get('quote') else
+                     c.get('label') or c.get('section') or c.get('document') or 'Source document',
+                     ref=c.get('uri') or c.get('ref') or c.get('source_sha256') or '',
+                     **{k:c[k] for k in ('quote','source_sha256','quote_sha256','start','end') if k in c}) for c in rows]
+
+    @staticmethod
+    def _credit_calculation(current):
+        """Format a current evaluator result; never derive an entitlement for display."""
+        from .credit_steps import UNITS_PER_PERCENT
+        if not current or current['outcome'] not in {'ELIGIBLE','INELIGIBLE'}:
+            return []
+        units,steps=current.get('rate_units'),current.get('completed_steps')
+        if type(units) is not int or type(steps) is not int:
+            return []
+        with localcontext() as context:
+            context.prec=60
+            percent=format(Decimal(units)/UNITS_PER_PERCENT,'f')
+            result=[f'{steps} completed shortfall increments; {percent}% credit after the contractual cap.']
+            fee=current.get('governing_fee_cents')
+            if current['outcome']=='ELIGIBLE' and type(fee) is int and current.get('amount') is not None:
+                result.append(f'USD {Decimal(fee)/100:.2f} × {percent}% = USD {current["amount"]} after final-cent rounding.')
+            return result
 
     def _document_citations(self,version):
         source=next(row for row in self.package['pricing_agreement_input']['versions'] if row['id']==version.id)
@@ -265,6 +285,7 @@ class WorkspaceWorkflow:
                 amount=current['amount'] if current and known else None,currency=invoice.currency,
                 reason='; '.join(current.get('trace',[])) if current and known else 'A current source-bound evaluation is not yet available.',
                 trace=current.get('trace',[]) if current and known else [],
+                calculation=self._credit_calculation(current) if known else [],
                 citations=self._citations(current.get('clauses',[]) if current else row.get('citations',[])),
                 invoice=dict(id=invoice.id,issued_at=invoice.issued_at.isoformat(),service_start=line.start.isoformat(),service_end=line.end.isoformat()),
                 evidence=[dict(label='Monthly coverage',ref=usage['monitor_ref'],value=usage['coverage_note'] if known else None),

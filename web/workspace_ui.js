@@ -24,11 +24,16 @@
     const fields = pairs => add(el('dl',null,'northwind-fields'),...pairs.map(([k,v])=>field(k,v)));
     function citations(items) {
       const refs = el('ul',null,'northwind-citations');
-      list(items).forEach(c => refs.append(add(el('li'), el('span',typeof c === 'string' ? c : c.label || c.title || c.ref), typeof c === 'object' && c.ref ? el('code', c.ref) : null)));
+      list(items).forEach(c => {
+        const row=add(el('li'),el('span',typeof c === 'string' ? c : c.label || c.title || c.ref),typeof c === 'object' && c.ref ? el('code',c.ref) : null);
+        if(typeof c === 'object' && c.quote) row.append(add(el('details'),el('summary','Read clause'),el('blockquote',c.quote)));
+        refs.append(row);
+      });
       return refs.children.length ? refs : note('Source references not provided.');
     }
     function monthEvidence(month) {
       const cell=el('td');add(cell,note(reason(month.reason)),citations(month.citations));
+      if(list(month.calculation).length) cell.append(add(el('ol',null,'trace'),...month.calculation.map(line=>el('li',line))));
       if (month.invoice || list(month.evidence).length || list(month.trace).length) {
         const detail=add(el('details',null,'workflow-evidence'),el('summary','Inspect invoice & usage'));
         const invoice=month.invoice || {};

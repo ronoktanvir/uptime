@@ -105,3 +105,28 @@ def test_workflow_action_uses_real_dom_collection_and_refreshes_server_state():
         ]
         assert not errors
         browser.close()
+
+
+def test_result_quotes_and_decimal_equations_render_as_server_text_without_html_execution():
+    quote='Credit clause: each completed 0.1 percentage point earns 10%. <img src=x onerror="window.quoteExecuted=true">'
+    calculation='USD 9007199254740993.01 × 20% = USD 1801439850948198.60 after final-cent rounding.'
+    with sync_playwright() as p:
+        browser=p.chromium.launch(channel='chrome' if Path('/Applications/Google Chrome.app').exists() else None)
+        page=browser.new_page()
+        page.set_content('<main id="workflow"></main>')
+        page.add_script_tag(path=str(ROOT/'web/workspace_ui.js'))
+        page.evaluate('''async ({quote,calculation}) => {
+            const workflow={vendor:'Contract review',months:[
+                {month:'January',outcome:'ELIGIBLE',amount:'1801439850948198.60',calculation:[calculation],
+                 citations:[{label:'Credit clause 6',ref:'urn:agreement:clause:6',quote}]},
+                {month:'March',outcome:'INSUFFICIENT_EVIDENCE',amount:null,calculation:[]}],next_actions:[]};
+            await UptimeWorkspace.create({api:async()=>({workflow})}).render(document.getElementById('workflow'));
+        }''',dict(quote=quote,calculation=calculation))
+        expect(page.get_by_text(calculation,exact=True)).to_be_visible()
+        page.get_by_text('Read clause',exact=True).click()
+        expect(page.locator('blockquote')).to_have_text(quote)
+        expect(page.locator('blockquote')).to_be_visible()
+        assert page.locator('#workflow img').count()==0
+        assert page.evaluate('window.quoteExecuted === undefined')
+        expect(page.locator('tbody tr').nth(1).locator('td').nth(2)).to_have_text('Not determined')
+        browser.close()
