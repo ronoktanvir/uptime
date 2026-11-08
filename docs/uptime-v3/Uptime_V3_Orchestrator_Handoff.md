@@ -6,6 +6,8 @@
 
 ## November 7 scoped demo authorization
 
+Subsequent choice: prepare the narrow 48-hour local CalyxQuay review exception for human review. This authorizes implementation, tests and an unsigned proposal; operator approval, reviewer signing, activation and Ronok's actual clicks remain pending. Native posting and all financial actions stay outside its scope. [Review record](../v4/LOCAL-REVIEW-EXCEPTION.md).
+
 The team approved authored Northwind terms/evidence, live teammate CalyxQuay review, and a human-posted Ramp evidence-gap note with optional read-only API confirmation. Implement this bounded path, keep screens clean, and disclose authored data and the reviewer's role orally. Do not call Northwind proof against an unrelated Ramp bill, label a local receipt as a Ramp write, or present scripted review as human approval. The existing release gate remains required for actual named-reviewer promotion. Other pending team decisions and evaluation worktrees remain paused. This supersedes the prior pause for the scoped demo work only. [Current execution boundary](../v4/DEMO-PATH-87.md).
 
 ## November 6 team decision handoff (historical)

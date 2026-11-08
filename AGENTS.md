@@ -1,5 +1,7 @@
 ## November 7 scoped demo decisions
 
+The user subsequently selected **Prepare the limited exception for review**. Implement and test the exact 48-hour local CalyxQuay capability in decision88, then stage its unsigned proposal only. Do not create actual operator approval, sign with Ronok's credential, activate the exception or perform his review actions during preparation. The existing release remains the default; native/financial authority is excluded. [Concrete review record](docs/v4/LOCAL-REVIEW-EXCEPTION.md).
+
 The team has authorized work on the authored Northwind walkthrough, a separately enrolled teammate operating CalyxQuay review controls, and a person posting the exact evidence-gap note in Ramp. Continue those bounded implementation and verification tasks. This supersedes the prior pause for this scope only; it does not approve the other pending decisions or resume frozen evaluation worktrees. Keep existing release and native-action gates: provisioning a reviewer is not completing a human approval. Do not execute the blocked native-posting retest through any tool or credential. Optional Ramp comment read-back is read-only. See [the current demo path](docs/v4/DEMO-PATH-87.md).
 
 ## November 6 team review checkpoint (historical)

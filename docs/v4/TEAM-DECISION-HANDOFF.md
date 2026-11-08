@@ -1,5 +1,7 @@
 # Uptime: team decisions and implementation concerns
 
+**November 7 update:** The team approved the disclosed authored Northwind presentation, Ronok acting as reviewer, and a person-posted Ramp evidence-gap note. The note is now verified through real API read-back. The team also selected preparation of a limited local review exception, with activation still pending. These narrow decisions do not resolve the broader identity, scope, generalization, deployment or release-policy choices below. [Current demonstration evidence](DEMO-PATH-87.md) · [Pending exception review](LOCAL-REVIEW-EXCEPTION.md). The November 6 sections below remain a historical concern/decision inventory.
+
 **Review checkpoint: November 6, 2026. Development paused at the team's request.** This handoff gathers currently identified concerns and choices; it is not a new security certification or a claim that every possible defect is known. Recommended defaults below are proposals, not recorded team approval. No new Opus consultation or implementation was performed to produce this handoff.
 
 The main problem is no longer whether individual engines exist. It is whether unfamiliar contracts, authentic evidence, correct identity, authorization and Ramp financial records remain connected through the ordinary application. The local walkthrough works; that broader chain is not yet demonstrated.

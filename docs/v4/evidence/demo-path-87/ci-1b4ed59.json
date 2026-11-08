@@ -1,0 +1,14 @@
+{
+  "tested_commit": "1b4ed595bdaf9c28d7909c77de95851a2ffd35ce",
+  "source_merge": "58ac4415f75ad8ace23fc24c464bf90053b3340e",
+  "run_id": 42436404503,
+  "job_id": 128596069985,
+  "url": "https://github.com/ronoktanvir/uptime/actions/runs/42436404503",
+  "conclusion": "success",
+  "actual_pytest_output": "3884 passed, 1 warning in 423.34s (0:07:03)",
+  "javascript_tests": 75,
+  "javascript_passed": 75,
+  "graph": "passed",
+  "secret_scan": "Secret check passed for 1960 versioned text objects.",
+  "run_finished_after": "2026-11-08T02:04:28.3188051Z"
+}

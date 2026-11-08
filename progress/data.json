@@ -19,9 +19,9 @@
     },
     {
       "label": "Hosted verification",
-      "value": "CI passed 70f9cc2",
-      "detail": "3,763 tests, 1 warning in 393.40s; 75 JavaScript checks, graph, replay and repository scan passed.",
-      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42192812737"
+      "value": "CI passed 1b4ed59",
+      "detail": "3,884 tests, 1 warning in 423.34s; all 75 JavaScript checks, graph, rehearsal and repository scan passed.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42436404503"
     },
     {
       "label": "Northwind workflow",
@@ -427,7 +427,7 @@
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Resolve the pending release-policy choice, then Ronok reviews the exact source/version and performs approval, activation and rollback.",
+      "next_action": "Finish and test the approved exception preparation; present the exact unsigned proposal for human review. Activation and Ronok’s clicks remain pending.",
       "links": []
     },
     {
