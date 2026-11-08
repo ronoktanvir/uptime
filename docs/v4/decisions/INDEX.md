@@ -94,3 +94,5 @@ The earlier table preserves its inspected-source status. The following decisions
 - [68 — Honest application to the next regular invoice](ADR-0068-future-invoice-application.md)
 
 Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.
+
+- [87 — Person-operated demo and preserved authority](ADR-0087-person-operated-demo-path.md)

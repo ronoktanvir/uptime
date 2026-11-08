@@ -1,10 +1,16 @@
 {
-  "updated_at": "2026-11-06T21:30:19.294803+00:00",
+  "updated_at": "2026-11-08T01:44:49.852782+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Development paused for team decisions. The verified build and unfinished work are preserved. Read the consolidated decision handoff before resuming; no new corpus model evaluation has run.",
+  "summary": "Scoped presentation work resumed: clearer contract calculations, a separate Ronok reviewer session and read-only confirmation of a person-posted Ramp note. The release gate and broader engineering decisions remain open.",
   "evidence": [
+    {
+      "label": "Current presentation checks",
+      "value": "105 passed",
+      "detail": "Unchanged Northwind financial/workflow suite:105 passed,1 warning in59.32s. Fresh Ramp bill read succeeds; discussion is empty. New patch not yet merged.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/DEMO-PATH-87.md"
+    },
     {
       "label": "Latest Python regression",
       "value": "3,763 passed",
@@ -202,7 +208,7 @@
       "stream": "Onboarding",
       "status": "todo",
       "summary": "New public contracts expose extraction gaps",
-      "detail": "Paused at the team\u2019s request. Actual public Opus jobs and explicit customer overlays are connected in the application. The studied Aster browser job reached SHADOW; controlled expired-session recovery keeps one generation. The original independent 0/4 baseline remains unchanged.",
+      "detail": "Paused at the team’s request. Actual public Opus jobs and explicit customer overlays are connected in the application. The studied Aster browser job reached SHADOW; controlled expired-session recovery keeps one generation. The original independent 0/4 baseline remains unchanged.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
@@ -265,7 +271,7 @@
       "title": "Credit reconciliation & attribution",
       "stream": "Ramp integration",
       "status": "done",
-      "summary": "Award \u2192 native credit \u2192 applied bill stages",
+      "summary": "Award → native credit → applied bill stages",
       "detail": "Implemented native observation joins, independent original-filing and award witnesses, amount/currency bounds and allocation controls. The actual sandbox contains zero credits and the installed workspace has zero awards.",
       "owner": "Reconciliation engineering",
       "depends_on": [
@@ -347,7 +353,7 @@
         "publication",
         "ramp_permission"
       ],
-      "next_action": "Resolve the execution-review block and exact external-action authority before native posting/readback.",
+      "next_action": "A person may post the approved evidence-gap note in Ramp; optional API reads verify it. This does not close Uptime-origin API write proof or authorize retrying the rejected retest.",
       "links": []
     },
     {
@@ -376,7 +382,7 @@
       "stream": "Independent QA",
       "status": "todo",
       "summary": "Fresh current-application evaluation in preparation",
-      "detail": "Paused at the team\u2019s request. Original private and public scores remain unchanged. A different-family independent author prepares new public sources and sealed expectations; no new attempts have run.",
+      "detail": "Paused at the team’s request. Original private and public scores remain unchanged. A different-family independent author prepares new public sources and sealed expectations; no new attempts have run.",
       "owner": "Independent witness",
       "depends_on": [
         "adapter",
@@ -402,7 +408,7 @@
       "stream": "Onboarding",
       "status": "todo",
       "summary": "Period and filing repairs verified; broader coverage open",
-      "detail": "Paused at the team\u2019s request. Decisions 77 and 80 implement source-bound periods and filing cutoffs. The reproduced no-deadline clause is rejected, and three valid manifests remain byte-identical. More independent source coverage remains necessary.",
+      "detail": "Paused at the team’s request. Decisions 77 and 80 implement source-bound periods and filing cutoffs. The reproduced no-deadline clause is rejected, and three valid manifests remain byte-identical. More independent source coverage remains necessary.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
@@ -415,13 +421,13 @@
       "title": "Actual human adapter promotion",
       "stream": "External dependencies",
       "status": "blocked",
-      "summary": "Human approval is pending",
-      "detail": "Recorded model extraction and passing scripted lifecycle checks cannot supply a real reviewer's interpretation approval. The demonstrated CalyxQuay candidate remains in SHADOW.",
+      "summary": "Ronok selected; signed release still required",
+      "detail": "Prepare a separate named-reviewer SHADOW workspace. Existing Northwind Calyx history is scripted and ACTIVE; it is not Ronok’s approval. No current release attestation exists, so named promotion remains blocked.",
       "owner": "Authorized contract reviewer",
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Review the source, customer overlay, shadow outcomes and exact adapter version before activation.",
+      "next_action": "Complete the existing signed release gate, then Ronok reviews the exact source/version and performs approval, activation and rollback.",
       "links": []
     },
     {
@@ -489,15 +495,15 @@
       "id": "demo",
       "title": "Two-minute deterministic demonstration",
       "stream": "Demonstration",
-      "status": "done",
-      "summary": "Northwind interactive flow and two-minute script ready",
+      "status": "active",
+      "summary": "Preparing the person-operated presentation path",
       "detail": "All11 actions completed in the actual browser and signed socket. The current script targets 120 seconds with a saved-screen and socket fallback. The existing 120-second video is historical and has not been regenerated for Northwind.",
       "owner": "Demo engineering",
       "depends_on": [
         "companion",
         "publication"
       ],
-      "next_action": "Present the current flow with an oral data disclosure; do not call it native recovery.",
+      "next_action": "Finish readable clause arithmetic, named review preparation and the revised continuous script; record remaining human gates.",
       "links": [
         {
           "label": "Demo script",
@@ -545,7 +551,7 @@
       "stream": "Demonstration",
       "status": "blocked",
       "summary": "Local flow complete; native and independent gates remain",
-      "detail": "The complete authored workflow is verified. Actual customer terms, real human promotion, native write/credit evidence and unseen-contract/reply acceptance are still separate prerequisites.",
+      "detail": "The authored financial flow is verified. The team now permits disclosed authored inputs and a person-posted Ramp note for presentation. Human promotion is still release-gated; no actual Ramp credit or API-origin write is proven.",
       "owner": "Orchestrator",
       "depends_on": [
         "native_proof",
@@ -585,7 +591,7 @@
       "stream": "Disputes",
       "status": "todo",
       "summary": "Reviewed denial bundles preserve both assertions",
-      "detail": "Paused at the team\u2019s request. Unchanged public annotations now map5/6 complete meanings versus original3/6;6/6 mandatory-review controls remain UNKNOWN. This is remediation on known cases, not a fresh independent score. Every proposition has separate review and audit alignment.",
+      "detail": "Paused at the team’s request. Unchanged public annotations now map5/6 complete meanings versus original3/6;6/6 mandatory-review controls remain UNKNOWN. This is remediation on known cases, not a fresh independent score. Every proposition has separate review and audit alignment.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",

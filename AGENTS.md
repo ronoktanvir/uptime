@@ -1,4 +1,8 @@
-## November 6 team review checkpoint
+## November 7 scoped demo decisions
+
+The team has authorized work on the authored Northwind walkthrough, a separately enrolled teammate operating CalyxQuay review controls, and a person posting the exact evidence-gap note in Ramp. Continue those bounded implementation and verification tasks. This supersedes the prior pause for this scope only; it does not approve the other pending decisions or resume frozen evaluation worktrees. Keep existing release and native-action gates: provisioning a reviewer is not completing a human approval. Do not execute the blocked native-posting retest through any tool or credential. Optional Ramp comment read-back is read-only. See [the current demo path](docs/v4/DEMO-PATH-87.md).
+
+## November 6 team review checkpoint (historical)
 
 Engineering is paused at the user's request while the team reviews [the consolidated decision handoff](docs/v4/TEAM-DECISION-HANDOFF.md). Preserve all working and uncommitted worktree files. Do not resume implementation, inference, native actions or new advisory reviews merely to prepare that handoff. The handoff's recommended defaults and replacement execution policy are not team approvals. When explicitly resumed, apply recorded team decisions; the proposed removal of blanket Opus consultations takes effect only when the team accepts it. Routine implementation under already accepted decisions still needs no repeated council. The latest request to continue the handoff is being fulfilled as documentation, not treated as approval of its pending choices.
 

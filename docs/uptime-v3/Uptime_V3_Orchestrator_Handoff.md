@@ -4,7 +4,11 @@
 **Goal:** Build, verify, and integrate a compelling Ramp-native **contract enforcement, prevention, autonomous claims/disputes, reconciliation, and self-expanding vendor onboarding** hackathon application. The team chose to pursue ambitious implementation concurrently and decide any scope reduction themselves.  
 **Use with:** `Uptime_V3_Product_Technical_Spec.md`, `Uptime_V3_Work_DAG.md`, `Uptime_V3_Credentials.md`.
 
-## November 6 team decision handoff
+## November 7 scoped demo authorization
+
+The team approved authored Northwind terms/evidence, live teammate CalyxQuay review, and a human-posted Ramp evidence-gap note with optional read-only API confirmation. Implement this bounded path, keep screens clean, and disclose authored data and the reviewer's role orally. Do not call Northwind proof against an unrelated Ramp bill, label a local receipt as a Ramp write, or present scripted review as human approval. The existing release gate remains required for actual named-reviewer promotion. Other pending team decisions and evaluation worktrees remain paused. This supersedes the prior pause for the scoped demo work only. [Current execution boundary](../v4/DEMO-PATH-87.md).
+
+## November 6 team decision handoff (historical)
 
 Development is paused for team review. The current [decision handoff](../v4/TEAM-DECISION-HANDOFF.md) separates established defects, implementation gaps, external prerequisites and proposed defaults. Preserve the paused worktrees and follow the recorded resume boundary. Its proposed team-owned execution policy is pending acceptance and must not be mistaken for already granted scope, financial or external-action authorization. Do not launch more advisory reviews while preparing this handoff.
 
