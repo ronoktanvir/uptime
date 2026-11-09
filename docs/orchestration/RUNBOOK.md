@@ -1,5 +1,7 @@
 # Operator runbook
 
+> **Historical November 3 baseline, preserved unchanged below.** Current setup: [docs/v4/integration90/SETUP.md](../v4/integration90/SETUP.md) · operations: [docs/v4/OPERATIONS.md](../v4/OPERATIONS.md).
+
 ## Start and verify
 
 Use Python 3.11–3.14, `uv`, and Node for the browser unit tests. From the repository root, run:

@@ -1,5 +1,7 @@
 # Executed workstreams
 
+> **Historical November 3 baseline, preserved unchanged below.** Current workstream ownership: [docs/v4/integration90/OWNERSHIP.md](../v4/integration90/OWNERSHIP.md).
+
 The initial audit found no Uptime code. The first commit, `328e060`, contains the handoff, lockfile and project scaffold. CP1 commit `5a77194` established provisional shared types, a gold fixture and five passing tests before implementation branches started.
 
 | Owner | Actual execution | Worktree / first integrated revision | Acceptance evidence |

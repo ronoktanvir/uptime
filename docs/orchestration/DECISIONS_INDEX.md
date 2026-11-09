@@ -1,5 +1,7 @@
 # Decision index
 
+> **Historical November 3 index, preserved unchanged below.** Current decision index: [docs/v4/decisions/INDEX.md](../v4/decisions/INDEX.md).
+
 All reviews below are real Claude Code invocations targeting `claude-opus-5-5`. Each retained response identifies the returned model, session and timestamp. Packets contained no Ramp secrets or customer data. Initial test proposals are distinguished from release evidence.
 
 - [ADR 0001 · loopback runtime](../decisions/ADR-0001-loopback-runtime.md)

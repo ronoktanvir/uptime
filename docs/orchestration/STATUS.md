@@ -1,5 +1,7 @@
 # Release status
 
+> **Historical November 3 baseline, preserved unchanged below.** Current status: [docs/v4/STATUS.md](../v4/STATUS.md) · completion checklist: [docs/v4/integration90/REQUIREMENTS.md](../v4/integration90/REQUIREMENTS.md).
+
 **Local integrated application verified.** CP0 through CP5 passed at their documented local scope. CP6 has a rehearsed and decoded 120-second fallback. The real sandbox website required an interactive sign-in. The API grant allowed real bill reads but omitted draft writes. See CHECKPOINTS.md for the precise gate outcomes.
 
 The release suite passed 475 Python tests and seven browser-client tests. The Python test runner emitted one dependency deprecation warning in FastAPI’s TestClient integration. The code uses the locked environment. The release does not rely on live vendor communications or a hosted model at runtime.
