@@ -180,11 +180,11 @@ def facts(projection, summary=None):
         reviewer = coverage.get('reviewer') or {}
         actors = sorted({h.get('actor') for h in coverage.get('history') or [] if isinstance(h, dict) and h.get('actor')})
         kind = AUTHORITY.get(reviewer.get('authority_kind'), 'an unrecorded authority')
+        # The exact version is the citation reference; identifiers are never shortened in answer text.
         _fact(out, 'coverage', f'{coverage["vendor"]} coverage in this workspace is {_state(coverage.get("state"))}'
-              + (f' at version {str(coverage["version"])[:12]}' if coverage.get('version') else '')
               + f'; its reviewer is {reviewer.get("name") or "not recorded"}, recorded as {kind}.'
               + (f' Its history is recorded under {", ".join(actors)} only.' if actors else ''),
-              {'review'}, 'coverage', label=f'{coverage["vendor"]} coverage', primary='review')
+              {'review'}, 'coverage', ref=coverage.get('version'), label=f'{coverage["vendor"]} coverage', primary='review')
     for index, item in enumerate(summary['attention']):
         _fact(out, f'attention.{index}', f'{item["title"]}: {item["detail"]}', {'next'} | _attention_topics(item['kind']),
               next(k for k, v in SECTIONS.items() if v == item['section']), label=item['title'], primary='next')
