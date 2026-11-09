@@ -1,0 +1,2 @@
+# uv run --locked python scripts/release_evidence.py status  (2026-11-09T12:33:22Z, branch head 2056856)
+{"external_authority": false, "gates": [], "note": "Local approvals require current independently signed gate reports and a release witness.", "ready": false, "scope": "read-only"}
