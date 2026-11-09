@@ -1,6 +1,6 @@
-# Customer installation design (proposed; blocked on D11)
+# Customer installation design (proposed; deferred to a later hosted milestone)
 
-**Status: proposal only.** No OAuth authorization-code code, callback route, token store or public listener exists, and none is authorized until the team records D11 (hosting, identity owner, key custody) and D10 (data disclosure). The current product uses operator-held sandbox client credentials on one loopback host. [Local operations and trust boundary](OPERATIONS-RECOVERY-90.md) · [Decision 96](decisions/ADR-0096-operations-recovery.md)
+**Status: proposal only.** No OAuth authorization-code code, callback route, token store or public listener exists, and none is authorized. D11 was decided as **stay local for now** (Ronok's decision on November 9, 2026, relayed by the progress-review session; the integration owner is recording it): this deliverable stays loopback-only with no public tunnel, and hosted installation is a later milestone. When that milestone opens, it still needs the D11 hosting details (identity owner, key custody) and D10 (data disclosure). The current product uses operator-held sandbox client credentials on one loopback host. [Local operations and trust boundary](OPERATIONS-RECOVERY-90.md) · [Decision 96](decisions/ADR-0096-operations-recovery.md)
 
 ## Provider facts this design relies on
 
@@ -69,7 +69,7 @@ From Ramp's public developer guide ([llms-guides](https://docs.ramp.com/llms-gui
 
 | Item | Needs |
 | --- | --- |
-| Public callback and webhook hosting, managed identity, secret store | D11 |
+| Public callback and webhook hosting, managed identity, secret store | D11 later milestone (current deliverable: stay local) |
 | What tenant data may leave the installation, and retention after uninstall | D10 |
 | Whether uninstall also cancels in-flight claims or disputes with vendors | D08 |
 | Which Ramp records carry native findings | D02 |

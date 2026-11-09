@@ -1,6 +1,6 @@
 # Installation, recovery and operations — workstream 90
 
-**Status, November 9, 2026:** local controls are implemented and tested on branch `work/operations-90`. Hosted customer installation is **designed, not implemented**: it depends on the pending team decision D11 (hosting, identity owner and signing-key custody). Nothing here publishes, tunnels or hosts the current local app. [Decision 96](decisions/ADR-0096-operations-recovery.md) · [Customer installation design](CUSTOMER-INSTALLATION-DESIGN.md) · [Test ledger](TEST-CHANGES-90-OPERATIONS.md)
+**Status, November 9, 2026:** local controls are implemented and tested on branch `work/operations-90`. Hosted customer installation is **designed, not implemented**: D11 was decided as **stay local for now** (Ronok's decision on November 9, 2026, relayed by the progress-review session; the integration owner is recording it), so it is deferred to a later hosted milestone, not blocked. Nothing here publishes, tunnels or hosts the current local app. [Decision 96](decisions/ADR-0096-operations-recovery.md) · [Customer installation design](CUSTOMER-INSTALLATION-DESIGN.md) · [Test ledger](TEST-CHANGES-90-OPERATIONS.md)
 
 ## Actual trust boundary
 
@@ -54,7 +54,7 @@ The refresh only reads. It requests no scope beyond the already approved grant s
 | Capture freshness | Monitoring | `RAMP_CAPTURE_STALE` after 24h (`--stale-hours`). Native preparation already refuses captures older than 24h. | Rerun the refresh. |
 | Model proposal job | Uncertain external effect (cost) | On restart, RUNNING becomes `UNCERTAIN` and QUEUED becomes `CANCELLED`. No provider call is repeated (`test_recovery_distinguishes_reserved_and_dispatched_work_without_running_either`). | Never automatic. A new attempt needs a new exact approval. |
 | Native bill comment (outbox) | Uncertain external effect | A crash after dispatch leaves `UNCERTAIN`, and the delivery is never resent. Agent posting remains blocked by the execution-policy rejection. | Reconcile against the same Ramp thread; never resend. |
-| Ramp webhook event | Authenticated intake | Signature over raw bytes; the same ID with the same bytes is a no-op; the same ID with different bytes quarantines the subscription; older events are `OUT_OF_ORDER`; events older than 7 days or more than 5 minutes in the future are refused. | No retry; the provider redelivers. The receiver is not publicly served (D11). |
+| Ramp webhook event | Authenticated intake | Signature over raw bytes; the same ID with the same bytes is a no-op; the same ID with different bytes quarantines the subscription; older events are `OUT_OF_ORDER`; events older than 7 days or more than 5 minutes in the future are refused. | No retry; the provider redelivers. The receiver is not publicly served (D11: stay local for this deliverable). |
 | Signed inbound source | Authenticated intake | 60s timestamp window, single-use nonce, instance binding; restart invalidates outstanding proofs. | The sender signs a new request. |
 | Claim cutoff | Deadline alert | `CLAIM_DEADLINE_APPROACHING` lists `ELIGIBLE` and `INSUFFICIENT_EVIDENCE` cases whose cutoff falls within 7 days (`--deadline-days`). Missing evidence stays distinct from ineligibility. | Not applicable. |
 
@@ -97,9 +97,9 @@ Uptime persists no Ramp token, so there is nothing local to delete. Under Ramp's
 
 ## Remaining deployment requirements
 
-These are not met by the local deployment, and each needs the named team decision:
+These are not met by the local deployment. D11 keeps this deliverable local, so they are deferred to a later hosted milestone; each still needs the named decision details when that milestone opens:
 
-1. **D11 hosting and trust roots:** managed identity for operators and reviewers, ownership and rotation of signing keys, and a threat model for an administrator who is not the customer.
+1. **Hosted trust roots (later D11 milestone):** managed identity for operators and reviewers, ownership and rotation of signing keys, and a threat model for an administrator who is not the customer.
 2. **Customer OAuth installation:** authorization-code flow, server-side state, encrypted refresh-token custody, single-flight refresh, and revocation calls on uninstall. [Design](CUSTOMER-INSTALLATION-DESIGN.md). Also D10 for data that leaves the installation.
 3. **Public HTTPS webhook receiver:** a per-installation secret in a managed store and a root-operated verification transport. The existing inbox logic is reusable; it is not served today.
 4. **Durable distributed workers:** a database-backed queue with leases and fencing tokens, replacing the single-process SQLite locks and in-memory nonce caches.
