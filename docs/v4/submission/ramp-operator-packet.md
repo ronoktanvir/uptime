@@ -57,7 +57,7 @@ Then run `scripts/verify_ramp_comment.py` with `--comment-id` for an independent
 
 The procedure for a real case is in [RAMP-CASE-LINEAGE.md](../RAMP-CASE-LINEAGE.md#person-operated-credit-procedure-d09). It needs a vendor award verified by a role separate from the operator, which isn't named yet (**Ronok or team**), and an answer on one-person versus two-person execution (D06 sub-question, **Ronok**). Uptime's check afterwards is `scripts/ramp_credit_readback.py`: only `VERIFIED_BOTH_SIDES` counts.
 
-## 4. Fresh read-only capture with vendor names (for **Ronok** to approve; I don't run it)
+## 4. Fresh read-only capture with vendor names (**done**: Ronok ran both commands at 14:00 and 14:03 PST)
 
 The saved captures predate the new display fields, so vendor names and invoice numbers show as "not captured". A person can refresh them with two read-only commands:
 
@@ -82,7 +82,7 @@ RAMP_ENV=sandbox UPTIME_RAMP_CREDENTIAL_FILE=~/.config/uptime/ramp-demo-native.j
 
 **What is kept:** sanitized records only. New: the bill's `vendor.name`, `invoice_number` and the vendor `name`, as bounded exact text. No memos, contacts, URLs, comment text or emails. **Writes:** none in Ramp. Two new owner-only files.
 
-After a person runs them, I can rebuild `fixtures/ramp/verified-demo-bill.json` from those two files (same checks, now with names), as a separate reviewed commit.
+From those two files, `scripts/ramp_package_verified_record.py` rebuilt `fixtures/ramp/verified-demo-bill.json` as a minimal excerpt: the association, the one bill, its vendor record, its comment (ID and time only), linked credits (none) and per-resource coverage. The other vendors, transactions and approvals stay in the private files. Rerun it the same way after any future read.
 
 ## 5. A matching authored Northwind bill in Ramp's demo (proposal for **Ronok**; not created)
 

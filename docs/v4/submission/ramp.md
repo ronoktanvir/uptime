@@ -69,9 +69,9 @@ Implemented at `5f5cee4` and `1527bc0`; the names below are final. `GET /api/ram
 
 | Field | Meaning |
 |---|---|
-| `kind`, `live_read`, `statement` | `SAVED_VERIFIED_RECORD`, `false`, and "Saved verified record of one Ramp demo bill. Not a live read." |
-| `capture` | The same capture summary as above, for business `1569e402…`, read 2026-11-09 12:35 UTC |
-| `ramp_context` | The record fields above for bill `f74ba12c…`: an operator-observed link, binding `NONE`, `finding_attachable: false`, the note attributed to a person, credits `NO_APPLIED_CREDITS`, `vendor_name: null` |
+| `kind`, `live_read`, `started_by`, `excerpt`, `statement` | `SAVED_VERIFIED_RECORD`, `false`, `PERSON`, `true`, and the excerpt statement. The panel reads "Saved record read from Ramp … started by a person. Not a live read." |
+| `capture` | The same capture summary as above, for business `1569e402…`, read 2026-11-09 22:00:38 UTC (Ronok's run), plus `excerpt_checksum`. `capture_checksum` refers to the private full read |
+| `ramp_context` | The record fields above for bill `f74ba12c…`: vendor name "DocuSign" and invoice "DD-PREAPPROVAL" from the captured records, an operator-observed link, binding `NONE`, `finding_attachable: false`, the note attributed to a person, credits `NO_APPLIED_CREDITS` |
 | `finding` | `{outcome: INSUFFICIENT_EVIDENCE, finding_kind: UNBOUND_RECORD, missing, amount: null}` |
 | `contract_terms`, `actual_recovery` | `NONE_BOUND`, `null` |
 
@@ -107,7 +107,6 @@ Implemented at `5f5cee4` and `1527bc0`; the names below are final. `GET /api/ram
 
 **Needs a person or Ronok:**
 - whether and where to run the Uptime-origin comment route (packet item 2);
-- approval of the read-only capture with names (item 4);
 - the Northwind bill decision, which changes D02; I recommend against it (item 5);
 - the award-verification role and the D06 two-person question.
 
@@ -116,3 +115,4 @@ Implemented at `5f5cee4` and `1527bc0`; the names below are final. `GET /api/ram
 - 13:08 PST: this file. Implementation follows in focused commits; the changed-test ledger is [`TEST-CHANGES-submission-ramp-20261109.md`](../TEST-CHANGES-submission-ramp-20261109.md).
 - After 13:08 PST: coordinator approved option A (verified demo-bill panel), with conditions; all applied.
 - 13:24 PST: worklist, context projection, verified record, capability matrix and operator packet pushed. Focused: 1,155 passed, 1 warning; Node 109 passed.
+- 14:00 and 14:03 PST: Ronok ran the two read-only capture commands himself. 14:09 PST: verified record rebuilt as a minimal excerpt with names (packet item 4). Same bill, business, USD 840 and note `376563cf…` as before. Vendor "DocuSign", invoice "DD-PREAPPROVAL".
