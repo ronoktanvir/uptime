@@ -1,0 +1,672 @@
+{
+  "source_uri": "https://status.twilio.com/api/v2/incidents.json",
+  "observed_at": "2026-11-09T12:26:26.250911+00:00",
+  "raw_sha256": "7e974ffdb15f0ffb306c4453657053071f7f33782fbe02b80c98f11bfd58583a",
+  "observations": [
+    {
+      "incident_id": "00dx2mpdfmpp",
+      "label": "Delayed Email Validation History",
+      "status": "resolved",
+      "created_at": "2026-11-04T09:54:21.046-08:00",
+      "started_at": "2026-11-04T09:54:21.039-08:00",
+      "resolved_at": "2026-11-04T12:42:27.208-08:00",
+      "updated_at": "2026-11-04T12:42:27.235-08:00",
+      "components": [
+        "n0182p0ccyxz"
+      ],
+      "content_hash": "206a7dbee70b9f3e2d3407b870675218938f07988780fcc6543567f9799d5fdd"
+    },
+    {
+      "incident_id": "2ylvwxdqqjz2",
+      "label": "MMS Delivery Delays from a Subset of Twilio Long Codes to Multiple Small Networks United States",
+      "status": "resolved",
+      "created_at": "2026-11-02T20:46:49.182-08:00",
+      "started_at": "2026-11-02T20:46:49.172-08:00",
+      "resolved_at": "2026-11-03T13:01:21.393-08:00",
+      "updated_at": "2026-11-03T13:01:21.425-08:00",
+      "components": [
+        "8vdlvw3dsq8h"
+      ],
+      "content_hash": "db0a4b56da66a989728dcebfc109137ad30a370fe1821a37c72a89e28c57cdb1"
+    },
+    {
+      "incident_id": "3cdw1jrt88l2",
+      "label": "SMS Delivery Failures from Twilio to KDDI Japan",
+      "status": "resolved",
+      "created_at": "2026-11-01T12:30:04.464-08:00",
+      "started_at": "2026-11-01T12:30:04.453-08:00",
+      "resolved_at": "2026-11-01T16:37:57.392-08:00",
+      "updated_at": "2026-11-01T16:37:57.422-08:00",
+      "components": [
+        "8qjql0kqnd33"
+      ],
+      "content_hash": "383b98eee5096a244819bc4b153875a9631aea03fc7d10fdedcaa9e3bcda4215"
+    },
+    {
+      "incident_id": "7765xzmg4hd6",
+      "label": "SMS Delivery Delays and Failures from Twilio to Claro Puerto Rico",
+      "status": "resolved",
+      "created_at": "2026-11-02T15:38:49.857-08:00",
+      "started_at": "2026-11-02T15:38:49.846-08:00",
+      "resolved_at": "2026-11-02T22:59:01.370-08:00",
+      "updated_at": "2026-11-02T22:59:01.400-08:00",
+      "components": [
+        "42zx9w2kmtvf"
+      ],
+      "content_hash": "8d33910ed61853af8d624abf7d032c30d017c4fc8d5055b4c8146459512ea7ac"
+    },
+    {
+      "incident_id": "7t4pwfrhwmq9",
+      "label": "MMS Delivery Delays from a Subset of Twilio Long Codes to Multiple Small Networks in United States",
+      "status": "resolved",
+      "created_at": "2026-11-03T14:51:13.262-08:00",
+      "started_at": "2026-11-03T14:51:13.247-08:00",
+      "resolved_at": "2026-11-03T22:54:23.576-08:00",
+      "updated_at": "2026-11-03T22:54:23.607-08:00",
+      "components": [
+        "8vdlvw3dsq8h"
+      ],
+      "content_hash": "ea4ec1c87f35b4e71becaaecff1d798216e6296d8040f990f27f8b3001d56f78"
+    },
+    {
+      "incident_id": "8xn89j4cllbj",
+      "label": "SMS Delivery Delays from Twilio to Claro Dominican Republic",
+      "status": "resolved",
+      "created_at": "2026-11-06T09:24:00.186-08:00",
+      "started_at": "2026-11-06T09:24:00.176-08:00",
+      "resolved_at": "2026-11-06T13:10:06.403-08:00",
+      "updated_at": "2026-11-06T13:10:06.432-08:00",
+      "components": [
+        "42zx9w2kmtvf"
+      ],
+      "content_hash": "f7faa71616ecea0d4ad89d666d40b8941d587b1e6ec5fe5d3631c45e7025ea24"
+    },
+    {
+      "incident_id": "91slf66q53vx",
+      "label": "SMS Delivery Failures from Twilio to ETL Laos",
+      "status": "identified",
+      "created_at": "2026-11-08T22:57:09.387-08:00",
+      "started_at": "2026-11-08T22:57:09.375-08:00",
+      "resolved_at": null,
+      "updated_at": "2026-11-09T04:00:20.879-08:00",
+      "components": [
+        "8qjql0kqnd33"
+      ],
+      "content_hash": "be341b9dc4b2d754ce71f0a2a0432cbf6f68a1fbb7ea434607333ba4fe075337"
+    },
+    {
+      "incident_id": "9tfsyfgf6sxx",
+      "label": "SMS Delivery Receipt Delays from Twilio to Globe Philippines",
+      "status": "resolved",
+      "created_at": "2026-11-07T13:22:59.762-08:00",
+      "started_at": "2026-11-07T13:22:59.752-08:00",
+      "resolved_at": "2026-11-08T02:39:37.739-08:00",
+      "updated_at": "2026-11-08T02:39:37.770-08:00",
+      "components": [
+        "8qjql0kqnd33"
+      ],
+      "content_hash": "7ba92ff7e898c8f3a9a3a650f80be37506183932ed69121929c2e891b68dfee9"
+    },
+    {
+      "incident_id": "bx87yfgd4nbf",
+      "label": "Silent Network Authentication (SNA) Failure Increase on Indosat in Indonesia",
+      "status": "resolved",
+      "created_at": "2026-10-28T05:14:45.049-07:00",
+      "started_at": "2026-10-28T05:14:45.038-07:00",
+      "resolved_at": "2026-11-06T00:09:11.578-08:00",
+      "updated_at": "2026-11-06T00:09:11.603-08:00",
+      "components": [
+        "trrz5ztt7pl8"
+      ],
+      "content_hash": "9856e4639101cd5ab6e7e1c82a3ca8e4e53f7a906f15115218bfbd47643a1c01"
+    },
+    {
+      "incident_id": "by1px810vb67",
+      "label": "SMS Delivery Delays from Twilio to Multiple Networks in India",
+      "status": "resolved",
+      "created_at": "2026-11-07T05:00:28.130-08:00",
+      "started_at": "2026-11-07T05:00:28.115-08:00",
+      "resolved_at": "2026-11-07T08:39:48.752-08:00",
+      "updated_at": "2026-11-07T08:39:48.778-08:00",
+      "components": [
+        "8qjql0kqnd33"
+      ],
+      "content_hash": "a4860a9793abea1b149f5f45ba07418eac4e7d4d546612d24c0bf9cfa58a0460"
+    },
+    {
+      "incident_id": "cclj59q01cgt",
+      "label": "MMS Delivery Delays from a Subset of Twilio Long Codes to C-Spire United States",
+      "status": "resolved",
+      "created_at": "2026-10-27T14:31:08.219-07:00",
+      "started_at": "2026-10-27T14:31:08.206-07:00",
+      "resolved_at": "2026-11-04T14:57:10.768-08:00",
+      "updated_at": "2026-11-04T14:57:10.795-08:00",
+      "components": [
+        "8vdlvw3dsq8h"
+      ],
+      "content_hash": "fac6c2b648c69eadc509b05bae51ce0d6253c5abd73f2e9853390bc9db9afe33"
+    },
+    {
+      "incident_id": "dt4b6xktlfvf",
+      "label": "SMS Delivery Delays from a Subset of Twilio Long Codes to T-Mobile and O2 Czech Republic",
+      "status": "resolved",
+      "created_at": "2026-11-02T01:46:19.006-08:00",
+      "started_at": "2026-11-02T01:46:18.901-08:00",
+      "resolved_at": "2026-11-02T04:39:49.358-08:00",
+      "updated_at": "2026-11-02T04:39:49.384-08:00",
+      "components": [
+        "llgdln3dcs6p"
+      ],
+      "content_hash": "ef6f7191d81fcd28ba874ff67b8870f881246b0e7a740d9dd79d5f17e89b3213"
+    },
+    {
+      "incident_id": "dxdxr2tzkzkd",
+      "label": "SMS Delivery Receipt Delays from a Subset of Twilio Short Codes to Multiple Networks in New Zealand",
+      "status": "resolved",
+      "created_at": "2026-11-06T18:57:55.584-08:00",
+      "started_at": "2026-11-06T18:57:55.571-08:00",
+      "resolved_at": "2026-11-08T22:26:40.989-08:00",
+      "updated_at": "2026-11-08T22:26:41.017-08:00",
+      "components": [
+        "8qjql0kqnd33"
+      ],
+      "content_hash": "e90f7b42ffaf8b9bafb008e7a5759ce8ba8b482ca81760c8b2b21480b0d8d47e"
+    },
+    {
+      "incident_id": "f2mwx4r30hnd",
+      "label": "SMS Delivery Receipt Delays from a Subset of Twilio Short Codes to Liberty Puerto Rico",
+      "status": "resolved",
+      "created_at": "2026-11-05T14:50:44.746-08:00",
+      "started_at": "2026-11-05T14:50:44.733-08:00",
+      "resolved_at": "2026-11-06T06:49:03.918-08:00",
+      "updated_at": "2026-11-06T06:49:03.954-08:00",
+      "components": [
+        "42zx9w2kmtvf"
+      ],
+      "content_hash": "359088a9bc845d763ffc185504f0702b5a260eb7e6c46ec3a7373c50e2fb5dec"
+    },
+    {
+      "incident_id": "fm5fk85h6glc",
+      "label": "Voice Call Post Dial Delay from a Subset of Twilio Phone Numbers to Thailand",
+      "status": "resolved",
+      "created_at": "2026-10-12T04:53:33.000-07:00",
+      "started_at": "2026-10-12T04:53:33.000-07:00",
+      "resolved_at": "2026-11-09T00:35:48.663-08:00",
+      "updated_at": "2026-11-09T00:35:48.704-08:00",
+      "components": [
+        "50pr269zqrwj"
+      ],
+      "content_hash": "a446ee1798d6acb60212d361cd72c0c7905b6ee0203c480416ed08259b03b4e5"
+    },
+    {
+      "incident_id": "ftg4m9bxt7wt",
+      "label": "SMS Delivery Failures from Germany to a Subset of Twilio Long Codes",
+      "status": "investigating",
+      "created_at": "2026-11-08T23:38:30.469-08:00",
+      "started_at": "2026-11-08T23:38:30.456-08:00",
+      "resolved_at": null,
+      "updated_at": "2026-11-09T02:48:17.854-08:00",
+      "components": [
+        "llgdln3dcs6p"
+      ],
+      "content_hash": "4c9ab7e3779f7b0ea8d32e0fca2e96aa12eff63908753b80b3cce60ac249a065"
+    },
+    {
+      "incident_id": "fw0j9994p8kf",
+      "label": "Voice Call Post Dial Delay from a Subset of Twilio Canada Phone Numbers to Rogers Wireless and Fido Canada",
+      "status": "resolved",
+      "created_at": "2026-11-05T06:15:22.785-08:00",
+      "started_at": "2026-11-05T06:15:22.775-08:00",
+      "resolved_at": "2026-11-05T11:28:43.909-08:00",
+      "updated_at": "2026-11-05T11:28:43.937-08:00",
+      "components": [
+        "2v3v92mz2m4h"
+      ],
+      "content_hash": "1fcb6a03d52f605af693e4bf9b7e6664135a5ddc2cd36f1d59facf1292485588"
+    },
+    {
+      "incident_id": "g68qhlwlhd99",
+      "label": "MMS Delivery Receipt Delays and Delivery Delays from a Subset of Twilio Long Codes and Short Codes to AT&T United States",
+      "status": "resolved",
+      "created_at": "2026-11-03T07:43:23.576-08:00",
+      "started_at": "2026-11-03T07:43:23.560-08:00",
+      "resolved_at": "2026-11-03T18:08:25.764-08:00",
+      "updated_at": "2026-11-03T18:08:25.789-08:00",
+      "components": [
+        "8vdlvw3dsq8h",
+        "h0fl7prwfhvm",
+        "llqd4rmn8k8y"
+      ],
+      "content_hash": "21f32eaa372872e375ee995c5f25bafff8708aea94f9b5f0b1b8aaa3c7aad68b"
+    },
+    {
+      "incident_id": "gkbf2j6ntllh",
+      "label": "SMS Delivery Delays from a Subset of Twilio Short Codes to Docomo Pacific United States",
+      "status": "resolved",
+      "created_at": "2026-10-26T12:50:34.660-07:00",
+      "started_at": "2026-10-26T13:57:45.000-07:00",
+      "resolved_at": "2026-10-30T15:28:12.400-07:00",
+      "updated_at": "2026-10-30T15:28:12.427-07:00",
+      "components": [
+        "39mb8cmw8y2v"
+      ],
+      "content_hash": "f18d3e49ab9e993852c86959193843bb7fbe98c830542bfcfd75f639e9848165"
+    },
+    {
+      "incident_id": "hg324w48z9b9",
+      "label": "Silent Network Authentication (SNA) Missing Redirects and Gateway API (Lookup API) High Latency on KPN in Netherlands",
+      "status": "resolved",
+      "created_at": "2026-10-30T09:26:15.008-07:00",
+      "started_at": "2026-10-30T09:26:14.997-07:00",
+      "resolved_at": "2026-10-30T21:41:03.516-07:00",
+      "updated_at": "2026-10-30T21:41:03.545-07:00",
+      "components": [
+        "fsxs9n9yf4m7",
+        "q0hp6vfr4vvh",
+        "qt4vzyg2g7b4",
+        "trrz5ztt7pl8"
+      ],
+      "content_hash": "2de9be5df3766ebd1dbd063958bb3d58042674323dbbf28b2f66df27b6898b67"
+    },
+    {
+      "incident_id": "hrghhx98wx17",
+      "label": "TwiML ConversationRelay Documents Page Error",
+      "status": "resolved",
+      "created_at": "2026-11-06T08:53:27.000-08:00",
+      "started_at": "2026-11-06T08:53:27.000-08:00",
+      "resolved_at": "2026-11-06T10:49:12.983-08:00",
+      "updated_at": "2026-11-06T10:49:13.008-08:00",
+      "components": [
+        "b81y83zrvglj"
+      ],
+      "content_hash": "2a41b6483bb602177650872e6a2888f36b710b044ab0289e140cc52aabfa47ea"
+    },
+    {
+      "incident_id": "hx17zkpkzlqx",
+      "label": "SMS Delivery Failures from Twilio Phone Numbers to Lycamobile France",
+      "status": "resolved",
+      "created_at": "2026-11-05T12:25:58.590-08:00",
+      "started_at": "2026-11-05T12:25:58.580-08:00",
+      "resolved_at": "2026-11-05T17:17:08.878-08:00",
+      "updated_at": "2026-11-05T17:17:08.907-08:00",
+      "components": [
+        "llgdln3dcs6p"
+      ],
+      "content_hash": "126654a8caa8da3dff1eafd268ffd05e1dfb16d44f8dc7f004dfe52e4794974d"
+    },
+    {
+      "incident_id": "jjnny3n3b4pp",
+      "label": "Voice Call Failures from Twilio Phone Numbers to Digi Mobil Romania",
+      "status": "resolved",
+      "created_at": "2026-10-26T06:09:40.509-07:00",
+      "started_at": "2026-10-26T06:09:40.499-07:00",
+      "resolved_at": "2026-11-06T13:36:29.793-08:00",
+      "updated_at": "2026-11-06T13:36:29.823-08:00",
+      "components": [
+        "bnzggd37p61w"
+      ],
+      "content_hash": "c651fc32d4e304e8c2d09c5805ab600dabf8d7bfa87feb6cb7ae9d680bd57efd"
+    },
+    {
+      "incident_id": "jmw0g5sjstpm",
+      "label": "SMS Delivery Delays and Failures from Twilio Alphanumeric Sender Type to T-Mobile Austria",
+      "status": "resolved",
+      "created_at": "2026-11-02T07:32:04.210-08:00",
+      "started_at": "2026-11-02T07:32:04.198-08:00",
+      "resolved_at": "2026-11-02T12:45:23.015-08:00",
+      "updated_at": "2026-11-02T12:45:23.040-08:00",
+      "components": [
+        "llgdln3dcs6p"
+      ],
+      "content_hash": "c744d75de79aa431146f41ee45d92f15e8c4d576782ece6b68932a171ef7c6f2"
+    },
+    {
+      "incident_id": "jnx2660mnhkl",
+      "label": "SMS Delivery Receipt Delays from a Subset of Twilio Long Codes and Short Codes to Multiple Networks in United States",
+      "status": "resolved",
+      "created_at": "2026-11-07T11:37:03.627-08:00",
+      "started_at": "2026-11-07T11:37:03.611-08:00",
+      "resolved_at": "2026-11-08T09:13:19.842-08:00",
+      "updated_at": "2026-11-08T09:13:19.875-08:00",
+      "components": [
+        "39mb8cmw8y2v",
+        "7d8w22hqrh6s",
+        "qj606bzkg4s8"
+      ],
+      "content_hash": "29118f698d0dc535a3a63368c47ce08e6e663ccfeaab74a8e01e2a44eafd306a"
+    },
+    {
+      "incident_id": "k76vg1mcxj88",
+      "label": "Some Customers May Have Incorrect Balances Reflected on Their Account",
+      "status": "resolved",
+      "created_at": "2026-11-02T08:37:49.718-08:00",
+      "started_at": "2026-11-02T08:37:49.706-08:00",
+      "resolved_at": "2026-11-03T17:26:34.862-08:00",
+      "updated_at": "2026-11-03T17:26:34.888-08:00",
+      "components": [
+        "jw9dh2mf4392"
+      ],
+      "content_hash": "4604ab39422d938eba6ff0ce0c1463e17cbc1a0a65d3aa0f5b4bd4a5a1d1c20a"
+    },
+    {
+      "incident_id": "k837lh2xzwh0",
+      "label": "Voice Call Audio Quality Degradation from a Subset of Twilio Mobile Numbers to Claro Colombia",
+      "status": "resolved",
+      "created_at": "2026-11-06T07:12:49.525-08:00",
+      "started_at": "2026-11-06T07:12:49.513-08:00",
+      "resolved_at": "2026-11-06T07:49:17.876-08:00",
+      "updated_at": "2026-11-06T07:49:17.911-08:00",
+      "components": [
+        "fbtv2g9t3z25"
+      ],
+      "content_hash": "da319bb4eab7e7626afb2016e3ede868ce82bc1d56b386cdd7567147a49afd93"
+    },
+    {
+      "incident_id": "k8tt82wzsqz4",
+      "label": "Notification Logs Unavailable in Console",
+      "status": "resolved",
+      "created_at": "2026-11-05T21:33:22.017-08:00",
+      "started_at": "2026-11-05T21:33:22.006-08:00",
+      "resolved_at": "2026-11-05T23:08:16.597-08:00",
+      "updated_at": "2026-11-05T23:08:16.622-08:00",
+      "components": [
+        "5bv1plmydbzf"
+      ],
+      "content_hash": "7d7afe6cdb1ae963691179b30be0a5315797102b012a4f3eb03a8d5ba229bc38"
+    },
+    {
+      "incident_id": "lcq1r4xd82k5",
+      "label": "SMS Delivery Delays from Twilio to Algar Telecom Brazil",
+      "status": "resolved",
+      "created_at": "2026-11-04T08:02:06.421-08:00",
+      "started_at": "2026-11-04T08:02:06.323-08:00",
+      "resolved_at": "2026-11-04T13:21:41.823-08:00",
+      "updated_at": "2026-11-04T13:21:41.849-08:00",
+      "components": [
+        "42zx9w2kmtvf"
+      ],
+      "content_hash": "55e41074825b8e75217e1e07e6b968e164a9fab169d92099cab93b7a33546e1f"
+    },
+    {
+      "incident_id": "m5yrng0zkwr5",
+      "label": "SMS Delivery Delays from a Subset of Twilio Long Codes to Multiple Networks in Chile",
+      "status": "identified",
+      "created_at": "2026-11-06T13:21:41.235-08:00",
+      "started_at": "2026-11-06T13:21:41.223-08:00",
+      "resolved_at": null,
+      "updated_at": "2026-11-09T02:27:46.176-08:00",
+      "components": [
+        "42zx9w2kmtvf"
+      ],
+      "content_hash": "e2b8a9aefcbf84687fb843d0a229833dc8bb50490749433af19d9432ac3d44c7"
+    },
+    {
+      "incident_id": "n13tys18mwkt",
+      "label": "Voice Call Silent and One-Way Audio between a Subset of Twilio Phone Numbers and Multiple Networks in Colombia",
+      "status": "resolved",
+      "created_at": "2026-11-05T15:33:06.389-08:00",
+      "started_at": "2026-11-05T15:33:06.377-08:00",
+      "resolved_at": "2026-11-06T14:07:14.197-08:00",
+      "updated_at": "2026-11-06T14:07:14.226-08:00",
+      "components": [
+        "fbtv2g9t3z25"
+      ],
+      "content_hash": "9268c5fba73d8e346bbe2568973ab6c9f890598098a29e518b5026bc640b2da4"
+    },
+    {
+      "incident_id": "nw1xczm61c7x",
+      "label": "MMS Delivery Delays and Failures from a Subset of Twilio Short Codes to T-Mobile and Verizon United States",
+      "status": "resolved",
+      "created_at": "2026-11-03T06:51:33.062-08:00",
+      "started_at": "2026-11-03T06:51:33.049-08:00",
+      "resolved_at": "2026-11-03T13:09:48.825-08:00",
+      "updated_at": "2026-11-03T13:09:48.853-08:00",
+      "components": [
+        "h0fl7prwfhvm"
+      ],
+      "content_hash": "c452ed4a801323152281532aaac21a730eae6d71302a652ab6e3c47949e3e184"
+    },
+    {
+      "incident_id": "p3dwpq8y05nd",
+      "label": "Silent Network Authentication (SNA) Missing Redirects on XL Axiata in Indonesia",
+      "status": "resolved",
+      "created_at": "2026-11-01T22:54:08.803-08:00",
+      "started_at": "2026-11-01T22:54:08.793-08:00",
+      "resolved_at": "2026-11-02T12:21:02.747-08:00",
+      "updated_at": "2026-11-02T12:21:02.775-08:00",
+      "components": [
+        "trrz5ztt7pl8"
+      ],
+      "content_hash": "f708d717ac0af19548b68e2484abe39df113b770d1bd4c428da811102c63e3c9"
+    },
+    {
+      "incident_id": "p3xbyh7wpvq2",
+      "label": "Voice Call One-Way Audio from Brazil to a Subset of Twilio Numbers",
+      "status": "resolved",
+      "created_at": "2026-11-02T12:55:17.265-08:00",
+      "started_at": "2026-11-02T12:55:17.259-08:00",
+      "resolved_at": "2026-11-02T12:55:17.320-08:00",
+      "updated_at": "2026-11-02T12:55:17.327-08:00",
+      "components": [
+        "fbtv2g9t3z25"
+      ],
+      "content_hash": "a37bcdb69ad7069673b7fa1030105c0e77ff93b6cf2f5d3b7138992ca9c282cb"
+    },
+    {
+      "incident_id": "q0wmp98qd05h",
+      "label": "Voice Call Failures from a Subset of Twilio Philippines Phone Numbers to Multiple Networks in Philippines",
+      "status": "identified",
+      "created_at": "2026-11-01T21:41:31.845-08:00",
+      "started_at": "2026-11-01T21:41:31.831-08:00",
+      "resolved_at": null,
+      "updated_at": "2026-11-08T06:09:34.514-08:00",
+      "components": [
+        "50pr269zqrwj"
+      ],
+      "content_hash": "87a404f036cbc2d7388182c46ed5114aacf0762a0f2f8f52c38a90b8c7becb82"
+    },
+    {
+      "incident_id": "rg1ppj2b00hz",
+      "label": "SMS Delivery Failures from Twilio to MTN Nigeria",
+      "status": "resolved",
+      "created_at": "2026-11-08T15:19:19.413-08:00",
+      "started_at": "2026-11-08T15:19:19.399-08:00",
+      "resolved_at": "2026-11-08T21:20:01.514-08:00",
+      "updated_at": "2026-11-08T21:20:01.549-08:00",
+      "components": [
+        "9z5gsqyjs4rl"
+      ],
+      "content_hash": "443f596f40316946e4e4b7f60fa71fe497aaa9caff11082108f92ca2eccdf80b"
+    },
+    {
+      "incident_id": "ry5cj1mk6r60",
+      "label": "Voice Call Failures From a Subset of Twilio Mobile Numbers to Argentina",
+      "status": "resolved",
+      "created_at": "2026-11-05T10:34:08.322-08:00",
+      "started_at": "2026-11-05T10:34:08.308-08:00",
+      "resolved_at": "2026-11-06T19:55:18.148-08:00",
+      "updated_at": "2026-11-06T19:55:18.174-08:00",
+      "components": [
+        "fbtv2g9t3z25"
+      ],
+      "content_hash": "a8b844d289a1c03bb660e2fe8aad8ff1ac272b9915e9629d69ca618732228b59"
+    },
+    {
+      "incident_id": "sh0zmvq1plq6",
+      "label": "SMS Delivery Delays from a Subset of Twilio Short Codes to Google Voice United States",
+      "status": "resolved",
+      "created_at": "2026-11-01T16:51:56.575-08:00",
+      "started_at": "2026-11-01T16:51:56.562-08:00",
+      "resolved_at": "2026-11-01T23:24:26.330-08:00",
+      "updated_at": "2026-11-01T23:24:26.357-08:00",
+      "components": [
+        "39mb8cmw8y2v"
+      ],
+      "content_hash": "a9c43762c756e4afad51fc41aaa1744c91b4a4524d796370dded3276eead181d"
+    },
+    {
+      "incident_id": "sv0vq136j25r",
+      "label": "SMS Delivery Delays from Twilio to Claro Brazil",
+      "status": "resolved",
+      "created_at": "2026-11-04T09:15:26.319-08:00",
+      "started_at": "2026-11-04T09:15:26.308-08:00",
+      "resolved_at": "2026-11-04T13:59:39.418-08:00",
+      "updated_at": "2026-11-04T13:59:39.448-08:00",
+      "components": [
+        "42zx9w2kmtvf"
+      ],
+      "content_hash": "6e60b1a5be4ef4e8a8b0e272f7bf9e879cd8deb6d70e9fb3924117ee4727fece"
+    },
+    {
+      "incident_id": "v5v1m9lldn65",
+      "label": "Search Delays on Enterprise Knowledge",
+      "status": "resolved",
+      "created_at": "2026-11-04T10:20:11.000-08:00",
+      "started_at": "2026-11-04T10:20:11.000-08:00",
+      "resolved_at": "2026-11-04T14:53:10.855-08:00",
+      "updated_at": "2026-11-04T14:53:10.896-08:00",
+      "components": [
+        "m8vfg5ddymxk"
+      ],
+      "content_hash": "769d4c84b9646ff8bfa29fec60bedeeff0a321d06808eb80dbf6c7686910d2da"
+    },
+    {
+      "incident_id": "vknff7g9c5fx",
+      "label": "SMS Delivery Delays from Twilio to Entel Bolivia",
+      "status": "resolved",
+      "created_at": "2026-11-02T19:51:22.793-08:00",
+      "started_at": "2026-11-02T19:51:22.783-08:00",
+      "resolved_at": "2026-11-03T05:28:41.371-08:00",
+      "updated_at": "2026-11-03T05:28:41.404-08:00",
+      "components": [
+        "42zx9w2kmtvf"
+      ],
+      "content_hash": "fc8e6da17cf777e7f530cbb53841df3209c8ff7e37a35bceb41cad48c20edf08"
+    },
+    {
+      "incident_id": "w3fds6d06pn3",
+      "label": "Voice Call Failures from a Subset of Twilio Phone Numbers to Chile",
+      "status": "resolved",
+      "created_at": "2026-11-06T07:56:27.315-08:00",
+      "started_at": "2026-11-06T07:56:27.303-08:00",
+      "resolved_at": "2026-11-06T11:41:14.975-08:00",
+      "updated_at": "2026-11-06T11:41:15.007-08:00",
+      "components": [
+        "fbtv2g9t3z25"
+      ],
+      "content_hash": "c317c2bbc62cf10ff60a35090aa6c3bbe6a1f3dea59c33b50476cabb008c01d3"
+    },
+    {
+      "incident_id": "wk9d15hnq4d0",
+      "label": "SMS Delivery Delays from a Subset of Twilio Short Codes and Long Codes to Brisanet Brazil",
+      "status": "resolved",
+      "created_at": "2026-11-02T20:55:17.453-08:00",
+      "started_at": "2026-11-02T20:55:17.441-08:00",
+      "resolved_at": "2026-11-03T11:42:01.932-08:00",
+      "updated_at": "2026-11-03T11:42:01.961-08:00",
+      "components": [
+        "42zx9w2kmtvf"
+      ],
+      "content_hash": "5ce26f3dc20ef00b432f8706b930ed2f8afd045ba32491e5d2d9af1901bb37d4"
+    },
+    {
+      "incident_id": "x0d3ttwr1nwk",
+      "label": "SMS Delivery Delays from Twilio to Lycamobile United Kingdom",
+      "status": "resolved",
+      "created_at": "2026-11-02T19:07:58.799-08:00",
+      "started_at": "2026-11-02T19:07:58.790-08:00",
+      "resolved_at": "2026-11-02T21:47:55.428-08:00",
+      "updated_at": "2026-11-02T21:47:55.456-08:00",
+      "components": [
+        "llgdln3dcs6p"
+      ],
+      "content_hash": "083e34b6a05c83d575d307b7d71e7da670b4687a9a6ef1b2be723d4e4eec903b"
+    },
+    {
+      "incident_id": "x2w2p6b9d9dr",
+      "label": "Silent Network Authentication (SNA) Failure Increase and Gateway API (Lookup API) Failure Increase on EnStream in Canada",
+      "status": "resolved",
+      "created_at": "2026-11-08T06:58:56.307-08:00",
+      "started_at": "2026-11-08T06:58:56.291-08:00",
+      "resolved_at": "2026-11-08T21:11:44.433-08:00",
+      "updated_at": "2026-11-08T21:11:44.462-08:00",
+      "components": [
+        "fsxs9n9yf4m7",
+        "q0hp6vfr4vvh",
+        "qt4vzyg2g7b4",
+        "trrz5ztt7pl8"
+      ],
+      "content_hash": "b7044a289f1a884a1dc7a301788868019bcb072bee7eba40eb5ecbae1938001e"
+    },
+    {
+      "incident_id": "x3f55q1rkbqv",
+      "label": "RateQueue Host Down Did Not Recover",
+      "status": "resolved",
+      "created_at": "2026-11-02T18:14:03.065-08:00",
+      "started_at": "2026-11-02T18:14:03.055-08:00",
+      "resolved_at": "2026-11-04T10:09:25.931-08:00",
+      "updated_at": "2026-11-04T10:09:25.954-08:00",
+      "components": [
+        "yvvy3vlp4djf"
+      ],
+      "content_hash": "3c20b5b10e8b3418fcdceb32aa2f35bba1b5a18057e400014a8f0b70dc76507d"
+    },
+    {
+      "incident_id": "xd1knrh7yh7y",
+      "label": "SMS Delivery Delays Between Twilio and T-Mobile in Czech Republic",
+      "status": "resolved",
+      "created_at": "2026-11-05T17:23:45.567-08:00",
+      "started_at": "2026-11-05T17:23:45.558-08:00",
+      "resolved_at": "2026-11-06T02:19:26.065-08:00",
+      "updated_at": "2026-11-06T02:19:26.096-08:00",
+      "components": [
+        "llgdln3dcs6p"
+      ],
+      "content_hash": "3fbc8f86e0fac7e141a7dbbbe614f9262a932f04b6b1908e443a92c4c08d60cd"
+    },
+    {
+      "incident_id": "xr4r8yfv6cb4",
+      "label": "SMS Delivery Receipt Delays from a Subset of Twilio Short Codes to Liberty Puerto Rico",
+      "status": "resolved",
+      "created_at": "2026-11-02T13:21:41.653-08:00",
+      "started_at": "2026-11-02T13:21:41.646-08:00",
+      "resolved_at": "2026-11-02T21:02:27.517-08:00",
+      "updated_at": "2026-11-02T21:02:27.543-08:00",
+      "components": [
+        "42zx9w2kmtvf"
+      ],
+      "content_hash": "891d78a8d5fe99b0f1555236d73d3c5d8b84b96383ada487a20c160c34319322"
+    },
+    {
+      "incident_id": "ylhrykqj7mdx",
+      "label": "Voice Call Audio Quality Degradation from a Subset of Twilio Phone Numbers to Multiple Networks in United States",
+      "status": "resolved",
+      "created_at": "2026-11-02T18:17:51.979-08:00",
+      "started_at": "2026-11-02T18:17:51.970-08:00",
+      "resolved_at": "2026-11-03T11:08:48.726-08:00",
+      "updated_at": "2026-11-03T11:08:48.750-08:00",
+      "components": [
+        "2v3v92mz2m4h"
+      ],
+      "content_hash": "38c783ca39a91bceef20b52febb8568e7b7580b1ebd25f0df167fdc5dbdf94c1"
+    },
+    {
+      "incident_id": "yqsx6rr4bpnx",
+      "label": "MMS Delivery Failures from a Subset of Twilio Long Codes to GCI United States",
+      "status": "resolved",
+      "created_at": "2026-11-03T16:27:20.602-08:00",
+      "started_at": "2026-11-03T16:27:20.588-08:00",
+      "resolved_at": "2026-11-03T16:58:51.684-08:00",
+      "updated_at": "2026-11-03T16:58:51.712-08:00",
+      "components": [
+        "8vdlvw3dsq8h",
+        "llqd4rmn8k8y"
+      ],
+      "content_hash": "3eeac6d93ad2b09b4a370787de68582c3d072d7fb3abf17ab15b5a97c3a12b51"
+    }
+  ],
+  "gaps": [
+    "Recent-incident feed is not complete historical coverage."
+  ],
+  "snapshot_hash": "d460051bae8636194ec7ae14c0834a4accc14a0798aae78c0840e1a83b1487f0"
+}
