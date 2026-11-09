@@ -528,7 +528,10 @@ def dispatch(path, p, vendor, facts, *, governing_fee=None,governing_fees=(),tru
         clauses = [dict(c, label=f'{doc["name"]}, clause {c["id"]}: {c["quote"]}', uri=doc['uri'],
                         source_sha256=doc['sha256']) for c in manifest['citations']]
         if governing := overlay.get('governing_terms'):
+            # F6: the evidence digest is an operator-supplied reference. Nothing here verifies it against stored
+            # signed evidence, so the citation says so rather than presenting it as verified customer evidence.
             clauses.append({'label':governing['source_ref'],'source':Source.CUSTOMER.value,'sha256':governing['evidence_sha256'],
+                            'evidence_verification':'OPERATOR_SUPPLIED_UNVERIFIED',
                             'governing_source_sha256':governing['source_sha256'],'effective_from':governing['effective_from'],
                             'unamended_terms':governing['unamended_terms'],'uri':''})
         if period := overlay.get('billing_period'):

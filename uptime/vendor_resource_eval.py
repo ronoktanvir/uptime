@@ -343,7 +343,11 @@ def deadline(facts,overlay,manifest,end):
     policy=manifest['filing']
     if policy.get('kind')=='scoped_absolute':
         return scoped_deadline(facts,overlay,policy,end)
-    count=overlay.get('override',{}).get('filing_days',policy['count'])
+    from .vendor_terms import private_filing_days
+    try:
+        count=private_filing_days(overlay,facts.get('month'),policy['count']) if overlay.get('override') else policy['count']
+    except ValueError as exc:
+        raise Unsupported(str(exc)) from exc
     endpoint=policy['endpoint']
     if endpoint=='unclear':
         raise Unsupported('Contractual filing endpoint is unclear.')
