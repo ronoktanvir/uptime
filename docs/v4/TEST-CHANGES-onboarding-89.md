@@ -123,3 +123,15 @@ It never opens a requirement, because delivery stays with a configured, authoriz
 | Same source without the exclusion | `SELECTED` monthly. |
 
 Result: **2 passed**. Existing tests changed: none.
+
+## Strict-parser clause classifier (`work/onboarding-strict-diagnose-89`)
+
+For Ronok's "1a" repair. The deterministic `/candidates` parser stops at the first clause it cannot read. `uptime/vendor_strict_diagnostics.py` and `scripts/diagnose_strict_terms.py` report every clause's matching template, or that it is unrecognized, plus the missing required terms. The output contains no source text: only clause numbers, offsets, lengths and SHA-256 values. The verification lane can therefore find every cause on a sealed source and share it without quoting. The classifier is outside the reviewed-semantics files and makes no model call.
+
+Added `tests/test_vendor_strict_diagnostics_89.py` (20 tests):
+- accepted sources classify exactly like the parser's citations;
+- on 15 mutation probes, the first unread clause is the clause the parser refuses;
+- every failure is reported at once;
+- neither the report nor the command output contains source text.
+
+Result: **20 passed, 1 warning**. Existing tests changed: none.
