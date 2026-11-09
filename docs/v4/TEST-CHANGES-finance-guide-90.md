@@ -104,3 +104,20 @@ Results after the follow-up:
 
 The holdout no longer predates every retrieval change. The change was motivated by the spot check, not by holdout results.
 
+## Legacy case-inspector guide abstention (D12)
+
+The new file `tests/test_intelligence_abstain_95.py` has 11 cases:
+
+- **6 unsupported questions.** Each abstains and keeps its `basis` intent label, including the existing tests' "Show the profile", "Show my billing profile." and the 1,000-character limit question.
+- **5 supported questions.** Each still answers from the case with its original intent. One is the existing injection question.
+
+No existing test changed. These existing tests run unchanged alongside the new file:
+
+- `tests/test_intelligence.py`
+- `tests/test_portfolio_v4.py` (pins "Show the profile" → `basis`)
+- `tests/test_journey_api.py`
+- `tests/test_v4_audit_workflow.py`
+- `tests/test_v4_audit_protocol.py`
+
+Result: **94 passed, 1 warning in 87.66s**.
+
