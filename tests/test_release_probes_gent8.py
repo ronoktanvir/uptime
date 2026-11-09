@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+import pytest
+
 from scripts import probe_restart_gent8 as probe
 
 
@@ -99,3 +101,65 @@ def test_socket_authority_attacks_are_refused_without_state_change(tmp_path):
     # Control: the same signed route accepts one fresh legitimate request.
     assert result['legitimate_action']['http_status'] == 200 and result['legitimate_action']['state_changed'] is True
     assert result['authority_kind'] == 'SCRIPTED_REVIEWER'
+
+
+def test_socket_tenant_crossing_is_refused_between_two_installations(tmp_path):
+    """Two installations (different tenants, databases and listeners) over real loopback HTTP.
+
+    A session token, enrolled key or subject from one installation must not authenticate or read on the other.
+    """
+    import contextlib
+    import socket
+    import threading
+    import time
+
+    import httpx
+    import uvicorn
+
+    from uptime.auth import enroll
+    from uptime.auth_client import ReviewerClient
+    from uptime.auth_keys import generate_reviewer_key
+    from uptime.server import create_app
+
+    @contextlib.contextmanager
+    def served(tenant, subject, key):
+        path = tmp_path / f'{tenant}.db'
+        enroll(path, subject, key, 'reviewer', 'replay', tenant)
+        sock = socket.socket()
+        sock.bind(('127.0.0.1', 0))
+        origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+        server = uvicorn.Server(uvicorn.Config(create_app(path, tenant=tenant, origin=origin), log_level='error'))
+        thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+        thread.start()
+        deadline = time.monotonic() + 10
+        while not server.started and time.monotonic() < deadline:
+            time.sleep(.01)
+        try:
+            with httpx.Client(base_url=origin, timeout=15, trust_env=False) as client:
+                yield origin, client
+        finally:
+            server.should_exit = True
+            thread.join(10)
+            sock.close()
+
+    silver_key, gold_key = generate_reviewer_key(), generate_reviewer_key()
+    with served('tenant-silver', 'silver.reviewer', silver_key) as (silver_origin, silver), \
+            served('tenant-gold', 'gold.reviewer', gold_key) as (gold_origin, gold):
+        silver_actor = ReviewerClient(silver, silver_origin, 'silver.reviewer', silver_key)
+        assert silver.get('/api/dashboard', headers=silver_actor.headers).json()['workspace'] == 'tenant-silver'
+        gold_actor = ReviewerClient(gold, gold_origin, 'gold.reviewer', gold_key)
+        assert gold.get('/api/dashboard', headers=gold_actor.headers).json()['workspace'] == 'tenant-gold'
+
+        # 1. A silver session token presented to the gold listener (with gold's own origin header).
+        carried = {**silver_actor.headers, 'Origin': gold_origin}
+        assert gold.get('/api/dashboard', headers=carried).status_code in (401, 403)
+        # 2. The silver subject and key cannot sign in on gold, where they are not enrolled.
+        with pytest.raises(httpx.HTTPStatusError) as unenrolled:
+            ReviewerClient(gold, gold_origin, 'silver.reviewer', silver_key)
+        assert unenrolled.value.response.status_code in (401, 403)
+        # 3. The silver key cannot impersonate gold's enrolled subject.
+        with pytest.raises(httpx.HTTPStatusError) as impersonated:
+            ReviewerClient(gold, gold_origin, 'gold.reviewer', silver_key)
+        assert impersonated.value.response.status_code in (401, 403)
+        # 4. Gold still reports only its own workspace afterwards.
+        assert gold.get('/api/dashboard', headers=gold_actor.headers).json()['workspace'] == 'tenant-gold'
