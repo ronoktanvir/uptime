@@ -1,6 +1,6 @@
 # Customer installation design (proposed; blocked on D11)
 
-**Status: proposal only.** No OAuth authorization-code code, callback route, token store or public listener exists, and none is authorized until the team records D11 (hosting, identity owner, key custody) and D10 (data disclosure). The current product uses operator-held sandbox client credentials on one loopback host. [Local operations and trust boundary](OPERATIONS-RECOVERY-90.md) · [Decision 90](decisions/ADR-0090-operations-recovery.md)
+**Status: proposal only.** No OAuth authorization-code code, callback route, token store or public listener exists, and none is authorized until the team records D11 (hosting, identity owner, key custody) and D10 (data disclosure). The current product uses operator-held sandbox client credentials on one loopback host. [Local operations and trust boundary](OPERATIONS-RECOVERY-90.md) · [Decision 96](decisions/ADR-0096-operations-recovery.md)
 
 ## Provider facts this design relies on
 
