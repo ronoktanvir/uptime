@@ -1,6 +1,6 @@
 # Customer installation design (proposed; deferred to a later hosted milestone)
 
-**Status: proposal only.** No OAuth authorization-code code, callback route, token store or public listener exists, and none is authorized. D11 was decided as **stay local for now** (Ronok's decision on November 9, 2026, relayed by the progress-review session; the integration owner is recording it): this deliverable stays loopback-only with no public tunnel, and hosted installation is a later milestone. When that milestone opens, it still needs the D11 hosting details (identity owner, key custody) and D10 (data disclosure). The current product uses operator-held sandbox client credentials on one loopback host. [Local operations and trust boundary](OPERATIONS-RECOVERY-90.md) · [Decision 96](decisions/ADR-0096-operations-recovery.md)
+**Status: proposal only.** No OAuth authorization-code code, callback route, token store or public listener exists, and none is authorized. D11 was decided as **stay local for now** (Ronok's decision on November 9, 2026, relayed by the progress-review session; the integration owner is recording it): this deliverable stays loopback-only with no public tunnel, and hosted installation is a later milestone. When that milestone opens, it still needs the D11 hosting details (identity owner, key custody) and a decision on keeping tenant records after uninstall. D10 (decided November 9) covers model data only: only public data goes to Claude, and secrets and customer captures never go to a model. Nothing in this design sends data to a model. The current product uses operator-held sandbox client credentials on one loopback host. [Local operations and trust boundary](OPERATIONS-RECOVERY-90.md) · [Decision 96](decisions/ADR-0096-operations-recovery.md)
 
 ## Provider facts this design relies on
 
@@ -43,7 +43,7 @@ From Ramp's public developer guide ([llms-guides](https://docs.ramp.com/llms-gui
 2. Stop and cancel the installation's queued jobs, and leave in-flight external effects as `UNCERTAIN` for reconciliation.
 3. Call the token revocation endpoint for the refresh token and any live access tokens. On a timeout, retry the revocation a bounded number of times and report `REVOCATION_UNCONFIRMED`.
 4. Delete the encrypted token material.
-5. Apply the D10 retention and deletion policy to the tenant's records. Financial audit history is not silently erased.
+5. Apply the tenant retention and deletion policy chosen for the hosted milestone (not yet decided; D10 covers model data only). Financial audit history is not silently erased.
 
 ## Callbacks and webhooks
 
@@ -70,7 +70,7 @@ From Ramp's public developer guide ([llms-guides](https://docs.ramp.com/llms-gui
 | Item | Needs |
 | --- | --- |
 | Public callback and webhook hosting, managed identity, secret store | D11 later milestone (current deliverable: stay local) |
-| What tenant data may leave the installation, and retention after uninstall | D10 |
+| Tenant record retention and deletion after uninstall | Undecided; later hosted milestone (D10 covers model data only) |
 | Whether uninstall also cancels in-flight claims or disputes with vendors | D08 |
 | Which Ramp records carry native findings | D02 |
 

@@ -100,13 +100,13 @@ Uptime persists no Ramp token, so there is nothing local to delete. Under Ramp's
 These are not met by the local deployment. D11 keeps this deliverable local, so they are deferred to a later hosted milestone; each still needs the named decision details when that milestone opens:
 
 1. **Hosted trust roots (later D11 milestone):** managed identity for operators and reviewers, ownership and rotation of signing keys, and a threat model for an administrator who is not the customer.
-2. **Customer OAuth installation:** authorization-code flow, server-side state, encrypted refresh-token custody, single-flight refresh, and revocation calls on uninstall. [Design](CUSTOMER-INSTALLATION-DESIGN.md). Also D10 for data that leaves the installation.
+2. **Customer OAuth installation:** authorization-code flow, server-side state, encrypted refresh-token custody, single-flight refresh, and revocation calls on uninstall. [Design](CUSTOMER-INSTALLATION-DESIGN.md). Under D10 (decided November 9), credentials, tokens and customer captures never go to a model.
 3. **Public HTTPS webhook receiver:** a per-installation secret in a managed store and a root-operated verification transport. The existing inbox logic is reusable; it is not served today.
 4. **Durable distributed workers:** a database-backed queue with leases and fencing tokens, replacing the single-process SQLite locks and in-memory nonce caches.
 5. **Off-host backups:** encrypted, with retention, scheduled restore drills, and authenticated (signed) manifests.
 6. **Alert delivery:** paging or email from the health check, with an accountable on-call operator.
 7. **Host revocation for issuer, source and price-evidence keys,** so they survive restore without `--previous`.
-8. **Customer data lifecycle:** retention and deletion on uninstall (D10/D11), and redacted centralized logs.
+8. **Customer data lifecycle:** retention and deletion on uninstall (undecided; later hosted milestone), and redacted centralized logs.
 9. **Native action proof:** still governed by D02 and the separate execution-policy rejection. Nothing here retries or reroutes the blocked native posting.
 
 ## Rollback
