@@ -24,3 +24,5 @@ A "dispositions are correct" test does not exist and should not: the record's in
 | `scripts/probe_socket_authority_gent8.py` | New | Driver for the socket-authority probe |
 
 Focused: `tests/test_release_probes_gent8.py` 4 passed, 1 warning in 25.65 s.
+
+Updated from `2056856` with two more listener-level probes. A source revised after approval yields UNSUPPORTED_RULE, and submission returns 409 with nothing submitted. An injected vendor reply creates no award, submission or action, an exact signed replay is refused, and a re-signed redelivery is idempotent. File total: 6 passed, 1 warning in 27.54 s.
