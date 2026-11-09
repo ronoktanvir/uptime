@@ -1,0 +1,61 @@
+{
+  "schema": "uptime-workstream-progress/1",
+  "workstream": "onboarding-finish-20261109",
+  "updated_at": "2026-11-09T19:58:11.881448+00:00",
+  "phase": "strict-template implementation and explicit monthly-basis compiler wiring",
+  "state": "in_progress",
+  "branch": "work/onboarding-finish-20261109",
+  "commits": [
+    "5a4af21",
+    "dee9698"
+  ],
+  "focused_results": [
+    {
+      "scope": "explicit monthly basis helper",
+      "passed": 24,
+      "failed": 0,
+      "seconds": 0.24
+    },
+    {
+      "scope": "authored financial controls before remediation (expected red phase)",
+      "passed": 0,
+      "failed": 4,
+      "deselected": 18,
+      "seconds": 0.56
+    }
+  ],
+  "actual_model": {
+    "model": "claude-opus-5-5",
+    "session_id": "afe5029a-1c61-44e7-814c-d113a349494c",
+    "requested_effort": "xhigh",
+    "state": "running",
+    "tools": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep"
+    ],
+    "mcp_servers": []
+  },
+  "completed": [
+    "Public worker receipt committed and pushed.",
+    "Explicit complete-service-month source-marker helper implemented and focused-tested."
+  ],
+  "in_progress": [
+    "Opus is editing generic strict-template compiler and diagnostics.",
+    "Parent is integrating source-grounded optional monthly basis through public model proposals.",
+    "Independent authored boundary and full-source contradiction controls prepared."
+  ],
+  "remaining_blocker": "Compiler/model integration and focused checks must pass before combined monthly join integration and independent evaluation.",
+  "ledger": "docs/v4/TEST-CHANGES-onboarding-finish-20261109.md",
+  "decision_refs": [
+    "docs/v4/REMEDIATION-1A-STRICT-TEMPLATES.md",
+    "User approved separate strict whole-month evidence path on 2026-11-09; integration owner records the decision."
+  ],
+  "limits": [
+    "No independent evaluation result is claimed by these development controls.",
+    "Original 0/4 and Backblaze refusal unchanged.",
+    "No Ramp write, human review or financial action."
+  ]
+}
