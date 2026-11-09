@@ -46,6 +46,9 @@ NESTED = {"resource_status": ("intervals",), "resource_attribution": ("causes", 
 INTERVAL_REPORTS = frozenset({"resource_status", "resource_attribution", "provider_telemetry", "customer_telemetry"})
 # Whole-period reports: compared with the unwidened UTC month.
 PERIOD_REPORTS = INTERVAL_REPORTS | {"coverage"}
+# The explicitly reviewed complete-month basis has exact UTC month boundaries.
+# These kinds do not inherit the older civil-offset admission margin.
+STRICT_MONTH_REPORTS = frozenset({"monthly_coverage", "monthly_attribution"})
 
 
 def month_bounds(month: str) -> tuple[datetime, datetime]:
@@ -72,6 +75,12 @@ def temporal_refusal(body, month: str) -> str | None:
     first, following = month_bounds(month)
     low, high = first - MARGIN, following + MARGIN
     own = (instant(data["start"]), instant(data["end"])) if "start" in data and "end" in data else None
+    if kind in STRICT_MONTH_REPORTS:
+        if own != (first, following):
+            return f"The {kind} report must cover the exact UTC service month {month}."
+        observed_at = data.get("observed_at")
+        if observed_at is None or instant(observed_at) < following:
+            return f"The {kind} report cannot be observed before its full service month ends."
     if (kind in PERIOD_REPORTS and not first <= own[0] < own[1] <= following
             and _shared(*own, first, following) <= MARGIN):
         return f"The {kind} report period lies outside service month {month}."
