@@ -31,3 +31,12 @@ Root review found that the copied dispatch helper read candidates before drainin
 The queue composition test now separately exercises a grounded time-bar reading, ordinary signed response preparation, local approval and local response receipt on an explicitly authored later business clock. The initial control failed at submit-response because the existing one-day follow-up policy correctly refused a same-day response; no policy was changed. The fixture now states its next-day continuation time. Ambiguous source readings remain review-only with zero awards. Correct-denial acceptance support is present but not yet proven by this harness; it must retain a separate continuation result.
 
 Latest combined focused result: **55 passed, 1 warning in 2.14s.** No existing tests changed; no application changes; only controlled provider doubles in these checks.
+
+
+## Source freeze and observed receipt setup
+
+The separately authored six-contract/eight-reply corpus and expected outcomes were frozen before any scored attempt; only hashes/counts/provenance are committed in `CORPUS-FREEZE.json`. The sealed expected file has not been opened for scoring. Two separate Opus high sessions now receive sources and public schemas only to prepare reply readings and wire mappings.
+
+Added a control for source-stated historical filing instead of fabricating a local original submission. The initial expectation that this monthly-profile setup would succeed was incorrect: the ordinary route refuses historical receipts unless an active reviewed resource-month agreement governs them. The new test now requires that exact setup refusal before model dispatch, with no local initial claim filing. This corrects the test's unsupported premise; no application or existing test was changed. A later monthly late-denial case will retain the setup limitation rather than pass on a forged chronology.
+
+Latest combined focused result: **56 passed, 1 warning in 2.28s.**

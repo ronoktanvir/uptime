@@ -117,12 +117,25 @@ def run_case(*, prepared_path, blind_path, attempt_dir, config_path, approved_by
             checked(signed.post('/api/correspondence/claims', prepared['claim']), 'claim_intake')
             for event in prepared['evidence']:
                 checked(deliver(scope, claim_url, event['event_id'], event['role'], event['body']), 'evidence_' + event['event_id'])
-            for operation in ('approve-claim', 'submit-claim'):
-                checked(signed.post(claim_url + '/actions/' + operation, {}), operation)
-            filed = checked(signed.get(claim_url), 'filed_readback')
-            if not filed.get('submissions'):
-                raise SetupRefusal('no_original_filing')
-            reply = dict(kind='message', text=prepared['reply']['text'], receipt_id=filed['submissions'][0]['id'])
+            if prepared.get('original_filing'):
+                current = checked(signed.get(claim_url), 'historical_binding_readback')
+                original = dict(prepared['original_filing'])
+                # These are bindings to the exact installed source, not fabricated
+                # chronology or a claim that this workspace submitted the filing.
+                original.setdefault('contract_version', current['contract_version'])
+                original.setdefault('contract_source_sha256', current['contract_source_sha256'])
+                checked(deliver(scope, claim_url, 'evaluation-original-filing', 'vendor', original), 'authored_historical_receipt')
+                receipt_id = original['receipt_id']
+                report['filing_basis'] = 'AUTHORED_OBSERVED_RECEIPT_NO_LOCAL_INITIAL_SUBMISSION'
+            else:
+                for operation in ('approve-claim', 'submit-claim'):
+                    checked(signed.post(claim_url + '/actions/' + operation, {}), operation)
+                filed = checked(signed.get(claim_url), 'filed_readback')
+                if not filed.get('submissions'):
+                    raise SetupRefusal('no_original_filing')
+                receipt_id = filed['submissions'][0]['id']
+                report['filing_basis'] = 'SCRIPTED_LOCAL_INITIAL_RECEIPT'
+            reply = dict(kind='message', text=prepared['reply']['text'], receipt_id=receipt_id)
             checked(deliver(scope, claim_url, 'evaluation-reply', 'vendor', reply), 'vendor_reply')
             for event in prepared.get('evidence_after_reply', []):
                 checked(deliver(scope, claim_url, event['event_id'], event['role'], event['body']),

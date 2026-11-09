@@ -69,7 +69,7 @@ def test_tampered_source_reading_never_creates_an_attempt(tmp_path):
     assert not (tmp_path / 'attempt').exists()
 
 
-@pytest.mark.parametrize('project,family,continue_local', [(False, 'unsupported', False), (True, 'unsupported', True), (True, 'time_bar', True)])
+@pytest.mark.parametrize('project,family,continue_local', [(False, 'unsupported', False), (True, 'unsupported', True), (True, 'time_bar', True), (True, 'time_bar_late', True)])
 def test_real_queue_records_one_controlled_candidate_without_financial_changes(tmp_path, monkeypatch, project, family, continue_local):
     """Real signed app/queue, explicit provider double; this is not inference evidence."""
     from uptime import public_proposal_config
@@ -81,12 +81,18 @@ def test_real_queue_records_one_controlled_candidate_without_financial_changes(t
         prepared['review_mode'] = 'scripted_source_projection'
         prepared['local_continuation'] = continue_local
         prepared['continuation_clock'] = '2026-11-04T00:00:00Z'
-        if family == 'time_bar':
+        if family in {'time_bar', 'time_bar_late'}:
             prepared['reply']['text'] = 'Our intake timestamp fell outside the permitted filing interval.'
             text = prepared['reply']['text']
             paths[1].write_text(json.dumps({'reply_sha256': sha256(text.encode()).hexdigest(),
-                                          'interpretation': meaning(text, family=family).model_dump()}))
+                                          'interpretation': meaning(text, family='time_bar').model_dump()}))
             pins[str(paths[1])] = sha256(paths[1].read_bytes()).hexdigest()
+            if family == 'time_bar_late':
+                prepared['filing_clock'] = '2026-11-20T00:00:00Z'
+                prepared['continuation_clock'] = '2026-11-21T00:00:00Z'
+                prepared['original_filing'] = {'kind': 'original_filing_receipt', 'source_ref': 'control-observed-filing',
+                    'observed_at': '2026-11-20T00:00:00Z', 'received_at': '2026-11-15T12:00:00Z',
+                    'receipt_id': 'control-late-receipt', 'submitted_to': 'local-support', 'fields': []}
         paths[0].write_text(json.dumps(prepared))
         pins[str(paths[0])] = sha256(paths[0].read_bytes()).hexdigest()
     text = json.loads(paths[0].read_bytes())['reply']['text']
@@ -105,6 +111,14 @@ def test_real_queue_records_one_controlled_candidate_without_financial_changes(t
                         lambda db, _: PublicProposalJobs(db, approvals, {'correspondence': provider}))
     report = runner.run_case(prepared_path=paths[0], blind_path=paths[1], attempt_dir=tmp_path / 'attempt',
                              config_path=config, approved_by='scripted-evaluation-operator', expected_pins=pins)
+    if family == 'time_bar_late':
+        # Current application accepts observed historical receipts only for the
+        # reviewed resource-month family. Preserve that ordinary setup refusal.
+        assert report['outcome'] == 'SETUP_REFUSAL' and report['error'] == 'authored_historical_receipt'
+        assert report['model_dispatched'] is False and provider.calls == []
+        assert 'resource-month' in report['steps'][-1]['body']['detail']
+        assert not any(s['name'] == 'submit-claim' for s in report['steps'])
+        return
     assert report['outcome'] == 'CANDIDATE_RECORDED', report
     assert len(provider.calls) == 1 and report['model_dispatched'] is True
     assert report['dispatch']['state_unchanged'] is True
@@ -115,8 +129,13 @@ def test_real_queue_records_one_controlled_candidate_without_financial_changes(t
             assert report['continuation'] == 'NO_PERMITTED_LOCAL_CONTINUATION'
         else:
             assert report['source_projection']['prepare_allowed'] is True
-            assert report['continuation'] == 'LOCAL_RESPONSE_RECEIPT_ONLY'
-            assert len(report['case']['submissions']) == 2
+            if family == 'time_bar_late':
+                assert report['continuation'] == 'SCRIPTED_LOCAL_DENIAL_CLOSURE'
+                assert report['case']['stage'] == 'DENIAL_ACCEPTED'
+                assert report['case']['submissions'] == []
+            else:
+                assert report['continuation'] == 'LOCAL_RESPONSE_RECEIPT_ONLY'
+                assert len(report['case']['submissions']) == 2
         assert report['case']['ledger']['awarded'] == '0.00'
     else:
         assert report['review_action'] == 'NOT_PERFORMED'
