@@ -34,14 +34,14 @@ No test, application file or historical document is changed, moved or deleted.
 
 ## Storyboard: six windows, 120 seconds
 
-Narration is written at about 125 words a minute: 222 words. Phase 2 measures each beat on the frozen build and cuts to fit. "Made true by" names the role file and fields that must exist on the frozen build before the beat can be filmed.
+Narration is written at about 125 words a minute: 213 words without the optional cutaway. Phase 2 measures each beat on the frozen build and cuts to fit. "Made true by" names the role file and fields that must exist on the frozen build before the beat can be filmed.
 
 | Window | On screen | Narration | Made true by |
 |:---|:---|:---|:---|
 | **0:00–0:15** The old way | Twilio's live API SLA page, section 3, scrolled to the claim paragraph. Caption: "Twilio API SLA §3". | "Vendor SLAs promise credits that are rarely collected. Twilio's says: open a ticket titled 'SLA Claim', list every outage, attach proof, within thirty days of month end. Then check the next invoice." (32) | Public page (role 6). Checked November 9 |
-| **0:15–0:40** Model-assisted contract reading | **Agreements**: an authored prose contract (role 1's "Halden Relay"). The recorded Claude Opus 5.5 job: model, time taken, each proposed term beside its quoted sentence, "validated", then **Shadow**. | "Uptime starts with the contract. This reading was recorded earlier today: Claude Opus proposed each term with the sentence it came from — target, credit steps, claim window. Code validated it and staged it in shadow. Nothing takes effect until a reviewer approves that exact version." (45) | [Role 1](onboarding.md) §2–3: the genuine calls and receipts, and the job fields `model`, timestamps, quotations, validation and lifecycle state. Role 4 renders them on Agreements |
+| **0:15–0:40** Model-assisted contract reading | Second tab, signed in beforehand to role 1's preserved workspace: the authored **Corvid Ledger** contract, recorded job `26ee4e3f` (claude-opus-5-5, 11.5 s, November 9 21:15 UTC), each proposed term beside its quoted sentence (11 exact quotations), selection "monthly", **Shadow** version `ff76ed67`, not approved. Caption: "Recorded run, authored contract". | "Uptime starts with the contract. Northwind's uses fixed rules, no model. For new wording, Claude proposes the terms: this recorded run read another authored contract, each term quoted from its text. Code validated it; it waits in shadow for a reviewer. A second contract was refused." (46) | [Role 1](onboarding.md) runbook and `genuine-calls-summary.json` (f88244a, 43f5b9d): six genuine calls, none repeated; Corvid Ledger SHADOW, Halden Relay refused at identifier grounding. The preserved workspace and serve command come from agent2's runbook |
 | **0:40–1:05** Deterministic finding and approval | **Overview** of the Northwind workspace: January's $2,400.00 with its clause and inputs, and March's $1,000.00 overcharge. Press **Approve claim**. | "Here is one full case. Northwind's contract and usage records are authored for this demo. January: 135 minutes down, two steps below target, so twenty percent of twelve thousand — a $2,400 credit, clause attached. March's invoice ignored an amendment: $1,000 over. I approve the claim." (45) | Role 4 overview headline ([ui](ui.md) b); role 2 headline fields ([disputes](disputes.md) §3b); approval `approve-claim` |
-| **1:05–1:35** Denial, cure and review | **Activity**: the claim is filed. The local counterparty's reply arrives, and the requested log is attached and verified with no click. The pause reads "approval required". Show the model's reading of the denial, labelled recorded. Then press **Approve response**. | "The vendor — a local counterparty, not a real vendor — asks for a log. A model read that reply and named the missing evidence; it can't approve anything. Uptime attaches the log, verifies it against a second source and drafts the response. It stops for me. I approve; Uptime sends it after the cooling-off period." (54) | Role 2 coordinator and `workflow.automation` (§2–3a), the denial model job (§3c), cooldown `timing.not_before`; role 4 Activity |
+| **1:05–1:35** Denial, cure and review | **Activity**: the claim is filed. The local counterparty's reply asking for a log arrives and is recognized by rules; the log is attached and verified with no click. The pause reads "approval required". Press **Approve response**; the dispatch shows "sent after the 24-hour cooldown". | "The vendor — a local counterparty, not a real vendor — asks for a log. Rules recognize that request. Uptime attaches the log, verifies it against a second source and drafts the response, then stops for me. I approve; Uptime sends it after the cooling-off period." (44) | Role 2 coordinator and `workflow.automation` ([disputes](disputes.md) §2–3a), cooldown `timing.not_before`; role 4 Activity. Needs a workspace made by the new setup |
 | **1:35–1:55** Credit lifecycle and balance | **Overview**: the award arrives. Press **Post credit**, then **Apply credit**. End on April: $11,000.00 → $8,600.00, destination Local ledger. | "The vendor awards $2,400. I post the credit and apply it to April's invoice: $11,000 becomes $8,600. One credit, moving through stages, in a local ledger — not money recovered in Ramp." (31) | Role 2 `finance.stages`, `ledger.bill`; role 4 lifecycle |
 | **1:55–2:00** Ramp | Role 3's verified record panel for sandbox bill `f74ba12c-95d0-582d-9f62-26d8057d1d37`: business, read time, the person-posted note, its read-back. | "In Ramp, Uptime reads this bill; a person posted the note. Writing back is next." (15) | [Role 3](ramp.md) (c): capture and record fields; the read-back receipt |
 
@@ -49,10 +49,20 @@ Narration is written at about 125 words a minute: 222 words. Phase 2 measures ea
 
 **Recorded model work** (task 9): both model beats say "recorded" or "read" in the past tense, and the screen shows the job's own timestamps and model name. No beat presents a recorded result as happening live. If phase 2 measures a live call that fits its window, the narration may change to the present tense only for that take.
 
-**Open points for phase 2:**
-- Which case carries the filmed denial reading. The Northwind cure reply is recognized deterministically. Role 2 §3c places the model job on the case interpretation route, after the reviewer's own reading, which is an undecided D06 sub-question. Agent3 and the coordinator choose the case; the narration follows.
-- Whether role 1's recorded job is reachable in the same presentation workspace or needs a second tab. A second tab needs its own sign-in, which must happen before recording.
-- The 1:55 window holds 15 words. If it cannot fit, trim the 0:15 window, not the Ramp limitation.
+**Optional cutaway, 1:20–1:30, only if measured timing leaves room** (coordinator's recommendation; Ronok has the last word):
+- Screen: a second recorded Northwind workspace created with `--counterparty-reply unclear`. Recorded denial job `29f371d0` (claude-opus-5-5, 5.4 s) proposed "unsupported", citing the whole reply. The scripted review gave AMBIGUOUS_GROUNDS; the case stays in review with $0.00 awarded. Caption: "Recorded run, unclear reply".
+- Say: "When a reply isn't recognized, a model reads it — this one was recorded — and a person must review." (16)
+- If it does not fit, it stays out of the film and is described in [the judge guide](../../JUDGES.md) with its receipt.
+
+**Rules for the model beats** (coordinator, November 9): the cut must not imply that the model read the Northwind contract or the cure-branch denial. Both Northwind steps are rule-based and say so.
+
+**Measured model latency from the receipts**:
+- the six contract calls each took 11.0–14.3 s;
+- the denial reading took 5.4 s.
+
+A live contract call cannot fit in its 25-second window together with the narration, so the film uses the recorded job. Phase 2 measures the screen latency on the frozen build.
+
+The 1:55 window holds 15 words. If it cannot fit, trim the 0:15 window, not the Ramp limitation.
 
 ## Fallback (task 8, acceptance)
 
@@ -92,11 +102,11 @@ These sentences describe the target build. Phase 2 checks each against the froze
 |:---|:---|
 | "Uptime runs routine steps itself… It stops for every judgment and every financial change"; "Four decisions in all" | Role 2 coordinator |
 | "On **Overview**, approve the January claim"; **Agreements**, **Activity** | Role 4 navigation |
-| "reads a vendor's denial to name what it asks for" | Role 2 denial model job |
-| "The readings shown in the demo were recorded, on contracts authored for the demo" | Role 1 calls and receipts |
+| "reads vendor replies the rules do not recognize"; the unclear-reply example | Role 2 `denial-model-job.json` (job `29f371d0`) |
+| Corvid Ledger reached shadow, Halden Relay was refused; calls took 5–15 s | Role 1 `genuine-calls-summary.json`; links resolve after integration |
 | "shows when each record was read and whether the list was complete"; the Ramp record panel | Role 3 capture fields and panel |
-| "Sign in with the account name and credential file the command prints" | True today. Holds after the role 2 or role 4 sign-in change |
-| Judge-guide links to `submission/{onboarding,disputes,ramp}.md` | Those files exist on `main` only after integration |
+| "Sign in with the account name and credential file the command prints" | Decided: setup takes `--reviewer-credential PATH` and always prints the path, account and URL. Do not document `--resume` with an existing credential path until agent3's fix is confirmed |
+| Links to `submission/{onboarding,onboarding-runbook,disputes,ramp,ui}.md`, `evidence/submission-onboarding-20261109/genuine-calls-summary.json` and `evidence/submission-disputes-20261109/denial-model-job.json` | Those files exist on `main` only after integration; phase 2 rechecks every link |
 | Verification receipt `final-805dd1c.json` | Replaced by the coordinator's receipt for the frozen commit |
 
 ## Screenshots (phase 2)
