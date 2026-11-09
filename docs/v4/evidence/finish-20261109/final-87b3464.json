@@ -1,0 +1,17 @@
+{
+  "tested_commit": "87b3464adf0f838319445015d90c5f8b18a7e722",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=/tmp/uptime-finish-87b3464",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 1,
+  "pytest_result": "20 failed, 5273 passed, 1 warning in 474.28s (0:07:54)",
+  "log": "final-87b3464-pytest.log",
+  "verified_at": "2026-11-09T20:39:14.690353+00:00",
+  "failure_scope": "All20 failures are authored preflight controls constructing artifacts without the newly required effective dates. Application period validation remains strict. The helper boundary and explicit fixtures are being corrected before any scored invocation."
+}

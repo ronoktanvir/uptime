@@ -1,0 +1,1236 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.12, pytest-9.2.0, pluggy-1.7.0
+rootdir: /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/integration-finish-20261109
+configfile: pyproject.toml
+testpaths: tests
+plugins: hypothesis-6.170.14, anyio-4.16.0
+collected 5293 items
+
+tests/auth_refusal_finish_20261109/test_signed_refusal_hook.py ......... [  0%]
+....                                                                     [  0%]
+tests/disputes_finish_20261109/test_refusal_journal.py ................. [  0%]
+....................................                                     [  1%]
+tests/monthly_finish_20261109/test_mf1109_evaluator.py ......            [  1%]
+tests/monthly_finish_20261109/test_mf1109_observation.py ............... [  1%]
+........................................................................ [  3%]
+......................                                                   [  3%]
+tests/monthly_finish_20261109/test_mf1109_route.py ........              [  3%]
+tests/monthly_finish_20261109/test_mf1109_scope_marker.py .............. [  3%]
+...........................                                              [  4%]
+tests/monthly_finish_20261109/test_mf1109_types.py ..................... [  4%]
+.............                                                            [  4%]
+tests/monthly_finish_20261109/test_monthly_temporal_parent.py .......... [  5%]
+.........                                                                [  5%]
+tests/monthly_finish_20261109/test_parent_monthly_controls.py .......... [  5%]
+...............                                                          [  5%]
+tests/monthly_finish_20261109/test_scope_effective_periods.py .......... [  6%]
+..........                                                               [  6%]
+tests/onboarding79/test_public_proposal_export_79.py ............        [  6%]
+tests/onboarding79/test_public_proposal_export_auto_89.py ..             [  6%]
+tests/onboarding_finish20261109/test_monthly_basis_compilation.py ...... [  6%]
+..........                                                               [  6%]
+tests/onboarding_finish20261109/test_monthly_basis_helper.py ........... [  6%]
+.............                                                            [  7%]
+tests/onboarding_finish20261109/test_parent_financial_controls.py ...... [  7%]
+................                                                         [  7%]
+tests/onboarding_finish20261109/test_strict_diagnostics_remediation_parity_20261109.py . [  7%]
+.........................                                                [  8%]
+tests/onboarding_finish20261109/test_strict_template_remediation_20261109.py . [  8%]
+........................................................................ [  9%]
+.........................................................                [ 10%]
+tests/test_adequate_holdout.py .........................                 [ 11%]
+tests/test_advanced_companion.py ....                                    [ 11%]
+tests/test_agreement_binding_f5.py ............                          [ 11%]
+tests/test_allocation_ledger.py ........................................ [ 12%]
+.........                                                                [ 12%]
+tests/test_blind_acceptance.py .....................................     [ 12%]
+tests/test_bootstrap.py .                                                [ 12%]
+tests/test_case_revision_v4.py ...                                       [ 13%]
+tests/test_claim_identity.py ...                                         [ 13%]
+tests/test_claim_identity_historical.py .......................          [ 13%]
+tests/test_claim_identity_migration.py ................................  [ 14%]
+tests/test_claim_route_filing_override_f4.py ....                        [ 14%]
+tests/test_claim_scope_89.py ..................                          [ 14%]
+tests/test_contracts.py ....                                             [ 14%]
+tests/test_correspondence.py ........................................... [ 15%]
+.............                                                            [ 15%]
+tests/test_correspondence_adversarial_http_89h.py ..............         [ 15%]
+tests/test_correspondence_api.py .                                       [ 15%]
+tests/test_correspondence_artifact_category_81.py ....................   [ 16%]
+tests/test_correspondence_artifact_category_ui_81.py ..                  [ 16%]
+tests/test_correspondence_blocks_71.py ................................. [ 17%]
+........                                                                 [ 17%]
+tests/test_correspondence_denial_bundle_78.py .......................... [ 17%]
+........................................................................ [ 19%]
+..........................................                               [ 19%]
+tests/test_correspondence_denial_bundle_ui_78.py ....                    [ 19%]
+tests/test_correspondence_disposition_89.py ............................ [ 20%]
+..........                                                               [ 20%]
+tests/test_correspondence_filing_refs.py ............................... [ 21%]
+..                                                                       [ 21%]
+tests/test_correspondence_intake_scope_89b.py .......                    [ 21%]
+tests/test_correspondence_interpretation.py ............................ [ 21%]
+....................................                                     [ 22%]
+tests/test_correspondence_interpretation_ui.py .                         [ 22%]
+tests/test_correspondence_language_56.py ............................... [ 23%]
+........................................................................ [ 24%]
+...........                                                              [ 24%]
+tests/test_correspondence_literal_71.py ...........                      [ 24%]
+tests/test_correspondence_model_jobs_75.py .....................         [ 25%]
+tests/test_correspondence_model_jobs_ui_75.py ......                     [ 25%]
+tests/test_correspondence_model_transport.py ........................... [ 25%]
+.......                                                                  [ 26%]
+tests/test_correspondence_month_coverage_89d.py ....                     [ 26%]
+tests/test_correspondence_plan_refs.py ................................. [ 26%]
+.                                                                        [ 26%]
+tests/test_correspondence_public_queue_75.py ..                          [ 26%]
+tests/test_correspondence_receipt_version.py ..                          [ 26%]
+tests/test_correspondence_regional.py ............                       [ 27%]
+tests/test_correspondence_resource.py .................................. [ 27%]
+...                                                                      [ 27%]
+tests/test_correspondence_scoped_filing_77.py ..                         [ 27%]
+tests/test_correspondence_service.py ......................              [ 28%]
+tests/test_credit_steps.py ..............................                [ 28%]
+tests/test_cross_claims.py ........                                      [ 29%]
+tests/test_disputes.py ................................................. [ 29%]
+..                                                                       [ 29%]
+tests/test_disputes_identity_89c.py .....................                [ 30%]
+tests/test_disputes_v4.py .............................................. [ 31%]
+................                                                         [ 31%]
+tests/test_economic_scope_delimiters.py .....................            [ 31%]
+tests/test_evaluation_disputes_finish.py .........                       [ 32%]
+tests/test_evaluation_onboarding_finish.py .....                         [ 32%]
+tests/test_evidence.py ...............                                   [ 32%]
+tests/test_evidence_acceptance_91.py .......                             [ 32%]
+tests/test_evidence_applicability_91.py .......................          [ 33%]
+tests/test_evidence_custody_91.py .........                              [ 33%]
+tests/test_evidence_refresh.py ............                              [ 33%]
+tests/test_evidence_status_source_91a.py .................               [ 33%]
+tests/test_film_ramp_v4.py ...                                           [ 33%]
+tests/test_finance_browser_90.py ..                                      [ 33%]
+tests/test_finance_guide_90.py ......................................... [ 34%]
+....                                                                     [ 34%]
+tests/test_finance_keyboard_95.py .                                      [ 34%]
+tests/test_finance_view_90.py .....................                      [ 35%]
+tests/test_financial_coverage_89.py ........................             [ 35%]
+tests/test_financial_v4.py ...........................................   [ 36%]
+tests/test_governing_fee_current_authority.py .......                    [ 36%]
+tests/test_governing_fees.py .........................                   [ 36%]
+tests/test_guide_suggestions_browser_95.py .                             [ 37%]
+tests/test_identity_domain_89.py ....................................... [ 37%]
+..............................................                           [ 38%]
+tests/test_intelligence.py ......                                        [ 38%]
+tests/test_intelligence_abstain_95.py ...........                        [ 38%]
+tests/test_interpretation_denial_label_95.py .                           [ 38%]
+tests/test_journey_api.py .............................................. [ 39%]
+..........                                                               [ 40%]
+tests/test_journey_browser.py ..............                             [ 40%]
+tests/test_live_reviewer_setup.py ...............                        [ 40%]
+tests/test_local_review_exception.py ...............                     [ 40%]
+tests/test_local_review_exception_disputes.py .......................... [ 41%]
+...........................................                              [ 42%]
+tests/test_mandate_claim_closure_2a.py .........                         [ 42%]
+tests/test_monthly_semantics_finish.py .                                 [ 42%]
+tests/test_northwind_financial.py ...................................... [ 43%]
+........                                                                 [ 43%]
+tests/test_northwind_inputs.py .....                                     [ 43%]
+tests/test_northwind_local_ledger.py ....................                [ 43%]
+tests/test_northwind_workflow.py ...................................     [ 44%]
+tests/test_onboarding_lifecycle.py ................                      [ 44%]
+tests/test_onboarding_rules.py ......................................... [ 45%]
+.........                                                                [ 45%]
+tests/test_operations_recovery_90.py ................................... [ 46%]
+.....                                                                    [ 46%]
+tests/test_opus46_security.py ...........                                [ 46%]
+tests/test_other_obligations.py ................................         [ 47%]
+tests/test_portfolio_v4.py .....................                         [ 47%]
+tests/test_preflight_scope_finish.py ..FFFFFFFFFFFF..............FF..FFF [ 48%]
+......FFF                                                                [ 48%]
+tests/test_pricing.py .................................................. [ 49%]
+..................                                                       [ 49%]
+tests/test_pricing_advance.py ....................                       [ 50%]
+tests/test_pricing_binding.py ..........................                 [ 50%]
+tests/test_pricing_invariants.py .....                                   [ 50%]
+tests/test_progress_server.py ...........                                [ 50%]
+tests/test_public_proposal_config.py .....................               [ 51%]
+tests/test_public_proposal_jobs.py ...................................   [ 51%]
+tests/test_ramp.py ..........                                            [ 52%]
+tests/test_ramp_award_attribution.py ................................... [ 52%]
+.........................................                                [ 53%]
+tests/test_ramp_award_claim_integration.py ............................. [ 54%]
+......                                                                   [ 54%]
+tests/test_ramp_award_procedural.py ......                               [ 54%]
+tests/test_ramp_cap_v4.py .............................................. [ 55%]
+...................................                                      [ 55%]
+tests/test_ramp_case_lineage.py ........................................ [ 56%]
+...................                                                      [ 56%]
+tests/test_ramp_comment_readback.py .................................... [ 57%]
+....................................................................     [ 58%]
+tests/test_ramp_credentials.py ......................................... [ 59%]
+.                                                                        [ 59%]
+tests/test_ramp_credit_readback.py .............                         [ 59%]
+tests/test_ramp_credit_scope_v72.py ................................     [ 60%]
+tests/test_ramp_credit_sync_v4.py ...................................... [ 61%]
+...............                                                          [ 61%]
+tests/test_ramp_findings_v4.py ......................................... [ 62%]
+......................................                                   [ 63%]
+tests/test_ramp_native_binding.py ...................................... [ 63%]
+.......................                                                  [ 64%]
+tests/test_ramp_native_reason.py ....................................... [ 64%]
+......................                                                   [ 65%]
+tests/test_ramp_prefilm_check.py ............                            [ 65%]
+tests/test_ramp_records_v4.py .......................................... [ 66%]
+...............................................................          [ 67%]
+tests/test_ramp_terms_store.py ............................              [ 68%]
+tests/test_ramp_ui_v4.py .                                               [ 68%]
+tests/test_ramp_v4.py .................................................. [ 69%]
+...........                                                              [ 69%]
+tests/test_ramp_workflow.py ............................................ [ 70%]
+.....                                                                    [ 70%]
+tests/test_ramp_workflow_http.py .........................               [ 70%]
+tests/test_ramp_workflow_webhooks.py ............................        [ 71%]
+tests/test_ramp_workspace_installation.py ...                            [ 71%]
+tests/test_reconciliation.py ...............................             [ 71%]
+tests/test_reconciliation_identity_d03.py ................               [ 72%]
+tests/test_release_boundaries.py ...........                             [ 72%]
+tests/test_release_gate_v4.py ...................................        [ 73%]
+tests/test_release_probes_gent8.py ......                                [ 73%]
+tests/test_requirements_card_ui_95.py .                                  [ 73%]
+tests/test_requirements_traceability.py ......                           [ 73%]
+tests/test_semantic_current_projection.py .........                      [ 73%]
+tests/test_semantic_schema_epoch.py ..                                   [ 73%]
+tests/test_signed_mandates.py .........................................  [ 74%]
+tests/test_source_config_d04c.py ........                                [ 74%]
+tests/test_source_config_v4.py ..........                                [ 74%]
+tests/test_source_identity_89.py .....................................   [ 75%]
+tests/test_storage.py ...                                                [ 75%]
+tests/test_supplementary_finish_batch.py ....                            [ 75%]
+tests/test_twilio.py ................................................... [ 76%]
+.....................                                                    [ 76%]
+tests/test_v4_audit_gate.py ............................................ [ 77%]
+........................................................................ [ 78%]
+.............................................................            [ 80%]
+tests/test_v4_authority.py ......................                        [ 80%]
+tests/test_v4_authority_browser.py .                                     [ 80%]
+tests/test_v4_routes_integration.py ..................                   [ 80%]
+tests/test_vendor_auth83.py ..                                           [ 80%]
+tests/test_vendor_binding_integration.py ..................              [ 81%]
+tests/test_vendor_catalog.py ........................................... [ 82%]
+......                                                                   [ 82%]
+tests/test_vendor_draft_authority.py .....                               [ 82%]
+tests/test_vendor_drafts_categories_89.py ....                           [ 82%]
+tests/test_vendor_duration_templates.py ..................               [ 82%]
+tests/test_vendor_economic_identity.py ........                          [ 82%]
+tests/test_vendor_evidence_authority.py .........                        [ 83%]
+tests/test_vendor_extraction_whitespace.py .....                         [ 83%]
+tests/test_vendor_family_selection_89.py .........................       [ 83%]
+tests/test_vendor_filing_override_f4.py .........                        [ 83%]
+tests/test_vendor_fixed_filing_80.py ................................... [ 84%]
+........................................................................ [ 85%]
+......................................................................   [ 87%]
+tests/test_vendor_label_grounding.py ................................... [ 87%]
+........................................................................ [ 89%]
+........................................................................ [ 90%]
+......                                                                   [ 90%]
+tests/test_vendor_model_jobs_browser.py .....                            [ 90%]
+tests/test_vendor_model_jobs_runtime.py .......                          [ 90%]
+tests/test_vendor_monthly_profile_79.py ..........                       [ 91%]
+tests/test_vendor_public_diagnostics.py .............                    [ 91%]
+tests/test_vendor_refusal_diagnostics_89.py ............                 [ 91%]
+tests/test_vendor_rejections.py ..                                       [ 91%]
+tests/test_vendor_requirements_89.py ................                    [ 91%]
+tests/test_vendor_resource.py .......................................... [ 92%]
+                                                                         [ 92%]
+tests/test_vendor_resource_operators.py ..........................       [ 93%]
+tests/test_vendor_resource_period_scope_77.py .......................... [ 93%]
+.....................................................................    [ 94%]
+tests/test_vendor_resource_scoped.py .............                       [ 95%]
+tests/test_vendor_selection_refusals_89.py ..                            [ 95%]
+tests/test_vendor_semantic_bindings.py ................................. [ 95%]
+..............                                                           [ 96%]
+tests/test_vendor_service_month.py ........................              [ 96%]
+tests/test_vendor_step_proposals.py .................................... [ 97%]
+........................................................................ [ 98%]
+........................................                                 [ 99%]
+tests/test_vendor_strict_diagnostics_89.py ....................          [ 99%]
+tests/test_vendor_unlabeled_parties_84r.py ............                  [ 99%]
+tests/test_workspace_tenant_v4.py .                                      [ 99%]
+tests/test_workspace_ui_v4.py ...                                        [100%]
+
+=================================== FAILURES ===================================
+__ test_schema_valid_monthly_claim_without_incident_is_refused_by_the_family ___
+
+    def test_schema_valid_monthly_claim_without_incident_is_refused_by_the_family():
+        body = payload()
+        scope = Claim.model_validate(body).scope  # the old schema-only preflight stopped here and reported ready
+        assert scope.incident is None and 'incident' not in scope.model_dump()
+>       result = check(body, manifest(), overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'monthly-availability/1', 'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_____ test_monthly_claim_with_incident_is_admissible_but_not_called_ready ______
+
+    def test_monthly_claim_with_incident_is_admissible_but_not_called_ready():
+>       result = check(payload(incident=VALUES['incident']), manifest(), overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:81: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'monthly-availability/1', 'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+________ test_invoice_is_an_optional_reference_not_an_obligation_field _________
+
+    def test_invoice_is_an_optional_reference_not_an_obligation_field():
+>       result = check(payload(incident=VALUES['incident'], invoice='inv-2031-02-a'), manifest(), overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'monthly-availability/1', 'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+___ test_field_the_family_does_not_use_is_not_applicable_rather_than_missing ___
+
+    def test_field_the_family_does_not_use_is_not_applicable_rather_than_missing():
+>       result = check(payload(incident=VALUES['incident'], region=VALUES['region']), manifest(), overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:94: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'monthly-availability/1', 'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_______ test_missing_sets_the_outcome_and_not_applicable_is_still_listed _______
+
+    def test_missing_sets_the_outcome_and_not_applicable_is_still_listed():
+>       result = check(payload(component=VALUES['component']), manifest(), overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'monthly-availability/1', 'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+________ test_resource_family_requirements_follow_the_real_table[plain] ________
+
+name = 'plain', extra = {}, overlay_extra = {}, required = ['component']
+
+    @pytest.mark.parametrize('name, extra, overlay_extra, required', RESOURCE_CASES, ids=[case[0] for case in RESOURCE_CASES])
+    def test_resource_family_requirements_follow_the_real_table(name, extra, overlay_extra, required):
+        terms, local = manifest(RESOURCE, **extra), overlay(**overlay_extra)
+        assert sorted(claim_scope.variant_for(terms, local).required) == required  # authored expectation equals the real table
+>       exact = check(payload(**{field: VALUES[field] for field in required}), terms, local)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'resource-month/1', 'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_ test_resource_family_requirements_follow_the_real_table[regional subscription] _
+
+name = 'regional subscription'
+extra = {'subscription': 'authored-regional-plan'}, overlay_extra = {}
+required = ['component', 'region']
+
+    @pytest.mark.parametrize('name, extra, overlay_extra, required', RESOURCE_CASES, ids=[case[0] for case in RESOURCE_CASES])
+    def test_resource_family_requirements_follow_the_real_table(name, extra, overlay_extra, required):
+        terms, local = manifest(RESOURCE, **extra), overlay(**overlay_extra)
+        assert sorted(claim_scope.variant_for(terms, local).required) == required  # authored expectation equals the real table
+>       exact = check(payload(**{field: VALUES[field] for field in required}), terms, local)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'resource-month/1', 'vendor': 'Lanternfish Relay', 'subscription': 'authored-regional-plan'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_ test_resource_family_requirements_follow_the_real_table[incident filing field] _
+
+name = 'incident filing field', extra = {'request_fields': ['incident_ref']}
+overlay_extra = {}, required = ['component', 'incident']
+
+    @pytest.mark.parametrize('name, extra, overlay_extra, required', RESOURCE_CASES, ids=[case[0] for case in RESOURCE_CASES])
+    def test_resource_family_requirements_follow_the_real_table(name, extra, overlay_extra, required):
+        terms, local = manifest(RESOURCE, **extra), overlay(**overlay_extra)
+        assert sorted(claim_scope.variant_for(terms, local).required) == required  # authored expectation equals the real table
+>       exact = check(payload(**{field: VALUES[field] for field in required}), terms, local)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'resource-month/1', 'vendor': 'Lanternfish Relay', 'request_fields': ['incident_ref']}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_ test_resource_family_requirements_follow_the_real_table[bound label phrase] __
+
+name = 'bound label phrase'
+extra = {'request_fields': ['f1'], 'label_bindings': {'request_fields': {'f1': {'phrase': 'Outage Location'}}}}
+overlay_extra = {}, required = ['component', 'incident', 'region']
+
+    @pytest.mark.parametrize('name, extra, overlay_extra, required', RESOURCE_CASES, ids=[case[0] for case in RESOURCE_CASES])
+    def test_resource_family_requirements_follow_the_real_table(name, extra, overlay_extra, required):
+        terms, local = manifest(RESOURCE, **extra), overlay(**overlay_extra)
+        assert sorted(claim_scope.variant_for(terms, local).required) == required  # authored expectation equals the real table
+>       exact = check(payload(**{field: VALUES[field] for field in required}), terms, local)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'resource-month/1', 'vendor': 'Lanternfish Relay', 'request_fields': ['f1'], 'label_bindings':...e Location'}}}}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+__ test_resource_family_requirements_follow_the_real_table[aggregate monitor] __
+
+name = 'aggregate monitor', extra = {'aggregate_monitor': True}
+overlay_extra = {}, required = []
+
+    @pytest.mark.parametrize('name, extra, overlay_extra, required', RESOURCE_CASES, ids=[case[0] for case in RESOURCE_CASES])
+    def test_resource_family_requirements_follow_the_real_table(name, extra, overlay_extra, required):
+        terms, local = manifest(RESOURCE, **extra), overlay(**overlay_extra)
+        assert sorted(claim_scope.variant_for(terms, local).required) == required  # authored expectation equals the real table
+>       exact = check(payload(**{field: VALUES[field] for field in required}), terms, local)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'resource-month/1', 'vendor': 'Lanternfish Relay', 'aggregate_monitor': True}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_ test_resource_family_requirements_follow_the_real_table[aggregate monitor with overlay resource label] _
+
+name = 'aggregate monitor with overlay resource label'
+extra = {'aggregate_monitor': True, 'request_fields': ['kiln']}
+overlay_extra = {'resource_label': 'Kiln'}, required = ['component']
+
+    @pytest.mark.parametrize('name, extra, overlay_extra, required', RESOURCE_CASES, ids=[case[0] for case in RESOURCE_CASES])
+    def test_resource_family_requirements_follow_the_real_table(name, extra, overlay_extra, required):
+        terms, local = manifest(RESOURCE, **extra), overlay(**overlay_extra)
+        assert sorted(claim_scope.variant_for(terms, local).required) == required  # authored expectation equals the real table
+>       exact = check(payload(**{field: VALUES[field] for field in required}), terms, local)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'resource-month/1', 'vendor': 'Lanternfish Relay', 'aggregate_monitor': True, 'request_fields'...: {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue', 'resource_label': 'Kiln'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_________ test_service_month_without_filing_fields_refuses_a_component _________
+
+    def test_service_month_without_filing_fields_refuses_a_component():
+>       result = check(payload(component=VALUES['component']), manifest(RESOURCE, aggregate_monitor=True), overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:129: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'resource-month/1', 'vendor': 'Lanternfish Relay', 'aggregate_monitor': True}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+__________ test_unsupported_or_absent_family_is_unresolvable[unknown] __________
+
+terms = {'family': 'authored-unknown-family/9', 'vendor': 'Lanternfish Relay'}
+
+    @pytest.mark.parametrize('terms', [manifest('authored-unknown-family/9'), {'vendor': VENDOR}], ids=['unknown', 'absent'])
+    def test_unsupported_or_absent_family_is_unresolvable(terms):
+>       result = check(payload(incident=VALUES['incident']), terms, overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:204: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'authored-unknown-family/9', 'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+__________ test_unsupported_or_absent_family_is_unresolvable[absent] ___________
+
+terms = {'vendor': 'Lanternfish Relay'}
+
+    @pytest.mark.parametrize('terms', [manifest('authored-unknown-family/9'), {'vendor': VENDOR}], ids=['unknown', 'absent'])
+    def test_unsupported_or_absent_family_is_unresolvable(terms):
+>       result = check(payload(incident=VALUES['incident']), terms, overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:204: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_ test_builtin_profile_plus_a_matching_adapter_is_refused[monthly-availability/1-AMBIGUOUS_FAMILY] _
+
+family = 'monthly-availability/1', reason = 'AMBIGUOUS_FAMILY'
+
+    @pytest.mark.parametrize('family, reason', [(MONTHLY, 'AMBIGUOUS_FAMILY'), ('authored-unknown-family/9', 'UNSUPPORTED_FAMILY')])
+    def test_builtin_profile_plus_a_matching_adapter_is_refused(family, reason):
+        terms, local = manifest(family, vendor=BUILTIN_VENDOR), overlay(product=BUILTIN_SERVICE)
+>       result = check(builtin_payload(incident=VALUES['incident'], component=VALUES['component']), terms, local)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:226: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'monthly-availability/1', 'vendor': 'Twilio'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Twilio Messaging API'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_ test_builtin_profile_plus_a_matching_adapter_is_refused[authored-unknown-family/9-UNSUPPORTED_FAMILY] _
+
+family = 'authored-unknown-family/9', reason = 'UNSUPPORTED_FAMILY'
+
+    @pytest.mark.parametrize('family, reason', [(MONTHLY, 'AMBIGUOUS_FAMILY'), ('authored-unknown-family/9', 'UNSUPPORTED_FAMILY')])
+    def test_builtin_profile_plus_a_matching_adapter_is_refused(family, reason):
+        terms, local = manifest(family, vendor=BUILTIN_VENDOR), overlay(product=BUILTIN_SERVICE)
+>       result = check(builtin_payload(incident=VALUES['incident'], component=VALUES['component']), terms, local)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:226: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'authored-unknown-family/9', 'vendor': 'Twilio'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Twilio Messaging API'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+______ test_unreadable_adapter_is_an_adapter_failure_not_a_scope_refusal _______
+
+    def test_unreadable_adapter_is_an_adapter_failure_not_a_scope_refusal():
+        terms = manifest(RESOURCE, request_fields=['f1'], label_bindings=None)
+>       result = check(payload(component=VALUES['component']), terms, overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:235: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'resource-month/1', 'vendor': 'Lanternfish Relay', 'request_fields': ['f1'], 'label_bindings': None}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+________ test_disagreement_with_the_real_check_is_reported_not_resolved ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1131dda90>
+
+    def test_disagreement_with_the_real_check_is_reported_not_resolved(monkeypatch):
+        class Lenient(claim_scope.IncidentScope):
+            def check(self, scope):
+                return self
+        monkeypatch.setattr(claim_scope, 'resolve', lambda *_args: Lenient(MONTHLY, frozenset({'incident'})))
+>       result = check(payload(), manifest(), overlay())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:266: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'monthly-availability/1', 'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_______ test_inputs_are_untouched_and_source_values_are_reported_exactly _______
+
+    def test_inputs_are_untouched_and_source_values_are_reported_exactly():
+        body = payload(incident=VALUES['incident'], invoice='inv-2031-02-a')
+        terms, local = manifest(notes={'nested': [1, 2.5, None]}), overlay(resource_label='Kiln')
+        before = copy.deepcopy((body, terms, local))
+>       result = check(body, terms, local)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:276: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'monthly-availability/1', 'vendor': 'Lanternfish Relay', 'notes': {'nested': [1, 2.5, None]}},...: {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue', 'resource_label': 'Kiln'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+_________________________ test_result_is_deterministic _________________________
+
+    def test_result_is_deterministic():
+        body = payload(incident=VALUES['incident'])
+>       assert check(body, manifest(), overlay()) == check(body, manifest(), overlay())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_preflight_scope_finish.py:288: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/preflight_scope_finish.py:79: in check_schema_and_family
+    route = _route(scope, artifact)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+scripts/preflight_scope_finish.py:187: in _route
+    matched = claim_scope._installed(db, TENANT, scope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+uptime/claim_scope.py:206: in _installed
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+artifact = {'manifest': {'family': 'monthly-availability/1', 'vendor': 'Lanternfish Relay'}, 'overlay': {'account': 'acct-4417', 'agreement': 'msa-lanternfish-9', 'product': 'Lanternfish Queue'}}
+first = datetime.date(2031, 2, 1), last = datetime.date(2031, 2, 28)
+
+    def _period_overlaps(artifact, first, last):
+        """Keep every source/overlay interval touching the month; do not choose within a split month."""
+        def day(value):
+            if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+                raise ValueError("Expected an exact date.")
+            return date.fromisoformat(value)
+    
+        try:
+            effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+            if not isinstance(effective, list) or len(effective) != 2:
+                raise ValueError("Expected a source interval.")
+            source_first = day(effective[0])
+            overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+            source_last = day(effective[1]) if effective[1] is not None else None
+            if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+                raise ValueError("Reversed interval.")
+            left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+        except (KeyError, TypeError, ValueError):
+>           raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+E           uptime.claim_scope.InvalidClaimScope: The installed agreement has an invalid effective period; scope requires review.
+
+uptime/claim_scope.py:184: InvalidClaimScope
+=============================== warnings summary ===============================
+../integration-90/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/integration-90/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_preflight_scope_finish.py::test_schema_valid_monthly_claim_without_incident_is_refused_by_the_family
+FAILED tests/test_preflight_scope_finish.py::test_monthly_claim_with_incident_is_admissible_but_not_called_ready
+FAILED tests/test_preflight_scope_finish.py::test_invoice_is_an_optional_reference_not_an_obligation_field
+FAILED tests/test_preflight_scope_finish.py::test_field_the_family_does_not_use_is_not_applicable_rather_than_missing
+FAILED tests/test_preflight_scope_finish.py::test_missing_sets_the_outcome_and_not_applicable_is_still_listed
+FAILED tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[plain]
+FAILED tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[regional subscription]
+FAILED tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[incident filing field]
+FAILED tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[bound label phrase]
+FAILED tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[aggregate monitor]
+FAILED tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[aggregate monitor with overlay resource label]
+FAILED tests/test_preflight_scope_finish.py::test_service_month_without_filing_fields_refuses_a_component
+FAILED tests/test_preflight_scope_finish.py::test_unsupported_or_absent_family_is_unresolvable[unknown]
+FAILED tests/test_preflight_scope_finish.py::test_unsupported_or_absent_family_is_unresolvable[absent]
+FAILED tests/test_preflight_scope_finish.py::test_builtin_profile_plus_a_matching_adapter_is_refused[monthly-availability/1-AMBIGUOUS_FAMILY]
+FAILED tests/test_preflight_scope_finish.py::test_builtin_profile_plus_a_matching_adapter_is_refused[authored-unknown-family/9-UNSUPPORTED_FAMILY]
+FAILED tests/test_preflight_scope_finish.py::test_unreadable_adapter_is_an_adapter_failure_not_a_scope_refusal
+FAILED tests/test_preflight_scope_finish.py::test_disagreement_with_the_real_check_is_reported_not_resolved
+FAILED tests/test_preflight_scope_finish.py::test_inputs_are_untouched_and_source_values_are_reported_exactly
+FAILED tests/test_preflight_scope_finish.py::test_result_is_deterministic - u...
+============ 20 failed, 5273 passed, 1 warning in 474.28s (0:07:54) ============
+
+PYTEST_EXIT_CODE=1
