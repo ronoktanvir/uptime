@@ -1,0 +1,440 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_new_source_forms_keep_exact_boundary_and_nonaccumulation[43-INELIGIBLE-None] _
+
+down = 43, outcome = 'INELIGIBLE', amount = None
+
+    @pytest.mark.parametrize('down,outcome,amount', [
+        (43, 'INELIGIBLE', None),  # 43/43,200 < 0.1% missed.
+        (44, 'ELIGIBLE', '120.00'),
+        (432, 'ELIGIBLE', '120.00'),  # Exactly 99%; the 20% tier says below.
+        (433, 'ELIGIBLE', '240.00'),  # The highest credit, never 10% + 20%.
+    ])
+    def test_new_source_forms_keep_exact_boundary_and_nonaccumulation(down, outcome, amount):
+>       manifest = compile_terms(document())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/onboarding_finish20261109/test_parent_financial_controls.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+document = Document(name='Authored copperleaf controls', uri='urn:synthetic:copperleaf-controls', classification='synthetic_publi...in USD.\nCredits are applied to a future invoice.\nA claim must be submitted within 30 calendar days after month end.')
+segments = None
+
+    def compile_terms(document, *, segments=None):
+        _validate_document(document)
+        digest = sha256(document.text.encode()).hexdigest()
+        manifest = {'family': REVISION, 'document': {
+            'name': document.name, 'uri': document.uri, 'classification': document.classification, 'sha256': digest},
+            'tiers': [], 'citations': []}
+        seen = set()
+        table = None
+    
+        def atom(key, value, citation):
+            if key in seen:
+                raise ValueError('Duplicate or conflicting source clause: ' + key)
+            seen.add(key)
+            manifest[key] = value
+            citation['field'] = key
+    
+        def tier(product, plan, below, credit, citation):
+            if not _match(NAME, product) or not _match(NAME, plan):
+                raise ValueError('Ambiguous product/plan scope.')
+            manifest['tiers'].append(dict(product=product, plan=plan, below_units=percent_units(below),
+                                          credit_units=percent_units(credit), citation=citation['id']))
+            citation['field'] = 'tier'
+    
+        clauses = _clauses(document.text, segments)
+        if not 1 <= len(clauses) <= 200:
+            raise ValueError('Document requires one to two hundred supported source clauses.')
+        cursor = 0
+        for start, end, quote in clauses:
+            if document.text[cursor:start].strip():
+                raise ValueError('Unrecognized source material between clauses.')
+            cursor = end
+            c = {'id': len(manifest['citations']) + 1, 'start': start, 'end': end, 'quote': quote}
+            manifest['citations'].append(c)
+            clause = ' '.join(quote.split()).removesuffix('.').strip()
+            if '|' in clause:
+                cells = [cell.strip() for cell in clause.strip('|').split('|')]
+                if table is not None and all(re.fullmatch(r':?-{3,}:?', cell) for cell in cells) and len(cells) == 4:
+                    c['field'] = 'table_separator'
+                    continue
+                if len(cells) == 4:
+                    fields = [next((i for i, names in enumerate(TABLE_HEADERS) if cell.casefold() in names), -1)
+                              for cell in cells]
+                    if set(fields) == {0, 1, 2, 3}:
+                        table = [fields.index(i) for i in range(4)]
+                        c['field'] = 'table_header'
+                        continue
+                    if table is not None:
+                        product, plan, below, rate = [cells[i] for i in table]
+                        if below.endswith('%') and rate.endswith('%'):
+                            tier(product, plan, below[:-1], rate[:-1], c)
+                            continue
+                raise ValueError(f'Unsupported percentage table at clause {c["id"]}.')
+            table = None
+            if m := _match(rf'(?:Vendor|Provider|Service provider)\s*:\s*({NAME})', clause):
+                atom('vendor', m[1], c)
+            elif m := _match(rf'(?:Agreement(?: ID)?|Contract(?: ID)?)\s*:\s*({NAME})', clause):
+                atom('agreement', m[1], c)
+            elif m := _match(rf'(?:Effective(?: period)?\s*:\s*|(?:This agreement is )?effective (?:from )?)'
+                             rf'({DAY})(?: (?:through|to|until and including) ({DAY}))?', clause):
+                date.fromisoformat(m[1])
+                if m[2] is not None and date.fromisoformat(m[1]) > date.fromisoformat(m[2]):
+                    raise ValueError('Reversed effective interval.')
+                atom('effective', [m[1], m[2]], c)
+            elif _match(MEASUREMENT, clause):
+                atom('period', 'utc_calendar_month', c)
+            elif m := _match(TIER, clause):
+                tier(m['product'], m['plan'], m['below'], m['rate'], c)
+            elif m := _match(COMPLETED_STEPS, clause):
+                from .credit_steps import validate
+                rule=dict(kind='completed_steps',product=m['product'],plan=m['plan'],citation=c['id'],
+                          **{name+'_units':percent_units(m[name]) for name in ('target','step','credit','cap')})
+                atom('credit_rule',validate(rule),c)
+            elif _match(STEP_ROUNDING, clause):
+                atom('credit_rounding','nearest_cent_half_up',c)
+            elif m := _match(FILING, clause):
+                if not 1 <= int(m[1]) <= 365:
+                    raise ValueError('Filing window outside supported interval.')
+                atom('filing_days', int(m[1]), c)
+            elif _match(REMEDY, clause):
+                atom('remedy', 'affected_monthly_fees_future_invoice', c)
+            elif _match(r'(?:#*\s*)?(?:(?:Monthly )?Availability|Service Level) (?:Agreement|Schedule|Commitment)|'
+                        r'Synthetic public (?:test )?(?:contract|agreement)', clause):
+                c['field'] = 'heading'
+            else:
+>               raise ValueError(f'Unsupported source language at clause {c["id"]}.')
+E               ValueError: Unsupported source language at clause 1.
+
+uptime/vendor_terms.py:273: ValueError
+_ test_new_source_forms_keep_exact_boundary_and_nonaccumulation[44-ELIGIBLE-120.00] _
+
+down = 44, outcome = 'ELIGIBLE', amount = '120.00'
+
+    @pytest.mark.parametrize('down,outcome,amount', [
+        (43, 'INELIGIBLE', None),  # 43/43,200 < 0.1% missed.
+        (44, 'ELIGIBLE', '120.00'),
+        (432, 'ELIGIBLE', '120.00'),  # Exactly 99%; the 20% tier says below.
+        (433, 'ELIGIBLE', '240.00'),  # The highest credit, never 10% + 20%.
+    ])
+    def test_new_source_forms_keep_exact_boundary_and_nonaccumulation(down, outcome, amount):
+>       manifest = compile_terms(document())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/onboarding_finish20261109/test_parent_financial_controls.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+document = Document(name='Authored copperleaf controls', uri='urn:synthetic:copperleaf-controls', classification='synthetic_publi...in USD.\nCredits are applied to a future invoice.\nA claim must be submitted within 30 calendar days after month end.')
+segments = None
+
+    def compile_terms(document, *, segments=None):
+        _validate_document(document)
+        digest = sha256(document.text.encode()).hexdigest()
+        manifest = {'family': REVISION, 'document': {
+            'name': document.name, 'uri': document.uri, 'classification': document.classification, 'sha256': digest},
+            'tiers': [], 'citations': []}
+        seen = set()
+        table = None
+    
+        def atom(key, value, citation):
+            if key in seen:
+                raise ValueError('Duplicate or conflicting source clause: ' + key)
+            seen.add(key)
+            manifest[key] = value
+            citation['field'] = key
+    
+        def tier(product, plan, below, credit, citation):
+            if not _match(NAME, product) or not _match(NAME, plan):
+                raise ValueError('Ambiguous product/plan scope.')
+            manifest['tiers'].append(dict(product=product, plan=plan, below_units=percent_units(below),
+                                          credit_units=percent_units(credit), citation=citation['id']))
+            citation['field'] = 'tier'
+    
+        clauses = _clauses(document.text, segments)
+        if not 1 <= len(clauses) <= 200:
+            raise ValueError('Document requires one to two hundred supported source clauses.')
+        cursor = 0
+        for start, end, quote in clauses:
+            if document.text[cursor:start].strip():
+                raise ValueError('Unrecognized source material between clauses.')
+            cursor = end
+            c = {'id': len(manifest['citations']) + 1, 'start': start, 'end': end, 'quote': quote}
+            manifest['citations'].append(c)
+            clause = ' '.join(quote.split()).removesuffix('.').strip()
+            if '|' in clause:
+                cells = [cell.strip() for cell in clause.strip('|').split('|')]
+                if table is not None and all(re.fullmatch(r':?-{3,}:?', cell) for cell in cells) and len(cells) == 4:
+                    c['field'] = 'table_separator'
+                    continue
+                if len(cells) == 4:
+                    fields = [next((i for i, names in enumerate(TABLE_HEADERS) if cell.casefold() in names), -1)
+                              for cell in cells]
+                    if set(fields) == {0, 1, 2, 3}:
+                        table = [fields.index(i) for i in range(4)]
+                        c['field'] = 'table_header'
+                        continue
+                    if table is not None:
+                        product, plan, below, rate = [cells[i] for i in table]
+                        if below.endswith('%') and rate.endswith('%'):
+                            tier(product, plan, below[:-1], rate[:-1], c)
+                            continue
+                raise ValueError(f'Unsupported percentage table at clause {c["id"]}.')
+            table = None
+            if m := _match(rf'(?:Vendor|Provider|Service provider)\s*:\s*({NAME})', clause):
+                atom('vendor', m[1], c)
+            elif m := _match(rf'(?:Agreement(?: ID)?|Contract(?: ID)?)\s*:\s*({NAME})', clause):
+                atom('agreement', m[1], c)
+            elif m := _match(rf'(?:Effective(?: period)?\s*:\s*|(?:This agreement is )?effective (?:from )?)'
+                             rf'({DAY})(?: (?:through|to|until and including) ({DAY}))?', clause):
+                date.fromisoformat(m[1])
+                if m[2] is not None and date.fromisoformat(m[1]) > date.fromisoformat(m[2]):
+                    raise ValueError('Reversed effective interval.')
+                atom('effective', [m[1], m[2]], c)
+            elif _match(MEASUREMENT, clause):
+                atom('period', 'utc_calendar_month', c)
+            elif m := _match(TIER, clause):
+                tier(m['product'], m['plan'], m['below'], m['rate'], c)
+            elif m := _match(COMPLETED_STEPS, clause):
+                from .credit_steps import validate
+                rule=dict(kind='completed_steps',product=m['product'],plan=m['plan'],citation=c['id'],
+                          **{name+'_units':percent_units(m[name]) for name in ('target','step','credit','cap')})
+                atom('credit_rule',validate(rule),c)
+            elif _match(STEP_ROUNDING, clause):
+                atom('credit_rounding','nearest_cent_half_up',c)
+            elif m := _match(FILING, clause):
+                if not 1 <= int(m[1]) <= 365:
+                    raise ValueError('Filing window outside supported interval.')
+                atom('filing_days', int(m[1]), c)
+            elif _match(REMEDY, clause):
+                atom('remedy', 'affected_monthly_fees_future_invoice', c)
+            elif _match(r'(?:#*\s*)?(?:(?:Monthly )?Availability|Service Level) (?:Agreement|Schedule|Commitment)|'
+                        r'Synthetic public (?:test )?(?:contract|agreement)', clause):
+                c['field'] = 'heading'
+            else:
+>               raise ValueError(f'Unsupported source language at clause {c["id"]}.')
+E               ValueError: Unsupported source language at clause 1.
+
+uptime/vendor_terms.py:273: ValueError
+_ test_new_source_forms_keep_exact_boundary_and_nonaccumulation[432-ELIGIBLE-120.00] _
+
+down = 432, outcome = 'ELIGIBLE', amount = '120.00'
+
+    @pytest.mark.parametrize('down,outcome,amount', [
+        (43, 'INELIGIBLE', None),  # 43/43,200 < 0.1% missed.
+        (44, 'ELIGIBLE', '120.00'),
+        (432, 'ELIGIBLE', '120.00'),  # Exactly 99%; the 20% tier says below.
+        (433, 'ELIGIBLE', '240.00'),  # The highest credit, never 10% + 20%.
+    ])
+    def test_new_source_forms_keep_exact_boundary_and_nonaccumulation(down, outcome, amount):
+>       manifest = compile_terms(document())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/onboarding_finish20261109/test_parent_financial_controls.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+document = Document(name='Authored copperleaf controls', uri='urn:synthetic:copperleaf-controls', classification='synthetic_publi...in USD.\nCredits are applied to a future invoice.\nA claim must be submitted within 30 calendar days after month end.')
+segments = None
+
+    def compile_terms(document, *, segments=None):
+        _validate_document(document)
+        digest = sha256(document.text.encode()).hexdigest()
+        manifest = {'family': REVISION, 'document': {
+            'name': document.name, 'uri': document.uri, 'classification': document.classification, 'sha256': digest},
+            'tiers': [], 'citations': []}
+        seen = set()
+        table = None
+    
+        def atom(key, value, citation):
+            if key in seen:
+                raise ValueError('Duplicate or conflicting source clause: ' + key)
+            seen.add(key)
+            manifest[key] = value
+            citation['field'] = key
+    
+        def tier(product, plan, below, credit, citation):
+            if not _match(NAME, product) or not _match(NAME, plan):
+                raise ValueError('Ambiguous product/plan scope.')
+            manifest['tiers'].append(dict(product=product, plan=plan, below_units=percent_units(below),
+                                          credit_units=percent_units(credit), citation=citation['id']))
+            citation['field'] = 'tier'
+    
+        clauses = _clauses(document.text, segments)
+        if not 1 <= len(clauses) <= 200:
+            raise ValueError('Document requires one to two hundred supported source clauses.')
+        cursor = 0
+        for start, end, quote in clauses:
+            if document.text[cursor:start].strip():
+                raise ValueError('Unrecognized source material between clauses.')
+            cursor = end
+            c = {'id': len(manifest['citations']) + 1, 'start': start, 'end': end, 'quote': quote}
+            manifest['citations'].append(c)
+            clause = ' '.join(quote.split()).removesuffix('.').strip()
+            if '|' in clause:
+                cells = [cell.strip() for cell in clause.strip('|').split('|')]
+                if table is not None and all(re.fullmatch(r':?-{3,}:?', cell) for cell in cells) and len(cells) == 4:
+                    c['field'] = 'table_separator'
+                    continue
+                if len(cells) == 4:
+                    fields = [next((i for i, names in enumerate(TABLE_HEADERS) if cell.casefold() in names), -1)
+                              for cell in cells]
+                    if set(fields) == {0, 1, 2, 3}:
+                        table = [fields.index(i) for i in range(4)]
+                        c['field'] = 'table_header'
+                        continue
+                    if table is not None:
+                        product, plan, below, rate = [cells[i] for i in table]
+                        if below.endswith('%') and rate.endswith('%'):
+                            tier(product, plan, below[:-1], rate[:-1], c)
+                            continue
+                raise ValueError(f'Unsupported percentage table at clause {c["id"]}.')
+            table = None
+            if m := _match(rf'(?:Vendor|Provider|Service provider)\s*:\s*({NAME})', clause):
+                atom('vendor', m[1], c)
+            elif m := _match(rf'(?:Agreement(?: ID)?|Contract(?: ID)?)\s*:\s*({NAME})', clause):
+                atom('agreement', m[1], c)
+            elif m := _match(rf'(?:Effective(?: period)?\s*:\s*|(?:This agreement is )?effective (?:from )?)'
+                             rf'({DAY})(?: (?:through|to|until and including) ({DAY}))?', clause):
+                date.fromisoformat(m[1])
+                if m[2] is not None and date.fromisoformat(m[1]) > date.fromisoformat(m[2]):
+                    raise ValueError('Reversed effective interval.')
+                atom('effective', [m[1], m[2]], c)
+            elif _match(MEASUREMENT, clause):
+                atom('period', 'utc_calendar_month', c)
+            elif m := _match(TIER, clause):
+                tier(m['product'], m['plan'], m['below'], m['rate'], c)
+            elif m := _match(COMPLETED_STEPS, clause):
+                from .credit_steps import validate
+                rule=dict(kind='completed_steps',product=m['product'],plan=m['plan'],citation=c['id'],
+                          **{name+'_units':percent_units(m[name]) for name in ('target','step','credit','cap')})
+                atom('credit_rule',validate(rule),c)
+            elif _match(STEP_ROUNDING, clause):
+                atom('credit_rounding','nearest_cent_half_up',c)
+            elif m := _match(FILING, clause):
+                if not 1 <= int(m[1]) <= 365:
+                    raise ValueError('Filing window outside supported interval.')
+                atom('filing_days', int(m[1]), c)
+            elif _match(REMEDY, clause):
+                atom('remedy', 'affected_monthly_fees_future_invoice', c)
+            elif _match(r'(?:#*\s*)?(?:(?:Monthly )?Availability|Service Level) (?:Agreement|Schedule|Commitment)|'
+                        r'Synthetic public (?:test )?(?:contract|agreement)', clause):
+                c['field'] = 'heading'
+            else:
+>               raise ValueError(f'Unsupported source language at clause {c["id"]}.')
+E               ValueError: Unsupported source language at clause 1.
+
+uptime/vendor_terms.py:273: ValueError
+_ test_new_source_forms_keep_exact_boundary_and_nonaccumulation[433-ELIGIBLE-240.00] _
+
+down = 433, outcome = 'ELIGIBLE', amount = '240.00'
+
+    @pytest.mark.parametrize('down,outcome,amount', [
+        (43, 'INELIGIBLE', None),  # 43/43,200 < 0.1% missed.
+        (44, 'ELIGIBLE', '120.00'),
+        (432, 'ELIGIBLE', '120.00'),  # Exactly 99%; the 20% tier says below.
+        (433, 'ELIGIBLE', '240.00'),  # The highest credit, never 10% + 20%.
+    ])
+    def test_new_source_forms_keep_exact_boundary_and_nonaccumulation(down, outcome, amount):
+>       manifest = compile_terms(document())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/onboarding_finish20261109/test_parent_financial_controls.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+document = Document(name='Authored copperleaf controls', uri='urn:synthetic:copperleaf-controls', classification='synthetic_publi...in USD.\nCredits are applied to a future invoice.\nA claim must be submitted within 30 calendar days after month end.')
+segments = None
+
+    def compile_terms(document, *, segments=None):
+        _validate_document(document)
+        digest = sha256(document.text.encode()).hexdigest()
+        manifest = {'family': REVISION, 'document': {
+            'name': document.name, 'uri': document.uri, 'classification': document.classification, 'sha256': digest},
+            'tiers': [], 'citations': []}
+        seen = set()
+        table = None
+    
+        def atom(key, value, citation):
+            if key in seen:
+                raise ValueError('Duplicate or conflicting source clause: ' + key)
+            seen.add(key)
+            manifest[key] = value
+            citation['field'] = key
+    
+        def tier(product, plan, below, credit, citation):
+            if not _match(NAME, product) or not _match(NAME, plan):
+                raise ValueError('Ambiguous product/plan scope.')
+            manifest['tiers'].append(dict(product=product, plan=plan, below_units=percent_units(below),
+                                          credit_units=percent_units(credit), citation=citation['id']))
+            citation['field'] = 'tier'
+    
+        clauses = _clauses(document.text, segments)
+        if not 1 <= len(clauses) <= 200:
+            raise ValueError('Document requires one to two hundred supported source clauses.')
+        cursor = 0
+        for start, end, quote in clauses:
+            if document.text[cursor:start].strip():
+                raise ValueError('Unrecognized source material between clauses.')
+            cursor = end
+            c = {'id': len(manifest['citations']) + 1, 'start': start, 'end': end, 'quote': quote}
+            manifest['citations'].append(c)
+            clause = ' '.join(quote.split()).removesuffix('.').strip()
+            if '|' in clause:
+                cells = [cell.strip() for cell in clause.strip('|').split('|')]
+                if table is not None and all(re.fullmatch(r':?-{3,}:?', cell) for cell in cells) and len(cells) == 4:
+                    c['field'] = 'table_separator'
+                    continue
+                if len(cells) == 4:
+                    fields = [next((i for i, names in enumerate(TABLE_HEADERS) if cell.casefold() in names), -1)
+                              for cell in cells]
+                    if set(fields) == {0, 1, 2, 3}:
+                        table = [fields.index(i) for i in range(4)]
+                        c['field'] = 'table_header'
+                        continue
+                    if table is not None:
+                        product, plan, below, rate = [cells[i] for i in table]
+                        if below.endswith('%') and rate.endswith('%'):
+                            tier(product, plan, below[:-1], rate[:-1], c)
+                            continue
+                raise ValueError(f'Unsupported percentage table at clause {c["id"]}.')
+            table = None
+            if m := _match(rf'(?:Vendor|Provider|Service provider)\s*:\s*({NAME})', clause):
+                atom('vendor', m[1], c)
+            elif m := _match(rf'(?:Agreement(?: ID)?|Contract(?: ID)?)\s*:\s*({NAME})', clause):
+                atom('agreement', m[1], c)
+            elif m := _match(rf'(?:Effective(?: period)?\s*:\s*|(?:This agreement is )?effective (?:from )?)'
+                             rf'({DAY})(?: (?:through|to|until and including) ({DAY}))?', clause):
+                date.fromisoformat(m[1])
+                if m[2] is not None and date.fromisoformat(m[1]) > date.fromisoformat(m[2]):
+                    raise ValueError('Reversed effective interval.')
+                atom('effective', [m[1], m[2]], c)
+            elif _match(MEASUREMENT, clause):
+                atom('period', 'utc_calendar_month', c)
+            elif m := _match(TIER, clause):
+                tier(m['product'], m['plan'], m['below'], m['rate'], c)
+            elif m := _match(COMPLETED_STEPS, clause):
+                from .credit_steps import validate
+                rule=dict(kind='completed_steps',product=m['product'],plan=m['plan'],citation=c['id'],
+                          **{name+'_units':percent_units(m[name]) for name in ('target','step','credit','cap')})
+                atom('credit_rule',validate(rule),c)
+            elif _match(STEP_ROUNDING, clause):
+                atom('credit_rounding','nearest_cent_half_up',c)
+            elif m := _match(FILING, clause):
+                if not 1 <= int(m[1]) <= 365:
+                    raise ValueError('Filing window outside supported interval.')
+                atom('filing_days', int(m[1]), c)
+            elif _match(REMEDY, clause):
+                atom('remedy', 'affected_monthly_fees_future_invoice', c)
+            elif _match(r'(?:#*\s*)?(?:(?:Monthly )?Availability|Service Level) (?:Agreement|Schedule|Commitment)|'
+                        r'Synthetic public (?:test )?(?:contract|agreement)', clause):
+                c['field'] = 'heading'
+            else:
+>               raise ValueError(f'Unsupported source language at clause {c["id"]}.')
+E               ValueError: Unsupported source language at clause 1.
+
+uptime/vendor_terms.py:273: ValueError
+=========================== short test summary info ============================
+FAILED tests/onboarding_finish20261109/test_parent_financial_controls.py::test_new_source_forms_keep_exact_boundary_and_nonaccumulation[43-INELIGIBLE-None]
+FAILED tests/onboarding_finish20261109/test_parent_financial_controls.py::test_new_source_forms_keep_exact_boundary_and_nonaccumulation[44-ELIGIBLE-120.00]
+FAILED tests/onboarding_finish20261109/test_parent_financial_controls.py::test_new_source_forms_keep_exact_boundary_and_nonaccumulation[432-ELIGIBLE-120.00]
+FAILED tests/onboarding_finish20261109/test_parent_financial_controls.py::test_new_source_forms_keep_exact_boundary_and_nonaccumulation[433-ELIGIBLE-240.00]
+4 failed, 18 deselected in 0.56s

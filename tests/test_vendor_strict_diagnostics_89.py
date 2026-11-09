@@ -38,7 +38,17 @@ def test_first_unread_clause_is_the_clause_the_parser_refuses(insert, position):
         compile_terms(document)
     report = classify(document)
     clause = re.search(r'at clause ([0-9]+)', str(refused.value))
-    assert clause and report['unrecognized_clauses'][0] == int(clause[1])
+    if clause:
+        assert report['unrecognized_clauses'][0] == int(clause[1])
+    else:
+        # The generic 1a templates now recognize an unqualified party statement
+        # and an opening title. Recognition must still refuse these documents:
+        # each already binds a different vendor/agreement in a labeled clause.
+        if insert == INSERTS[0]:
+            assert str(refused.value) == 'Duplicate or conflicting source clause: vendor'
+        else:
+            assert insert == INSERTS[2] and position == 0
+            assert str(refused.value) == 'Duplicate or conflicting source clause: agreement'
 
 
 def test_every_unread_clause_and_missing_term_is_reported_at_once():

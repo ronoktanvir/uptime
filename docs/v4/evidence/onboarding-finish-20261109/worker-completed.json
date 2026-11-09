@@ -1,0 +1,37 @@
+{
+  "schema": "uptime-coding-worker/1",
+  "status": "completed_parent_reviewed",
+  "base_commit": "579997f1adb17b1ce5ea5c50b366cf1fe562b170",
+  "actual_model": "claude-opus-5-5",
+  "session_id": "afe5029a-1c61-44e7-814c-d113a349494c",
+  "requested_effort": "xhigh",
+  "actual_tools": [
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "mcp_servers": [],
+  "permission_mode": "acceptEdits",
+  "prompt_sha256": "5b81aa3b87bb23a1591dd2594bbb436024c433764583deb7831154947a0327e1",
+  "scope": [
+    "uptime/vendor_terms.py",
+    "uptime/vendor_strict_diagnostics.py",
+    "tests/onboarding_finish20261109/"
+  ],
+  "limits": "Named grammar remediation only. No private gold, customer data, model extraction, financial activity, human approval or Ramp action delegated. Parent verifies and runs tests. Init is not implementation completion.",
+  "returncode": 0,
+  "elapsed_seconds": 1605.32,
+  "stream_bytes": 1904046,
+  "stream_sha256": "236eaa91c43c35b6a9e15f0b9582bd1c2cc096209a31e616fad30ee8be8a98d0",
+  "parent_result": "433 passed, 1 warning in 3.17s",
+  "parent_corrections": [
+    "Case-insensitive leading determiner refusal for new title form.",
+    "Bare until end date refused in strict and proposition paths; inclusion must be explicit.",
+    "Requirement card recognizes validated optional fields; unknown conditions still require review.",
+    "Public proposition scope binding from the exact party clause; explicit monthly marker wiring added after user decision."
+  ],
+  "permission_refusals": 1,
+  "attribution": "Opus implemented generic strict templates, diagnostics and two authored test modules. Parent implemented explicit monthly marker/model wire, independent monetary controls and source-boundary corrections. A coding worker is not an independent evaluation or human review."
+}
