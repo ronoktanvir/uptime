@@ -96,3 +96,4 @@ The earlier table preserves its inspected-source status. The following decisions
 Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.
 
 - [87 — Person-operated demo and preserved authority](ADR-0087-person-operated-demo-path.md)
+- [94 — Account identity and claim scope (D03-A, D04-C), alternatives and one Opus critique](../integration90/D03-D04-ALTERNATIVES.md) · [packet](packets/94-identity-and-claim-scope-alternatives.md) · [review](reviews/94-identity-and-claim-scope-alternatives.json)
