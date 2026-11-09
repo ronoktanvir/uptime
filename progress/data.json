@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-11-09T20:17:13.634912+00:00",
+  "updated_at": "2026-11-09T20:24:29.245767+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Onboarding grammar, explicit whole-month evidence and authenticated refusal auditing are integrated for verification. Real Opus 5.5 coding workers completed their bounded work. The combined full suite is next; the independent 14-case cohort is frozen and remains unscored. Ramp posting stays restricted.",
+  "summary": "Combined onboarding, strict complete-month disputes and refusal auditing passed 5,270 regression tests. Final review found a cross-version scope bug; its correction is in progress before independent evaluation. The frozen 14-case cohort remains unscored. Ramp posting stays restricted.",
   "evidence": [
     {
       "label": "Latest merged regression",
-      "value": "4,727 passed",
-      "detail": "64ac728: 4,727 passed, 1 warning in435.83s. Optional source basis and exact-month intake checks integrated. Independent generalization is still pending.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/evidence/finish-20261109/merge-basis-64ac728.json"
+      "value": "5,270 passed",
+      "detail": "1ced955: 5,270 passed, 1 warning in363.11s. This does not establish unseen generalization. A later cross-version review finding is being corrected.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/evidence/finish-20261109/merge-1ced955.json"
     },
     {
       "label": "Prior regression checkpoint",
@@ -405,7 +405,7 @@
     },
     {
       "id": "grammar",
-      "title": "Additional contract families",
+      "title": "Contract wording and explicit evidence basis",
       "stream": "Onboarding",
       "status": "active",
       "summary": "Generic monthly wording remediation implemented",
@@ -690,7 +690,7 @@
         "identity",
         "bindings"
       ],
-      "next_action": "Run the complete locked regression suite and independent evaluation; historical monthly filing receipts remain unsupported.",
+      "next_action": "Correct non-overlapping effective-period selection, reverify source, then run independent evaluation.",
       "links": [
         {
           "label": "Approved decision",
@@ -700,6 +700,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T20:24:29.245767+00:00",
+      "title": "Combined suite passes; review identifies version-overlap correction",
+      "detail": "5,270 passed,1 existing warning. Read-only cross-module review found future non-overlapping SHADOW terms can incorrectly block older claims. Narrow period selection fix and runner timeout-spooling verification precede the independent freeze.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/evidence/finish-20261109/merge-1ced955.json"
+    },
     {
       "at": "2026-11-09T20:17:13.634912+00:00",
       "title": "Combined collection failure retained and fixed",
