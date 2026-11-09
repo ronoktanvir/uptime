@@ -6,6 +6,7 @@ Ramp customer database, real authorization, or external-source attestation.
 """
 from copy import deepcopy
 import argparse
+from hashlib import sha256
 import json
 import os
 from pathlib import Path
@@ -22,6 +23,21 @@ from uptime.contracts import fingerprint
 from uptime.correspondence_types import Scope,Delivery,SOURCE
 from uptime.source_config import SourceConfig,SourceRegistry,SenderCredential,create_source,_write_new,load_private
 from uptime.server import create_app
+
+
+VARIANTS_PATH=ROOT/'fixtures'/'northwind'/'counterparty-variants.json'
+VARIANTS_SHA256='9e0e4750b7e6e8ed560bee0a299f7ffaabc3e7f3e9f9fc57ca2672c301846f10'
+COUNTERPARTY_REPLIES=('request-log','unclear')
+
+
+def correspondence_for(package,reply):
+    """The authored January reply: the package's own log request, or a pinned authored variant."""
+    if reply=='request-log':return package['correspondence']
+    raw=VARIANTS_PATH.read_bytes()
+    if sha256(raw).hexdigest()!=VARIANTS_SHA256:raise ValueError('The authored counterparty variants changed.')
+    chosen=deepcopy(package['correspondence'])
+    chosen['denial']=json.loads(raw)['variants'][reply]['denial']
+    return chosen
 
 
 def source_inputs(package):
@@ -46,7 +62,7 @@ def source_inputs(package):
     return scopes,events
 
 
-def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None):
+def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None,counterparty_reply='request-log'):
     directory=Path(directory).absolute()
     if directory.exists():raise ValueError('Select a fresh directory; use --resume for an existing immutable workspace.')
     directory.mkdir(mode=0o700,parents=True)
@@ -65,6 +81,8 @@ def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None
     if routine_automation:
         # Role 2: persisted with the workspace; projected as workflow.automation.enabled.
         private['routine_automation']=True
+    if counterparty_reply not in COUNTERPARTY_REPLIES:raise ValueError('Unknown authored counterparty reply.')
+    if counterparty_reply!='request-log':private['counterparty_reply']=counterparty_reply
     fd=os.open(directory/'workspace.json',os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
     with os.fdopen(fd,'w') as handle:json.dump(private,handle);handle.flush();os.fsync(handle.fileno())
     from uptime.auth_keys import rehearsal_key,write_credential
@@ -90,7 +108,7 @@ def open_workspace(directory, *, proposal_config=None):
     config=dict(package=package,installation='northwind-cloud',onboarding_installation='calyxquay',
         claim_month='2026-01',bill_month='2026-03',claim_ids={m:'inbox-northwind-'+m for m in scopes},scopes=scopes,
         senders=senders,clock_start='2026-03-01T12:00:00Z',clock_steps={},
-        correspondence=package['correspondence'],provider_path=directory/'local-ledger.db',governing_fees=build_fee_registry(package),
+        correspondence=correspondence_for(package,private.get('counterparty_reply','request-log')),provider_path=directory/'local-ledger.db',governing_fees=build_fee_registry(package),
         routine_automation=bool(private.get('routine_automation',False)))
     app=create_app(directory/'workspace.db',mode='replay',rehearsal=True,approvals_enabled=True,
         rehearsal_secret=private['rehearsal_secret'],service_credentials=registry,origin=private['origin'],workflow_config=config,
@@ -199,16 +217,18 @@ def main():
     parser.add_argument('--public-proposal-config',type=Path,help='Protected exact-request model configuration for the served workspace')
     parser.add_argument('--step-by-step',action='store_true',
                         help='Offer every routine step as its own reviewer action (the earlier behavior); default runs routine steps automatically')
+    parser.add_argument('--counterparty-reply',choices=COUNTERPARTY_REPLIES,default='request-log',
+                        help="Authored January reply: the package's log request, or the unclear reply for the escalation branch")
     parser.add_argument('--reviewer-credential',type=Path,
                         help='Also write the reviewer sign-in file to this visible absolute path outside the repository (mode 0600)')
     args=parser.parse_args()
     if args.public_proposal_config and not args.serve:
         parser.error('--public-proposal-config requires --serve')
-    if args.resume and (args.step_by_step or args.reviewer_credential):
+    if args.resume and (args.step_by_step or args.reviewer_credential or args.counterparty_reply!='request-log'):
         parser.error('--step-by-step and --reviewer-credential apply when a workspace is created')
     app,private,events=(open_workspace(args.directory) if args.resume else
                         prepare(args.directory,args.origin,routine_automation=not args.step_by_step,
-                                reviewer_credential=args.reviewer_credential))
+                                reviewer_credential=args.reviewer_credential,counterparty_reply=args.counterparty_reply))
     if not args.resume:
         from fastapi.testclient import TestClient
         with TestClient(app,base_url=private['origin'],client=('127.0.0.1',4510)) as client:
