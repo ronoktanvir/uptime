@@ -73,7 +73,7 @@ A backup → verify → restore drill on that workspace's copy also passed (45 t
 | --- | --- | --- |
 | A page stops responding or the server exits | Restart the same command (Northwind: same `--directory` with `--resume`). Sign in again. | "Restarting ends sessions by design; the recorded state is unchanged." |
 | The Northwind state is wrong or half-finished | Start a **new** directory with `setup_northwind.py --serve`. If time is short, use W8's saved fallback screen and socket receipt. | "This is a fresh authored workspace." |
-| The sandbox workbench database is damaged | `workspace_recovery.py restore --backup <folder> --target <new.sqlite> --tenant <tenant> --mode sandbox --previous <old.sqlite if readable>`, then serve with `--db <new.sqlite>`. | "Restored from last night's verified backup; native actions stay blocked until we reconcile." |
+| The sandbox workbench database is damaged | `workspace_recovery.py restore --backup <folder> --target <new.sqlite> --tenant <tenant> --mode sandbox --previous <old.sqlite if readable>`, then serve with `--db <new.sqlite>`. If a native config is in use, back up and restore its outbox too (`--outbox`, `--outbox-target`). | "Restored from last night's verified backup; native actions stay blocked until we reconcile." |
 | The Ramp sandbox is unreachable | Nothing. The last capture stays, with its `as_of` time. | "Ramp is unreachable; this is the capture from \<time\>." |
 | The disk is full | Stop the demo processes, run `uv cache prune`, then restart. | — |
 
