@@ -51,7 +51,7 @@ Narration is written at about 125 words a minute: 213 words without the optional
 
 **Optional cutaway, 1:20–1:30, only if measured timing leaves room** (coordinator's recommendation; Ronok has the last word):
 - Screen: a second recorded Northwind workspace created with `--counterparty-reply unclear`. Recorded denial job `29f371d0` (claude-opus-5-5, 5.4 s) proposed "unsupported", citing the whole reply. The scripted review gave AMBIGUOUS_GROUNDS; the case stays in review with $0.00 awarded. Caption: "Recorded run, unclear reply".
-- Say: "When a reply isn't recognized, a model reads it — this one was recorded — and a person must review." (16)
+- Say: "When a reply isn't recognized, a model proposes a reading — this one was recorded — and a person must review." (17)
 - If it does not fit, it stays out of the film and is described in [the judge guide](../../JUDGES.md) with its receipt.
 
 **Rules for the model beats** (coordinator, November 9): the cut must not imply that the model read the Northwind contract or the cure-branch denial. Both Northwind steps are rule-based and say so.
@@ -89,7 +89,7 @@ Each would be false.
 
 Full answers are in [the judge guide](../../JUDGES.md#five-questions-answered).
 - **Where is this in Ramp?** "Beside it. Uptime reads Ramp's bills, vendors and approvals through the API. The one thing on a Ramp bill is a note a person posted and Uptime read back. Uptime hasn't written to Ramp yet."
-- **Where is the AI?** "Claude proposes contract terms and reads denials, with quotes. Code checks every proposal and computes every number; a reviewer approves."
+- **Where is the AI?** "Claude proposes contract terms, and readings of vendor replies, with quotes. Code checks every proposal and computes every number; a reviewer approves."
 - **What happens on an unfamiliar contract?** "Today it mostly refuses and names the passage. In our independent test, none of four intended contracts got through. We published that."
 - **Who authorizes follow-up?** "A reviewer: claim, response, posting and application. Uptime runs only intake and steps a reviewer already approved. Here I'm using the scripted test reviewer."
 - **What remains unimplemented?** "Writing to Ramp, holds and credits in Ramp, real vendor delivery, reliable unseen contracts and hosting."
@@ -102,7 +102,7 @@ These sentences describe the target build. Phase 2 checks each against the froze
 |:---|:---|
 | "Uptime runs routine steps itself… It stops for every judgment and every financial change"; "Four decisions in all" | Role 2 coordinator |
 | "On **Overview**, approve the January claim"; **Agreements**, **Activity** | Role 4 navigation |
-| "reads vendor replies the rules do not recognize"; the unclear-reply example | Role 2 `denial-model-job.json` (job `29f371d0`) |
+| "proposes a reading of a vendor's reply, with the cited text, for a reviewer to check"; the unclear-reply example | Role 2 `denial-model-job.json` (job `29f371d0`) |
 | Corvid Ledger reached shadow, Halden Relay was refused; calls took 5–15 s | Role 1 `genuine-calls-summary.json`; links resolve after integration |
 | "shows when each record was read and whether the list was complete"; the Ramp record panel | Role 3 capture fields and panel |
 | "Sign in with the account name and credential file the command prints" | Decided: setup takes `--reviewer-credential PATH` and always prints the path, account and URL. Do not document `--resume` with an existing credential path until agent3's fix is confirmed |
