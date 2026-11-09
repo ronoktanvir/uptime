@@ -22,10 +22,6 @@ uv run --locked python scripts/serve.py --mode sandbox --db "$uptime_db" --open
 
 Keep exactly the same mode, tenant and database on subsequent launches. Enrollment is an offline operator action. Existing accounts or keys cannot be overwritten. Select a new absolute credential filename when deliberately provisioning a new account. Browser authentication uses origin-bound proof of possession. A replay server needs its own database and separate enrollment.
 
-## Back up, restore, revoke and monitor
-
-Back up, verify and restore workspaces with `scripts/workspace_recovery.py`, revoke a Ramp installation with `scripts/revoke_installation.py`, and check operator health with `scripts/operations_check.py`. A restored copy refuses native preparation and new mandates until reconciliation is acknowledged. The trust boundary, failure classes and remaining hosted-deployment requirements are in [the operations recovery runbook](OPERATIONS-RECOVERY-90.md).
-
 ## Install current sandbox observations
 
 The operator's `~/.config/uptime/ramp-sandbox.json` must be owner-readable only and contain the documented sandbox configuration. The importer does no financial writes. A fresh database starts with a clearly labeled packaged historical read available to the demonstration tenant. A refresh replaces its display with the installed business observation.
