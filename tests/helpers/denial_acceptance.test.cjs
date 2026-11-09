@@ -84,3 +84,37 @@ test('the dispute record is read-only, uses plain labels and keeps vendor text i
   await without.ui.inspect(without.root, ID);
   assert.equal(button(without.root, 'Show dispute record'), undefined);
 });
+
+test('a blocking contradicting delivery is explained, and only offered actions render (89b)', async () => {
+  const conflict = {event_id:'e1', source:'customer-fixture', subject:'other-account', kind:'notice', digest:'c'.repeat(64),
+    reason:'Record names another account.', received_at:'2026-10-13T02:00:00Z', blocking:true};
+  // Stage is still DENIAL_REVIEW, but the server offers nothing: no Accept button is inferred from the stage.
+  const s = mount({cases:[CASE([], {contradicting_deliveries:[conflict]})], post:() => assert.fail('no post')});
+  await s.ui.inspect(s.root, ID);
+  const text = s.root.textContent;
+  assert.ok(text.includes('Review needed: conflicting source record'));
+  assert.ok(text.includes('A person must review it; this case offers no action until then.'));
+  assert.ok(text.includes('notice · other-account · 2026-10-13T02:00:00Z · Record names another account. · blocking'));
+  assert.equal(button(s.root, 'Accept denial'), undefined);
+});
+
+test('the dispute record words the 89b checks by meaning, not as pass/fail', async () => {
+  const s = mount({cases:[CASE([])], post:() => assert.fail('no post')});
+  const original = TRACE.deterministic_checks;
+  TRACE.deterministic_checks = [{check:'contradicting_deliveries_unresolved', result:true}, {check:'status_origin', result:'ENROLLED_SOURCE_NOT_ORIGIN_VERIFIED'},
+    {check:'award_not_above_claim', result:true}];
+  TRACE.stale_denial_review = true; TRACE.disposition = 'ESCALATE';
+  TRACE.contradicting_deliveries = [{kind:'notice', subject:'other-account', received_at:'t', reason:'Other account.', blocking:false}];
+  try {
+    await s.ui.inspect(s.root, ID);
+    await button(s.root, 'Show dispute record').listeners.click();
+    const text = s.root.textContent;
+    for (const expected of ['Unresolved contradicting deliveries: yes, review needed', 'Status record origin: enrolled source; origin not verified',
+      'Award not above the claim: pass', 'needs a reviewer', 'This claim needs a reviewer again before any acceptance.',
+      'It is recorded and does not block this case.'])
+      assert.ok(text.includes(expected), expected);
+    assert.ok(!text.includes('Unresolved contradicting deliveries: pass'));
+  } finally {
+    TRACE.deterministic_checks = original; TRACE.stale_denial_review = false; TRACE.disposition = 'ACCEPT_DENIAL'; delete TRACE.contradicting_deliveries;
+  }
+});
