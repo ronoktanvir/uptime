@@ -57,3 +57,5 @@ Decision67 adds `test_semantic_current_projection.py` for four independently rep
 - [Dispute ledger](TEST-CHANGES-disputes-finish-20261109.md): authenticated refusal audit and explicit complete-month join, including ordinary routes.
 - [Evaluation ledger](TEST-CHANGES-evaluation-finish-20261109.md): independent runner controls; no held-out score substituted for regression tests.
 - New integration test `test_every_monthly_admission_dependency_changes_reviewed_version`: changing any monthly evidence/admission source input invalidates the reviewed semantics version. It isolates module reload in a child process and changes no files.
+
+The final period-selection correction changes `tests/test_v4_routes_integration.py::test_active_effective_dates_must_cover_entire_measurement_month`: a wholly out-of-period claim now refuses intake with 409 and no stored row, rather than creating an unsupported draft. The distinct midmonth-abstention test remains unchanged. See the dispute ledger for the real two-installation reproduction and retained intermediate failures.

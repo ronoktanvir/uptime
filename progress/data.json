@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-11-09T20:24:29.245767+00:00",
+  "updated_at": "2026-11-09T20:29:34.794360+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Combined onboarding, strict complete-month disputes and refusal auditing passed 5,270 regression tests. Final review found a cross-version scope bug; its correction is in progress before independent evaluation. The frozen 14-case cohort remains unscored. Ramp posting stays restricted.",
+  "summary": "The contract-period selection bug is corrected, and timeout evidence plus sealed grading guards are integrated. The final combined regression is starting before the frozen independent14-case cohort runs. Ramp posting remains restricted.",
   "evidence": [
     {
       "label": "Latest merged regression",
@@ -690,7 +690,7 @@
         "identity",
         "bindings"
       ],
-      "next_action": "Correct non-overlapping effective-period selection, reverify source, then run independent evaluation.",
+      "next_action": "Complete final regression on the period-selection fix and run independent evaluation.",
       "links": [
         {
           "label": "Approved decision",
@@ -700,6 +700,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T20:29:34.794360+00:00",
+      "title": "Final period selection and evaluation safeguards integrated",
+      "detail": "Non-overlapping future terms no longer block older claims; partial overlap remains unresolved. Period controls:171 passed. Timeout spool and sealed grading guards preserve failed attempts. Final full suite starting before any scored call.",
+      "url": "https://github.com/ronoktanvir/uptime/commit/c70d957"
+    },
     {
       "at": "2026-11-09T20:24:29.245767+00:00",
       "title": "Combined suite passes; review identifies version-overlap correction",
