@@ -1,0 +1,33 @@
+{
+  "schema": "independent-public-probes/1",
+  "application_commit": "87b3464adf0f838319445015d90c5f8b18a7e722",
+  "recorded_at": "2026-11-09T20:32:42.919740+00:00",
+  "classification": "Additional public authored controls, independent of implementers but not the sealed cohort or human certification",
+  "first_result": {
+    "passed": 3,
+    "failed": 1,
+    "reason": "Test expected403 for an authenticated identity content conflict; route correctly returned409. Financial assertions unchanged."
+  },
+  "final_result": {
+    "passed": 4,
+    "warnings": 1,
+    "seconds": "1.12"
+  },
+  "source_sha256": "334fe2ab12f0833fdeaf0a1ec0f8cb9d63b0aef30b6fc119f2d0d2815589111f",
+  "actual_provider_calls": 0,
+  "actual_human_actions": 0,
+  "external_financial_actions": 0,
+  "checks": [
+    "Wrong-role refusal cannot occupy the later legitimate measurement",
+    "Changed replay cannot reprice an authenticated month",
+    "Contradictory optional customer report removes financial authority",
+    "Contradictory body identity creates no claim filing or money"
+  ],
+  "reproduction": "PYTHONPATH=. uv run --locked pytest -q docs/v4/evidence/evaluation-finish-20261109/public-monthly-probes.py",
+  "published_artifact_verification": {
+    "passed": 4,
+    "warnings": 1,
+    "seconds": "1.80",
+    "reason": "Verify relative fixture path in the committed standalone probe artifact."
+  }
+}

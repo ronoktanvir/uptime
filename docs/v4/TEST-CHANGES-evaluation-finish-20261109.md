@@ -62,3 +62,14 @@ Added `test_spool_preserves_profile_and_only_registered_exact_request` (reject u
 ## Sealed scoring gate
 
 The copied guarded gold reader referenced a terminal-check helper located outside the copied part of the historical runner. Added the missing guard for this cohort's actual batch records rather than leaving a dead reference. `test_expected_outcomes_stay_sealed_until_all_cases_and_jobs_are_terminal` verifies no expected content is opened before the complete case set exists or while a job remains pending, then verifies the one logged read after terminal records. Runner errors require explicit terminal-state reconciliation. Latest combined focused result: **62 passed, 1 warning in 2.36s.** This test uses a newly authored tiny expected file; no historical or cohort expected file is read.
+
+
+## Additional independent public route probes
+
+Committed the standalone `docs/v4/evidence/evaluation-finish-20261109/public-monthly-probes.py` with its authored source/setup fixture. These are separate public controls, not sealed cohort cases and not actual provider inferences. Against frozen application87b3464, the checks are:
+- `test_wrong_role_refusal_cannot_poison_the_later_authentic_month`;
+- `test_changed_replay_cannot_reprice_a_signed_month`;
+- `test_extra_contradictory_customer_report_removes_financial_authority`;
+- `test_body_identity_conflict_is_retained_as_refusal_without_claim_money`.
+
+The initial fourth test assumed403; the actual409 is the correct authenticated-content conflict response. The assertion was corrected to409 without changing any financial or authority expectation. Initial run:3passed/1failed. Corrected controls: **4passed,1warning in1.12s**. Verification of the published relative fixture path: **4passed,1warning in1.80s**. These probes create only ephemeral scripted local workspaces; they file no claim, award no money and invoke no model/Ramp/vendor API.
