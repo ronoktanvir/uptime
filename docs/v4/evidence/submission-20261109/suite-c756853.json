@@ -1,0 +1,36 @@
+{
+  "tested_commit": "c756853634ef7c3d35ca6fdd5ad82f3b8bb612a8",
+  "branch": "work/submission-integration-20261109",
+  "contents": "02d86f7 plus one merge of three branches that share no files: disputes 888d64f, onboarding 43f5b9d, ramp db9b680",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-c756853",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 1,
+  "pytest_result": "1 failed, 5366 passed, 1 warning in 380.78s (0:06:20)",
+  "log": "suite-c756853-pytest.log",
+  "started_at": "2026-11-09T21:40:02Z",
+  "finished_at": "2026-11-09T21:46:24Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "109 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "failures": [
+    {
+      "test": "tests/test_release_probes_gent8.py::test_hard_kill_mid_flow_preserves_state_idempotency_and_final_ledger",
+      "assertion": "assert (0 + 4) == 11",
+      "kind": "the same deterministic failure as on 02d86f7",
+      "cause": "The restart probe still created its workspace with routine automation on. The verification lane's fix (0be2955) was not part of this merge.",
+      "status": "open at this commit; fix queued for the next merge"
+    }
+  ],
+  "note": "The browser test that failed on 02d86f7 during a Chrome auto-update passed in this run.",
+  "limits": "Not a verified state. Regression evidence only; not contract generalization, human release or production readiness."
+}
