@@ -76,16 +76,18 @@ def test_all_onboarding_inputs_fit_current_runner_and_profile_contracts(receipt)
     assert {name for name, check in cases.items() if not check['scenarios']} == {'unsupported_variable_fee', 'ambiguous_deadline'}
 
 
-def test_every_dispute_case_is_blocked_at_claim_scope_by_d03_and_d04(receipt):
+def test_after_d03a_every_dispute_case_is_blocked_at_claim_scope_only_by_d04(receipt):
+    # Replaces the pre-D03 assertion (12/12 blocked by D03 and D04; receipt preflight-evaluation84.json).
+    # D03-A accepts the exact spaced names; D04-C is decided but not yet implemented.
     built, _, _ = receipt
     cases = built['disputes']
     assert len(cases) == 12
     for case in cases:
         assert case['outcome'] == 'SCOPE_REFUSED' and case['model_calls'] == 0
-        assert [item['field'] for item in case['blockers']['D03']] == ['account', 'contract']
+        assert case['blockers']['D03'] == []
         assert {item['field'] for item in case['blockers']['D04']} == {'component', 'incident', 'invoice', 'region'}
         assert case['blockers']['other'] == []
-    assert built['summary']['dispute_blocked_by_D03'] == 12
+    assert built['summary']['dispute_blocked_by_D03'] == 0
     assert built['summary']['dispute_blocked_by_D04'] == 12
 
 

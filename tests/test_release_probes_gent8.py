@@ -33,12 +33,13 @@ def test_hard_kill_mid_flow_preserves_state_idempotency_and_final_ledger(tmp_pat
     assert result['authority_kind'] == 'SCRIPTED_REVIEWER'
 
 
-def test_d03_defect_reproduction_onboarding_identity_is_refused_by_claim_intake(tmp_path, monkeypatch):
-    """Pins a KNOWN DEFECT (team decision D03 pending); it does not endorse the behavior.
+def test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake(tmp_path, monkeypatch):
+    """Decision D03-A (decided November 9; implemented in 6ebaffe): one bounded exact source identity.
 
-    The signed vendor route accepts and evaluates an account/agreement identity containing spaces, and the
-    signed claim-intake route refuses the same identity, while every other scope field is valid. When D03 is
-    implemented this test must be replaced by the agreed invariant and recorded in the test-change ledger.
+    Replaces the earlier defect reproduction from 0403ec5. The signed vendor route evaluates a spaced exact
+    account/agreement identity, and signed claim intake now accepts the same identity: it reaches the
+    provisioning gate (403) and, once provisioned, opens the claim with the exact bytes preserved. Values
+    outside source-identity/1 are still refused at intake, never rewritten.
     """
     monkeypatch.delenv('UPTIME_PUBLIC_EXTRACTIONS', raising=False)
     from tests.test_v4_routes_integration import App, SMALL, TEXT
@@ -57,17 +58,27 @@ def test_d03_defect_reproduction_onboarding_identity_is_refused_by_claim_intake(
         tested = app.human.post(base + '/tests', dict(revision=installed.json()['revision'], tests=[
             dict(name='Spaced identity above trigger', facts=facts, expected=dict(outcome='ELIGIBLE', amount='52.17'))]))
         assert tested.status_code == 200
-        spaced = next(check for check in tested.json()['checks'] if check['name'] == 'Spaced identity above trigger')
-        assert spaced['passed'] is True and spaced['actual'] == {'outcome': 'ELIGIBLE', 'amount': '52.17'}
+        spaced_check = next(check for check in tested.json()['checks'] if check['name'] == 'Spaced identity above trigger')
+        assert spaced_check['passed'] is True and spaced_check['actual'] == {'outcome': 'ELIGIBLE', 'amount': '52.17'}
 
-        claim = app.human.post('/api/correspondence/claims',
-                               dict(claim_id='inbox-identity-probe', scope=dict(app.scope, account=account, contract=agreement)))
-        assert claim.status_code == 422
-        assert sorted((error['loc'][-1], error['type']) for error in claim.json()['detail']) == [
-            ('account', 'string_pattern_mismatch'), ('contract', 'string_pattern_mismatch')]
-        # Control: the same route accepts identifier-domain values once provisioned, so only identity differs.
+        spaced = dict(app.scope, account=account, contract=agreement)
+        unprovisioned = app.human.post('/api/correspondence/claims', dict(claim_id='inbox-identity-spaced', scope=spaced))
+        assert unprovisioned.status_code == 403  # identity accepted; the binding gate still applies
+
+        for malformed in (' ' + account, account + ' ', 'Cedar  Orrery Studio', 'Cedar\tOrrery Studio',
+                          'Cafe\u0301 Studio', 'Cedar\u2014Orrery', 'Cedar#Orrery'):
+            refused = app.human.post('/api/correspondence/claims',
+                                     dict(claim_id='inbox-identity-bad', scope=dict(spaced, account=malformed)))
+            assert refused.status_code == 422, malformed
+            assert [error['loc'][-1] for error in refused.json()['detail']] == ['account'], malformed
+
+        app.scope, app.id = spaced, 'inbox-identity-spaced'
+        app.url = '/api/correspondence/claims/' + app.id
         app.provision()
-        control = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=app.scope))
-        assert control.status_code == 200, control.text
+        created = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=spaced))
+        retried = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=spaced))
+        assert created.status_code == 200 and retried.status_code == 200 and retried.json() == created.json()
+        stored = app.read()['scope']
+        assert stored['account'] == account and stored['contract'] == agreement  # exact bytes, not rewritten
     finally:
         app.client.close()
