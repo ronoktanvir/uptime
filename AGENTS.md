@@ -1,3 +1,20 @@
+## November 9 team decisions
+
+Ronok recorded team decisions D03–D07 and D10–D14 on 2026-11-09; D01, D02 and D09 were chosen as the
+handoff defaults under his delegation. The exact choices are in
+[the decision handoff](docs/v4/TEAM-DECISION-HANDOFF.md#team-decision-sheet). Implement them as the
+execution contract. D08 remains pending, as does whole-month evidence sufficiency for D04. Ronok
+resumed the onboarding sub-cohort of evaluation 84 and, after D04-C, evaluation 86 under the handoff
+procedure; other frozen evaluation work stays paused until he says otherwise. Native Ramp posting
+remains blocked; do not route around it.
+
+Decision review follows the accepted execution policy (D14): team-approved decisions drive the work.
+Use Claude Opus 5.5 for bounded coding or test work, or for a critique when it is useful or someone
+asks for one. It is not a mandatory step before each impactful decision. Escalate to the team only
+when new evidence contradicts an approved decision, a required case would change scope or financial
+meaning, authorization or data disclosure would expand, or an irreversible external action needs
+approval.
+
 ## November 7 scoped demo decisions
 
 The user subsequently selected **Prepare the limited exception for review**. Implement and test the exact 48-hour local CalyxQuay capability in decision88, then stage its unsigned proposal only. Do not create actual operator approval, sign with Ronok's credential, activate the exception or perform his review actions during preparation. The existing release remains the default; native/financial authority is excluded. [Concrete review record](docs/v4/LOCAL-REVIEW-EXCEPTION.md).
@@ -16,7 +33,7 @@ Preserve existing source identity and authorization fields in service APIs and a
 
 Keep decimal arithmetic, source citations, amendments, deadlines, evidence requirements, tenant isolation, state machines and idempotency strict. Unknown amounts stay null. Do not sum successive financial stages or treat an unresolved price finding as an awarded credit. Document every changed existing test by exact name and reason in docs/v4/TEST-CHANGES.md and linked workstream ledgers; do not weaken authority or monetary assertions to obtain a green run.
 
-Consult actual Claude Opus 5.5 before impactful decisions and record alternatives, dissent, validation and rollback. Use focused commits, preserve failed attempts, and push verified increments to the authorized private GitHub repository so collaborators can follow progress. Run `uv run --locked pytest` after every merge, using a unique `--basetemp` when suites run concurrently; report the actual result, including failures. UI copy-only changes need relevant checks, not fabricated production-readiness claims. Never commit credentials or private evaluation material.
+Record alternatives, dissent, validation and rollback for impactful decisions. Ask Claude Opus 5.5 for a critique when it is useful or requested (D14); it is not a mandatory step. Use focused commits, preserve failed attempts, and push verified increments to the authorized private GitHub repository so collaborators can follow progress. Run `uv run --locked pytest` after every merge, using a unique `--basetemp` when suites run concurrently; report the actual result, including failures. UI copy-only changes need relevant checks, not fabricated production-readiness claims. Never commit credentials or private evaluation material.
 
 The November 5 direction simplifies decision review: the lead owns the implementation and asks Opus 5.5 for concise criticism of substantial decisions. Do not build a review council or add repeated independent review rounds. Finish already identified fixes, run their focused checks and the required merge suite, and deliver. Reopen a decision only when new evidence changes it; routine fixes within an already reviewed design do not need another architectural consultation.
 
