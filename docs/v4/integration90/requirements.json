@@ -392,9 +392,10 @@
    "implementation": [],
    "evidence": [
     "docs/orchestration/CHECKPOINTS.md",
-    "docs/v4/STATUS.md"
+    "docs/v4/STATUS.md",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -522,9 +523,10 @@
     "uptime/vendor_terms.py"
    ],
    "evidence": [
-    "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked"
+    "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04). D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -948,7 +950,7 @@
    "evidence": [
     "docs/v4/integration90/INTERFACES.md"
    ],
-   "gap": "Objects exist per subsystem; there is no single Customer, ContractDocument, EvidenceBundle or ExternalAction type. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged.",
+   "gap": "Objects exist per subsystem; there is no single Customer, ContractDocument, EvidenceBundle or ExternalAction type. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D03"
@@ -965,9 +967,10 @@
     "uptime/vendor_terms.py"
    ],
    "evidence": [
-    "docs/v4/integration90/INTERFACES.md"
+    "docs/v4/integration90/INTERFACES.md",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "Overlay identity values use a different domain from claim intake. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged.",
+   "gap": "Overlay identity values use a different domain from claim intake. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
    "gap_class": "bug",
    "decisions": [
     "D03"
@@ -1025,9 +1028,10 @@
     "uptime/claim_identity.py"
    ],
    "evidence": [
-    "docs/v4/integration90/INTERFACES.md"
+    "docs/v4/integration90/INTERFACES.md",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -1260,9 +1264,10 @@
    ],
    "evidence": [
     "tests/test_claim_identity.py::test_concurrent_routes_have_one_owner",
-    "docs/v4/decisions/ADR-0024-cross-route-claim-identity.md"
+    "docs/v4/decisions/ADR-0024-cross-route-claim-identity.md",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "Channel and agreement version are deliberately excluded to dedupe across routes (ADR-0024); account/agreement domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged.",
+   "gap": "Channel and agreement version are deliberately excluded to dedupe across routes (ADR-0024); account/agreement domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
    "gap_class": "bug",
    "decisions": [
     "D03"
@@ -1646,9 +1651,10 @@
    "implementation": [],
    "evidence": [
     "tests/test_pricing.py::test_missing_line_proof_fails_closed",
-    "tests/test_other_obligations.py::test_missing_annual_data"
+    "tests/test_other_obligations.py::test_missing_annual_data",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "A spaced account identity can turn an ELIGIBLE month into INSUFFICIENT_EVIDENCE for a non-evidence reason (reported by the identity specialist). D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged.",
+   "gap": "A spaced account identity can turn an ELIGIBLE month into INSUFFICIENT_EVIDENCE for a non-evidence reason (reported by the identity specialist). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
    "gap_class": "bug",
    "decisions": [
     "D03"
@@ -3297,7 +3303,7 @@
    "evidence": [
     "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
    ],
-   "gap": "Identity and scope domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "Identity and scope domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
    "gap_class": "bug",
    "decisions": [
     "D03",
