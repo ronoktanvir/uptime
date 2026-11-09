@@ -39,5 +39,7 @@ The helper `live_workspace` in `tests/test_finance_browser_90.py` gained `**prep
 - `web/workspace_ui.test.cjs`: `the recovery card labels the claim’s own stage and shows the credit’s latest recorded stage beside it` (`61a6fb0`)
 - `tests/test_interpretation_uncertain_candidate_r4.py`: `test_uncertain_request_state_and_reason_sit_beside_its_validated_candidate` and `test_a_cleanly_completed_request_keeps_the_ordinary_candidate_label` (`f58e964`)
 - `web/workspace_ui.test.cjs`: `a stop for a person shows the server’s reason and detail, and the recovery panel links to the claim’s case`
+- `tests/test_contract_job_card_r4.py::test_job_card_keeps_digests_one_click_away_and_clauses_in_view`
+- `tests/test_interpretation_uncertain_candidate_r4.py::test_candidate_request_digest_sits_in_a_closed_request_details_disclosure`
 - `web/model_job_display.test.cjs`: `the denial job receipt shows only reported fields: return code, tool events, empty inventories, cost and session`
 - `web/model_job_display.test.cjs`: `a denial model job shows the model the server reports and its latest time, in UTC, and nothing it does not report` (`6374478`)
