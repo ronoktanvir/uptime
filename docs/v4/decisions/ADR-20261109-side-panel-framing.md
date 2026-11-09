@@ -4,7 +4,7 @@ Status: implemented on `work/sidepanel-server-20261109`; not part of the frozen 
 
 ## Decision and authority
 
-Ronok chose a real Chrome side panel that shows Uptime beside the Ramp bill open in the browser. He said it first in the judge session at about 13:45 PST ("having a real side panel is the best idea because sign in security isn't the priority here; it's the demo and main engineering promise") and confirmed to the coordinator at 14:34 PST that the current build is frozen first and the panel is built as a follow-on.
+Ronok chose a real Chrome side panel that shows Uptime beside the Ramp bill open in the browser. He said so in the judge session at about 13:45 PST, which relayed his message to the coordinator: a real side panel is the best idea, because sign-in security is not the priority for the demonstration. At 14:34 PST he confirmed to the coordinator directly that the current build is frozen first and the panel is built as a follow-on.
 
 The app refuses all framing today (`frame-ancestors 'none'`). The panel needs one exception. `create_app` gains `side_panel_origin`, and `scripts/serve.py` gains `--side-panel-origin`. When an operator supplies exactly one `chrome-extension://` origin, the response policy names that origin in `frame-ancestors`. Without the option nothing changes.
 
