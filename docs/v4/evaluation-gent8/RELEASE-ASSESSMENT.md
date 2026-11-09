@@ -73,7 +73,11 @@ The coverage inventory found these remaining gaps:
 
 ## Regression
 
-PENDING_FULL_SUITE
+`uv run --locked pytest` on `487a32f` (clean tree; same commit before and after): **4,035 passed, 1 warning in 791.25 s, exit 0**. It ran 11:30:49Z–11:44:05Z, alone in the shared full-suite slot. The warning is a Starlette TestClient deprecation.
+
+The 4,035 tests are the 3,967-test integration baseline plus the 68 tests new on this branch (41 onboarding runner, 20 dispute infrastructure, 5 preflight, 2 probes). No existing test was changed. [receipt](../evidence/release-evaluation-gent8/verification-487a32f.json) · [log](../evidence/release-evaluation-gent8/full-suite-487a32f.log)
+
+This is unsigned regression evidence. The `regression` gate additionally requires a precommitted collection hash, one `release_regression.py` run and an independent witness signature. A green suite does not establish production readiness, unseen-source accuracy or Ramp behavior.
 
 ## What would change this verdict
 

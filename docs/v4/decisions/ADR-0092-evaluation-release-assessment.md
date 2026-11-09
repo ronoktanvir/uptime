@@ -53,7 +53,7 @@ There was one tool-free critique, `claude-opus-5-5`, session `6d98fd01-1326-48cb
 |---|---|
 | Focused suites | 67 passed in 65.86 s on the branch at `c1fa513` plus probes: restart probe 1, preflight 5, onboarding runner 41 (35 original tests unchanged), dispute infrastructure 20. |
 | Audit gate | 118/118 PASS on `c1fa513` against a fresh V3 baseline of 73 PASS / 45 FAIL. |
-| Full suite | Result recorded in the assessment. |
+| Full suite | `uv run --locked pytest` on `487a32f`: 4,035 passed, 1 warning in 791.25 s, exit 0 ([receipt](../evidence/release-evaluation-gent8/verification-487a32f.json)). |
 
 No existing integration test changed; see [test ledger](../TEST-CHANGES-release-evaluation-gent8.md).
 

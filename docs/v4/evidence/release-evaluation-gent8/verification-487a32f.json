@@ -1,0 +1,22 @@
+{
+  "schema": "verification/1",
+  "command": "uv run --locked pytest -q -p no:cacheprovider --basetemp=<scratchpad>/fullsuite/bt -o tmp_path_retention_policy=failed",
+  "branch": "work/release-evaluation-gent8",
+  "tested_commit": "487a32faefdb6a18a37c6e0f98b8a1e09f583695",
+  "tree_clean_before": true,
+  "commit_unchanged_after": true,
+  "started_at": "2026-11-09T11:30:49Z",
+  "finished_at": "2026-11-09T11:44:05Z",
+  "result": "4035 passed, 1 warning in 791.25s (0:13:11)",
+  "exit_code": 0,
+  "failures": 0,
+  "warning": "StarletteDeprecationWarning (httpx with starlette.testclient)",
+  "composition": "3967 integration tests (last recorded on 6bedefc; later integration commits to 03b372e are documentation) + 68 new on this branch: test_onboarding_evaluation_85 41, test_disputes_evaluation_86 20, test_preflight_evaluation84 5, test_release_probes_gent8 2",
+  "concurrency": "run alone in the shared full-suite slot coordinated by the integration owner; other lanes' focused tests may have run",
+  "log": {
+    "path": "docs/v4/evidence/release-evaluation-gent8/full-suite-487a32f.log",
+    "sha256": "d06667cbe8f03a23d1262ef6006e82ab37a0f2e269967bc04c8c658e6d2f9d47",
+    "bytes": 5154
+  },
+  "qualification": "Unsigned regression evidence. Not the release gate's independently witnessed regression report; not a production-readiness or generalization result."
+}
