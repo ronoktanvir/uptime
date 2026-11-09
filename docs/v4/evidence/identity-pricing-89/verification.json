@@ -103,8 +103,14 @@
     }
    ],
    "full_suite": {
-    "status": "DELEGATED",
-    "note": "The integration owner runs the full locked suite for round 5 on a fresh clone of this SHA; that result is recorded by the integration owner."
+    "status": "PASSED_IN_INTEGRATION",
+    "integration_head": "6f43a91",
+    "result_line": "4663 passed, 1 warning in 322.05s (0:05:22)",
+    "exit_code": 0,
+    "javascript": "101/101",
+    "run_by": "integration owner, fresh clone",
+    "receipt": "docs/v4/evidence/integration-90/verification-6f43a91.json (origin/work/integration-90 at 8f764e9)",
+    "note": "Includes the integration owner's F4 claim-route fix and W7 follow-ups. A fresh Northwind setup on this head brings the authored adapter up ACTIVE through the scripted walkthrough setup; that is not a human review."
    },
    "repository_scan": "Secret check passed for 2747 versioned text objects."
   }
