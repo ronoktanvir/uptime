@@ -19,7 +19,7 @@ Status: local controls implemented and tested on `work/operations-90`. Drafted a
    - The health check reports retryable reads separately from uncertain external effects, plus quarantined webhooks, claim cutoffs inside a window, restore epochs awaiting reconciliation and configuration custody.
    - It never retries, sends or writes.
 4. **Bounded retries are opt-in and limited to reads.** The refresh accepts `--attempts 1..3` (default 1, unchanged behavior) and reruns only after typed transport failures or HTTP 429/5xx.
-5. **Hosted customer OAuth, public callbacks, distributed workers and deployment artifacts are not implemented.** D11 is pending, so this decision prepares the design and leaves the loopback deployment unchanged.
+5. **Hosted customer OAuth, public callbacks, distributed workers and deployment artifacts are not implemented.** D11 was decided as **stay local for now** (Ronok's decision on November 9, 2026, relayed by the progress-review session; the integration owner is recording it). This decision therefore prepares the design as a later milestone and leaves the loopback deployment unchanged; there is no public tunnel.
 
 ## Opus criticism and disposition
 
@@ -51,6 +51,11 @@ Opus ranked fenced restore first, refuse-without-previous as an optional stricte
   - mandate gate removed again after the split;
   - a gate that writes to a never-restored database.
 - Focused runs of the existing suites plus the new tests passed after each change: 1,128 passed, then 412 passed. Full-suite and repository-scan results are recorded in [evidence](../evidence/operations-90/verification.json). No existing test or assertion was changed.
+
+## Decisions recorded after this ADR
+
+- **D11 — stay local for now.** The hosted items above move from blocked to deferred. Nothing in this ADR changes.
+- **D06 — humans gate judgment; bounded factual steps run under scoped standing policies.** This design is consistent with it. Acknowledging restore reconciliation, revoking an installation and executing a restore stay human actions. The health check and the read-only refresh are factual steps that a scoped standing policy could schedule. This workstream configures no standing policy or scheduler.
 
 ## Rollback
 
