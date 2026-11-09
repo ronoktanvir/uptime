@@ -211,6 +211,8 @@ def test_overlapping_active_history_cannot_reprice_existing_measurement_month(en
 
 
 def test_active_effective_dates_must_cover_entire_measurement_month(env):
+    from uptime.storage import database
+
     env.install()  # D04-C (2026-11-09): governing terms are installed (SHADOW) before intake
     env.provision(); env.create(); env.evidence()
     # Installation is active under a February-to-December source. A future
@@ -220,7 +222,10 @@ def test_active_effective_dates_must_cover_entire_measurement_month(env):
     env.id="inbox-future"
     env.url="/api/correspondence/claims/"+env.id
     env.provision()
-    assert env.create()["outcome"]=="UNSUPPORTED_RULE"
+    refused = env.human.post("/api/correspondence/claims", dict(claim_id=env.id, scope=env.applicable_scope()))
+    assert refused.status_code == 409 and "No governing terms" in refused.text
+    with database(env.app.state.correspondence.path) as db:
+        assert db.execute("SELECT 1 FROM inbox_claim WHERE tenant=? AND id=?", ("bears", env.id)).fetchone() is None
 
 
 def test_active_installation_with_midmonth_effective_date_abstains(env):
