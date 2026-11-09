@@ -1,0 +1,31 @@
+{
+ "workstream": "W4 disputes",
+ "branch": "work/dispute-intake-scope-89b",
+ "base": "work/integration-90 at 25a18fb (contains W4 16116ee and W5 evidence-custody-90)",
+ "tested_commit": "a794d55",
+ "tested_source_index_sha256": "ef7a3659377531b56b806b9e60742073a1c801ed726f58ceea1bfd9b42e4dd82",
+ "command": "uv run --locked --offline pytest -q -p no:cacheprovider --basetemp=<unique> -o tmp_path_retention_policy=failed tests/test_correspondence*.py tests/test_disputes*.py plus 32 files that deliver through correspondence intake: test_advanced_companion, test_blind_acceptance, test_claim_identity_historical, test_claim_identity_migration, test_claim_identity, test_cross_claims, test_evidence_applicability_91, test_economic_scope_delimiters, test_governing_fees, test_northwind_inputs, test_northwind_financial, test_local_review_exception_disputes, test_northwind_local_ledger, test_operations_recovery_90, test_northwind_workflow, test_opus46_security, test_portfolio_v4, test_public_proposal_jobs, test_public_proposal_config, test_ramp_award_procedural, test_ramp_award_claim_integration, test_ramp_workflow, test_semantic_current_projection, test_ramp_workflow_webhooks, test_source_config_v4, test_signed_mandates, test_v4_authority, test_v4_routes_integration, test_vendor_binding_integration, test_vendor_economic_identity, test_vendor_refusal_diagnostics_89, test_vendor_step_proposals",
+ "runs": [
+  {
+   "design": "first (refusal without hold)",
+   "result": "2 failed, 1666 passed, 1 warning in 275.82s",
+   "failed": [
+    "tests/test_correspondence_regional.py::test_incomplete_contradictory_or_expired_evidence_cannot_authorize_cure[wrong-region]",
+    "tests/test_correspondence_resource.py::test_conflicting_raw_source_stops_before_claim[wrong-fee-resource]"
+   ],
+   "finding": "With the regional row refused rather than stored, a later historical cure became authorizable; the design was tightened so identity contradictions hold actions.",
+   "log_sha256": "947d5b172e9e535429c1fc23baf8d99587925eb10f78fb4e13867e52f6e072cf"
+  },
+  {
+   "design": "final (identity contradictions hold actions)",
+   "result": "1669 passed, 1 warning in 174.95s",
+   "exit_code": 0,
+   "started": "2026-11-09T11:57:38Z",
+   "ended": "2026-11-09T12:00:35Z",
+   "log_sha256": "b4e7c4f3f2038d76cd7c7c6d04b891c6f547fea509d71e3a23b9bc98781a6fdd"
+  }
+ ],
+ "note": "The working tree was committed as a794d55 after the final run without source changes (git diff HEAD -- uptime tests empty). Only the ledger/ADR docs changed afterwards.",
+ "not_run": "Full `uv run --locked pytest`: run by the integration owner after merge.",
+ "logs_location": "~/.local/share/uptime-engineering/tasks/disputes-89/ (outside Git)"
+}

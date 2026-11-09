@@ -160,8 +160,10 @@ def test_n89_cure_inapplicable_escalates(env):
     desk, rid, preview = reviewed(env, reading(case))
     prepare(desk, rid, preview)
     env.now += timedelta(hours=1)
-    env.send("component", data={**BODIES["component"], "component_id": "api-west"})
+    with pytest.raises(ValueError, match="outside the granted claim scope"):
+        env.send("component", data={**BODIES["component"], "component_id": "api-west"})
     assert env.get()["stage"] == "HUMAN_REVIEW" and trace(env)["disposition"] == "ESCALATE"
+    assert trace(env)["contradicting_deliveries"][0]["kind"] == "component"
     assert len(env.get()["submissions"]) == 1
 
 

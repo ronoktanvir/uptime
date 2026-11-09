@@ -153,6 +153,10 @@ def test_conflicting_raw_source_stops_before_claim(env,tmp_path,monkeypatch,faul
         rows[3][1]["fields"][0]["refs"]=["wrong-station"]
     else:
         rows[2][1]["itemized_complete"]=False
+    if fault=="wrong-fee-resource":
+        # Decision 89b (W5 F2): the foreign-resource fee row is refused before storage.
+        refused=env.source(*rows.pop(2))
+        assert refused.status_code==409 and "outside the granted claim scope" in refused.text
     deliver(env,rows)
     assert env.read()["outcome"]=="INSUFFICIENT_EVIDENCE" and not env.read()["actions"]
 

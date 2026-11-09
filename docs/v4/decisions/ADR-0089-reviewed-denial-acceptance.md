@@ -119,3 +119,25 @@ Revert the implementation commits. Before rolling back application code that has
 ## Not established
 
 These controls are same-team authored, with a scripted reviewer. They are not an independent unseen-dispute result, a human-review accuracy measure, or a real vendor channel (D08). The frozen evaluation86 worktree has not been resumed. Its two setup refusals reject account and contract names containing spaces, and claims lacking component, incident, invoice or region, before any model call. D03/D04 are now decided, but the shared interfaces have not yet landed.
+
+## Addendum 89b: one intake boundary on every channel (W5 F1, F2 and F8)
+
+Branch `work/dispute-intake-scope-89b`, commit `a794d55`, on `work/integration-90` at `25a18fb`.
+
+**Intake checks.** Embedded and HMAC deliveries now get the same `source_config.event_in_scope` checks that the signed grant applies. A delivery that fails is refused (409) and is never stored as evidence. Its record commits first, and a retry is idempotent.
+
+**Two kinds of refusal:**
+- A record wholly for another service month is a **misroute**. It voids any approval only.
+- A record naming another identity is a **contradiction** of this claim. It holds every outbound and closing action, and it moves a pending cure, rebuttal or denial review to a person.
+
+**Why the hold.** The hold was added after the first broad run showed a regression. Refusing without holding let a later historical cure become authorizable once a contradicting regional record was no longer stored. That is a weaker safety property than the stored record gave, so it was rejected.
+
+**Trace.** It now names the enrolled status signer instead of implying the profile's public status page (F8). It also shows unresolved contradictions.
+
+**Not decided here:**
+- Retraction or acknowledgement of a contradiction (F7) needs an authority decision.
+- Until then, an identity contradiction holds the claim, as the old stored record effectively did.
+
+**Validation.** Focused runs across the dispute tests and the 32 other intake callers: the first design gave **2 failed, 1666 passed**; the final design gave **1669 passed, 1 warning**. See [evidence/dispute-intake-scope-89b/verification.json](../evidence/dispute-intake-scope-89b/verification.json). Five existing tests move only at the refused delivery. Their safety assertions are unchanged, and the ledger lists each by name.
+
+**Rollback.** Revert `a794d55`. Stored `contradicting_deliveries` and `inbox_refusal` rows become inert history. No evidence, hash, signature or idempotency key of an accepted delivery changes.

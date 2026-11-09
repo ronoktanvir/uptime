@@ -69,6 +69,10 @@ CREATE TABLE IF NOT EXISTS inbox_migration (name TEXT NOT NULL PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS inbox_claim (
  tenant TEXT NOT NULL, id TEXT NOT NULL, obligation TEXT NOT NULL, scope TEXT NOT NULL,
  state TEXT NOT NULL, PRIMARY KEY(tenant,id), UNIQUE(tenant,obligation));
+CREATE TABLE IF NOT EXISTS inbox_refusal (
+ tenant TEXT NOT NULL, account TEXT NOT NULL, source TEXT NOT NULL, event_id TEXT NOT NULL,
+ claim TEXT NOT NULL, digest TEXT NOT NULL, reason TEXT NOT NULL, received TEXT NOT NULL,
+ PRIMARY KEY(tenant,account,source,event_id));
 CREATE TABLE IF NOT EXISTS inbox_delivery (
  tenant TEXT NOT NULL, account TEXT NOT NULL, source TEXT NOT NULL, event_id TEXT NOT NULL,
  claim TEXT NOT NULL, digest TEXT NOT NULL, received TEXT NOT NULL,
@@ -293,7 +297,41 @@ class CorrespondenceDesk:
                     (p.tenant, p.subject, event.scope.account, subscription_id(event.scope), scoped, fallback)).fetchone()
             if not sender:
                 raise PermissionError("Service has no source grant on this account.")
-            return self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p)
+            result = self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p)
+        # A refusal's case record and approval clearance commit before the sender sees the refusal.
+        if result.get("refused"):
+            raise ValueError(result["refused"])
+        return result
+
+    @staticmethod
+    def _scope_refusal(event, source, scope):
+        """The signed grant's own nested-identity and service-month checks, applied on every channel."""
+        from .evidence_applicability import temporal_refusal
+        from .source_config import event_in_scope
+        if event_in_scope(event, source, scope):
+            return None
+        return (temporal_refusal(event.body, scope.month)
+                or "The " + event.body.kind + " record names an identity outside the granted claim scope.")
+
+    def _contradiction(self, state, event, source, principal, digest, reason, now):
+        """Keep a refused, authenticated contradiction out of evidence, but in front of a person.
+
+        A record wholly for another service month is a misrouted delivery: it voids any
+        approval but does not hold the claim. A record naming another identity (account,
+        resource, region, invoice, component...) contradicts this claim's scope and holds
+        every outbound or closing action until a person resolves it (retraction: F7, pending).
+        """
+        blocking = "outside service month" not in reason
+        state.setdefault("contradicting_deliveries", []).append(dict(
+            event_id=event.event_id, source=source, subject=principal.subject, kind=event.body.kind,
+            digest=digest, reason=reason, received_at=now.isoformat(), blocking=blocking))
+        if state["approval"]:
+            state["stage"] = "DRAFTED" if not state["submissions"] else "RESPONSE_DRAFTED"
+            state["approval"] = None
+        if state["submissions"] and state["stage"] in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "AWAITING_NOTICE", DENIAL_REVIEW}:
+            state["stage"] = "HUMAN_REVIEW"
+        audit(state, now, principal.subject, "Refused an out-of-scope " + event.body.kind + " delivery: " + reason,
+              VENDOR if source == "vendor" else SOURCES, event_id=event.event_id, digest=digest)
 
     def _receive(self, db, tenant, account, source, claim_id, event, principal):
         if source != SOURCE[event.body.kind] or account != event.scope.account or observe_only(db, tenant):
@@ -309,7 +347,20 @@ class CorrespondenceDesk:
             if previous["digest"] != digest:
                 raise ValueError("Delivery identity was reused with different content.")
             return dict(event_id=event.event_id, digest=digest, received_at=previous["received"])
+        refused = db.execute("SELECT digest,reason FROM inbox_refusal WHERE tenant=? AND account=? AND source=? AND event_id=?",
+                             (tenant, account, source, event.event_id)).fetchone()
+        if refused:
+            if refused["digest"] != digest:
+                raise ValueError("Delivery identity was reused with different content.")
+            return dict(event_id=event.event_id, digest=digest, refused=refused["reason"])
         now = self._now()
+        reason = self._scope_refusal(event, source, scope)
+        if reason:
+            self._contradiction(state, event, source, principal, digest, reason, now)
+            self._save(db, tenant, claim_id, state)
+            db.execute("INSERT INTO inbox_refusal VALUES(?,?,?,?,?,?,?,?)",
+                       (tenant, account, source, event.event_id, claim_id, digest, reason, now.isoformat()))
+            return dict(event_id=event.event_id, digest=digest, refused=reason)
         validate_arrival(body, now)
         if any(e["digest"] == digest for e in state["evidence"]):
             audit(state, now, source, "Recorded an identical-content delivery alias.", digest=digest)
@@ -630,6 +681,8 @@ class CorrespondenceDesk:
         reviewed = state.get("interpretation_review")
         if reviewed and (reviewed["contract_version"] != current.version or reviewed["contract_source_sha256"] != current.contract_source_sha256):
             return []
+        if any(c.get("blocking") for c in state.get("contradicting_deliveries", [])):
+            return []
         if state["stage"] == DENIAL_REVIEW:
             # Stopping is not bounded by the filing window; it sends nothing.
             basis = self._denial_basis(scope, state, current)
@@ -802,5 +855,6 @@ class CorrespondenceDesk:
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
                     requested_artifact=state.get("requested_artifact"), historical_procedure=current.procedure,
                     obligation_id=obligation_id, policy_dispatchable=False, ledger=ledger,
-                    denial_acceptance=state.get("denial_acceptance"), trace_url="/api/correspondence/claims/" + claim_id + "/trace",
+                    denial_acceptance=state.get("denial_acceptance"),
+                    contradicting_deliveries=state.get("contradicting_deliveries", []), trace_url="/api/correspondence/claims/" + claim_id + "/trace",
                     financials=[dict(label=k.replace("_", " ").title(), value=scope.currency + " " + v, sources=SOURCES) for k,v in ledger.items()])
