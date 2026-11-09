@@ -155,7 +155,7 @@ def check(db_path, *, now=None, stale_after=timedelta(hours=24), deadline_window
             since = pending_reconciliation(db)
             if since is not None:
                 note("ATTENTION", "RESTORE_RECONCILIATION_PENDING",
-                     "Native actions are refused until external effects since the backup are reconciled.",
+                     "Native actions and new mandates are refused until external effects since the backup are reconciled.",
                      reconcile_since=since)
 
         due = []

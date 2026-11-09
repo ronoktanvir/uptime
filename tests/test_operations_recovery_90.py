@@ -62,14 +62,18 @@ def private_dir(path):
 
 
 def mandate(db, signer):
+    signed = signed_mandate(db, signer)
+    mandates.install(db, signed)
+    return signed.mandate.mandate_id
+
+
+def signed_mandate(db, signer):
     at = int(time())
     values = {**mandates.describe(db, USER), "schema_version": "uptime-reviewer-mandate/1", "mandate_id": str(uuid4()),
               "valid_from": at - 1, "valid_until": at + 300, "issuer": ISSUER, "path": "/api/native/actions/dispatch",
               "body_sha256": sha256(b"{}").hexdigest(), "effect": COMMENT}
     m = mandates.Mandate.model_validate(values)
-    signed = mandates.SignedMandate(mandate=m, signature=signer.sign(m.signing_bytes()).hex())
-    mandates.install(db, signed)
-    return m.mandate_id
+    return mandates.SignedMandate(mandate=m, signature=signer.sign(m.signing_bytes()).hex())
 
 
 def live_workspace(tmp_path, tenant=TENANT, business=BUSINESS, folder="live"):
@@ -601,3 +605,46 @@ def test_transport_failures_are_typed_without_leaking_provider_detail(monkeypatc
         provider._http("GET", "business", {"Authorization": "Bearer not-a-real-token"})
     assert isinstance(failure.value, ramp.RampError)
     assert str(failure.value) == "Sandbox network or response unavailable" and failure.value.__cause__ is None
+
+
+def test_restored_workspace_refuses_new_mandates_until_acknowledged(tmp_path):
+    db, _, signer = live_workspace(tmp_path)
+    folder = private_dir(tmp_path / "backups") / "copy"
+    backup(db, folder)
+    target = private_dir(tmp_path / "restored") / "work.sqlite"
+    receipt = restore(folder, target, tenant=TENANT, mode="sandbox")
+    assert receipt["new_mandates"] == "BLOCKED_UNTIL_RECONCILED"
+    with pytest.raises(PermissionError, match="reconcile"):
+        mandate(target, signer)
+    with sqlite3.connect(target) as conn:
+        assert conn.execute("SELECT count(*) FROM reviewer_mandate WHERE used=0 AND revoked=0").fetchone() == (0,)
+    acknowledge_reconciliation(target, "ops.lead", "Ramp threads read back since the backup")
+    assert mandate(target, signer)  # new authority only after the acknowledgement
+    assert mandate(db, signer)  # the original workspace was never gated
+
+
+def test_never_restored_workspace_mandate_install_is_byte_identical(tmp_path, monkeypatch):
+    import shutil
+    db, _, signer = live_workspace(tmp_path)
+    assert not Path(str(db) + "-wal").exists()
+    gated = private_dir(tmp_path / "gated") / "work.sqlite"
+    ungated = private_dir(tmp_path / "ungated") / "work.sqlite"
+    shutil.copyfile(db, gated)
+    shutil.copyfile(db, ungated)
+    assert gated.read_bytes() == ungated.read_bytes()
+    signed = signed_mandate(gated, signer)
+    calls, real = [], workspace_recovery.require_reconciled
+
+    def observed(conn):
+        calls.append(1)
+        return real(conn)
+
+    monkeypatch.setattr(workspace_recovery, "require_reconciled", observed)
+    mandates.install(gated, signed)
+    monkeypatch.setattr(workspace_recovery, "require_reconciled", lambda conn: None)
+    mandates.install(ungated, signed)
+    assert calls == [1]  # the gate ran on the gated copy and refused nothing
+    assert not Path(str(gated) + "-wal").exists() and not Path(str(ungated) + "-wal").exists()
+    assert gated.read_bytes() == ungated.read_bytes()
+    with sqlite3.connect(gated) as conn:
+        assert conn.execute("SELECT 1 FROM sqlite_master WHERE name='operations_restore'").fetchone() is None
