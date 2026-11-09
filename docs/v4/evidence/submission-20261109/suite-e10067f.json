@@ -1,0 +1,44 @@
+{
+  "tested_commit": "e10067fa3a1ab75194851f60bfdb239a04971942",
+  "branch": "work/submission-integration-20261109",
+  "role": "records merge on top of the frozen fallback build",
+  "contents": "Frozen build 52f1a2f plus role 6 at c44c4e5 (measured film timing, filming checklist, fallback screenshots, one README link now pointing at the frozen build's receipt) and role 5 at 8b8132c (independent acceptance report and its evidence). No application source, test or script differs from 52f1a2f; outside docs/ only one README line changed.",
+  "application_commit": "6b93e31d4d6b57bece160603e2aa06c8d8aea844",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-e10067f",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5390 passed, 1 warning in 374.69s (0:06:14)",
+  "log": "suite-e10067f-pytest.log",
+  "started_at": "2026-11-09T23:41:21Z",
+  "finished_at": "2026-11-09T23:47:37Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "118 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "prior_runs_preserved": [
+    "suite-02d86f7.json",
+    "suite-c756853.json",
+    "suite-6c83947.json",
+    "suite-96615d8-aborted.json",
+    "suite-96615d8-run2.json",
+    "suite-ff7977c.json",
+    "suite-0fe20b4.json",
+    "suite-6b93e31.json",
+    "suite-52f1a2f.json"
+  ],
+  "not_in_this_build": [
+    "interface redesign on work/submission-design-20261109",
+    "side-panel framing option, extension and setup option on work/sidepanel-server-20261109",
+    "final screenshots and video link in the README"
+  ],
+  "limits": "Regression verification of a records-only merge. The frozen fallback remains 52f1a2f. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}
