@@ -114,5 +114,5 @@ Implemented at `5f5cee4` and `1527bc0`; the names below are final. `GET /api/ram
 ## Status log
 
 - 13:08 PST: this file. Implementation follows in focused commits; the changed-test ledger is [`TEST-CHANGES-submission-ramp-20261109.md`](../TEST-CHANGES-submission-ramp-20261109.md).
-- 13:13 PST: coordinator approved option A (verified demo-bill panel), with conditions; all applied.
+- After 13:08 PST: coordinator approved option A (verified demo-bill panel), with conditions; all applied.
 - 13:24 PST: worklist, context projection, verified record, capability matrix and operator packet pushed. Focused: 1,155 passed, 1 warning; Node 109 passed.
