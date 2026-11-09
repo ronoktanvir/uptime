@@ -46,7 +46,7 @@ def source_inputs(package):
     return scopes,events
 
 
-def prepare(directory,origin):
+def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None):
     directory=Path(directory).absolute()
     if directory.exists():raise ValueError('Select a fresh directory; use --resume for an existing immutable workspace.')
     directory.mkdir(mode=0o700,parents=True)
@@ -62,10 +62,16 @@ def prepare(directory,origin):
     _write_new(directory/'sources.json',config.model_copy(update={'services':grants}))
     private=dict(schema='authored-workspace/1',origin=origin,rehearsal_secret=secrets.token_urlsafe(48),
                  package_sha256=fingerprint(package['input_sha256']))
+    if routine_automation:
+        # Role 2: persisted with the workspace; projected as workflow.automation.enabled.
+        private['routine_automation']=True
     fd=os.open(directory/'workspace.json',os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
     with os.fdopen(fd,'w') as handle:json.dump(private,handle);handle.flush();os.fsync(handle.fileno())
     from uptime.auth_keys import rehearsal_key,write_credential
     write_credential(directory/'scripted-reviewer.jwk',rehearsal_key(private['rehearsal_secret']),ROOT)
+    if reviewer_credential is not None:
+        # A visible, operator-chosen copy (0600, exclusive create, outside the repository). Only its path is printed.
+        write_credential(Path(reviewer_credential).expanduser().absolute(),rehearsal_key(private['rehearsal_secret']),ROOT)
     return open_workspace(directory)
 
 
@@ -84,7 +90,8 @@ def open_workspace(directory, *, proposal_config=None):
     config=dict(package=package,installation='northwind-cloud',onboarding_installation='calyxquay',
         claim_month='2026-01',bill_month='2026-03',claim_ids={m:'inbox-northwind-'+m for m in scopes},scopes=scopes,
         senders=senders,clock_start='2026-03-01T12:00:00Z',clock_steps={},
-        correspondence=package['correspondence'],provider_path=directory/'local-ledger.db',governing_fees=build_fee_registry(package))
+        correspondence=package['correspondence'],provider_path=directory/'local-ledger.db',governing_fees=build_fee_registry(package),
+        routine_automation=bool(private.get('routine_automation',False)))
     app=create_app(directory/'workspace.db',mode='replay',rehearsal=True,approvals_enabled=True,
         rehearsal_secret=private['rehearsal_secret'],service_credentials=registry,origin=private['origin'],workflow_config=config,
         proposal_config=proposal_config)
@@ -190,18 +197,31 @@ def main():
     parser.add_argument('--resume',action='store_true')
     parser.add_argument('--serve',action='store_true')
     parser.add_argument('--public-proposal-config',type=Path,help='Protected exact-request model configuration for the served workspace')
+    parser.add_argument('--step-by-step',action='store_true',
+                        help='Offer every routine step as its own reviewer action (the earlier behavior); default runs routine steps automatically')
+    parser.add_argument('--reviewer-credential',type=Path,
+                        help='Also write the reviewer sign-in file to this visible absolute path outside the repository (mode 0600)')
     args=parser.parse_args()
     if args.public_proposal_config and not args.serve:
         parser.error('--public-proposal-config requires --serve')
-    app,private,events=open_workspace(args.directory) if args.resume else prepare(args.directory,args.origin)
+    if args.resume and (args.step_by_step or args.reviewer_credential):
+        parser.error('--step-by-step and --reviewer-credential apply when a workspace is created')
+    app,private,events=(open_workspace(args.directory) if args.resume else
+                        prepare(args.directory,args.origin,routine_automation=not args.step_by_step,
+                                reviewer_credential=args.reviewer_credential))
     if not args.resume:
         from fastapi.testclient import TestClient
         with TestClient(app,base_url=private['origin'],client=('127.0.0.1',4510)) as client:
             actor,_=seed(client,app,private,events)
             projection=checked(client.get('/api/workspace/workflow',headers=actor.headers))
             (args.directory/'initial-projection.json').write_text(json.dumps(projection,indent=2)+'\n')
+    credential=(args.reviewer_credential.expanduser().absolute() if args.reviewer_credential and not args.resume
+                else args.directory.absolute()/'scripted-reviewer.jwk')
     print(json.dumps(dict(directory=str(args.directory),origin=private['origin'],account=SCRIPT,
-                          reviewer_credential_file=str(args.directory/'scripted-reviewer.jwk'))),flush=True)
+                          reviewer_credential_file=str(credential),
+                          routine_automation=bool(private.get('routine_automation',False)))),flush=True)
+    print(f"Sign in: open {private['origin']}, choose 'Sign in with reviewer file', and select {credential} "
+          "(private key; mode 0600; never share or commit it).",file=sys.stderr,flush=True)
     if args.serve:
         if args.public_proposal_config:
             # Seeding closes its TestClient lifecycle. Construct the configured

@@ -19,6 +19,7 @@ from .storage import database,stored_cases
 from .auth import SCRIPT
 from .correspondence_types import instant, Delivery, SOURCE, Scope, Claim
 from .vendor_registry import get_vendor
+from . import workflow_coordinator as coordinator
 
 
 def require_fixture_workspace(path):
@@ -148,6 +149,13 @@ class LocalLedgerProvider:
         return identity
 
 
+LABELS={'approve-claim':'Approve January claim','submit-claim':'File January claim',
+        'receive-denial':'Receive vendor response','receive-artifact':'Attach requested log',
+        'receive-verification':'Verify supplied log','approve-response':'Approve response','submit-response':'Send response',
+        'receive-award':'Receive credit decision','record-credit':'Post to Local ledger',
+        'receive-invoice':'Receive next invoice','apply-balance':'Apply credit to eligible invoice'}
+
+
 class WorkspaceWorkflow:
     """Projection and exact intents for one operator-configured authored package."""
     def __init__(self,bench,auth,config):
@@ -163,6 +171,8 @@ class WorkspaceWorkflow:
         self.senders=dict(config['senders']); self.clock_steps=dict(config['clock_steps'])
         self.correspondence=deepcopy(config['correspondence'])
         self.lock=RLock(); self.failure_point=None
+        # Role 2: a persisted workspace setting, chosen at setup and projected; never a hidden mode.
+        self.automation=bool(config.get('routine_automation',False)); self.labels=LABELS
         self.months={row['month']:row for row in self.package['months']}
         self.claim_id=self.claim_ids[self.claim_month]
         self.settlement=self.package['settlement']
@@ -184,7 +194,8 @@ class WorkspaceWorkflow:
         self.package_digest=fingerprint(dict(inputs=self.package['input_sha256'],installation=self.installation,
             onboarding_installation=self.onboarding_installation,claim_ids=self.claim_ids,claim_month=self.claim_month,
             bill_month=self.bill_month,scopes={k:v.model_dump() for k,v in self.scopes.items()},
-            correspondence=self.correspondence,clock_start=config['clock_start'],clock_steps=self.clock_steps))
+            correspondence=self.correspondence,clock_start=config['clock_start'],clock_steps=self.clock_steps,
+            **({'routine_automation':True} if self.automation else {})))
         with database(bench.path) as db,db:
             db.execute('''CREATE TABLE IF NOT EXISTS workspace_workflow (
                 id INTEGER PRIMARY KEY CHECK(id=1),instance TEXT NOT NULL,package_digest TEXT NOT NULL,event_clock TEXT NOT NULL)''')
@@ -201,6 +212,7 @@ class WorkspaceWorkflow:
                 id TEXT PRIMARY KEY,payload TEXT NOT NULL,digest TEXT NOT NULL)''')
             for operation in ('UPDATE','DELETE'):
                 db.execute(f"CREATE TRIGGER IF NOT EXISTS workflow_invoice_no_{operation.lower()} BEFORE {operation} ON workspace_workflow_invoice BEGIN SELECT RAISE(ABORT,'Invoice authority is immutable'); END")
+        coordinator.setup(bench.path)
         self.inbox.clock=self.now
         self.governing_fees=config['governing_fees']
         self.bench.governing_fees=self.governing_fees
@@ -319,7 +331,7 @@ class WorkspaceWorkflow:
         price_amount=str(price.overcharge) if invoice_known and price.overcharge is not None else None
         try:balance=self.bench.allocations.bill_balance(p.tenant,self.bill_id)
         except KeyError:balance=None
-        bill_view=dict(id=None,original_amount=None,outstanding_amount=None)
+        bill_view=dict(id=None,month=None,original_amount=None,outstanding_amount=None)
         if balance is not None:
             with database(self.bench.path) as db:
                 receipt=db.execute('SELECT payload,digest FROM workspace_workflow_invoice WHERE id=?',(self.bill_id,)).fetchone()
@@ -327,7 +339,7 @@ class WorkspaceWorkflow:
                 raise ValueError('Eligible invoice has no intact source authority receipt.')
             proof=json.loads(receipt['payload'])
             if instant(proof['known_at'])>self.now():raise ValueError('Invoice is not yet available.')
-            bill_view=dict(id=self.bill_id,original_amount=balance['total'],outstanding_amount=balance['remaining_eligible'],
+            bill_view=dict(id=self.bill_id,month=self.settlement['month'],original_amount=balance['total'],outstanding_amount=balance['remaining_eligible'],
                 **{k:proof[k] for k in ('issued_at','service_start','service_end','known_at','source_sha256',
                     'governing_pricing_version','award_eligibility_version','sla_source_sha256','source_ref','unchanged_sla')})
         ledger=claim['ledger'] if claim else {}
@@ -355,7 +367,7 @@ class WorkspaceWorkflow:
                           ref=self.package['document']['uri'],summary=self.package['document']['text'],documents=documents),
             reviewer=reviewer,months=self._month_views(p),
             price_finding=dict(id='pricing-'+fingerprint([invoice.id,self.package_digest]),
-                state=price.stage if price_amount is not None else price.evaluation.outcome.value,
+                month=self.bill_month,state=price.stage if price_amount is not None else price.evaluation.outcome.value,
                 amount=price_amount,currency=invoice.currency,reason='; '.join(price.evaluation.trace) if invoice_known else 'The invoice is not yet known.',
                 invoice_id=invoice.id,citations=price_citations,credit_applied='0.00',
                 lines=[dict(line_id=l.line_id,product=l.product,version=l.version,billed=str(l.billed),
@@ -378,7 +390,7 @@ class WorkspaceWorkflow:
             audit=audit,onboarding=dict(vendor='CalyxQuay',state=onboarding['state'] if onboarding else 'NOT_INSTALLED',
                 version=onboarding.get('active_version') if onboarding else None,reviewer=reviewer,
                 history=[dict(at=r['at'],event=r['kind'],ref=str(r['revision']),actor=r.get('actor')) for r in (onboarding or {}).get('audit',[])],actions=[]),
-            next_actions=self._offers(p,claim))
+            next_actions=self._offers(p,claim),automation=coordinator.view(self,p,claim))
         from .finance_view import summarize
         projection['finance']=summarize(projection)
         return {'workflow':projection}
@@ -440,6 +452,9 @@ class WorkspaceWorkflow:
             pending=db.execute("SELECT id,operation FROM workspace_workflow_intent WHERE status='EXECUTING' ORDER BY rowid LIMIT 1").fetchone()
         if pending:return [dict(id=pending['id'],label='Resume interrupted action',group='claim')]
         descriptor=self._descriptor(p,claim)
+        if descriptor and self.automation and descriptor['operation'] in coordinator.ROUTINE:
+            # Only after an interruption: routine steps never need one click each.
+            return [dict(id=coordinator.CONTINUE,label='Continue routine steps',group='claim')]
         return [{k:descriptor[k] for k in ('id','label','group')}] if descriptor else []
 
     def _delivery(self,operation,claim):
@@ -624,20 +639,31 @@ class WorkspaceWorkflow:
 
     async def act(self,p,identity):
         self._authorize(p,True)
+        if identity==coordinator.CONTINUE:
+            if not self.automation:raise ValueError('Stale or unavailable workflow action.')
+        else:
+            await self._run(p,identity,person=True)
+        if self.automation:
+            await coordinator.advance(self,p)
+        return self.view(p)
+
+    async def _run(self,p,identity,*,person):
         # The server serializes all writes, including ordinary shared routes.
         claim=self._claim(p)
         with database(self.bench.path) as db:
             old=db.execute('SELECT * FROM workspace_workflow_intent WHERE id=?',(identity,)).fetchone()
         if old:
             if old['actor']!=p.subject:raise PermissionError('Action belongs to a different reviewer.')
-            if old['status']=='COMPLETED':return self.view(p)
+            if old['status']=='COMPLETED':return
             if old['status']!='EXECUTING':raise ValueError('This action requires review after an interrupted or stale operation.')
             expected=json.loads(old['expected']);operation=old['operation']
+            step_authority=dict(kind='PERSON',actor=p.subject,resumed=True)
         else:
             descriptor=self._descriptor(p,claim)
             if not descriptor or descriptor['id']!=identity:raise ValueError('Stale or unavailable workflow action.')
             operation=descriptor['operation']
             expected=dict(pin=descriptor['pin'],effect=self._effect(p,operation,claim))
+            step_authority=coordinator.authority(self,p,claim,operation,expected['effect'],person=person)
             with database(self.bench.path) as db,db:
                 if db.execute("SELECT 1 FROM workspace_workflow_intent WHERE status='EXECUTING'").fetchone():
                     raise ValueError('Resolve the existing interrupted action first.')
@@ -663,7 +689,7 @@ class WorkspaceWorkflow:
             if not self._done(p,operation,effect,claim):raise ValueError('Domain result does not match the locked operation.')
         with database(self.bench.path) as db,db:
             db.execute("UPDATE workspace_workflow_intent SET status='COMPLETED',result_ref=? WHERE id=?",(claim['state_sha256'],identity))
-        return self.view(p)
+        coordinator.record(self,operation,step_authority,'COMPLETED',identity)
 
 
 def register_workspace_workflow(app,bench,auth,config=None):
