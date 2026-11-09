@@ -124,6 +124,9 @@ def run_case(*, prepared_path, blind_path, attempt_dir, config_path, approved_by
                 raise SetupRefusal('no_original_filing')
             reply = dict(kind='message', text=prepared['reply']['text'], receipt_id=filed['submissions'][0]['id'])
             checked(deliver(scope, claim_url, 'evaluation-reply', 'vendor', reply), 'vendor_reply')
+            for event in prepared.get('evidence_after_reply', []):
+                checked(deliver(scope, claim_url, event['event_id'], event['role'], event['body']),
+                        'later_evidence_' + event['event_id'])
             report['stage'] = 'interpretation'
             view = checked(signed.get(claim_url + '/interpretation'), 'interpretation_context')
             context = view.get('context') or {}
@@ -152,7 +155,8 @@ def run_case(*, prepared_path, blind_path, attempt_dir, config_path, approved_by
             report['dispatch'] = dispatch_model_job(
                 signed, claim_url, expected_context_digest=context['digest'], frozen_request=exported['request'],
                 expected_request_sha256=job['request_sha256'], pinned_blind=view['blind_entry'],
-                read_state=lambda: signed.get(claim_url).json(), folder=folder / 'dispatch')
+                read_state=lambda: signed.get(claim_url).json(), folder=folder / 'dispatch',
+                drain=app.state.public_proposal_jobs.close)
             report['model_dispatched'] = (folder / 'dispatch' / 'dispatch.marker').exists()
             report['case'] = checked(signed.get(claim_url), 'final_case')
             report['outcome'] = report['dispatch']['outcome']
@@ -177,6 +181,25 @@ def run_case(*, prepared_path, blind_path, attempt_dir, config_path, approved_by
                     report['prepared_case'] = checked(signed.post(claim_url + '/interpretation/prepare-response',
                         {'review_id': review['id'], 'preview_digest': preview['digest']}), 'scripted_projection_prepare')
                 report['case'] = checked(signed.get(claim_url), 'post_projection_case')
+                report['continuation'] = 'PREPARATION_ONLY'
+                if prepared.get('local_continuation') is True:
+                    if prepared.get('continuation_clock'):
+                        continuation_clock = datetime.fromisoformat(prepared['continuation_clock'].replace('Z', '+00:00'))
+                        app.state.correspondence.clock = lambda: continuation_clock
+                    stage = report['case'].get('stage')
+                    if stage == 'RESPONSE_DRAFTED':
+                        checked(signed.post(claim_url + '/actions/approve-response', {}), 'scripted_local_approve_response')
+                        report['case'] = checked(signed.post(claim_url + '/actions/submit-response', {}), 'scripted_local_submit_response')
+                        report['continuation'] = 'LOCAL_RESPONSE_RECEIPT_ONLY'
+                    elif stage == 'DENIAL_REVIEW':
+                        action = next((a for a in report['case'].get('actions', [])
+                                       if a.get('basis_digest')), None)
+                        if action is not None:
+                            report['case'] = checked(signed.post(claim_url + '/denial-acceptance',
+                                {'basis_digest': action['basis_digest']}), 'scripted_local_denial_acceptance')
+                            report['continuation'] = 'SCRIPTED_LOCAL_DENIAL_CLOSURE'
+                    else:
+                        report['continuation'] = 'NO_PERMITTED_LOCAL_CONTINUATION'
             return report
     except Exception as error:
         report['model_dispatched'] = (folder / 'dispatch' / 'dispatch.marker').exists()

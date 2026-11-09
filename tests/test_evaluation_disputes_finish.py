@@ -69,8 +69,8 @@ def test_tampered_source_reading_never_creates_an_attempt(tmp_path):
     assert not (tmp_path / 'attempt').exists()
 
 
-@pytest.mark.parametrize('project', [False, True])
-def test_real_queue_records_one_controlled_candidate_without_financial_changes(tmp_path, monkeypatch, project):
+@pytest.mark.parametrize('project,family,continue_local', [(False, 'unsupported', False), (True, 'unsupported', True), (True, 'time_bar', True)])
+def test_real_queue_records_one_controlled_candidate_without_financial_changes(tmp_path, monkeypatch, project, family, continue_local):
     """Real signed app/queue, explicit provider double; this is not inference evidence."""
     from uptime import public_proposal_config
     from uptime.public_proposal_jobs import PublicProposalJobs
@@ -79,6 +79,14 @@ def test_real_queue_records_one_controlled_candidate_without_financial_changes(t
     if project:
         prepared = json.loads(paths[0].read_bytes())
         prepared['review_mode'] = 'scripted_source_projection'
+        prepared['local_continuation'] = continue_local
+        prepared['continuation_clock'] = '2026-11-04T00:00:00Z'
+        if family == 'time_bar':
+            prepared['reply']['text'] = 'Our intake timestamp fell outside the permitted filing interval.'
+            text = prepared['reply']['text']
+            paths[1].write_text(json.dumps({'reply_sha256': sha256(text.encode()).hexdigest(),
+                                          'interpretation': meaning(text, family=family).model_dump()}))
+            pins[str(paths[1])] = sha256(paths[1].read_bytes()).hexdigest()
         paths[0].write_text(json.dumps(prepared))
         pins[str(paths[0])] = sha256(paths[0].read_bytes()).hexdigest()
     text = json.loads(paths[0].read_bytes())['reply']['text']
@@ -102,8 +110,48 @@ def test_real_queue_records_one_controlled_candidate_without_financial_changes(t
     assert report['dispatch']['state_unchanged'] is True
     if project:
         assert report['review_action'] == 'SCRIPTED_SOURCE_PROJECTION_NOT_MODEL_ACCEPTANCE'
-        assert report['source_projection']['prepare_allowed'] is False
+        if family == 'unsupported':
+            assert report['source_projection']['prepare_allowed'] is False
+            assert report['continuation'] == 'NO_PERMITTED_LOCAL_CONTINUATION'
+        else:
+            assert report['source_projection']['prepare_allowed'] is True
+            assert report['continuation'] == 'LOCAL_RESPONSE_RECEIPT_ONLY'
+            assert len(report['case']['submissions']) == 2
         assert report['case']['ledger']['awarded'] == '0.00'
     else:
         assert report['review_action'] == 'NOT_PERFORMED'
     assert report['external_actions'] == [] and report['gold_read'] is False
+
+
+def test_late_terminal_readback_after_drain_is_recorded_without_redispatch(tmp_path):
+    from scripts.dispute_runtime_finish import dispatch_model_job, canonical, digest
+    request = {'public': 'authored control'}
+    request_hash = digest(canonical(request))
+    context = 'c' * 64
+    blind = {'reading': 'frozen'}
+    state = {'drained': False, 'posts': 0}
+    class Response:
+        status_code = 200
+        def __init__(self, body): self.body = body
+        def json(self): return self.body
+    class Client:
+        def get(self, url):
+            if '/model-jobs/' in url:
+                return Response({'id': 'job', 'state': 'SUCCEEDED' if state['drained'] else 'RUNNING',
+                                 'terminal': state['drained'], 'request_sha256': request_hash, 'context_digest': context})
+            candidate = {'id': 'candidate', 'provenance': {'request_sha256': request_hash}}
+            return Response({'context': {'digest': context}, 'blind_entry': blind,
+                'candidates': [candidate] if state['drained'] else [],
+                'model_job': {'can_request': True, 'request_sha256': request_hash,
+                             'approval_request': {'context_sha256': context, 'request': request}}})
+        def post(self, url, body):
+            state['posts'] += 1
+            return Response({'id': 'job'})
+    result = dispatch_model_job(Client(), '/claim', expected_context_digest=context,
+        frozen_request=request, expected_request_sha256=request_hash, pinned_blind=blind,
+        read_state=lambda: {'money': '0.00'}, folder=tmp_path / 'dispatch', poll_seconds=0,
+        drain=lambda: state.update(drained=True))
+    assert state['posts'] == 1
+    assert result['poll_deadline_reached'] is True and result['poll_job']['state'] == 'RUNNING'
+    assert result['job']['state'] == 'SUCCEEDED' and result['outcome'] == 'CANDIDATE_RECORDED'
+    assert result['verified_candidate']['id'] == 'candidate' and result['state_unchanged'] is True

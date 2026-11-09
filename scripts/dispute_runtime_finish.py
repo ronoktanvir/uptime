@@ -309,11 +309,20 @@ def dispatch_model_job(client, base_url, *, expected_context_digest, frozen_requ
             break
         time.sleep(poll_interval)
     poll_deadline_reached = bool(polls) and not job.get('terminal')
-    final_status, final_view = _json(client.get(base))
-    after = read_state()
+    poll_view_status, poll_view = _json(client.get(base))
+    poll_state = read_state()
     server_job = None
     if drain is not None:
         drain()
+    # A job may finish during drain. Preserve the poll-bound observation and
+    # read its eventual terminal result without sending another POST.
+    terminal_job = job
+    if job.get('id'):
+        _, eventual = _json(client.get(base + '/model-jobs/' + job['id']))
+        if isinstance(eventual, dict):
+            terminal_job = eventual
+    final_status, final_view = _json(client.get(base))
+    after = read_state()
     if read_job is not None and job.get('id'):
         try:
             server_job = read_job(job['id'])
@@ -322,11 +331,13 @@ def dispatch_model_job(client, base_url, *, expected_context_digest, frozen_requ
     candidates = ((final_view or {}).get('candidates') or []) if final_status == 200 else []
     matching = [c for c in candidates
                 if (c.get('provenance') or {}).get('request_sha256') == expected_request_sha256]
-    verified = (post_status == 200 and job.get('state') == 'SUCCEEDED' and job.get('terminal') is True
-                and job.get('request_sha256') == expected_request_sha256
-                and job.get('context_digest') == expected_context_digest and len(matching) == 1)
+    verified = (post_status == 200 and terminal_job.get('state') == 'SUCCEEDED' and terminal_job.get('terminal') is True
+                and terminal_job.get('request_sha256') == expected_request_sha256
+                and terminal_job.get('context_digest') == expected_context_digest and len(matching) == 1)
     record = dict(outcome='CANDIDATE_RECORDED' if verified else 'NO_VERIFIED_CANDIDATE',
-                  post_status=post_status, job=job, poll_states=polls, final_view_status=final_status,
+                  post_status=post_status, job=terminal_job, poll_job=job, poll_states=polls, final_view_status=final_status,
+                  poll_view_status=poll_view_status, poll_view_sha256=digest(canonical(poll_view)),
+                  poll_state_sha256=digest(canonical(poll_state)),
                   candidates=candidates, verified_candidate=matching[0] if verified else None,
                   state_unchanged=canonical(before) == canonical(after),
                   state_before_sha256=digest(canonical(before)), state_after_sha256=digest(canonical(after)),

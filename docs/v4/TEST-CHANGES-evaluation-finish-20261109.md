@@ -22,3 +22,12 @@ Added `tests/test_evaluation_disputes_finish.py` (4 checks):
 - `test_real_queue_records_one_controlled_candidate_without_financial_changes` (projection off/on): real signed application and model queue execute exactly one explicit provider double; raw output cannot create money; separately frozen scripted projection is reported independently from candidate accuracy.
 
 Combined focused result: **53 passed, 1 warning in 1.69s.** Warning: existing Starlette TestClient/httpx deprecation. Command used the locked project environment with `uv run --locked --no-sync pytest -q -p no:cacheprovider`, these three new test files, and an owned temporary directory. No scored inference, Ramp or vendor call occurred. The frozen evaluation86 runner and all previous test files remain unchanged. Root retains the full-suite integration check.
+
+
+## Terminal readback and local continuation
+
+Root review found that the copied dispatch helper read candidates before draining a late job. The additive runner now preserves the poll-bound snapshot and performs a second terminal job/candidate/state read after drain, without another dispatch. New `test_late_terminal_readback_after_drain_is_recorded_without_redispatch` reproduces a RUNNING-at-deadline job that succeeds during drain and verifies the one-POST terminal receipt.
+
+The queue composition test now separately exercises a grounded time-bar reading, ordinary signed response preparation, local approval and local response receipt on an explicitly authored later business clock. The initial control failed at submit-response because the existing one-day follow-up policy correctly refused a same-day response; no policy was changed. The fixture now states its next-day continuation time. Ambiguous source readings remain review-only with zero awards. Correct-denial acceptance support is present but not yet proven by this harness; it must retain a separate continuation result.
+
+Latest combined focused result: **55 passed, 1 warning in 2.14s.** No existing tests changed; no application changes; only controlled provider doubles in these checks.
