@@ -10,6 +10,7 @@ from .correspondence_types import Claim, Delivery, Empty
 from .correspondence_interpretation import Entry, CandidateRequest, ModelRequest, Review, Prepare
 from .correspondence_model_jobs import CorrespondenceModelJobs
 from .correspondence_review import InterpretationDesk
+from .correspondence_disposition import dispute_trace
 
 
 def make_correspondence_router(desk: CorrespondenceDesk, actor, reviewer, check_write, service):
@@ -30,6 +31,10 @@ def make_correspondence_router(desk: CorrespondenceDesk, actor, reviewer, check_
     @router.get("/{claim_id}")
     def detail(claim_id: str, p=Depends(actor)):
         return desk.case(p, claim_id)
+
+    @router.get("/{claim_id}/trace")
+    def trace(claim_id: str, p=Depends(actor)):
+        return dispute_trace(desk, interpretations, p, claim_id)
 
     @router.post("/{claim_id}/actions/{action}")
     def act(claim_id: str, action: str, body: Empty, p=Depends(reviewer)):
