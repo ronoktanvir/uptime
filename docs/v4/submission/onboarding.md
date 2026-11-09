@@ -7,9 +7,11 @@ Owner: `agent2` (W3). Branch `work/submission-onboarding-20261109`, from `origin
 | Finding | Reproduction on `55ea607` | Status |
 |---|---|---|
 | The guide answers "renewal date and notice period" with `Clause 1: "Service Level Agreement"` | `tests/test_guide_unmodeled_terms_sub.py`: **10 failed** before the fix. Cause in the workspace guide (`finance_guide.answer`, `/api/workspace/guide`): "contract" or "terms" matched the generic `agreement` topic, so clause quotations, including the bare heading, became the answer. The case-inspector guide (`intelligence.explain`, `/api/guide`) had the same weakness through its proof intent. | **Fixed** in `72b65f6`. Both guides abstain on renewal, notice, termination and contract-term questions that no grounded fact states, and a bare heading is never a fact. 80 passed with the existing guide and browser suites; no existing test changed. |
-| "No model runs anywhere in the demo"; Generate is disabled | The model path exists through ordinary routes (`POST /api/vendors/{id}/proposal-access`, then `/proposal-jobs` with `profile: "auto"`; tool-free `SafePublicClaude` transport; exact-request approvals). The Northwind setup serves without `--public-proposal-config`, so the provider is unconfigured and Generate stays disabled. | To demonstrate on a separate throwaway server (ports 8811–8819) with a protected config, real calls and kept receipts. Plan in §2. |
+| "No model runs anywhere in the demo"; Generate is disabled | The model path exists through ordinary routes (`POST /api/vendors/{id}/proposal-access`, then `/proposal-jobs` with `profile: "auto"`; tool-free `SafePublicClaude` transport; exact-request approvals). The Northwind setup serves without `--public-proposal-config`, so the provider is unconfigured and Generate stays disabled. | **Demonstrated** on a throwaway server (8811): six genuine `claude-opus-5-5` calls; the authored Corvid Ledger contract reached **SHADOW**. See §4 and the [runbook](onboarding-runbook.md). Enabling it inside the Northwind workspace is agent3's setup (`scripts/setup_northwind.py --public-proposal-config`). |
 | `20000000/1000000% credit` | The text is the evaluator's trace message (`uptime/vendor_eval.py:141,145`), which is pinned evaluator source. | **A structured field already exists.** Monthly results that earn a credit carry `rate_units`: an integer at 1,000,000 units per percent, so `rate_units / 1_000_000` is the percent (20000000 → 20%). Tier data uses the same scale (`below_units`, `credit_units`). Results without a credit have no `rate_units`; render "no credit". For gent7. |
-| Model failures | A provider exit failure or identity-verification failure inside a job is labelled `proposal_validation_failed`, the same as a genuine validation refusal. Timeouts are already `UNCERTAIN`/`provider_timeout`. | **Planned fix:** distinct codes `provider_failed` and `provider_identity_unverified`, so an error is never presented as a refusal of the contract. W4 shares the job service; agent3 is told before merge. |
+| Model failures | A provider exit failure or identity-verification failure inside a job is labelled `proposal_validation_failed`, the same as a genuine validation refusal. Timeouts are already `UNCERTAIN`/`provider_timeout`. | **Fixed** in `611efdf`: `provider_failed` and `provider_identity_unverified`. Recovery is a new attempt identifier. agent3 told. |
+| Refusals without a passage | The cohort and the first authored run showed `PUBLIC_PROPOSITION_UNESTABLISHED` with no cited passage for identifier-grounding and duplicate-term refusals. | **Fixed** in `c4b64dd`: the passage is located by replaying growing prefixes of the same reading (`UNGROUNDED_PARTY_IDENTIFIER`, `CONFLICTING_SOURCE_TERMS`). |
+| Guide: "How much money has Uptime saved us in total?" returns month records | Reproduced (2 failing tests) | **Fixed** in `57dc7e3`: a fixed lead plus the server's stage values with the "not amounts to add" caveat, the open price finding ("not an awarded credit") and the Local-ledger destination. No sum. |
 | Model job fields the interface needs | The vendor job projection has no timestamps and no provider receipt. | **Planned:** add them read-only (§3) without editing `vendor_model_jobs.py`, whose bytes pin every job context. |
 
 ## 2. Plan
@@ -47,9 +49,9 @@ Vendor proposal job, from `GET /api/vendors/{id}/proposal-jobs/{job_id}` and eac
 | `job_id`, `vendor_id` | Identity |
 | `kind` | Always `vendor` for this route |
 | `status` | `QUEUED`, `RUNNING`, `SUCCEEDED`, `REFUSED`, `CANCELLED` or `UNCERTAIN` |
-| `reason` | Fixed code when not succeeded: `proposal_validation_failed`, `provider_failed` (planned), `provider_identity_unverified` (planned), `provider_timeout` (`UNCERTAIN`), `provider_outcome_unknown`, `approval_unavailable_before_dispatch`, `restart_before_dispatch`, `restart_after_dispatch` |
-| `submitted_at`, `started_at`, `finished_at` | ISO UTC (planned in the projection) |
-| `provider` (planned) | `model` (verified actually used), `session`, `client_reported_cost_usd`, `usage` (token counts), `returncode`, `tool_events` (0), `tool_inventory` ([]), `mcp_inventory` ([]), `transport` (profile name and revision), `output_sha256`, `result_sha256` |
+| `reason` | Fixed code when not succeeded: `proposal_validation_failed`, `provider_failed`, `provider_identity_unverified`, `provider_timeout` (`UNCERTAIN`), `provider_outcome_unknown`, `approval_unavailable_before_dispatch`, `restart_before_dispatch`, `restart_after_dispatch` |
+| `submitted_at`, `started_at`, `finished_at` | ISO UTC (in the projection since `611efdf`) |
+| `provider` (since `611efdf`) | `model` (verified actually used), `session`, `client_reported_cost_usd`, `usage` (token counts), `returncode`, `tool_events` (0), `tool_inventory` ([]), `mcp_inventory` ([]), `transport` (profile name and revision), `output_sha256`, `result_sha256` |
 | `request_sha256`, `context_sha256` | Pins |
 | `proposal` (when `SUCCEEDED`) | `profile`, `attempt_nonce`, `source_sha256`, `proposal_sha256`, `model`, `session`, `document` {name, uri, classification}, `clauses` [{`quote` (exact source slice), `field`, `value` (proposed term)}] |
 | `candidate_available`, `refusal` | Whether a SHADOW candidate can be staged; fixed refusal code otherwise |
@@ -58,3 +60,20 @@ Vendor proposal job, from `GET /api/vendors/{id}/proposal-jobs/{job_id}` and eac
 The selection view (`profile: "auto"`, from `proposal-access`) provides `outcome`, `selected`, the per-family `state` and `refusal`, `review_requirements` (verbatim) and `selection_sha256`. After staging, the adapter's lifecycle state comes from `GET /api/vendors/{id}` (`state`: `SHADOW`, `APPROVED`, `ACTIVE` or `REVOKED`). The review section comes from `GET /api/vendors/{id}/requirements`, already rendered by W7.
 
 Render all text as text. Show quotes untrimmed. Never show a refused or uncertain job as a candidate.
+
+## 4. Genuine model runs (13:15–13:19 PST)
+
+Six calls, one per supported family per authored contract. Model `claude-opus-5-5`, verified from the provider stream; no tools, no MCP servers; about USD 0.41 in all. No call was repeated. Approvals were recorded with the operator CLI before each submission; `approved_by` names this agent, for model invocation only. Contract files were fixed at 21:12:39Z, before every approval and call. Details: [genuine-calls-summary.json](../evidence/submission-onboarding-20261109/genuine-calls-summary.json).
+
+| Contract | Monthly job / session | Resource job / session | Outcome |
+|---|---|---|---|
+| Halden Relay | `d98bbf92` / `75c9b80a`: refused, vendor name quoted apart from its supply verb | `d7490489` / `dc0005bd`: refused | **NO_SUPPORTED_FAMILY** |
+| Corvid Ledger | `26ee4e3f` / `41f4dcb6`: **validated** | `d3f1a3ca` / `b1418b20`: refused, required resource terms absent | **SELECTED** monthly, staged **SHADOW** (version `ff76ed67`); no actions; interpretation review required |
+| Control | `708056a1` / `2095764e`: refused, same split-party reason | `4cad579b` / `5f6482d8`: refused; both filing passages and the measurement block cited | **NO_SUPPORTED_FAMILY** |
+
+**Independent cohort, for comparison:** 0/4 intended positives, 6/6 refused, every monthly reading failing identifier grounding first. The authored positives were written inside the validated grammar (no-model pre-check), so their success is a demonstration, not a score. The Halden Relay refusal shows that the cohort's failure class also appears on in-grammar text. The generalization fix belongs to the next workstream and is not in this push; no grounding check was relaxed.
+
+**Limits:**
+- The control's conflicting-terms and exclusion refusals were not reached by its genuine monthly call, because identifier grounding failed first. They are shown by `tests/test_submission_refusal_location.py` and `tests/test_vendor_selection_refusals_89.py`.
+- The Halden Relay record keeps the generic explanation it was stored with. Its precise passage is shown by an offline replay with the current code.
+
