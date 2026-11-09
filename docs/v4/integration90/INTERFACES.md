@@ -6,7 +6,7 @@ The November 3 CP1 wire contract in [docs/orchestration/INTERFACES.md](../../orc
 
 ## 1. Account and agreement identity — D03 decided: bounded exact source IDs
 
-**Agreed target (implementation on `work/identity-pricing-89`):**
+**Implemented** in `uptime/source_identity.py` (`source-identity/1`), merged at `1f6238e`; vendor/service names at `7f41a0d`. Agreed design:
 
 - One shared `SourceIdentity` type for every identity-bearing field: account and agreement in claim scope, onboarding overlays, grants, invoice/monitor/maintenance/credit evidence, filing, interpretation and reconciliation. Proposed bounds: 1–96 characters; printable letters and digits; single ASCII spaces; `. , ' & ( ) + : / _ -`; already NFC; no leading, trailing or repeated whitespace; no control characters.
 - Values outside the type are **refused, never rewritten**. The ledger's NFC-plus-strip path becomes a refusal.
@@ -28,7 +28,7 @@ The November 3 CP1 wire contract in [docs/orchestration/INTERFACES.md](../../orc
 
 ## 2. Claim scope — D04 decided: typed scope variants, selected server-side
 
-**Agreed target (implementation on `work/identity-pricing-89`):**
+**Implemented** in `uptime/claim_scope.py` (`claim-scope/1`), merged at `6f43a91` (round-5 verification pending). Agreed design:
 
 - Explicit scope types per obligation: **whole-service month**, **resource period** and **incident-specific**. Each declares its required fields; component, incident and region are required only where the governing obligation needs them. Ronok confirmed this server-selected form on 2026-11-09 ("D04-C now, monthly keeps incident"). The **monthly-availability** family still requires exactly one incident, because its evidence join reconciles coverage to `[scope.incident]`. Proving a whole-service month without an incident is a separate pending decision.
 - The server selects the variant from the governing obligation family resolved from trusted terms, through a versioned table. Signed request bodies keep their current shape; the client sends no `kind`. Unknown or ambiguous families are refused.

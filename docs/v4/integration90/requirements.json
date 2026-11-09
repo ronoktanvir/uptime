@@ -398,7 +398,7 @@
     "docs/v4/STATUS.md",
     "tests/test_identity_domain_89.py"
    ],
-   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91`, full-suite verification pending (round 5).",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -529,7 +529,7 @@
     "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked",
     "tests/test_identity_domain_89.py"
    ],
-   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91`, full-suite verification pending (round 5).",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -1039,7 +1039,7 @@
     "docs/v4/integration90/INTERFACES.md",
     "tests/test_identity_domain_89.py"
    ],
-   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91`, full-suite verification pending (round 5).",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -3324,7 +3324,7 @@
    "evidence": [
     "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
    ],
-   "gap": "Identity and scope domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "Identity and scope domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91`, full-suite verification pending (round 5).",
    "gap_class": "bug",
    "decisions": [
     "D03",
