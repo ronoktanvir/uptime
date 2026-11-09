@@ -54,3 +54,21 @@ def test_spaces_and_punctuation_inside_the_domain_are_accepted_exactly():
     dossier = first_case()
     ticket = ticket_for(dossier["tenant"], dossier, [])
     assert replace(ticket, account="Cedar Orrery Studio").account == "Cedar Orrery Studio"
+
+
+@pytest.mark.parametrize("field", ["vendor", "product"])
+@pytest.mark.parametrize("value", ["Twilio\u2014Messaging", "Twilio  Messaging API", "Twilio\u200bMessaging", " Twilio"])
+def test_vendor_and_service_names_follow_the_same_exact_source_rule(field, value):
+    ticket = ticket_for(first_case()["tenant"], first_case(), [])
+    with pytest.raises(ValueError, match="never rewritten"):
+        replace(ticket, **{field: value})
+
+
+def test_out_of_domain_service_name_is_unsupported_for_the_claimant():
+    from datetime import UTC, datetime
+    from uptime.contracts import Outcome
+    from uptime.disputes_claimant import preflight
+    dossier = first_case()
+    dossier["product"] = "Twilio\u2014Messaging API"
+    # The legacy profile already requires the exact covered service name.
+    assert preflight(dossier, datetime(2026, 11, 3, tzinfo=UTC)).outcome == Outcome.UNSUPPORTED

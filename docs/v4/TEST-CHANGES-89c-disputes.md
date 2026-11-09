@@ -26,3 +26,13 @@ Result: **239 passed, 1 warning, 30.03s.** This includes the new `tests/test_dis
 
 - `fixtures/disputes/oracle/v1.json` SHA-256 `f74f7409…23f8` and `v2.json` `7c03ad35…8041` are unchanged and match their pins.
 - `python -m uptime.disputes_replay dispute-cure|dispute-denial|dispute-review|dispute-partial` regenerates output byte-identical to the committed `fixtures/disputes/traces/*.json`.
+
+## Addendum: vendor and service names (D03 extended, relayed 2026-11-09)
+
+`Ticket.__post_init__` and the counterparty now also apply `source-identity/1` to `vendor` and `product`.
+
+The claimant's `preflight` already requires the exact covered service name `Twilio Messaging API` and returns `UNSUPPORTED` otherwise. So it got no new check: a first-draft claimant check was redundant and was reverted before commit.
+
+My own first draft of the new test called a non-existent `eligibility` function (`ImportError`, 1 failed, 20 passed). It now asserts the existing `preflight` `UNSUPPORTED` outcome.
+
+Run on the final source: **248 passed, 1 warning, 61.89s** (same command as above). All four replay traces are byte-identical, and no existing test was edited.

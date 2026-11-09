@@ -18,7 +18,7 @@ DOCUMENT_FIELDS = frozenset({"ref", "kind", "account", "month", "product", "regi
 
 
 def account_identity(value) -> bool:
-    """D03-A account domain (source-identity/1) for the legacy route."""
+    """D03-A exact-source domain (source-identity/1) for legacy account, vendor and service names."""
     return identity_refusal(value) is None
 
 
@@ -91,9 +91,11 @@ class Ticket:
     obligation: str = "monthly_api_availability"
 
     def __post_init__(self):
-        # D03-A: the account is a bounded exact source identity, refused and never rewritten.
-        # Stored legacy accounts are restricted IDs, a strict subset, so digests are unchanged.
-        source_identity(self.account)
+        # D03-A: account, vendor and service names are bounded exact source identities,
+        # refused and never rewritten. Stored legacy values are inside the domain, so
+        # digests and obligation keys are unchanged.
+        for value in (self.account, self.vendor, self.product):
+            source_identity(value)
 
     @property
     def digest(self) -> str:

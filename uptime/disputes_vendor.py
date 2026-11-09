@@ -47,7 +47,7 @@ def _attachment_fields_match(ticket, document, record):
 def decide(ticket: Ticket, record: dict, at: datetime) -> Reply:
     """Adjudicate using independently provisioned vendor evidence."""
     if (any(not canonical(getattr(ticket, key)) for key in ("tenant", "account", "vendor", "product", "region"))
-            or not account_identity(ticket.account)
+            or not all(account_identity(getattr(ticket, key)) for key in ("account", "vendor", "product"))
             or any(record.get(key) != getattr(ticket, key) for key in ("tenant", "account", "vendor", "governing_version"))
             or ticket.vendor != "Twilio" or ticket.governing_version != VERSION
             or ticket.obligation != "monthly_api_availability"):
