@@ -1,0 +1,25 @@
+{
+  "schema": "d05-unseen-run/1",
+  "document_sha256": "a0f823e3abb808709129aca08cf9eba7d7c9c1e15cd5371a7b76c448c4c5e405",
+  "target": "v-a0f823e3abb808709129aca0",
+  "head": "9438957eac7a8c18c9db64f30f914a60b1151ac6",
+  "stage": "shadow",
+  "outcome": "SELECTED",
+  "requests": [],
+  "approvals": [],
+  "started": false,
+  "candidate": {
+    "http_status": 200,
+    "state": "SHADOW",
+    "family": "monthly-availability/1",
+    "method": "deterministic_document_parser"
+  },
+  "previews": [],
+  "authority": {
+    "approvals_enabled": false,
+    "promotion_performed": false,
+    "human_actions_performed": false
+  },
+  "server_stopped": true,
+  "jobs": []
+}
