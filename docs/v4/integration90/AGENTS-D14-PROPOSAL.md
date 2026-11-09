@@ -1,6 +1,8 @@
-# Proposed AGENTS.md change for D14 (not applied)
+# AGENTS.md change for D14 (applied)
 
-**Status:** proposal only. Ronok accepted D14 ("Yes, replace it") on 2026-11-09 in his overview session, and that session asked the integration owner to propose the matching `AGENTS.md` change. `AGENTS.md` instructs every agent working in this repository, so this change is not applied until Ronok confirms it directly. Once he does, it lands as its own commit with no other change.
+**Status:** applied at `20ae6e0` on 2026-11-09 after Ronok confirmed it directly ("confirm D14 change"). One sentence of section 1 was brought up to date before applying: D01, D02 and D09 are recorded as delegated defaults rather than pending, and evaluation 86 resumes after D04-C (decision 3a). The execution-policy wording is exactly as proposed.
+
+**Original status:** proposal only. Ronok accepted D14 ("Yes, replace it") on 2026-11-09 in his overview session, and that session asked the integration owner to propose the matching `AGENTS.md` change. `AGENTS.md` instructs every agent working in this repository, so this change is not applied until Ronok confirms it directly. Once he does, it lands as its own commit with no other change.
 
 ## 1. New section at the top of `AGENTS.md`
 

@@ -42,7 +42,7 @@ Each blocker names its type, the owner who can move it, what unblocks it and the
 | Tenant data retention after uninstall — **undecided** (not covered by D10, which governs model data only) | What the hosted milestone keeps or deletes when a customer uninstalls; nothing in the installation design sends data to a model | OAUTH-1 |
 | D12 guide scope — **decided 2026-11-09: read-only first** | Cites clauses, explains calculations, navigates to missing evidence, abstains when unsupported; no action drafting. The merged deterministic guide (decision 95) is within this scope | UI-8, API-14 |
 | D13 release evidence — **decided 2026-11-09: bar without native proof** | The gates need ordinary app-path success on independently authored supported cases, separate correct-refusal controls, zero unsafe financial/action acceptances, first-attempt receipts and separately reported parser/model/review/authority outcomes. Native Ramp proof is an external dependency, not a gate condition. No numeric threshold. Not met: onboarding-84 first attempts accepted 0/4, and the dispute sub-cohort has not run | O3, CP5, RG-1 |
-| D14 review policy — **decided 2026-11-09: replace the council process** | The execution policy is adopted. The `AGENTS.md` wording is [proposed](AGENTS-D14-PROPOSAL.md) and awaits Ronok's direct confirmation before it is applied | ORCH-2 |
+| D14 review policy — **decided 2026-11-09: replace the council process** | The execution policy is adopted. Ronok confirmed the [`AGENTS.md` wording](AGENTS-D14-PROPOSAL.md) directly; applied at `20ae6e0`. Closed | ORCH-2 |
 
 ## Engineering items (no decision needed)
 

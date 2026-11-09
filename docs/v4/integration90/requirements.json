@@ -3014,7 +3014,7 @@
     "docs/v4/decisions/INDEX.md",
     "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
    ],
-   "gap": "D14 decided 2026-11-09: the execution policy replaces mandatory consultation; Opus is used when useful or requested. The AGENTS.md wording awaits Ronok's direct confirmation.",
+   "gap": "D14 decided 2026-11-09: the execution policy replaces mandatory consultation; Opus is used when useful or requested. Ronok confirmed the AGENTS.md wording directly; applied at 20ae6e0.",
    "gap_class": null,
    "decisions": [
     "D14"

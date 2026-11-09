@@ -11,7 +11,7 @@ Integration owner: session `agent0`, branch `work/integration-90`, baseline `03b
 | [BLOCKERS.md](BLOCKERS.md) | Unresolved blockers by type, owner and unblocking decision |
 | [REHEARSAL.md](REHEARSAL.md) | Final two-minute script, pre-filming checks, Q&A, fallbacks, presentation listener and rehearsal record |
 | [D06-ACTION-MATRIX.md](D06-ACTION-MATRIX.md) | Every action with its D06 target: person, policy-eligible or never |
-| [AGENTS-D14-PROPOSAL.md](AGENTS-D14-PROPOSAL.md) | Proposed `AGENTS.md` change for D14; awaiting Ronok's confirmation |
+| [AGENTS-D14-PROPOSAL.md](AGENTS-D14-PROPOSAL.md) | `AGENTS.md` change for D14; confirmed by Ronok and applied at `20ae6e0` |
 | [SETUP.md](SETUP.md) | Fresh-checkout reproduction |
 | [../TEST-CHANGES-90.md](../TEST-CHANGES-90.md) | Test changes on this branch |
 
