@@ -28,3 +28,6 @@ Results:
 
 - JavaScript: **104/104**
 - New keyboard test plus finance browser, guide suggestions, workspace UI, Ramp UI, finance view, guide and Northwind workflow suites: **109 passed, 1 warning in 92.62s**
+
+Full suite: integration round 6 on a fresh clone of `3f60647`, which contains `f0cfa05` and `2cc59ca`: **4664 passed, 1 warning in 322.63s (0:05:22)**, JS 104/104. Receipt: `docs/v4/evidence/integration-90/verification-3f60647.json`.
+
