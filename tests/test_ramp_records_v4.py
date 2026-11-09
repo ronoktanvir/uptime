@@ -36,7 +36,7 @@ class Reader:
     def __init__(self, linked=False):
         self.calls, self.scopes = [], []
         self.rows = {
-            "bills": [{"id": BILL, "vendor": {"id": VENDOR, "name": "PRIVATE"}, "entity_id": ENTITY,
+            "bills": [{"id": BILL, "vendor": {"id": VENDOR, "name": "Example Hosting Co"}, "entity_id": ENTITY,
                        "status": "OPEN", "approval_status": "PENDING", "amount": money(), "issued_at": DATE,
                        "deep_link_url": None, "purchase_order_id": PO if linked else None,
                        "applied_vendor_credits": [], "line_items": [], "inventory_line_items": [
@@ -44,7 +44,7 @@ class Reader:
                             "memo": "PRIVATE"}], "memo": "PRIVATE", "invoice_urls": ["https://private.invalid"]}],
             "bills/drafts": [{"id": DRAFT, "status": "DRAFT", "vendor": None, "entity_id": None}],
             "vendors": [{"id": VENDOR, "approval_status": "PENDING", "is_active": True,
-                         "name": "PRIVATE", "display_name": "PRIVATE", "contacts": ["PRIVATE"]}],
+                         "name": "Example Hosting Co", "display_name": "PRIVATE", "contacts": ["PRIVATE"]}],
             "transactions": [{"id": TRANSACTION, "entity_id": ENTITY, "state": "PENDING", "merchant_id": uid(22),
                               "entity_amount": {"value": -100, "currency": "USD"}, "minor_unit_conversion_rate": 100,
                               "merchant_amount": {"value": -120, "currency": "EUR"}, "user_transaction_time": DATE,
@@ -102,6 +102,9 @@ def test_default_legacy_off_and_full_snapshot():
     assert resources["agreements"]["status"] == resources["credits"]["status"] == "EMPTY"
     bill = resources["bills"]["records"][0]
     assert bill["vendor_id"] == VENDOR and bill["deep_link_url"] is None
+    # Display names are retained only in their own fields; memos, contacts and URLs never are.
+    assert bill["vendor_name"] == "Example Hosting Co" and bill["invoice_number"] is None
+    assert resources["vendors"]["records"][0]["name"] == "Example Hosting Co"
     assert bill["lines"][0]["quantity"] == "2.5" and bill["lines"][0]["quantity_rate_check"] == "MATCH"
     assert bill["lines"][0]["amount"]["amount_minor"] == 100
     assert resources["transactions"]["records"][0]["vendor_id"] is None
