@@ -1,0 +1,43 @@
+{
+  "tested_commit": "02d86f7ff76e0996732da20d6e83fbd7e7054004",
+  "branch": "work/submission-integration-20261109",
+  "contents": "origin/main b6e93bd plus role 2 dispute automation at 5e913b2",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-02d86f7",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 1,
+  "pytest_result": "2 failed, 5308 passed, 1 warning in 444.98s (0:07:24)",
+  "log": "suite-02d86f7-pytest.log",
+  "started_at": "2026-11-09T21:28:47Z",
+  "finished_at": "2026-11-09T21:36:14Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "104 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "failures": [
+    {
+      "test": "tests/test_release_probes_gent8.py::test_hard_kill_mid_flow_preserves_state_idempotency_and_final_ledger",
+      "assertion": "assert (0 + 4) == 11",
+      "kind": "deterministic; reproduced alone on the same commit",
+      "cause": "The served setup command now creates workspaces with routine automation on. The four reviewer decisions the probe performs before the kill therefore complete the walkthrough, and the probe still expects eleven reviewer actions. The product state after the kill and restart was unchanged and the duplicate replay was refused, as the earlier assertions in the same test show.",
+      "owner": "verification lane; the probe is to be updated so the kill still lands mid-flow, without weakening its state, idempotency or ledger assertions",
+      "status": "open"
+    },
+    {
+      "test": "tests/test_correspondence_denial_bundle_ui_78.py::test_explicit_candidate_load_preserves_slots_conditions_and_duplicate_spans",
+      "error": "playwright TargetClosedError at Browser.new_page",
+      "kind": "environmental; passed when re-run alone on the same commit (1 passed)",
+      "cause": "Google Chrome was auto-updating on this machine during the run; its framework moved from 156.0.8078.80 to 157.0.8103.40 and the browser the test launched was closed.",
+      "status": "not a code change; watch for recurrence"
+    }
+  ],
+  "limits": "Not a verified state. One deterministic failure is open. Regression evidence only; not contract generalization, human release or production readiness."
+}
