@@ -114,6 +114,10 @@ The branch was merged with the integration commit `c756853` (roles 1 and 3) and 
   - Source: a scratch copy of role 1's preserved workspace, served on 8847 and deleted afterwards. Signed in as `role1-operator`; the access read used the authored public fixture and attempt `initial`, and no new job was submitted.
   - The job card shows job `26ee4e3f…`, status SUCCEEDED, model `claude-opus-5-5`, and submitted, started and finished at Nov 9, 2026, 21:17 UTC. Every clause quote is shown untrimmed beside its typed value, and the vendor card shows SHADOW.
   - Review-history times are now formatted dates.
+  - Coordinator follow-up: the request, context, source and proposal digests, profile, attempt and session now sit in one closed **Request details** disclosure on the card.
+    - Still in view: job id, status, model, the three times, "Validated against the exact public source. The proposal is unreviewed and not approved.", the document name and URI exactly as sent (including "(authored)"), and the clauses.
+    - At 1440×900 the first viewport now shows three clauses, each with its exact quote and typed value, and no digests; it used to show two clauses under five digest rows.
+    - One click shows all four digests and the session. The denial candidate's request reference moved behind the same kind of disclosure; the cited reply text and the review wording are unchanged.
   - Checked at 1440×900. [Screenshot](../evidence/submission-ui/after-contract-job-1440.png).
 - **Recorded denial reading (job `29f371d0`).**
   - Source: a scratch copy of agent3's preserved workspace, served at its recorded origin 8823 from this branch with role 2 `c612114` merged. It was stopped and deleted afterwards, and the preserved database hash (`1a035ab2…`) is unchanged.

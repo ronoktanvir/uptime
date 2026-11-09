@@ -1,6 +1,6 @@
 # Working on Uptime
 
-Uptime's first product edition is Ramp-native SLA and contract enforcement. Contributions should make the connection between contract evidence, deterministic decisions and financial records easier to verify.
+Uptime's first product edition is SLA and contract enforcement for Ramp, integrated through Ramp's developer API. Contributions should make the connection between contract evidence, deterministic decisions and financial records easier to verify.
 
 Start with [AGENTS.md](AGENTS.md), the [engineering map](docs/ENGINEERING-MAP.md) and the [current team decisions](docs/v4/TEAM-DECISION-HANDOFF.md). Some workstreams remain paused or permission-gated. A proposed default in a document is not an accepted product or authority change.
 
@@ -8,7 +8,7 @@ Start with [AGENTS.md](AGENTS.md), the [engineering map](docs/ENGINEERING-MAP.md
 
 - Give each change one concrete purpose. Use a topic branch or a separate worktree for concurrent implementation.
 - Preserve existing working code, failed observations and uncommitted work owned by other contributors.
-- Explain the trigger, resulting behavior and validation in the commit or pull request. Use focused messages such as `fix: preserve agreement identity during claim intake` or `docs: explain the Ramp-native credit lifecycle`.
+- Explain the trigger, resulting behavior and validation in the commit or pull request. Use focused messages such as `fix: preserve agreement identity during claim intake` or `docs: explain the credit lifecycle for Ramp`.
 - Link affected decisions and evidence. Record architectural criticism once for a substantial new decision; do not restart a review council for routine work within an accepted design.
 - Publish verified increments so teammates can follow the history. Update the progress snapshot only with observed results; do not label a planned action completed.
 
