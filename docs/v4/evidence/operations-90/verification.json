@@ -1,0 +1,49 @@
+{
+  "schema": "uptime-workstream-verification/1",
+  "workstream": "operations-90: installation, credentials, tenant isolation, callback security, durable jobs and recovery",
+  "branch": "work/operations-90",
+  "base": "03b372e64e4eb69aa0de991e3654db41bd1be915",
+  "recorded_at": "2026-11-09",
+  "environment": {
+    "python": "3.13.12", "uv": "0.10.8", "node": "v25.9.0",
+    "command_prefix": "uv run --locked pytest -q -p no:cacheprovider --basetemp=<unique scratchpad dir>",
+    "note": "UV_PROJECT_ENVIRONMENT pointed at the existing locked Uptime-V4 environment (same uv.lock, no editable install) to avoid another virtualenv on a nearly full disk."
+  },
+  "baseline_reproduction": {
+    "commit": "03b372e", "result": "252 passed, 1 warning in 101.18s",
+    "suites": ["test_v4_authority", "test_opus46_security", "test_workspace_tenant_v4", "test_source_config_v4",
+               "test_signed_mandates", "test_ramp_workflow_webhooks", "test_ramp_workspace_installation",
+               "test_ramp_credentials", "test_storage", "test_public_proposal_jobs", "test_vendor_auth83",
+               "test_release_boundaries", "test_case_revision_v4", "test_allocation_ledger"],
+    "purpose": "Existing session-expiry, nonce/origin/body binding, source-authority and tenant-isolation repairs reproduced before shared infrastructure changed."
+  },
+  "focused_runs": [
+    {"source": "f4826b4 content (run immediately before commit)", "scope": "tests/test_ramp*.py, test_v4_routes_integration, test_workspace_ui_v4, test_workspace_tenant_v4, test_release_gate_v4, new tests",
+     "result": "972 passed, 1 warning in 77.47s"},
+    {"source": "c52a5a4 content (run immediately before commit)", "scope": "test_signed_mandates, tests/test_ramp*.py, test_v4_authority, test_local_review_exception*, test_live_reviewer_setup, test_release_gate_v4, test_release_boundaries, test_workspace_tenant_v4, new tests",
+     "result": "1128 passed, 1 warning in 188.90s"},
+    {"source": "f95834b content (run immediately before commit)", "scope": "new tests, test_ramp, test_ramp_v4, test_ramp_records_v4, test_ramp_comment_readback, test_ramp_native_binding, test_ramp_workflow, test_ramp_workspace_installation, test_film_ramp_v4",
+     "result": "412 passed, 1 warning in 13.54s"}
+  ],
+  "new_tests": {"file": "tests/test_operations_recovery_90.py", "functions": 19, "cases": 23, "existing_tests_changed": 0},
+  "mutation_checks": {"mutants": 8, "detected": 8,
+    "mutants_list": ["restore mandate fence removed", "import revocation check removed", "native preparation revocation check removed",
+                     "refresh pre-network revocation check removed", "carry-forward faked", "mandate install reconciliation gate removed",
+                     "native preparation reconciliation gate removed", "workspace revocation cross-check removed"]},
+  "other_checks_at_e522376": {
+    "javascript": "node --test web/*.test.cjs tests/helpers/*.test.cjs: 75 tests, 75 pass, 0 fail",
+    "progress_graph": "node scripts/test_progress_graph.cjs: dependency ordering, invalid graphs, and link safety passed",
+    "secret_scan": "scripts/check_repo.py --compare-local-ramp: Secret check passed for 2154 versioned text objects"
+  },
+  "full_suite": {
+    "status": "NOT_COMPLETED",
+    "attempts": [
+      {"source": "c52a5a4", "outcome": "stopped at 12% (exit 143) because the working tree changed during the run; not a result"},
+      {"source": "e522376", "outcome": "stopped at 16% (exit 143) at the integration owner's request to avoid ENOSPC with three concurrent full suites; not a result"}
+    ],
+    "next": "Queued with the integration-90 owner; result will be recorded in a new receipt, not by editing this one."
+  },
+  "opus": {"model": "claude-opus-5-5", "session": "5278d28a-29f2-4537-a285-d5c6f8e66a6c", "receipt": "docs/v4/decisions/reviews/90-operations-recovery.json"},
+  "not_claimed": ["hosted deployment", "customer OAuth installation", "public webhook endpoint", "provider token revocation calls",
+                  "native Ramp write", "any change to the blocked native-posting retest"]
+}
