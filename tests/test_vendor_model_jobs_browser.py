@@ -50,11 +50,17 @@ def test_signed_job_routes_require_approval_and_cannot_grant_financial_actions(s
     visible = reviewer.client.get(job_path, headers=reviewer.headers)
     assert visible.status_code == 200 and visible.json()['candidate_available'] is True
     assert len(provider.calls) == 1
-    staged = reviewer.post(job_path+'/candidate', {'overlay': OVERLAY})
+    # D05: an operator-chosen extraction profile cannot stage a candidate; Uptime selects the family.
+    refused = reviewer.post(job_path+'/candidate', {'overlay': OVERLAY})
+    assert refused.status_code == 409 and 'operator-chosen extraction profile' in refused.json()['detail']
+    auto = {'document': body.model_dump()['document'], 'profile': 'auto', 'attempt_nonce': 'initial'}
+    selection = reviewer.post(BASE+'/proposal-access', auto).json()
+    assert selection['outcome'] == 'SELECTED' and selection['selected']['method'] == 'deterministic_document_parser'
+    staged = reviewer.post(BASE+'/candidates', {'document': auto['document'], 'overlay': OVERLAY})
     assert staged.status_code == 200, staged.text
     state = staged.json()
     assert state['state'] == 'SHADOW' and state['actions'] == [] and state['reviewer'] is None
-    repeated = reviewer.post(job_path+'/candidate', {'overlay': OVERLAY}).json()
+    repeated = reviewer.post(BASE+'/candidates', {'document': auto['document'], 'overlay': OVERLAY}).json()
     assert (repeated['revision'], repeated['version']) == (state['revision'], state['version'])
     for path, payload in ((BASE+'/evaluate', {'facts': {}}), (BASE+'/actions/activate', {})):
         with pytest.raises(HTTPStatusError) as denied:
