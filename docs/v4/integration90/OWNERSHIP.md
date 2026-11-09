@@ -55,6 +55,8 @@
 
 Transferred for the D03/D04 implementation (`agent1`): `Scope` and the identity types in `correspondence_types.py`, `claim_identity.py`, `allocations.canonical`, the scope/identity join in `v4_routes.py`, identity fields in `ramp_terms_store.py`, overlay identity validation in `vendor_terms.py`/`governing_fees.py` (coordinated with W3), and the shape selection at `correspondence.py:193` (coordinated with W4).
 
+Blind-acceptance harness (`scripts/blind_acceptance.py`, `tests/test_blind_acceptance.py`, owned by W0/W8): one writer at a time on 2026-11-09. W4 (`agent3`) first, with the 89e late-denial fix; then `agent1`, with the D04-C scope changes (no invented placeholders; `SCOPE_FAMILY_REFUSED`). Published blind results stay as they are.
+
 ADR numbers in use: 0089 W4 disputes, 0090 W3 onboarding, 0091 W5 evidence, 0092 verification, 0093 W1 Ramp lineage, 0094 D03/D04 packet, 0095 W7 guide, 0096 W9 operations.
 
 ## Interface-change request
