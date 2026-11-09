@@ -15,7 +15,7 @@
 | `regression` (INDEPENDENT_QA) | A precommitted collection count and hash. One `release_regression.py` run. An independent witness signature within 24 h. | Full `uv run --locked pytest` on this branch: see [Regression](#regression). Unsigned, and no precommitted collection. | **Not satisfied** (unsigned) |
 | `security_financial` (INDEPENDENT_QA) | Audit gate before/after against a pinned V3 baseline, and a witness signature. | `v4_audit_gate` release phase: **118/118 PASS** on `c1fa513`, including both browser probes. Fresh V3 baseline `18afaa6`: 73 PASS / 45 FAIL. [release](../evidence/release-evaluation-gent8/audit-release-c1fa513.json) · [baseline](../evidence/release-evaluation-gent8/audit-baseline-v3-18afaa6.json). The committed `docs/v4/audit/baseline-v2.json` no longer passes provenance, because a probe file changed. | **Not satisfied** (unsigned). The evidence is supportive. |
 | `unseen_vendor` (INDEPENDENT_QA) | A frozen blind cohort, a first-attempt receipt and an agreed bar. | No corpus84 inference yet; 6/6 inputs validated. Historical results: 0/4 supported onboarding extractions in eval76; blind witness not certified. | **Not assessable:** D13 absent and no first attempt |
-| `unanticipated_dispute` (INDEPENDENT_QA) | Same. | 12/12 corpus84 replies blocked at claim intake (D03, D04). Historical results: 0/50 supported replies; eval76 3/6 complete. | **Not assessable:** D13, D03 and D04 absent |
+| `unanticipated_dispute` (INDEPENDENT_QA) | Same. | 12/12 corpus84 replies blocked at claim intake (D03, D04). Historical results: 0/50 supported replies; eval76 3/6 complete. | **Not assessable:** D13 absent. D03-A/D04-C were decided November 9 but are not yet implemented. |
 | `human_review` (ACTUAL_HUMAN) | A separately registered person signs the four report digests. | No release-trust registry and no attestation. The CalyxQuay review is not this gate (see below). | **Not satisfied** |
 | `native_install` (ACTUAL_NATIVE_OPERATOR, optional) | A signed installation grant for `bill.comment.create`. | The agent-run native posting retest was rejected by automatic approval review ("possible cybersecurity risk"). It is not retried or rerouted. | **Not satisfied**, blocked by execution policy |
 
@@ -79,7 +79,7 @@ PENDING_FULL_SUITE
 
 1. The team records D13: which outcomes satisfy the unseen-vendor and dispute gates.
 2. The user explicitly resumes evaluation, and the onboarding sub-cohort runs under [the pre-registered procedure](HARNESS-VALIDATION.md).
-3. D03 and D04 are implemented through the normal route, then the dispute sub-cohort runs.
+3. The decided D03-A/D04-C are implemented through the normal route (`work/identity-pricing-89`). The preflight then shows which replies are admissible without invented scope, and the dispute sub-cohort runs.
 4. Independent witnesses and a registered human reviewer sign fresh reports for one tested commit.
 
 None of these can be produced by code alone.

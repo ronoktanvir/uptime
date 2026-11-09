@@ -1,6 +1,6 @@
 # ADR 0092: Spend evaluation84 first attempts in two sub-cohorts; assess release only against the existing gate
 
-**Date:** November 9, 2026. **Lane:** unseen evaluation, cross-component verification and release evidence (`work/release-evaluation-gent8`). **Status:** the preparation and assessment parts are adopted. Running any corpus inference waits on the user's explicit resume. Dispute inference also waits on team decisions D03 and D04. The release threshold waits on team decision D13.
+**Date:** November 9, 2026. **Lane:** unseen evaluation, cross-component verification and release evidence (`work/release-evaluation-gent8`). **Status:** the preparation and assessment parts are adopted. Running any corpus inference waits on the user's explicit resume. Dispute inference also waits on the D03/D04 implementation. Ronok decided D03-A and D04-C on November 9 (recorded on `work/integration-90`); implementation is in progress on `work/identity-pricing-89`. The release threshold waits on team decision D13, which is still pending.
 
 ## Decision
 
