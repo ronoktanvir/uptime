@@ -843,3 +843,85 @@ def confirm_operator_application(instruction: dict, *, provider_business_id: str
     else:
         status = "DIFFERENT_AMOUNT_APPLIED"
     return {**result, "status": status, **facts}
+
+
+LINKS_SCHEMA = "uptime-ramp-credit-links/1"
+
+
+def credit_links(snapshot: dict, *, provider_business_id: str, bill_id: str) -> dict:
+    """D09 read-back: every vendor credit linked to one bill, checked on both sides.
+
+    Reports facts only. It never attributes a credit to an award or claim; that needs a
+    reviewed CreditBinding (separate authority). Applied value counts only for pairs that
+    the bill (``applied_vendor_credits``) and the credit (``applied_bills``) both report
+    with the same amount in the bill's currency. A credit created from this bill
+    (``reference_bill_id``) is recorded separately and is not applied value.
+    The records sync lists active credits including fully used ones; archived credits are
+    not requested, so a credit missing from that list is unknown, not absent.
+    """
+    from .ramp_records import _validate_snapshot
+    _validate_snapshot(snapshot)
+    native_id(provider_business_id, "INVALID_BUSINESS")
+    native_id(bill_id, "INVALID_BILL")
+    bill = _latest_bill(snapshot, bill_id)
+    group = snapshot["resources"]["credits"]
+    credits = {c["id"]: c for c in group["records"]} if group["status"] in READABLE else {}
+    credits_complete = group["status"] in COMPLETE
+    currency = ((bill or {}).get("amount") or {}).get("currency")
+    pairs, reasons = {}, []
+    if bill is None:
+        reasons.append("BILL_NOT_OBSERVED")
+    elif bill.get("applied_credits") is None:
+        reasons.append("BILL_APPLICATIONS_UNAVAILABLE")
+    else:
+        for applied in bill["applied_credits"]:
+            pairs.setdefault(applied["credit_id"], {})["bill_side"] = applied["amount"]
+    for credit in credits.values():
+        for link in credit.get("applied_bills") or []:
+            if link["bill_id"] == bill_id:
+                pairs.setdefault(credit["id"], {})["credit_side"] = link["amount"]
+        if credit.get("reference_bill_id") == bill_id:
+            pairs.setdefault(credit["id"], {})["created_from_bill"] = True
+    if not credits_complete:
+        reasons.append("CREDIT_LIST_INCOMPLETE")
+    rows = []
+    for credit_id in sorted(pairs):
+        pair, credit = pairs[credit_id], credits.get(credit_id)
+        bill_side, credit_side = pair.get("bill_side"), pair.get("credit_side")
+        if bill_side is not None and credit_side is not None:
+            same = (bill_side["amount_minor"] == credit_side["amount_minor"]
+                    and bill_side["currency"] == credit_side["currency"] == currency)
+            state = "VERIFIED_BOTH_SIDES" if same else "AMOUNT_OR_CURRENCY_CONFLICT"
+        elif bill_side is not None:
+            state = ("CREDIT_NOT_IN_ACTIVE_LIST" if credit is None else
+                     "BILL_SIDE_ONLY" if credit.get("applied_bills") is not None else "CREDIT_APPLICATIONS_UNAVAILABLE")
+        elif credit_side is not None:
+            state = "CREDIT_SIDE_ONLY" if bill is not None and bill.get("applied_credits") is not None else "BILL_SIDE_UNAVAILABLE"
+        else:
+            state = "CREATED_FROM_BILL_NOT_APPLIED"
+        rows.append({"credit_id": credit_id, "state": state,
+                     "bill_side_minor": None if bill_side is None else bill_side["amount_minor"],
+                     "credit_side_minor": None if credit_side is None else credit_side["amount_minor"],
+                     "created_from_bill": bool(pair.get("created_from_bill")),
+                     "credit_archived": None if credit is None else credit.get("archived_at") is not None,
+                     "credit_remaining_minor": None if credit is None else credit["remaining"]["amount_minor"],
+                     "credit_vendor_matches_bill": None if credit is None or bill is None
+                     else credit["vendor_id"] == bill.get("vendor_id")})
+    states = {r["state"] for r in rows}
+    conflicts = states & {"AMOUNT_OR_CURRENCY_CONFLICT", "BILL_SIDE_ONLY", "CREDIT_SIDE_ONLY"}
+    vendor_conflict = any(r["credit_vendor_matches_bill"] is False for r in rows)
+    unknown = reasons or states & {"CREDIT_NOT_IN_ACTIVE_LIST", "CREDIT_APPLICATIONS_UNAVAILABLE", "BILL_SIDE_UNAVAILABLE"}
+    verified = [r for r in rows if r["state"] == "VERIFIED_BOTH_SIDES"]
+    status = ("REVIEW_REQUIRED" if conflicts or vendor_conflict else "UNKNOWN" if unknown else
+              "VERIFIED_APPLICATIONS" if verified else "NO_APPLIED_CREDITS")
+    return {"schema": LINKS_SCHEMA, "status": status, "provider_business_id": provider_business_id,
+            "bill_id": bill_id, "capture_checksum": snapshot["checksum"], "observed_at": snapshot["observed_at"],
+            "bill_currency": currency, "bill_amount_minor": ((bill or {}).get("amount") or {}).get("amount_minor"),
+            "bill_status": None if bill is None else bill.get("status"),
+            "credits_list": {"status": group["status"], "complete": credits_complete,
+                             "archived_requested": False},
+            "links": rows, "reasons": sorted(set(reasons) | ({"CREDIT_VENDOR_CONFLICT"} if vendor_conflict else set())),
+            "applied_verified_minor": (sum(r["bill_side_minor"] for r in verified)
+                                       if status in ("VERIFIED_APPLICATIONS", "NO_APPLIED_CREDITS") else None),
+            "attribution": "NOT_ATTRIBUTED_REQUIRES_REVIEWED_CREDIT_BINDING",
+            "actual_recovery": None, "writes_attempted": False}
