@@ -1,0 +1,14 @@
+{
+  "schema": "supplementary-execution-freeze/1",
+  "frozen_at": "2026-11-09T20:23:25.795512+00:00",
+  "manifest_sha256": "4540d4dcf158aa9c9b53f31a65434fe3ed087d664f554d0ddfa626eb3ac5cc89",
+  "cases": {
+    "onboarding": 6,
+    "dispute": 8
+  },
+  "source_mapping_refusals": 2,
+  "maximum_application_model_invocations": 20,
+  "expected_content_read": false,
+  "preflight_refusals_are_retained_in_denominator": true,
+  "original_source_and_replies_changed": false
+}
