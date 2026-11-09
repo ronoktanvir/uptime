@@ -43,10 +43,27 @@ class App:
         self.id = "inbox-north-612"
         self.url = "/api/correspondence/claims/" + self.id
 
+    def applicable_scope(self):
+        """A D04-C client (2026-11-09): send only the obligation fields the server-resolved family needs.
+
+        ``self.scope`` stays the authored scope. Absent required fields are never invented; if no
+        governing family is installed yet, the authored scope is sent unchanged and intake decides.
+        """
+        from uptime.claim_scope import InvalidClaimScope, OBLIGATION_FIELDS, resolve
+        from uptime.correspondence_types import Scope
+        from uptime.storage import database
+        try:
+            with database(self.inbox.path) as db:
+                required = resolve(db, "bears", Scope(**self.scope)).required
+        except InvalidClaimScope:
+            return dict(self.scope)
+        return {k: v for k, v in self.scope.items() if k not in OBLIGATION_FIELDS or k in required}
+
     def provision(self):
-        self.inbox.provision("bears", *(self.scope[k] for k in ("account", "vendor", "contract", "service", "component", "region")))
+        scope = self.applicable_scope()
+        self.inbox.provision("bears", *(scope.get(k) for k in ("account", "vendor", "contract", "service", "component", "region")))
         for subject in self.keys:
-            self.inbox.bind_sender("bears", self.scope["account"], self.roles[subject], subject, scope=self.scope)
+            self.inbox.bind_sender("bears", scope["account"], self.roles[subject], subject, scope=scope)
 
     def post(self, path, payload):
         result = self.human.post(path,payload)
@@ -54,7 +71,8 @@ class App:
         return result.json()
 
     def create(self):
-        return self.post("/api/correspondence/claims", dict(claim_id=self.id, scope=self.scope))
+        self.provision()  # idempotent; binds the applicable scope once the governing family is installed
+        return self.post("/api/correspondence/claims", dict(claim_id=self.id, scope=self.applicable_scope()))
 
     def read(self):
         response = self.client.get(self.url, headers=self.human.headers)
@@ -63,7 +81,7 @@ class App:
 
     def source(self, subject, body, event_id=None):
         target = self.url + "/events"
-        raw = json.dumps(dict(event_id=event_id or body["kind"], scope=self.scope, body=body)).encode()
+        raw = json.dumps(dict(event_id=event_id or body["kind"], scope=self.applicable_scope(), body=body)).encode()
         headers = service_headers(instance=self.app.state.auth.instance, origin=DEFAULT_ORIGIN, subject=subject,
                                   key=self.keys[subject], path=target, body=raw)
         return self.client.post(target, content=raw, headers=headers)
@@ -87,8 +105,8 @@ class App:
         action = next(a["id"] for a in state["actions"] if a["operation"]==operation)
         return self.post("/api/vendors/north-install/actions/"+action,{})
 
-    def activate(self, text=TEXT, expected="52.17", facts=None):
-        facts = facts or SMALL
+    def install(self, text=TEXT):
+        """Install the governing terms (SHADOW, not active). D04-C: intake needs installed terms first."""
         base = "/api/vendors/north-install"
         overlay = {k:SMALL[k] for k in ("agreement","account","product","plan","fee_line_ref")}
         overlay.update(currency="USD", effective_from="2026-01-01", effective_until="2026-12-31")
@@ -96,6 +114,12 @@ class App:
             document=dict(name="Boreal availability agreement",uri="urn:synthetic:boreal-agreement",classification="synthetic_public",text=text),
             overlay=overlay))
         assert state["state"] == "SHADOW", state
+        return state
+
+    def activate(self, text=TEXT, expected="52.17", facts=None):
+        facts = facts or SMALL
+        base = "/api/vendors/north-install"
+        state = self.install(text)
         checks = [dict(name="Above trigger duration",facts=facts,expected=dict(outcome="ELIGIBLE",amount=expected)),
                   dict(name="Below trigger duration",facts=facts|{"eligible_downtime_minutes":44},expected=dict(outcome="INELIGIBLE"))]
         state = self.post(base+"/tests",dict(revision=state["revision"], tests=checks))
@@ -111,6 +135,7 @@ def env(tmp_path, monkeypatch):
 
 
 def test_active_rules_join_independent_evidence_and_historical_receipt(env):
+    env.install()  # D04-C (2026-11-09): governing terms are installed (SHADOW) before intake
     env.provision()
     assert env.create()["outcome"]=="UNSUPPORTED_RULE"
     env.evidence()
@@ -133,6 +158,7 @@ def test_active_rules_join_independent_evidence_and_historical_receipt(env):
 
 
 def test_rollback_invalidates_existing_inbox_approval(env):
+    env.install()  # D04-C (2026-11-09): governing terms are installed (SHADOW) before intake
     env.provision(); env.create(); env.evidence()
     active=env.activate()
     env.action("approve-claim")
@@ -143,6 +169,7 @@ def test_rollback_invalidates_existing_inbox_approval(env):
 
 
 def test_active_overlay_requires_exact_authenticated_fee_line(env):
+    env.install()  # D04-C (2026-11-09): governing terms are installed (SHADOW) before intake
     env.provision(); env.create(); env.activate(); env.evidence(line_ref="other-line")
     row=env.read()
     assert row["outcome"]=="INSUFFICIENT_EVIDENCE" and "fee line" in row["trace"][0]
@@ -167,6 +194,7 @@ def test_twilio_real_mounted_router_requires_distinct_named_and_inbound_proofs(e
 @pytest.mark.parametrize("coverage", [None, {"complete":False}, {"exclusions_removed":False}, {"total_eligible_minutes":88},
                                       {"incident_ids":["other-incident"]}, {"start":"2026-10-03T00:00:00Z"}])
 def test_monthly_tier_requires_complete_signed_month_reconciled_to_incident(env, coverage):
+    env.install()  # D04-C (2026-11-09): governing terms are installed (SHADOW) before intake
     env.provision(); env.create(); env.activate()
     env.evidence(include_coverage=coverage is not None, **(coverage or {}))
     row = env.read()
@@ -174,6 +202,7 @@ def test_monthly_tier_requires_complete_signed_month_reconciled_to_incident(env,
 
 
 def test_overlapping_active_history_cannot_reprice_existing_measurement_month(env):
+    env.install()  # D04-C (2026-11-09): governing terms are installed (SHADOW) before intake
     env.provision(); env.create(); env.evidence(); env.activate()
     env.action("approve-claim")
     env.activate(TEXT.replace("12.5% service credit", "25% service credit"), expected="104.34")
@@ -182,6 +211,7 @@ def test_overlapping_active_history_cannot_reprice_existing_measurement_month(en
 
 
 def test_active_effective_dates_must_cover_entire_measurement_month(env):
+    env.install()  # D04-C (2026-11-09): governing terms are installed (SHADOW) before intake
     env.provision(); env.create(); env.evidence()
     # Installation is active under a February-to-December source. A future
     # service period outside that scope has no authorized remedy.
@@ -194,6 +224,7 @@ def test_active_effective_dates_must_cover_entire_measurement_month(env):
 
 
 def test_active_installation_with_midmonth_effective_date_abstains(env):
+    env.install(TEXT.replace("Effective: 2026-01-01","Effective: 2026-10-15"))  # D04-C: terms before intake
     env.provision(); env.create(); env.evidence()
     env.activate(TEXT.replace("Effective: 2026-01-01","Effective: 2026-10-15"),
                  facts=SMALL|{"month":"2026-12","received_at":"2027-01-04T00:00:00Z"})
@@ -201,6 +232,7 @@ def test_active_installation_with_midmonth_effective_date_abstains(env):
 
 
 def test_conflicting_duplicate_month_record_invalidates_approval(env):
+    env.install()  # D04-C (2026-11-09): governing terms are installed (SHADOW) before intake
     env.provision(); env.create(); env.evidence(); env.activate(); env.action("approve-claim")
     r = env.source("status-fixture",dict(kind="coverage",start="2026-10-01T00:00:00Z",end="2026-11-01T00:00:00Z",
                         complete=True,exclusions_removed=True,incident_ids=[SCOPE["incident"]],total_eligible_minutes=208),
@@ -213,8 +245,9 @@ def test_conflicting_duplicate_month_record_invalidates_approval(env):
 @pytest.mark.parametrize("field,other", [("incident", "invented"), ("month", "2025-01"),
                                          ("invoice", "other-invoice"), ("currency", "EUR")])
 def test_exact_source_binding_prevents_early_registration_of_invented_claim(env, field, other):
+    env.install()  # D04-C (2026-11-09): governing terms are installed (SHADOW) before intake
     env.provision()
     assert env.human.post("/api/correspondence/claims", dict(
-        claim_id="inbox-wrong", scope=env.scope | {field: other})).status_code == 403
+        claim_id="inbox-wrong", scope=env.applicable_scope() | {field: other})).status_code == 403
     assert env.create()["id"] == env.id
     assert env.source("status-fixture", dict(kind="status", **INTERVAL)).status_code == 200

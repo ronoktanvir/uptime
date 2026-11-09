@@ -28,7 +28,25 @@ Ronok decided D03 and D04 on 2026-11-09. In this session he confirmed both and t
 - F5 (a resource manifest without an agreement name accepted any overlay agreement): decided ("require reviewed binding") and implemented in the following F5 commit.
 - Override authority for the near-duplicate guard: decided "no override for now"; the guard remains a hard block.
 
-**D04-C: decided; implementation paused on a finding.** The generic monthly-availability evidence adapter (`uptime/v4_routes.py` `_joined_observation`) derives countable downtime from one status interval and requires the signed monthly coverage to list exactly `[scope.incident]`. `scripts/setup_northwind.py` states that the authored monthly intake requires exactly one incident interval. A whole-service monthly claim without an incident therefore cannot be evaluated as eligible unless the evidence-sufficiency rule for monthly coverage changes. That is a financial-meaning change, so it goes to the team rather than being redesigned here. The characterization below remains accurate for D04.
+**D04-C, a server-side claim scope family table: implemented on this branch.** Ronok chose D04-C, then "monthly keeps incident" after the finding that the generic monthly evidence join (`uptime/v4_routes.py` `_joined_observation`) reconciles signed monthly coverage to exactly `[scope.incident]`. Whole-month evidence sufficiency is a separate, still-pending decision.
+
+| Change | Location |
+| --- | --- |
+| `Scope.component`, `incident`, `region` and `invoice` are optional. An absent field is omitted from every serialization, and an explicit null is refused. Ten-field scopes serialize byte-identically. | `uptime/correspondence_types.py` (`Scope`, `OPTIONAL_SCOPE`) |
+| Family table `claim-scope/1`, resolved from installed terms (shadow or active), never from the client:<br>• Built-in Twilio profile → `IncidentScope`, needing incident and component (its dispute flow cures component requests).<br>• `monthly-availability/1` → `IncidentScope`, needing the incident.<br>• `resource-month/1` → `ResourcePeriodScope`, needing the resource, plus region only for a regional subscription and incident or region when filing fields cite them.<br>• Aggregate monitor → `ServiceMonthScope`, needing only filing-cited fields.<br>Required fields must be present and not-applicable fields absent. An unknown or ambiguous family raises `InvalidClaimScope` (HTTP 409), which is never INSUFFICIENT_EVIDENCE. | `uptime/claim_scope.py` |
+| Intake checks the family after authorization. The table replaces the `twilio` vendor-name rule for the draft-key shape. Not-applicable subscription fields are provisioned as `""`. | `uptime/correspondence.py` (`create`, `provision`, `subscription_values`) |
+| Invoice is an optional evidence reference. `FeeEntry.legacy_scopes` registers explicit stored-scope aliases, so claims stored with authored ten-field scopes keep their governing fee; an invented region is still refused. | `uptime/governing_fees.py` |
+| W5 hunk, approved by gen5: `event_in_scope` maps `resource_id` only when the scope has a component. | `uptime/source_config.py` |
+| Northwind new intake sends only applicable fields; the authored ten-field scope stays as `legacy_scope`. Authored inputs and signatures are unchanged. | `fixtures/northwind/loader.py`, `scripts/setup_northwind.py` |
+| The web form omits blank fields, and the blind harness no longer invents placeholders. | `web/v4_ui.js`, `scripts/blind_acceptance.py` |
+
+Consequences to state plainly:
+
+- A claim cannot be created before any governing terms are installed.
+- The 11 corpus-84 `monthly_tier` cases still refuse at setup, now with "requires incident", until the whole-month evidence decision.
+- Earlier blind and evaluation receipts were produced by the previous scope rules and are not reinterpreted.
+
+Churn: `governing_fees.py`, `vendor_terms.py` and `claim_identity.py` changed in this batch, so active adapters need one renewed review after integration, as already stated above.
 
 ---
 

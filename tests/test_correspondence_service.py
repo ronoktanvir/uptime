@@ -19,8 +19,7 @@ def service(tmp_path, monkeypatch):
     env.now = datetime(2027, 3, 3, tzinfo=UTC)
     env.scope.update(vendor="Heliograph Navigation", account=OVERLAY["account"], contract=OVERLAY["agreement"],
                      service=OVERLAY["product"], month="2027-02")
-    env.provision()
-    env.create()
+    env.provision()  # D04-C: the claim is created once the governing terms are installed (below)
     proposal = [dict(quote=q, field="resource_terms", value=v) for q,v in ROWS]
     digest = sha256(DOC["text"].encode()).hexdigest()
     capture = dict(model=MODEL, source_sha256=digest, session="synthetic-aggregate-connector-regression",
@@ -33,6 +32,7 @@ def service(tmp_path, monkeypatch):
     from test_vendor_service_month import manifest as compass_manifest
     state = env.post(base + "/candidates", dict(document=DOC, overlay=reviewed_binding(compass_manifest(), OVERLAY)))
     assert state["state"] == "SHADOW", state
+    env.create()
     from test_vendor_semantic_bindings import review_submission
     state=env.post(base+'/semantic-bindings',dict(revision=state['revision'],
         review=review_submission(state['manifest'],state['overlay'],DOC['text'])))
@@ -162,8 +162,10 @@ def test_fixed_cutoff_uses_actual_local_receipt_and_whole_service_obligation(ser
     service.id = "inbox-component-alias"
     service.url = "/api/correspondence/claims/" + service.id
     service.provision()
-    response = service.human.post("/api/correspondence/claims", dict(claim_id=service.id, scope=service.scope))
-    assert response.status_code == 409 and "already reserved" in response.text
+    response = service.human.post("/api/correspondence/claims", dict(claim_id=service.id, scope=service.applicable_scope()))  # D04-C client
+    # D04-C (2026-11-09): a whole-service claim carries no component, so the alias is the same obligation and is
+    # refused even earlier, as an existing obligation, before any reservation lookup.
+    assert response.status_code == 409 and "obligation already exists" in response.text
     assert service.client.get(service.url, headers=service.human.headers).status_code == 404
     service.id, service.url = original_id, original_url
     assert service.read()["submissions"] == [first]

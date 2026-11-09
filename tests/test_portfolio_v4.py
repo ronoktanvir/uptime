@@ -26,7 +26,7 @@ P = Principal("bears", "portfolio-test", "reviewer")
 NOW = datetime(2026, 11, 2, 12, tzinfo=UTC)
 SCOPE = Scope(account="portfolio-account", vendor="Twilio", contract="test-agreement",
               service="Twilio Messaging API", component="test-component", invoice="test-oct-invoice",
-              incident="test-incident", currency="USD", month="2026-10", region="test-region")
+              incident="test-incident", currency="USD", month="2026-10")  # D04-C: no Twilio region
 INTERVAL = dict(start="2026-10-18T13:00:00Z", end="2026-10-18T13:30:00Z")
 BODIES = dict(status=dict(kind="status", **INTERVAL),
               impact=dict(kind="impact", **INTERVAL, affected=True, exclusion="none"),

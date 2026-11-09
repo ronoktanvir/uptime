@@ -114,3 +114,98 @@ These fixtures carry the following previously failing functions, which pass unch
 - `tests/test_agreement_binding_f5.py`: 6 functions, 12 cases. They check that an unbound overlay is refused for any agreement; that the binding admits exactly its own agreement and document; that a mismatched or incomplete binding is refused; that a binding cannot be reused for another agreement; that the fixed profile still refuses other private amendments; and that a source naming its agreement still binds by exact equality.
 
 Stored adapters are unaffected. A read-only count found that every stored manifest names its agreement.
+
+## D04-C: server-side claim scope family table
+
+On 2026-11-09 Ronok chose D04-C and "monthly keeps incident". Claim scope component, incident, region and invoice are optional. `uptime/claim_scope.py` (`claim-scope/1`) resolves the governing family from installed terms; it never trusts the client to name it. Required fields must be present and not-applicable fields absent. An unknown or ambiguous family is refused at intake, after authorization, with a distinct `InvalidClaimScope` (HTTP 409). Stored ten-field claims are grandfathered: their serialization is byte-identical, and an explicit `FeeEntry.legacy_scopes` alias keeps their governing fee.
+
+Two consequences shaped most test edits. First, a claim can no longer be created before any governing terms are installed. Second, a field that does not apply to the family, such as region on a Twilio claim, must be omitted. **No monetary amount, authority check, frozen fixture byte, oracle, expected dispute category, disposition, stage or ledger changed.**
+
+### Replaced decision-89 characterization tests
+
+| Replaced | Replacement invariant |
+| --- | --- |
+| `test_claim_scope_requires_every_field_for_every_obligation_family` | `test_claim_scope_requires_identity_currency_and_month_only` |
+| `test_recorded_scopes_lack_fields_their_obligation_may_not_need` | `test_recorded_requests_parse_and_are_judged_by_their_governing_family`: the e86 bodies parse; the monthly case is refused for "requires incident", the resource case for "requires region" |
+| `test_northwind_whole_service_scope_carries_authored_values_the_evaluator_never_reads` | `test_northwind_intake_omits_placeholders_and_keeps_its_authored_scope_as_a_legacy_alias`: the intake scope drops placeholders; the authored scope resolves the same fee; an invented region is refused |
+
+### Existing tests and fixtures changed (file, function: reason)
+
+- `tests/test_v4_routes_integration.py`, `App`. New `applicable_scope()`: the test client sends only the fields the server-resolved family needs and never invents one. `provision()`, `create()` and `source()` use it. New `install()` installs the terms (SHADOW) separately from `activate()`. These functions call `env.install()` before intake because terms must exist first: `test_active_rules_join_independent_evidence_and_historical_receipt`, `test_rollback_invalidates_existing_inbox_approval`, `test_active_overlay_requires_exact_authenticated_fee_line`, `test_monthly_tier_requires_complete_signed_month_reconciled_to_incident`, `test_overlapping_active_history_cannot_reprice_existing_measurement_month`, `test_active_effective_dates_must_cover_entire_measurement_month`, `test_active_installation_with_midmonth_effective_date_abstains` and `test_conflicting_duplicate_month_record_invalidates_approval`. `test_exact_source_binding_prevents_early_registration_of_invented_claim` also derives its invented claim from the applicable scope, so it is still refused by the exact source grant (403).
+- `tests/test_correspondence.py`:
+  - `SCOPE` drops region, which does not apply to Twilio.
+  - New harness helper `counterparty_record()`. It first checks that the counterparty fixture's attachment digests reproduce under its authored ten-field scope, then re-envelopes the same authored documents under the region-less claim scope. The fixture bytes are unchanged.
+  - `test_independent_simulator_new_evidence_and_oracle` uses `counterparty_record()`.
+  - `test_no_twilio_fallback_for_other_vendor`: **expected behaviour changed by the decision.** A vendor with no installed terms is now refused at intake as an unknown family, and nothing is drafted. It was previously drafted and evaluated as UNSUPPORTED_RULE.
+  - `test_authoritative_active_resolver_version_and_scope_binding`: the injected resolver stands in for installed terms, so the test also declares their monthly family; the scope drops component and region.
+- `tests/test_correspondence_disposition_89.py`, `record()`: uses `counterparty_record()`. Frozen `novel-89` inputs and every expected category are unchanged.
+- `tests/test_correspondence_intake_scope_89b.py`, `test_identity_contradiction_holds_actions_but_a_misroute_does_not`: the contradicting invoice-line identity is the account instead of region, because region no longer applies to a Twilio claim.
+- `tests/test_correspondence_service.py`:
+  - Fixture `service`: the claim is created after the candidate terms are installed.
+  - `test_fixed_cutoff_uses_actual_local_receipt_and_whole_service_obligation`: a whole-service claim has no component, so the "component alias" is the same obligation and is refused earlier (409, "obligation already exists") rather than at reservation lookup.
+- `tests/test_correspondence_filing_refs.py`, fixture `filing`: the claim is created after the candidate terms are installed.
+- `tests/test_correspondence_plan_refs.py`, `test_valid_source_in_another_claim_is_not_a_plan_reference_for_this_join`: no terms are installed for the second account, so a labelled test double declares the same whole-service family for that one creation.
+- `tests/test_correspondence_resource.py`:
+  - Fixture `env` opts into `create_after_install`, and `install()` then creates the claim after SHADOW.
+  - `test_region_alias_without_separate_contractual_coverage_cannot_create_another_intake` posts the applicable scope.
+  - `test_independent_resource_vendor_rechecks_private_records_and_verified_attachment`: the counterparty record mirrors the claim's applicable scope.
+- `tests/test_correspondence_regional.py`:
+  - Fixture `regional` opts into `create_after_install`.
+  - `test_distinct_covered_regions_enter_with_shared_evaluation_identity_and_reject_aliases` posts the applicable scope.
+- `tests/test_correspondence_scoped_filing_77.py`, `test_signed_historical_receipt_uses_its_verified_month_and_original_received_time`: the claim is created after installation.
+- `tests/test_correspondence_receipt_version.py`, `test_signed_public_source_proof_covers_original_pin_and_new_terms_cannot_repin_it`: the injected resolver also declares its resource family; the scope drops the not-applicable incident.
+- `tests/test_economic_scope_delimiters.py`, `test_historical_shadow_also_refuses_new_draft_before_inbox_audit`: posts the applicable scope. The whole-service variant collides earlier as the same obligation; the regional variant still hits the reservation.
+- `tests/test_claim_identity_historical.py`, `test_signed_procedural_response_survives_backfill_for_an_independent_reservation`: the expected `HIST-` identifier is computed from the stored (applicable) claim scope.
+- `tests/test_cross_claims.py`, `setup`: the inbox Twilio scope drops region. Every cross-claims test and the Ramp award tests that reuse this setup are affected only through this input.
+- `tests/test_ramp_award_claim_integration.py`, `historical()`: the injected resolver also declares its resource family; the not-applicable incident is dropped.
+- `tests/test_ramp_award_procedural.py`, `exercise`: drops the resource scope's not-applicable incident. The historical probe script is unchanged.
+- `tests/test_portfolio_v4.py` and `tests/test_source_config_v4.py`, `SCOPE`: Twilio region dropped.
+- W5 inputs, approved by gen5:
+  - `tests/test_evidence_applicability_91.py`, `SCOPE`: region dropped, and telemetry rows carry their own literal region.
+  - `tests/test_evidence_status_source_91a.py`, `SCOPE`: region dropped.
+- `tests/test_release_probes_gent8.py`, `test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake`: the final create and retry send the applicable scope. The unprovisioned-403 and malformed-422 checks are unchanged.
+- `tests/test_northwind_inputs.py`, `test_settlement_cites_unchanged_sla_and_authored_memo_has_one_identity`: the registry still has four fee entries, now reachable by eight lookup keys (four current scopes and four explicit legacy aliases).
+- `tests/test_identity_domain_89.py`, helper `_northwind_with_account`: renames the account in `legacy_scope` too.
+
+### New tests
+
+- `tests/test_claim_scope_89.py`: the family table, variant checks, unknown and ambiguous refusal, the Twilio entry, absent-versus-null, and byte-identical ten-field serialization.
+- `tests/test_source_config_d04c.py`: W5-labelled, 6 functions and 8 cases, implementing gen5's conditions (a)–(c).
+
+### Region rule refinement
+
+A resource-month claim needs its region only when the terms bind a regional subscription (the condition `claim_identity.resource_remedy` already uses) or when a filing field cites a region. Requiring it always would force callers to invent a region. Accordingly:
+
+- `test_resource_period_requires_resource_and_only_cited_or_subscribed_fields` covers four cases.
+- The e86-04 invariant uses a regional resource manifest.
+- These tests drop a region that does not apply to their non-regional terms:
+  - `tests/test_ramp_award_claim_integration.py`, `historical()`;
+  - `tests/test_correspondence_receipt_version.py`, `test_signed_public_source_proof_covers_original_pin_and_new_terms_cannot_repin_it`;
+  - `tests/test_ramp_award_procedural.py`, `exercise`.
+- `correspondence.create` checks for a regional remedy only when a region is present.
+
+### Blind-acceptance harness (assigned by the integration owner after W4 `f3bb0cc`)
+
+`scripts/blind_acceptance.py` no longer invents scope placeholders. Earlier blind runs used the previous harness, which sent `region="unasserted"`/`"independent-region"`, `incident="unasserted-incident"` and `invoice="unasserted-invoice"`. Their published results and receipts (`BLIND-RESULTS`, earlier evidence) are left exactly as recorded and are not reinterpreted.
+
+- New helper `applicable_scope()` keeps only the obligation fields the governing family needs.
+- The general control installs the authored monthly terms and sends only the incident.
+- The independent control names its resource and invoice; no incident or region is invented.
+- Its status verification links to the authored outage interval's own reference, `facts["intervals"][0]["ref"]`. That is the same value the scope incident used to carry.
+- The frozen blind case omits an unknown invoice, incident or region. A 409 at intake is recorded as the new fail code `SCOPE_FAMILY_REFUSED`, and a refused intake records `calculation_available = False`.
+
+`tests/test_blind_acceptance.py` changes, each an expected-behaviour change made by the decision, in harness-behaviour tests rather than sealed gold:
+
+- `test_quarantined_case_still_attempts_signed_denial_and_general_control`: with no installed terms the claim is refused at intake. The expectation changes from `NO_READY_DENIAL_REFUSED` to `SCOPE_FAMILY_REFUSED` (and not `NO_READY_DENIAL_REFUSED`). The quarantine, the generality delivery and the absent calculation are unchanged.
+- `test_new_listener_uses_exact_ed25519_grants_without_socket_claim`: uses the built-in Twilio scope (no region), so a claim exists without installed terms. The signed-grant assertions are unchanged.
+- `test_separate_generality_control_reaches_signed_inbox_without_holdout_gold` and `test_actual_public_artifact_signed_positive_negative_cure_and_late_routes`: no test edit. They pass through the harness changes above.
+
+Result: `tests/test_blind_acceptance.py` 37 passed, 1 warning.
+
+### Newly merged tests aligned after the integration merge
+
+- `tests/test_evidence_acceptance_91.py`, `telemetry()` (W5 input): the telemetry row carries its own literal region (`"east"`), because the Twilio claim scope no longer has one.
+- `tests/test_release_probes_gent8.py`:
+  - `SocketApp.signed_event` signs the applicable scope the App provisions and files.
+  - `test_socket_source_change_after_approval_blocks_submission` and `test_socket_injected_reply_duplicate_delivery_and_replay_create_no_money` install the governing terms before intake.
+  - Their money and authority assertions are unchanged.

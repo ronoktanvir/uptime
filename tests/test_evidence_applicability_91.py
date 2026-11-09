@@ -14,7 +14,7 @@ from uptime.source_config import SourceGrant, event_in_scope
 
 SCOPE = Scope(account="test-account", vendor="Twilio", contract="signed-agreement", service="Twilio Messaging API",
               component="api-east", invoice="oct-bill", incident="oct-synthetic-outage", currency="USD",
-              month="2026-10", region="east")
+              month="2026-10")  # D04-C (2026-11-09): region is not applicable to the Twilio profile (W5 test input)
 INSIDE = dict(start="2026-10-08T01:00:00Z", end="2026-10-08T02:00:00Z")
 PREVIOUS = dict(start="2026-09-08T01:00:00Z", end="2026-09-08T02:00:00Z")
 REPORT = dict(source_ref="monitor-export", observed_at="2026-11-01T06:00:00Z",
@@ -30,7 +30,7 @@ def refusal(body, month="2026-10"):
 
 
 def monitor_row(**interval):
-    return dict(ref="row-1", account=SCOPE.account, product=SCOPE.service, region=SCOPE.region,
+    return dict(ref="row-1", account=SCOPE.account, product=SCOPE.service, region="east",
                 resource_id=SCOPE.component, status="unavailable", **interval)
 
 

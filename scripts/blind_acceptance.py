@@ -38,6 +38,17 @@ def _load_witness_module(name, filename):
 _load_witness_module("_blind_acceptance_mapping", "blind_mapping.py")
 _load_witness_module("_blind_acceptance_expectations", "blind_expectations.py")
 
+
+def applicable_scope(scope, manifest, overlay=None):
+    """Decision D04-C (2026-11-09): send only the obligation fields the governing family needs.
+
+    The harness never invents a component, incident or region to fill a schema. Runs before
+    this change sent placeholder values; their published receipts are left as recorded.
+    """
+    from uptime.claim_scope import OBLIGATION_FIELDS, variant_for
+    required = variant_for(manifest, overlay or {}).required
+    return {k: v for k, v in scope.items() if k not in OBLIGATION_FIELDS or k in required}
+
 FREEZE = "9364cd2bf2023adbc1a6f99bc275ac1ae36476ee"
 BOUNDARY_FREEZE = "c33642b"
 FROZEN_MANIFEST = "f0c9cb6e904c36b490387eefd45bc1a9141b4e1faa3bda313f13a7cadd4d1359"
@@ -622,7 +633,9 @@ def exercise_general(source, account, messages):
         try:
             if message["account_id"] != account["account_id"] or message["resource_id"] != account["resource_id"]:
                 raise BoundaryError("GENERAL_MESSAGE_SCOPE_REFUSED")
-            scope = setup["SCOPE"] | {"account": account["account_id"], "component": account["resource_id"]}
+            # The general control installs the authored monthly-availability terms, which need only the incident.
+            scope = applicable_scope(setup["SCOPE"] | {"account": account["account_id"], "component": account["resource_id"]},
+                                     {"family": "monthly-availability/1"})
             with listener(scope, setup["SMALL"]["received_at"]) as transport:
                 observation["operations"] = transport.operations
                 facts, state = activate_control(transport, setup, account)
@@ -694,9 +707,10 @@ def independent_inbox_controls(public, *, semantic_review=None):
                 # item meaningful while remaining below the public trigger.
                 first = facts["intervals"][0]
                 first["end"] = (instant(first["start"]) + timedelta(seconds=1)).isoformat()
+            # D04-C: the authored control names its resource and invoice; no incident or region is invented.
             scope = dict(account=overlay["account"], vendor=identity["vendor"], contract=overlay["agreement"],
                 service=overlay["product"], component=overlay["resource_id"], invoice="independent-invoice",
-                incident="independent-outage", currency="USD", month=facts["month"], region="independent-region")
+                currency="USD", month=facts["month"])
             with listener(scope, facts["received_at"]) as transport:
                 result["operations"] = transport.operations
                 prefix = "/api/vendors/independent-inbox-control"
@@ -756,7 +770,7 @@ def independent_inbox_controls(public, *, semantic_review=None):
                     common = dict(artifact_ref="CONTROL-7", artifact_type="resource_log", body_sha256=digest(content.encode()), observed_at=arrival.isoformat())
                     transport.deliver(path, "customer", scope, dict(kind="artifact", source_ref="independent-archive", content=content, **common),
                                       "independent-artifact", arrival.isoformat())
-                    transport.deliver(path, "status", scope, dict(kind="status_verification", source_ref="independent-verifier", linked_ref=scope["incident"], **common),
+                    transport.deliver(path, "status", scope, dict(kind="status_verification", source_ref="independent-verifier", linked_ref=facts["intervals"][0]["ref"], **common),
                                       "independent-verification", arrival.isoformat())
                     ready = transport.get(path, "independent_cure_ready")
                     approved = transport.post(path+"/actions/approve-response", {}, "independent_response_approve")
@@ -815,11 +829,15 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             observed["diagnostic_month_only"] = True
             if authorized:
                 observed["fail_codes"].append("MEASUREMENT_MONTH_UNRESOLVED")
+        # D04-C: include only source-backed values; an unknown invoice, incident or region is omitted,
+        # never filled with an "unasserted" placeholder. The server's family table then admits or refuses.
         scope = dict(account=authorized_account["account_id"], component=authorized_account["resource_id"],
                      vendor=overlay["provider"], contract=overlay["overlay_id"], service=authorized_account["service"],
-                     invoice=invoices[0]["invoice_id"] if len(invoices) == 1 else "unasserted-invoice",
-                     incident=receipts[0]["id"] if len(receipts) == 1 else "unasserted-incident",
-                     currency=intake["overlay"]["currency"], month=next(iter(months)), region="unasserted")
+                     currency=intake["overlay"]["currency"], month=next(iter(months)))
+        if len(invoices) == 1:
+            scope["invoice"] = invoices[0]["invoice_id"]
+        if len(receipts) == 1:
+            scope["incident"] = receipts[0]["id"]
         first_arrival = min([plan["as_of"]] + [r["available_at"] for r in selected + messages], key=instant)
         with listener(scope, first_arrival) as transport:
             observed["operations"] = transport.operations
@@ -845,6 +863,8 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             path = "/api/correspondence/claims/inbox-blind-case"
             row = transport.post("/api/correspondence/claims", dict(claim_id="inbox-blind-case", scope=requested_scope), "blind_create")
             observed["scope_refused"] = row is None and not authorized and transport.operations[-1]["http_status"] == 403
+            if row is None and transport.operations[-1]["http_status"] == 409:
+                observed["fail_codes"].append("SCOPE_FAMILY_REFUSED")  # D04-C: unknown family or misfit scope at intake
             if row is not None:
                 if not authorized:
                     observed["fail_codes"].append("UNAUTHORIZED_SCOPE_ACCEPTED")
@@ -906,6 +926,7 @@ def exercise_case(fixture, source, plan, overlay, accounts, evidence, correspond
             observed["runtime_error"] = {"type": type(exc).__name__, "frames": [
                 {"file": Path(frame.filename).name, "line": frame.lineno} for frame in traceback.extract_tb(exc.__traceback__)]}
         observed.setdefault("calculation_available", False)
+    observed.setdefault("calculation_available", False)  # a refused intake (D04-C) has no calculation
     try:
         observed["generality"] = exercise_general(source, account, messages) if authorized else {
             "required_count": len(messages), "delivered_count": 0, "checks": [], "fail_codes": ["GENERAL_SCOPE_REFUSED"]}

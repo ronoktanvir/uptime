@@ -901,7 +901,8 @@
     }
     function disputes(m, data) {
       m.body.append(form(m, 'Set up a correspondence case', [ ['claim_id','Claim identifier (inbox- prefix)'], ...['account','vendor','contract','service','component','invoice','incident','currency','month','region'].map(k => [k,label(k)]) ], 'Create scoped case', v => {
-        const {claim_id, ...scope} = v; return {claim_id,scope};
+        // Decision D04-C: leave fields that do not apply blank; they are omitted, never sent as empty or null.
+        const {claim_id, ...scope} = v; return {claim_id,scope:Object.fromEntries(Object.entries(scope).filter(([, x]) => x !== ''))};
       }, '/api/correspondence/claims'));
       m.body.append(note('Provisioned services deliver messages and evidence through CLI ingestion. Refresh to inspect receipts and available reviewer actions. Service credentials never belong in this browser.'));
       const items = Array.isArray(data) ? data : list(data.claims);

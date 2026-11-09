@@ -30,7 +30,7 @@ def setup(path):
         dossier = json.loads(db.execute("SELECT dossier FROM dispute_cases WHERE id=?", (LEGACY,)).fetchone()[0])
     inbox = CorrespondenceDesk(path, clock=lambda: AT)
     scope = Scope(account=dossier["account"], vendor="Twilio", contract="synthetic-contract-alias",
-                  service=dossier["product"], component="synthetic-component", region=dossier["region"],
+                  service=dossier["product"], component="synthetic-component",  # D04-C: no Twilio region
                   invoice="independent-invoice-ref", incident="independent-incident-ref", currency="USD", month=dossier["month"])
     inbox.provision(P.tenant, scope.account, scope.vendor, scope.contract, scope.service, scope.component, scope.region)
     for role in ("status", "customer", "billing", "vendor"):

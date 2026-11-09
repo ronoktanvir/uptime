@@ -77,8 +77,9 @@ def test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake(tmp_
         app.scope, app.id = spaced, 'inbox-identity-spaced'
         app.url = '/api/correspondence/claims/' + app.id
         app.provision()
-        created = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=spaced))
-        retried = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=spaced))
+        # D04-C (2026-11-09): the client sends only the obligation fields the installed monthly family needs.
+        created = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=app.applicable_scope()))
+        retried = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=app.applicable_scope()))
         assert created.status_code == 200 and retried.status_code == 200 and retried.json() == created.json()
         stored = app.read()['scope']
         assert stored['account'] == account and stored['contract'] == agreement  # exact bytes, not rewritten
@@ -209,7 +210,8 @@ def _socket_route_world(tmp_path):
 
         def signed_event(self, subject, body, event_id):
             target = self.url + '/events'
-            raw = _json.dumps(dict(event_id=event_id, scope=self.scope, body=body)).encode()
+            # D04-C (2026-11-09): sign the same applicable scope the App provisions and files.
+            raw = _json.dumps(dict(event_id=event_id, scope=self.applicable_scope(), body=body)).encode()
             return target, raw, service_headers(instance=self.app.state.auth.instance, origin=self.origin, subject=subject,
                                                 key=self.keys[subject], path=target, body=raw)
 
@@ -232,7 +234,7 @@ def test_socket_source_change_after_approval_blocks_submission(tmp_path, monkeyp
     from tests.test_v4_routes_integration import TEXT
     env = _socket_route_world(tmp_path)
     try:
-        env.provision(); env.create(); env.evidence(); env.activate()
+        env.install(); env.provision(); env.create(); env.evidence(); env.activate()  # D04-C: terms before intake
         assert env.read()['amount'] == '52.17'
         env.action('approve-claim')
         # The governing source changes after approval: a new active version with a different credit rate.
@@ -252,7 +254,7 @@ def test_socket_injected_reply_duplicate_delivery_and_replay_create_no_money(tmp
     monkeypatch.delenv('UPTIME_PUBLIC_EXTRACTIONS', raising=False)
     env = _socket_route_world(tmp_path)
     try:
-        env.provision(); env.create(); env.evidence(); env.activate()
+        env.install(); env.provision(); env.create(); env.evidence(); env.activate()  # D04-C: terms before intake
         env.action('approve-claim')
         submitted = env.action('submit-claim')['submissions'][0]
         before = env.read()

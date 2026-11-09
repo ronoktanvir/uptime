@@ -245,7 +245,9 @@ def test_quarantined_case_still_attempts_signed_denial_and_general_control(monke
     observed = runner.exercise_case(None, Path(__file__).resolve().parents[1], plan, overlay, [account], [], [message],
                                    b"Unrepresentable synthetic harness-only public contract.")
     assert observed["candidate_state"] == "QUARANTINED", observed["fail_codes"]
-    assert "NO_READY_DENIAL_REFUSED" in observed["fail_codes"]
+    # D04-C (2026-11-09): with no installed governing terms the claim family is unknown, so intake refuses the
+    # claim before any denial path (previously NO_READY_DENIAL_REFUSED after a drafted claim).
+    assert "SCOPE_FAMILY_REFUSED" in observed["fail_codes"] and "NO_READY_DENIAL_REFUSED" not in observed["fail_codes"]
     assert observed["generality"]["delivered_count"] == 1
     assert observed["calculation_available"] is False
 
@@ -288,6 +290,9 @@ def test_new_listener_uses_exact_ed25519_grants_without_socket_claim(monkeypatch
     from test_v4_routes_integration import SCOPE, INTERVAL
     from uptime.source_config import SenderCredential
     monkeypatch.setattr(runner, "TRANSPORT_MODE", "testclient")
+    # D04-C (2026-11-09): a claim needs a known family; the built-in Twilio profile needs no installed terms
+    # (incident and component, no region). This test only exercises the listener's exact signed grants.
+    SCOPE = {k: v for k, v in SCOPE.items() if k != "region"} | {"vendor": "Twilio", "service": "Twilio Messaging API"}
     with runner.listener(SCOPE, "2026-11-03T00:00:00Z") as transport:
         assert all(isinstance(key, SenderCredential) for key in transport.senders.values())
         path = "/api/correspondence/claims/inbox-witness"

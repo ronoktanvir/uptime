@@ -180,8 +180,9 @@ def test_historical_shadow_also_refuses_new_draft_before_inbox_audit(request, fi
         env.provision()
     seed_shadow(env, aggregate=aggregate)
     saved = financial_rows(env)
-    response = env.human.post("/api/correspondence/claims", dict(claim_id="inbox-new-shadow", scope=env.scope))
-    assert response.status_code == 409 and "already reserved" in response.text
+    response = env.human.post("/api/correspondence/claims", dict(claim_id="inbox-new-shadow", scope=env.applicable_scope()))  # D04-C client
+    # D04-C (2026-11-09): a whole-service claim has no component alias, so it collides earlier as the same obligation.
+    assert response.status_code == 409 and ("obligation already exists" if aggregate else "already reserved") in response.text
     assert financial_rows(env) == saved
 
 
