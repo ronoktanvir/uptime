@@ -50,3 +50,10 @@ Added `tests/test_supplementary_finish_batch.py`:
 - `test_unpinned_consumed_input_cannot_start_a_provider`: every consumed source/setup/provider configuration must be committed by hash.
 
 The additive batch executor opens no expected answers, checks source pins between cases, and records raw model, scripted projection, continuation and setup separately. It is infrastructure, not a result claim. Latest focused result: **59 passed, 1 warning in 2.50s.**
+
+
+## Provider stream preservation
+
+Wired the already reviewed spool helper into the actual SafePublicClaude providers used by both additive runners. Exact request exports must be registered before the ordinary queue starts. The wrapper retains the actual profile, 60-second timeout, output cap, provider identity/tool checks and ordinary approval gates. It records partial stdout/stderr from process startup; it adds no retry or fallback.
+
+Added `test_spool_preserves_profile_and_only_registered_exact_request` (reject unregistered bytes, preserve delegated provider properties, and refuse reuse of the same call marker) and `test_spool_timeout_preserves_partial_stream_and_restores_transport` (a controlled subprocess emits partial output then times out; bytes and termination evidence survive and the original transport is restored). The first timeout assertion used an incorrect artifact filename and was corrected to the spool helper's existing `provider.stdout` filename. Latest combined focused result: **61 passed, 1 warning in 3.16s.** No application change and no actual provider call in these checks.

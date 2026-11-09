@@ -59,6 +59,13 @@ def _served(db, config_path, lifecycle):
     sock.bind(('127.0.0.1', 0))
     origin = 'http://127.0.0.1:' + str(sock.getsockname()[1])
     app = create_app(db, tenant=TENANT, origin=origin, approvals_enabled=False, proposal_config=config_path)
+    from scripts.dispute_runtime_finish import PinnedStreamProvider
+    from uptime.correspondence_model_transport import SafePublicClaude
+    jobs = app.state.public_proposal_jobs
+    if jobs is not None and isinstance(jobs.providers.get('vendor'), SafePublicClaude):
+        spooled = PinnedStreamProvider(jobs.providers['vendor'], Path(db).parent / 'provider-streams')
+        jobs.providers['vendor'] = spooled
+        lifecycle['register_exact_export'] = spooled.register
     key = generate_reviewer_key()
     enroll(db, SUBJECT, key, tenant=TENANT)
     server = uvicorn.Server(uvicorn.Config(app, log_level='error', lifespan='on'))
@@ -164,6 +171,8 @@ def run(*, document_path, overlay_path, run_dir, config_path, approve, approved_
                     _new(run / f"request-export-{family['family'].replace('/', '_')}.json", exported)
                     if not record['matches_server'] or leaks:
                         raise PermissionError('An exported request differs from the server pin or contains local material.')
+                    if lifecycle.get('register_exact_export'):
+                        lifecycle['register_exact_export'](digest)
                 if not approve:
                     report['stage'] = 'awaiting_operator_approval'
                     return report
