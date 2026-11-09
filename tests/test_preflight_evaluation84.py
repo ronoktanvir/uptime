@@ -97,3 +97,17 @@ def test_derived_scope_uses_only_literal_context_values():
     assert scope == {'account': 'Cedar Orrery Studio', 'vendor': 'Talus Signal',
                      'contract': 'Talus Signal Availability Agreement', 'service': 'Event Relay',
                      'currency': 'USD', 'month': '2033-10'}
+
+
+def test_dispute_claim_basis_contracts_cannot_be_activated_on_the_deterministic_route(receipt):
+    # Second dispute setup dependency besides D04: claims resolve terms only through an ACTIVE adapter,
+    # and neither claim-basis contract passes deterministic source/overlay validation on this source.
+    built, _, _ = receipt
+    activation = built['claim_basis_activation']
+    assert set(activation) == {'monthly_tier', 'resource_month'}
+    assert activation['monthly_tier']['dispute_cases'] == 11 and activation['resource_month']['dispute_cases'] == 1
+    for value in activation.values():
+        assert value['http_status'] == 200 and value['state'] == 'QUARANTINED'
+        assert value['reason'] == 'Source or overlay validation failed.'
+    assert built['summary']['claim_basis_contracts_reaching_shadow'] == 0
+    assert built['summary']['dispute_cases_without_activatable_claim_basis'] == 12

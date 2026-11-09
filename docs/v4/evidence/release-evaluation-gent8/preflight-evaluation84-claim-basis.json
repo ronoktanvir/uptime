@@ -1,0 +1,708 @@
+{
+  "schema": "evaluation84-preflight/1",
+  "at": "2026-11-09T12:26:19.441118+00:00",
+  "source_head": "46d20b5c4eebdefd7b3184c4f58cc04e23ba6fed",
+  "corpus_commit": "042d701da9c6c05f44c523939241b18ee1d579ed",
+  "manifest_sha256": "1b2ecd449c7eea2b6fe0bcaae9b58304a7bffa02579a43e246230cc09bcd8619",
+  "model_calls": 0,
+  "gold_opened": false,
+  "network": false,
+  "pins": [
+    {
+      "path": "fixtures/evaluation84_public/disputes/01_late_filing/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/02_missing_artifact/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/03_availability_denial/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/04_maintenance_denial/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/05_full_award/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/06_partial_award/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/07_review_conditional/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/08_review_contradiction/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/09_review_currency/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/10_review_release/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/11_review_quotation/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/12_review_unbound_claim/source.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/aggregate_fixed_month/customer.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/aggregate_fixed_month/document.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/ambiguous_deadline/customer.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/ambiguous_deadline/document.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/completed_step/customer.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/completed_step/document.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/monthly_tier/customer.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/monthly_tier/document.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/resource_month/customer.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/resource_month/document.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/unsupported_variable_fee/customer.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/unsupported_variable_fee/document.json",
+      "manifest_match": true,
+      "frozen_commit_match": true
+    }
+  ],
+  "gold_metadata": {
+    "monthly_tier": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "completed_step": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "resource_month": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "aggregate_fixed_month": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "unsupported_variable_fee": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "ambiguous_deadline": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "01_late_filing": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "02_missing_artifact": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "03_availability_denial": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "04_maintenance_denial": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "05_full_award": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "06_partial_award": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "07_review_conditional": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "08_review_contradiction": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "09_review_currency": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "10_review_release": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "11_review_quotation": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    },
+    "12_review_unbound_claim": {
+      "present": true,
+      "regular": true,
+      "owner_only": true,
+      "owned_by_operator": true
+    }
+  },
+  "onboarding": [
+    {
+      "id": "monthly_tier",
+      "profile": "monthly-propositions",
+      "checks": {
+        "runner_inputs": "ACCEPTED",
+        "runner_family_route": true,
+        "profile_input": "ACCEPTED",
+        "scenarios": [
+          "timely_outage",
+          "no_outage"
+        ],
+        "governing_fee_source_supplied": true,
+        "fee_authority_reachable_on_draft_path": false
+      }
+    },
+    {
+      "id": "completed_step",
+      "profile": "monthly-propositions",
+      "checks": {
+        "runner_inputs": "ACCEPTED",
+        "runner_family_route": true,
+        "profile_input": "ACCEPTED",
+        "scenarios": [
+          "timely_outage",
+          "no_outage"
+        ],
+        "governing_fee_source_supplied": true,
+        "fee_authority_reachable_on_draft_path": false
+      }
+    },
+    {
+      "id": "resource_month",
+      "profile": "resource-month",
+      "checks": {
+        "runner_inputs": "ACCEPTED",
+        "runner_family_route": true,
+        "profile_input": "ACCEPTED",
+        "scenarios": [
+          "timely_outage",
+          "no_outage"
+        ],
+        "governing_fee_source_supplied": false,
+        "fee_authority_reachable_on_draft_path": false
+      }
+    },
+    {
+      "id": "aggregate_fixed_month",
+      "profile": "resource-month",
+      "checks": {
+        "runner_inputs": "ACCEPTED",
+        "runner_family_route": true,
+        "profile_input": "ACCEPTED",
+        "scenarios": [
+          "timely_outage",
+          "no_outage"
+        ],
+        "governing_fee_source_supplied": false,
+        "fee_authority_reachable_on_draft_path": false
+      }
+    },
+    {
+      "id": "unsupported_variable_fee",
+      "profile": "monthly-propositions",
+      "checks": {
+        "runner_inputs": "ACCEPTED",
+        "runner_family_route": true,
+        "profile_input": "ACCEPTED",
+        "scenarios": [],
+        "governing_fee_source_supplied": false,
+        "fee_authority_reachable_on_draft_path": false
+      }
+    },
+    {
+      "id": "ambiguous_deadline",
+      "profile": "monthly-propositions",
+      "checks": {
+        "runner_inputs": "ACCEPTED",
+        "runner_family_route": true,
+        "profile_input": "ACCEPTED",
+        "scenarios": [],
+        "governing_fee_source_supplied": false,
+        "fee_authority_reachable_on_draft_path": false
+      }
+    }
+  ],
+  "disputes": [
+    {
+      "id": "01_late_filing",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "02_missing_artifact",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "03_availability_denial",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "04_maintenance_denial",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "resource_month",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "05_full_award",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "06_partial_award",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "07_review_conditional",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "08_review_contradiction",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "09_review_currency",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "10_review_release",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "11_review_quotation",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    },
+    {
+      "id": "12_review_unbound_claim",
+      "route": "/api/correspondence/claims",
+      "outcome": "SCOPE_REFUSED",
+      "claim_basis_contract": "monthly_tier",
+      "blockers": {
+        "D03": [],
+        "D04": [
+          {
+            "field": "component",
+            "type": "missing"
+          },
+          {
+            "field": "incident",
+            "type": "missing"
+          },
+          {
+            "field": "invoice",
+            "type": "missing"
+          },
+          {
+            "field": "region",
+            "type": "missing"
+          }
+        ],
+        "other": []
+      },
+      "model_calls": 0
+    }
+  ],
+  "claim_basis_activation": {
+    "monthly_tier": {
+      "route": "deterministic candidate (no model)",
+      "http_status": 200,
+      "state": "QUARANTINED",
+      "reason": "Source or overlay validation failed.",
+      "dispute_cases": 11
+    },
+    "resource_month": {
+      "route": "deterministic candidate (no model)",
+      "http_status": 200,
+      "state": "QUARANTINED",
+      "reason": "Source or overlay validation failed.",
+      "dispute_cases": 1
+    }
+  },
+  "summary": {
+    "inputs_pinned": true,
+    "frozen_commit_verified": true,
+    "frozen_commit_mismatch": 0,
+    "sealed_gold_present": 18,
+    "onboarding_runner_inputs_accepted": 6,
+    "onboarding_profile_inputs_accepted": 6,
+    "dispute_scope_blocked": 12,
+    "dispute_blocked_by_D03": 0,
+    "dispute_blocked_by_D04": 12,
+    "dispute_blocked_other": 0,
+    "claim_basis_contracts_reaching_shadow": 0,
+    "dispute_cases_without_activatable_claim_basis": 12
+  }
+}

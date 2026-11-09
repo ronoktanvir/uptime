@@ -19,3 +19,7 @@ Both replaced tests were new on this branch and never on integration. The replac
 |---|---|---|
 | `tests/test_release_probes_gent8.py::test_d03_defect_reproduction_onboarding_identity_is_refused_by_claim_intake` (from `0403ec5`) | `test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake` | The pinned defect is repaired by decision D03-A. The shadow ELIGIBLE 52.17 assertion is kept unchanged. The spaced exact identity now reaches the provisioning gate (403). Once provisioned it opens the claim (200), an exact retry returns the same claim, and the stored scope keeps the exact bytes. Padded, repeated-space, tab, non-NFC, em-dash and `#` values are still refused with 422 at intake. |
 | `tests/test_preflight_evaluation84.py::test_every_dispute_case_is_blocked_at_claim_scope_by_d03_and_d04` | `test_after_d03a_every_dispute_case_is_blocked_at_claim_scope_only_by_d04` | After D03-A, 0/12 replies are blocked on identity. 12/12 are still blocked on the universally required component, incident, invoice and region, because D04-C is decided but not yet implemented. The pre-D03 receipt `preflight-evaluation84.json` is preserved unchanged; the new state is in `preflight-evaluation84-after-d03a.json`. |
+
+| Added test | Reason |
+|---|---|
+| `tests/test_preflight_evaluation84.py::test_dispute_claim_basis_contracts_cannot_be_activated_on_the_deterministic_route` | New. Records the second dispute setup dependency: both claim-basis contracts are QUARANTINED on the no-model candidate route, so 12/12 replies lack an active adapter for their claim. |

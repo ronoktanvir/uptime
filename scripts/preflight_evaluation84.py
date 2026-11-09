@@ -127,6 +127,39 @@ def dispute_case(entry):
             'model_calls': 0}
 
 
+def claim_basis_activation(disputes):
+    """Can each dispute claim-basis contract enter the deterministic (no-model) candidate route?
+
+    In-process app on a temporary database with the scripted local reviewer; no network, model or
+    gold. Claims resolve terms only through an ACTIVE adapter (uptime/v4_routes.resolve_active), so a
+    contract that cannot reach SHADOW here cannot back a submitted claim without another path.
+    """
+    import secrets
+    import tempfile
+    from fastapi.testclient import TestClient
+    from uptime.auth import DEFAULT_ORIGIN, SCRIPT
+    from uptime.auth_client import ReviewerClient
+    from uptime.server import create_app
+    results = {}
+    for name in sorted({case['claim_basis_contract'] for case in disputes if case['claim_basis_contract']}):
+        folder = ROOT / 'fixtures/evaluation84_public/onboarding' / name
+        document = json.loads((folder / 'document.json').read_bytes())
+        overlay = json.loads((folder / 'customer.json').read_bytes())['overlay']
+        from unittest.mock import patch
+        clean = {k: v for k, v in os.environ.items() if k not in ('UPTIME_PUBLIC_EXTRACTIONS', 'UPTIME_MODEL_PROPOSITIONS')}
+        with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, clean, clear=True):
+            key = secrets.token_urlsafe(32)
+            app = create_app(Path(temporary) / 'setup.db', rehearsal=True, rehearsal_secret=key, approvals_enabled=True)
+            with TestClient(app, base_url=DEFAULT_ORIGIN, client=('127.0.0.1', 4510)) as client:
+                response = ReviewerClient(client, DEFAULT_ORIGIN, SCRIPT, key).post(
+                    '/api/vendors/v-claim-basis/candidates', dict(document=document, overlay=overlay))
+                body = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+        results[name] = {'route': 'deterministic candidate (no model)', 'http_status': response.status_code,
+                         'state': body.get('state'), 'reason': body.get('reason'),
+                         'dispute_cases': sum(1 for case in disputes if case['claim_basis_contract'] == name)}
+    return results
+
+
 def build(gold_root=None):
     manifest = json.loads((ROOT / MANIFEST).read_bytes())
     gold_root = gold_root or manifest['sealed_gold_root']
@@ -137,11 +170,13 @@ def build(gold_root=None):
     head = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
     blocked = [case['id'] for case in disputes if case['outcome'] != 'SCOPE_ACCEPTED']
     pins = _pins(manifest)
+    activation = claim_basis_activation(disputes)
     return {
         'schema': SCHEMA, 'at': datetime.now(UTC).isoformat(), 'source_head': head, 'corpus_commit': CORPUS_COMMIT,
         'manifest_sha256': _hash((ROOT / MANIFEST).read_bytes()),
         'model_calls': 0, 'gold_opened': False, 'network': False,
         'pins': pins, 'gold_metadata': gold, 'onboarding': onboarding, 'disputes': disputes,
+        'claim_basis_activation': activation,
         'summary': {
             'inputs_pinned': all(item['manifest_match'] for item in pins),
             'frozen_commit_verified': all(item['frozen_commit_match'] is True for item in pins),
@@ -153,6 +188,9 @@ def build(gold_root=None):
             'dispute_blocked_by_D03': sum(1 for case in disputes if case['blockers']['D03']),
             'dispute_blocked_by_D04': sum(1 for case in disputes if case['blockers']['D04']),
             'dispute_blocked_other': sum(1 for case in disputes if case['blockers']['other']),
+            'claim_basis_contracts_reaching_shadow': sum(1 for value in activation.values() if value['state'] in ('SHADOW', 'ACTIVE')),
+            'dispute_cases_without_activatable_claim_basis': sum(value['dispute_cases'] for value in activation.values()
+                                                                 if value['state'] not in ('SHADOW', 'ACTIVE')),
         },
     }
 
