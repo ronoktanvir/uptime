@@ -13,7 +13,7 @@ copy against the manifest, then applies an authority-reducing fence:
   cannot resurrect single-use authority that may have been consumed later;
 * when the operator supplies the previous database of the same workspace,
   its issuer, mandate and price-evidence revocations are carried forward;
-* native preparation and new mandate installation stay refused until an
+* native preparation stays refused until an
   operator acknowledges reconciliation of external effects since the backup.
 
 The manifest is a checksum record, not an authenticated signature: it detects
@@ -263,7 +263,7 @@ def _carry_forward(db, previous, binding):
         old.close()
 
 
-RECONCILE = "Restored workspace: reconcile external effects since {since} and acknowledge it before native actions or new mandates"
+RECONCILE = "Restored workspace: reconcile external effects since {since} and acknowledge it before native actions"
 OPERATOR = re.compile(r"[a-z][a-z0-9_.-]{1,63}")
 
 
@@ -359,9 +359,9 @@ def restore(backup_directory, target, *, tenant, mode, previous=None, now=None):
             "binding": binding, "fenced_unused_mandates": fenced,
             "revocations_carried_forward": carried,
             "reconcile_external_effects_since": manifest["created_at"],
-            "native_actions_and_new_mandates": "BLOCKED_UNTIL_RECONCILED",
+            "native_actions": "BLOCKED_UNTIL_RECONCILED",
             "required_next_steps": [
                 "Reconcile any Ramp comment or vendor submission made after the backup time against the provider before a new action.",
-                "Record that reconciliation with `workspace_recovery.py acknowledge`; native preparation and new mandates stay refused until then.",
+                "Record that reconciliation with `workspace_recovery.py acknowledge`; native preparation stays refused until then.",
                 "Re-apply any revocation made after the backup unless the previous database was supplied.",
                 "Launch with the same tenant and mode; sessions must sign in again."]}

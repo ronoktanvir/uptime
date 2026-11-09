@@ -418,15 +418,13 @@ def test_operator_commands_print_no_secrets_and_signal_attention(tmp_path, capsy
     assert key["d"] not in output
 
 
-def test_restore_blocks_native_preparation_and_new_mandates_until_reconciled(tmp_path):
-    db, _, signer = live_workspace(tmp_path)
+def test_restore_blocks_native_preparation_until_reconciled(tmp_path):
+    db, _, _ = live_workspace(tmp_path)
     folder = private_dir(tmp_path / "backups") / "copy"
     manifest = backup(db, folder)
     target = private_dir(tmp_path / "restored") / "work.sqlite"
     receipt = restore(folder, target, tenant=TENANT, mode="sandbox")
-    assert receipt["native_actions_and_new_mandates"] == "BLOCKED_UNTIL_RECONCILED"
-    with pytest.raises(PermissionError, match="reconcile"):
-        mandate(target, signer)
+    assert receipt["native_actions"] == "BLOCKED_UNTIL_RECONCILED"
     workspace = RampWorkspace(Workbench(target, "sandbox", tenant=TENANT))
     snapshot, _, _, _ = workspace._view()
     bill = next(r for r in snapshot["resources"]["bills"]["records"] if r["kind"] == "bill")
@@ -446,9 +444,7 @@ def test_restore_blocks_native_preparation_and_new_mandates_until_reconciled(tmp
             conn.execute("UPDATE operations_restore SET reconciled_at=NULL")
         with pytest.raises(sqlite3.DatabaseError, match="immutable"):
             conn.execute("DELETE FROM operations_restore")
-    mandate(target, signer)  # new authority only after the acknowledgement
     assert "RESTORE_RECONCILIATION_PENDING" not in {f["code"] for f in check(target)["findings"]}
-    assert mandate(db, signer)  # the original workspace was never gated
 
 
 def test_deleted_host_store_cannot_reopen_a_revoked_workspace(tmp_path, host_store):

@@ -336,8 +336,6 @@ def install(path, signed):
     m = signed.mandate
     with database(path) as db, db:
         db.execute("BEGIN IMMEDIATE")
-        from .workspace_recovery import require_reconciled
-        require_reconciled(db)  # A restored snapshot issues no new authority before reconciliation.
         _verified(db, signed, time())
         try:
             db.execute("INSERT INTO reviewer_mandate(id,issuer,reviewer,path,body,signed) VALUES(?,?,?,?,?,?)",
