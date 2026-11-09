@@ -29,7 +29,7 @@ So an Uptime-origin comment needs blocker 2 satisfied by a person, and the act i
 
 ## (c) Ramp-context fields for the interface
 
-Published here before role 4 consumes them; served from `GET /api/ramp/workspace` and `GET /api/ramp/records/{id}`. Names are final once the implementation commit lands; changes will be noted here.
+Implemented at `5f5cee4` and `1527bc0`; the names below are final. `GET /api/ramp/workspace` returns `capture`, `records[].ramp_context` and `verified_record`. `GET /api/ramp/records/{id}` returns `ramp_context`. All are read-only and computed from saved Ramp captures; the interface never computes or infers any of them.
 
 **Capture** (`capture`, one per response):
 
@@ -37,11 +37,13 @@ Published here before role 4 consumes them; served from `GET /api/ramp/workspace
 |---|---|
 | `business_id` | The installation-verified Ramp business, or `null` for the packaged capture (no business proof) |
 | `custody` | `operator_import` (a person ran the read) or `packaged_receipt` (a saved file shipped with the app) |
+| `custody` values | `operator_import`, `packaged_receipt` or `packaged_verified_record` (the saved demo-bill record) |
 | `observed_at`, `completed_at` | When Ramp was read, as ISO-8601 UTC strings; the interface formats them |
 | `freshness` | `FRESH` (24 hours or less), `STALE` or `HISTORICAL_REPLAY` |
 | `capture_checksum` | Integrity digest of the saved capture |
-| `resources[]` | Per resource: `name`, `status`, `retained` (records kept), `listed` (IDs Ramp returned), `list_complete`, `has_next`, `pages_read`, `page_size`, `max_pages`, `detail_budget_reached` |
-| `account_complete` | `true` only when every list needed for the worklist is complete. Otherwise the screen must say the list is partial |
+| `resources[]` | Per resource: `name`, `status`, `complete`, `retained` (records kept), `listed` (IDs Ramp returned), `list_complete`, `has_next`, `pages_read`, `page_size`, `max_pages`, `detail_budget_reached` |
+| `account_complete` | `true` only when the bill, transaction and purchase-order lists that were requested are all complete. Otherwise the screen must say the list is partial |
+| `incomplete_lists` | Names of the requested worklist lists that are partial, for example `["transactions"]` |
 
 **Record** (`ramp_context`, one per worklist row and on record detail):
 
@@ -59,7 +61,21 @@ Published here before role 4 consumes them; served from `GET /api/ramp/workspace
 | `agreement_binding` | `{status: BOUND, NONE or CONFLICT; contract_id; association_digest}` from a reviewed association only |
 | `finding_attachable` | `true` only when business, vendor, bill and agreement are all bound exactly. When `false`, any contract finding is withheld from this record |
 | `discussion` | `[{comment_id, created_at, attribution}]`. `attribution` is `PERSON_POSTED_VERIFIED_READBACK` when the committed human-note receipt matches, else `UNATTRIBUTED`. A local receipt never shows as a Ramp confirmation |
-| `credit_links` | Status from the D09 read-back (`NO_APPLIED_CREDITS`, `VERIFIED_APPLICATIONS`, `REVIEW_REQUIRED` or `UNKNOWN`), with `applied_verified_minor` |
+| `credit_links` | Status from the D09 read-back (`NO_APPLIED_CREDITS`, `VERIFIED_APPLICATIONS`, `REVIEW_REQUIRED` or `UNKNOWN`), with `reasons`, `applied_verified_minor` and `links` |
+| `native_confirmation` | Always `RAMP_READ_ONLY`: these fields describe what Uptime read from Ramp, never a write |
+| `actual_recovery` | Always `null` |
+
+**Verified record** (`verified_record`, on the workspace overview; only in the packaged presentation workspace, otherwise `null`):
+
+| Field | Meaning |
+|---|---|
+| `kind`, `live_read`, `statement` | `SAVED_VERIFIED_RECORD`, `false`, and "Saved verified record of one Ramp demo bill. Not a live read." |
+| `capture` | The same capture summary as above, for business `1569e402…`, read 2026-11-09 12:35 UTC |
+| `ramp_context` | The record fields above for bill `f74ba12c…`: an operator-observed link, binding `NONE`, `finding_attachable: false`, the note attributed to a person, credits `NO_APPLIED_CREDITS`, `vendor_name: null` |
+| `finding` | `{outcome: INSUFFICIENT_EVIDENCE, finding_kind: UNBOUND_RECORD, missing, amount: null}` |
+| `contract_terms`, `actual_recovery` | `NONE_BOUND`, `null` |
+
+**Requests to role 4 (gent7).** The Ramp page already renders all of this inside `web/ramp_ui.js`: the verified record panel, worklist attribution and partial-list statement, and row and record context. No mount or route change is needed for that. **Optional:** a link from the companion workflow's Ramp section to the Ramp page (`#ramp`), so the "Ramp bill: Not linked" card can point to the verified record. That is a route change for gent7 through the coordinator.
 
 ## (d) Plan
 
@@ -72,4 +88,31 @@ Published here before role 4 consumes them; served from `GET /api/ramp/workspace
 
 ## Status
 
+## Delivered
+
+| Deliverable | Where |
+|---|---|
+| Supported-capability matrix (task 1, 10) | [ramp-capabilities.md](ramp-capabilities.md) |
+| Read-only worklist: names, invoice, amounts, statuses, read time, exact links, partial captures (tasks 3, 4) | `27ac360`, `5f5cee4`, `318668b` |
+| Verified demo-bill record beside the worklist (task 5, coordinator option A) | `1527bc0`, `fixtures/ramp/verified-demo-bill.json` |
+| Exact bindings before a finding shows on a Ramp record (task 6); evidence gap kept on the unrelated bill (task 7) | `uptime/ramp_context.py`; `tests/test_ramp_context.py` |
+| Operator proof packet (task 8), fresh-capture command, Northwind bill proposal (task 9) | [ramp-operator-packet.md](ramp-operator-packet.md) |
+
+**Acceptance criteria:**
+- **A judge can open the exact associated Ramp record from Uptime:** the "Open this bill in Ramp" link in the Verified Ramp record panel, basis "observed by a person, confirmed by API read".
+- **Read freshness, missing evidence and object identity are inspectable:** the read time and partial-list statement, the per-record business, vendor, entity and bill identity, binding status and the evidence-gap finding.
+- **A local receipt can't satisfy a native confirmation:** `native_confirmation: RAMP_READ_ONLY`; tested with Local ledger activity beside a Ramp capture.
+- **The human-posted comment stays attributed to the person:** `PERSON_POSTED_VERIFIED_READBACK`, matched to the committed receipt.
+- **Uptime-origin posting stays an open proof requirement:** packet item 2.
+
+**Needs a person or Ronok:**
+- whether and where to run the Uptime-origin comment route (packet item 2);
+- approval of the read-only capture with names (item 4);
+- the Northwind bill decision, which changes D02; I recommend against it (item 5);
+- the award-verification role and the D06 two-person question.
+
+## Status log
+
 - 13:08 PST: this file. Implementation follows in focused commits; the changed-test ledger is [`TEST-CHANGES-submission-ramp-20261109.md`](../TEST-CHANGES-submission-ramp-20261109.md).
+- 13:13 PST: coordinator approved option A (verified demo-bill panel), with conditions; all applied.
+- 13:24 PST: worklist, context projection, verified record, capability matrix and operator packet pushed. Focused: 1,155 passed, 1 warning; Node 109 passed.
