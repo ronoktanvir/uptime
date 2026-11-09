@@ -13,11 +13,12 @@
   "receipt_recorded_at": "2026-11-09T21:19:54.604249Z",
   "job_submitted_at": "2026-11-09T21:19:55.489118Z",
   "what_was_committed": "1646930 added fixtures/northwind/counterparty-variants.json and scripts/run_denial_model_job.py and changed scripts/setup_northwind.py. The application code (uptime/) was last changed at da3a909, its parent.",
-  "uncommitted_state": "The runner commit and the run were issued in one shell command (git add of the three files, git commit, then the runner), so the run started about two seconds after the commit. git status was not captured at that instant. According to the session record, no other tracked file had been modified since da3a909, and the only untracked path was the then-empty directory docs/v4/evidence/submission-disputes-20261109/. This is a statement from the session record, not a recorded check.",
+  "uncommitted_state": "NOT_CAPTURED",
   "later_commits_not_part_of_the_run": [
    "0225970 (adds the receipt only)",
    "2742be0 and later (step timing, sign-in, credential and view fixes, made after the run)"
-  ]
+  ],
+  "uncommitted_state_note": "git status was not recorded at the instant of the run, so whether any tracked file differed from commit 1646930 then is not captured. What the records show: commit 1646930 at 21:19:52Z, receipt recorded_at 21:19:54.6Z, job submitted 21:19:55.5Z; the next commit, 0225970, adds only the receipt."
  },
  "transport_from_job_row": {
   "read_from": "A scratch copy of the preserved recorded workspace; the preserved folder was not opened. Its workspace.db sha256 stayed 1a035ab27ab5cb01aec266066b9a7a0870fa41e1a909e1bfe7025eb8d7135c4d before and after.",
@@ -26,8 +27,8 @@
   "status": "SUCCEEDED",
   "profile": {
    "name": "safe-public-experimental-v2",
-   "revision": null,
-   "revision_note": "The stored profile has no revision field; its CLI version string is recorded instead.",
+   "revision": "NOT_CAPTURED",
+   "revision_note": "The job row's stored profile has no revision field; only the CLI version string above was recorded.",
    "version": "2.1.318 (Claude Code)",
    "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d",
    "retry_count": 0,
@@ -98,5 +99,6 @@
   "reason": null
  },
  "how_driven": "scripts/run_denial_model_job.py drove the application's own signed HTTP routes through an in-process test client (fastapi.testclient), with the ordinary request proofs. The shared job service invoked the genuine provider (Claude Code CLI, claude-opus-5-5, empty tools and MCP). No browser, listening socket or served workspace was involved.",
- "authority": "SCRIPTED_NOT_ACTUAL_HUMAN for the reviewer steps; the approval covered one model invocation only."
+ "authority": "SCRIPTED_NOT_ACTUAL_HUMAN for the reviewer steps; the approval covered one model invocation only.",
+ "correction": "a4feb29 described the uncommitted state from the session record. Per the coordinator's rule to state only what the records show, that statement is replaced by NOT_CAPTURED in this revision."
 }
