@@ -34,7 +34,7 @@ Each source is enrolled offline with an Ed25519 key, one role (`status`, `custom
 | Same event ID with different content | `correspondence.receive` | Refused (409); identical retry returns the original receipt | Same |
 | Revoked or rotated key; changed grant | `SourceRegistry.lookup` re-reads the protected file per delivery | Refused (403) | Not applicable |
 
-**Rejected, not quarantined.** Every refusal raises inside the intake transaction, so nothing is stored and no refusal is logged. A refusal audit stream and a supersede path for an already-stored mistaken record are requested from W0 and W4 (F7).
+**Rejected, not quarantined.** Every refusal raises inside the intake transaction, so nothing is stored and no refusal is logged. A refusal audit stream (F7a, W0) and a supersede path for an already-stored mistaken record (F7b, W4) are accepted as open items, not yet implemented.
 
 ## 3. Acceptance conditions
 
@@ -56,17 +56,22 @@ A public status incident never produces an entitlement by itself. The public sna
 
 Reproduced findings are in the [receipt](evidence/evidence-custody-90/findings-91.json); the others cite code.
 
-| ID | Finding | Owner | Decision dependency |
-|:---|:---|:---|:---|
-| F1 | Embedded and HMAC channels store wrong-period records; the one-per-kind desk then reports the correct records as contradictory with no recovery. **Reproduced.** | W4 (`correspondence.py`) | None for applying the decision-91 rule at the desk |
-| F2 | Embedded and HMAC channels store nested rows naming another account; evaluation is then blocked. **Reproduced**; also asserted by existing `test_mismatched_fee_and_component_prevent_further_packet`. | W4 | None |
-| F3 | The Twilio ordinary profile builds month coverage from one signed per-incident status record. A two-minute incident returns `INELIGIBLE` without the explicit complete-month `coverage` report, and the trace presents the status digest as month coverage. **Reproduced.** Missing evidence becomes ineligibility, and an eligible amount is a lower bound presented as exact. | W4 / W2 (`correspondence_rules.py`) | D07 (required evidence); a contract-semantics decision, not a routine fix |
-| F4 | A private filing-amendment override carries no agreement, effective date or source hash; it applies across the whole overlay interval. | W3 (`vendor_terms.py`) | D07 |
-| F5 | A resource-month manifest without an agreement name, and with no precedence clause, accepts an overlay for any agreement name. | W3 | May intersect D03 |
-| F6 | `GoverningTerms.evidence_sha256` is only format-checked; nothing verifies it against stored evidence. | W3 | None |
-| F7 | No refusal audit stream; no authorized supersede path for a mistaken stored record. | W0 (`auth.py`, storage) with W4 | None |
-| F8 | The status origin in the Twilio trace is asserted, not verified against the enrolled source. | W2 / W4 | D07 (connector choice) |
-| F9 | The legacy Atlassian PDF path keeps no original bytes, extracted text or page map. | W3 | D07 (if PDF becomes a supported format) |
+Owner responses are as reported by each owner's session on November 9; they are not verified implementations. "Not yet answered" means the request was sent and no disposition has arrived.
+
+| ID | Finding | Owner | Decision dependency | Owner response |
+|:---|:---|:---|:---|:---|
+| F1 | Embedded and HMAC channels store wrong-period records; the one-per-kind desk then reports the correct records as contradictory with no recovery. **Reproduced.** | W4 (`correspondence.py`) | None | **Accepted, modified.** The desk will refuse before storage, record a timeline entry and clear any pending approval. It follows the W0 merge of this branch. |
+| F2 | Embedded and HMAC channels store nested rows naming another account; evaluation is then blocked. **Reproduced**; also asserted by existing `test_mismatched_fee_and_component_prevent_further_packet`. | W4 | None | **Accepted, modified.** Out-of-scope deliveries go to a separate per-case contradicting-deliveries list, not evidence. They clear approval and move a pending cure or rebuttal to human review. Changed existing tests are to be listed in W4's ledger. |
+| F3 | The Twilio ordinary profile builds month coverage from one signed per-incident status record. A two-minute incident returns `INELIGIBLE` without the explicit complete-month `coverage` report, and the trace presents the status digest as month coverage. **Reproduced.** Missing evidence becomes ineligibility, and an eligible amount is a lower bound presented as exact. | W4 / W2 (`correspondence_rules.py`) | D07 (required evidence); a contract-semantics decision, not a routine fix | **Blocked on D07.** Meanwhile the trace will name the assumption (`month_coverage_basis = PROVISIONED_SINGLE_INCIDENT_RECORD`) whenever no coverage report is present. |
+| F4 | A private filing-amendment override carries no agreement, effective date or source hash; it applies across the whole overlay interval. | W3 (`vendor_terms.py`) | D07 | Sent to the W3 owner; not yet answered. |
+| F5 | A resource-month manifest without an agreement name, and with no precedence clause, accepts an overlay for any agreement name. | W3, with the D03 identity owner | D03 | Sent to the W3 and identity owners; not yet answered. |
+| F6 | `GoverningTerms.evidence_sha256` is only format-checked; nothing verifies it against stored evidence. | W3 | None | Sent to the W3 owner; not yet answered. |
+| F7a | No audit stream of refused intake deliveries. | W0 (`auth.py`) | None | **Accepted as an open W0 item**; not in the current integration. |
+| F7b | No authorized withdrawal or supersede path for a mistaken stored record. | W4 (its inbox tables) | D06/D07 (who may retract a signed record) | **Accepted as a design item, blocked.** Proposed shape: a source-signed retraction that references the original event, keeps history and voids approvals. |
+| F8 | The status origin in the Twilio trace is asserted, not verified against the enrolled source. | W2 / W4 | D07 (connector choice) | Sent to the W4 owner; not yet answered. |
+| F9 | The legacy Atlassian PDF path keeps no original bytes, extracted text or page map. | W3 | D07 (if PDF becomes a supported format) | Sent to the W3 owner for the record; relevant only if D07 selects PDF. |
+
+On the signed channel the decision-91 grant refuses out-of-scope records with HTTP 403 before the desk, so the W4 contradicting-deliveries list covers only the embedded and HMAC channels. A per-case trace of signed-channel refusals depends on F7a.
 
 ## 6. Assignment items that wait on a team decision
 
