@@ -111,3 +111,12 @@ Added `tests/test_vendor_drafts_categories_89.py` (3 tests, hand-computed). Ever
 - monthly: always `NONE_STATED` (the family has no such field).
 
 It never opens a requirement, because delivery stays with a configured, authorized channel (D08). Test: `test_submission_channel_is_shown_from_cited_source_blocks_and_never_blocks_review`. With the requirements and selection tests: **45 passed, 1 warning**. Existing tests changed: none.
+
+**Correct-reason refusal through automatic selection (same branch).** Added `tests/test_vendor_selection_refusals_89.py` (2 tests). It uses an authored public-style SLA with unlabeled parties and a scheduled-maintenance exclusion, read by provider doubles.
+
+| Source | Expected and observed |
+|---|---|
+| With the exclusion | `NO_SUPPORTED_FAMILY`. Monthly is refused structurally at the exact exclusion passage (`UNSUPPORTED_SOURCE_MATERIAL`). Resource-month names the missing symptom, provider-cause and evidence terms. |
+| Same source without the exclusion | `SELECTED` monthly. |
+
+Result: **2 passed**. Existing tests changed: none.
