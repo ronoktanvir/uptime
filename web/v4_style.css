@@ -56,3 +56,6 @@
 .uptime-v4 .v4-candidate>button{grid-column:1/-1;justify-self:start}
 .v4-refusal blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid #c9cfe0;white-space:pre-wrap;overflow-wrap:anywhere}
 .v4-refusal .v4-note{overflow-wrap:anywhere}
+.uptime-v4 .v4-selection,.uptime-v4 .v4-family,.uptime-v4 .v4-requirements li,.uptime-v4 .v4-progress li{min-width:0;overflow-wrap:anywhere}
+.uptime-v4 .v4-family{margin-top:12px;padding-top:10px;border-top:1px solid var(--line,#dce1ed)}
+.uptime-v4 .v4-outcome{font-weight:600}

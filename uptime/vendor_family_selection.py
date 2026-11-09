@@ -241,13 +241,23 @@ class SelectingVendorModelJobs(DiagnosingVendorModelJobs):
         return self.selection(p, vendor, body)
 
     def candidate(self, p, vendor, job_id, overlay):
-        """Refuse a candidate from any job whose source selection is ambiguous."""
+        """Stage a candidate only from the job automatic selection chose for its source and attempt (D05)."""
         job = self._owned(p, vendor, job_id)
         document, result, _ = self._resolve(job, vendor)
+        if result['profile'] not in {profile for _, profile, _ in FAMILIES}:
+            raise SelectionRefused('NOT_AUTOMATIC', [
+                f"This proposal used an operator-chosen extraction profile ({result['profile']}). Uptime selects the "
+                'rule family: submit the source with profile "auto", and stage the candidate from the job it selects.'])
         view = self.selection(p, vendor, {'document': document.model_dump(), 'profile': 'auto',
                                           'attempt_nonce': result['attempt_nonce']})
-        if view['outcome'] == 'AMBIGUOUS':
+        if view['outcome'] != 'SELECTED':
             raise SelectionRefused(view['outcome'], view['review_requirements'])
+        if view['selected']['job_id'] != job_id:
+            raise SelectionRefused('NOT_SELECTED', [
+                'Automatic selection did not choose this job for its source and attempt. '
+                + ('The deterministic parser selected the monthly family; stage it with POST /api/vendors/{id}/candidates.'
+                   if view['selected']['method'] == DETERMINISTIC else
+                   f"Stage the selected job {view['selected']['job_id']} instead.")])
         return super().candidate(p, vendor, job_id, overlay)
 
 
