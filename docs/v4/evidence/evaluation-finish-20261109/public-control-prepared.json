@@ -1,0 +1,118 @@
+{
+  "schema": "supplementary-dispute-setup/1",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "case_id": "public-monthly-route-control",
+  "filing_clock": "2026-12-02T12:00:00Z",
+  "continuation_clock": "2026-12-03T12:00:00Z",
+  "vendor_slot": "public-meridian-control",
+  "candidate": {
+    "document": {
+      "name": "Meridian Message authored control",
+      "uri": "urn:synthetic:public-control:meridian",
+      "classification": "synthetic_public",
+      "text": "Vendor: Meridian Message\nAgreement: MM-415\nEffective: 2026-01-01 through 2026-12-31\nAvailability is measured over each UTC calendar month.\nFor Message Archive on the Growth plan, monthly availability below 99.9% earns a 7.5% service credit.\nClaims must be received within 7 calendar days after month end.\nService credits apply to affected monthly fees on a future invoice.\nClaims are based on a complete UTC calendar-month report for the entire service; incident identifiers are not required."
+    },
+    "overlay": {
+      "account": "meridian-control-account",
+      "agreement": "MM-415",
+      "product": "Message Archive",
+      "plan": "Growth",
+      "currency": "USD",
+      "fee_line_ref": "nov-subscription",
+      "effective_from": "2026-01-01",
+      "effective_until": "2026-12-31"
+    }
+  },
+  "setup_tests": [
+    {
+      "name": "Authored complete month",
+      "facts": {
+        "account": "meridian-control-account",
+        "agreement": "MM-415",
+        "product": "Message Archive",
+        "plan": "Growth",
+        "fee_line_ref": "nov-subscription",
+        "month": "2026-11",
+        "eligible_downtime_minutes": 90,
+        "monitor_source": "simulated_vendor",
+        "month_complete": true,
+        "exclusions_removed": true,
+        "monthly_fee_cents": 120000,
+        "received_at": "2026-12-02T12:00:00Z"
+      },
+      "expected": {
+        "outcome": "ELIGIBLE",
+        "amount": "90.00"
+      }
+    },
+    {
+      "name": "Authored threshold comparison",
+      "facts": {
+        "account": "meridian-control-account",
+        "agreement": "MM-415",
+        "product": "Message Archive",
+        "plan": "Growth",
+        "fee_line_ref": "nov-subscription",
+        "month": "2026-11",
+        "eligible_downtime_minutes": 40,
+        "monitor_source": "simulated_vendor",
+        "month_complete": true,
+        "exclusions_removed": true,
+        "monthly_fee_cents": 120000,
+        "received_at": "2026-12-02T12:00:00Z"
+      },
+      "expected": {
+        "outcome": "INELIGIBLE"
+      }
+    }
+  ],
+  "claim": {
+    "claim_id": "inbox-public-meridian-control",
+    "scope": {
+      "account": "meridian-control-account",
+      "vendor": "Meridian Message",
+      "contract": "MM-415",
+      "service": "Message Archive",
+      "month": "2026-11",
+      "currency": "USD"
+    }
+  },
+  "evidence": [
+    {
+      "event_id": "public-complete-month",
+      "role": "status",
+      "body": {
+        "kind": "monthly_coverage",
+        "source_ref": "public-november-report",
+        "observed_at": "2026-12-01T02:00:00Z",
+        "start": "2026-11-01T00:00:00Z",
+        "end": "2026-12-01T00:00:00Z",
+        "plan": "Growth",
+        "complete": true,
+        "exclusions_removed": true,
+        "gaps": [],
+        "unresolved_exclusions": [],
+        "eligible_downtime_minutes": 90
+      }
+    },
+    {
+      "event_id": "public-fee",
+      "role": "billing",
+      "body": {
+        "kind": "invoice",
+        "lines": [
+          {
+            "id": "nov-subscription",
+            "kind": "affected_api",
+            "amount": "1200.00"
+          }
+        ]
+      }
+    }
+  ],
+  "reply": {
+    "text": "The request's arrival timestamp was beyond the prescribed receipt interval."
+  },
+  "review_mode": "scripted_source_projection",
+  "local_continuation": true
+}
