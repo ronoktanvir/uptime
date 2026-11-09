@@ -20,7 +20,7 @@ from test_allocation_ledger import bill
 from uptime import claim_identity
 from uptime.allocations import AllocationLedger
 from uptime.contracts import fingerprint
-from uptime.correspondence_types import Claim, IssuedCredit, Line, MaintenanceRecord, MonitorRow, Scope
+from uptime.correspondence_types import Claim, IssuedCredit, Line, MaintenanceRecord, MonitorRow, ResourceLine, Scope
 from uptime.governing_fees import authenticated_invoice_snapshot
 from uptime.ramp_terms_store import Ref
 from uptime.source_identity import SourceIdentity, refusal
@@ -100,6 +100,47 @@ CHECKS = {
 def test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule(value):
     expected = refusal(value) is None
     assert {name: _accepts(check, value) for name, check in CHECKS.items()} == {name: expected for name in CHECKS}
+
+
+def _onboard_product(value):
+    package = load_package()
+    manifest = deepcopy(package["manifest"])
+    manifest["credit_rule"]["product"] = value
+    bind_overlay(manifest, Overlay(**package["overlay"] | {"product": value}))
+
+
+def _onboard_vendor(value):
+    package = load_package()
+    bind_overlay(package["manifest"] | {"vendor": value}, Overlay(**package["overlay"]))
+
+
+def _reserve_names(value):
+    db = sqlite3.connect(":memory:")
+    db.execute("BEGIN")
+    claim_identity.reserve_claim(db, tenant="bears", vendor=value, account="acct-1", agreement_id="agreement-1",
+                                 agreement_version="v1", service=value, month="2033-10", remedy="availability",
+                                 route="correspondence", case_id="case-1", packet_digest="a" * 64, scope={"month": "2033-10"},
+                                 receipt_id="receipt-1", at="2033-11-02T00:00:00+00:00")
+
+
+NAME_CHECKS = {
+    "onboarding_product": _onboard_product,
+    "onboarding_vendor": _onboard_vendor,
+    "claim_scope_vendor": _field(Scope, "vendor"),
+    "claim_scope_service": _field(Scope, "service"),
+    "signed_line_vendor": _field(Line, "vendor"),
+    "signed_line_service": _field(Line, "service"),
+    "resource_line_product": _field(ResourceLine, "product"),
+    "monitor_row_product": _field(MonitorRow, "product"),
+    "new_filing_vendor_and_service": _reserve_names,
+}
+
+
+@pytest.mark.parametrize("value", SAMPLES + ["Cloud Hosting (EU)", "Twilio Messaging API", "Northwind Cloud"])
+def test_every_vendor_service_and_product_entry_point_applies_the_same_bounded_rule(value):
+    """D03 extended to vendor and service names (Ronok, 2026-11-09)."""
+    expected = refusal(value) is None
+    assert {name: _accepts(check, value) for name, check in NAME_CHECKS.items()} == {name: expected for name in NAME_CHECKS}
 
 
 @pytest.mark.parametrize("value", SAMPLES)

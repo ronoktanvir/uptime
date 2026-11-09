@@ -951,7 +951,7 @@
    "id": "IDS-D03-1",
    "engine": "claim-identity",
    "dimension": "identity_scope",
-   "case": "Account or agreement with spaces, punctuation or non-ASCII letters (source-identity/1)",
+   "case": "Account, agreement, vendor or service name with spaces, punctuation or non-ASCII letters (source-identity/1)",
    "status": "SUPPORTED",
    "result": "Accepted byte-identically by onboarding, claim intake, signed evidence, the claim registry and the ledger; padded, repeated-space, non-NFC, control and other characters are refused everywhere, never rewritten.",
    "enforced_by": [
@@ -965,6 +965,7 @@
     "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
     "tests/test_identity_domain_89.py::test_accepted_identities_are_never_rewritten",
     "tests/test_identity_domain_89.py::test_padded_or_irregular_accounts_are_refused_at_onboarding_intake_and_filing",
+    "tests/test_identity_domain_89.py::test_every_vendor_service_and_product_entry_point_applies_the_same_bounded_rule",
     "tests/test_source_identity_89.py::test_every_legacy_restricted_identifier_is_accepted_byte_identically"
    ]
   },

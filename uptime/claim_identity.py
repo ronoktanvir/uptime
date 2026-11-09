@@ -355,9 +355,10 @@ def reserve_claim(db, *, tenant, vendor, account, agreement_id, agreement_versio
     identity = dict(tenant=tenant, vendor=vendor, account=account, agreement_id=agreement_id,
                     agreement_version=agreement_version, service=service, month=month, remedy=remedy)
     _economic(**identity)
-    # Decision D03-A: a new filing's account is a bounded exact source identity. Historical rows
-    # imported by _backfill keep their stored bytes and are not re-validated by this rule.
-    source_identity(account)
+    # Decision D03-A: a new filing's account, vendor and service are bounded exact source identities.
+    # Historical rows imported by _backfill keep their stored bytes and are not re-validated by this rule.
+    for value in (account, vendor, service):
+        source_identity(value)
     _schema(db)
     _backfill(db, tenant)
     return _reserve(db, identity=identity, route=route, case_id=case_id, packet_digest=packet_digest,
