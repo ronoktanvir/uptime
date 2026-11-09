@@ -1,11 +1,17 @@
 # Release assessment, November 9, 2026
 
-**Verdict: not releasable under the existing gate. The default installation stays read-only.** No signed release attestation or release-trust registry exists. The unseen-vendor and dispute gates cannot be assessed against a bar, because the team has not set one (D13). The corpus84 onboarding first attempts ran on November 9 with **0/4 supported extractions accepted**. Under ADR-0084's pre-registered rule, that leaves useful support for both tested families unestablished. The dispute first attempts have not run. This assessment invents no accuracy threshold. A passing test count is regression evidence, not production readiness.
+**Verdict: not releasable under the existing gate. The default installation stays read-only.** No signed release attestation or release-trust registry exists.
+
+Ronok's D13 bar is reported as decided but was not yet recorded when this was written. Under it, neither coverage gate is met:
+- **New vendor:** the corpus84 onboarding first attempts had **no ordinary application-path success** (0/4 supported extractions accepted), and correct refusal of the two controls is unproven. Under D05, a cohort that supplies the contract family could not prove autonomous family selection in any case.
+- **New dispute:** no first attempt has run. All 12 replies remain blocked at claim intake by D04 scope.
+
+D13 sets no numeric threshold, and none is added here. A passing test count is regression evidence, not production readiness.
 
 | | |
 |---|---|
 | Assessed source | `work/release-evaluation-gent8`. Application core is unchanged from `v4/integration` `03b372e`; probes and receipts are at `c1fa513` and `52bea97`. |
-| Bar | The implemented signed release gate ([RELEASE-EVIDENCE](../RELEASE-EVIDENCE.md), `uptime/gates.py`, `scripts/release_evidence.py`) plus ADR-0084's pre-registered interpretation rules. |
+| Bar | The implemented signed release gate ([RELEASE-EVIDENCE](../RELEASE-EVIDENCE.md), `uptime/gates.py`, `scripts/release_evidence.py`) plus ADR-0084's pre-registered interpretation rules. For the two coverage gates: D13 "Bar without native proof", as reported (see [team decisions](#team-decisions-november-9)). |
 | Decision | [ADR-0092](../decisions/ADR-0092-evaluation-release-assessment.md) |
 
 ## Gate by gate
@@ -14,10 +20,10 @@
 |---|---|---|---|
 | `regression` (INDEPENDENT_QA) | A precommitted collection count and hash. One `release_regression.py` run. An independent witness signature within 24 h. | Full `uv run --locked pytest` on this branch: see [Regression](#regression). Unsigned, and no precommitted collection. | **Not satisfied** (unsigned) |
 | `security_financial` (INDEPENDENT_QA) | Audit gate before/after against a pinned V3 baseline, and a witness signature. | `v4_audit_gate` release phase: **118/118 PASS** on `c1fa513`, including both browser probes. Fresh V3 baseline `18afaa6`: 73 PASS / 45 FAIL. [release](../evidence/release-evaluation-gent8/audit-release-c1fa513.json) · [baseline](../evidence/release-evaluation-gent8/audit-baseline-v3-18afaa6.json). The committed `docs/v4/audit/baseline-v2.json` no longer passes provenance, because a probe file changed. | **Not satisfied** (unsigned). The evidence is supportive. |
-| `unseen_vendor` (INDEPENDENT_QA) | A frozen blind cohort, a first-attempt receipt and an agreed bar. | corpus84 onboarding first attempts on `89fe25c`: 6 genuine `claude-opus-5-5` calls; **0/4 supported extractions accepted**; both refusal controls refused before their unsupported terms were assessed ([receipt](../evidence/release-evaluation-gent8/onboarding84-first-attempts.json)). Historical results: 0/4 in eval76; blind witness not certified. | **Not assessable against a bar (D13 absent).** Under ADR-0084, useful support is unestablished: no supported case reached shadow. |
-| `unanticipated_dispute` (INDEPENDENT_QA) | Same. | 12/12 corpus84 replies blocked at claim intake (D03, D04). Historical results: 0/50 supported replies; eval76 3/6 complete. | **Not assessable:** D13 absent. D03-A/D04-C were decided November 9 but are not yet implemented. |
+| `unseen_vendor` (INDEPENDENT_QA) | D13 conditions: ordinary app-path success on independently authored supported cases; separate correct-refusal controls; zero unsafe financial/action acceptances; first-attempt receipts; parser, model, review and authority outcomes reported separately. D05 adds automatic family selection and human approval on an independently selected unseen vendor. | corpus84 onboarding first attempts on `89fe25c` ([receipt](../evidence/release-evaluation-gent8/onboarding84-first-attempts.json)): 6 genuine `claude-opus-5-5` calls.<br>• App-path success: **0/4**.<br>• Correct refusal: **unproven** (0/2 shown).<br>• Unsafe acceptances: **0** (met).<br>• First-attempt receipts: present (met).<br>• Separate outcome reporting: met.<br>• D05 selection and approval proof: not attempted (the family was supplied).<br>Historical: 0/4 in eval76. | **Not satisfied.** No supported case succeeded on the app path; D05 proof is absent. |
+| `unanticipated_dispute` (INDEPENDENT_QA) | The same D13 conditions. | No first attempt. All 12 corpus84 replies are blocked at claim intake: D03-A is now implemented, D04-C is not. Historical: 0/50 supported replies; eval76 3/6 complete. | **Not satisfied.** There are no first-attempt receipts. |
 | `human_review` (ACTUAL_HUMAN) | A separately registered person signs the four report digests. | No release-trust registry and no attestation. The CalyxQuay review is not this gate (see below). | **Not satisfied** |
-| `native_install` (ACTUAL_NATIVE_OPERATOR, optional) | A signed installation grant for `bill.comment.create`. | The agent-run native posting retest was rejected by automatic approval review ("possible cybersecurity risk"). It is not retried or rerouted. | **Not satisfied**, blocked by execution policy |
+| `native_install` (ACTUAL_NATIVE_OPERATOR, optional) | A signed installation grant for `bill.comment.create`. Under D13, a native Ramp proof is an external dependency, not a coverage-gate condition. | The agent-run native posting retest was rejected by automatic approval review ("possible cybersecurity risk"). It is not retried or rerouted. | **Not satisfied**, blocked by execution policy. This does not block the coverage gates. |
 
 Any run made today would also be stale for release after 24 hours. The gate requires fresh signatures over the tested source.
 
@@ -79,22 +85,24 @@ The 4,035 tests are the 3,967-test integration baseline plus the 68 tests new on
 
 This is unsigned regression evidence. The `regression` gate additionally requires a precommitted collection hash, one `release_regression.py` run and an independent witness signature. A green suite does not establish production readiness, unseen-source accuracy or Ramp behavior.
 
-## Team decisions reported November 9 (recording in progress)
+## Team decisions, November 9
 
-Ronok made these choices in his overview session; the overview session relayed them. When this was written, the integration owner was still recording them, and the committed decision sheet still read "Pending". They are noted here for their effect on this assessment. They do not set a release bar. **D10 and D12–D14, including the release-evidence bar D13, remain pending, and no bar is adopted.**
+All of these are Ronok's choices from his overview session, relayed by the overview session. They were recorded by the integration owner as follows. D05, D06, D07 and D11: `work/integration-90` `93d896a`. D03-A: `work/integration-90`, implemented on `work/identity-pricing-89`, commit `6ebaffe`. **D10, D13 and D14: reported decided, but still "Pending" in the committed decision sheet when this was written.**
 
-| Decision | Reported choice | Effect on this assessment |
+| Decision | Choice | Effect on this assessment |
 |---|---|---|
-| D05 | Auto-select among supported families, with human approval before activation, proven on an independently selected unseen vendor | corpus84 supplied each contract's family, so even a successful extraction there could not prove autonomous family selection. The unseen-vendor gate needs a separate, independently selected vendor that goes through automatic selection and real human approval. Neither has run. |
-| D06 | Humans gate judgment | Review controls stay human-gated. A model's UNKNOWN or refusal on a judgment case is not expected to become automated action. |
-| D07 | Narrow published support matrix: one currency, calendar months, everything else unsupported, one real evidence source, no PDF | The corpus84 contracts are USD calendar-month cases, inside that matrix. The one real evidence source has not been onboarded. |
-| D11 | Stay local | Hosted OAuth, webhooks and deployment are out of scope for this release. The loopback-only installation stands. |
+| D13 | **Bar without native proof.** The unseen-vendor and new-dispute gates require: ordinary app-path success on independently authored supported cases; separate correct-refusal controls; zero unsafe financial or action acceptances; first-attempt receipts; parser, model, review and authority outcomes reported separately. A native Ramp proof is an external dependency, not a gate condition. **No numeric threshold.** | Applied in the gate table. No threshold is added. Onboarding fails the success condition (0/4) and the correct-refusal condition (unproven). It meets the safety, receipt and reporting conditions. Disputes have no receipts. |
+| D05 | Auto-select among supported families, with human approval before activation, proven on an independently selected unseen vendor | corpus84 supplied each contract's family, so it could not prove autonomous selection even with successful extractions. That proof still needs a separate, independently selected vendor. |
+| D06 | Humans gate judgment | Review controls stay human-gated; a model's UNKNOWN or refusal on a judgment case is not expected to become an action. |
+| D07 | Narrow published matrix: one currency, calendar months, everything else unsupported, one real evidence source, no PDF | The corpus84 contracts are USD calendar-month cases, inside the matrix. The one real evidence source is not yet onboarded. |
+| D10 | Public-only data, Claude as provider, bounded budgets, no retries on uncertain outcomes | The corpus84 run complied: authored public text only, `claude-opus-5-5`, a $1.00 cap per call (about $0.39 in total), and no retry. |
+| D11 | Stay local | Loopback-only installation; hosted OAuth, webhooks and deployment are out of scope. |
+| D14 | Mandatory Opus critique no longer required | ADR-0092's single critique stands as recorded; none is needed for further routine work. |
 
 ## What would change this verdict
 
-1. The team records D13: which outcomes satisfy the unseen-vendor and dispute gates.
-2. ~~The user explicitly resumes evaluation and the onboarding sub-cohort runs.~~ Done November 9: 0/4. Under ADR-0084, useful support for both tested families remains unestablished. Any repair of the refusing validation rules is a separately named remediation on examined cases, never a replacement score. A new independent cohort is needed to measure improvement.
-3. The decided D03-A/D04-C are implemented through the normal route (`work/identity-pricing-89`). The preflight then shows which replies are admissible without invented scope, and the dispute sub-cohort runs.
-4. Independent witnesses and a registered human reviewer sign fresh reports for one tested commit.
+1. **New-vendor gate:** independently authored supported cases succeed through the ordinary app path, with separately demonstrated correct refusals. Per D05, that includes automatic family selection and human approval on an independently selected unseen vendor. The examined corpus84 contracts cannot be re-scored: a repair to the refusing validation rules is a named remediation, and measuring it needs a new independent cohort.
+2. **New-dispute gate:** D04-C is implemented through the normal route. The preflight then shows which replies are admissible without invented scope, and the dispute first attempts run once each and are reported against the same D13 conditions.
+3. **Signed gates:** independent witnesses and a registered human reviewer sign fresh reports for one tested commit (regression, security/financial and human review).
 
 None of these can be produced by code alone.
