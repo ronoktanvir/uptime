@@ -247,3 +247,74 @@ def test_setup_prints_a_plain_sign_in_block_and_writes_a_visible_protected_copy(
     assert again.read_text() == copy.read_text() and resumed.stderr.strip().splitlines()[-3:] == [str(again), SCRIPT, origin]
     plain = run('--resume')
     assert plain.stderr.strip().splitlines()[-3:] == [str(directory / 'scripted-reviewer.jwk'), SCRIPT, origin]
+
+
+def _setup(directory, *extra):
+    import subprocess
+    import sys
+    script = setup.ROOT / 'scripts' / 'setup_northwind.py'
+    return subprocess.run([sys.executable, str(script), '--directory', str(directory), *extra],
+                          capture_output=True, text=True, timeout=300, cwd=setup.ROOT)
+
+
+def test_resume_reuses_an_identical_credential_and_refuses_a_different_one_without_overwriting(tmp_path):
+    import os
+    directory, visible = tmp_path / 'ws', tmp_path / 'visible-reviewer.jwk'
+    first = _setup(directory, '--reviewer-credential', str(visible))
+    assert first.returncode == 0, first.stderr[-2000:]
+    before = (visible.read_bytes(), os.stat(visible).st_mtime_ns)
+    for _ in range(2):  # the documented resume command, re-run
+        again = _setup(directory, '--resume', '--reviewer-credential', str(visible))
+        assert again.returncode == 0 and 'Traceback' not in again.stderr, again.stderr[-2000:]
+        assert '"reviewer_credential_copy": "REUSED"' in again.stdout
+        assert again.stderr.strip().splitlines()[-2:-1] == [SCRIPT]
+        assert (visible.read_bytes(), os.stat(visible).st_mtime_ns) == before
+    other = tmp_path / 'other.jwk'
+    other.write_text('{"kty":"EC","note":"someone else"}\n')
+    os.chmod(other, 0o600)
+    refused = _setup(directory, '--resume', '--reviewer-credential', str(other))
+    assert refused.returncode == 1 and 'Traceback' not in refused.stderr
+    assert refused.stderr.strip().splitlines() == [
+        'setup_northwind: A different file already exists at ' + str(other) + '; choose another path. Nothing was overwritten.']
+    assert other.read_text() == '{"kty":"EC","note":"someone else"}\n'
+
+
+@pytest.mark.parametrize('where', ['existing', 'repository', 'missing-folder'])
+def test_a_refused_credential_path_leaves_no_half_created_workspace(tmp_path, where):
+    directory = tmp_path / 'ws'
+    if where == 'existing':
+        target = tmp_path / 'taken.jwk'
+        target.write_text('occupied\n')
+    elif where == 'repository':
+        target = setup.ROOT / 'never-written-reviewer.jwk'
+    else:
+        target = tmp_path / 'no-such-folder' / 'reviewer.jwk'
+    refused = _setup(directory, '--reviewer-credential', str(target))
+    assert refused.returncode == 1 and 'Traceback' not in refused.stderr, refused.stderr[-2000:]
+    assert len(refused.stderr.strip().splitlines()) == 1 and refused.stderr.startswith('setup_northwind: ')
+    assert not directory.exists()
+    if where == 'existing':
+        assert target.read_text() == 'occupied\n'
+    else:
+        assert not target.exists()
+
+
+def test_a_stale_approval_binding_is_never_dispatched(tmp_path):
+    app, client, actor = world(tmp_path / 'stale')
+    workflow = app.state.workflow
+    try:
+        workflow.automation = False  # approve without letting the coordinator run in the same request
+        act(client, actor, read(client, actor)['next_actions'][0]['id'])
+        workflow.automation = True
+        assert case(app)['stage'] == 'CLAIM_APPROVED' and case(app)['approval']['action'] == 'approve-claim'
+        # The governing binding changes after approval; the approved packet is no longer current.
+        desk = app.state.bench.inbox
+        original = desk._approval_binding
+        desk._approval_binding = lambda current: [original(current), 'changed-after-approval']
+        view = setup.checked(actor.post('/api/workspace/workflow/actions/continue', {}))['workflow']
+        assert case(app)['submissions'] == []  # nothing was filed under the stale approval
+        assert view['automation']['pause']['reason'] == 'APPROVAL_REQUIRED'
+        assert view['next_actions'][0]['label'] == 'Approve January claim'
+        assert [s['operation'] for s in view['automation']['steps']] == ['approve-claim']
+    finally:
+        client.close()

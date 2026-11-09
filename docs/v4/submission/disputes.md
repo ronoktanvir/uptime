@@ -156,6 +156,7 @@ This is my setup-side half; the coordinator reconciles it with role 4.
 | `1646930` | Authored, hash-pinned "unclear" reply variant (`--counterparty-reply unclear`) and the one-call denial model-job runner |
 | `0225970` | Receipt of the genuine model job |
 | `2742be0` | Workspace-timeline timing per step; the plain sign-in block (last three lines: path, account, URL); `--reviewer-credential` with `--resume` |
+| (next commit) | Credential fix: on resume an identical owner-only file is reused (`reviewer_credential_copy: REUSED`) and a different file is refused with one plain line. On create the path is checked before anything is written, and a refused path leaves no workspace directory. Also a stale approval binding test. |
 
 ### Tests
 
@@ -178,7 +179,14 @@ Result on `2742be0`: **156 passed, 1 warning**. No existing test changed; see `d
 | Tools / MCP | empty / empty |
 | Usage, cost | 418 output tokens; 0.045 USD client-reported |
 | Request | SHA-256 `1bdc9057…`, approved for one invocation by "agent3 (engineering operator, role 2)" through `scripts/public_proposals.py approve --confirm-authored-public --hours 1` |
-| Receipt | [`evidence/submission-disputes-20261109/denial-model-job.json`](../evidence/submission-disputes-20261109/denial-model-job.json). Raw request and response stay outside Git. |
+| Receipt | [`evidence/submission-disputes-20261109/denial-model-job.json`](../evidence/submission-disputes-20261109/denial-model-job.json) (pinned; unedited). Raw request and response stay outside Git. |
+
+**How it was driven.** `scripts/run_denial_model_job.py` builds a fresh workspace and drives the application's own signed HTTP routes through an **in-process test client** (`fastapi.testclient`):
+- the workflow action that approves the claim;
+- the interpretation blind entry and `model-jobs` routes;
+- the review and preview routes.
+
+The routes run with the ordinary request proofs, and the shared job service invokes the **genuine provider** (the Claude Code CLI, `claude-opus-5-5`, empty tools and MCP). No browser, no listening socket and no served workspace were involved. Roles 5 and 6 should label it "genuine model call through the application's signed routes, driven by a script with an in-process test client".
 
 - **Input:** the authored unclear January reply.
 - **Proposed reading:** `unsupported`, citing the whole reply (bytes 0–200), shown before the semantic review. The scripted reviewer had saved its own reading first.
@@ -191,7 +199,17 @@ Result on `2742be0`: **156 passed, 1 warning**. No existing test changed; see `d
 |---|---|---|
 | Cure missing evidence | The Northwind walkthrough, coordinated | `test_routine_steps_run_under_existing_authority_and_only_person_decisions_are_offered`: a log request, then automatic artifact and verification intake, approved response sent at the cooldown, award, credit, application |
 | Escalate ambiguity | The Northwind walkthrough with `--counterparty-reply unclear` | The genuine model job above; `test_an_unfamiliar_vendor_reply_pauses_for_the_reviewer_instead_of_continuing` |
-| Accept a correct denial through its authorized control | **Correspondence cases, not the Northwind walkthrough** | `test_correspondence_adversarial_http_89h.py::test_familiar_maintenance_denial_is_order_independent_and_closes_only_on_acceptance` (signed routes, explicit `accept-denial`); `test_blind_acceptance.py` late-denial control; the coordinator's `JUDGMENT_REQUIRED` pause test; the role-4 accept-denial control (gent7, `a47fb5a`). The authored Northwind facts make the January claim valid, so a correct denial there would need different authored facts. I did not invent any. |
+| Accept a correct denial through its authorized control | **Correspondence cases in tests only, not the Northwind walkthrough** | `test_correspondence_adversarial_http_89h.py::test_familiar_maintenance_denial_is_order_independent_and_closes_only_on_acceptance` (signed routes, explicit `accept-denial`); `test_blind_acceptance.py` late-denial control; the coordinator's `JUDGMENT_REQUIRED` pause test; the role-4 accept-denial control (gent7, `a47fb5a`). The authored Northwind facts make the January claim valid, so a correct denial there would need different authored facts. I did not invent any. |
+
+**Reproducing the correct-denial demonstration** (runbook, gent8's control):
+
+```sh
+uv run --locked pytest -q "tests/test_correspondence_adversarial_http_89h.py::test_familiar_maintenance_denial_is_order_independent_and_closes_only_on_acceptance"
+```
+
+Result on this branch: **2 passed** (reply-first and notice-first).
+- The test drives the mounted signed routes through an in-process test client. A familiar-wording maintenance denial and a timely notice reach `DENIAL_REVIEW`, and only `POST /denial-acceptance` with the offered basis digest closes the claim. Money is unchanged.
+- **No served workspace shows a clickable correct-denial case.** The Northwind walkthrough has none, and setup seeds no other correspondence case. The correct denial exists **only in tests**. A served demonstration would need a separately authored case seeded through setup; that is not built.
 
 ### Click and approval counts (actual, from the tests)
 

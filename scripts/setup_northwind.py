@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import stat
 import sys
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -40,6 +41,40 @@ def correspondence_for(package,reply):
     return chosen
 
 
+class CredentialRefused(ValueError):
+    """A visible reviewer-credential path that setup will not use; reported as one plain line."""
+
+
+def credential_target(path):
+    """Check a visible reviewer-credential path before anything is written."""
+    target=Path(path).expanduser().absolute()
+    if not target.parent.is_dir():
+        raise CredentialRefused('The folder for the reviewer file does not exist: '+str(target.parent))
+    if target.is_symlink() or target.resolve()!=target:
+        raise CredentialRefused('Choose a reviewer-file path without symlinks: '+str(target))
+    if target.is_relative_to(ROOT.resolve()):
+        raise CredentialRefused('Keep the reviewer file outside the repository: '+str(target))
+    return target
+
+
+def place_credential(target,credential):
+    """Write the visible copy once; reuse an identical protected file; never overwrite."""
+    from uptime.auth_keys import write_credential
+    if target.exists():
+        try:
+            with os.fdopen(os.open(target,os.O_RDONLY|os.O_NOFOLLOW),'r') as handle:
+                info=os.fstat(handle.fileno());existing=json.load(handle)
+        except (OSError,ValueError):
+            existing,info=None,None
+        if existing!=credential:
+            raise CredentialRefused('A different file already exists at '+str(target)+'; choose another path. Nothing was overwritten.')
+        if not stat.S_ISREG(info.st_mode) or info.st_uid!=os.getuid() or stat.S_IMODE(info.st_mode)&0o077:
+            raise CredentialRefused('The existing reviewer file at '+str(target)+' is not owner-only (0600); nothing was changed.')
+        return 'REUSED'
+    write_credential(target,credential,ROOT)
+    return 'WRITTEN'
+
+
 def source_inputs(package):
     overlay=package['overlay'];scopes={};events={}
     for row in package['months']:
@@ -65,6 +100,12 @@ def source_inputs(package):
 def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None,counterparty_reply='request-log'):
     directory=Path(directory).absolute()
     if directory.exists():raise ValueError('Select a fresh directory; use --resume for an existing immutable workspace.')
+    target=None
+    if reviewer_credential is not None:
+        # Checked before anything is written, so a refused path never leaves a half-created workspace.
+        target=credential_target(reviewer_credential)
+        if target.exists():
+            raise CredentialRefused('A file already exists at '+str(target)+'; a new workspace needs a new path. Nothing was written.')
     directory.mkdir(mode=0o700,parents=True)
     package=load_package();scopes,_=source_inputs(package)
     scopes[package['settlement']['month']]=Scope(**package['settlement']['scope'])
@@ -87,9 +128,9 @@ def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None
     with os.fdopen(fd,'w') as handle:json.dump(private,handle);handle.flush();os.fsync(handle.fileno())
     from uptime.auth_keys import rehearsal_key,write_credential
     write_credential(directory/'scripted-reviewer.jwk',rehearsal_key(private['rehearsal_secret']),ROOT)
-    if reviewer_credential is not None:
+    if target is not None:
         # A visible, operator-chosen copy (0600, exclusive create, outside the repository). Only its path is printed.
-        write_credential(Path(reviewer_credential).expanduser().absolute(),rehearsal_key(private['rehearsal_secret']),ROOT)
+        place_credential(target,rehearsal_key(private['rehearsal_secret']))
     return open_workspace(directory)
 
 
@@ -226,24 +267,30 @@ def main():
         parser.error('--public-proposal-config requires --serve')
     if args.resume and (args.step_by_step or args.counterparty_reply!='request-log'):
         parser.error('--step-by-step and --counterparty-reply apply when a workspace is created')
-    app,private,events=(open_workspace(args.directory) if args.resume else
-                        prepare(args.directory,args.origin,routine_automation=not args.step_by_step,
-                                reviewer_credential=args.reviewer_credential,counterparty_reply=args.counterparty_reply))
+    copy_state=None
+    try:
+        if args.resume:
+            target=credential_target(args.reviewer_credential) if args.reviewer_credential else None
+            app,private,events=open_workspace(args.directory)
+            if target is not None:
+                from uptime.auth_keys import rehearsal_key
+                copy_state=place_credential(target,rehearsal_key(private['rehearsal_secret']))
+        else:
+            app,private,events=prepare(args.directory,args.origin,routine_automation=not args.step_by_step,
+                                       reviewer_credential=args.reviewer_credential,counterparty_reply=args.counterparty_reply)
+            copy_state='WRITTEN' if args.reviewer_credential else None
+    except CredentialRefused as refused:
+        parser.exit(1,'setup_northwind: '+str(refused)+'\n')
     if not args.resume:
         from fastapi.testclient import TestClient
         with TestClient(app,base_url=private['origin'],client=('127.0.0.1',4510)) as client:
             actor,_=seed(client,app,private,events)
             projection=checked(client.get('/api/workspace/workflow',headers=actor.headers))
             (args.directory/'initial-projection.json').write_text(json.dumps(projection,indent=2)+'\n')
-    credential=args.directory.absolute()/'scripted-reviewer.jwk'
-    if args.reviewer_credential:
-        credential=args.reviewer_credential.expanduser().absolute()
-        if args.resume:
-            # Same key as the workspace copy, written through the same protected writer; no new key handling.
-            from uptime.auth_keys import rehearsal_key,write_credential
-            write_credential(credential,rehearsal_key(private['rehearsal_secret']),ROOT)
+    credential=(args.reviewer_credential.expanduser().absolute() if args.reviewer_credential
+                else args.directory.absolute()/'scripted-reviewer.jwk')
     print(json.dumps(dict(directory=str(args.directory),origin=private['origin'],account=SCRIPT,
-                          reviewer_credential_file=str(credential),
+                          reviewer_credential_file=str(credential),reviewer_credential_copy=copy_state,
                           routine_automation=bool(private.get('routine_automation',False)))),flush=True)
     # Plain sign-in block; only the path of the private key file is ever printed.
     print("Sign in with the reviewer file below (private key, mode 0600; never share or commit it).",file=sys.stderr)
