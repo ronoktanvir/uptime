@@ -1,0 +1,25 @@
+{
+  "schema": "public-route-control-preregistration/3",
+  "frozen_at": "2026-11-09T20:19:16.339573+00:00",
+  "classification": "public authored control; outside sealed cohort; not independent generalization",
+  "predecessor": "PUBLIC-CONTROL-FREEZE.json",
+  "preflight_history": [
+    {
+      "version": 1,
+      "outcome": "unsupported descriptive header at clause 1"
+    },
+    {
+      "version": 2,
+      "outcome": "bare agreement title plus explicit agreement ID refused as duplicate agreement"
+    }
+  ],
+  "change": "Remove the unsupported descriptive header; no economic terms, evidence or reply changed. Both prior source files remain preserved; no app/model invocation occurred.",
+  "max_application_model_invocations": 1,
+  "pins": {
+    "prepared.json": "334fe2ab12f0833fdeaf0a1ec0f8cb9d63b0aef30b6fc119f2d0d2815589111f",
+    "blind.json": "b5125f23bd01990be87b96ba62ac8794ae77f9005423060f5152d64b86e07de4"
+  },
+  "no_inference_preflight": "source compile, overlay, claim, delivery and reading grounding accepted",
+  "actual_model_jobs_started": 0,
+  "authority": "scripted local only; no external/native action or actual-human approval"
+}

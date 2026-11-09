@@ -1,13 +1,17 @@
 {
   "schema": "uptime-evaluation-progress/1",
-  "updated_at": "2026-11-09T20:10:50.700366+00:00",
-  "state": "PREPARING_FROZEN_SUPPLEMENT",
+  "updated_at": "2026-11-09T20:26:43.883918+00:00",
+  "state": "READY_FOR_VERIFIED_APP_FREEZE",
   "lane": "independent-evaluation",
   "implementation_base": "579997f1adb17b1ce5ea5c50b366cf1fe562b170",
   "commits": [
     "787f2f3",
     "c5fecb2",
-    "6b9e571"
+    "6b9e571",
+    "4f62e24",
+    "4e6ab56",
+    "f6c81d4",
+    "abc816a"
   ],
   "new_cohort": {
     "contracts": 6,
@@ -15,7 +19,10 @@
     "source_authoring": "FROZEN",
     "expected_commitment": "a7671b7d5beff9df6214f6681d24fa8937bbf87ff25c8fcaf53cd9c45233dd2a",
     "scored_attempts_started": 0,
-    "source_sha256": "c044e03cf81c8eead8dd65c7c715a933463aeec61d04903c52169cb27ecd682a"
+    "source_sha256": "c044e03cf81c8eead8dd65c7c715a933463aeec61d04903c52169cb27ecd682a",
+    "execution_manifest_sha256": "4540d4dcf158aa9c9b53f31a65434fe3ed087d664f554d0ddfa626eb3ac5cc89",
+    "source_reading_preparation_valid": 6,
+    "source_reading_preparation_refused": 2
   },
   "historical_results": {
     "onboarding_accepted": "0/4",
@@ -24,12 +31,12 @@
     "superseded": false
   },
   "runner_checks": {
-    "passed": 56,
+    "passed": 61,
     "warnings": 1,
-    "seconds": "2.28",
+    "seconds": "3.16",
     "provider": "explicit controlled double; not inference evidence"
   },
-  "blocked_stage": "Source-only readings and wire mappings running; awaiting integrator frozen merged app SHA.",
+  "blocked_stage": "Integrator is correcting a publicly found effective-period scope ambiguity, then finishing the full locked suite. No scored jobs started.",
   "ready_components": [
     "create-only onboarding attempts",
     "source and implementation pin checks",
@@ -53,11 +60,38 @@
       "state": "COMPLETE",
       "model": "claude-opus-5-5",
       "effort": "xhigh"
+    },
+    {
+      "id": "2c0cfe79-7934-4c86-ae01-d0c54ffc0a2d",
+      "purpose": "source-only reply readings",
+      "state": "COMPLETE_8_PREPARATION_GROUNDING_REFUSALS",
+      "model": "claude-opus-5-5",
+      "effort": "high"
+    },
+    {
+      "id": "e6562eb4-9341-4ef1-9321-0597edc9be56",
+      "purpose": "source-only wire mapping",
+      "state": "COMPLETE_SOURCES_UNCHANGED",
+      "model": "claude-opus-5-5",
+      "effort": "high"
+    },
+    {
+      "id": "9738525e-482f-4c78-85ce-f0957f5fc96e",
+      "purpose": "source-only grounding repair, original output preserved",
+      "state": "COMPLETE_6_VALID_2_REFUSED",
+      "model": "claude-opus-5-5",
+      "effort": "high"
     }
   ],
   "external_actions": [],
   "authority": "scripted local evaluation only; no actual-human release certification",
   "remaining_setup_limits": [
     "Historical original filing receipts currently require active reviewed resource-month terms; monthly late-filing setups are refused rather than inventing a local original."
-  ]
+  ],
+  "public_control": {
+    "classification": "separate public authored ordinary-path control; not independent held-out score",
+    "source_preflight": "VALID_V3_WITH_V1_V2_HEADER_REFUSALS_PRESERVED",
+    "max_provider_invocations": 1,
+    "started": false
+  }
 }

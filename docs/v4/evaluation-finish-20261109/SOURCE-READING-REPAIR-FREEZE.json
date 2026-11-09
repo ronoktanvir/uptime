@@ -1,0 +1,15 @@
+{
+  "schema": "source-reading-freeze/2",
+  "session": "9738525e-482f-4c78-85ce-f0957f5fc96e",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "purpose": "Pre-inference source-only grounding repair; original preparation refusals retained",
+  "expected_answers_provided": false,
+  "actual_application_outputs_provided": false,
+  "frozen_at": "2026-11-09T20:22:48.020000+00:00",
+  "count": 8,
+  "valid_grounding": 6,
+  "invalid_grounding": 2,
+  "sha256": "40280b8c4304fd4d88cf68b25550ee830fd63ce978308588d99a15a56e6768c8",
+  "authority": "scripted source reading, not an actual human decision or scored gold"
+}

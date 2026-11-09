@@ -1,0 +1,89 @@
+{
+  "schema": "source-mapping-freeze/1",
+  "frozen_at": "2026-11-09T20:19:47.947937+00:00",
+  "session": "e6562eb4-9341-4ef1-9321-0597edc9be56",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "expected_answers_provided": false,
+  "app_results_provided": false,
+  "source_sha256": "c044e03cf81c8eead8dd65c7c715a933463aeec61d04903c52169cb27ecd682a",
+  "mapping_sha256": "4753420537b6c98c6e5b4ebefb86b81e650ba3e715f8c81274829cb214c9a51b",
+  "counts": {
+    "contracts": 6,
+    "replies": 8
+  },
+  "original_documents_and_replies_unchanged": true,
+  "schema_checks": [
+    {
+      "id": "opaque-c01",
+      "document_unchanged": true,
+      "overlay_schema_error": null
+    },
+    {
+      "id": "opaque-c02",
+      "document_unchanged": true,
+      "overlay_schema_error": null
+    },
+    {
+      "id": "opaque-c03",
+      "document_unchanged": true,
+      "overlay_schema_error": null
+    },
+    {
+      "id": "opaque-c04",
+      "document_unchanged": true,
+      "overlay_schema_error": null
+    },
+    {
+      "id": "opaque-c05",
+      "document_unchanged": true,
+      "overlay_schema_error": null
+    },
+    {
+      "id": "opaque-c06",
+      "document_unchanged": true,
+      "overlay_schema_error": null
+    },
+    {
+      "id": "opaque-r01",
+      "document_and_reply_unchanged": true,
+      "schema_errors": []
+    },
+    {
+      "id": "opaque-r02",
+      "document_and_reply_unchanged": true,
+      "schema_errors": []
+    },
+    {
+      "id": "opaque-r03",
+      "document_and_reply_unchanged": true,
+      "schema_errors": []
+    },
+    {
+      "id": "opaque-r04",
+      "document_and_reply_unchanged": true,
+      "schema_errors": []
+    },
+    {
+      "id": "opaque-r05",
+      "document_and_reply_unchanged": true,
+      "schema_errors": []
+    },
+    {
+      "id": "opaque-r06",
+      "document_and_reply_unchanged": true,
+      "schema_errors": []
+    },
+    {
+      "id": "opaque-r07",
+      "document_and_reply_unchanged": true,
+      "schema_errors": []
+    },
+    {
+      "id": "opaque-r08",
+      "document_and_reply_unchanged": true,
+      "schema_errors": []
+    }
+  ],
+  "authority": "Scripted source-only setup; source-stated observations only, operational IDs labeled in lineage. No human review or score."
+}
