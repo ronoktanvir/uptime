@@ -87,7 +87,7 @@
     "docs/v4/evidence/browser-public-onboarding-82.json",
     "docs/v4/evidence/local-review-88/recorded-review-20261109.json"
    ],
-   "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05",
@@ -154,7 +154,7 @@
    "evidence": [
     "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions"
    ],
-   "gap": "The guide is locally assembled, not a grounded LLM conversation.",
+   "gap": "The guide is locally assembled, not a grounded LLM conversation. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10",
@@ -274,7 +274,7 @@
     "tests/test_disputes.py::test_frozen_decision_traces",
     "tests/test_disputes.py::test_heldout_oracle_kills_seeded_overpayment"
    ],
-   "gap": "Counterparty is simulated; unseen reply interpretation scored 0/50.",
+   "gap": "Counterparty is simulated; unseen reply interpretation scored 0/50. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D13"
@@ -449,7 +449,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Unseen reply generalization 0/50.",
+   "gap": "Unseen reply generalization 0/50. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D13"
@@ -485,7 +485,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Independent probes previously found real bugs after green suites; fresh independent evaluation is paused.",
+   "gap": "Independent probes previously found real bugs after green suites; fresh independent evaluation is paused. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D13"
@@ -709,7 +709,7 @@
     "tests/test_disputes.py::test_corroboration_required_before_accepting_exclusion",
     "docs/v4/PHASE78-REVIEWED-DENIAL-BUNDLE.md"
    ],
-   "gap": "Finite reply grammar; 0/50 unseen supported replies recognized. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "Finite reply grammar; 0/50 unseen supported replies recognized. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D06",
@@ -849,7 +849,7 @@
     "tests/test_onboarding_rules.py::test_independent_gold_catches_plausible_but_wrong_credit_rates",
     "tests/test_vendor_requirements_89.py"
    ],
-   "gap": "No separate security-scan stage; the signed release gate is unsatisfied.",
+   "gap": "No separate security-scan stage; the signed release gate is unsatisfied. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D13"
@@ -868,7 +868,7 @@
    "evidence": [
     "tests/test_onboarding_lifecycle.py::test_initial_shadow_contains_no_approval_and_viewer_cannot_mutate"
    ],
-   "gap": "Labels are authored; no disagreement-report artifact across live events.",
+   "gap": "Labels are authored; no disagreement-report artifact across live events. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D13"
@@ -889,7 +889,7 @@
     "docs/v4/evidence/local-review-88/recorded-review-20261109.json",
     "tests/test_onboarding_lifecycle.py::test_reviewer_can_restore_prior_version_with_same_governing_terms"
    ],
-   "gap": "One bounded local review recorded under the enrolled account; general release promotion remains gated. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap": "One bounded local review recorded under the enrolled account; general release promotion remains gated. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "external_dependency",
    "decisions": [
     "D05",
@@ -909,7 +909,7 @@
    "evidence": [
     "docs/v4/TEAM-DECISION-HANDOFF.md"
    ],
-   "gap": "Dependency-bound re-approval exists; outcome quality metrics do not.",
+   "gap": "Dependency-bound re-approval exists; outcome quality metrics do not. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D13"
@@ -1580,7 +1580,7 @@
     "tests/test_disputes.py::test_sensitive_attachment_closes_automatic_dispatch",
     "tests/test_disputes_v4.py::test_minimization_precedes_simulator_and_approval_hashes_wire"
    ],
-   "gap": "Redaction relies on declared classification; no content-level secret/PII detection.",
+   "gap": "Redaction relies on declared classification; no content-level secret/PII detection. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10"
@@ -1599,7 +1599,9 @@
    ],
    "gap": null,
    "gap_class": null,
-   "decisions": []
+   "decisions": [
+    "D13"
+   ]
   },
   {
    "id": "RG-2",
@@ -1904,7 +1906,7 @@
    "evidence": [
     "docs/v4/evidence/browser-public-onboarding-82.json"
    ],
-   "gap": "Public baseline 0/4 supported extractions. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap": "Public baseline 0/4 supported extractions. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05",
@@ -1984,7 +1986,7 @@
    "evidence": [
     "docs/v4/PHASE75-DISPUTE-RUNTIME.md"
    ],
-   "gap": "Human semantic review required; unseen replies 0/50. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "Human semantic review required; unseen replies 0/50. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D06",
@@ -2024,7 +2026,7 @@
    "evidence": [
     "tests/test_intelligence.py::test_guide_ignores_commands_and_cannot_mutate_case"
    ],
-   "gap": "Deterministic local explanations; no grounded LLM guide.",
+   "gap": "Deterministic local explanations; no grounded LLM guide. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10",
@@ -2273,7 +2275,7 @@
    "evidence": [
     "docs/v4/integration90/INTERFACES.md"
    ],
-   "gap": "Single-turn deterministic answers.",
+   "gap": "Single-turn deterministic answers. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D12"
@@ -2603,7 +2605,7 @@
    "evidence": [
     "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions"
    ],
-   "gap": "Locally assembled; not an LLM conversation.",
+   "gap": "Locally assembled; not an LLM conversation. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10",
@@ -2956,7 +2958,7 @@
     "docs/v4/decisions/INDEX.md",
     "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
    ],
-   "gap": "D14 (replace blanket consultation) is pending; the November 5 direction limits review to one concise critique.",
+   "gap": "D14 decided 2026-11-09: the execution policy replaces mandatory consultation; Opus is used when useful or requested. The AGENTS.md wording awaits Ronok's direct confirmation.",
    "gap_class": null,
    "decisions": [
     "D14"
@@ -3420,7 +3422,7 @@
    "evidence": [
     "uptime/intelligence.py"
    ],
-   "gap": "Guide not an LLM.",
+   "gap": "Guide not an LLM. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D12"
