@@ -25,7 +25,8 @@ from uptime.ramp_workspace import PACKAGED, RampWorkspace
 from uptime.server import create_app
 from uptime.storage import case_versions, initialize, save_cases, settlement_events, stored_cases, transition_settlement
 from uptime.workbench import Workbench
-from uptime.workspace_recovery import RecoveryError, backup, restore, table_digests, verify
+from uptime.workspace_recovery import (RecoveryError, acknowledge_reconciliation, backup, restore, table_digests,
+                                       verify)
 
 ROOT = Path(__file__).resolve().parents[1]
 TENANT = "tenant-a"
@@ -407,8 +408,133 @@ def test_operator_commands_print_no_secrets_and_signal_attention(tmp_path, capsy
     revoke.main(["revoke", "--db", str(db), "--tenant", TENANT, "--reason", "Customer uninstalled"])
     revoke.main(["status", "--db", str(db), "--tenant", TENANT])
     health = load("operations_check")
+    assert health.main(["--db", str(target)]) == 2  # restore reconciliation pending
+    load("workspace_recovery").main(["acknowledge", "--db", str(target), "--operator", "ops.lead",
+                                     "--note", "Bill threads read back since the backup; no later deliveries"])
     assert health.main(["--db", str(target)]) == 0
     assert health.main(["--db", str(db), "--stale-hours", "1", "--deadline-days", "1"]) in (0, 2)
     output = capsys.readouterr().out
     assert '"state": "REVOKED"' in output and '"fenced_unused_mandates": 0' in output
     assert key["d"] not in output
+
+
+def test_restore_blocks_native_preparation_and_new_mandates_until_reconciled(tmp_path):
+    db, _, signer = live_workspace(tmp_path)
+    folder = private_dir(tmp_path / "backups") / "copy"
+    manifest = backup(db, folder)
+    target = private_dir(tmp_path / "restored") / "work.sqlite"
+    receipt = restore(folder, target, tenant=TENANT, mode="sandbox")
+    assert receipt["native_actions_and_new_mandates"] == "BLOCKED_UNTIL_RECONCILED"
+    with pytest.raises(PermissionError, match="reconcile"):
+        mandate(target, signer)
+    workspace = RampWorkspace(Workbench(target, "sandbox", tenant=TENANT))
+    snapshot, _, _, _ = workspace._view()
+    bill = next(r for r in snapshot["resources"]["bills"]["records"] if r["kind"] == "bill")
+    with pytest.raises(PermissionError, match="reconcile"):
+        workspace.record_for_native("bills", bill["id"])
+    pending = {f["code"]: f for f in check(target)["findings"]}["RESTORE_RECONCILIATION_PENDING"]
+    assert pending["reconcile_since"] == manifest["created_at"]
+
+    with pytest.raises(RecoveryError):
+        acknowledge_reconciliation(target, "Not An Operator", "checked")
+    done = acknowledge_reconciliation(target, "ops.lead", "Ramp threads read back since the backup")
+    assert done["restore_epochs"] == 1
+    with pytest.raises(RecoveryError, match="No restored epoch"):
+        acknowledge_reconciliation(target, "ops.lead", "again")
+    with sqlite3.connect(target) as conn:
+        with pytest.raises(sqlite3.DatabaseError, match="immutable"):
+            conn.execute("UPDATE operations_restore SET reconciled_at=NULL")
+        with pytest.raises(sqlite3.DatabaseError, match="immutable"):
+            conn.execute("DELETE FROM operations_restore")
+    mandate(target, signer)  # new authority only after the acknowledgement
+    assert "RESTORE_RECONCILIATION_PENDING" not in {f["code"] for f in check(target)["findings"]}
+    assert mandate(db, signer)  # the original workspace was never gated
+
+
+def test_deleted_host_store_cannot_reopen_a_revoked_workspace(tmp_path, host_store):
+    import shutil
+    db, _, _ = live_workspace(tmp_path)
+    record = installation_revocation.revoke(TENANT, BUSINESS, reason="Customer uninstalled Uptime")
+    installation_revocation.record_workspace_event(db, TENANT, BUSINESS, record)
+    shutil.rmtree(host_store)
+    assert installation_revocation.status(TENANT, BUSINESS) is None
+    with pytest.raises(PermissionError, match="revoked"):
+        RampWorkspace(Workbench(db, "sandbox", tenant=TENANT)).import_observation(capture(), BUSINESS)
+    report = check(db)
+    assert report["installation"]["state"] == "REVOKED"
+    assert "REVOCATION_HOST_RECORD_MISSING" in {f["code"] for f in report["findings"]}
+
+
+def test_repository_paths_are_refused_through_symlinks_and_case_variants(tmp_path):
+    db, _, _ = live_workspace(tmp_path)
+    link = private_dir(tmp_path / "links") / "repo"
+    link.symlink_to(ROOT)
+    with pytest.raises(RecoveryError):
+        backup(db, link / "backup-via-link")
+    folder = private_dir(tmp_path / "backups") / "copy"
+    backup(db, folder)
+    with pytest.raises(RecoveryError):
+        restore(folder, link / "restored.sqlite", tenant=TENANT, mode="sandbox")
+    variant = Path(str(ROOT).upper())
+    if variant.exists() and variant != ROOT:  # case-insensitive volume
+        with pytest.raises(RecoveryError):
+            restore(folder, variant / "restored.sqlite", tenant=TENANT, mode="sandbox")
+        assert not (ROOT / "restored.sqlite").exists()
+    assert not (ROOT / "backup-via-link").exists()
+
+
+def test_backup_during_concurrent_writes_is_a_consistent_snapshot(tmp_path):
+    from threading import Event, Thread
+    db, _, _ = live_workspace(tmp_path)
+    actor, stop, errors = Principal(TENANT, USER, "reviewer"), Event(), []
+
+    def write():
+        n = 0
+        while not stop.is_set() and n < 200:
+            try:
+                transition_settlement(db, actor, f"busy-{n}", "record-credit", "1.00")
+            except Exception as exc:  # pragma: no cover - reported below
+                errors.append(exc)
+            n += 1
+
+    worker = Thread(target=write)
+    worker.start()
+    try:
+        folders = []
+        for i in range(3):
+            folder = private_dir(tmp_path / "backups" / str(i)) / "copy"
+            backup(db, folder)
+            folders.append(folder)
+    finally:
+        stop.set()
+        worker.join()
+    assert not errors
+    for folder in folders:
+        manifest = verify(folder)
+        assert manifest["integrity"] == "ok" and manifest["case_history"] == "VERIFIED"
+        with sqlite3.connect(folder / "workspace.sqlite") as conn:
+            events = conn.execute("SELECT count(*) FROM settlement_event").fetchone()[0]
+            awards = conn.execute("SELECT count(*) FROM allocation_award").fetchone()[0]
+        assert events - 2 == awards - 1  # each busy credit wrote its event and award together
+
+
+def test_restore_staging_collision_and_corrupt_database_fail_closed(tmp_path):
+    import importlib.util
+    db, _, _ = live_workspace(tmp_path)
+    folder = private_dir(tmp_path / "backups") / "copy"
+    backup(db, folder)
+    target = private_dir(tmp_path / "restored") / "work.sqlite"
+    staging = target.with_name(".work.sqlite.restoring")
+    staging.write_bytes(b"")
+    with pytest.raises(RecoveryError):
+        restore(folder, target, tenant=TENANT, mode="sandbox")
+    assert not target.exists() and staging.exists()
+
+    spec = importlib.util.spec_from_file_location("operations_check", ROOT / "scripts/operations_check.py")
+    health = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(health)
+    corrupt = tmp_path / "restored" / "corrupt.sqlite"
+    corrupt.write_bytes(b"SQLite format 3\x00" + b"\x00" * 200)
+    with pytest.raises(SystemExit) as stopped:
+        health.main(["--db", str(corrupt)])
+    assert stopped.value.code == 1

@@ -86,8 +86,25 @@ def status(tenant, business_id):
     return _read(root / name, tenant, business_id)
 
 
-def require_active(tenant, business_id):
-    if status(tenant, business_id) is not None:
+def workspace_revoked(path, tenant, business_id):
+    """The workspace's own immutable REVOKED event, read independently of the host store."""
+    if path is None or not Path(path).is_file():
+        return None
+    with database(path) as db:
+        if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='native_installation_event'").fetchone():
+            return None
+        row = db.execute("SELECT at FROM native_installation_event WHERE tenant=? AND business_id=? AND event='REVOKED'",
+                         (tenant, business_id)).fetchone()
+    return row[0] if row else None
+
+
+def require_active(tenant, business_id, *, path=None):
+    """Refuse when either the host store or the workspace records a revocation.
+
+    A host store deleted after revocation therefore cannot re-enable a current
+    workspace. An administrator who replaces both remains a trusted actor.
+    """
+    if status(tenant, business_id) is not None or workspace_revoked(path, tenant, business_id) is not None:
         raise PermissionError(REVOKED)
 
 
@@ -126,7 +143,7 @@ def require_workspace_active(path, tenant):
     """Refuse before any provider request when this workspace's installation was revoked."""
     business = installed_business(path, tenant)
     if business is not None:
-        require_active(tenant, business)
+        require_active(tenant, business, path=path)
     return business
 
 

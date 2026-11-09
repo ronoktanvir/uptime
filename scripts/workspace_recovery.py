@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from uptime.workspace_recovery import RecoveryError, backup, restore, verify
+from uptime.workspace_recovery import RecoveryError, acknowledge_reconciliation, backup, restore, verify
 
 
 def main(argv=None):
@@ -23,6 +23,10 @@ def main(argv=None):
     put.add_argument("--tenant", required=True)
     put.add_argument("--mode", choices=("replay", "sandbox"), required=True)
     put.add_argument("--previous", type=Path, help="Readable previous database whose revocations carry forward")
+    ack = sub.add_parser("acknowledge", help="Record that external effects since the restore point were reconciled")
+    ack.add_argument("--db", type=Path, required=True)
+    ack.add_argument("--operator", required=True)
+    ack.add_argument("--note", required=True)
     args = parser.parse_args(argv)
     os.umask(0o077)
     try:
@@ -35,6 +39,8 @@ def main(argv=None):
             manifest = verify(args.backup.absolute())
             result = {"verified": True, "created_at": manifest["created_at"], "binding": manifest["binding"],
                       "database_sha256": manifest["database"]["sha256"]}
+        elif args.command == "acknowledge":
+            result = acknowledge_reconciliation(args.db.absolute(), args.operator, args.note)
         else:
             result = restore(args.backup.absolute(), args.target.absolute(), tenant=args.tenant, mode=args.mode,
                              previous=args.previous.absolute() if args.previous else None)

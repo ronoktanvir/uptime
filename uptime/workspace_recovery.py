@@ -12,7 +12,12 @@ copy against the manifest, then applies an authority-reducing fence:
 * every unused reviewer mandate in the snapshot is revoked, so an older copy
   cannot resurrect single-use authority that may have been consumed later;
 * when the operator supplies the previous database of the same workspace,
-  its issuer, mandate and price-evidence revocations are carried forward.
+  its issuer, mandate and price-evidence revocations are carried forward;
+* native preparation and new mandate installation stay refused until an
+  operator acknowledges reconciliation of external effects since the backup.
+
+The manifest is a checksum record, not an authenticated signature: it detects
+accidental or partial alteration, not an administrator who rewrites both.
 
 Financial and case history are not rewritten. Installation revocations live in
 the host store (installation_revocation) and apply to restored copies as well.
@@ -23,6 +28,7 @@ from hashlib import sha256
 import json
 import os
 from pathlib import Path
+import re
 import sqlite3
 import stat
 
@@ -257,6 +263,59 @@ def _carry_forward(db, previous, binding):
         old.close()
 
 
+RECONCILE = "Restored workspace: reconcile external effects since {since} and acknowledge it before native actions or new mandates"
+OPERATOR = re.compile(r"[a-z][a-z0-9_.-]{1,63}")
+
+
+def _restore_schema(db):
+    """One row per restore: the restore epoch. Reconciliation is a separate, one-time acknowledgement."""
+    db.execute("""CREATE TABLE IF NOT EXISTS operations_restore (
+        sequence INTEGER PRIMARY KEY, backup_sha256 TEXT NOT NULL, backup_created_at TEXT NOT NULL,
+        restored_at TEXT NOT NULL, fenced_mandates INTEGER NOT NULL, revocations_carried TEXT,
+        reconciled_at TEXT, reconciled_by TEXT, reconciliation_note TEXT)""")
+    db.execute("""CREATE TRIGGER IF NOT EXISTS operations_restore_no_delete BEFORE DELETE ON operations_restore
+        BEGIN SELECT RAISE(ABORT,'restore epoch is immutable'); END""")
+    db.execute("""CREATE TRIGGER IF NOT EXISTS operations_restore_once BEFORE UPDATE ON operations_restore
+        WHEN OLD.reconciled_at IS NOT NULL OR NEW.backup_sha256 != OLD.backup_sha256
+          OR NEW.backup_created_at != OLD.backup_created_at OR NEW.restored_at != OLD.restored_at
+          OR NEW.fenced_mandates != OLD.fenced_mandates OR NEW.revocations_carried IS NOT OLD.revocations_carried
+        BEGIN SELECT RAISE(ABORT,'restore epoch is immutable'); END""")
+
+
+def pending_reconciliation(db):
+    """The earliest unacknowledged restore point in an open connection, or None."""
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='operations_restore'").fetchone():
+        return None
+    row = db.execute("SELECT min(backup_created_at) FROM operations_restore WHERE reconciled_at IS NULL").fetchone()
+    return row[0] if row else None
+
+
+def require_reconciled(db):
+    since = pending_reconciliation(db)
+    if since is not None:
+        raise PermissionError(RECONCILE.format(since=since))
+
+
+def acknowledge_reconciliation(path, operator, note, *, now=None):
+    """Operator attests that Ramp threads and vendor channels were reconciled since each restore point."""
+    if not isinstance(operator, str) or not OPERATOR.fullmatch(operator):
+        raise RecoveryError("Name the operator account that reconciled the external effects")
+    if not isinstance(note, str) or not 1 <= len(note) <= 500 or any(ord(c) < 32 for c in note):
+        raise RecoveryError("A short single-line reconciliation note is required")
+    db = _connect(path)
+    try:
+        with db:
+            db.execute("BEGIN IMMEDIATE")
+            if pending_reconciliation(db) is None:
+                raise RecoveryError("No restored epoch is awaiting reconciliation")
+            at = _now(now)
+            count = db.execute("UPDATE operations_restore SET reconciled_at=?,reconciled_by=?,reconciliation_note=? "
+                               "WHERE reconciled_at IS NULL", (at, operator, note)).rowcount
+    finally:
+        db.close()
+    return {"reconciled_at": at, "reconciled_by": operator, "restore_epochs": count}
+
+
 def restore(backup_directory, target, *, tenant, mode, previous=None, now=None):
     """Create a new fenced workspace database from a verified backup."""
     manifest = verify(backup_directory)
@@ -282,9 +341,7 @@ def restore(backup_directory, target, *, tenant, mode, previous=None, now=None):
                 if "reviewer_mandate" in tables:
                     fenced = db.execute("UPDATE reviewer_mandate SET revoked=1 WHERE used=0 AND revoked=0").rowcount
                 carried = _carry_forward(db, previous, binding) if previous is not None else None
-                db.execute("""CREATE TABLE IF NOT EXISTS operations_restore (
-                    sequence INTEGER PRIMARY KEY, backup_sha256 TEXT NOT NULL, backup_created_at TEXT NOT NULL,
-                    restored_at TEXT NOT NULL, fenced_mandates INTEGER NOT NULL, revocations_carried TEXT)""")
+                _restore_schema(db)
                 db.execute("INSERT INTO operations_restore(backup_sha256,backup_created_at,restored_at,fenced_mandates,"
                            "revocations_carried) VALUES(?,?,?,?,?)",
                            (manifest["database"]["sha256"], manifest["created_at"], restored_at, fenced,
@@ -302,8 +359,9 @@ def restore(backup_directory, target, *, tenant, mode, previous=None, now=None):
             "binding": binding, "fenced_unused_mandates": fenced,
             "revocations_carried_forward": carried,
             "reconcile_external_effects_since": manifest["created_at"],
+            "native_actions_and_new_mandates": "BLOCKED_UNTIL_RECONCILED",
             "required_next_steps": [
                 "Reconcile any Ramp comment or vendor submission made after the backup time against the provider before a new action.",
-                "Issue new reviewer mandates only after that reconciliation; restored unused mandates are revoked.",
+                "Record that reconciliation with `workspace_recovery.py acknowledge`; native preparation and new mandates stay refused until then.",
                 "Re-apply any revocation made after the backup unless the previous database was supplied.",
                 "Launch with the same tenant and mode; sessions must sign in again."]}

@@ -21,6 +21,7 @@ import stat
 
 from . import installation_revocation
 from .storage import _read_versions
+from .workspace_recovery import pending_reconciliation
 
 SCHEMA = "uptime-operations-health/1"
 ROOT = Path(__file__).resolve().parents[1]
@@ -121,6 +122,11 @@ def check(db_path, *, now=None, stale_after=timedelta(hours=24), deadline_window
         if business:
             try:
                 revoked = installation_revocation.status(tenant, business)
+                local = installation_revocation.workspace_revoked(db_path, tenant, business)
+                if revoked is None and local is not None:
+                    revoked = {"revoked_at": local}
+                    note("ATTENTION", "REVOCATION_HOST_RECORD_MISSING",
+                         "The workspace records a revocation the host store lacks; access stays refused.")
                 report["installation"] = {"business_id": business, "state": "REVOKED" if revoked else "ACTIVE"}
                 if revoked:
                     note("INFO", "INSTALLATION_REVOKED", "Provider imports and native actions are refused.",
@@ -143,12 +149,14 @@ def check(db_path, *, now=None, stale_after=timedelta(hours=24), deadline_window
             report["unused_mandates"] = db.execute(
                 "SELECT count(*) FROM reviewer_mandate WHERE used=0 AND revoked=0").fetchone()[0]
         if "operations_restore" in tables:
-            last = db.execute("SELECT backup_created_at,restored_at,fenced_mandates FROM operations_restore "
+            last = db.execute("SELECT backup_created_at,restored_at,fenced_mandates,reconciled_at FROM operations_restore "
                               "ORDER BY sequence DESC LIMIT 1").fetchone()
             report["restored"] = dict(last)
-            note("INFO", "RESTORED_FROM_BACKUP",
-                 "Reconcile external effects made after the backup before issuing new mandates.",
-                 reconcile_since=last["backup_created_at"])
+            since = pending_reconciliation(db)
+            if since is not None:
+                note("ATTENTION", "RESTORE_RECONCILIATION_PENDING",
+                     "Native actions and new mandates are refused until external effects since the backup are reconciled.",
+                     reconcile_since=since)
 
         due = []
         for case_id, payload in cases.items():
