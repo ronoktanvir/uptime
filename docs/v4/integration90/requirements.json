@@ -313,7 +313,8 @@
    ],
    "evidence": [
     "tests/test_storage.py::test_restart_and_corruption",
-    "docs/v4/evidence/resume-7882178.json"
+    "docs/v4/evidence/resume-7882178.json",
+    "tests/test_operations_recovery_90.py::test_backup_restore_restart_preserves_authority_and_financial_state"
    ],
    "gap": "Local SQLite only; no hosted durability.",
    "gap_class": "external_dependency",
@@ -2343,7 +2344,9 @@
     "uptime/ramp_workflow.py"
    ],
    "evidence": [
-    "tests/test_ramp.py::test_ambiguous_create_is_never_retried"
+    "tests/test_ramp.py::test_ambiguous_create_is_never_retried",
+    "tests/test_operations_recovery_90.py::test_bounded_read_retries_only_follow_transient_failures",
+    "docs/v4/OPERATIONS-RECOVERY-90.md"
    ],
    "gap": "Local queue and outbox; uncertain work is intentionally not retried; no hosted workers.",
    "gap_class": "missing_functionality",
@@ -2405,7 +2408,9 @@
    "evidence": [
     "tests/test_correspondence.py::test_narrowed_legacy_grant_cannot_revert_to_subscription_wildcard",
     "tests/test_ramp_workflow_webhooks.py::test_subscription_binding_cannot_be_swapped",
-    "docs/v4/OPUS46-SECURITY-TRIAGE.md"
+    "docs/v4/OPUS46-SECURITY-TRIAGE.md",
+    "tests/test_operations_recovery_90.py::test_installation_revocation_survives_restart_and_restore_and_stays_tenant_scoped",
+    "tests/test_operations_recovery_90.py::test_backup_contains_no_credentials_or_session_material"
    ],
    "gap": "Loopback-only; hosted threat boundary undecided.",
    "gap_class": "external_dependency",
@@ -2422,12 +2427,14 @@
    "owner": "W0",
    "implementation": [
     "uptime/evidence_refresh.py",
-    "uptime/ramp_webhooks.py"
+    "uptime/ramp_webhooks.py",
+    "uptime/operations_health.py"
    ],
    "evidence": [
-    "docs/v4/TEAM-DECISION-HANDOFF.md"
+    "docs/v4/TEAM-DECISION-HANDOFF.md",
+    "tests/test_operations_recovery_90.py::test_health_report_alerts_actionable_claim_cutoffs_only"
    ],
-   "gap": "Refresh is operator-driven; no scheduler, live webhook subscription or deadline alerts.",
+   "gap": "An operator-run health check now reports actionable claim cutoffs, retryable reads and uncertain effects; there is still no scheduler, live webhook subscription or alert delivery.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D02",
@@ -2442,12 +2449,14 @@
    "disposition": "NOT_MET",
    "owner": "W1",
    "implementation": [
-    "uptime/ramp_installation.py"
+    "uptime/ramp_installation.py",
+    "uptime/installation_revocation.py"
    ],
    "evidence": [
-    "docs/v4/RAMP-FEASIBILITY.md"
+    "docs/v4/RAMP-FEASIBILITY.md",
+    "docs/v4/CUSTOMER-INSTALLATION-DESIGN.md"
    ],
-   "gap": "Client-credentials only.",
+   "gap": "Client-credentials only. A customer installation design and durable installation revocation exist (W9); authorization-code consent, token refresh and hosted callbacks are not implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D11"
