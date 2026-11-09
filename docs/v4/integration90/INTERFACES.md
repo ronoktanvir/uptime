@@ -1,10 +1,21 @@
 # Published integration interfaces
 
-**As of November 9, 2026, baseline `03b372e`.** These are the cross-workstream interfaces that specialists build against. Each section says whether it rests on an already accepted decision or is **frozen pending a team decision**. Frozen means the present behavior is published exactly as it is, and only the W0 owner may change it, after the team records the decision. [Ownership and change requests](OWNERSHIP.md) · [D03/D04 alternatives](D03-D04-ALTERNATIVES.md)
+**As of November 9, 2026, baseline `03b372e`.** These are the cross-workstream interfaces that specialists build against. Each section says whether it rests on an already accepted decision. Sections 1 and 2 publish the **agreed D03/D04 target** (decided 2026-11-09, owner Ronok), followed by today's behavior, which stays in force until `agent1`'s implementation merges. [Ownership and change requests](OWNERSHIP.md) · [D03/D04 alternatives](D03-D04-ALTERNATIVES.md)
 
 The November 3 CP1 wire contract in [docs/orchestration/INTERFACES.md](../../orchestration/INTERFACES.md) is the historical origin of these types. The V3 specification's proposed object list is mapped to these types in the [requirement checklist](REQUIREMENTS.md) (IF-1 to IF-7).
 
-## 1. Account and agreement identity — frozen pending D03
+## 1. Account and agreement identity — D03 decided: bounded exact source IDs
+
+**Agreed target (implementation on `work/identity-pricing-89`):**
+
+- One shared `SourceIdentity` type for every identity-bearing field: account and agreement in claim scope, onboarding overlays, grants, invoice/monitor/maintenance/credit evidence, filing, interpretation and reconciliation. Proposed bounds: 1–96 characters; printable letters and digits; single ASCII spaces; `. , ' & ( ) + : / _ -`; already NFC; no leading, trailing or repeated whitespace; no control characters.
+- Values outside the type are **refused, never rewritten**. The ledger's NFC-plus-strip path becomes a refusal.
+- Technical route and artifact IDs keep the restricted `Id` type.
+- The claim key formula is unchanged, so existing keys, signatures and hashes stay valid. A property test must show `Id` is a subset of `SourceIdentity`. The stored-identity inventory found zero refusals in the retyped fields (`agent1`).
+- **Blocking near-duplicate guard:** a second filing for the same tenant, folded vendor, agreement, month and remedy whose account differs only by case or spacing is refused. There is no override path until override authority is decided.
+
+**Current behavior until merge:**
+
 
 | Consumer | Field(s) | Accepted domain today | Source |
 |:---|:---|:---|:---|
@@ -13,13 +24,24 @@ The November 3 CP1 wire contract in [docs/orchestration/INTERFACES.md](../../orc
 | Economic claim key (both intake routes) | tenant, vendor, account, agreement_id, service, month, remedy | Non-empty, no leading/trailing whitespace, no control characters. Vendor and service are NFC-normalized and case-folded; account and agreement are exact. `agreement_version` is required provenance but excluded from the key | `uptime/claim_identity.py:28-55` |
 | Published contract → claim identity | `overlay.account`, `manifest.agreement` or `overlay.agreement`, `overlay.product` | Whatever onboarding accepted; spaces are allowed | `uptime/claim_identity.py:82-89`, `uptime/vendor_terms.py` |
 
-**Published rule while D03 is open:** identity values are carried byte-exact. No route may slug, trim, case-fold or rewrite an account or agreement identity to make two domains agree. A value one route accepts and another rejects is a reproduced defect (receipts `docs/v4/evidence/pause-20261106/e86-01.json`, `e86-04.json`), not missing evidence. The identity specialist's characterization (`work/identity-pricing-89`) lists every domain that disagrees.
+**Rule in force until the D03 implementation merges:** identity values are carried byte-exact. No route may slug, trim, case-fold or rewrite an account or agreement identity to make two domains agree. A value one route accepts and another rejects is a reproduced defect (receipts `docs/v4/evidence/pause-20261106/e86-01.json`, `e86-04.json`), not missing evidence. The identity specialist's characterization (`work/identity-pricing-89`) lists every domain that disagrees.
 
-## 2. Claim scope — frozen pending D04
+## 2. Claim scope — D04 decided: typed scope variants, selected server-side
+
+**Agreed target (implementation on `work/identity-pricing-89`):**
+
+- Explicit scope types per obligation: **whole-service month**, **resource period** and **incident-specific**. Each declares its required fields; component, incident and region are required only where the governing obligation needs them.
+- The server selects the variant from the governing obligation family resolved from trusted terms, through a versioned table. Signed request bodies keep their current shape; the client sends no `kind`. Unknown or ambiguous families are refused.
+- "Not applicable" (a field the variant forbids) stays distinct from "unknown" (a required field not yet evidenced). A scope defect is a distinct invalid-scope refusal, never INSUFFICIENT_EVIDENCE. An invoice the fee basis needs is named as missing evidence.
+- No component, incident or region is ever invented. The vendor-name shape check at `correspondence.py:193` is replaced by the family table.
+- Stored ten-field claims are grandfathered: they evaluate with their original scope, and absent and null stay distinct in canonical JSON.
+
+**Current behavior until merge:**
+
 
 `Scope` (`uptime/correspondence_types.py:17-27`) is one strict, frozen shape with **ten required fields**: account, vendor, contract, service, component, invoice, incident, currency (`^[A-Z]{3}$`), month (`^20[0-9]{2}-(0[1-9]|1[0-2])$`) and region. No field is optional, and there is no resource field. Resource identifiers appear only in the evidence records (`ResourceSpan`, `ResourceLine`, `MonitorRow`, `MaintenanceRecord`, `IssuedCredit`).
 
-**Published rule while D04 is open:** never invent a component, incident, region or invoice to satisfy the schema. A whole-service monthly obligation that cannot supply those fields is refused at intake today (HTTP 422). That refusal is reported as a D04 dependency, not as INSUFFICIENT_EVIDENCE.
+**Rule in force until the D04 implementation merges:** never invent a component, incident, region or invoice to satisfy the schema. A whole-service monthly obligation that cannot supply those fields is refused at intake today (HTTP 422). That refusal is reported as a D04 dependency, not as INSUFFICIENT_EVIDENCE.
 
 ## 3. Evaluation outcomes and money — agreed
 

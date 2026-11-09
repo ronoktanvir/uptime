@@ -1,6 +1,6 @@
 # D03 and D04: alternatives and migration consequences for the team
 
-**Status: DECIDED November 9, 2026 — Ronok selected D03-A with the blocking guard and D04-C** (explicit options question in the integration session; the guard has no override path, and override authority stays pending). Implementation is in progress on `work/identity-pricing-89` and is **not yet merged or verified**. The analysis below is preserved as prepared. It covers the concrete choices for [D03 (account and contract identity) and D04 (contract-specific scope)](../TEAM-DECISION-HANDOFF.md#team-decision-sheet). The integration owner's preference is labelled as a preference. It was criticized once by Claude Opus 5.5; [the critique and how it changed this document](#opus-55-critique) are below. Record the team's choice beside D03/D04 in the handoff before any implementation starts.
+**Status: DECIDED 2026-11-09, owner Ronok** ([decision record](#decision-record)). Implementation is in progress on `work/identity-pricing-89` and is **not yet merged or verified**. The analysis below is preserved as prepared. It covers the concrete choices for [D03 (account and contract identity) and D04 (contract-specific scope)](../TEAM-DECISION-HANDOFF.md#team-decision-sheet). The integration owner's preference is labelled as a preference. It was criticized once by Claude Opus 5.5; [the critique and how it changed this document](#opus-55-critique) are below. Record the team's choice beside D03/D04 in the handoff before any implementation starts.
 
 ## The defect both decisions resolve
 
@@ -98,3 +98,18 @@ Opus also preferred D03-A and D04-C, with conditions. It **dissented** from leav
 | Scale of the defect and frequency of new families are unknown | Agreed. The evidence is two authored claims plus one walkthrough; no frequency claim is made. |
 
 Additional tests adopted: an identity inventory; a property test that the restricted `Id` domain is a subset of the new type; ledger/key reconciliation; a case-variant second filing is blocked; an ambiguous family is refused; old ten-field claims are byte-identical. Human authorization required: the team adopts D03/D04; claim-schema signers accept the intake type change; remediation of refused legacy identities, ledger reconciliation and any override authority are approved explicitly.
+
+## Decision record
+
+Owner: Ronok. Date: 2026-11-09. Ronok's choice reached three sessions, and all three records are kept here verbatim in substance:
+
+| Source | What was recorded |
+|:---|:---|
+| Integration session (`agent0`), explicit options question | "D03-A + guard, D04-C (Recommended)": one exact source-identity type with a blocking near-duplicate guard; scope requirements derived server-side from the governing obligation family |
+| Identity session (`agent1`), asked directly | D03-A with blocking guard and no override path; "D04-C: server table" |
+| Overview session, relayed to the integration owner | D03 "Bounded exact source IDs" (alias/mapping registry not chosen); D04 "Typed scope variants": explicit scope types per obligation (whole-service month, resource period, incident-specific), with component, incident and region required only when the governing obligation needs them, "not applicable" distinct from "unknown", and nothing invented |
+
+**Reconciled interface:** typed scope variants exist as explicit types, and the **server** selects the variant from the governing obligation family. The client does not declare a `kind`. That satisfies both the "typed scope variants" wording and the D04-C mechanism. If Ronok intended client-declared variants (D04-A, which changes every signed request body), this record must be amended before that part is implemented.
+
+**Dissent:** the dispute owner's recorded preference for explicit identity mappings (D03-B) was not chosen. Opus 5.5 dissented on deferring duplicate control; the blocking guard answers it. Override authority for the guard is a pending decision, so the guard blocks without an override.
+
