@@ -27,3 +27,10 @@ Results:
 - Fresh Northwind workspace at 390 px: both vendor panels open with no sideways scroll, no page errors and no demo wording
 
 The full suite will run in the integration owner's next round.
+
+## Follow-up: sixth element and null selection
+
+After merge `5d8af56`, agent2's `submission_channel` element (`7906764`) and a null `family_selection` are pinned by one added test function in my own file, `tests/helpers/requirements_card.test.cjs`: "a submission channel element renders generically, and a null family selection adds no section". No existing assertion changed.
+
+On the integration head with the sixth element, `test_requirements_card_ui_95` and `test_vendor_requirements_89` pass: **17 passed, 1 warning in 3.54s**. The real payload renders "Submission channel". JavaScript: **98/98**.
+

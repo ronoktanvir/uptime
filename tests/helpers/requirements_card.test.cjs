@@ -72,3 +72,15 @@ test('no requirements control without a readable revision', async () => {
   assert.equal(open, undefined);
   assert.ok(!calls.some(c => c.path.endsWith('/requirements')));
 });
+
+test('a submission channel element renders generically, and a null family selection adds no section', async () => {
+  const channel = {element:'submission_channel', status:'PRESENT', citations:[4],
+    detail:{submission_channel:'support portal', request_fields:['account', 'resource', 'month']}, requirement:null};
+  const {root} = await card({...REQUIREMENTS, family_selection:null,
+    card:{...REQUIREMENTS.card, elements:[...REQUIREMENTS.card.elements, channel, {...channel, status:'NONE_STATED', citations:[], detail:{}}]}});
+  const text = root.textContent;
+  assert.ok(text.includes('Submission channel: stated in the source'));
+  assert.ok(text.includes('Submission channel: none stated in the source'));
+  assert.ok(text.includes('support portal') && text.includes('account') && text.includes('resource'));
+  assert.ok(!text.includes('How the rule family was chosen'));
+});
