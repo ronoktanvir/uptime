@@ -1,0 +1,108 @@
+{
+  "opaque_case_id": "e86-01",
+  "phase": "PRE_MODEL_NATIVE_SETUP_VALIDATION",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "source_file_sha256": "f30b299ca3481d143069aa272fcfbc7ac5eb2643ef276a27c55f21dc0da1abbe",
+  "route": "/api/correspondence/claims",
+  "request": {
+    "claim_id": "inbox-e86-01",
+    "scope": {
+      "account": "Cedar Orrery Studio",
+      "vendor": "Talus Signal",
+      "contract": "Talus Signal Availability Agreement",
+      "service": "Event Relay",
+      "currency": "USD",
+      "month": "2033-10",
+      "invoice": "invoice-TS-ORCHARD-2033-2033-10"
+    }
+  },
+  "http_status": 422,
+  "response": {
+    "detail": [
+      {
+        "type": "string_pattern_mismatch",
+        "loc": [
+          "body",
+          "scope",
+          "account"
+        ],
+        "msg": "String should match pattern '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$'",
+        "input": "Cedar Orrery Studio",
+        "ctx": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$"
+        }
+      },
+      {
+        "type": "string_pattern_mismatch",
+        "loc": [
+          "body",
+          "scope",
+          "contract"
+        ],
+        "msg": "String should match pattern '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$'",
+        "input": "Talus Signal Availability Agreement",
+        "ctx": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$"
+        }
+      },
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "scope",
+          "component"
+        ],
+        "msg": "Field required",
+        "input": {
+          "account": "Cedar Orrery Studio",
+          "vendor": "Talus Signal",
+          "contract": "Talus Signal Availability Agreement",
+          "service": "Event Relay",
+          "currency": "USD",
+          "month": "2033-10",
+          "invoice": "invoice-TS-ORCHARD-2033-2033-10"
+        }
+      },
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "scope",
+          "incident"
+        ],
+        "msg": "Field required",
+        "input": {
+          "account": "Cedar Orrery Studio",
+          "vendor": "Talus Signal",
+          "contract": "Talus Signal Availability Agreement",
+          "service": "Event Relay",
+          "currency": "USD",
+          "month": "2033-10",
+          "invoice": "invoice-TS-ORCHARD-2033-2033-10"
+        }
+      },
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "scope",
+          "region"
+        ],
+        "msg": "Field required",
+        "input": {
+          "account": "Cedar Orrery Studio",
+          "vendor": "Talus Signal",
+          "contract": "Talus Signal Availability Agreement",
+          "service": "Event Relay",
+          "currency": "USD",
+          "month": "2033-10",
+          "invoice": "invoice-TS-ORCHARD-2033-2033-10"
+        }
+      }
+    ]
+  },
+  "model_calls": 0,
+  "financial_or_external_actions": 0,
+  "normalized_or_invented_scope_values": false,
+  "limitation": "Input-domain refusal before qualification or native claim preparation; not a model-comprehension result or completed semantic evaluation."
+}
