@@ -59,14 +59,14 @@ ADR-0084 rules apply: no pooled percentage. Supported-case success, correct nega
 | Probe | Transport | Result |
 |---|---|---|
 | Hard-kill restart mid-flow, with duplicate replay across the kill ([receipt](../evidence/release-evaluation-gent8/restart-probe-c1fa513.json)) | Two OS processes over loopback | PASS. State equal after restart, replay unchanged, 11/11 actions, $8,600 outstanding. |
-| Identity propagation, onboarding to claim intake | Offline schema check over all 12 corpus contexts | **Defect reproduced (D03).** Onboarding overlays accept names with spaces; claim `Scope` refuses them. |
+| Identity propagation, onboarding to claim intake | Offline schema check over all 12 corpus contexts, plus signed TestClient across both routes | **Defect reproduced (D03).** The vendor route evaluates a spaced identity as ELIGIBLE 52.17 in shadow. Claim intake refuses the same identity with 422 on `account` and `contract` only. A provisioned identifier-domain control is accepted. |
 | 118-probe audit gate: prompt injection, forged authority, tenant crossing, stale and replayed authority, financial miscalculation, overcounting, browser sibling origin | Mixed (unit, TestClient, browser) | 118/118 PASS (unsigned) |
 | Real transport timeout and terminal state | Fake CLI through `SafePublicClaude` | PASS after the runner fix |
 | `independent_final_fix_verifier.py` | — | **Exit 1.** Its preserved originals were edited in `5463bcb` after pinning. Integrity finding; not re-pinned. [log](../evidence/release-evaluation-gent8/final-fix-verifier-c1fa513.log) |
 
 The coverage inventory found these remaining gaps:
 
-- No test sends a space-containing identity through onboarding into claim intake over HTTP.
+- Space-containing identities: the HTTP-level gap is now covered by the D03 reproduction test. It stays TestClient-level, not socket-level.
 - Allocation conflicts are tested only in-process; the ledger has no HTTP route.
 - Stale-authority, tenant-crossing and injection checks have no socket-level coverage.
 - Release-attestation forgery is tested only at unit level.
