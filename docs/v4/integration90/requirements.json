@@ -108,7 +108,8 @@
    ],
    "evidence": [
     "tests/test_reconciliation.py::test_partial_posting_and_partial_utilization",
-    "docs/v4/RAMP-CREDIT-SYNC.md"
+    "docs/v4/RAMP-CREDIT-SYNC.md",
+    "tests/test_ramp_case_lineage.py"
    ],
    "gap": "Live Ramp returned zero vendor credits; application is proven only in the authored Local ledger.",
    "gap_class": "external_dependency",
@@ -844,7 +845,8 @@
     "uptime/gates.py"
    ],
    "evidence": [
-    "tests/test_onboarding_rules.py::test_independent_gold_catches_plausible_but_wrong_credit_rates"
+    "tests/test_onboarding_rules.py::test_independent_gold_catches_plausible_but_wrong_credit_rates",
+    "tests/test_vendor_requirements_89.py"
    ],
    "gap": "No separate security-scan stage; the signed release gate is unsatisfied.",
    "gap_class": "missing_functionality",
@@ -983,7 +985,9 @@
     "uptime/source_config.py"
    ],
    "evidence": [
-    "docs/v4/integration90/INTERFACES.md"
+    "docs/v4/integration90/INTERFACES.md",
+    "tests/test_evidence_applicability_91.py",
+    "docs/v4/EVIDENCE-SUPPORT-MATRIX-91.md"
    ],
    "gap": "Requirements are per-family code, not a shared typed requirement record.",
    "gap_class": "missing_functionality",
@@ -1061,7 +1065,9 @@
     "uptime/onboarding.py"
    ],
    "evidence": [
-    "docs/v4/integration90/INTERFACES.md"
+    "docs/v4/integration90/INTERFACES.md",
+    "tests/test_vendor_requirements_89.py",
+    "docs/v4/ONBOARDING-TRACE-89.md"
    ],
    "gap": null,
    "gap_class": null,
@@ -1234,7 +1240,8 @@
    ],
    "evidence": [
     "tests/test_evidence.py::test_provenance_mismatch",
-    "tests/test_reconciliation.py::test_duplicate_or_conflicting_observations_cannot_inflate_money"
+    "tests/test_reconciliation.py::test_duplicate_or_conflicting_observations_cannot_inflate_money",
+    "tests/test_evidence_applicability_91.py"
    ],
    "gap": null,
    "gap_class": null,
@@ -1851,7 +1858,9 @@
    "evidence": [
     "tests/test_ramp_credit_sync_v4.py::test_replay_cannot_be_relabelled_as_native",
     "tests/test_ramp.py::test_mismatched_scope_capture_stops_write",
-    "docs/v4/evidence/demo-path-87/human-ui-observation.json"
+    "docs/v4/evidence/demo-path-87/human-ui-observation.json",
+    "tests/test_ramp_case_lineage.py",
+    "docs/v4/RAMP-CASE-LINEAGE.md"
    ],
    "gap": "No real memo, credit or application exists to show side by side.",
    "gap_class": "external_dependency",
