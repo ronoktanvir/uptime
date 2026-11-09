@@ -268,12 +268,17 @@ def _json(response):
 
 def dispatch_model_job(client, base_url, *, expected_context_digest, frozen_request,
                        expected_request_sha256, pinned_blind, read_state, folder,
-                       poll_seconds=120, poll_interval=.25):
+                       poll_seconds=120, poll_interval=.25, drain=None, read_job=None):
     """Signed POST /interpretation/model-jobs at most once for a pinned, approved UNKNOWN.
 
     ``client`` is an existing signed client: get(url)->response, post(url, body)->response.
     ``read_state`` returns the signed ledger/submissions state (recorded, not acted on).
     No prepare/approve/submit is performed. The candidate is saved as served.
+
+    Harness lessons (gent8 c1fa513): the poll bound (default 120s) exceeds the provider bound
+    (10s help + 10s version + 60s call). After polling, ``drain()`` (for example lifespan
+    shutdown) lets the job pool finish before the snapshot, and ``read_job(job_id)`` records the
+    server's own terminal state separately from what the poll saw. Neither ever re-dispatches.
     """
     folder = protected_directory(folder)
     base = base_url.rstrip('/') + '/interpretation'
@@ -305,8 +310,17 @@ def dispatch_model_job(client, base_url, *, expected_context_digest, frozen_requ
         if job.get('terminal') or time.monotonic() >= deadline:
             break
         time.sleep(poll_interval)
+    poll_deadline_reached = bool(polls) and not job.get('terminal')
     final_status, final_view = _json(client.get(base))
     after = read_state()
+    server_job = None
+    if drain is not None:
+        drain()
+    if read_job is not None and job.get('id'):
+        try:
+            server_job = read_job(job['id'])
+        except Exception as error:  # recorded, never retried
+            server_job = dict(read_error=type(error).__name__)
     candidates = ((final_view or {}).get('candidates') or []) if final_status == 200 else []
     matching = [c for c in candidates
                 if (c.get('provenance') or {}).get('request_sha256') == expected_request_sha256]
@@ -317,7 +331,8 @@ def dispatch_model_job(client, base_url, *, expected_context_digest, frozen_requ
                   post_status=post_status, job=job, poll_states=polls, final_view_status=final_status,
                   candidates=candidates, verified_candidate=matching[0] if verified else None,
                   state_unchanged=canonical(before) == canonical(after),
-                  state_before_sha256=digest(canonical(before)), state_after_sha256=digest(canonical(after)))
+                  state_before_sha256=digest(canonical(before)), state_after_sha256=digest(canonical(after)),
+                  poll_deadline_reached=poll_deadline_reached, server_terminal=server_job)
     create_json(folder / 'dispatch.json', record)
     return record
 

@@ -266,3 +266,38 @@ def test_cli_prepare_and_run_are_not_ready(capsys):
     assert 'NOT READY' in capsys.readouterr().err
     with pytest.raises(NotImplementedError):
         runner.score()
+
+
+# --- W4 runner review additions (agent3): drain and server-side terminal state ----------
+
+class StuckClient(Client):
+    """The poll never sees a terminal state; the server finishes only after the drain."""
+    def get(self, url):
+        self.gets += 1
+        if '/model-jobs/' in url:
+            return Response(200, dict(self.job, state='RUNNING', terminal=False))
+        return Response(200, self.view)
+
+
+def test_poll_deadline_is_recorded_and_server_terminal_state_read_after_drain(tmp_path):
+    job = dict(id='j9', state='RUNNING', terminal=False, request_sha256=REQ_SHA, context_digest='ctx')
+    client, events = StuckClient(view(), job), []
+    record = runner.dispatch_model_job(
+        client, 'http://local', expected_context_digest='ctx', frozen_request=REQ, expected_request_sha256=REQ_SHA,
+        pinned_blind=BLIND, read_state=lambda: {}, folder=tmp_path / 's', poll_seconds=.05, poll_interval=.01,
+        drain=lambda: events.append('drained'),
+        read_job=lambda job_id: (events.append('read ' + job_id), dict(id=job_id, state='SUCCEEDED', terminal=True))[1])
+    assert record['poll_deadline_reached'] is True and record['outcome'] == 'NO_VERIFIED_CANDIDATE'
+    assert events == ['drained', 'read j9'] and record['server_terminal']['state'] == 'SUCCEEDED'
+    assert len(client.posts) == 1  # the drain never causes a second dispatch
+
+
+def test_server_read_failure_is_recorded_not_retried(tmp_path):
+    job = dict(id='j8', state='RUNNING', terminal=False, request_sha256=REQ_SHA, context_digest='ctx')
+    def broken(job_id):
+        raise KeyError(job_id)
+    record = runner.dispatch_model_job(
+        StuckClient(view(), job), 'http://local', expected_context_digest='ctx', frozen_request=REQ,
+        expected_request_sha256=REQ_SHA, pinned_blind=BLIND, read_state=lambda: {}, folder=tmp_path / 'r',
+        poll_seconds=.05, poll_interval=.01, read_job=broken)
+    assert record['server_terminal'] == dict(read_error='KeyError')
