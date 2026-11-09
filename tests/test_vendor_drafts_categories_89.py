@@ -55,3 +55,19 @@ def test_no_amendment_drafts_without_an_override_or_from_the_first_governed_mont
     by_name = drafts_for(whole)
     assert not any(name.startswith('Amendment month') for name in by_name)
     assert by_name['Received at the last timely second']['facts']['received_at'] == '2026-05-19T23:59:59Z'
+
+
+def test_submission_channel_is_shown_from_cited_source_blocks_and_never_blocks_review():
+    import test_vendor_resource as resource
+    manifest = resource.compiled()
+    card = req.requirement_card(manifest, resource.OVERLAY)
+    row = next(e for e in card['elements'] if e['element'] == 'submission_channel')
+    assert row['status'] == 'PRESENT'
+    assert row['detail'] == {'submission_channel': 'claims@example.invalid',
+                             'request_fields': ['station identifier', 'log references']}
+    by_id = {c['id']: c for c in manifest['citations']}
+    assert [by_id[i]['quote'] for i in row['citations']] == [
+        'Send the claim to claims@example.invalid. Include the station identifier and log references.']
+    monthly = req.requirement_card(compile_terms(Document(**DOC)), OVERLAY)
+    channel = next(e for e in monthly['elements'] if e['element'] == 'submission_channel')
+    assert channel['status'] == 'NONE_STATED' and monthly['no_open_requirements'] is True

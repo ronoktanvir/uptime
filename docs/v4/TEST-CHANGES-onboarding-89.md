@@ -104,3 +104,10 @@ After merging integration head `c55f2fd`, the broad focused set reported **1 fai
 - **Private filing amendment:** when a private amendment takes effect in a later governed month, two boundary cases in that month under its own window (F4).
 
 Added `tests/test_vendor_drafts_categories_89.py` (3 tests, hand-computed). Every draft is checked against the real evaluator. With `test_vendor_requirements_89.py` (its shadow and property checks now include the timezone drafts) and `test_vendor_filing_override_f4.py`: **28 passed, 1 warning**. Existing tests changed: none.
+
+**ONB-3 visibility (same branch).** The requirement card gains a sixth, informational element, `submission_channel`:
+- resource-month: `PRESENT` with the cited block when the source states a channel and request fields;
+- otherwise `NONE_STATED`;
+- monthly: always `NONE_STATED` (the family has no such field).
+
+It never opens a requirement, because delivery stays with a configured, authorized channel (D08). Test: `test_submission_channel_is_shown_from_cited_source_blocks_and_never_blocks_review`. With the requirements and selection tests: **45 passed, 1 warning**. Existing tests changed: none.
