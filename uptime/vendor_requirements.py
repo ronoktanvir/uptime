@@ -19,7 +19,7 @@ unchanged as the independent reviewer suite: a reviewer must re-author each
 expectation from the cited clauses. Reuse of draft facts is reported, not blocked.
 """
 from calendar import monthrange
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta, timezone
 from decimal import Decimal, localcontext
 from fractions import Fraction
 
@@ -297,6 +297,38 @@ def _drafts(manifest, overlay):
         cited + deadline)
     add('Received when the filing window closes', facts | {'received_at': _utc(cutoff)}, Outcome.INELIGIBLE.value, None,
         f'{filing_days}-day window has closed.', deadline)
+    # Timezone: receipt offsets are converted to UTC before the exclusive comparison; a time without an offset is unknown.
+    west, east = timezone(timedelta(hours=-7)), timezone(timedelta(hours=5, minutes=30))
+    add('Last timely second stated in UTC-07:00', facts | {'received_at': (cutoff - timedelta(seconds=1)).astimezone(west).isoformat()},
+        Outcome.ELIGIBLE.value, amount, 'The stated offset is converted to UTC before comparing with the window close.',
+        cited + deadline)
+    add('Window close stated in UTC+05:30', facts | {'received_at': cutoff.astimezone(east).isoformat()},
+        Outcome.INELIGIBLE.value, None, 'The same instant as the window close, in another offset, is not timely.', deadline)
+    add('Receipt time without a UTC offset', facts | {'received_at': _utc(cutoff - timedelta(days=1)).removesuffix('Z')},
+        missing, None, 'A receipt time must state its offset.', deadline)
+    # Private filing amendment (F4): its own window governs from its stated month onward.
+    override = overlay.get('override')
+    if isinstance(override, dict) and isinstance(override.get('effective_from'), str):
+        amended = date.fromisoformat(override['effective_from'])
+        amended_end = date(amended.year, amended.month, monthrange(amended.year, amended.month)[1])
+        if start < amended and amended_end <= governed_end:
+            amended_month, amended_minutes = amended.strftime('%Y-%m'), ((amended_end - amended).days + 1) * 1440
+            top = max(tiers, key=lambda t: t['below_units'])
+            down = int(amended_minutes * (1 - Fraction(top['below_units'], PERCENT_SCALE) / 100)) + 1
+            reached = _credit_at(tiers, amended_minutes, down)
+            days = private_filing_days(overlay, amended_month, manifest['filing_days'])
+            close = datetime(amended_end.year, amended_end.month, amended_end.day, tzinfo=UTC) + timedelta(days=1 + days)
+            if reached and 0 < down <= amended_minutes:
+                monthly = base | {'month': amended_month, 'monitor_ref': 'draft-monitor-' + amended_month,
+                                  'fee_ref': 'draft-fee-' + amended_month, 'eligible_downtime_minutes': down}
+                late_amount = _money(DRAFT_FEE_CENTS, reached['credit_units'])
+                add(f'Amendment month {amended_month}: last timely second of the private {days}-day window',
+                    monthly | {'received_at': _utc(close - timedelta(seconds=1))}, Outcome.ELIGIBLE.value, late_amount,
+                    f'The private amendment governs from {override["effective_from"]}; {days} days after month end.',
+                    [reached['citation']] + deadline)
+                add(f'Amendment month {amended_month}: private window closes',
+                    monthly | {'received_at': _utc(close)}, Outcome.INELIGIBLE.value, None,
+                    f'The private {days}-day window has closed.', deadline)
     # The month containing the first ungoverned day is never wholly governed.
     add('Month outside the governed interval', facts | {'month': (governed_end + timedelta(days=1)).strftime('%Y-%m')},
         Outcome.UNSUPPORTED.value, None, 'The complete month must be governed by both the source and the overlay.',

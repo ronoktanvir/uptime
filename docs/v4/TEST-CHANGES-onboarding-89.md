@@ -100,3 +100,10 @@ After merging integration head `c55f2fd`, the broad focused set reported **1 fai
 
 `scripts/public_proposals.py export-vendor --profile auto` writes one exact export per supported family. Every path must be new before any is written, and the provider is never invoked. Added `tests/onboarding79/test_public_proposal_export_auto_89.py` (2 tests). With `tests/onboarding79/` and `test_public_proposal_config.py`: **35 passed, 1 warning**. Existing tests changed: none. Runbook: [D05-UNSEEN-VENDOR-RUNBOOK.md](D05-UNSEEN-VENDOR-RUNBOOK.md).
 
+## Generated draft categories, ONB-4 (`work/onboarding-drafts-89`, on top of the F4/F6 batch)
+
+`vendor_requirements` drafts (outside the reviewed-semantics hash) add:
+- **Timezone:** the last timely second stated in UTC−07:00 (`ELIGIBLE`), the window close stated in UTC+05:30 (`INELIGIBLE`), and a receipt time without an offset (`INSUFFICIENT_EVIDENCE`).
+- **Private filing amendment:** when a private amendment takes effect in a later governed month, two boundary cases in that month under its own window (F4).
+
+Added `tests/test_vendor_drafts_categories_89.py` (3 tests, hand-computed). Every draft is checked against the real evaluator. With `test_vendor_requirements_89.py` (its shadow and property checks now include the timezone drafts) and `test_vendor_filing_override_f4.py`: **28 passed, 1 warning**. Existing tests changed: none.

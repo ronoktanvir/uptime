@@ -776,7 +776,7 @@
     "docs/v4/CAPABILITIES.md",
     "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "No automatic discovery from Ramp records into onboarding; operators start intake. D05 decided 2026-11-09 (auto-select plus human approval); family selection merged, but discovery from Ramp records is not.",
+   "gap": "No discovery from Ramp records. Stored Ramp vendor records keep only IDs, status and timestamps, so discovery can only match by exact Ramp vendor ID, which needs a reviewed adapter-slot ↔ Ramp-vendor binding (an identity/authority record under D03; W1 owns ramp_records). Post-demo proposal from W3: a read-only discovery listing by exact ID, plus that reviewed binding. D05 decided 2026-11-09 (auto-select plus human approval); family selection merged, but discovery from Ramp records is not.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"
@@ -835,9 +835,10 @@
     "uptime/onboarding.py"
    ],
    "evidence": [
-    "tests/test_onboarding_rules.py::test_held_out_contract_scenarios"
+    "tests/test_onboarding_rules.py::test_held_out_contract_scenarios",
+    "tests/test_vendor_requirements_89.py"
    ],
-   "gap": "Shadow cases are authored by reviewers, not generated per vendor across every category. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap": "Generated drafts cover timezone receipts and private-amendment month boundaries, each equal to the evaluator. Shadow cases are still authored per vendor, not generated across every category.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
