@@ -36,6 +36,14 @@ class RampError(RuntimeError):
     """Messages are safe for display. Never include provider bodies or headers."""
 
 
+class RampNetworkError(RampError):
+    """Transport or unreadable response. The request may be retried only when it is a read.
+
+    Write paths (outbox and native binding) never retry on it: an unreadable
+    reply to a write stays UNCERTAIN and is settled by provider read-back.
+    """
+
+
 class RampHTTPError(RampError):
     def __init__(self, status):
         self.status = status
@@ -250,7 +258,7 @@ class SandboxRampProvider:
                 raise RampError("Provider response exceeded limit")
             return json.loads(data, parse_float=Decimal)
         except (OSError, http.client.HTTPException, ValueError):
-            raise RampError("Sandbox network or response unavailable") from None
+            raise RampNetworkError("Sandbox network or response unavailable") from None
         finally:
             conn.close()
 

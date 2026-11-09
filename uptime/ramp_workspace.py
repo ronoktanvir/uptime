@@ -14,6 +14,8 @@ from .ramp_records import load_snapshot, _validate_snapshot
 from .ramp_findings import evaluate_snapshot
 from .ramp_credit_sync import RampCreditSync
 from .ramp_terms_store import RampTermsStore
+from . import installation_revocation
+from .workspace_recovery import require_reconciled
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGED = ROOT / "fixtures/ramp/native-observed.json"
@@ -98,6 +100,7 @@ class RampWorkspace:
         uuid_text(business_id)
         if not UUID(business_id).int:
             raise ValueError("Nonzero Ramp business required")
+        installation_revocation.require_active(self.tenant, business_id, path=self.path)
         _validate_snapshot(snapshot)
         data=json.dumps(snapshot,sort_keys=True,separators=(",",":"),allow_nan=False)
         with database(self.path) as db, db:
@@ -174,6 +177,9 @@ class RampWorkspace:
         if (self.mode != "sandbox" or custody != "operator_import" or business is None
                 or snapshot is None or object_type != "bills"):
             raise PermissionError("A current installed sandbox bill observation is required")
+        installation_revocation.require_active(self.tenant, business, path=self.path)
+        with database(self.path) as db:
+            require_reconciled(db)
         now=datetime.now(UTC)
         observed=datetime.fromisoformat(snapshot["observed_at"])
         completed=datetime.fromisoformat(snapshot["completed_at"])
