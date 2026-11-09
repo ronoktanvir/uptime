@@ -297,3 +297,25 @@ def test_a_viewer_projection_gets_the_same_grounded_answers_without_an_offered_s
     reviewer_items = [f['text'] for f in facts(first) if f['id'].startswith('attention.')]
     viewer_items = [f['text'] for f in facts(viewer_first) if f['id'].startswith('attention.')]
     assert reviewer_items[:-1] == viewer_items and reviewer_items[-1].startswith('Next step: Approve January claim')
+
+
+@pytest.mark.parametrize('question', ['Was the claim filed?', 'Why was the claim denied?', 'Did the vendor deny the claim at first?'])
+def test_claim_history_questions_quote_recorded_events_verbatim(run, question):
+    final = run['states'][-1]
+    result = answer(question, final)
+    assert result['abstained'] is False and 'claim.history' in [c for s in result['sentences'] for c in s['citations']]
+    history = next(s['text'] for s in result['sentences'] if s['citations'] == ['claim.history'])
+    recorded = [f'{e["at"]} {e["event"]}' for e in final['audit']]
+    shown = history.removeprefix('Recorded claim history: ')
+    assert all(part in shown for part in recorded if any(part.split(' ', 1)[1].startswith(p) for p in (
+        'Filed approved packet', 'Evaluated vendor correspondence', 'A newly acquired artifact', 'Approved exact')))
+    assert 'Evaluated vendor correspondence: NEEDS_EVIDENCE.' in history and 'Evaluated vendor correspondence: AWARDED.' in history
+    assert numbers(result['answer']) <= source_numbers(final)
+
+
+def test_a_named_clause_leads_and_a_noun_is_not_read_as_an_action(run):
+    final = run['states'][-1]
+    clause = answer('What does Clause 8 say?', final)
+    assert clause['sentences'][0]['citations'] == ['clause.8']
+    assert clause['sentences'][0]['text'] == 'Clause 8: “Claims must be received within 30 calendar days after month end.”'
+    assert answer('Record of approvals?', final)['reason'] != 'read_only'
