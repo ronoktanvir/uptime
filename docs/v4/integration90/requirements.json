@@ -88,7 +88,7 @@
     "docs/v4/evidence/local-review-88/recorded-review-20261109.json",
     "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; unseen-vendor proof not run. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05",
@@ -776,7 +776,7 @@
     "docs/v4/CAPABILITIES.md",
     "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "No automatic discovery from Ramp records into onboarding; operators start intake. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap": "No automatic discovery from Ramp records into onboarding; operators start intake. D05 decided 2026-11-09 (auto-select plus human approval); family selection merged, but discovery from Ramp records is not.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"
@@ -817,7 +817,7 @@
     "tests/test_vendor_catalog.py::test_multiple_arbitrary_catalog_entries_and_prose_products",
     "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "D05 phase 1 merged: Uptime selects among supported families from the source and refuses ambiguous ones. Phase 2 (staging only the selected job, plus the UI) is not merged, and submission-channel generation is not demonstrated.",
+   "gap": "D05 phases 1 and 2 merged: Uptime selects the family from the source, refuses ambiguous sources and stages only the selected job. Submission-channel generation is not demonstrated, and the unseen-vendor proof has not run.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"
