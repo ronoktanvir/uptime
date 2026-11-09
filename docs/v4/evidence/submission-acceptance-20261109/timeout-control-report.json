@@ -1,0 +1,81 @@
+{
+  "schema": "d05-unseen-run/1",
+  "document_sha256": "3330c0d5581b5132fd6cd1653a9c07528c94b153bcb3b09497a64eec241c2cf7",
+  "target": "v-3330c0d5581b5132fd6cd165",
+  "head": "52f1a2f478f414d258dc89e122c243f7f5573e0b",
+  "stage": "selection",
+  "outcome": "INCOMPLETE",
+  "requests": [
+    {
+      "family": "monthly-availability/1",
+      "profile": "monthly-propositions",
+      "request_sha256": "9761ee30dec504afa152ff2845a366d344d0cc9e47bd83f8dcc54bccec5fe94d",
+      "matches_server": true,
+      "bytes": 6113,
+      "transmitted_fields": [
+        "attempt_nonce",
+        "extraction_instructions",
+        "input",
+        "limits",
+        "model",
+        "profile",
+        "protocol",
+        "system",
+        "tools",
+        "transport"
+      ],
+      "forbidden_strings_found": 0
+    },
+    {
+      "family": "resource-month/1",
+      "profile": "resource-month",
+      "request_sha256": "ff9b9c3c49e26455b1aa6e5d27c0911c863331347286c7cb43b0d16276ed18df",
+      "matches_server": true,
+      "bytes": 18531,
+      "transmitted_fields": [
+        "attempt_nonce",
+        "extraction_instructions",
+        "input",
+        "limits",
+        "model",
+        "profile",
+        "protocol",
+        "system",
+        "tools",
+        "transport"
+      ],
+      "forbidden_strings_found": 0
+    }
+  ],
+  "approvals": [
+    {
+      "family": "monthly-availability/1",
+      "scope": "model invocation only",
+      "expires_at": "2026-11-10T05:32:20.366865+00:00"
+    },
+    {
+      "family": "resource-month/1",
+      "scope": "model invocation only",
+      "expires_at": "2026-11-10T05:32:20.367829+00:00"
+    }
+  ],
+  "started": true,
+  "candidate": null,
+  "previews": [],
+  "authority": {
+    "approvals_enabled": false,
+    "promotion_performed": false,
+    "human_actions_performed": false
+  },
+  "server_stopped": true,
+  "jobs": [
+    {
+      "status": "UNCERTAIN",
+      "reason": "provider_timeout"
+    },
+    {
+      "status": "UNCERTAIN",
+      "reason": "provider_timeout"
+    }
+  ]
+}

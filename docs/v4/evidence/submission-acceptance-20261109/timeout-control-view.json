@@ -1,0 +1,140 @@
+{
+  "schema": "automatic-family-selection/1",
+  "mode": "automatic",
+  "vendor_id": "v-3330c0d5581b5132fd6cd165",
+  "source_sha256": "3260b9d151e1329a687a78c14315650e7a788683895a80e16f310a9f7e5e1844",
+  "attempt_nonce": "initial",
+  "offline": {
+    "accepted": false,
+    "method": "deterministic_document_parser",
+    "reason": "NOT_CANONICAL"
+  },
+  "families": [
+    {
+      "family": "monthly-availability/1",
+      "label": "Monthly availability",
+      "profile": "monthly-propositions",
+      "enabled": true,
+      "approval_reason": null,
+      "context_sha256": "bc7cc6c07c2a258c0a00af3175ea494bb17c3f024cdac00fc281e2ab346a03b0",
+      "request_sha256": "9761ee30dec504afa152ff2845a366d344d0cc9e47bd83f8dcc54bccec5fe94d",
+      "disclosure": {
+        "model": "claude-opus-5-5",
+        "tools": [],
+        "profile": "monthly-propositions",
+        "attempt_nonce": "initial",
+        "source_sha256": "3260b9d151e1329a687a78c14315650e7a788683895a80e16f310a9f7e5e1844",
+        "source_characters": 485,
+        "request_bytes": 6113,
+        "transmitted_fields": [
+          "attempt_nonce",
+          "extraction_instructions",
+          "input",
+          "limits",
+          "model",
+          "profile",
+          "protocol",
+          "system",
+          "tools",
+          "transport"
+        ]
+      },
+      "job": {
+        "job_id": "215f8e26-d156-4154-9993-dfa74dc32476",
+        "status": "UNCERTAIN",
+        "vendor_id": "v-3330c0d5581b5132fd6cd165",
+        "request_sha256": "9761ee30dec504afa152ff2845a366d344d0cc9e47bd83f8dcc54bccec5fe94d",
+        "context_sha256": "bc7cc6c07c2a258c0a00af3175ea494bb17c3f024cdac00fc281e2ab346a03b0",
+        "candidate_available": false,
+        "completed_after_expiry": false,
+        "reason": "provider_timeout",
+        "kind": "vendor",
+        "submitted_at": "2026-11-09T23:32:20.379321+00:00",
+        "started_at": "2026-11-09T23:32:20.381534+00:00",
+        "finished_at": "2026-11-09T23:33:21.069295+00:00",
+        "provider": {
+          "transport": {
+            "name": "safe-public-experimental-v2",
+            "binary_sha256": "801a5acf080c78ff5c8ce8d23c93380f8177ca7aa0a4df0314a061ff126b20a1"
+          }
+        }
+      },
+      "state": "INCONCLUSIVE",
+      "refusal": null,
+      "public_diagnostic": null,
+      "attempts": {
+        "total": 1,
+        "validated": 0,
+        "structural_refusals": 0
+      }
+    },
+    {
+      "family": "resource-month/1",
+      "label": "Resource month",
+      "profile": "resource-month",
+      "enabled": true,
+      "approval_reason": null,
+      "context_sha256": "cb6f2684448e65bd79a2c133f43c4cb0e6b4dd7ccd14365f730ae4be2e22686a",
+      "request_sha256": "ff9b9c3c49e26455b1aa6e5d27c0911c863331347286c7cb43b0d16276ed18df",
+      "disclosure": {
+        "model": "claude-opus-5-5",
+        "tools": [],
+        "profile": "resource-month",
+        "attempt_nonce": "initial",
+        "source_sha256": "3260b9d151e1329a687a78c14315650e7a788683895a80e16f310a9f7e5e1844",
+        "source_characters": 485,
+        "request_bytes": 18531,
+        "transmitted_fields": [
+          "attempt_nonce",
+          "extraction_instructions",
+          "input",
+          "limits",
+          "model",
+          "profile",
+          "protocol",
+          "system",
+          "tools",
+          "transport"
+        ]
+      },
+      "job": {
+        "job_id": "b64d725b-db60-4a4f-b2ba-9d61bb79f884",
+        "status": "UNCERTAIN",
+        "vendor_id": "v-3330c0d5581b5132fd6cd165",
+        "request_sha256": "ff9b9c3c49e26455b1aa6e5d27c0911c863331347286c7cb43b0d16276ed18df",
+        "context_sha256": "cb6f2684448e65bd79a2c133f43c4cb0e6b4dd7ccd14365f730ae4be2e22686a",
+        "candidate_available": false,
+        "completed_after_expiry": false,
+        "reason": "provider_timeout",
+        "kind": "vendor",
+        "submitted_at": "2026-11-09T23:32:20.383213+00:00",
+        "started_at": "2026-11-09T23:33:21.073717+00:00",
+        "finished_at": "2026-11-09T23:34:21.540887+00:00",
+        "provider": {
+          "transport": {
+            "name": "safe-public-experimental-v2",
+            "binary_sha256": "801a5acf080c78ff5c8ce8d23c93380f8177ca7aa0a4df0314a061ff126b20a1"
+          }
+        }
+      },
+      "state": "INCONCLUSIVE",
+      "refusal": null,
+      "public_diagnostic": null,
+      "attempts": {
+        "total": 1,
+        "validated": 0,
+        "structural_refusals": 0
+      }
+    }
+  ],
+  "outcome": "INCOMPLETE",
+  "selected": null,
+  "review_requirements": [
+    "These family evaluations ended without a conclusive result: Monthly availability (UNCERTAIN), Resource month (UNCERTAIN). Submit a new attempt identifier; every family is evaluated again."
+  ],
+  "selection_sha256": "b1aacff4df54e76e9069da381648751dad8f316d324ea188246285c54e647ca7",
+  "authority": {
+    "approval_gate": false,
+    "dispatch_authorized": false
+  }
+}
