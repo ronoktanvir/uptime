@@ -31,11 +31,27 @@ Added unchanged from `c61c384`: 14 functions, 25 cases of mock-HTTP contract tes
 
 Failed first attempt: the status-change test first "changed" the approval status to the value the shared fixture already used. Its next version raised a keyword collision. The fixture now defaults the demo bill to `PENDING`, as on the real bill.
 
+## New file: `tests/test_ramp_credit_readback.py`
+
+13 cases for the D09 read-back (`credit_links` and `scripts/ramp_credit_readback.py`):
+- an observed zero on a complete read;
+- both-sided applications counted without attribution;
+- three one-sided or conflicting states;
+- a credit missing from the active list, and an incomplete list (both unknown);
+- a credit created from a paid bill;
+- another vendor's credit on the bill;
+- an unobserved bill and an invalid ID;
+- one owner-only report from a pre-filming receipt, with no overwrite;
+- refusal of an unverified or stale association.
+
+All passed on the first run.
+
 ## Results
 
 - `tests/test_ramp_prefilm_check.py` and `tests/test_ramp_case_lineage.py`: 71 passed.
 - `tests/test_ramp_workflow_http.py`: 25 passed.
 - Ramp, reconciliation, credit, operations-recovery, Northwind workflow and journey suites at `16ca1a4`: 1,143 passed, 1 warning in 309.37s.
 - All `tests/test_ramp*.py` with these additions: 1,002 passed, 1 warning in 32.77s.
+- `tests/test_ramp_credit_readback.py`: 13 passed.
 - First real pre-filming run against the Ramp demo: `PASS` ([summary](evidence/ramp-lineage-93/prefilm-20261109T123606Z.json)).
 - Full suite: to be run by the integration owner after merge.

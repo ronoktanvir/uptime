@@ -23,6 +23,10 @@ It makes only reads: the business, the observed bill, one bounded records sync (
 
 First real run, 12:36 UTC: `PREFILM PASS bill=f74ba12c comments=376563cf capture=8d42567fdf7e failures=none warnings=none writes=0`. Bill USD 840, `OPEN`, approval `PENDING`, no applied credits; credit and agreement lists complete and empty.
 
+## D09 credit read-back (decided November 9)
+
+D02 and D09 were decided under Ronok's delegated "(Recommended)" authority. `credit_links` in `uptime/ramp_case_lineage.py` and the offline `scripts/ramp_credit_readback.py` reconcile the exact credit/bill links for one verified bill, both sides, without attributing anything to an award. On the demo bill's pre-filming capture the result is `NO_APPLIED_CREDITS`: the credit list is complete and empty, and the bill reports no applications ([report](evidence/ramp-lineage-93/credit-links-f74ba12c-20261109.json)). The demo bill has no agreement or award, so no credit was or should be created for it. The procedure and its limits are in [RAMP-CASE-LINEAGE.md](RAMP-CASE-LINEAGE.md#person-operated-credit-procedure-d09).
+
 ## Vendor inventory read
 
 REQUIREMENTS RAMP-2 and VAL-1 note that the vendor inventory was only sampled. A read-only sync at the maximum existing bounds (100 per page, 10 pages, 100 details) shows the demo business's vendor **list** is complete: 411 vendors over 5 pages, with no next page. The `TRUNCATED` status refers only to retained detail records, which stop at the 100-record detail budget; all 5 vendors linked from bills were read in full. Card transactions exceed the 1,000-record read bound. [Counts-only record](evidence/ramp-lineage-93/vendor-inventory-20261109.json); the raw capture stays private.
