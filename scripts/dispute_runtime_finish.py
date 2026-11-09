@@ -222,6 +222,9 @@ class SpooledPublicClaude:
     def __init__(self, inner, *, request_sha256, folder):
         self.inner, self.request_sha256, self.folder = inner, request_sha256, Path(folder)
 
+    def __getattr__(self, name):
+        return getattr(self.inner, name)
+
     @property
     def profile(self):
         return self.inner.profile
@@ -256,6 +259,31 @@ class SpooledPublicClaude:
         finally:
             transport.bounded_run = original
             _ACTIVE.release()
+
+
+class PinnedStreamProvider:
+    """Evidence-only wrapper; ordinary provider settings and validation are unchanged.
+
+    Exact exports are registered before ordinary queue dispatch. Each request gets
+    one create-only spool directory. No retry, timeout increase or gate override.
+    """
+    def __init__(self, inner, folder):
+        self.inner, self.folder = inner, Path(folder)
+        self.allowed = set()
+
+    def __getattr__(self, name):
+        return getattr(self.inner, name)
+
+    def register(self, request_sha256):
+        self.allowed.add(request_sha256)
+
+    def __call__(self, request):
+        pinned = digest(request)
+        if pinned not in self.allowed:
+            raise ValueError('Unregistered exact request cannot reach the provider spool.')
+        protected_directory(self.folder)
+        wrapped = SpooledPublicClaude(self.inner, request_sha256=pinned, folder=self.folder / pinned)
+        return wrapped(request)
 
 
 # --- signed job dispatch ----------------------------------------------------

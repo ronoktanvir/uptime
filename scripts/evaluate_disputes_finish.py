@@ -154,6 +154,14 @@ def run_case(*, prepared_path, blind_path, attempt_dir, config_path, approved_by
             exported = job.get('approval_request')
             if not exported:
                 raise SetupRefusal('no_exact_public_request')
+            from scripts.dispute_runtime_finish import PinnedStreamProvider
+            from uptime.correspondence_model_transport import SafePublicClaude
+            jobs = app.state.public_proposal_jobs
+            provider = jobs.providers['correspondence']
+            if isinstance(provider, SafePublicClaude):
+                spooled = PinnedStreamProvider(provider, folder / 'provider-streams')
+                spooled.register(job['request_sha256'])
+                jobs.providers['correspondence'] = spooled
             export = folder / 'request-export.json'
             create_json(export, exported)
             from uptime.public_proposal_config import PublicProposalConfig

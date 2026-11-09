@@ -174,3 +174,48 @@ def test_late_terminal_readback_after_drain_is_recorded_without_redispatch(tmp_p
     assert result['poll_deadline_reached'] is True and result['poll_job']['state'] == 'RUNNING'
     assert result['job']['state'] == 'SUCCEEDED' and result['outcome'] == 'CANDIDATE_RECORDED'
     assert result['verified_candidate']['id'] == 'candidate' and result['state_unchanged'] is True
+
+
+def test_spool_preserves_profile_and_only_registered_exact_request(tmp_path):
+    from scripts.dispute_runtime_finish import PinnedStreamProvider, digest
+    class Inner:
+        model, system, profile, last_receipt = 'controlled', 'unchanged', {'timeout': 60}, None
+        calls = 0
+        def __call__(self, raw):
+            self.calls += 1
+            self.last_receipt = {'calls': self.calls}
+            return {'text': raw.decode()}
+    inner = Inner()
+    provider = PinnedStreamProvider(inner, tmp_path / 'spool')
+    assert provider.profile is inner.profile and provider.model == inner.model
+    with pytest.raises(ValueError, match='Unregistered'):
+        provider(b'public request')
+    assert inner.calls == 0 and not (tmp_path / 'spool').exists()
+    provider.register(digest(b'public request'))
+    assert provider(b'public request') == {'text': 'public request'}
+    assert inner.calls == 1 and provider.last_receipt == {'calls': 1}
+    with pytest.raises(FileExistsError):
+        provider(b'public request')
+    assert inner.calls == 1
+
+
+def test_spool_timeout_preserves_partial_stream_and_restores_transport(tmp_path):
+    import sys
+    from scripts.dispute_runtime_finish import PinnedStreamProvider, digest
+    from uptime import correspondence_model_transport as transport
+    original = transport.bounded_run
+    class Inner:
+        model, system, profile, last_receipt = 'controlled', 'unchanged', {'timeout': .2}, None
+        def __call__(self, raw):
+            transport.bounded_run([sys.executable, '-c',
+                'import time; print("partial-public-stream", flush=True); time.sleep(5)'],
+                payload=raw, cwd=str(tmp_path), env={}, timeout=.2, limit=10000)
+    provider = PinnedStreamProvider(Inner(), tmp_path / 'spool')
+    key = digest(b'public request')
+    provider.register(key)
+    with pytest.raises(TimeoutError):
+        provider(b'public request')
+    assert transport.bounded_run is original
+    folder = tmp_path / 'spool' / key
+    assert b'partial-public-stream' in (folder / 'provider.stdout').read_bytes()
+    assert (folder / 'termination.json').exists() and (folder / 'call-result.json').exists()
