@@ -82,6 +82,24 @@ def test_requested_vendor_artifact_is_named_from_the_claim(walk):
     assert artifact['type'] in item['detail'] and artifact['ref'] in item['detail'] and item['refs'] == [artifact['ref']]
 
 
+def test_estimated_stage_stays_the_claim_months_amount_through_the_whole_flow(walk):
+    """The ledger drops its estimate while the claim is in flight; the lifecycle must not flip to undetermined."""
+    states, _ = walk
+    assert any(s['ledger']['estimated'] is None for s in states)
+    for s in states:
+        january = next(m for m in s['months'] if m['month'] == s['claim']['month'])
+        assert s['finance']['stages'][0] == dict(stage='estimated', label='Estimated', amount=january['amount'],
+                                                 status='recorded')
+        assert january['amount'] == '2400.00'
+
+
+def test_estimated_stage_stays_unknown_when_neither_source_has_an_amount():
+    projection = dict(ledger=dict(estimated=None), claim=dict(month='2026-03'),
+                      months=[dict(month='2026-03', amount=None, outcome='UNDETERMINED')])
+    assert summarize(projection)['stages'][0] == dict(stage='estimated', label='Estimated', amount=None,
+                                                      status='not determined')
+
+
 def test_final_stages_bill_and_destination_are_server_values(walk):
     final = walk[0][-1]
     summary = final['finance']

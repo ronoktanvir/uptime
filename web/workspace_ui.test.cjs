@@ -12,16 +12,16 @@ class Element {
   all(t){return this.children.flatMap(c=>[...(c.tagName===t?[c]:[]),...c.all(t)]);}
 }
 const document={createElement:t=>new Element(t)};
-const projection={vendor:'Northwind Cloud',contract:{title:'Cloud Services Agreement',version:'2026-01',ref:'NW-CSA-2026'},reviewer:{name:'Dana Reyes',role:'Contract Counsel',authority_kind:'SCRIPTED_REVIEWER'},months:[{month:'January 2026',outcome:'ELIGIBLE',amount:'2400.00',currency:'USD',reason:'Eligible downtime exceeds the service threshold.',citations:[{label:'Service credit schedule, §4',ref:'NW-CSA-2026#4'}]},{month:'February 2026',outcome:'INELIGIBLE',amount:'0.00',currency:'USD',reason:'Availability meets the threshold.'},{month:'March 2026',outcome:'INSUFFICIENT_EVIDENCE',amount:null,currency:'USD',reason:'Full-month measurement pending.'}],price_finding:{state:'REVIEW_REQUIRED',amount:'1000.00',currency:'USD',reason:'Invoice exceeds amended price cap.',citations:[{label:'Amendment 1, §2',ref:'NW-AM1#2'}]},claim:{id:'nw-jan',state:'DRAFT',receipt_id:null},ledger:{destination:'Local ledger',claimed:'0.00',awarded:'0.00',posted:'0.00',applied:'0.00',currency:'USD',bill:{id:'NW-MAR-2026',original_amount:'12000.00',outstanding_amount:'12000.00'},record_ids:{}},next_actions:[{id:'draft/claim',label:'Prepare claim'}],audit:[],sources:['SYNTHETIC_CUSTOMER'],mode:'replay'};
+const projection={vendor:'Northwind Cloud',contract:{title:'Cloud Services Agreement',version:'2026-01',ref:'NW-CSA-2026'},reviewer:{name:'Dana Reyes',role:'Contract Counsel',authority_kind:'SCRIPTED_REVIEWER'},months:[{month:'January 2026',outcome:'ELIGIBLE',amount:'2400.00',currency:'USD',reason:'Eligible downtime exceeds the service threshold.',citations:[{label:'Service credit schedule, §4',ref:'NW-CSA-2026#4'}]},{month:'February 2026',outcome:'INELIGIBLE',amount:'0.00',currency:'USD',reason:'Availability meets the threshold.'},{month:'March 2026',outcome:'INSUFFICIENT_EVIDENCE',amount:null,currency:'USD',reason:'Full-month measurement pending.'}],price_finding:{state:'REVIEW_REQUIRED',amount:'1000.00',currency:'USD',reason:'Invoice exceeds amended price cap.',citations:[{label:'Amendment 1, §2',ref:'NW-AM1#2'}]},claim:{id:'nw-jan',state:'DRAFT',receipt_id:null},ledger:{destination:'Local ledger',claimed:'0.00',awarded:'0.00',posted:'0.00',applied:'0.00',currency:'USD',bill:{id:'NW-MAR-2026',original_amount:'12000.00',outstanding_amount:'12000.00'},record_ids:{}},finance:{stages:[{stage:'estimated',label:'Estimated',amount:'2400.00',status:'recorded'},{stage:'claimed',label:'Claimed',amount:'0.00',status:'not yet'},{stage:'awarded',label:'Awarded',amount:'0.00',status:'not yet'},{stage:'posted',label:'Posted to Local ledger',amount:'0.00',status:'not yet'},{stage:'applied',label:'Applied to bill',amount:'0.00',status:'not yet'}],bill:{id:'NW-MAR-2026',original:'12000.00',applied:null,outstanding:'12000.00',application_ref:null}},next_actions:[{id:'draft/claim',label:'Prepare claim'}],audit:[],sources:['SYNTHETIC_CUSTOMER'],mode:'replay'};
 function setup(api){const root=new Element('main'),requests=[];const ui=create({document,api:async(...args)=>{requests.push(args);return api ? api(...args) : {workflow:projection};}});return{root,requests,ui};}
 test('Northwind renders separate exact stages, uncertainty and cited source records without classification chrome',async()=>{
  const s=setup();await s.ui.render(s.root);const view=s.root.textContent;
  for(const expected of ['Northwind Cloud','$2,400.00','$0.00','Not determined','$1,000.00','Local ledger','NW-CSA-2026#4','NW-AM1#2','Dana Reyes','Scripted reviewer']) assert.ok(view.includes(expected),expected);
  assert.doesNotMatch(view,/synthetic|simulat|replay|demo/i);
  assert.equal(s.root.all('tbody')[0].all('tr').length,3);
- // The stage tiles became one five-step credit lifecycle; the outcome headline holds the credit and the price exception.
+ // The stage tiles became one five-step credit lifecycle rendered from the server's finance.stages; the outcome headline holds the credit and the price exception.
  const steps=s.root.all('li').filter(n=>String(n.className).startsWith('lifecycle-step'));
- assert.deepEqual(steps.map(n=>n.children[0].textContent),['Estimated','Claimed','Awarded','Posted to Local ledger','Applied to NW-MAR-2026']);
+ assert.deepEqual(steps.map(n=>n.children[0].textContent),['Estimated','Claimed','Awarded','Posted to Local ledger','Applied to bill']);
  assert.equal(s.root.all('article').filter(n=>String(n.className).startsWith('outcome-card')).length,2);
 });
 test('actions use signed injected transport, encoded server IDs and suppress duplicate dispatch',async()=>{
@@ -82,4 +82,19 @@ test('missing measurement diagnostic stays visible in summary and detail without
  const s=setup(()=>({workflow:data}));await s.ui.render(s.root);
  assert.match(s.root.textContent,/Scoped, exclusion-adjusted, full-month vendor measurement is required/);assert.doesNotMatch(s.root.textContent,/Simulated/);
  assert.equal(s.root.all('tbody')[0].all('tr')[0].children[2].textContent,'Not determined');assert.equal(data.months[0].trace[0],diagnostic);
+});
+test('credit lifecycle and headline come only from the server finance projection, never from ledger fields',async()=>{
+ const bare=JSON.parse(JSON.stringify(projection));delete bare.finance;
+ const s=setup(()=>({workflow:bare}));await s.ui.render(s.root);
+ const steps=s.root.all('li').filter(n=>String(n.className).startsWith('lifecycle-step'));
+ assert.equal(steps.length,0);assert.match(s.root.textContent,/The server reported no credit stages for this case\./);
+ const applied=JSON.parse(JSON.stringify(projection));
+ applied.ledger.record_ids={application:'app-1'};applied.ledger.bill={id:'NW-2026-04',month:'2026-04',original_amount:'1.00',outstanding_amount:'1.00'};
+ applied.finance.bill={id:'NW-2026-04',original:'11000.00',applied:'2400.00',outstanding:'8600.00',application_ref:'app-1'};
+ applied.price_finding.month='2026-03';
+ const t=setup(()=>({workflow:applied}));await t.ui.render(t.root);
+ const [credit,exception]=t.root.all('article').filter(n=>String(n.className).startsWith('outcome-card'));
+ assert.match(credit.textContent,/^April invoice NW-2026-04Invoice\$11,000\.00Credit applied\$2,400\.00Remaining balance\$8,600\.00/);
+ assert.doesNotMatch(credit.textContent,/\$1\.00/);
+ assert.match(exception.textContent,/^March price exception\$1,000\.00/);
 });

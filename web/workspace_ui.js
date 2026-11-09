@@ -116,30 +116,34 @@
       NEEDS_REVIEW:'Open · needs review', REVIEW_REQUIRED:'Open · review required'};
     function amountRow(label, value, cls) { return add(el('div', null, 'outcome-row' + (cls ? ' ' + cls : '')), el('dt', label), el('dd', value)); }
     // The headline: the bill outcome once a credit is applied, otherwise the credit's current stage, and the
-    // separate price exception. Every amount is a server value; nothing is computed here.
+    // separate price exception. Every amount and stage is the server's finance projection; nothing is computed here.
+    function serverStages(data) { return list((data.finance || {}).stages).filter(row => row && typeof row === 'object'); }
     function outcome(data, months) {
-      const ledger = data.ledger || {}, bill = ledger.bill || {}, claim = data.claim || {}, price = data.price_finding || {};
-      const records = ledger.record_ids || {}, currency = ledger.currency || 'USD', destination = ledger.destination;
+      const ledger = data.ledger || {}, claim = data.claim || {}, price = data.price_finding || {};
+      const fbill = (data.finance || {}).bill || {}, lbill = ledger.bill || {};
+      const currency = ledger.currency || 'USD', destination = ledger.destination;
       const node = el('section', null, 'outcome'); node.id = 'finance-outcome'; node.setAttribute('aria-label', 'Outcome');
       const credit = el('article', null, 'outcome-card outcome-credit');
-      if (bill.id && records.application) {
-        const billMonth = monthOnly(bill.service_start);
-        add(credit, el('h2', (billMonth ? billMonth + ' invoice ' : 'Invoice ') + bill.id), add(el('dl', null, 'outcome-rows'),
-          amountRow('Invoice', money(bill.original_amount, currency)), amountRow('Credit applied', money(ledger.applied, currency)),
-          amountRow('Remaining balance', money(bill.outstanding_amount, currency), 'outcome-total')),
+      if (fbill.id && fbill.application_ref) {
+        const billMonth = monthOnly(lbill.month) || monthOnly(lbill.service_start);
+        add(credit, el('h2', (billMonth ? billMonth + ' invoice ' : 'Invoice ') + fbill.id), add(el('dl', null, 'outcome-rows'),
+          amountRow('Invoice', money(fbill.original, currency)), amountRow('Credit applied', money(fbill.applied, currency)),
+          amountRow('Remaining balance', money(fbill.outstanding, currency), 'outcome-total')),
           note('Credit recorded in ' + text(destination) + ' and applied to this invoice.'));
       } else {
-        const stages = [['applied', 'applied'], ['posted', 'posted to ' + text(destination)], ['awarded', 'awarded'], ['claimed', 'claimed']];
-        const reached = stages.find(([key]) => ledger[key] != null && !isZero(ledger[key]));
-        const estimate = estimateFor(data, months);
+        const rows = serverStages(data), estimate = rows.find(r => r.stage === 'estimated');
+        const reached = rows.filter(r => r.stage !== 'estimated' && r.status === 'recorded').pop();
         const claimMonth = claim.month ? monthOnly(claim.month) : null;
+        const shown = reached || estimate;
         add(credit, el('h2', (claimMonth ? claimMonth + ' service credit' : 'Service credit')),
-          el('div', reached ? money(ledger[reached[0]], currency) : money(estimate, currency), 'outcome-value'),
-          note(reached ? 'Current stage: ' + reached[1] + '. Not yet applied to an invoice.' : 'Estimated from the governing agreement. Not yet claimed.'));
+          el('div', shown ? money(shown.amount, currency) : money(null), 'outcome-value'),
+          note(reached ? 'Current stage: ' + reached.label + '. Not yet applied to an invoice.'
+            : estimate && estimate.amount != null ? 'Estimated from the governing agreement. Not yet claimed.'
+            : 'No amount is determined yet.'));
       }
       node.append(credit);
       if (price.invoice_id || price.amount != null || price.state) {
-        const priceMonth = monthFor(price.invoice_id, months);
+        const priceMonth = monthOnly(price.month) || monthFor(price.invoice_id, months);
         node.append(add(el('article', null, 'outcome-card outcome-exception'), el('h2', (priceMonth ? priceMonth + ' price exception' : 'Price exception')),
           el('div', money(price.amount, price.currency || currency), 'outcome-value'),
           note((PRICE_STATUS[price.state] || state(price.state)) + (price.invoice_id ? ' · invoice ' + price.invoice_id : '')),
@@ -151,29 +155,26 @@
       const match = list(months).find(m => m && m.invoice && m.invoice.id === invoiceId);
       return match ? monthOnly(match.month) : null;
     }
-    function estimateFor(data, months) {
-      const claim = data.claim || {}, ledger = data.ledger || {};
-      const match = claim.month ? list(months).find(m => m && m.month === claim.month) : null;
-      return match && match.amount != null ? match.amount : ledger.estimated;
-    }
-    // One credit at each stage of its life. The amounts are the same credit, never added together.
-    function lifecycle(data, months) {
-      const ledger = data.ledger || {}, bill = ledger.bill || {}, currency = ledger.currency || 'USD';
-      const steps = [['estimated', 'Estimated', estimateFor(data, months)], ['claimed', 'Claimed', ledger.claimed], ['awarded', 'Awarded', ledger.awarded],
-        ['posted', 'Posted to ' + text(ledger.destination), ledger.posted], ['applied', bill.id ? 'Applied to ' + bill.id : 'Applied to an invoice', ledger.applied]];
+    // One credit at each stage of its life, exactly as the server's finance projection lists it. The amounts are
+    // the same credit, never added together.
+    const STAGE_STATE = {recorded:'Recorded', 'not yet':'Not yet', 'not determined':'Not determined'};
+    function lifecycle(data) {
+      const currency = (data.ledger || {}).currency || 'USD', rows = serverStages(data);
       const node = el('section', null, 'lifecycle'); node.setAttribute('aria-label', 'Credit lifecycle');
+      node.append(el('h2', 'Credit lifecycle'), note('One credit, shown at each stage. The amounts are not added together.'));
+      if (!rows.length) return add(node, note('The server reported no credit stages for this case.'));
       const items = el('ol', null, 'lifecycle-steps');
       let current = null;
-      steps.forEach(([key, label, value]) => {
-        const done = value != null && !isZero(value);
-        const item = add(el('li', null, 'lifecycle-step ' + (done ? 'done' : 'pending')), el('span', label, 'step-label'),
-          el('strong', value == null ? 'Not determined' : money(value, currency), 'step-amount'),
-          el('span', done ? 'Recorded' : value == null ? 'Not determined' : 'Not yet', 'step-state'));
+      rows.forEach(row => {
+        const done = row.status === 'recorded';
+        const item = add(el('li', null, 'lifecycle-step ' + (done ? 'done' : 'pending')), el('span', text(row.label), 'step-label'),
+          el('strong', row.amount == null ? 'Not determined' : money(row.amount, currency), 'step-amount'),
+          el('span', STAGE_STATE[row.status] || state(row.status), 'step-state'));
         if (done) current = item;
         items.append(item);
       });
       if (current) current.setAttribute('aria-current', 'step');
-      return add(node, el('h2', 'Credit lifecycle'), note('One credit, shown at each stage. The amounts are not added together.'), items);
+      return add(node, items);
     }
     function guidePanel(token) {
       const node = panel('Ask about this case', 'guide');
@@ -330,7 +331,7 @@
       const vendorLink=el('a','Inspect vendor contracts','case-link');vendorLink.href='#vendors';expansion.append(vendorLink);
       const guide=finance ? guidePanel(token) : null;
       const activityLink = add(el('p', null, 'help'), (() => { const a = el('a', 'See the full activity history', 'case-link'); a.href = '#activity'; return a; })());
-      root.replaceChildren(header,outcome(data, months),lifecycle(data, months),recovery,...(attention ? [attention] : []),...(guide ? [guide] : []),...(ramp ? [ramp] : []),
+      root.replaceChildren(header,outcome(data, months),lifecycle(data),recovery,...(attention ? [attention] : []),...(guide ? [guide] : []),...(ramp ? [ramp] : []),
         monthly,add(el('div',null,'section-grid'),pricing,billing),contract,...(data.onboarding ? [expansion] : []),detail,activityLink);
       if (focusNextStep) {
         focusNextStep=false;
