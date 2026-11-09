@@ -77,6 +77,8 @@ Six calls, one per supported family per authored contract. Model `claude-opus-5-
 - Halden Relay ran on `611efdf` exactly: the server started at 13:14:00 PST, after that commit, with no uncommitted `uptime/` change.
 - Corvid Ledger and the control ran on code byte-identical to `c4b64dd`'s `uptime/` tree. The server restarted at 13:17:17 PST, after the last diagnostics edit at 13:17:07; that file is unchanged in `c4b64dd`. The only later `uptime/` change is `finance_guide.py` in `57dc7e3` (13:21:18), after both runs.
 
+**Recorded workspace custody.** The preserved `workspace.sqlite` must hash `9043eaaf356071a1f45a841daf075a8cb3ee1945c009cd6b8437f95cb3241736`. Serving it directly at 13:31 PST changed it to `41fecca2f491a181331bf1ce2dafe806fad9dc3c64b93eadf16e8d315b63d07f` (two SQLite header bytes, no record), and it was restored at 15:42 PST. Never serve the preserved folder; serve only a scratch copy, as in the [runbook](onboarding-runbook.md#preserved-recorded-workspace-for-the-film).
+
 **Limits:**
 - The control's conflicting-terms and exclusion refusals were not reached by its genuine monthly call, because identifier grounding failed first. They are shown by `tests/test_submission_refusal_location.py` and `tests/test_vendor_selection_refusals_89.py`.
 - The Halden Relay record keeps the generic explanation it was stored with. Its precise passage is shown by an offline replay with the current code.

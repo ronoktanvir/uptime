@@ -76,21 +76,62 @@ No step approves an interpretation, adapter or activation. Failed and timed-out 
 
 ## Preserved recorded workspace (for the film)
 
-The six recorded jobs and the SHADOW Corvid Ledger adapter are kept, unmodified, in an owner-only copy made after the server stopped (database SHA-256 `9043eaaf356071a1f45a841daf075a8cb3ee1945c009cd6b8437f95cb3241736`):
+> **Never serve the preserved folder, not even for a read-only look.** Any serve of its `workspace.sqlite` writes to the file. Serve only a scratch copy (below), delete the copy afterwards, and check the preserved folder by hash only.
+
+The six recorded jobs and the SHADOW Corvid Ledger adapter are kept in an owner-only folder:
 
 `~/.local/share/uptime-engineering/tasks/submission-onboarding-20261109/recorded-workspace/`
 
-It holds `workspace.sqlite`, `protected/config.json` (pointing at its own `protected/approvals.json`), the disposable `role1-operator.jwk` credential and the request exports. The original run folder `~/.local/share/uptime-engineering/runtime/submission-onboarding-20261109/` is also kept.
+It holds `workspace.sqlite`, `protected/config.json` (pointing at its own `protected/approvals.json`), the disposable `role1-operator.jwk` credential and the request exports. The original run folder `~/.local/share/uptime-engineering/runtime/submission-onboarding-20261109/` is also kept; its database still has the recorded hash.
 
-Serve it from a checkout of the integrated build that contains this branch:
+**Hashes of `workspace.sqlite` (SHA-256).**
+- **Recorded:** `9043eaaf356071a1f45a841daf075a8cb3ee1945c009cd6b8437f95cb3241736`. The original run folder and the preserved folder must both show this.
+- **Changed, do not use:** `41fecca2f491a181331bf1ce2dafe806fad9dc3c64b93eadf16e8d315b63d07f`. It is kept beside the restored file as `workspace.sqlite.CHANGED-by-8812-sign-in-20261109T133135-0800`.
 
 ```bash
-uv run --locked python scripts/serve.py --db ~/.local/share/uptime-engineering/tasks/submission-onboarding-20261109/recorded-workspace/workspace.sqlite --mode replay --tenant submission-onboarding --port 8812 --public-proposal-config ~/.local/share/uptime-engineering/tasks/submission-onboarding-20261109/recorded-workspace/protected/config.json
+shasum -a 256 ~/.local/share/uptime-engineering/tasks/submission-onboarding-20261109/recorded-workspace/workspace.sqlite
 ```
 
-Sign in at `http://127.0.0.1:8812/#vendors` as `role1-operator` with that credential file.
+**What happened.**
+- At 13:31:35 PST, seconds after making the copy, agent2 served the preserved folder itself on port 8812 and made signed reads as `role1-operator`: the selection view, the Corvid Ledger job and the vendor. That serve changed the database to `41fecca2…`.
+- From then until the restore, this section was wrong twice: it called the copy unmodified, and it said signing in adds only a session record.
+- At 15:42 PST the changed file was moved aside and the original was copied back from the run folder with `cp -p`. The preserved database again equals the original byte for byte, and the other preserved files (credential, approvals, exports, logs) always did. `protected/config.json` differs from the original only by design: it points at the copy's own approvals.
 
-**Read-only in effect.** All six jobs are terminal. Re-submitting the same request returns the same job, and the stored approvals expire at 2026-11-10T03:15Z. A new model call needs a new attempt identifier and a new operator approval. Signing in adds only a session record; staging again returns the same SHADOW revision.
+**What differs between the two databases.** This was found without reading any row.
+- The files are the same size and differ in 2 bytes, both in the SQLite header: the file change counter and the version-valid-for number, each 28 → 29.
+- The schema, every other page and the contents of all 44 tables (compared by digest) are identical. No session row or any other record was added.
+- Serving a scratch copy and making the same reads produced exactly `41fecca2…` again. Any serve leaves one write transaction in the file even when no record changes, which is why the rule above has no exceptions.
+
+**Viewing it: scratch copy only.** Run in one shell, from a checkout of the integrated build that contains this branch. The last setup line points the copy at its own approvals catalog; without it, the server would read the preserved folder's catalog.
+
+```bash
+S=$(mktemp -d)
+cp -Rp ~/.local/share/uptime-engineering/tasks/submission-onboarding-20261109/recorded-workspace/. "$S/"
+rm "$S"/workspace.sqlite.CHANGED-*
+python3 -c 'import json, sys; p = sys.argv[1] + "/protected/config.json"; c = json.load(open(p)); c["approvals_path"] = sys.argv[1] + "/protected/approvals.json"; json.dump(c, open(p, "w"))' "$S"
+```
+
+```bash
+uv run --locked python scripts/serve.py --db "$S/workspace.sqlite" --mode replay --tenant submission-onboarding --port 8813 --public-proposal-config "$S/protected/config.json"
+```
+
+Sign in at `http://127.0.0.1:8813/#vendors` as `role1-operator` with `$S/role1-operator.jwk`. When finished, stop the server, delete the copy and recheck the preserved hash:
+
+```bash
+rm -rf "$S"
+```
+
+Checked this way at `7a6db64` (integration head), 15:45 PST:
+- the selection outcomes were Corvid Ledger SELECTED and both Halden Relay contracts NO_SUPPORTED_FAMILY;
+- job `26ee4e3f` was SUCCEEDED with 11 clauses from `claude-opus-5-5`;
+- the adapter was SHADOW `ff76ed67` with no actions.
+
+The copy was then deleted, and the preserved hash was still `9043eaaf…`.
+
+**Read-only in effect, for the records.**
+- All six jobs are terminal. Re-submitting the same request returns the same job.
+- The stored approvals expire at 2026-11-10T03:15Z. A new model call needs a new attempt identifier and a new operator approval.
+- Requests change no job, approval or adapter record, and staging again returns the same SHADOW revision. The database file still changes, so this does not make serving the preserved folder safe.
 
 **Newer builds.** No migration is needed: the job table and registry tables are created idempotently. The recorded jobs and the adapter stay readable as `SELECTED`/SHADOW only while the build keeps these pins unchanged:
 - `uptime/vendor_model_jobs.py` SHA-256 `b90f74d8cc6c1bc0c0ba42031fd752b76e8d71fefa612c4c18cd60f8aa70268c`;
@@ -107,7 +148,7 @@ uv run --locked python -c "from uptime import vendor_terms; print(vendor_terms.S
 shasum -a 256 uptime/vendor_model_jobs.py
 ```
 
-As of `a40fd84` (integration), every pinned file equals the code that ran. The only difference is `public_proposal_jobs.py`, which this branch changes.
+As of `a40fd84` and again at `7a6db64` (integration), every pinned file equals the code that ran. The only difference is `public_proposal_jobs.py`, which this branch changes.
 
 **Film labelling.** Label the beat as a recorded run: job `26ee4e3f-e5e2-47c7-aebe-e1f4dc7c7402`, model `claude-opus-5-5`, session `41f4dcb6-ca5e-4c43-ac01-95d222de9737`, finished 2026-11-09 21:17:38Z. State that it is an authored contract, staged in SHADOW, not approved or active.
 
