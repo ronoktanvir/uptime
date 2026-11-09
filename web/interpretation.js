@@ -181,7 +181,8 @@
       if(warn)box.append(el('p',`Request ${job.id} is ${job.state}${job.reason?' ('+job.reason+')':''}. It did not complete cleanly. This proposal passed the source checks and is linked to that request, but it is not a completed result; it changes nothing until you review it.`,'interpretation-note'));
       box.append(el('p',reviewed.has(candidate.id)?'State: reviewed by you; preview only':'State: proposed; not reviewed'));
       if(candidate.provenance?.model)box.append(el('p','Proposed by model '+candidate.provenance.model+(candidate.provenance.elapsed_seconds!=null?' in '+candidate.provenance.elapsed_seconds+' s':''),'interpretation-meta'));
-      if(candidate.provenance?.request_sha256)box.append(el('p','Request reference '+candidate.provenance.request_sha256,'interpretation-meta'));
+      // The request digest stays exact, one click away, so the reading and its cited reply lead.
+      if(candidate.provenance?.request_sha256){const req=el('details');req.append(el('summary','Request details'),el('p','Request reference '+candidate.provenance.request_sha256,'interpretation-meta'));box.append(req);}
       const count=candidate.interpretation.propositions.length;
       if(count>1)box.append(el('p',`${count} separate propositions. Each needs its own decision; they are never combined or copied into your reading unless you load them.`));
       for(const [index,p] of candidate.interpretation.propositions.entries()){
