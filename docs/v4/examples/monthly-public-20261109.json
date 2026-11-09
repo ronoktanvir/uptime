@@ -1,0 +1,124 @@
+{
+  "purpose": "Public authored setup example only; not independent evaluation or real customer evidence.",
+  "source_document": {
+    "name": "Boreal agreement setup example",
+    "uri": "urn:synthetic:boreal-public-setup",
+    "classification": "synthetic_public",
+    "text": "Synthetic public setup example\nVendor: Boreal Relay\nAgreement: BR-74\nEffective: 2026-01-01 through 2026-12-31\nAvailability is measured over each UTC calendar month.\nFor Message Store on the Team plan, monthly availability below 99.9% earns a 12.5% service credit.\nClaims must be received within 13 calendar days after month end.\nService credits apply to affected monthly fees on a future invoice.\nClaims are based on a complete UTC calendar-month report for the entire service; incident identifiers are not required."
+  },
+  "overlay": {
+    "agreement": "BR-74",
+    "account": "north-612",
+    "product": "Message Store",
+    "plan": "Team",
+    "fee_line_ref": "monthly-store",
+    "currency": "USD",
+    "effective_from": "2026-01-01",
+    "effective_until": "2026-12-31"
+  },
+  "claim": {
+    "claim_id": "inbox-boreal-public-month",
+    "scope": {
+      "account": "north-612",
+      "vendor": "Boreal Relay",
+      "contract": "BR-74",
+      "service": "Message Store",
+      "currency": "USD",
+      "month": "2026-10"
+    }
+  },
+  "deliveries": [
+    {
+      "source_role": "status",
+      "subject": "boreal-public-status",
+      "envelope": {
+        "event_id": "public-month-report",
+        "scope": {
+          "account": "north-612",
+          "vendor": "Boreal Relay",
+          "contract": "BR-74",
+          "service": "Message Store",
+          "currency": "USD",
+          "month": "2026-10"
+        },
+        "body": {
+          "kind": "monthly_coverage",
+          "source_ref": "public-month-202610",
+          "observed_at": "2026-11-01T06:00:00Z",
+          "start": "2026-10-01T00:00:00Z",
+          "end": "2026-11-01T00:00:00Z",
+          "plan": "Team",
+          "complete": true,
+          "exclusions_removed": true,
+          "gaps": [],
+          "unresolved_exclusions": [],
+          "eligible_downtime_minutes": 45
+        }
+      }
+    },
+    {
+      "source_role": "billing",
+      "subject": "boreal-public-billing",
+      "envelope": {
+        "event_id": "public-month-invoice",
+        "scope": {
+          "account": "north-612",
+          "vendor": "Boreal Relay",
+          "contract": "BR-74",
+          "service": "Message Store",
+          "currency": "USD",
+          "month": "2026-10"
+        },
+        "body": {
+          "kind": "invoice",
+          "lines": [
+            {
+              "id": "monthly-store",
+              "kind": "affected_api",
+              "amount": "417.36"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "optional_attribution": {
+    "source_role": "customer",
+    "subject": "boreal-public-customer",
+    "envelope": {
+      "event_id": "public-customer-month",
+      "scope": {
+        "account": "north-612",
+        "vendor": "Boreal Relay",
+        "contract": "BR-74",
+        "service": "Message Store",
+        "currency": "USD",
+        "month": "2026-10"
+      },
+      "body": {
+        "kind": "monthly_attribution",
+        "source_ref": "public-customer-month-202610",
+        "observed_at": "2026-11-01T06:00:00Z",
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-11-01T00:00:00Z",
+        "plan": "Team",
+        "complete": true,
+        "exclusions_removed": true,
+        "gaps": [],
+        "unresolved_exclusions": [],
+        "eligible_downtime_minutes": 45
+      }
+    }
+  },
+  "requirements": [
+    "Compile the source document normally; do not hand-insert the evidence_basis marker or citations.",
+    "Approve this exact version only through the ordinary authorized test/rehearsal lifecycle. This setup does not create a human review.",
+    "Create the claim through POST /api/correspondence/claims with reviewer authentication.",
+    "Enroll each included source for the exact scope and role, with distinct subject, key and grant.",
+    "Post each exact envelope through POST /api/correspondence/claims/inbox-boreal-public-month/events with ordinary source authentication.",
+    "Server receipt time must be at or after month end and no earlier than observed_at.",
+    "monthly_attribution is optional; if supplied it must have independent provenance and agree with coverage.",
+    "No incident, component or region is permitted in this whole-service scope.",
+    "Expected amounts must come from the real evaluator, not this setup artifact."
+  ]
+}

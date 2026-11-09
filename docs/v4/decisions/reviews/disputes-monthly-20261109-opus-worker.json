@@ -1,0 +1,58 @@
+{
+  "task": "strict-complete-service-month-path",
+  "model_observed": "claude-opus-5-5",
+  "requested_effort": "xhigh",
+  "session_id": "983dae98-68d4-479b-8328-755e37b99f57",
+  "tools_observed": [
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "mcp_servers": [],
+  "authentication": "existing Claude Code OAuth subscription",
+  "exit_code": 0,
+  "elapsed_seconds": 1112.137,
+  "contributions": [
+    "New typed monthly reports",
+    "Strict evidence join draft",
+    "Opt-in scope and route integration draft",
+    "New authored tests"
+  ],
+  "parent_corrections": [
+    "Required coverage plus independently authenticated invoice; optional customer report corroborates",
+    "Shared explicit source-clause validator replaces duplicate weak marker validation",
+    "Present-null marker refuses rather than falling back",
+    "Server receipt chronology cannot be hidden by later known_at",
+    "Overlapping evidence-basis change is a material publication conflict",
+    "New test dataclass equality fix; no existing tests modified"
+  ],
+  "bounded_critique": {
+    "model_observed": "claude-opus-5-5",
+    "requested_effort": "high",
+    "session_id": "c740b3a9-2e50-4d24-999e-c3c3518477bb",
+    "tools_observed": [
+      "Glob",
+      "Grep",
+      "Read",
+      "Write"
+    ],
+    "mcp_servers": [],
+    "exit_code": 0,
+    "elapsed_seconds": 78.536,
+    "reference": "disputes-monthly-20261109-opus-critique.md"
+  },
+  "limits": [
+    "Authored local controls only; independent unseen evaluation remains separate.",
+    "Final source/compiler integration and semantic hash pins owned by integration agent.",
+    "No customer records, keys, private evaluation answers, Ramp actions or human decisions delegated."
+  ],
+  "parent_validation": "417 passed, 1 warning in 4.25s; compiler-dependent route controls pending coordinated integration",
+  "files_sha256": {
+    "uptime/claim_scope.py": "641029dcf98335959ee7ceeb7c2ef00607432f56106e2371356efc50eadf6504",
+    "uptime/correspondence_types.py": "b6e09be4d7b72ba2cd8384cc5e3b5cdb98cda940d0ea79c69a4c63257be05cff",
+    "uptime/correspondence_monthly.py": "d63fa47a44191684ed53b8c3c326f8bb83480dd4112b2c1506562e37818a0fff",
+    "uptime/v4_routes.py": "57f208de70242b036d747c41e35e18898ec727df4761a4d57be88226a00a28a6"
+  }
+}
