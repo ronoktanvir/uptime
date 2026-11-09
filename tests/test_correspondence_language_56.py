@@ -80,6 +80,8 @@ def test_claim_bound_lateness_uses_actual_original_receipt(service, late):
     receipt = original.get("id", original.get("receipt_id"))
     deliver(service, [("vendor-fixture", dict(kind="message", receipt_id=receipt,
         text="We declined your claim because it was received after the filing deadline."))])
+    if late:
+        accept_explicitly(service)
     row = service.read()
     assert row["stage"] == ("DENIAL_ACCEPTED" if late else "RESPONSE_DRAFTED")
     if late:
@@ -100,6 +102,7 @@ def test_correct_availability_denial_comes_from_signed_measurements_not_percent_
     saved = original_record(service)
     deliver(service, [("vendor-fixture", dict(kind="message", receipt_id=original["receipt_id"],
         text="Availability was 99.6%, above the 99.4% target for 2027-02. Claim denied."))])
+    accept_explicitly(service)
     row = service.read()
     assert row["stage"] == "DENIAL_ACCEPTED" and row["actions"] == []
     assert original_record(service) == saved
@@ -217,3 +220,10 @@ def test_percentage_comparison_is_only_internal_consistency_not_contract_authori
     # states one coherent claim for the domain to check against signed evidence.
     assert propose("Availability was 99.4%, at or above the 99.4% target.").reason == "availability"
     assert propose("Availability of 0.2% met the 0.1% commitment.").reason == "availability"
+
+
+def accept_explicitly(app):
+    """D06 (Q2 option A): a substantiated denial closes only through the explicit reviewer action."""
+    pending = app.read()
+    assert pending["stage"] == "DENIAL_REVIEW" and [a["id"] for a in pending["actions"]] == ["accept-denial"]
+    return app.post(app.url + "/denial-acceptance", dict(basis_digest=pending["actions"][0]["basis_digest"]))

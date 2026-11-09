@@ -1,0 +1,11 @@
+{
+  "version": "oracle-v2-d06",
+  "supersedes_for": ["notice_first_obtained_after_filing"],
+  "frozen_original": "fixtures/correspondence/oracle.json (unchanged)",
+  "decision": "D06 'Humans gate judgment' (Ronok). Q2 option A chosen 2026-11-09 04:28 PST by the overview session under Ronok's delegated (Recommended) authority, not by Ronok personally.",
+  "notice_first_obtained_after_filing": {
+    "before_acceptance": {"stage": "DENIAL_REVIEW", "actions": ["accept-denial"], "submissions": 1, "awarded": "0.00"},
+    "explicit_action": "accept-denial with the offered basis_digest",
+    "after_acceptance": {"stage": "DENIAL_ACCEPTED", "submissions": 1, "awarded": "0.00"}
+  }
+}

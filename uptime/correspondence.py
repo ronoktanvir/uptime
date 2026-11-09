@@ -7,7 +7,7 @@ from decimal import Decimal, localcontext
 import json
 from pathlib import Path
 
-from .mandates import check_claim_decision, claim_preview
+from .mandates import check_claim_decision, check_closure_decision, claim_preview, closure_preview
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import TABLE as CLAIM_IDENTITY_TABLE, claim_key, reserve_claim
 from .correspondence_artifacts import HISTORICAL, approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
@@ -34,20 +34,12 @@ def reviewed_reply(state):
 
 
 def hold_reviewed_denial(state):
-    """A reviewed reading never closes a claim by itself; acceptance is a separate explicit action."""
-    if state["stage"] == "DENIAL_ACCEPTED" and reviewed_reply(state) and not state.get("denial_acceptance"):
-        state["stage"] = DENIAL_REVIEW
+    """D06 "Humans gate judgment": no reading, grammar or reviewed, closes a claim by itself.
 
-
-def closure_permitted(p):
-    """Mirror of mandates.check_claim_decision's legacy exemption. No mandate type can bind a closure yet.
-
-    A principal carrying any mandate or claim decision, or outside the legacy
-    workspace exemption, cannot accept a denial until the integration owner adds
-    a closure-bound decision type (requested; D06 pending).
+    Closing is a separate explicit reviewer action bound to the substantiated basis.
     """
-    return (p.role == "reviewer" and p.tenant == "bears" and getattr(p, "claim_decision", None) is None
-            and not getattr(p, "mandate_id", None))
+    if state["stage"] == "DENIAL_ACCEPTED" and state["replies"] and not state.get("denial_acceptance"):
+        state["stage"] = DENIAL_REVIEW
 
 
 def supersede_acceptance(state):
@@ -429,6 +421,7 @@ class CorrespondenceDesk:
                     state["replies"].append(reply)
                     state["cooldown"] = (now + FOLLOW_UP).isoformat()
                     apply_response_state(state, current)
+                    hold_reviewed_denial(state)
                     audit(state, now, "claimant", "Linked vendor reply to verified historical receipt.", VENDOR, receipt=body["receipt_id"])
                 else:
                     self._reply(tenant, scope, state, fact, now)
@@ -663,7 +656,7 @@ class CorrespondenceDesk:
 
     def _denial_basis(self, scope, state, current):
         """Re-derive from current evidence and governing terms only that a reviewed denial ground holds."""
-        if state["stage"] != DENIAL_REVIEW or not reviewed_reply(state):
+        if state["stage"] != DENIAL_REVIEW or not state["replies"]:
             return None
         reviewed = state.get("interpretation_review")
         if reviewed and (reviewed["contract_version"] != current.version
@@ -673,7 +666,7 @@ class CorrespondenceDesk:
             return None
         reply = state["replies"][-1]
         return dict(reason=state["reason"], reply_digest=reply["digest"], receipt=reply["receipt"],
-                    review_id=reply["reviewed_interpretation"], evidence_digest=current.evidence_digest,
+                    review_id=reply.get("reviewed_interpretation"), evidence_digest=current.evidence_digest,
                     contract_version=current.version, contract_source_sha256=current.contract_source_sha256,
                     outcome=str(current.evaluation.outcome), clauses=[asdict(c) for c in current.evaluation.clauses])
 
@@ -686,7 +679,9 @@ class CorrespondenceDesk:
         if state["stage"] == DENIAL_REVIEW:
             # Stopping is not bounded by the filing window; it sends nothing.
             basis = self._denial_basis(scope, state, current)
-            if not closure_permitted(p) or basis is None:
+            # Ronok's decision 2a: mandated principals need a closure-bound ClosureDecision,
+            # checked at acceptance; the legacy unmandated reviewer exemption is unchanged.
+            if p.role != "reviewer" or basis is None:
                 return []
             return [dict(id="accept-denial", label="Accept Denial", basis_digest=fingerprint(basis),
                          route="denial-acceptance")]
@@ -707,15 +702,15 @@ class CorrespondenceDesk:
             return []
         return [dict(id=action, label=action.replace("-", " ").title())]
 
-    def _accept_denial(self, p, scope, state, current, now, basis_digest):
+    def _accept_denial(self, db, p, claim_id, scope, state, current, now, basis_digest):
         """Explicit reviewer stop bound to the exact basis the reviewer saw. No money or packet."""
-        if not closure_permitted(p):
-            raise PermissionError("No claim-decision mandate type can bind a denial acceptance for this principal.")
         offered = [a for a in self._actions(p, scope, state, current, now) if a["id"] == "accept-denial"]
         if not offered:
             raise ValueError("Action unavailable for the current policy, filing window, evidence and stage.")
         if basis_digest != offered[0]["basis_digest"]:
             raise ValueError("The denial basis changed after it was reviewed; review the current evidence again.")
+        # Decision 2a: exact closure-bound mandate (or the legacy exemption), against the pre-change state.
+        check_closure_decision(db, p, closure_preview(claim_id, basis_digest, scope.model_dump(), state))
         basis = self._denial_basis(scope, state, current)
         state["stage"] = "DENIAL_ACCEPTED"
         state["approval"] = None
@@ -738,7 +733,7 @@ class CorrespondenceDesk:
                 if not state.get("denial_acceptance"):
                     if basis_digest is None:
                         raise ValueError("Accepting a denial requires the exact reviewed basis digest.")
-                    self._accept_denial(p, scope, state, current, now, basis_digest)
+                    self._accept_denial(db, p, claim_id, scope, state, current, now, basis_digest)
                     self._save(db, p.tenant, claim_id, state)
             else:
                 if (state["approval"] and state["approval"]["action"] == action
@@ -832,12 +827,19 @@ class CorrespondenceDesk:
         replies = [{**r, "text": next(e["body"]["text"] for e in state["evidence"] if e["digest"] == r["digest"])} for r in state["replies"]]
         actions = [] if observe_only(db, p.tenant) else self._actions(p, scope, state, current, now)
         if p.tenant != "bears" and actions:
+            closing = [offer for offer in actions if offer["id"] == "accept-denial"]
+            filing = [offer for offer in actions if offer["id"] != "accept-denial"]
+            for offer in closing:
+                # The exact decision an issuer binds; acceptance never builds an outbound packet.
+                offer["mandate_closure"] = closure_preview(claim_id, offer["basis_digest"], scope.model_dump(), state).model_dump()
             try:
-                packet = self._packet(p.tenant, claim_id, scope, state, current)
-                for offer in actions:
-                    offer["mandate_claim"] = claim_preview(offer["id"], scope.model_dump(), packet).model_dump()
+                if filing:
+                    packet = self._packet(p.tenant, claim_id, scope, state, current)
+                    for offer in filing:
+                        offer["mandate_claim"] = claim_preview(offer["id"], scope.model_dump(), packet).model_dump()
             except ValueError:
-                actions = []
+                filing = []
+            actions = filing + closing
         return dict(id=claim_id, title="Claim correspondence · " + scope.invoice, vendor=scope.vendor,
                     mode="LOCAL_SIMULATOR", policy="ASSISTED", tenant=p.tenant, scope=scope.model_dump(), stage=stage,
                     outcome=outcome, amount=amount, currency=scope.currency, contract_version=current.version or None,
