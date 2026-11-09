@@ -538,3 +538,70 @@ def test_restore_staging_collision_and_corrupt_database_fail_closed(tmp_path):
     with pytest.raises(SystemExit) as stopped:
         health.main(["--db", str(corrupt)])
     assert stopped.value.code == 1
+
+
+def _refresh_module():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("ramp_refresh_workspace", ROOT / "scripts/ramp_refresh_workspace.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_bounded_read_retries_only_follow_transient_failures():
+    from uptime.ramp import RampError, RampHTTPError, RampNetworkError
+    refresh = _refresh_module()
+    waits = []
+
+    def flaky(*failures):
+        calls = []
+
+        def run(path, tenant, **options):
+            calls.append(options)
+            if len(calls) <= len(failures):
+                raise failures[len(calls) - 1]
+            return {"snapshot": True}, {"digest": "d", "status": "ready"}
+        return run, calls
+
+    run, calls = flaky(RampHTTPError(503), RampNetworkError("Sandbox network or response unavailable"))
+    assert refresh.refresh_with_retries("db", TENANT, attempts=3, sleep=waits.append, run=run, page_size=5)[2] == 3
+    assert waits == [5, 30] and calls == [{"page_size": 5}] * 3
+
+    for refusal in (RampHTTPError(403), RampHTTPError(401), RampError("Exact bills:read grant required"),
+                    PermissionError(installation_revocation.REVOKED), ValueError("binding")):
+        run, calls = flaky(refusal)
+        with pytest.raises(type(refusal)):
+            refresh.refresh_with_retries("db", TENANT, attempts=3, sleep=waits.append, run=run)
+        assert len(calls) == 1
+
+    run, calls = flaky(RampHTTPError(429), RampHTTPError(429), RampHTTPError(429))
+    with pytest.raises(RampHTTPError):
+        refresh.refresh_with_retries("db", TENANT, attempts=3, sleep=lambda _: None, run=run)
+    assert len(calls) == 3
+    for bad in (0, 4, True, "2"):
+        with pytest.raises(ValueError):
+            refresh.refresh_with_retries("db", TENANT, attempts=bad, run=run)
+
+
+def test_transport_failures_are_typed_without_leaking_provider_detail(monkeypatch):
+    import http.client
+    from uptime import ramp
+    monkeypatch.setenv("RAMP_ENV", "sandbox")
+    monkeypatch.delenv("RAMP_BASE_URL", raising=False)
+
+    class Down:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def request(self, *args, **kwargs):
+            raise OSError("connection reset by secret-bearing peer")
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(http.client, "HTTPSConnection", Down)
+    provider = object.__new__(ramp.SandboxRampProvider)
+    with pytest.raises(ramp.RampNetworkError) as failure:
+        provider._http("GET", "business", {"Authorization": "Bearer not-a-real-token"})
+    assert isinstance(failure.value, ramp.RampError)
+    assert str(failure.value) == "Sandbox network or response unavailable" and failure.value.__cause__ is None
