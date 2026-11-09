@@ -77,7 +77,13 @@ Each fallback is offline and repeatable, and none performs a native or model act
 
 ## Local sessions
 
-Filled in when the presentation listener is prepared from the frozen tested build; see the rehearsal record.
+Prepared November 9, 2026, at about 13:03 UTC (5:03 AM Pacific):
+
+- **Presentation, http://127.0.0.1:8776**: served from the frozen demo build `fde492c` in the detached, clean checkout `$HOME/.local/share/uptime-engineering/presentation-fde492c`. The fresh, unfiled workspace is `$HOME/.local/share/uptime-engineering/runtime/northwind-presentation-fde492c`. Sign in as `scripted-test-reviewer` with that directory's `scripted-reviewer.jwk`. Its opening attention list matches the pre-filming checklist exactly. It runs in the Claude desktop terminal tab "Northwind presentation 8776 (demo build fde492c)"; stop it with Ctrl-C there. To restart without resetting state, run the same `setup_northwind.py` command from that checkout with `--resume`.
+- **Ronok's review, http://127.0.0.1:8777/#vendors**: unchanged, served from `$HOME/uptime`. Use the read-only history only; the grant is spent.
+- The earlier `northwind-presentation-87` directory is preserved and not served.
+
+Do not run `rehearse_northwind.py` against the presentation directory; it completes all actions. Use a throwaway directory instead (see Fallback).
 
 ## Rehearsal record
 
@@ -88,6 +94,8 @@ Filled in when the presentation listener is prepared from the frozen tested buil
 | W7 screens in headless Chrome, all 11 steps plus 2 guide questions | 8.2 s of interaction on `5312938`; initial attention list as above | [timing receipt](../evidence/finance-guide-90/screen-walkthrough-timing.json) |
 | Human-posted Ramp note | Verified November 7 by two read-only API reads; re-observed in a complete thread read at 2026-11-09 11:02 UTC; bill unchanged (USD 840, OPEN, approval PENDING, no applied credit) | [read-back](../evidence/demo-path-87/human-ramp-note.json), [re-read](../evidence/ramp-lineage-93/live-read-20261109.json) |
 | CalyxQuay recorded review | REVOKED at revision 9; grant COMPLETED | [receipt](../evidence/local-review-88/recorded-review-20261109.json) |
-| Rehearsal on the round-2 integration build | Pending the round-2 suite | — |
+| Integration suite on the demo build | Fresh clone of `fde492c`: 4,523 passed, 1 warning in 523.01 s; 92/92 JavaScript checks; offline rehearsal, progress graph, secret scan and checklist render passed | [receipt](../evidence/integration-90/verification-fde492c.json) |
+| 11-step walkthrough over real HTTP on the demo build | Passed in 5.1 s against a throwaway workspace served from the frozen checkout. Every duplicate was unchanged and every readback equal; Local ledger 2,400.00 claimed, awarded, posted and applied; April 11,000.00 → 8,600.00; authority `SCRIPTED_REVIEWER` | [receipt](../evidence/integration-90/northwind-http-fde492c.json) |
+| Fresh presentation workspace on 8776 | Serving the demo build; opening attention list as in the checklist; no action taken | This section |
 | Timed run by a person | **Not done** | Needs the presenter and a stopwatch |
 | Film | **Not done**; Ronok decides when to record | — |
