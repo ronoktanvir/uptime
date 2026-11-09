@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/Users/ronoktanvir/.local/bin/uv",
+    "run",
+    "--locked",
+    "pytest",
+    "-p",
+    "no:cacheprovider",
+    "-o",
+    "tmp_path_retention_policy=failed",
+    "--basetemp",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/finish-root-20261109/merge-basis-64ac728-tmp"
+  ],
+  "tested_commit": "64ac728d240ebedb4bfa6f960957dc9785601033",
+  "exit_code": 0,
+  "elapsed_seconds": 437.23,
+  "log": "merge-basis-64ac728-pytest.log",
+  "pytest_result": "4727 passed, 1 warning in 435.83s (0:07:15)",
+  "limits": "Regression for optional contract-basis validator and exact-month intake. Monthly join, generalized parser and independent evaluations remain pending."
+}

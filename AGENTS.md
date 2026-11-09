@@ -3,7 +3,7 @@
 Ronok recorded team decisions D03–D07 and D10–D14 on 2026-11-09; D01, D02 and D09 were chosen as the
 handoff defaults under his delegation. The exact choices are in
 [the decision handoff](docs/v4/TEAM-DECISION-HANDOFF.md#team-decision-sheet). Implement them as the
-execution contract. D08 remains pending, as does whole-month evidence sufficiency for D04. Ronok
+execution contract. D08 remains pending. Ronok has now explicitly approved the strict monthly-evidence path for D04: exact, authenticated, complete month coverage with resolved exclusions and independent eligible fees, only when grounded in the agreement; missing or conflicting evidence stays unknown. Incident-based contracts retain their requirements. See [the accepted monthly decision](docs/v4/decisions/ADR-finish-20261109-monthly-evidence.md). Ronok
 resumed the onboarding sub-cohort of evaluation 84 and, after D04-C, evaluation 86 under the handoff
 procedure; other frozen evaluation work stays paused until he says otherwise. Native Ramp posting
 remains blocked; do not route around it.
@@ -33,7 +33,7 @@ Preserve existing source identity and authorization fields in service APIs and a
 
 Keep decimal arithmetic, source citations, amendments, deadlines, evidence requirements, tenant isolation, state machines and idempotency strict. Unknown amounts stay null. Do not sum successive financial stages or treat an unresolved price finding as an awarded credit. Document every changed existing test by exact name and reason in docs/v4/TEST-CHANGES.md and linked workstream ledgers; do not weaken authority or monetary assertions to obtain a green run.
 
-Record alternatives, dissent, validation and rollback for impactful decisions. Ask Claude Opus 5.5 for a critique when it is useful or requested (D14); it is not a mandatory step. Use focused commits, preserve failed attempts, and push verified increments to the authorized private GitHub repository so collaborators can follow progress. Run `uv run --locked pytest` after every merge, using a unique `--basetemp` when suites run concurrently; report the actual result, including failures. UI copy-only changes need relevant checks, not fabricated production-readiness claims. Never commit credentials or private evaluation material.
+Record alternatives, dissent, validation and rollback for impactful decisions. Ask Claude Opus 5.5 for a critique when it is useful or requested (D14); it is not a mandatory step. Use focused commits, preserve failed attempts, and push verified increments to the authorized GitHub repository so collaborators can follow progress. Run `uv run --locked pytest` after every merge, using a unique `--basetemp` when suites run concurrently; report the actual result, including failures. UI copy-only changes need relevant checks, not fabricated production-readiness claims. Never commit credentials or private evaluation material.
 
 The November 5 direction simplifies decision review: the lead owns the implementation and asks Opus 5.5 for concise criticism of substantial decisions. Do not build a review council or add repeated independent review rounds. Finish already identified fixes, run their focused checks and the required merge suite, and deliver. Reopen a decision only when new evidence changes it; routine fixes within an already reviewed design do not need another architectural consultation.
 

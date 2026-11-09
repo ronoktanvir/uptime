@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-11-09T19:50:44.931030+00:00",
+  "updated_at": "2026-11-09T20:03:33.655053+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
   "summary": "Onboarding and dispute remediation is running in parallel with actual Claude Code Opus 5.5 workers. The team approved a strict complete-month evidence path; implementation is in progress. Independent runners and held-out evaluations are separate. Ramp posting stays restricted.",
   "evidence": [
     {
-      "label": "Latest verified baseline",
-      "value": "4,684 passed",
-      "detail": "a8c4c22 post-merge fresh clone: 4,684 passed, 1 warning; 104 JavaScript checks. Regression does not establish unseen-vendor success.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/579997f/docs/v4/evidence/integration-90/verification-a8c4c22.json"
+      "label": "Latest merged regression",
+      "value": "4,727 passed",
+      "detail": "64ac728: 4,727 passed, 1 warning in435.83s. Optional source basis and exact-month intake checks integrated. Independent generalization is still pending.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/evidence/finish-20261109/merge-basis-64ac728.json"
     },
     {
       "label": "Prior regression checkpoint",
@@ -20,7 +20,7 @@
     {
       "label": "Hosted verification",
       "value": "Main promotion verified",
-      "detail": "Source-specific verification and the current CI are tracked separately. The current completion branch has not merged application changes yet.",
+      "detail": "Prior main promotion verified. Current completion-branch integration passed locally; hosted status is recorded separately.",
       "url": "https://github.com/ronoktanvir/uptime/actions"
     },
     {
@@ -392,7 +392,8 @@
         "adapter",
         "filing_refs",
         "response_coverage",
-        "source_meaning"
+        "source_meaning",
+        "monthly_evidence"
       ],
       "next_action": "Run only after prerequisites pass, preserving first attempts and separate outcome classes.",
       "links": [
@@ -675,9 +676,42 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/demo-path-87/human-ramp-note.json"
         }
       ]
+    },
+    {
+      "id": "monthly_evidence",
+      "title": "Strict complete-month evidence path",
+      "stream": "Financial correctness",
+      "status": "active",
+      "summary": "Explicit source opt-in; independent complete report and fee evidence",
+      "detail": "Team approved the separate path. Basis and period admission slices are integrated; whole-month join and signed source controls are being implemented. Incident-based contracts stay unchanged.",
+      "owner": "Disputes + onboarding owners",
+      "depends_on": [
+        "rules",
+        "identity",
+        "bindings"
+      ],
+      "next_action": "Integrate schema, parser, join and semantics pins together; run negative and financial checks before independent evaluation.",
+      "links": [
+        {
+          "label": "Approved decision",
+          "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/decisions/ADR-finish-20261109-monthly-evidence.md"
+        }
+      ]
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T20:03:33.655053+00:00",
+      "title": "First merged monthly increment passes 4,727 tests",
+      "detail": "Full locked suite:4,727 passed,1 warning in435.83s. Parser, month-join and authenticated-refusal workers continue. Independent signed runner has53 focused checks; scored model evaluations have not run.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/evidence/finish-20261109/merge-basis-64ac728.json"
+    },
+    {
+      "at": "2026-11-09T19:57:00.171416+00:00",
+      "title": "First monthly slices integrated; full regression running",
+      "detail": "Explicit source-basis validator and exact month/premature-report admission checks are merged. 43 focused checks passed in worker lanes. The required combined full suite is running; it is not yet a pass. Monthly join and generic parser remain in progress.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/FINISH-20261109.md"
+    },
     {
       "at": "2026-11-09T19:50:44.931030+00:00",
       "title": "Strict month evidence approved; first validator slice pushed",
