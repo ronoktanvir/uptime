@@ -330,3 +330,24 @@ def test_plan_refuses_a_changed_public_input(tmp_path, monkeypatch):
     monkeypatch.setattr(runner, 'CORPUS_MANIFEST_SHA256', '0' * 64)
     with pytest.raises(ValueError, match='Pinned public input changed'):
         runner.plan_cases(ROOT)
+
+
+class IntakeClient:
+    def __init__(self, status, body):
+        self.status, self.body, self.posts = status, body, []
+
+    def post(self, url, body):
+        self.posts.append((url, body))
+        return Response(self.status, self.body)
+
+
+def test_intake_sends_only_stated_scope_and_records_a_refusal_once(tmp_path):
+    case = runner.plan_cases(ROOT)['cases'][0]
+    client = IntakeClient(409, {'detail': 'InvalidClaimScope: incident is required for this family.'})
+    record = runner.intake_claim(client, case=case, claim_id='inbox-e86-01', folder=tmp_path / 'e86-01')
+    url, body = client.posts[0]
+    assert url == '/api/correspondence/claims' and body['scope'] == case['stated_scope']
+    assert not set(body['scope']) & {'component', 'incident', 'invoice', 'region'}
+    assert record['outcome'] == 'SETUP_REFUSAL' and record['model_calls'] == 0 and len(client.posts) == 1
+    with pytest.raises(FileExistsError):  # one intake record per case, never overwritten
+        runner.intake_claim(IntakeClient(200, {}), case=case, claim_id='inbox-e86-01', folder=tmp_path / 'e86-01')

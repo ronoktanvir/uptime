@@ -437,6 +437,24 @@ def plan_cases(root):
                 sealed_gold_root_opened=False, model_calls=0, cases=cases)
 
 
+def intake_claim(client, *, case, claim_id, folder):
+    """Ordinary claim intake with exactly the scope the public source states; never fills a field.
+
+    A refusal is a zero-call setup outcome, recorded with the server's own response. It is
+    never retried with derived, slugged or invented values.
+    """
+    folder = protected_directory(folder)
+    request = dict(claim_id=claim_id, scope=dict(case['stated_scope']))
+    status, response = _json(client.post('/api/correspondence/claims', request))
+    record = dict(opaque_case_id=case['id'], phase='NATIVE_CLAIM_INTAKE', authority='SCRIPTED_NOT_ACTUAL_HUMAN',
+                  source_file_sha256=case['source_sha256'], route='/api/correspondence/claims', request=request,
+                  http_status=status, response=response, model_calls=0, financial_or_external_actions=0,
+                  normalized_or_invented_scope_values=False, not_stated=list(case['not_stated']),
+                  outcome='INTAKE_ACCEPTED' if status == 200 else 'SETUP_REFUSAL')
+    create_json(folder / 'intake.json', record)
+    return record
+
+
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
