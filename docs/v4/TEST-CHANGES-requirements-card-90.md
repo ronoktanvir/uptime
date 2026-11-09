@@ -26,7 +26,7 @@ Results:
 - `test_requirements_card_ui_95`, `test_vendor_requirements_89`, `test_vendor_family_selection_89`, `test_vendor_model_jobs_browser`, `test_vendor_auth83`, `test_advanced_companion`, `test_v4_authority_browser`, finance and workspace browser tests: **59 passed, 1 warning in 40.51s**
 - Fresh Northwind workspace at 390 px: both vendor panels open with no sideways scroll, no page errors and no demo wording
 
-Full suite: integration round 4b on a fresh clone of `5d8af56` (which contains `310c918`): **4636 passed, 1 warning in 417.24s (0:06:57)**, JS 97/97. Receipt: `docs/v4/evidence/integration-90/verification-5d8af56.json`. The follow-up `e527f8f` was merged after `5d8af56`; the next integration round covers it.
+Full suite: integration round 4b on a fresh clone of `5d8af56` (which contains `310c918`): **4636 passed, 1 warning in 417.24s (0:06:57)**, JS 97/97. Receipt: `docs/v4/evidence/integration-90/verification-5d8af56.json`. The follow-up `e527f8f` is covered by integration round 5 on a fresh clone of `6f43a91`: **4663 passed, 1 warning in 322.05s (0:05:22)**, JS 101/101 (receipt `docs/v4/evidence/integration-90/verification-6f43a91.json`).
 
 ## Follow-up: sixth element and null selection
 

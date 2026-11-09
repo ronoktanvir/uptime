@@ -25,4 +25,4 @@ Results:
 
 The prepared presentation listener runs the frozen demo build `fde492c`, which has no suggested questions, so the walkthrough says to type both questions there. Only a listener rebuilt from `9b9092f` or later offers the one-click suggestion.
 
-Full suite: not yet run. `9b9092f` and `d580292` were merged after `5d8af56` (round 4b), so the next integration round covers them.
+Full suite: integration round 5 on a fresh clone of `6f43a91`, which contains `9b9092f` and `d580292`: **4663 passed, 1 warning in 322.05s (0:05:22)**, JS 101/101. Receipt: `docs/v4/evidence/integration-90/verification-6f43a91.json`.
