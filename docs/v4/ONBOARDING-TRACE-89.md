@@ -59,7 +59,7 @@ That harness evaluates the frozen corpus84 with an **evaluator-supplied family l
 
 Ambiguity is monotone across attempts and reviewers. `GET /api/vendors/{id}/requirements` shows the installed artifact's `family_selection`.
 
-**Phase 2 (pending, with W7):** candidate install accepts only the automatically selected job, and the "Extraction profile" select is replaced. Until then an operator-chosen profile can still stage a candidate, so no proof run counts as D05 evidence before phase 2.
+**Phase 2 (merged at `9b2097c`):** candidate install accepts only the automatically selected job, and the browser sends `profile: "auto"` with no profile select. The unseen-vendor proof follows [the runbook](D05-UNSEEN-VENDOR-RUNBOOK.md). gent8 selects the source by a sealed pre-registered rule; Ronok performs the promotion and rollback.
 
 ## 5. Implemented in this workstream
 
@@ -139,4 +139,13 @@ W5 reported these against `vendor_terms.py` at `03b372e`, and the integration ow
 | F5: resource agreement unbound when the manifest agreement is null | Blocked on agent1's D03 identity interface | Bind the private agreement to the public document explicitly, or record that the public document governs. |
 | F6: `GoverningTerms.evidence_sha256` only format-checked | No decision dependency | Verify it against stored signed evidence. Until then the documentation calls it an operator-supplied reference. |
 | F9: legacy Atlassian PDF path keeps only hashes | Relevant only if D07 adopts PDF intake | Store originals content-addressed, keep page-mapped derived text, and treat numbers read from derived text as needing review. |
+
+## 8. Requirement status after November 9 (W3)
+
+| Requirement | Status | Detail |
+|---|---|---|
+| ONB-1, discovery from Ramp records | **Not met; deferred until after the demo** (integration owner) | Stored Ramp vendor records keep IDs only; names are stripped as private text. Discovery must therefore be by exact Ramp vendor ID through a reviewed binding between an adapter slot and a Ramp vendor ID. That binding is an identity and authority record (D03; W1 owns `ramp_records`), and it is not decided. Proposal: (a) a read-only exact-ID discovery list; (b) the binding, owned by W1/W0. |
+| ONB-3, submission channels | Visible, not delivered | The requirement card shows a cited submission channel and request fields for resource-month sources. Delivery stays with a configured, authorized channel (D08). |
+| ONB-4, generated cases | Extended | Drafts cover tier boundaries, evidence controls, unknown fee, deadline boundary, timezone offsets, private-amendment months and out-of-interval months. Drafts are never the independent suite. |
+| O3 and item 7, unseen vendor | Pending run | Automatic selection, phase 2 and the runbook are merged. The proof needs gent8's run and Ronok's own promotion and rollback. |
 
