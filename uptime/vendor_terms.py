@@ -442,8 +442,17 @@ def compile_propositions(document, clauses):
         if re.search(qualifiers, lower):
             raise ValueError(f'Unsupported material qualification at clause {index}.')
         if field in {'vendor', 'agreement'}:
+            labeled = re.search(r'\b(?:vendor|provider|agreement|contract)\b', lower)
+            # Unlabeled forms: an exact provider name as the subject of a supply verb, or the document's
+            # opening title line, quoted whole, as the agreement identifier. Qualifiers are refused above.
+            if field == 'vendor':
+                stated = isinstance(value, str) and re.fullmatch(
+                    re.escape(value) + r' (?:provides|supplies|offers|delivers|operates) [A-Z].*', text) is not None
+            else:
+                stated = (isinstance(value, str) and index == 1 and value == text and len(text.split()) <= 12
+                          and not re.search(r'[.!?;:,]|[0-9]{4}-[0-9]{2}', text))
             if (not isinstance(value, str) or not _match(NAME, value) or value.casefold() not in lower
-                    or not re.search(r'\b(?:vendor|provider|agreement|contract)\b', lower)):
+                    or not (labeled or stated)):
                 raise ValueError('Ungrounded vendor or agreement identifier.')
         elif field == 'effective':
             if (not isinstance(value, list) or len(value) != 2 or not isinstance(value[0], str)

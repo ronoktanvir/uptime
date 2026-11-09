@@ -27,3 +27,20 @@ Hand-computed windows: June 2026 keeps the 12-day source window (closes `2026-07
 - New file: **9 passed**.
 - The first broad run hung at 0% CPU in a browser test while another worktree's browser tests ran at the same time. It was stopped and its temp data deleted; the browser tests then passed alone (**15 passed**).
 - Broad focused set run alone (all `test_correspondence*`, `test_vendor_*`, `test_onboarding*`, proposal-job, route, authority, semantic-projection, governing-fee and portfolio tests): **1912 passed, 1 warning in 121.37s**.
+
+## Named remediation: unlabeled party statements (evaluation 84)
+
+Ronok's decision "1a" asked W3 to repair, through normal review, the validator rules that refused corpus84's claim-basis contracts. Only gent8's phrasing-class summaries were used; no corpus text, label, sealed answer or private diagnosis file was opened. **The 0/4 first-attempt score is unchanged and is never rescored.**
+
+- Rule (`compile_propositions`, guarded monthly propositions): a vendor or agreement value is grounded by a label word (as before), or now also:
+  - **vendor:** the exact provider name is the subject of a supply verb (`X provides|supplies|offers|delivers|operates …`);
+  - **agreement:** the document's opening title line is quoted whole (at most 12 words, no sentence punctuation or dates).
+
+  The qualifier check still runs first, so "X may provide …" stays refused. Interpretation review is still required.
+- Expected effect and limits:
+  - This removes the "Ungrounded vendor or agreement identifier" cause in the model-propositions path.
+  - gent8's diagnosis says the model also flagged other clauses in every monthly case. Those flags are model judgments, and this rule does not change them, so the monthly claim-basis contract may still be refused.
+  - The deterministic `/candidates` parser and the resource-month contract's flagged block 4 are not changed.
+  - gent8's preflight decides; if the contracts still don't activate, that is reported, not adjusted toward.
+- Added `tests/test_vendor_unlabeled_parties_84r.py` (12 tests, authored sources only): the positive case, 5 subject/verb/qualifier refusals, 5 title refusals, and labeled forms unchanged. The positive test fails on the previous `vendor_terms.py` with "Ungrounded vendor or agreement identifier", so it is not vacuous.
+- Regression: all `test_vendor_*`, `test_onboarding*`, `test_public_proposal_jobs` and `test_semantic_current_projection` **1066 passed, 1 warning in 25.47s**.
