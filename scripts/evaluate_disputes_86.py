@@ -455,6 +455,46 @@ def intake_claim(client, *, case, claim_id, folder):
     return record
 
 
+# --- D06 accept-denial views (gent8 prereg addendum, rule A; work/release-evaluation-gent8 1fdc2b5) ---
+
+PREREG_DENIAL_ADDENDUM = 'docs/v4/evaluation-gent8/PREREG-ADDENDUM-DENIAL-ACCEPTANCE.md @ 1fdc2b5'
+CONTESTING_ACTIONS = frozenset({'approve-claim', 'submit-claim', 'approve-response', 'submit-response'})
+
+
+def denial_views(client, claim_path, *, folder):
+    """Record the judgment and authority views separately; at most one scripted accept-denial.
+
+    Judgment view: met only at DENIAL_REVIEW with an accept-denial offer and no contesting action.
+    Authority view: only then, one scripted, labeled accept-denial with the offered basis digest;
+    a refusal is an authorization-stage failure, never a judgment miss. Nothing is retried.
+    """
+    folder = protected_directory(folder)
+    status, view = _json(client.get(claim_path))
+    view = view if status == 200 and isinstance(view, dict) else {}
+    offered = [a for a in view.get('actions') or [] if a.get('id') == 'accept-denial']
+    contesting = sorted({a.get('id') for a in view.get('actions') or []} & CONTESTING_ACTIONS)
+    judgment_met = bool(view.get('stage') == 'DENIAL_REVIEW' and len(offered) == 1 and not contesting)
+    record = dict(prereg=PREREG_DENIAL_ADDENDUM, read_status=status,
+                  judgment=dict(met=judgment_met, stage=view.get('stage'),
+                                actions=[a.get('id') for a in view.get('actions') or []], contesting=contesting),
+                  authority=dict(outcome='NOT_REACHED', authority='SCRIPTED_NOT_ACTUAL_HUMAN'))
+    if judgment_met:
+        create_json(folder / 'accept-denial.marker', dict(basis_digest=offered[0]['basis_digest']))  # once only
+        before_submissions = view.get('submissions') or []
+        post_status, _ = _json(client.post(claim_path + '/denial-acceptance', {'basis_digest': offered[0]['basis_digest']}))
+        after_status, after = _json(client.get(claim_path))
+        after = after if after_status == 200 and isinstance(after, dict) else {}
+        accepted = (post_status == 200 and after.get('stage') == 'DENIAL_ACCEPTED' and not after.get('actions')
+                    and (after.get('submissions') or []) == before_submissions)
+        record['authority'].update(
+            outcome='DENIAL_ACCEPTED' if accepted else 'AUTHORIZATION_STAGE_FAILURE', post_status=post_status,
+            final_stage=after.get('stage'), final_actions=[a.get('id') for a in after.get('actions') or []],
+            submissions_unchanged=(after.get('submissions') or []) == before_submissions,
+            awarded=(after.get('ledger') or {}).get('awarded'))
+    create_json(folder / 'denial-views.json', record)
+    return record
+
+
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)

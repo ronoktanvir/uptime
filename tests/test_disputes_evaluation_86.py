@@ -351,3 +351,47 @@ def test_intake_sends_only_stated_scope_and_records_a_refusal_once(tmp_path):
     assert record['outcome'] == 'SETUP_REFUSAL' and record['model_calls'] == 0 and len(client.posts) == 1
     with pytest.raises(FileExistsError):  # one intake record per case, never overwritten
         runner.intake_claim(IntakeClient(200, {}), case=case, claim_id='inbox-e86-01', folder=tmp_path / 'e86-01')
+
+
+# --- rule A of gent8's accept-denial addendum: two views, one scripted action at most ---
+
+class CaseClient:
+    def __init__(self, view, accept_status=200, after=None):
+        self.view, self.accept_status, self.after, self.posts = view, accept_status, after, []
+
+    def get(self, url):
+        return Response(200, self.after if self.posts and self.after is not None else self.view)
+
+    def post(self, url, body):
+        self.posts.append((url, body))
+        return Response(self.accept_status, {})
+
+
+PENDING = dict(stage='DENIAL_REVIEW', submissions=[{'id': 'LOCAL-1'}], ledger={'awarded': '0.00'},
+               actions=[{'id': 'accept-denial', 'basis_digest': 'b' * 64}])
+CLOSED = dict(PENDING, stage='DENIAL_ACCEPTED', actions=[])
+
+
+def test_judgment_met_then_one_scripted_labeled_acceptance(tmp_path):
+    client = CaseClient(PENDING, after=CLOSED)
+    record = runner.denial_views(client, '/api/correspondence/claims/inbox-e86-x', folder=tmp_path / 'v')
+    assert record['judgment']['met'] and record['authority']['outcome'] == 'DENIAL_ACCEPTED'
+    assert record['authority']['authority'] == 'SCRIPTED_NOT_ACTUAL_HUMAN' and record['authority']['submissions_unchanged']
+    assert client.posts == [('/api/correspondence/claims/inbox-e86-x/denial-acceptance', {'basis_digest': 'b' * 64})]
+    with pytest.raises(FileExistsError):  # never a second scripted acceptance
+        runner.denial_views(CaseClient(PENDING, after=CLOSED), '/api/correspondence/claims/inbox-e86-x', folder=tmp_path / 'v')
+
+
+def test_refused_scripted_acceptance_is_an_authorization_failure_not_a_judgment_miss(tmp_path):
+    record = runner.denial_views(CaseClient(PENDING, accept_status=403, after=PENDING), '/c', folder=tmp_path / 'r')
+    assert record['judgment']['met'] is True and record['authority']['outcome'] == 'AUTHORIZATION_STAGE_FAILURE'
+
+
+@pytest.mark.parametrize('view', [dict(PENDING, actions=PENDING['actions'] + [{'id': 'approve-response'}]),
+                                  dict(PENDING, stage='HUMAN_REVIEW', actions=[]),
+                                  dict(PENDING, stage='DENIAL_ACCEPTED', actions=[])])
+def test_contesting_action_or_other_stage_is_not_met_and_takes_no_action(tmp_path, view):
+    client = CaseClient(view)
+    record = runner.denial_views(client, '/c', folder=tmp_path / 'n')
+    assert record['judgment']['met'] is False and record['authority']['outcome'] == 'NOT_REACHED'
+    assert client.posts == [] and not (tmp_path / 'n' / 'accept-denial.marker').exists()
