@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal, InvalidOperation, localcontext
 
 from uptime.contracts import Source, fingerprint
-from uptime.disputes_wire import CENT, DOCUMENT_FIELDS, FIXTURES, VERSION, Reply, Ticket, canonical, deadline, instant
+from uptime.disputes_wire import CENT, DOCUMENT_FIELDS, FIXTURES, VERSION, Reply, Ticket, account_identity, canonical, deadline, instant
 
 
 def _valid_attachment(ticket, document, record):
@@ -47,6 +47,7 @@ def _attachment_fields_match(ticket, document, record):
 def decide(ticket: Ticket, record: dict, at: datetime) -> Reply:
     """Adjudicate using independently provisioned vendor evidence."""
     if (any(not canonical(getattr(ticket, key)) for key in ("tenant", "account", "vendor", "product", "region"))
+            or not all(account_identity(getattr(ticket, key)) for key in ("account", "vendor", "product"))
             or any(record.get(key) != getattr(ticket, key) for key in ("tenant", "account", "vendor", "governing_version"))
             or ticket.vendor != "Twilio" or ticket.governing_version != VERSION
             or ticket.obligation != "monthly_api_availability"):
