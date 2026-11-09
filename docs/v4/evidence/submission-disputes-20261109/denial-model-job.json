@@ -1,0 +1,167 @@
+{
+  "schema": "role2-denial-model-job/1",
+  "recorded_at": "2026-11-09T21:19:54.604249+00:00",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "counterparty": "authored local reply (fixtures/northwind/counterparty-variants.json, variant \"unclear\")",
+  "one_call_no_retry": true,
+  "automation_after_person_approval": {
+    "pause": {
+      "reason": "UNEXPECTED_GROUND",
+      "detail": "The vendor reply needs the reviewer's reading and semantic review.",
+      "operation": null,
+      "since": "2026-03-01T12:10:00+00:00"
+    },
+    "steps": [
+      [
+        "approve-claim",
+        "PERSON"
+      ],
+      [
+        "submit-claim",
+        "APPROVED_OPERATION"
+      ],
+      [
+        "receive-denial",
+        "EVENT_INTAKE"
+      ]
+    ]
+  },
+  "request": {
+    "request_sha256": "1bdc9057df47112a2bd86277edc823f87ee0054e66e8f9630dfcc3090b9b94a9",
+    "request_bytes": 10916,
+    "context_sha256": "98948b5989a75370ca4b51ca77d50ef525ad5fd48ecd1d2ba88a7ab7b5a1817a",
+    "text_sha256": "9412f9036d3714197fae2fe5096ea8a02ff313ce9fb6d8be873ce32d41e2bb4c",
+    "status_before_approval": "exact_request_not_approved"
+  },
+  "approval": {
+    "request_sha256": "1bdc9057df47112a2bd86277edc823f87ee0054e66e8f9630dfcc3090b9b94a9",
+    "expires_at": "2026-11-09T22:19:55.414253+00:00",
+    "scope": "model invocation only",
+    "approved_by": "agent3 (engineering operator, role 2): one model invocation on authored public text only",
+    "cli": "scripts/public_proposals.py approve --confirm-authored-public --hours 1"
+  },
+  "job": {
+    "id": "29f371d0-0a49-4b3b-9454-64eaf7bb1261",
+    "final": {
+      "id": "29f371d0-0a49-4b3b-9454-64eaf7bb1261",
+      "state": "SUCCEEDED",
+      "terminal": true,
+      "kind": "correspondence",
+      "target": "inbox-northwind-2026-01",
+      "context_digest": "98948b5989a75370ca4b51ca77d50ef525ad5fd48ecd1d2ba88a7ab7b5a1817a",
+      "request_sha256": "1bdc9057df47112a2bd86277edc823f87ee0054e66e8f9630dfcc3090b9b94a9",
+      "reason": null,
+      "result": {
+        "candidate_id": "599b265732e6fdb8e48e7416cbc1bf2c4aff4fca36897116ea26a68e64aa7ad3",
+        "claim": "inbox-northwind-2026-01",
+        "kind": "correspondence",
+        "context_digest": "98948b5989a75370ca4b51ca77d50ef525ad5fd48ecd1d2ba88a7ab7b5a1817a",
+        "request_sha256": "1bdc9057df47112a2bd86277edc823f87ee0054e66e8f9630dfcc3090b9b94a9",
+        "response_sha256": "4c6179932ba96ad1933fb4683a69125eb7ca828f2510b7a49b987b8290381947",
+        "representation": "source_blocks_v3",
+        "semantic_review_required": true,
+        "ledger_unchanged": true,
+        "external_actions": []
+      },
+      "submitted_at": "2026-11-09T21:19:55.489118+00:00",
+      "started_at": "2026-11-09T21:19:55.491304+00:00",
+      "finished_at": "2026-11-09T21:20:00.925103+00:00"
+    },
+    "poll_states": [
+      "RUNNING",
+      "SUCCEEDED"
+    ],
+    "poll_seconds": 6.1
+  },
+  "candidates": [
+    {
+      "id": "599b265732e6fdb8e48e7416cbc1bf2c4aff4fca36897116ea26a68e64aa7ad3",
+      "propositions": [
+        {
+          "family": "unsupported",
+          "polarity": "positive",
+          "modality": "asserted",
+          "referent": "current_claim",
+          "cited": "Thanks for the January claim. Our platform records do not show that period the way you describe it, and we would rather settle any credit with your account manager at renewal than as a separate claim.",
+          "span": [
+            0,
+            200
+          ],
+          "conditions": []
+        },
+        {
+          "family": "unsupported",
+          "polarity": "positive",
+          "modality": "asserted",
+          "referent": "current_claim",
+          "cited": "Thanks for the January claim. Our platform records do not show that period the way you describe it, and we would rather settle any credit with your account manager at renewal than as a separate claim.",
+          "span": [
+            0,
+            200
+          ],
+          "conditions": []
+        }
+      ],
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "session": "ce56dc6e-7a02-45be-b8c5-e91d8dfdf03e",
+        "request_sha256": "1bdc9057df47112a2bd86277edc823f87ee0054e66e8f9630dfcc3090b9b94a9",
+        "response_sha256": "4c6179932ba96ad1933fb4683a69125eb7ca828f2510b7a49b987b8290381947",
+        "elapsed_seconds": null,
+        "usage": {
+          "input_tokens": 2,
+          "cache_creation_input_tokens": 4544,
+          "cache_read_input_tokens": 855,
+          "output_tokens": 418,
+          "output_tokens_details": {
+            "thinking_tokens": 227
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 4544,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "global",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "client_reported_cost_usd": 0.044891,
+        "output_mode": "plain_profile"
+      }
+    }
+  ],
+  "semantic_review": {
+    "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+    "review_id": "47ce8e0fafc2b1adbc3bc629814f779d3d1b115fce57cb750452019de5135598",
+    "disposition": "INFORMATIONAL_REVIEW",
+    "prepare_allowed": false,
+    "category": "AMBIGUOUS_GROUNDS",
+    "ledger_unchanged": true
+  },
+  "after": {
+    "stage": "HUMAN_REVIEW",
+    "actions": [],
+    "ledger": {
+      "estimated": "2400.00",
+      "claimed": "2400.00",
+      "awarded": "0.00",
+      "posted": "0.00",
+      "applied": "0.00",
+      "disputed_remainder": "2400.00"
+    },
+    "submissions": 1,
+    "scope_sha256": "4ee09b9f80f02e35e1026928c926515c149afed6a76d1a6dee668d83eda1c17a",
+    "automation_pause": {
+      "reason": "UNEXPECTED_GROUND",
+      "detail": "The vendor reply needs the reviewer's reading and semantic review.",
+      "operation": null,
+      "since": "2026-03-01T12:10:00+00:00"
+    }
+  },
+  "raw_artifacts_location": "workspace directory outside Git: /Users/ronoktanvir/.local/share/uptime-engineering/tasks/role2-denial-model-job/run-1"
+}

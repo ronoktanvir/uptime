@@ -1,0 +1,13 @@
+{
+  "schema": "northwind-counterparty-variants/1",
+  "authorship": "Authored by the role-2 implementer (agent3) on 2026-11-09 for the walkthrough's escalation branch. It is a local authored reply, not a real vendor message and not taken from any evaluation corpus.",
+  "variants": {
+    "unclear": {
+      "denial": {
+        "event_id": "northwind-denial-jan-unclear",
+        "known_at": "2026-03-01T12:10:00Z",
+        "text": "Thanks for the January claim. Our platform records do not show that period the way you describe it, and we would rather settle any credit with your account manager at renewal than as a separate claim."
+      }
+    }
+  }
+}
