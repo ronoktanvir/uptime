@@ -238,6 +238,14 @@ class DiagnosingVendorModelJobs(VendorModelJobs):
         job = self.service.submit(**self._pins(p, vendor, context, request), validate=validate)
         return self._project(job, vendor, request_sha)
 
+    def _project(self, job, vendor, expected_request=None):
+        """Adds the job kind, timestamps and the bounded provider receipt; the base projection is unchanged."""
+        view = super()._project(job, vendor, expected_request)
+        view.update(kind=job.get('kind'), submitted_at=job.get('submitted_at'), started_at=job.get('started_at'),
+                    finished_at=job.get('finished_at'),
+                    provider=job.get('provider') if isinstance(job.get('provider'), dict) else None)
+        return view
+
     def status(self, p, vendor, job_id):
         view = super().status(p, vendor, job_id)
         reader = getattr(self.service, 'refusal_diagnostic', None)

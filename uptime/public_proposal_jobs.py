@@ -122,6 +122,28 @@ def load_approvals(path):
     return value
 
 
+# Bounded public subset of a provider receipt: identity, cost, usage and digests. Inventories, persistence
+# details and any path or output text stay in the audit column only.
+PUBLIC_RECEIPT_KEYS = ('model', 'session', 'client_reported_cost_usd', 'usage', 'returncode', 'tool_events',
+                       'tool_inventory', 'mcp_inventory', 'output_sha256', 'result_sha256')
+
+
+def _public_receipt(raw):
+    if not raw:
+        return None
+    try:
+        value = strict_json(raw if isinstance(raw, bytes) else raw.encode())
+    except (ValueError, TypeError):
+        return None
+    if not isinstance(value, dict):
+        return None
+    public = {key: value[key] for key in PUBLIC_RECEIPT_KEYS if key in value}
+    profile = value.get('profile')
+    if isinstance(profile, dict):
+        public['transport'] = {key: profile[key] for key in ('name', 'revision', 'binary_sha256') if key in profile}
+    return public
+
+
 class PublicProposalJobs:
     def __init__(self, path, approvals_path, providers, *, clock=None, max_workers=2, max_pending=4):
         if not set(providers) <= KINDS or not providers:
@@ -229,6 +251,7 @@ class PublicProposalJobs:
         value['job_id'] = row['id']
         value['completed_after_expiry'] = bool(row['completed_after_expiry'])
         value['result'] = strict_json(row['result_json']) if row['status'] == 'SUCCEEDED' else None
+        value['provider'] = _public_receipt(row['receipt_json'])
         return value
 
     def inspect(self, **kwargs):
@@ -301,6 +324,10 @@ class PublicProposalJobs:
                 changed = db.execute("UPDATE public_proposal_jobs SET status='RUNNING', started_at=? WHERE id=? AND status='QUEUED'", (self._now(), job_id)).rowcount
             if not changed:
                 return
+        receipt = lambda: getattr(provider, 'last_receipt', None)
+        # Stage 1: the provider call. A provider that fails (non-zero exit, unverifiable identity, blocked
+        # transport or an over-budget response) produced no proposal, so it is never reported as a refusal of
+        # the source. Recovery is the existing control: a new attempt identifier with its own approval.
         try:
             raw = provider(request)
             # Preserve bounded public provider evidence separately from accepted
@@ -311,17 +338,28 @@ class PublicProposalJobs:
             with self._db() as db:
                 db.execute("UPDATE public_proposal_jobs SET response_json=? WHERE id=? AND status='RUNNING' AND response_json IS NULL",
                            (encoded_response.decode(), job_id))
+        except TimeoutError:
+            self._finish(job_id, 'UNCERTAIN', reason='provider_timeout', receipt=receipt())
+            return
+        except (ValueError, TypeError, PermissionError, KeyError):
+            self._finish(job_id, 'REFUSED', reason='provider_failed', receipt=receipt())
+            return
+        except Exception:
+            self._finish(job_id, 'UNCERTAIN', reason='provider_outcome_unknown', receipt=receipt())
+            return
+        # Stage 2: deterministic validation of the returned proposal.
+        try:
             result = validate(raw)
             if not isinstance(result, dict) or len(canonical(result)) > 300000:
                 raise ValueError('Invalid or oversized proposal result.')
-            self._finish(job_id, 'SUCCEEDED', result=result, receipt=getattr(provider, 'last_receipt', None))
-        except TimeoutError:
-            self._finish(job_id, 'UNCERTAIN', reason='provider_timeout', receipt=getattr(provider, 'last_receipt', None))
+            self._finish(job_id, 'SUCCEEDED', result=result, receipt=receipt())
         except (ValueError, TypeError, PermissionError, KeyError) as exc:
-            self._finish(job_id, 'REFUSED', reason='proposal_validation_failed', receipt=getattr(provider, 'last_receipt', None),
-                         public_diagnostic=self._public_diagnostic(pins, exc))
+            # The kind's validator may name an unverifiable provider envelope with a fixed public code.
+            identity = getattr(exc, 'code', None) == 'PROVIDER_IDENTITY_UNVERIFIED'
+            self._finish(job_id, 'REFUSED', reason='provider_identity_unverified' if identity else 'proposal_validation_failed',
+                         receipt=receipt(), public_diagnostic=None if identity else self._public_diagnostic(pins, exc))
         except Exception:
-            self._finish(job_id, 'UNCERTAIN', reason='provider_outcome_unknown', receipt=getattr(provider, 'last_receipt', None))
+            self._finish(job_id, 'UNCERTAIN', reason='provider_outcome_unknown', receipt=receipt())
 
     @staticmethod
     def _public_diagnostic(pins, exc):

@@ -126,7 +126,7 @@ def test_other_subject_cannot_see_or_consume_existing_request(tmp_path):
 
 @pytest.mark.parametrize('error,status,reason', [(TimeoutError('PRIVATE secret stderr'), 'UNCERTAIN', 'provider_timeout'),
                                               (RuntimeError('PRIVATE secret stderr'), 'UNCERTAIN', 'provider_outcome_unknown'),
-                                              (ValueError('PRIVATE secret stderr'), 'REFUSED', 'proposal_validation_failed')])
+                                              (ValueError('PRIVATE secret stderr'), 'REFUSED', 'provider_failed')])
 def test_provider_failures_are_terminal_redacted_and_never_retried(tmp_path, error, status, reason):
     jobs, provider, pins, _ = setup(tmp_path, provider=Provider(error=error))
     try:
