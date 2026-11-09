@@ -38,6 +38,10 @@ def setup(path):
             seq INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT NOT NULL, class TEXT NOT NULL,
             authority TEXT NOT NULL, state TEXT NOT NULL, at TEXT NOT NULL, recorded_at TEXT NOT NULL,
             intent_id TEXT, detail TEXT, timing TEXT)''')
+        # Workspaces created before step timing existed (da3a909..1646930) gain the column once.
+        # Adding a nullable column keeps every recorded row and the append-only triggers intact.
+        if 'timing' not in {row[1] for row in db.execute('PRAGMA table_info(workspace_workflow_step)')}:
+            db.execute('ALTER TABLE workspace_workflow_step ADD COLUMN timing TEXT')
         for operation in ('UPDATE', 'DELETE'):
             db.execute(f"CREATE TRIGGER IF NOT EXISTS workflow_step_no_{operation.lower()} BEFORE {operation} "
                        "ON workspace_workflow_step BEGIN SELECT RAISE(ABORT,'Workflow step history is append-only'); END")
