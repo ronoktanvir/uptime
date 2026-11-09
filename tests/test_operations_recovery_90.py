@@ -717,3 +717,109 @@ def test_clock_skew_and_capture_near_limit_are_reported(tmp_path):
     assert datetime.fromisoformat(finding["expires_at"]) - now < timedelta(hours=24)
     assert near["status"] == "OK"
     assert "RAMP_CAPTURE_NEAR_LIMIT" not in {f["code"] for f in check(db, now=now)["findings"]}
+
+
+def _preflight_probes(**overrides):
+    from collections import namedtuple
+    usage = namedtuple("usage", "total used free")
+    probes = dict(environ={"RAMP_ENV": "sandbox", "RAMP_BASE_URL": "https://demo-api.ramp.com"},
+                  listeners=lambda: [("Python", "127.0.0.1", 8776), ("python3.1", "[::1]", 8777)],
+                  processes=lambda: ["zsh", "python3.13", "node"],
+                  disk_usage=lambda path: usage(500 * 2 ** 30, 490 * 2 ** 30, 10 * 2 ** 30))
+    probes.update(overrides)
+    return probes
+
+
+def test_preflight_is_ready_for_a_safe_local_demo_machine(tmp_path):
+    from uptime import operations_preflight
+    db, _, _ = live_workspace(tmp_path)
+    backups = private_dir(tmp_path / "backups")
+    backup(db, backups / "before-demo")
+    config = private_dir(tmp_path / "config") / "ramp-sandbox.json"
+    config.write_text('{"client_secret":"never-printed"}')
+    os.chmod(config, 0o600)
+    before = db.read_bytes()
+    report = operations_preflight.check([db], ports=[8776, 8777], backup_dir=backups, config_files=[config],
+                                        **_preflight_probes())
+    assert report["status"] == "READY" and report["findings"] == []
+    assert report["workspaces"][0]["backup"]["verified"] is True
+    assert report["ports"] == {"8776": {"listening": True, "addresses": ["127.0.0.1"]},
+                               "8777": {"listening": True, "addresses": ["[::1]"]}}
+    assert report["provider_requests"] == 0 and report["writes"] == 0 and db.read_bytes() == before
+    assert "never-printed" not in json.dumps(report)
+
+
+def test_preflight_flags_tunnels_exposed_ports_wrong_ramp_environment_and_low_disk(tmp_path):
+    from collections import namedtuple
+    from uptime import operations_preflight
+    db, _, _ = live_workspace(tmp_path)
+    usage = namedtuple("usage", "total used free")
+    report = operations_preflight.check(
+        [db], ports=[8776, 8777, 8780],
+        **_preflight_probes(environ={"RAMP_ENV": "production", "RAMP_BASE_URL": "https://api.ramp.com"},
+                            listeners=lambda: [("Python", "*", 8776), ("Python", "127.0.0.1", 8777)],
+                            processes=lambda: ["zsh", "ngrok", "cloudflared"],
+                            disk_usage=lambda path: usage(500 * 2 ** 30, 499 * 2 ** 30, 2 ** 30)))
+    codes = {f["code"]: f for f in report["findings"]}
+    assert report["status"] == "ATTENTION"
+    assert codes["TUNNEL_PROCESS_RUNNING"]["processes"] == ["cloudflared", "ngrok"]
+    assert codes["LISTENER_NOT_LOOPBACK"]["port"] == 8776 and codes["LISTENER_NOT_LOOPBACK"]["addresses"] == ["*"]
+    assert codes["PORT_NOT_LISTENING"]["level"] == "INFO" and codes["PORT_NOT_LISTENING"]["port"] == 8780
+    assert "RAMP_ENV_NOT_SANDBOX" in codes and codes["DISK_LOW"]["free_bytes"] == 2 ** 30
+    unavailable = operations_preflight.check([db], ports=[8776], **_preflight_probes(
+        listeners=lambda: None, processes=lambda: None))
+    assert {"LISTENERS_UNAVAILABLE", "PROCESS_LIST_UNAVAILABLE"} <= {f["code"] for f in unavailable["findings"]}
+
+
+def test_preflight_requires_a_recent_verified_backup_of_each_exact_workspace(tmp_path):
+    from uptime import operations_preflight
+    fresh, _, _ = live_workspace(tmp_path, folder="fresh")
+    stale, _, _ = live_workspace(tmp_path, folder="stale")
+    broken, _, _ = live_workspace(tmp_path, folder="broken")
+    unbacked, _, _ = live_workspace(tmp_path, folder="unbacked")
+    backups = private_dir(tmp_path / "backups")
+    backup(fresh, backups / "fresh")
+    backup(stale, backups / "stale", now=datetime.now(UTC) - timedelta(days=2))
+    backup(broken, backups / "broken")
+    with sqlite3.connect(backups / "broken" / "workspace.sqlite") as conn:
+        conn.execute("UPDATE settlement_event SET awarded='999.00'")
+    # Every database is named work.sqlite; only the exact binding (tenant, mode, realm) may match.
+    report = operations_preflight.check([fresh, stale, broken, unbacked, tmp_path / "absent.sqlite"],
+                                        backup_dir=backups, **_preflight_probes())
+    by_path = {f.get("path"): f["code"] for f in report["findings"]}
+    assert by_path == {str(stale): "BACKUP_STALE", str(broken): "BACKUP_INVALID", str(unbacked): "BACKUP_MISSING",
+                       str(tmp_path / "absent.sqlite"): "WORKSPACE_MISSING"}
+    assert report["workspaces"][0]["backup"]["verified"] is True
+
+
+def test_preflight_reads_process_names_only_and_parses_listeners(monkeypatch):
+    import subprocess
+    from uptime import operations_preflight
+    calls = []
+
+    class Done:
+        def __init__(self, stdout):
+            self.stdout = stdout
+
+    def run(args, **kwargs):
+        calls.append(args)
+        return Done("/usr/local/bin/ngrok\n/bin/zsh\n")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    assert operations_preflight._process_names() == ["ngrok", "zsh"]
+    assert calls == [["ps", "-axo", "comm="]]  # the command name column only; never arguments
+    sample = "p10\ncPython\nf3\nn127.0.0.1:8776\np11\ncnode\nf4\nn*:3000\nf5\nn[::1]:8777\n"
+    assert operations_preflight.parse_lsof(sample) == [("Python", "127.0.0.1", 8776), ("node", "*", 3000),
+                                                       ("node", "[::1]", 8777)]
+
+
+def test_preflight_command_prints_json_and_signals_attention(tmp_path, capsys):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("operations_preflight_cli", ROOT / "scripts/operations_preflight.py")
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    db, _, _ = live_workspace(tmp_path)
+    code = cli.main(["--workspace", str(db), "--backup-dir", str(private_dir(tmp_path / "empty-backups"))])
+    report = json.loads(capsys.readouterr().out)
+    assert code == 2 and report["schema"] == "uptime-operations-preflight/1"
+    assert "BACKUP_MISSING" in {f["code"] for f in report["findings"]}

@@ -1,6 +1,6 @@
 # Workstream 90 operations test ledger
 
-**No existing test function, fixture or assertion was changed.** All new controls are in `tests/test_operations_recovery_90.py`: 25 functions and 29 cases, two of them parametrized three ways.
+**No existing test function, fixture or assertion was changed.** All new controls are in `tests/test_operations_recovery_90.py`: 30 functions and 34 cases, two of them parametrized three ways.
 
 | New test | What it falsifies |
 | --- | --- |
@@ -30,7 +30,12 @@
 | `test_deadline_alerts_exclude_filed_and_closed_claims_and_report_missed_cutoffs` | Only an unfiled open case is approaching; an awarded case and a case whose obligation has a real `reserve_claim` initial reservation are skipped; a cutoff 3 days past is reported as passed-unfiled and one 60 days past is not |
 | `test_replay_workspace_does_not_raise_wall_clock_deadline_alerts` | Replay workspaces report deadlines as not evaluated and raise no wall-clock deadline findings |
 | `test_clock_skew_and_capture_near_limit_are_reported` | A clock behind the capture is flagged instead of stale; the near-limit warning is INFO with an expiry and does not change status |
+| `test_preflight_is_ready_for_a_safe_local_demo_machine` | A loopback-only, sandbox-configured machine with a fresh verified backup and protected configuration is READY, the database is unchanged and file contents are absent from the report |
+| `test_preflight_flags_tunnels_exposed_ports_wrong_ramp_environment_and_low_disk` | Tunnelling clients, a wildcard listener, a non-sandbox Ramp environment, low disk and unavailable host probes all need attention; an idle port is INFO |
+| `test_preflight_requires_a_recent_verified_backup_of_each_exact_workspace` | Backups are matched by exact binding, not filename; stale, tampered and missing backups and a missing workspace are each flagged |
+| `test_preflight_reads_process_names_only_and_parses_listeners` | `ps` is invoked for the command-name column only; lsof field output parses IPv4, IPv6 and wildcard listeners |
+| `test_preflight_command_prints_json_and_signals_attention` | The CLI prints the JSON report and exits 2 when attention is needed |
 
-Mutation checks: fourteen targeted source mutations were each detected by their test, including the filed, closed-stage, replay and clock-skew checks. See [ADR 96](decisions/ADR-0096-operations-recovery.md).
+Mutation checks: nineteen targeted source mutations were each detected by their test, including the filed, closed-stage, replay, clock-skew, loopback, binding-match, tunnel, backup-age and backup-verification checks. See [ADR 96](decisions/ADR-0096-operations-recovery.md).
 
 Retained intermediate failure: the first run of `test_backup_restore_restart_preserves_authority_and_financial_state` compared the whole Ramp overview and failed only on `data_provenance.evaluated_at`, which is the current evaluation clock and not stored state. The test now strips only `evaluated_at`/`as_of` keys; every other field is still compared. A full-suite attempt started at `c52a5a4` was stopped at 12% (exit 143) because the working tree changed during the run. Its log is kept as aborted and is not counted as a result. The first run of `test_revocation_tenant_domain_is_pinned_to_the_workspace_id_domain` failed because of a test defect: `BUSINESS.upper()` is unchanged when the UUID has no hex letters, so the case check tested nothing. It now uses a UUID with letters; the production code did not change.
