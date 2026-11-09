@@ -77,8 +77,9 @@ def test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake(tmp_
         app.scope, app.id = spaced, 'inbox-identity-spaced'
         app.url = '/api/correspondence/claims/' + app.id
         app.provision()
-        created = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=spaced))
-        retried = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=spaced))
+        # D04-C (2026-11-09): the client sends only the obligation fields the installed monthly family needs.
+        created = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=app.applicable_scope()))
+        retried = app.human.post('/api/correspondence/claims', dict(claim_id=app.id, scope=app.applicable_scope()))
         assert created.status_code == 200 and retried.status_code == 200 and retried.json() == created.json()
         stored = app.read()['scope']
         assert stored['account'] == account and stored['contract'] == agreement  # exact bytes, not rewritten

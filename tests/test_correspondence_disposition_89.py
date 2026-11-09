@@ -35,10 +35,10 @@ LATE_NOTICE = dict(BODIES["notice"], issued_at=BODIES["status"]["start"])
 
 
 def record(**changes):
-    private = json.loads((ROOT / "fixtures/correspondence/vendor_record.json").read_text())
-    base = VendorRecord(private["tenant"], Scope.model_validate(private["scope"]), private["start"], private["end"],
-                        Decimal(private["affected_fees"]), frozenset(private["attachments"].items()))
-    return replace(base, **changes)
+    # D04-C input mapping (2026-11-09): the counterparty record is aligned in the harness only; the fixture
+    # bytes, frozen cases and every expected outcome stay unchanged (see test_correspondence.counterparty_record).
+    from test_correspondence import counterparty_record
+    return replace(counterparty_record(), **changes)
 
 
 def reading(case):

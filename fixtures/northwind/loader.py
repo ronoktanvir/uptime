@@ -125,6 +125,17 @@ def governing_fee(agreement,invoice,product,fee_line_ref,*,as_of=None):
         return int(cents),matches[0],result
 
 
+def intake_scope(manifest,overlay,authored):
+    """Decision D04-C: keep only the obligation fields the governing family needs (no placeholders).
+
+    The authored ten-field scope stays available as ``legacy_scope`` so claims stored before
+    D04-C remain verifiable and keep their governing-fee context. Authored inputs are unchanged.
+    """
+    from uptime.claim_scope import OBLIGATION_FIELDS,variant_for
+    required=variant_for(manifest,overlay).required
+    return {k:v for k,v in authored.items() if k not in OBLIGATION_FIELDS or k in required}
+
+
 def load_package(directory=None):
     root=Path(directory) if directory is not None else ROOT
     index=verify_package(root)
@@ -153,16 +164,18 @@ def load_package(directory=None):
             monitor_source=observation['monitor_source'],monitor_ref=observation['monitor_ref'],monitor_month=month,
             month_complete=observation['month_complete'],exclusions_removed=observation['exclusions_removed'],
             monthly_fee_cents=cents,fee_month=month,fee_ref=invoice.id+':'+(finding.version if finding else 'unresolved'),received_at=row['received_at'])
-        months.append(dict(month=month,facts=facts,invoice=invoice,invoice_input=row['invoice'],usage=observation,
-            pricing_result=price,scope=dict(account=overlay['account'],vendor=document['text'].splitlines()[1].removeprefix('Vendor: '),contract=overlay['agreement'],
+        authored=dict(account=overlay['account'],vendor=document['text'].splitlines()[1].removeprefix('Vendor: '),contract=overlay['agreement'],
                 service=overlay['product'],component=observation['component_id'],invoice=invoice.id,incident=observation['incident_id'],
-                currency='USD',month=month,region=observation['region']),
+                currency='USD',month=month,region=observation['region'])
+        months.append(dict(month=month,facts=facts,invoice=invoice,invoice_input=row['invoice'],usage=observation,
+            pricing_result=price,scope=intake_scope(manifest,overlay,authored),legacy_scope=authored,
             governing_fee_cents=cents,governing_fee_version=finding.version if finding else None,
             receipt_ref=row['receipt_ref'],source_quotes=source_quotes(finding.version if finding else None),citations=[v['citation'] for v in agreement_data['versions'] if finding is not None and v['id']==finding.version]))
     settlement=_json(root,'settlement_invoice.json')
     settlement_invoice=_invoice(settlement['invoice'])
     settlement_price=evaluate_price(agreement,settlement_invoice,as_of=_at(settlement['observed_at']))
     settlement=dict(settlement,invoice_input=settlement['invoice'],invoice=settlement_invoice,pricing_result=settlement_price,
+        scope=intake_scope(manifest,overlay,settlement['scope']),legacy_scope=settlement['scope'],
         source_quotes=source_quotes(settlement_price.lines[0].version if settlement_price.lines else None))
     return dict(settlement=settlement,tenant=index['tenant'],document=document,overlay=overlay,manifest=manifest,pricing_agreement=agreement,
                 pricing_agreement_input=agreement_data,months=months,citations=_json(root,'citations.json'),
@@ -177,4 +190,6 @@ def build_fee_registry(package):
     overlay=bind_overlay(package['manifest'],Overlay(**package['overlay']))
     return FeeRegistry(tuple(FeeEntry('northwind-fee-'+row['month'],package['tenant'],Scope(**row['scope']),
         overlay['plan'],overlay['fee_line_ref'],package['pricing_agreement'],row['invoice'],
-        package['manifest']['document']['sha256'],fingerprint(package['manifest']),fingerprint(overlay)) for row in [*package['months'],package['settlement']]))
+        package['manifest']['document']['sha256'],fingerprint(package['manifest']),fingerprint(overlay),
+        (Scope(**row['legacy_scope']),) if row['legacy_scope']!=row['scope'] else ())
+        for row in [*package['months'],package['settlement']]))

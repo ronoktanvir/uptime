@@ -10,6 +10,7 @@ from pathlib import Path
 from .mandates import check_claim_decision, claim_preview
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import TABLE as CLAIM_IDENTITY_TABLE, claim_key, reserve_claim
+from .claim_scope import ResourcePeriodScope, admit as admit_scope
 from .correspondence_artifacts import HISTORICAL, approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
 from .correspondence_history import apply_response_state, historical_reply, receipt_chain, response_material
 from .correspondence_reason import propose, requested_filing_fields
@@ -83,8 +84,13 @@ CREATE TABLE IF NOT EXISTS inbox_delivery (
 SUBSCRIPTION_FIELDS = ("vendor", "contract", "service", "component", "region")
 
 
+def subscription_values(scope):
+    """Provisioned subscription tuple. A not-applicable field (decision D04-C) is stored as ""."""
+    return tuple(getattr(scope, key) or "" for key in SUBSCRIPTION_FIELDS)
+
+
 def subscription_id(scope):
-    return fingerprint([getattr(scope, key) for key in SUBSCRIPTION_FIELDS])
+    return fingerprint(list(subscription_values(scope)))
 
 
 def migrate_sender_scopes(db):
@@ -164,11 +170,13 @@ class CorrespondenceDesk:
 
     def provision(self, tenant, account, vendor, contract, service, component, region):
         """Operator-only. Grant a verified agreement/account/component/subscription binding."""
-        binding = Scope(account=account, vendor=vendor, contract=contract, service=service, component=component,
-                        region=region, month="2026-10", invoice="validation", incident="validation", currency="USD")
+        optional = {k: v for k, v in dict(component=component, region=region).items() if v is not None}
+        binding = Scope(account=account, vendor=vendor, contract=contract, service=service, month="2026-10",
+                        currency="USD", **optional)
         with self._write() as db:
             db.execute("INSERT OR IGNORE INTO inbox_account VALUES(?,?,?,?,?,?,?)",
-                       (tenant, binding.account, binding.vendor, binding.contract, binding.service, binding.component, binding.region))
+                       (tenant, binding.account, binding.vendor, binding.contract, binding.service,
+                        binding.component or "", binding.region or ""))
 
     def bind_sender(self, tenant, account, source, subject, *, scope=None):
         """Pin an operator-verified source to a single scope. Legacy fixtures pin their sole subscription."""
@@ -185,7 +193,7 @@ class CorrespondenceDesk:
                     raise ValueError("Select an exact scope for an account with multiple subscriptions.")
                 subscription, exact = fingerprint(list(rows[0])), ""
             else:
-                if scope.account != account or tuple(getattr(scope, k) for k in SUBSCRIPTION_FIELDS) not in map(tuple, rows):
+                if scope.account != account or subscription_values(scope) not in map(tuple, rows):
                     raise PermissionError("Source scope does not match a provisioned subscription.")
                 subscription, exact = subscription_id(scope), fingerprint(scope.model_dump())
             existing = db.execute("SELECT source FROM inbox_sender WHERE tenant=? AND account=? AND subject=?",
@@ -208,7 +216,7 @@ class CorrespondenceDesk:
         scope = claim.scope
         with self._write(p.tenant) as db:
             if not db.execute("SELECT 1 FROM inbox_account WHERE tenant=? AND account=? AND vendor=? AND contract=? AND service=? AND component=? AND region=?",
-                              (p.tenant, scope.account, scope.vendor, scope.contract, scope.service, scope.component, scope.region)).fetchone():
+                              (p.tenant, scope.account, *subscription_values(scope)[:3], *subscription_values(scope)[3:])).fetchone():
                 raise PermissionError("No verified account and agreement binding matches this scope.")
             # Fully provisioned source configurations give the reviewer an exact
             # incident/month/invoice intake scope. Reject invented aliases before
@@ -218,6 +226,9 @@ class CorrespondenceDesk:
                 (p.tenant, scope.account, subscription_id(scope), fingerprint(scope.model_dump()))).fetchone()
             if not permitted:
                 raise PermissionError("The operator must bind an inbound source for this claim scope.")
+            # Decision D04-C: after authorization, the trusted governing family decides which obligation
+            # fields apply. An unknown or ambiguous family, or a misfit scope, is a distinct refusal.
+            variant = admit_scope(db, p.tenant, scope)
             # The covered API monthly credit is a single economic obligation.
             # Invoice, incident, claim and component aliases cannot create a second filing.
             draft_key = [p.tenant, scope.vendor, scope.account, scope.contract, scope.service, scope.month, "availability"]
@@ -226,10 +237,10 @@ class CorrespondenceDesk:
             state = dict(stage="DRAFTED", evidence=[], replies=[], timeline=[], submissions=[], approval=None,
                          awarded="0.00", reason=None, cooldown=None)
             regional = False
-            if scope.vendor.casefold() != "twilio":
+            current = None if variant.builtin else self._assess(p.tenant, scope, state, now)
+            if isinstance(variant, ResourcePeriodScope):
                 draft_key.append(scope.component)
                 identity_fields += ("component",)
-                current = self._assess(p.tenant, scope, state, now)
                 regional = bool(current.version and current.remedy == "resource-month/" + scope.component + "/" + scope.region)
                 if regional:
                     draft_key.append(scope.region)
@@ -253,7 +264,7 @@ class CorrespondenceDesk:
                 raise ValueError("Claim ID or monthly business obligation already exists.")
             # A safe current tuple can still shadow an older delimiter-bearing
             # tuple. Never create another draft on an already reserved key.
-            if (scope.vendor.casefold() != "twilio" and current.version and current.agreement_id
+            if (not variant.builtin and current.version and current.agreement_id
                     and db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (CLAIM_IDENTITY_TABLE,)).fetchone()):
                 key = claim_key(tenant=p.tenant, vendor=scope.vendor, account=scope.account,
                     agreement_id=current.agreement_id, agreement_version=current.version, service=scope.service,
@@ -838,7 +849,7 @@ class CorrespondenceDesk:
                     offer["mandate_claim"] = claim_preview(offer["id"], scope.model_dump(), packet).model_dump()
             except ValueError:
                 actions = []
-        return dict(id=claim_id, title="Claim correspondence · " + scope.invoice, vendor=scope.vendor,
+        return dict(id=claim_id, title="Claim correspondence · " + (scope.invoice or scope.month), vendor=scope.vendor,
                     mode="LOCAL_SIMULATOR", policy="ASSISTED", tenant=p.tenant, scope=scope.model_dump(), stage=stage,
                     outcome=outcome, amount=amount, currency=scope.currency, contract_version=current.version or None,
                     contract_source_sha256=current.contract_source_sha256,

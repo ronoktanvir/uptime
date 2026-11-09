@@ -26,7 +26,7 @@ NOW = OBSERVED + timedelta(hours=1)
 INCIDENT, COMPONENT = "3cdw1jrt88l2", "8qjql0kqnd33"
 SCOPE = Scope(account="local-status-check", vendor="Twilio", contract="local-agreement", service="Twilio Messaging API",
               component=COMPONENT, invoice="local-invoice", incident=INCIDENT, currency="USD",
-              month="2026-11", region="global")
+              month="2026-11")  # D04-C (2026-11-09): no Twilio region (W5 test input)
 
 
 def test_a_resolved_public_incident_becomes_one_exact_status_record_with_provenance():

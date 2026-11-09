@@ -26,9 +26,9 @@ def test_signed_historical_receipt_uses_its_verified_month_and_original_received
                      service=OVERLAY["product"], component=OVERLAY["resource_id"], month=month,
                      invoice="scoped-invoice", incident="scoped-incident")
     app.provision()
-    app.create()
     try:
         resource_history.install(app, tmp_path, monkeypatch)
+        app.create()  # D04-C (2026-11-09): intake follows the installed governing terms
         body = dict(kind="original_filing_receipt", source_ref="signed-mailbox-77", receipt_id="original-77",
                     received_at=received, observed_at=app.now.isoformat(), submitted_to="claims@example.invalid",
                     fields=[dict(name="station identifier", refs=[OVERLAY["resource_id"]])])

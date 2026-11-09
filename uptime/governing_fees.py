@@ -50,6 +50,9 @@ class FeeEntry:
     sla_source_sha256: str
     manifest_sha256: str
     overlay_sha256: str
+    # Decision D04-C grandfathering: exact stored claim scopes (for example authored ten-field scopes)
+    # that name this same fee. Each must equal ``scope`` on every field ``scope`` carries.
+    legacy_scopes: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -129,18 +132,27 @@ class FeeRegistry:
             scope=entry.scope
             if (not entry.tenant or not entry.entry_id or entry.entry_id in ids or scope.currency!='USD'
                     or entry.agreement.id!=scope.contract or entry.agreement.vendor!=scope.vendor
-                    or entry.invoice.id!=scope.invoice or entry.invoice.vendor!=scope.vendor
+                    or scope.invoice is not None and entry.invoice.id!=scope.invoice or entry.invoice.vendor!=scope.vendor
                     or entry.invoice.customer!=entry.agreement.customer
                     or any(not _DIGEST.fullmatch(x) for x in (entry.sla_source_sha256,entry.manifest_sha256,entry.overlay_sha256))):
                 raise ValueError('Fee entry identity, USD scope or source pins disagree.')
             identity=(entry.tenant,scope.account,scope.vendor,scope.contract,scope.service,entry.plan,scope.month,entry.fee_line_id)
             if identity in financial:
                 raise ValueError('Duplicate or overlapping fixed monthly fee registrations are ambiguous.')
-            key=_scope_key(entry.tenant,scope)
-            if key in indexed:
+            keys=[_scope_key(entry.tenant,scope)]
+            if type(entry.legacy_scopes) is not tuple:
+                raise ValueError('Legacy lookup scopes must be an immutable tuple.')
+            for legacy in entry.legacy_scopes:
+                if (not isinstance(legacy,Scope) or legacy==scope
+                        or any(legacy.model_dump().get(k)!=v for k,v in scope.model_dump().items())
+                        or legacy.invoice not in (None,entry.invoice.id)):
+                    raise ValueError('A legacy lookup scope must extend the registered scope exactly.')
+                keys.append(_scope_key(entry.tenant,legacy))
+            if len(set(keys))!=len(keys) or any(key in indexed for key in keys):
                 raise ValueError('Duplicate authenticated lookup scope is ambiguous regardless of plan or fee line.')
             financial.add(identity);ids.add(entry.entry_id)
-            indexed[key]=entry
+            for key in keys:
+                indexed[key]=entry
         self._entries=MappingProxyType(indexed)
         self._digests=MappingProxyType({key:fingerprint(_canonical(value)) for key,value in indexed.items()})
         self._dependency=dependency_digest();self._active=True
@@ -173,7 +185,8 @@ class FeeRegistry:
         seen=set()
         for line in body['lines']:
             old=registered.get(line['id'])
-            if old is None or line['id'] in seen or any(value is not None and value!=scope.get(key) for key,value in line.items() if key not in {'id','kind','amount'}):
+            if old is None or line['id'] in seen or any(value is not None and value!=scope.get(key,entry.invoice.id if key=='invoice' else None)
+                                                         for key,value in line.items() if key not in {'id','kind','amount'}):
                 raise ValueError('Signed invoice line identity contradicts its authenticated envelope.')
             seen.add(line['id'])
             # Only a single covered subscription line is supported. Excluded or

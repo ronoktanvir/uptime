@@ -95,7 +95,8 @@ def test_identity_contradiction_holds_actions_but_a_misroute_does_not(env):
         env.send("status", data=SEPTEMBER, event_id="september")
     assert [a["id"] for a in env.get()["actions"]] == ["approve-claim"]
     with pytest.raises(ValueError, match="outside the granted claim scope"):
-        env.send("invoice", data=dict(kind="invoice", lines=[dict(id="r", kind="affected_api", amount="5.00", region="west")]),
+        # D04-C (2026-11-09): region is not applicable to a Twilio claim, so the contradicting identity is the account.
+        env.send("invoice", data=dict(kind="invoice", lines=[dict(id="r", kind="affected_api", amount="5.00", account="other-account")]),
                  event_id="other-region")
     row = env.get()
     assert row["preflight"]["outcome"] == "ELIGIBLE" and row["actions"] == []

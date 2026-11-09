@@ -31,8 +31,7 @@ def filing(tmp_path, monkeypatch, request):
     env.now = datetime(2027, 3, 3, tzinfo=UTC)
     env.scope.update(vendor="Heliograph Navigation", account=OVERLAY["account"], contract=OVERLAY["agreement"],
                      service=OVERLAY["product"], month="2027-02")
-    env.provision()
-    env.create()
+    env.provision()  # D04-C: the claim is created once the governing terms are installed (below)
     rows = deepcopy(ROWS) + [("Send the claim to " + CHANNEL + ". Include service, subscription fee and any compass installation charge.",
                              {"submission_channel":CHANNEL, "request_fields":FIELDS})]
     plan_field = getattr(request, "param", None) in {"plan", "spaced-plan"}
@@ -61,6 +60,7 @@ def filing(tmp_path, monkeypatch, request):
     state = env.post(prefix + "/candidates", dict(document=document,
                                                     overlay=reviewed_binding(compass_manifest(rows), OVERLAY | {"plan":plan})))
     assert state["state"] == "SHADOW", state
+    env.create()
     from test_vendor_semantic_bindings import review_submission
     state=env.post(prefix+'/semantic-bindings',dict(revision=state['revision'],
         review=review_submission(state['manifest'],state['overlay'],document['text'])))

@@ -50,6 +50,8 @@ def install(env, tmp_path, monkeypatch, *, cycles=False, whole_day=False, condit
     s=env.post(base+"/candidates",dict(document=dict(name="Synthetic station SLA",uri="urn:synthetic:weather",
                     classification="synthetic_public",text=text),overlay=overlay))
     assert s["state"]=="SHADOW",s
+    if getattr(env, "create_after_install", False):
+        env.create()  # D04-C (2026-11-09): intake follows installed terms; idempotent for an existing claim
     from test_vendor_semantic_bindings import review_submission
     s=env.post(base+'/semantic-bindings',dict(revision=s['revision'],
         review=review_submission(s['manifest'],s['overlay'],text)))
@@ -73,7 +75,7 @@ def env(tmp_path):
     e.scope.update(vendor="Copper Mesa Networks",account=OVERLAY["account"],contract=OVERLAY["agreement"],
                    service=OVERLAY["product"],component=OVERLAY["resource_id"],month="2026-06",
                    invoice="inv-614",incident="sig-133")
-    e.provision(); e.create()
+    e.provision(); e.create_after_install = True  # D04-C: install() creates the claim once terms exist
     yield e
     e.client.close()
 
@@ -135,7 +137,7 @@ def test_region_alias_without_separate_contractual_coverage_cannot_create_anothe
     install(env, tmp_path, monkeypatch)
     env.scope["region"] = "another-region"
     env.provision()
-    result = env.human.post("/api/correspondence/claims", dict(claim_id="inbox-region-alias", scope=env.scope))
+    result = env.human.post("/api/correspondence/claims", dict(claim_id="inbox-region-alias", scope=env.applicable_scope()))
     assert result.status_code == 409
 
 
@@ -224,7 +226,8 @@ def test_independent_resource_vendor_rechecks_private_records_and_verified_attac
 
     rec=setup_filed(env,tmp_path,monkeypatch)
     content="Synthetically archived station logs; confidential operator annotations."
-    private=ResourceVendorRecord("bears",Scope.model_validate(env.scope),"altitude service schedule","2026-07-10T18:00:00.000001Z",
+    private=ResourceVendorRecord("bears",Scope.model_validate(env.applicable_scope()),  # D04-C: counterparty mirrors the claim scope
+                                 "altitude service schedule","2026-07-10T18:00:00.000001Z",
         (("2026-06-05T00:00:00Z","2026-06-05T08:20:00Z"),("2026-06-05T06:40:00Z","2026-06-05T10:00:00Z")),
         (("2026-06-05T01:40:00Z","2026-06-05T04:27:00Z"),),(("service",10004),("tax",1200)),
         frozenset({"service"}),((Decimal(98),Decimal(45)),(Decimal(99),Decimal("12.5"))),True,

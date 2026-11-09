@@ -20,7 +20,7 @@ CLAIM = "inbox-source-intake-1"
 EVENTS = f"/api/correspondence/claims/{CLAIM}/events"
 SCOPE = Scope(account="test-account", vendor="Twilio", contract="signed-agreement", service="Twilio Messaging API",
               component="api-east", invoice="oct-bill", incident="oct-synthetic-outage", currency="USD",
-              month="2026-10", region="east")
+              month="2026-10")  # D04-C (2026-11-09): region is not applicable to the Twilio profile
 
 
 def app_for(path, db, *, enabled=True, tenant="bears"):

@@ -16,8 +16,7 @@ def regional(tmp_path, monkeypatch):
     env.scope.update(vendor="Copper Mesa Networks", account=OVERLAY["account"], contract=OVERLAY["agreement"],
                      service=OVERLAY["product"], component=OVERLAY["resource_id"], month="2026-06", region="North")
     env.now = datetime(2026, 7, 14, 19, tzinfo=UTC)
-    env.provision()
-    env.create()
+    env.provision(); env.create_after_install = True  # D04-C: install() creates the claim once terms exist
     install(env, tmp_path, monkeypatch, extra_terms=ROW, shadow=facts(), expected="15.03", overlay_override=subscription())
     yield env
     env.client.close()
@@ -134,11 +133,11 @@ def test_distinct_covered_regions_enter_with_shared_evaluation_identity_and_reje
     assert south["obligation_id"] == south_eval["obligation_id"]
     assert north["obligation_id"] != south["obligation_id"]
     assert regional.create()["id"] == south["id"]
-    alias = regional.human.post("/api/correspondence/claims", dict(claim_id="inbox-south-alias", scope=regional.scope))
+    alias = regional.human.post("/api/correspondence/claims", dict(claim_id="inbox-south-alias", scope=regional.applicable_scope()))  # D04-C client
     assert alias.status_code == 409
     regional.scope["region"] = "North"
     regional.id, regional.url = north_id, north_url
     # The North draft predates publication and retains its old regionless key.
     assert regional.create()["id"] == north_id
-    alias = regional.human.post("/api/correspondence/claims", dict(claim_id="inbox-north-alias", scope=regional.scope))
+    alias = regional.human.post("/api/correspondence/claims", dict(claim_id="inbox-north-alias", scope=regional.applicable_scope()))  # D04-C client
     assert alias.status_code == 409

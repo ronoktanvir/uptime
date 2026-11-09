@@ -18,7 +18,7 @@ from uptime.correspondence_vendor import VendorRecord, adjudicate
 ORACLE = json.loads((Path(__file__).parents[1] / "fixtures/correspondence/oracle.json").read_text())
 SCOPE = Scope(account="account-71", vendor="Twilio", contract="agreement-X", service="Twilio Messaging API",
               component="api-east", invoice="oct-invoice", incident="evt-411", currency="USD",
-              month="2026-10", region="east")
+              month="2026-10")  # D04-C (2026-11-09): region is not applicable to the Twilio profile
 ID = "inbox-case-19"
 REVIEWER = Principal("bears", "operator", "reviewer")
 VIEWER = Principal("bears", "reader", "viewer")
@@ -31,6 +31,28 @@ BODIES = dict(status=dict(kind="status", **INTERVAL),
               component=dict(kind="component", **INTERVAL, component_id=SCOPE.component),
               notice=dict(kind="notice", **INTERVAL, issued_at="2026-10-17T13:11:00Z"))
 SOURCES = dict(status="status", impact="customer", invoice="billing", component="customer", notice="customer", message="vendor")
+
+
+def counterparty_record(claim_id=ID, bodies=None):
+    """The counterparty's private record, aligned with D04-C (2026-11-09) in the harness only.
+
+    The authored fixture bytes stay unchanged. Its attachment register holds envelope digests over the
+    authored ten-field Twilio scope; they are first checked to reproduce exactly, then the same authored
+    documents are re-enveloped under the claim's D04-C scope (region not applicable). The counterparty
+    still decides only from its own record.
+    """
+    from uptime.contracts import fingerprint
+    private = json.loads((Path(__file__).parents[1] / "fixtures/correspondence/vendor_record.json").read_text())
+    authored = Scope.model_validate(private["scope"])
+    current = Scope.model_validate({k: v for k, v in private["scope"].items() if k != "region"})
+    bodies = bodies or BODIES
+
+    def envelope(scope, kind):
+        body = Delivery(event_id=kind, scope=scope, body=bodies[kind]).body.model_dump(exclude_unset=True)
+        return fingerprint([private["tenant"], claim_id, scope.model_dump(), SOURCES[kind], body])
+    assert all(envelope(authored, kind) == digest for kind, digest in private["attachments"].items())
+    attachments = frozenset((kind, envelope(current, kind)) for kind in private["attachments"])
+    return VendorRecord(private["tenant"], current, private["start"], private["end"], Decimal(private["affected_fees"]), attachments)
 
 
 class Setup:
@@ -76,9 +98,7 @@ def env(tmp_path):
 def test_independent_simulator_new_evidence_and_oracle(env):
     initial = env.file()
     assert initial["requested"] == ORACLE["candidate"]
-    private = json.loads((Path(__file__).parents[1] / "fixtures/correspondence/vendor_record.json").read_text())
-    record = VendorRecord(private["tenant"], Scope.model_validate(private["scope"]), private["start"], private["end"],
-                          Decimal(private["affected_fees"]), frozenset(private["attachments"].items()))
+    record = counterparty_record()  # D04-C-aligned in the harness; fixture bytes unchanged
     request = adjudicate(initial["packet"], record, env.now)
     row = env.message(request)
     assert row["stage"] == "NEEDS_EVIDENCE" and not row["actions"]
@@ -225,9 +245,12 @@ def test_exact_subcent_candidate_and_dated_terms(tmp_path):
 
 
 def test_no_twilio_fallback_for_other_vendor(tmp_path):
-    env = Setup(tmp_path / "other.db", SCOPE.model_copy(update={"vendor":"Example Cloud"}))
-    env.build()
-    assert env.get()["outcome"] == "UNSUPPORTED_RULE" and env.get()["filing_cutoff"] is None
+    # D04-C (2026-11-09): with no governing terms the family is unknown, so intake refuses outright;
+    # nothing is drafted and the Twilio profile is never applied to another vendor.
+    from uptime.claim_scope import InvalidClaimScope
+    with pytest.raises(InvalidClaimScope, match="unknown family"):
+        Setup(tmp_path / "other.db", SCOPE.model_copy(update={"vendor":"Example Cloud"}))
+    assert CorrespondenceDesk(tmp_path / "other.db").cases(REVIEWER) in ([], {"claims": []}) or not CorrespondenceDesk(tmp_path / "other.db").cases(REVIEWER)
 
 
 @pytest.mark.parametrize("text", ["We approved invoice USD 62.13.", "We approved a credit of -$62.13.",
@@ -283,11 +306,16 @@ def test_exact_money_under_small_decimal_context(env):
         assert row["ledger"]["disputed_remainder"] == "13.63"
 
 
-def test_authoritative_active_resolver_version_and_scope_binding(tmp_path):
+def test_authoritative_active_resolver_version_and_scope_binding(tmp_path, monkeypatch):
+    from uptime import claim_scope
     from uptime.correspondence_rules import ActiveRemedy
     from uptime.contracts import Citation, EvaluationResult, Money, Outcome, fingerprint
 
-    env = Setup(tmp_path / "active.db", SCOPE.model_copy(update={"vendor":"Example API", "service":"Example Request API"}))
+    # D04-C (2026-11-09): this test injects ACTIVE terms through a resolver, so it also declares their
+    # monthly-availability family; that family needs the incident and no component or region.
+    monkeypatch.setattr(claim_scope, "_installed", lambda db, tenant, scope: [{"manifest": {"family": "monthly-availability/1"}, "overlay": {}}])
+    monthly = {k: v for k, v in SCOPE.model_dump().items() if k not in ("component", "region")}
+    env = Setup(tmp_path / "active.db", Scope(**monthly | {"vendor":"Example API", "service":"Example Request API"}))
     current_version = ["active-1"]
     def resolve(tenant, scope, facts, now):
         result = EvaluationResult(Outcome.ELIGIBLE, (Citation("Signed example SLA", "1", "§2", "urn:example:terms"),),

@@ -55,7 +55,9 @@ def test_settlement_cites_unchanged_sla_and_authored_memo_has_one_identity():
     assert 'completed-step SLA credits' in unchanged['citation']['quote']
     assert package['correspondence']['credit_decision']['event_id']==package['correspondence']['credit_decision']['credit_id']=='NW-CM-2026-01'
     assert package['correspondence']['credit_decision']['known_at']=='2026-03-02T13:00:00Z'
-    assert len(build_fee_registry(package)._entries)==4
+    # D04-C (2026-11-09): four fee entries; each authored ten-field scope is also an explicit legacy alias.
+    entries=build_fee_registry(package)._entries
+    assert len({id(entry) for entry in entries.values()})==4 and len(entries)==8
     assert [r['month'] for r in package['months']]==['2026-01','2026-02','2026-03']
     quotes=settlement['source_quotes']
     assert any('USD 11000.00' in q['quote'] for q in quotes['pricing'])
