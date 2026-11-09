@@ -1,0 +1,109 @@
+{
+  "recorded_by": "W5 evidence-custody-90",
+  "source_commit": "a924aae13e5f52dfde8372ea6c3ac7fb60a25a01",
+  "command": "uv run --locked python scripts/probe_evidence_findings_91.py",
+  "source_sha256": {
+    "scripts/probe_evidence_findings_91.py": "ea99ecb3a568da823dc90e4d9e98f099d68009742814358fed8b8ba2212c3493",
+    "uptime/correspondence.py": "b40bc7592962a5f657b37d56a3f9a6a266d48390a1c11919f8c41bfcebba9dcb",
+    "uptime/correspondence_rules.py": "486a95a32ebd8ec0cf88c6a306bcd1fe80fe4dbc1fb6b2fdce7378dcf8bd7f7e",
+    "uptime/source_config.py": "adc72eb99d69c72011d4b2386c2db058dcfb87906f971ecdb3aad24db459676d",
+    "uptime/evidence_applicability.py": "7f11f3ecb8389af292d03ed0a23592f3ac348616786a836f4a875bcb385c0aec"
+  },
+  "output_sha256": "11d93848be1b093ee1ecb9b57087c528bc45706f89706faaf6ddbd0e896a3521",
+  "data": "authored synthetic records in a temporary database; no customer data, credentials or provider capture",
+  "observed": {
+    "probe": "decision-91 evidence applicability findings",
+    "clock": "2026-11-02T09:00:00+00:00",
+    "wrong_period": {
+      "owner": "W4 disputes (uptime/correspondence.py receive path)",
+      "deliveries": [
+        {
+          "event_id": "status.september",
+          "kind": "status",
+          "embedded_desk": "stored",
+          "signed_grant_admits": false
+        },
+        {
+          "event_id": "status.october",
+          "kind": "status",
+          "embedded_desk": "stored",
+          "signed_grant_admits": true
+        },
+        {
+          "event_id": "impact",
+          "kind": "impact",
+          "embedded_desk": "stored",
+          "signed_grant_admits": true
+        },
+        {
+          "event_id": "invoice",
+          "kind": "invoice",
+          "embedded_desk": "stored",
+          "signed_grant_admits": true
+        }
+      ],
+      "after_wrong_period": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "trace": [
+          "Awaiting an authenticated impact record for this exact claim."
+        ],
+        "amount": null
+      },
+      "after_correct_records": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "trace": [
+          "Contradictory independent records require review. No version is selected silently."
+        ],
+        "amount": null
+      }
+    },
+    "implicit_completeness": {
+      "owner": "W4 disputes / W2 Twilio rules (uptime/correspondence_rules.py ordinary profile)",
+      "record": "one signed two-minute status interval for a per-incident grant",
+      "without_coverage": {
+        "outcome": "INELIGIBLE",
+        "trace": [
+          "Twilio API SLA version=2026-04-09; agreement_ref=agreement-X.",
+          "subscription/plan coverage_ref=agreement-X; [2026-10-01T00:00:00+00:00, 2026-11-01T00:00:00+00:00).",
+          "status-page coverage_ref=a4e21a657af03e5f9fd47d644cf1276e7c222b3e53bfeaa749a3a0f11965f705; [2026-10-01T00:00:00+00:00, 2026-11-01T00:00:00+00:00).",
+          "[3] Deadline=2026-11-30 inclusive in UTC; clock=evaluation/planned filing; timezone_ref=agreement-X.",
+          "[3,4] Candidate 2026-10-18T13:11:00+00:00..2026-10-18T13:13:00+00:00; status=https://status.twilio.com; docs=a4e21a657af03e5f9fd47d644cf1276e7c222b3e53bfeaa749a3a0f11965f705; attribution=3876fccef906b3e91800db02ae39a63493df026e1facb52a253ce885c48767db; exclusion=none; assessment=3876fccef906b3e91800db02ae39a63493df026e1facb52a253ce885c48767db.",
+          "[4(g)] Excluded continuous interval of 120 seconds (<300).",
+          "[1,3,4(g)] Union, subtract exclusions, minimum 300 continuous seconds, then clip to month: B=0 minutes; A=44640 minutes; (A-B)/A*100=100%; threshold=99.95%; credit rate=10%.",
+          "[3. API Service Credits] Availability is at or above the strict less-than threshold."
+        ],
+        "amount": null
+      },
+      "with_coverage": {
+        "outcome": "INELIGIBLE",
+        "trace": [
+          "Twilio API SLA version=2026-04-09; agreement_ref=agreement-X.",
+          "subscription/plan coverage_ref=agreement-X; [2026-10-01T00:00:00+00:00, 2026-11-01T00:00:00+00:00).",
+          "status-page coverage_ref=a4e21a657af03e5f9fd47d644cf1276e7c222b3e53bfeaa749a3a0f11965f705; [2026-10-01T00:00:00+00:00, 2026-11-01T00:00:00+00:00).",
+          "[3] Deadline=2026-11-30 inclusive in UTC; clock=evaluation/planned filing; timezone_ref=agreement-X.",
+          "[3,4] Candidate 2026-10-18T13:11:00+00:00..2026-10-18T13:13:00+00:00; status=https://status.twilio.com; docs=a4e21a657af03e5f9fd47d644cf1276e7c222b3e53bfeaa749a3a0f11965f705; attribution=3876fccef906b3e91800db02ae39a63493df026e1facb52a253ce885c48767db; exclusion=none; assessment=3876fccef906b3e91800db02ae39a63493df026e1facb52a253ce885c48767db.",
+          "[4(g)] Excluded continuous interval of 120 seconds (<300).",
+          "[1,3,4(g)] Union, subtract exclusions, minimum 300 continuous seconds, then clip to month: B=0 minutes; A=44640 minutes; (A-B)/A*100=100%; threshold=99.95%; credit rate=10%.",
+          "[3. API Service Credits] Availability is at or above the strict less-than threshold."
+        ],
+        "amount": null
+      }
+    },
+    "nested_foreign_account": {
+      "owner": "W4 disputes (embedded and HMAC fixture channels)",
+      "delivery": {
+        "event_id": "invoice.foreign",
+        "kind": "invoice",
+        "embedded_desk": "stored",
+        "signed_grant_admits": false
+      },
+      "after": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "trace": [
+          "Awaiting an authenticated status record for this exact claim."
+        ],
+        "amount": null
+      }
+    }
+  }
+}
