@@ -18,7 +18,7 @@ Decision: [ADR 95](decisions/ADR-0095-grounded-finance-guide.md).
 | File | Count | Purpose |
 | --- | ---: | --- |
 | `tests/test_finance_view_90.py` | 21 | Attention items across a real 12-state authored run. Ineligible February is never "missing evidence". Projection additions copy domain values. Every summary amount is copied from the projection. Also covers constructed conflicts, missing agreement, closed filing windows, unparseable amounts and server-supplied Ramp records only. |
-| `tests/test_finance_guide_90.py` | 41 | Cited answers whose numbers all appear in the case. Unknown amounts stay unknown. Abstention on outside-case and judgment questions. Read-only answers to action requests. Injected questions and source text. No row change in either database. Determinism and route boundaries. The authored paraphrase corpus (tuning and holdout). Stages never summed. Same-amount disambiguation. Exact deadline instants. Unsigned and signed sessions give identical answers with full database dumps unchanged. A named viewer cannot be enrolled in the authored workspace. A viewer projection gets the same answers except for the server-offered step. |
+| `tests/test_finance_guide_90.py` | 45 | Cited answers whose numbers all appear in the case. Unknown amounts stay unknown. Abstention on outside-case and judgment questions. Read-only answers to action requests. Injected questions and source text. No row change in either database. Determinism and route boundaries. The authored paraphrase corpus (tuning and holdout). Stages never summed. Same-amount disambiguation. Exact deadline instants. Unsigned and signed sessions give identical answers with full database dumps unchanged. A named viewer cannot be enrolled in the authored workspace. A viewer projection gets the same answers except for the server-offered step. |
 | `tests/test_finance_browser_90.py` | 2 | Live uvicorn and real Chrome. Real sign-in with the workspace's scripted credential, signed actions, server-side session expiry during an action and during a guide question, keyboard focus movement, 390 px layout, load and guide failures, and the empty state. Product text excludes demo, fixture and "Post to Ramp" wording. |
 | `tests/data/finance_guide_paraphrases_95.json` | data | Authored paraphrases: 40 tuning cases and 20 holdout cases. |
 | `web/finance_view.test.cjs` | 5 | DOM rendering of attention items, destination, inputs and price lines. The guide posts only the question. Abstention and failure messages. A 401 returns to sign-in once. The older layout is used when no summary is present. |
@@ -82,3 +82,42 @@ The focused list covers:
 - **Same group rerun:** 76 passed, 1 warning in 93.80s.
 
 The traceback was not captured; that omission is recorded. The test is unchanged. [Receipt](evidence/finance-guide-90/flake-workspace-ui-v4.json).
+
+## Follow-up after the first merge (`0f39570`)
+
+A post-merge spot check found safe but unhelpful abstentions. "Was the claim filed?" and "Why was the claim denied?" had no claim-history fact to answer from. "Record of approvals?" was read as an action. "What does Clause 8 say?" did not lead with that clause.
+
+The follow-up commit makes four changes:
+
+- adds a claim-history fact that quotes the recorded workflow events verbatim with their timestamps;
+- adds a claim topic (`filing` is deliberately excluded, so deadline questions keep their deadline-only answer);
+- matches a named clause;
+- removes `record` from the action verbs.
+
+It adds four guide tests (three parametrized history questions and one clause/noun check). No merged test changed. The first attempt included `filing` in the topic, and the merged `test_initial_state_reports_the_open_deadline_and_the_next_step` failed. The topic was narrowed instead of changing that test.
+
+Results after the follow-up:
+
+- finance view, guide and browser tests: **68 passed, 1 warning in 18.95s**
+- tuning corpus: still 40/40
+- holdout, re-run after this change: still 19/20 with the same safe abstention
+
+The holdout no longer predates every retrieval change. The change was motivated by the spot check, not by holdout results.
+
+## Legacy case-inspector guide abstention (D12)
+
+The new file `tests/test_intelligence_abstain_95.py` has 11 cases:
+
+- **6 unsupported questions.** Each abstains and keeps its `basis` intent label, including the existing tests' "Show the profile", "Show my billing profile." and the 1,000-character limit question.
+- **5 supported questions.** Each still answers from the case with its original intent. One is the existing injection question.
+
+No existing test changed. These existing tests run unchanged alongside the new file:
+
+- `tests/test_intelligence.py`
+- `tests/test_portfolio_v4.py` (pins "Show the profile" → `basis`)
+- `tests/test_journey_api.py`
+- `tests/test_v4_audit_workflow.py`
+- `tests/test_v4_audit_protocol.py`
+
+Result: **94 passed, 1 warning in 87.66s**.
+

@@ -24,6 +24,8 @@ TOPICS = {
     'next': r'next|to do|todo|attention|pending|blocked|waiting|what now|needs?|actions?',
     'status': r'status|stage|state|progress|happened|history',
     'award': r'award\w*|claimed',
+    # 'filing' is left out so a deadline question stays a deadline answer.
+    'claim': r'claims?|filed|submitted|deni\w*|deny|rejected|vendor response|repl(?:y|ied)|appeal\w*|correspondence|cured?',
 }
 MONTH_WORDS = {'01': r'january|jan', '02': r'february|feb', '03': r'march|mar', '04': r'april|apr',
                '05': r'may\s+\d{4}|in\s+may', '06': r'june|jun', '07': r'july|jul', '08': r'august|aug',
@@ -32,7 +34,7 @@ CLAUSE_TOPICS = {'credit': r'service credits?|credit|uptime target|percentage po
                  'deadline': r'must be received|calendar days|deadline|within \d+',
                  'evidence': r'measured|measurement|evidence|monitor'}
 ACTIONS = (r'approve|file|submit|send|post|apply|pay|activate|roll\s?back|revoke|delete|cancel|dispute|hold|stop|'
-           r'create|mark|change|update|retry|run|execute|record|reject|accept|close|reopen')
+           r'create|mark|change|update|retry|run|execute|reject|accept|close|reopen')
 ACTION_REQUEST = re.compile(rf'^\s*(?:please\s+)?(?:{ACTIONS})\b|\b(?:can|could|would|will)\s+you\s+(?:please\s+)?(?:{ACTIONS})\b|'
                             rf'\b(?:go ahead and|please)\s+(?:{ACTIONS})\b|\b(?:i want you to|you should)\s+(?:{ACTIONS})\b', re.I)
 JUDGMENT = re.compile(r'\b(?:should (?:we|i)|ought|recommend\w*|advi[cs]e|advisable|legal(?:ly)?|lawyer|attorney|sue|'
@@ -53,6 +55,8 @@ ABSTAIN_JUDGMENT = "That needs a reviewer's judgment. The guide reports what thi
 READ_ONLY = "The guide is read-only and can't take that action."
 MAX_FACTS = 5
 GENERIC = {'credit', 'status', 'agreement', 'next'}
+# Recorded workflow events that mark the claim's course, quoted verbatim with their timestamps.
+HISTORY_EVENTS = ('Filed approved packet', 'Evaluated vendor correspondence', 'A newly acquired artifact', 'Approved exact')
 
 
 def _fact(facts, fid, text, topics, section, *, months=(), ref=None, label=None, primary=None):
@@ -132,14 +136,20 @@ def facts(projection, summary=None):
     if claim.get('id'):
         cname = month_name(claim.get('month')) if claim.get('month') else 'The'
         _fact(out, 'claim.status', f'The {cname} claim {claim["id"]} is at stage {_state(claim.get("state"))}.',
-              {'status', 'credit'}, 'recovery', months={str(claim.get('month'))}, ref=claim.get('id'), label='Claim status',
-              primary='status')
+              {'status', 'credit', 'claim'}, 'recovery', months={str(claim.get('month'))}, ref=claim.get('id'),
+              label='Claim status', primary='claim')
         if claim.get('filing_cutoff'):
             filed = (f'It was filed with receipt {claim["receipt_id"]}.' if claim.get('receipt_id')
                      else 'It has not been filed.')
             _fact(out, 'claim.deadline', f'The {cname} claim must be received before {claim["filing_cutoff"]}. {filed}',
-                  {'deadline', 'status'}, 'recovery', months={str(claim.get('month'))}, ref=claim.get('id'),
+                  {'deadline', 'status', 'claim'}, 'recovery', months={str(claim.get('month'))}, ref=claim.get('id'),
                   label='Filing deadline', primary='deadline')
+        events = [e for e in projection.get('audit') or [] if isinstance(e, dict)
+                  and str(e.get('event', '')).startswith(HISTORY_EVENTS)]
+        if events:
+            _fact(out, 'claim.history', 'Recorded claim history: ' + ' '.join(f'{e.get("at")} {e.get("event")}' for e in events),
+                  {'status', 'claim'}, 'recovery', months={str(claim.get('month'))}, ref=claim.get('id'),
+                  label='Claim history', primary='claim')
     rows = summary['stages']
     stage_text = '; '.join(f'{r["label"].lower()} {money(r["amount"], currency) if r["amount"] else "not determined"}'
                            for r in rows)
@@ -243,7 +253,10 @@ def answer(question, projection):
     grounded = facts(projection, summary)
     text = question.strip()
     topics, months = _topics(text), _months(text)
-    ranked = _rank(grounded, topics, months)
+    clauses = {f'Clause {n}' for n in re.findall(r'\bclause\s+(\d{1,3})\b', text, re.I)}
+    if clauses:
+        topics |= {'agreement'}
+    ranked = _rank(grounded, topics, months, clauses)
     if ACTION_REQUEST.search(text):
         steps = [f for f in grounded if f['id'].startswith('attention.') and 'Next step' in f['label']]
         lead = READ_ONLY + (' The current step is shown below; a signed-in reviewer runs it from the recovery panel.'
@@ -263,19 +276,20 @@ def answer(question, projection):
     return _response(text, projection, ranked[:MAX_FACTS])
 
 
-def _rank(grounded, topics, months):
+def _rank(grounded, topics, months, clauses=frozenset()):
     scored = []
     for order, fact in enumerate(grounded):
         overlap = fact['topics'] & topics
         month_match = bool(months) and any(str(m)[-2:] in months for m in fact['months'])
         if months and fact['months'] and not month_match:
             continue
-        if not overlap and not (month_match and not topics):
+        named = fact['label'] in clauses
+        if not overlap and not named and not (month_match and not topics):
             continue
         # Prefer specific case facts over clause quotations, then keep source order.
         specific = not fact['id'].startswith(('clause.', 'agreement', 'document.', 'attention.'))
         score = (sum(_weight(t) for t in fact['topics'] & topics) + (3 if month_match else 0) + (1 if specific else 0)
-                 + (2 * _weight(fact['primary']) if fact['primary'] in topics else 0))
+                 + (2 * _weight(fact['primary']) if fact['primary'] in topics else 0) + (8 if named else 0))
         scored.append((-score, order, fact))
     ranked = sorted(scored, key=lambda row: (row[0], row[1]))
     # Keep the answer focused: drop facts clearly weaker than the best match.

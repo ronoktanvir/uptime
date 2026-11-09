@@ -51,3 +51,37 @@ Focused results:
 - Uncommitted post-critique source, before the `month_coverage_basis` check: **904 passed, 1 warning, 341.70s**. This set added `tests/test_v4_routes_integration.py`.
 - New file alone on `8083ab5`: **37 passed**.
 - Final committed source `8083ab5`: **904 passed, 1 warning, 206.14s** (second attempt). The first attempt hung at an unchanged Playwright test under machine load and was stopped. Both are recorded in `docs/v4/evidence/dispute-disposition-89/verification.json`.
+
+## Follow-up 89b: W5 findings F1, F2 and F8 (`work/dispute-intake-scope-89b`, based on `work/integration-90` at `25a18fb`)
+
+Behavior:
+- An embedded or HMAC delivery that fails W5's `source_config.event_in_scope` is refused before storage. That covers a measured interval wholly outside the service month (`evidence_applicability.temporal_refusal`) and a nested row or field naming another account, invoice, component, month and so on. The signed channel already refuses these at the grant.
+- The refusal is recorded in `contradicting_deliveries` and the case timeline. It clears any packet approval, and it moves a pending cure, rebuttal or denial review to `HUMAN_REVIEW`. That record commits before the sender receives the refusal (`ValueError`, HTTP 409).
+- **Misroute versus contradiction.**
+  - A record wholly for another service month is a misroute: it voids any approval but does not hold the claim.
+  - A record naming another identity (account, resource, region, invoice, component) contradicts the claim's scope. It holds every outbound and closing action until a person resolves it. Retraction is F7, which is blocked on a decision.
+  - The first design held nothing. The first broad run exposed the regression (below).
+- A retried refused event with the same content returns the same refusal without new effects. Reusing the event id with different content is refused.
+- The dispute trace adds `status_origin`: the enrolled status signer, `ENROLLED_SOURCE_NOT_ORIGIN_VERIFIED`, and the profile URL as `profile_assumed_origin` (F8).
+
+### Existing tests changed (exact names and reasons)
+
+| Test | Change | Reason | Safety assertion kept |
+|---|---|---|---|
+| `tests/test_correspondence.py::test_mismatched_fee_and_component_prevent_further_packet` | The foreign-account invoice delivery is wrapped in `pytest.raises(ValueError, match="outside the granted claim scope")`. The preflight expectation changes from `INSUFFICIENT_EVIDENCE` to `ELIGIBLE`, and the test now also asserts the contradicting delivery is listed. | F2: the foreign row is no longer stored as the claim's single invoice record, so it no longer poisons preflight. | `not row["actions"]`, `approval is None` and the failing `submit-claim` are all unchanged. |
+| `tests/test_correspondence.py::test_contradictory_component_stops_rebuttal` | The wrong-component delivery is wrapped in `pytest.raises(ValueError, match="outside the granted claim scope")`. | F2: refused before storage. | Stage is `HUMAN_REVIEW` with no actions (unchanged assertion). |
+| `tests/test_correspondence.py::test_invoice_scope_mismatch_without_other_invoice` | The wrong-month invoice delivery is wrapped in `pytest.raises(...)`. The trace expectation changes from containing "contradicts" to "Awaiting an authenticated invoice", and the test asserts the contradicting delivery is listed. | F2: refused before storage; the claim correctly awaits an in-scope invoice instead of holding a contradicted one. | Outcome stays `INSUFFICIENT_EVIDENCE` (unchanged assertion). |
+| `tests/test_correspondence_regional.py::test_incomplete_contradictory_or_expired_evidence_cannot_authorize_cure[wrong-region]` | For this parameter only, the foreign-region monitor row is delivered separately and expected to return 409 "outside the granted claim scope". The remaining rows are delivered as before. | F2: refused before storage. | `row["actions"] == []` and the zero claimed and awarded amounts are unchanged. |
+| `tests/test_correspondence_resource.py::test_conflicting_raw_source_stops_before_claim[wrong-fee-resource]` | For this parameter only, the foreign-resource fee row is delivered separately and expected to return 409. | F2: refused before storage. | `outcome == INSUFFICIENT_EVIDENCE` and `not actions` are unchanged. |
+| `tests/test_correspondence_disposition_89.py::test_n89_cure_inapplicable_escalates` (this workstream's own test) | The wrong-component delivery is wrapped in `pytest.raises(...)`, and the test asserts the trace lists the contradiction. | F2. | The frozen expectation `n89-cure-inapplicable` → `HUMAN_REVIEW` / `ESCALATE` is unchanged. |
+
+New tests: `tests/test_correspondence_intake_scope_89b.py`, 7 tests.
+
+Runs:
+1. Touched files (first design): **99 passed**.
+2. Broad focused run (first design): the dispute tests plus the 32 other test files that deliver through correspondence intake. **2 failed, 1666 passed, 1 warning, 275.82s.** The two failures were the regional and resource rows above.
+   - The regional failure exposed a **safety regression in the first design**. With the foreign-region row refused instead of stored, a later historical cure became authorizable (`approve-response` offered).
+   - The design was tightened: identity contradictions hold all actions.
+   - That test's original `actions == []` assertion now passes without being weakened.
+   - The earlier draft of the `test_mismatched_fee_and_component_prevent_further_packet` change, which expected `approve-claim` to be offered, was withdrawn before commit. That test keeps `not row["actions"]`.
+3. After tightening, the touched files gave **148 passed**. The final broad result is recorded in `docs/v4/evidence/dispute-intake-scope-89b/verification.json`.

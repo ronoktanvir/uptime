@@ -17,6 +17,12 @@ EVIDENCE_TYPES = {
     "exclusion": "Documented cause and exclusion classification",
 }
 INTENTS = {"basis", "proof", "next"}
+# D12 (decided 2026-11-09): unsupported questions abstain. "basis" is the fallback intent, so it answers only
+# when the question names something the case explains; the intent label itself is unchanged.
+BASIS_TOPICS = re.compile(r"\b(?:fees?|amounts?|credits?|calculat\w*|eligib\w*|why|how|outcome|basis|ledger|value|"
+                          r"award\w*|applied|claim\w*|estimat\w*|money|usd|percent\w*|price|cost|invoices?|bills?|"
+                          r"decision|classif\w*|explain\w*|summar\w*|status|stage|case)\b|\$|%", re.I)
+ABSTAIN = "This case's records don't answer that. Ask about its evidence, calculation or next step."
 ALLOWED_ATOMS = {
     "basis": ("fee_lines", "outcome", "ledger"),
     "proof": ("required", "evidence", "citations"),
@@ -89,6 +95,9 @@ def explain(case, question):
     else:
         intent="basis"
     sources=list(dict.fromkeys(case["sources"]+["DETERMINISTIC_REPLAY"]))
+    if intent=="basis" and not BASIS_TOPICS.search(question):
+        return {"answer":ABSTAIN,"intent":intent,"abstained":True,"sources":sources,
+                "model":"Verified Claude explanation plan + current deterministic case state","external_transmission":False}
     def strings(values,key):
         return ", ".join(str(v[key]) for v in values if isinstance(v,dict) and v.get(key))
     claims=case.get("financials",[])
@@ -105,6 +114,6 @@ def explain(case, question):
         "permitted":("Available in this session: " + strings(case.get("actions",[]),"label") + ".") if case.get("actions") else "There is no enabled action at this stage.",
         "human":"The guide is read-only. A reviewer must use the case controls for an authorized simulated action.",
     }
-    return {"answer":" ".join(str(atoms[k]) for k in plan["guide"][intent]),"intent":intent,
+    return {"answer":" ".join(str(atoms[k]) for k in plan["guide"][intent]),"intent":intent,"abstained":False,
             "sources":sources,"model":"Verified Claude explanation plan + current deterministic case state",
             "external_transmission":False}

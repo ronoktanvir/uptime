@@ -36,13 +36,14 @@ Opus judged the separation and refusal design sound. It found one structural gap
 Points where we disagree, or which are deferred:
 
 - **Blocking `prepare`.** Opus recommended blocking `prepare_operator_application` until D09 and an attribution store exist. Instead, the function stays tested but isn't exposed through any route or CLI. It already refuses unless the award is `VERIFIED_VENDOR_AWARD`, and nothing in the product can issue that today. Exposing it is the gated step, and it needs D09.
-- **Separating preparer and executor.** Opus recommended requiring the person who applies the credit to differ from the preparer. `confirm` records `executed_by` and `separation_of_duties`, but doesn't enforce it. Whether one person may hold both roles is D06. This mirrors decision 88's explicit statement that the same person can hold two roles.
+- **Separating preparer and executor.** Opus recommended requiring the person who applies the credit to differ from the preparer. `confirm` records `executed_by` and `separation_of_duties`, but doesn't enforce it. D06, decided on November 9 as "humans gate judgment", keeps every native step with a person but, as relayed, doesn't say whether those must be two people, so separation stays recorded rather than enforced. This mirrors decision 88's explicit statement that the same person can hold two roles.
 - **Unsupported claims in the packet.** These are answered in the workstream record and evidence:
   - Field names: the records sanitizer maps `applied_vendor_credits`, `applied_draft_bills` and `total_applied_amount` to `applied_credits`, `applied_drafts` and `total_applied`; see `RAMP-RECORDS.md`.
   - `Bill.status` is the published `OPEN|PAID` enum.
   - The default credit list excludes archived credits. Our sync requests `include_fully_used=true`.
   - The help-article hash is recorded in the platform-verification receipt. The page itself isn't committed.
 - **D03 alignment.** The overview session relayed Ronok's November 9 decision: bounded exact source IDs, with no slugging, trimming, case-folding or alias registry. The first commit also refused non-NFC text, which `claim_identity` accepts. That extra refusal was removed so both layers accept exactly the same values. Agent1's shared contract remains the swap point.
+- **D03-A correction.** That relayed summary was incomplete. Agent1's implemented rule, `source-identity/1`, refuses non-NFC values (refused, never normalized) and narrows account and agreement IDs to 96 characters and a fixed character set. The follow-up commit delegates account and agreement validation to `uptime.source_identity`, restores the non-NFC refusal for the other local labels, and records `identity_version` in association results. The real demo-bill lineage digest is unchanged, because an evidence-gap case carries no contract identity.
 - **Parallel source of truth.** Accepted as a cost. Merging with `AllocationLedger` is follow-up work after D09.
 
 ## Validation

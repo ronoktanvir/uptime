@@ -21,7 +21,7 @@ from datetime import datetime
 import re
 
 from .contracts import fingerprint
-from .ramp_association import (APPLICABLE, AssociationError, applicability, exact_identity,
+from .ramp_association import (APPLICABLE, AssociationError, applicability, contract_identity, exact_identity,
                                native_id)
 
 SCHEMA = "uptime-ramp-case-lineage/1"
@@ -104,7 +104,11 @@ class CaseIdentity:
         contract = (self.contract_id, self.contract_version, self.account_id)
         if any(v is None for v in contract) and any(v is not None for v in contract):
             _fail("PARTIAL_CONTRACT_IDENTITY")
-        for value in (*contract, self.claim_id):
+        if self.has_contract:
+            # D03-A: account and agreement follow the shared source-identity/1 rule.
+            contract_identity(self.contract_id, "INVALID_CASE_IDENTITY")
+            contract_identity(self.account_id, "INVALID_CASE_IDENTITY")
+        for value in (self.contract_version, self.claim_id):
             if value is not None:
                 exact_identity(value, "INVALID_CASE_IDENTITY")
         if self.claim_id is not None and not self.has_contract:

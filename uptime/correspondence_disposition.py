@@ -181,6 +181,12 @@ def _checks(desk, scope, state, current, view):
         explicit = any(e["kind"] == "coverage" for e in state["evidence"])
         # The ordinary profile treats one provisioned single-incident status record as the
         # month's record unless an explicit month report arrives (W5 finding F3, D07 pending).
+        statuses = [e for e in state["evidence"] if e["kind"] == "status"]
+        # The profile names a public status page, but nothing verifies the enrolled signer is that page (F8, D07).
+        checks.append(dict(check="status_origin", result="ENROLLED_SOURCE_NOT_ORIGIN_VERIFIED" if statuses else "NO_STATUS_RECORD",
+                           enrolled=[dict(subject=e.get("subject"), source_grant_id=e.get("source_grant_id"),
+                                          source_key_id=e.get("source_key_id"), digest=e["digest"]) for e in statuses],
+                           profile_assumed_origin="https://status.twilio.com"))
         checks.append(dict(check="month_coverage_basis",
                            result="EXPLICIT_MONTH_REPORT" if explicit else "PROVISIONED_SINGLE_INCIDENT_RECORD",
                            detail=None if explicit else "No signed complete-month report; the amount is evaluated from a "
@@ -198,6 +204,11 @@ def _checks(desk, scope, state, current, view):
                            filing_cutoff=current.cutoff.isoformat() if current.cutoff else None))
     if state.get("denial_acceptance"):
         checks.append(dict(check="explicit_denial_acceptance", result=True, **state["denial_acceptance"]))
+    contradictions = state.get("contradicting_deliveries", [])
+    if contradictions:
+        checks.append(dict(check="contradicting_deliveries_unresolved", result=any(c.get("blocking") for c in contradictions),
+                           deliveries=[dict(event_id=c["event_id"], kind=c["kind"], subject=c["subject"], reason=c["reason"],
+                                            blocking=c.get("blocking")) for c in contradictions]))
     ledger = view["ledger"]
     with localcontext() as ctx:
         ctx.prec = 50
@@ -268,6 +279,7 @@ def dispute_trace(desk, interpretations, p, claim_id):
                        source_grant_id=e.get("source_grant_id"), digest=e["digest"], received_at=e["received_at"],
                        known_at=e.get("known_at", e["received_at"])) for e in state["evidence"] if e["kind"] != "message"],
         correspondence=replies,
+        contradicting_deliveries=state.get("contradicting_deliveries", []),
         reviewed_readings=reviewed,
         submissions=[dict(id=s["id"], action=s["action"], at=s["at"], digest=s["digest"], requested=s["requested"],
                           in_reply_to=s["packet"].get("in_reply_to"), filing_cutoff=s["packet"].get("filing_cutoff"),

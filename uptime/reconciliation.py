@@ -9,6 +9,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from .contracts import Source
+from .source_identity import refusal
 
 
 def _amount(value):
@@ -21,6 +22,19 @@ def _required(record, field):
     if (not isinstance(value, str) or not value or value != value.strip()
             or not value.isprintable()):
         raise ValueError(f"Missing or noncanonical {field}")
+    return value
+
+
+# Team decision D03 (2026-11-09): account and contract identities use the same bounded
+# exact domain as claim scope and the ledger. Refused values are never rewritten.
+SOURCE_IDENTITY_FIELDS = frozenset({"account_id", "contract_id"})
+
+
+def _source_identity(record, field):
+    value = record.get(field)
+    reason = refusal(value)
+    if reason is not None:
+        raise ValueError(f"Noncanonical {field} ({reason}); values are refused, never rewritten")
     return value
 
 
@@ -94,8 +108,9 @@ def reconcile(tenant, award, credits, applications, bills):
     records = [award, *credits.values(), *bills.values(), *apps.values()]
     for field in ("account_id", "product_id", "contract_id", "contract_version"):
         if any(field in row for row in records):
-            expected = _required(award, field)
-            if any(_required(row, field) != expected for row in records):
+            read = _source_identity if field in SOURCE_IDENTITY_FIELDS else _required
+            expected = read(award, field)
+            if any(read(row, field) != expected for row in records):
                 raise ValueError(f"Mismatched {field}")
     dated = any("effective_date" in row for row in records)
     if dated:
