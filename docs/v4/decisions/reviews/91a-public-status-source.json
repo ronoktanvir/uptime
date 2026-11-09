@@ -1,0 +1,12 @@
+{
+  "model_requested": "claude-opus-5-5",
+  "utc": "2026-11-09T12:23:49.622474+00:00",
+  "packet_sha256": "e3a5eae5304e93b4eee5dd57cf415d6eb4263f3884dacca2248de4eff06ab6e8",
+  "prompt_sha256": "cebf7f7a9197d6a253e3842d8dba56b11443c53c4301d43ebdc3b87c529db1ed",
+  "status": "REVIEWED",
+  "session": "6e0ce0dd-8e29-41c8-9da3-c2dec50de3b2",
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "reply": "**Verdict:** Defensible as plumbing proof, not yet as \"end to end.\"\n\n**Strongest objection:** It proves real external bytes can reach intake. It does not prove evidence about any customer. The signer is the local operator, not Twilio, so the record is an operator attestation of a public page. Twilio was chosen mainly because it was available.\n\n**Misleading if:**\n- It is reported as \"D07 satisfied\" while the launch is harness-hosted and the release gate is unsatisfied. That is not the ordinary path; label it \"intake-path verified, launch-path unverified.\"\n- F3 ships unfixed. One status record would then read as complete month coverage. Block live use until the F3 change lands with a test asserting status alone is incomplete.\n\n**Missing checks:**\n- Match components by stable ID, not by untrusted names.\n- State the month-boundary timezone (UTC) explicitly.\n- Handle reopened or postmortem-edited incidents.\n- The feed is truncated to recent incidents, so older grant months may be unanswerable. That is a coverage gap, not a fault to hide.\n- Content-hash canonicalization must survive field reordering, or harmless re-serialization creates false contradictions.\n- Prevent one snapshot being replayed against multiple grants.\n- Say whose clock is trusted.\n\n**Falsification tests:**\n- Two unchanged fetches must give the same event ID.\n- A locally edited incident must produce a contradiction.\n- The ordinary launcher must reject delivery while the gate fails.\n- A downstream F3 regression test is needed.\n\n**Unsupported claims:** \"ordinary enrollment path\" (gate unsatisfied); \"idempotent\" (shown only within one hash).\n\n**Human authorization:**\n- D07 owners decide whether a harness-hosted run counts.\n- The F3 owner must sign off.\n- An operator enrolls the disposable key."
+}

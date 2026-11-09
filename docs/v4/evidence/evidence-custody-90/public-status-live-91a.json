@@ -1,0 +1,156 @@
+{
+  "recorded_by": "W5 evidence-custody-90",
+  "decision": "91a",
+  "source_commit": "9eafdf57ecbc628d55ae3281250938c84c4221db",
+  "source_sha256": {
+    "uptime/evidence_status_source.py": "d676728889d1f0a027f192a8c94840e92e51e76417da1cec162fb0e0a0707668",
+    "uptime/evidence_applicability.py": "7f11f3ecb8389af292d03ed0a23592f3ac348616786a836f4a875bcb385c0aec",
+    "uptime/source_config.py": "adc72eb99d69c72011d4b2386c2db058dcfb87906f971ecdb3aad24db459676d",
+    "uptime/evidence_refresh.py": "85f78899e048c16d5234eadd24b985e7da7b30a741f46fd7fd6cb46fc4026044",
+    "scripts/deliver_public_status.py": "bc05f4f5bdb33dc5deca500559623958ac48e075167060019805f9c8936484a3",
+    "scripts/deliver_evidence.py": "9f766388392b2cb5718be84eece676ea3bd2e3a1d15d03d3ecdbc655cdc1c2a3",
+    "scripts/rehearse_public_status.py": "0e743ff8cdd39f25ad445080f84c71267aee30744e7c10d01595d149f72975d7"
+  },
+  "commands": [
+    "uv run --locked python -m uptime.evidence_refresh --live --output <scratch>/twilio-live.json",
+    "uv run --locked python scripts/rehearse_public_status.py --directory <scratch>/live --snapshot <scratch>/twilio-live.json"
+  ],
+  "external_action": "one unauthenticated HTTPS GET of https://status.twilio.com/api/v2/incidents.json; no write, credential or customer data",
+  "live_snapshot_file": "twilio-live-20261109.json",
+  "live_snapshot_sha256": "8474426b72d9f760be00309eafc8c6e478f7ece11e547a85dbbb62e8158a284b",
+  "verdict": "intake path verified with a real public source; launch path unverified (release gate unsatisfied; workspace harness-hosted)",
+  "rehearsal_receipt": {
+    "rehearsal": "decision 91a public status source; harness-hosted loopback workspace, not a release-gated launch",
+    "recorded_at": "2026-11-09T12:26:34.592388+00:00",
+    "origin": "http://127.0.0.1:57470",
+    "listener_context": {
+      "instance": "242cec2fff81ffbe9638bdfd44d0fd4e3e726d4c5ad44a6a",
+      "origin": "http://127.0.0.1:57470",
+      "mode": "replay",
+      "tenant": "bears"
+    },
+    "snapshot": {
+      "path_name": "twilio-live.json",
+      "sha256": "8474426b72d9f760be00309eafc8c6e478f7ece11e547a85dbbb62e8158a284b",
+      "source_uri": "https://status.twilio.com/api/v2/incidents.json",
+      "observed_at": "2026-11-09T12:26:26.250911+00:00",
+      "raw_sha256": "7e974ffdb15f0ffb306c4453657053071f7f33782fbe02b80c98f11bfd58583a",
+      "incidents": 50
+    },
+    "grant": {
+      "subject": "status.twilio-public",
+      "source": "status",
+      "scope": {
+        "account": "local-status-rehearsal",
+        "vendor": "Twilio",
+        "contract": "local-rehearsal-agreement",
+        "service": "Twilio Messaging API",
+        "component": "50pr269zqrwj",
+        "invoice": "local-rehearsal-invoice",
+        "incident": "fm5fk85h6glc",
+        "currency": "USD",
+        "month": "2026-10",
+        "region": "global"
+      }
+    },
+    "delivery_cli": {
+      "exit": 0,
+      "stdout": {
+        "delivery": {
+          "event_id": "twilio-status:fm5fk85h6glc:a446ee1798d6acb6",
+          "digest": "ebd42847e4a72619fe9f788ba690c75890c3485ea78de035c9d37d8ab4e4d7f8",
+          "received_at": "2026-11-09T12:26:33.581980+00:00"
+        },
+        "provenance": {
+          "source_uri": "https://status.twilio.com/api/v2/incidents.json",
+          "observed_at": "2026-11-09T12:26:26.250911+00:00",
+          "raw_sha256": "7e974ffdb15f0ffb306c4453657053071f7f33782fbe02b80c98f11bfd58583a",
+          "incident_id": "fm5fk85h6glc",
+          "content_hash": "a446ee1798d6acb60212d361cd72c0c7905b6ee0203c480416ed08259b03b4e5",
+          "published_status": "resolved",
+          "published_components": [
+            "50pr269zqrwj"
+          ],
+          "event_id": "twilio-status:fm5fk85h6glc:a446ee1798d6acb6",
+          "customer_impact": "unverified",
+          "month_coverage": "not attested; a recent-incident feed is not complete month coverage",
+          "standalone_entitlement": false
+        },
+        "subject": "status.twilio-public"
+      },
+      "stderr": ""
+    },
+    "retry_cli": {
+      "exit": 0,
+      "stdout": {
+        "delivery": {
+          "event_id": "twilio-status:fm5fk85h6glc:a446ee1798d6acb6",
+          "digest": "ebd42847e4a72619fe9f788ba690c75890c3485ea78de035c9d37d8ab4e4d7f8",
+          "received_at": "2026-11-09T12:26:33.581980+00:00"
+        },
+        "provenance": {
+          "source_uri": "https://status.twilio.com/api/v2/incidents.json",
+          "observed_at": "2026-11-09T12:26:26.250911+00:00",
+          "raw_sha256": "7e974ffdb15f0ffb306c4453657053071f7f33782fbe02b80c98f11bfd58583a",
+          "incident_id": "fm5fk85h6glc",
+          "content_hash": "a446ee1798d6acb60212d361cd72c0c7905b6ee0203c480416ed08259b03b4e5",
+          "published_status": "resolved",
+          "published_components": [
+            "50pr269zqrwj"
+          ],
+          "event_id": "twilio-status:fm5fk85h6glc:a446ee1798d6acb6",
+          "customer_impact": "unverified",
+          "month_coverage": "not attested; a recent-incident feed is not complete month coverage",
+          "standalone_entitlement": false
+        },
+        "subject": "status.twilio-public"
+      },
+      "stderr": ""
+    },
+    "claim": {
+      "stage": "DRAFTED",
+      "outcome": "INSUFFICIENT_EVIDENCE",
+      "amount": null,
+      "evidence": [
+        {
+          "label": "status",
+          "detail": "twilio-status:fm5fk85h6glc:a446ee1798d6acb6 \u00b7 status",
+          "digest": "ebd42847e4a72619fe9f788ba690c75890c3485ea78de035c9d37d8ab4e4d7f8",
+          "received_at": "2026-11-09T12:26:33.581980+00:00",
+          "known_at": "2026-11-09T12:26:33.581980+00:00",
+          "sources": [
+            "SYNTHETIC_CUSTOMER",
+            "DETERMINISTIC_REPLAY"
+          ],
+          "available_at": "2026-11-09T12:26:33.581980+00:00",
+          "issuer": "status.twilio-public"
+        }
+      ],
+      "preflight": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "trace": [
+          "Awaiting an authenticated impact record for this exact claim."
+        ],
+        "missing": [
+          "Awaiting an authenticated impact record for this exact claim."
+        ],
+        "clauses": [
+          {
+            "document": "Twilio APIs SLA",
+            "version": "2026-04-09",
+            "section": "\u00a7\u00a71, 3, 4",
+            "uri": "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
+          }
+        ]
+      }
+    },
+    "authority": "disposable operator key created for this rehearsal; scripted claim creation, no human approval",
+    "not_established": [
+      "customer impact",
+      "eligible fees",
+      "complete month coverage",
+      "that the signing key belongs to Twilio",
+      "release-gated ordinary launch"
+    ]
+  }
+}
