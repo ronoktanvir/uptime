@@ -48,8 +48,10 @@
   const shortRef = value => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value) ? value.slice(0, 10) + '…' : text(value);
   const isZero = value => /^-?0*(\.0*)?$/.test(String(value));
   function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true}) {
-    // After a recorded action the page re-renders; focus moves to the next offered step so keyboard use continues there.
-    let epoch = 0, busy = false, uncertain = false, focusNextStep = false;
+    // After a recorded action the page re-renders and focus moves to the recovery heading, never to the next
+    // decision: a held or repeated Enter must not approve the next step. The status names what was recorded and what
+    // comes next, one Tab away.
+    let epoch = 0, busy = false, uncertain = false, focusNextStep = false, recordedLabel = null;
     const el = (tag, value, cls) => { const n = doc.createElement(tag); if (value != null) n.textContent = text(value); if (cls) n.className = cls; return n; };
     const add = (n, ...children) => { children.filter(Boolean).forEach(c => n.append(c)); return n; };
     const note = value => el('p',value,'help');
@@ -270,13 +272,15 @@
       list(data.next_actions).forEach(action=>{
         if (!action.id) return;
         const button=el('button',action.label || state(action.id));button.type='button';button.disabled=busy || uncertain || action.enabled === false || !signedIn;
+        // A repeated key event (a held Enter or Space) never activates a decision; only a fresh key press or click does.
+        button.addEventListener('keydown', event => { if (event && event.repeat && (event.key === 'Enter' || event.key === ' ')) event.preventDefault(); });
         button.addEventListener('click', async()=>{
           if (busy || uncertain || token !== epoch || action.enabled === false || canAct() === false) return;
           busy=true;Array.from(controls.children).forEach(c=>{c.disabled=true;});status.textContent='Recording action…';
           try {
             await api('/api/workspace/workflow/actions/'+encodeURIComponent(action.id),{});
             if (token !== epoch) return;
-            focusNextStep=true;try{await render(root);}finally{focusNextStep=false;}await onRefresh();
+            focusNextStep=true;recordedLabel=action.label || state(action.id);try{await render(root);}finally{focusNextStep=false;recordedLabel=null;}await onRefresh();
           } catch(error) {
             if(token !== epoch) return;
             if(error.status === 401 && typeof onUnauthorized === 'function') {
@@ -335,7 +339,10 @@
         monthly,add(el('div',null,'section-grid'),pricing,billing),contract,...(data.onboarding ? [expansion] : []),detail,activityLink);
       if (focusNextStep) {
         focusNextStep=false;
-        const next=Array.from(controls.children).find(c=>c.tagName==='BUTTON' && !c.disabled), target=next || recovery.children[0];
+        const next=Array.from(controls.children).find(c=>c.tagName==='BUTTON' && !c.disabled);
+        if (recordedLabel) status.textContent='Recorded: '+recordedLabel+'.'+(next ? ' Next: '+next.textContent+'.' : '');
+        recordedLabel=null;
+        const target=recovery.children[0];
         if (target && typeof target.focus==='function') target.focus();
       }
     }

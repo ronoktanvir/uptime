@@ -20,12 +20,26 @@ function mount(responses){const root=new Element('main'),calls=[];const queue=[.
   const ui=create({document,api:async(path,body)=>{calls.push([path,body]);const r=queue.shift();if(r instanceof Error)throw r;return r;}});return {root,calls,ui};}
 const button=(root,name)=>root.all('button').find(b=>b.textContent===name);
 
-test('after a recorded action, focus moves to the next offered step',async()=>{
+test('after a recorded action, focus moves to the recovery heading and never onto the next decision',async()=>{
   const s=mount([{recorded:true},{workflow:step('File January claim','a2')}]);
   await s.ui.render(s.root,step('Approve January claim','a1'));
   document.activeElement=null;
   await button(s.root,'Approve January claim').listeners.click();
-  assert.equal(document.activeElement,button(s.root,'File January claim'));
+  assert.notEqual(document.activeElement,button(s.root,'File January claim'));
+  assert.equal(document.activeElement.tagName,'H2');assert.equal(document.activeElement.textContent,'January recovery');
+  assert.ok(s.root.textContent.includes('Recorded: Approve January claim. Next: File January claim.'));
+});
+
+test('a repeated Enter or Space key event on a decision is suppressed; a fresh press is not',()=>{
+  const s=mount([]);
+  return s.ui.render(s.root,step('Approve January claim','a1')).then(()=>{
+    const keydown=button(s.root,'Approve January claim').listeners.keydown;
+    for (const [key,repeat,blocked] of [['Enter',true,true],[' ',true,true],['Enter',false,false],['Tab',true,false]]) {
+      let prevented=false;keydown({key,repeat,preventDefault(){prevented=true;}});
+      assert.equal(prevented,blocked,key+' repeat='+repeat);
+    }
+    assert.equal(s.calls.length,0);
+  });
 });
 
 test('when no step remains, focus moves to the recovery heading',async()=>{
