@@ -50,6 +50,11 @@ If someone other than Ronok presents, say "Ronok's enrolled account" rather than
 - That the guide uses a model. It answers from fixed, cited case facts; D10 and D12 keep it read-only, with no case data sent to a model.
 - Any accuracy or ROI number. The onboarding evaluation's first attempts accepted 0 of 4 supported extractions, and the D13 bar is not met.
 
+## If asked (not in the two minutes)
+
+- **"A status page isn't customer proof."** Show the W5 public status receipt ([public-status-live-91a.json](../evidence/evidence-custody-90/public-status-live-91a.json)). Twilio's real published incident `fm5fk85h6glc` was delivered as a signed status record, and the claim stayed INSUFFICIENT_EVIDENCE with a null amount until customer impact is shown. Disclosure: "the claim account is a local test scope; the outage is Twilio's real published incident." To re-run it, use `scripts/rehearse_public_status.py` in its own harness-hosted workspace, never the Northwind presentation workspace. Running it live needs one public HTTPS GET.
+- **"How do new vendors get added?"** Point to the adapter requirement card (decision 90) and the D05 decision: Uptime selects among supported rule families, and a person approves before activation. Auto-selection is not built yet.
+
 ## Fallback
 
 Each fallback is offline and repeatable, and none performs a native or model action.
