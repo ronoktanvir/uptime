@@ -1,0 +1,6 @@
+{
+  "name": "Halden Relay control with conflicting and excluded terms (authored)",
+  "uri": "urn:synthetic:submission:halden-relay-control",
+  "classification": "synthetic_public",
+  "text": "Halden Relay Service Level Agreement\nHalden Systems provides Halden Relay on the Harbor plan.\nThis service level agreement is effective from 2026-01-01 through 2026-12-31.\nWe calculate availability for full calendar months using UTC.\n| Monthly availability below | Service credit |\n| --- | --- |\n| 99.95% | 10% |\n| 99.5% | 25% |\n| 98% | 50% |\nA claim must be submitted within 30 calendar days following month end.\nClaims must be received within 10 calendar days after month end.\nDowntime caused by scheduled maintenance announced 72 hours in advance is excluded.\nThe credit is calculated from the affected monthly service fees and credited to your next invoice."
+}
