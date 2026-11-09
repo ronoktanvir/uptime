@@ -196,6 +196,50 @@ The routes run with the ordinary request proofs, and the shared job service invo
 - **Scripted semantic review:** category `AMBIGUOUS_GROUNDS`; preparing a response is refused.
 - **Result:** the case stays in `HUMAN_REVIEW` (escalation), awarded 0.00, one filing, scope unchanged.
 
+### Recorded denial-job workspace (for the film and the judge guide)
+
+**It exists, and nothing serves it.** The runner wrote to a kept directory and its in-process client ended with the run.
+- **Original:** `~/.local/share/uptime-engineering/tasks/role2-denial-model-job/run-1/`. Untouched; mode 0700.
+- **Requested copy:** `~/.local/share/uptime-engineering/tasks/submission-disputes-20261109/recorded-workspace/` (0700). It is byte-identical to the original; `workspace/workspace.db` SHA-256 `1a035ab27ab5cb01aec266066b9a7a0870fa41e1a909e1bfe7025eb8d7135c4d`.
+- It holds the Northwind workspace created with `--counterparty-reply unclear` and routine automation on:
+  - the scripted reviewer's own reading;
+  - model job `29f371d0` and its candidate;
+  - the scripted semantic review.
+- `proposals/` holds the run's model config, its now-expired one-invocation approval and the exported request.
+
+**Serve a copy, never the preserved folder.** Signing in writes session rows to the database, and the first open by a newer build adds a column (below).
+
+```bash
+COPY="$HOME/uptime-recorded-denial-view"
+cp -Rp "$HOME/.local/share/uptime-engineering/tasks/submission-disputes-20261109/recorded-workspace" "$COPY" && chmod 700 "$COPY"
+```
+
+```bash
+python3 -c 'import json,os,sys; d=sys.argv[1]; c=json.load(open(d+"/proposals/config.json")); c["approvals_path"]=d+"/proposals/approvals.json"; f=os.open(d+"/proposals/view-config.json",os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600); os.write(f,json.dumps(c).encode()); os.close(f)' "$COPY"
+```
+
+```bash
+uv run --locked python scripts/setup_northwind.py --directory "$COPY/workspace" --resume --serve --public-proposal-config "$COPY/proposals/view-config.json"
+```
+
+- **Where it serves.** The last command serves the copy at the workspace's recorded origin, `http://127.0.0.1:8823`. The sign-in file is `$COPY/workspace/scripted-reviewer.jwk` and the account is `scripted-test-reviewer`. The setup prints the same three lines.
+- **No new model call can start.** The config is passed only so the job record is shown. The approval expired at 22:19 UTC, and the exact request already has a job, so the view reports `existing_request` with `can_request: false`.
+
+**What a viewer sees**
+
+| Where | API route | What it shows |
+|---|---|---|
+| Workspace page | `GET /api/workspace/workflow` | `automation.state` `PAUSED` with pause `UNEXPECTED_GROUND`: "The vendor reply needs the reviewer's reading and semantic review." No next action. Three steps: approve claim (person), file claim (under the approval), receive reply (intake). Claimed 2400.00; awarded, posted and applied 0.00. Workspace time 2026-03-01 12:10 UTC. |
+| January claim, interpretation panel | `GET /api/correspondence/claims/inbox-northwind-2026-01/interpretation` | The vendor reply text; the reviewer's own reading. The model job: `SUCCEEDED`, submitted 21:19:55, started 21:19:55, finished 21:20:00 UTC (about 5.4 s). The model candidate: model `claude-opus-5-5`, session `ce56dc6e…`, proposed reading `unsupported`, citing the whole reply (bytes 0–200). The model returned that proposition twice; it is shown as returned. |
+| Same panel, job receipt (needs role 1's `611efdf`) | same route, `model_job.job.provider` | `client_reported_cost_usd` 0.044891, `returncode` 0, `tool_events` 0, `tool_inventory: []`, `mcp_inventory: []`, transport `safe-public-experimental-v2` |
+| Dispute record | `GET /api/correspondence/claims/inbox-northwind-2026-01/trace` | Disposition `ESCALATE`, category `AMBIGUOUS_GROUNDS`; the reviewed reading `INFORMATIONAL_REVIEW` / `AMBIGUOUS_GROUNDS` (prepare refused). The claim stays with a person. |
+
+**Newer builds.** No manual migration is needed. Verified in process against a scratch copy, on `a40fd84` (origin's integration head) with role 2 `28fd9ac` merged, then again with role 1's branch merged too.
+- The first open adds the nullable `timing` column to the step table. That is `28fd9ac`; before it, a newer build failed reading this workspace's step history.
+- The three recorded steps show `timing: null` because they predate it.
+- The preserved folder's database hash was unchanged after both checks.
+- A browser check at 1440 px is gent7's.
+
 ### The three outcomes
 
 | Outcome | Where it works today | Evidence |
