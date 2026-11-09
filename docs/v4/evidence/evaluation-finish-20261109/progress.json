@@ -1,0 +1,55 @@
+{
+  "schema": "uptime-evaluation-progress/1",
+  "updated_at": "2026-11-09T20:01:57.889586+00:00",
+  "state": "PREPARING_FROZEN_SUPPLEMENT",
+  "lane": "independent-evaluation",
+  "implementation_base": "579997f1adb17b1ce5ea5c50b366cf1fe562b170",
+  "commits": [
+    "787f2f3"
+  ],
+  "new_cohort": {
+    "contracts": 6,
+    "replies": 8,
+    "source_authoring": "RUNNING",
+    "expected_commitment": null,
+    "scored_attempts_started": 0
+  },
+  "historical_results": {
+    "onboarding_accepted": "0/4",
+    "supported_replies": "0/50",
+    "backblaze": "NO_SUPPORTED_FAMILY",
+    "superseded": false
+  },
+  "runner_checks": {
+    "passed": 53,
+    "warnings": 1,
+    "seconds": "1.69",
+    "provider": "explicit controlled double; not inference evidence"
+  },
+  "blocked_stage": "Waiting for independently authored source freeze and parent merged implementation SHA before scored inference.",
+  "ready_components": [
+    "create-only onboarding attempts",
+    "source and implementation pin checks",
+    "real claim-scope preflight with explicitly assumed adapter",
+    "signed local dispute setup and ordinary model queue composition",
+    "raw candidate separated from scripted source projection"
+  ],
+  "actual_opus_sessions": [
+    {
+      "id": "fc0483a1-a8ee-475a-a5f9-247953793f18",
+      "purpose": "public runner review and preflight tests",
+      "state": "COMPLETE",
+      "model": "claude-opus-5-5",
+      "effort": "xhigh"
+    },
+    {
+      "id": "c2885ff9-3d13-4d06-8dbf-c2261c1363d0",
+      "purpose": "independent authored supplementary source corpus",
+      "state": "RUNNING",
+      "model": "claude-opus-5-5",
+      "effort": "xhigh"
+    }
+  ],
+  "external_actions": [],
+  "authority": "scripted local evaluation only; no actual-human release certification"
+}

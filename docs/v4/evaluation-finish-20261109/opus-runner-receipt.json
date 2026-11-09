@@ -1,0 +1,23 @@
+{
+  "session_id": "fc0483a1-a8ee-475a-a5f9-247953793f18",
+  "model": "claude-opus-5-5",
+  "tools": [
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "mcp_servers": [],
+  "permissionMode": "acceptEdits",
+  "requested_effort": "xhigh",
+  "result_is_error": false,
+  "scope": "Copied public runner/schema only. No corpus or gold supplied.",
+  "stream_sha256": "557afd4d624306cdc296d9fa89edc54f604bb96716d614dd6513f097c0868db5",
+  "prompt_sha256": "c5f0afc991297d67e4cffdeae6ecb8a7a689786febf66b6789d1ad641fbaec40",
+  "contribution": [
+    "scripts/preflight_scope_finish.py",
+    "tests/test_preflight_scope_finish.py",
+    "docs/v4/evaluation-finish-20261109/OPUS-RUNNER-REVIEW.md"
+  ]
+}
