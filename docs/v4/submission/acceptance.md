@@ -35,7 +35,7 @@ Nothing is rescored, and no competing run is created. The report lists each eval
 | evaluation86 dispute cohort | gent8 (grader), agent3 (executor) | runner frozen `e1b6657` | Not run: setup-blocked. Under Ronok's 3a it waits for setup |
 | D05 run 1 (sealed vendor, revealed: Backblaze) | gent8 | `cccb5a0` (= `3f60647` code) | `NO_SUPPORTED_FAMILY`; safe; correctness not established |
 | D05 run 2 | gent8 | pre-registered `46feb99`, sealed `51f58ac` | Not run; needs Ronok's go-ahead |
-| Finish cohort: 6 contracts, 8 replies | **Codex evaluation lane** (`work/evaluation-finish-20261109`) | `805dd1c` | As published in `docs/v4/FINISH-20261109.md` on main: 0/4 intended positives staged after 12 Opus returns; negatives refused at identifier grounding; 6 dispute setups quarantined, 2 readings failed grounding, no held-out dispute inference. Attributed to that lane; its sealed answers and task directory are not opened. |
+| Finish cohort: 6 contracts, 8 replies (14 cases) | **Codex evaluation lane** (`work/evaluation-finish-20261109`) | `805dd1c` | As that lane published in `docs/v4/evaluation-finish-20261109/RESULTS.md` (`origin/main` `b6e93bd`): ordinary onboarding 6/6 refused, 0 SHADOW; 0/4 author-intended positives; 2/2 negative controls refused without establishing their decisive defect; 12 actual Opus 5.5 calls returned (no timeouts or tools), all failing proposal validation; held-out disputes 0 of 8 dispatched (6 setup refusals, 2 source-reading refusals), so dispute model accuracy is unmeasured; 0 of 15 financial scenarios reached; no human or native action. Attributed to that lane, not rescored, and its sealed answers and task directory are not opened. |
 
 Any remediation rerun receives a new name, for example `R1-<date>-<scope>`, and never replaces a first attempt.
 
@@ -134,9 +134,9 @@ The report covers:
 - the claim-by-claim statement from task 8;
 - the reveal of the sealed file with its digest check.
 
-## Decisions needed before or during Phase B
+## Decisions: answers received (coordinator, November 9)
 
-1. **Disk.** Free space is about 1.2 GiB, below the brief's 3.4 GiB. A fresh clone with `uv sync` (about 200 MB) and any browser install needs room first.
-2. **C6 live check.** Default: verify only from recorded artifacts. A fresh read-only Ramp API read with the existing `bills:read` installation needs Ronok's explicit OK.
-3. **Model calls for task 5.** At most one genuine `claude-opus-5-5` call per claimed path (2–3 in total), public or authored text only, no retry. Ronok confirms.
-4. **D05 run 2** (pre-registered and sealed) would supply the new-vendor outcome on the frozen commit. It runs only with Ronok's go-ahead.
+1. **Disk.** The earlier dip was a temporary Chrome update and has cleared. Phase B rule: check `df -k /System/Volumes/Data` first, and do not clone or sync below 1.5 GiB free. Make one fresh clone at a time and delete it afterwards.
+2. **C6.** Recorded artifacts only. A fresh read-only Ramp read is Ronok's to start and is not part of this plan. The "Verified Ramp record" panel for bill f74ba12c is checked against the committed November 9 capture and association receipt.
+3. **Task 5.** Covered by Ronok's brief, per the coordinator. First, dispatch is established from the implementers' job rows, provider receipts and timestamps. Only where those cannot establish it: one fresh `claude-opus-5-5` call per claimed model path, at most 3 in all, authored or public text only, no retry. Each exact request is approved through the existing operator CLI with `approved_by` naming gent8 as the engineering operator. It never names Ronok and never reads as a human review.
+4. **D05 run 2.** Not part of this push. It runs only on Ronok's go-ahead in the evaluation session.
