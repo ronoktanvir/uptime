@@ -45,6 +45,7 @@ import unicodedata
 from uuid import UUID
 
 from .contracts import Source
+from .source_identity import refusal as identity_refusal
 
 MAX_CENTS = 10**15
 SCOPE_FIELDS = ("vendor_id", "account_id", "product_id", "contract_id", "contract_version", "currency")
@@ -53,8 +54,10 @@ SCOPE_FIELDS = ("vendor_id", "account_id", "product_id", "contract_id", "contrac
 def canonical(value, field="identifier"):
     if not isinstance(value, str):
         raise ValueError(f"Missing {field}")
-    value = unicodedata.normalize("NFC", value).strip()
-    if not value or len(value) > 512 or not value.isprintable():
+    # Decision D03-A: refuse, never rewrite. Surrounding whitespace or non-NFC text is not
+    # repaired into an apparently matching identity. UUID text keeps its existing canonical form.
+    if (not value or len(value) > 512 or not value.isprintable() or value != value.strip()
+            or unicodedata.normalize("NFC", value) != value):
         raise ValueError(f"Invalid {field}")
     try:
         return str(UUID(value))
@@ -284,6 +287,10 @@ def _schema(db):
 
 def _scope(db, tenant, row):
     values = [canonical(row.get(key), key) for key in SCOPE_FIELDS]
+    # Decision D03-A: the account and agreement identities follow the shared bounded domain.
+    for key in ("account_id", "contract_id"):
+        if identity_refusal(values[SCOPE_FIELDS.index(key)]):
+            raise ValueError(f"Invalid {key}")
     values[-1] = values[-1].upper()
     if values[-1] != "USD":
         raise ValueError("Only USD settlement is supported")

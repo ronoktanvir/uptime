@@ -301,7 +301,12 @@ def bind_overlay(manifest, overlay):
         raise ValueError('Resource mappings require a resource-month contract.')
     if overlay.currency != 'USD' or manifest['agreement'] is not None and scoped[0] != manifest['agreement']:
         raise ValueError('Unsupported agreement or fee currency.')
-    for value in (overlay.agreement, overlay.product, overlay.plan, overlay.account, overlay.fee_line_ref):
+    from .source_identity import refusal as identity_refusal
+    # Decision D03-A: account and agreement are exact source identities, refused, never rewritten,
+    # in the same bounded domain as claim intake. Product, plan and fee line keep their source grammar.
+    if identity_refusal(overlay.agreement) or identity_refusal(overlay.account):
+        raise ValueError('Missing or ambiguous overlay binding: account and agreement must be bounded exact source identities.')
+    for value in (overlay.product, overlay.plan, overlay.fee_line_ref):
         if not _match(NAME, value):
             raise ValueError('Missing or ambiguous overlay binding.')
     if resource:

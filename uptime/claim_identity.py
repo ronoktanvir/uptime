@@ -17,12 +17,37 @@ import re
 import unicodedata
 
 from .contracts import fingerprint
+from .source_identity import source_identity
 
 TABLE = "claim_dispatch_identity_v2"
 
 
 class EconomicScopeReviewRequired(ValueError):
     """A retained legacy key cannot safely represent this measurement tuple."""
+
+
+class NearDuplicateIdentity(ValueError):
+    """Decision D03-A guard: an identity differing only by case or spacing already filed this obligation.
+
+    Refused, never merged. No override path exists; recording one is a separate, unapproved authority.
+    """
+
+
+def _fold(value):
+    return value.casefold().replace(" ", "")
+
+
+def _near_duplicate(db, economic):
+    """Refuse a new filing whose account/agreement equal an existing one up to case or spacing only."""
+    tenant, vendor, account, agreement, service, month, remedy = economic
+    for (raw,) in db.execute(f"SELECT identity FROM {TABLE} WHERE step='initial'"):
+        other = json.loads(raw)
+        if (len(other) == 7 and other[0] == tenant and other[1] == vendor and other[4:] == [service, month, remedy]
+                and (other[2], other[3]) != (account, agreement)
+                and (_fold(other[2]), _fold(other[3])) == (_fold(account), _fold(agreement))):
+            raise NearDuplicateIdentity(
+                "This obligation was already filed under an account or agreement that differs only by case or spacing; "
+                "a person must resolve the identity before filing. No override is available.")
 
 
 def _identity(value):
@@ -128,6 +153,8 @@ def _reserve(db, *, identity, route, case_id, packet_digest, scope, receipt_id, 
             raise ValueError("Supplement must reference the original filing receipt.")
     elif initial_receipt_id is not None:
         raise ValueError("An initial claim must be reserved before any supplement.")
+    elif not historical:
+        _near_duplicate(db, economic)
     existing = db.execute(f"SELECT route,case_id,scope,packet_digest,receipt_id,at FROM {TABLE} "
                           "WHERE obligation=? AND step=?", (key, step)).fetchone()
     if existing:
@@ -328,6 +355,9 @@ def reserve_claim(db, *, tenant, vendor, account, agreement_id, agreement_versio
     identity = dict(tenant=tenant, vendor=vendor, account=account, agreement_id=agreement_id,
                     agreement_version=agreement_version, service=service, month=month, remedy=remedy)
     _economic(**identity)
+    # Decision D03-A: a new filing's account is a bounded exact source identity. Historical rows
+    # imported by _backfill keep their stored bytes and are not re-validated by this rule.
+    source_identity(account)
     _schema(db)
     _backfill(db, tenant)
     return _reserve(db, identity=identity, route=route, case_id=case_id, packet_digest=packet_digest,
