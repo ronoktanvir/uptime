@@ -102,3 +102,4 @@ Current implementation and test boundaries appear in [engineering status](../STA
 - [93 — One Ramp case identity from financial record to reconciliation](ADR-0093-ramp-case-lineage.md)
 - [96 — Workspace recovery, installation revocation and operations health](ADR-0096-operations-recovery.md)
 - [89 — Reviewed denial acceptance and dispute trace](ADR-0089-reviewed-denial-acceptance.md)
+- [95 — Grounded read-only finance guide and next steps](ADR-0095-grounded-finance-guide.md)
