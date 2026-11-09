@@ -128,3 +128,15 @@ The browser does not render it yet; `web/` belongs to W7, and a request has gone
 - Final state: REVOKED at revision 9, with no active version.
 
 The registry labels these actions `authenticated_reviewer`; the record alone does not establish physical presence. [Receipt](evidence/onboarding-89/calyxquay-recorded-review.json). The historical documents and receipts are left unchanged; updating shared status records is the integration owner's job.
+
+## 7. Accepted findings awaiting a semantics revision
+
+W5 reported these against `vendor_terms.py` at `03b372e`, and the integration owner routed them to W3. Each is accepted as a finding and not yet implemented. `vendor_terms.py` is in the reviewed-semantics hash, so fixes must land together as one semantics revision that the team agrees to re-review. Editing it piecemeal would put every reviewed adapter, including the Northwind walkthrough and Aster SHADOW, into REVIEW_REQUIRED.
+
+| Finding | Status | Detail |
+|---|---|---|
+| F4: private filing override has no effective date or source hash | Blocked on D07 | Add explicit `effective_from` (and source SHA-256); apply only to months starting on or after it; missing or contradictory dates stay unsupported. Interim, with no code change: install a mid-term addendum as a separate slot whose overlay `effective_from` is the addendum date. |
+| F5: resource agreement unbound when the manifest agreement is null | Blocked on agent1's D03 identity interface | Bind the private agreement to the public document explicitly, or record that the public document governs. |
+| F6: `GoverningTerms.evidence_sha256` only format-checked | No decision dependency | Verify it against stored signed evidence. Until then the documentation calls it an operator-supplied reference. |
+| F9: legacy Atlassian PDF path keeps only hashes | Relevant only if D07 adopts PDF intake | Store originals content-addressed, keep page-mapped derived text, and treat numbers read from derived text as needing review. |
+
