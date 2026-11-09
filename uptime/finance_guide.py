@@ -55,6 +55,16 @@ ABSTAIN_JUDGMENT = "That needs a reviewer's judgment. The guide reports what thi
 READ_ONLY = "The guide is read-only and can't take that action."
 MAX_FACTS = 5
 GENERIC = {'credit', 'status', 'agreement', 'next'}
+# Contract terms this case's records never model. A question about one abstains unless a grounded fact states it,
+# rather than offering whatever agreement clause shares a generic word (Nov 9 judge reproduction).
+UNMODELED_TERMS = {
+    'renewal date': r'renew\w*|non-?renewal|auto-?renew\w*',
+    'notice period': r'notice(?:\s+period)?',
+    'termination right': r'terminat\w*|cancell?ation|cancel(?:l?ing)?\s+(?:the\s+|our\s+|this\s+)?(?:agreement|contract|subscription|service)',
+    'contract term': r'(?:initial|renewal|contract|minimum|committed)\s+term|term\s+length',
+}
+# A clause quotation is a fact only when it states something: a number, a percentage or an operative term.
+OPERATIVE = re.compile(r'[0-9%]|\b(?:must|shall|will|credits?|claims?|receiv\w*|measur\w*|applies|apply|earns?|fees?)\b', re.I)
 # Recorded workflow events that mark the claim's course, quoted verbatim with their timestamps.
 HISTORY_EVENTS = ('Filed approved packet', 'Evaluated vendor correspondence', 'A newly acquired artifact', 'Approved exact')
 
@@ -95,7 +105,9 @@ def facts(projection, summary=None):
             quote = cite.get('quote') if isinstance(cite, dict) else None
             if not quote or quote in seen:
                 continue
-            seen.add(quote)
+            seen.add(quote)  # positions still count a heading, so clause ids keep their source numbering
+            if not OPERATIVE.search(quote):
+                continue  # a bare heading such as "Service Level Agreement" answers nothing
             topics = {'agreement'} | {t for t, pattern in CLAUSE_TOPICS.items() if re.search(pattern, quote, re.I)}
             _fact(out, 'clause.' + str(len(seen)), f'{cite.get("label")}: “{quote}”', topics, 'months',
                   ref=cite.get('ref'), label=str(cite.get('label')))
@@ -265,6 +277,11 @@ def answer(question, projection):
     if JUDGMENT.search(text):
         return _response(text, projection, [], abstained=True, reason='requires_judgment', lead=ABSTAIN_JUDGMENT,
                          related=ranked[:3])
+    unmodeled = [name for name, pattern in UNMODELED_TERMS.items() if re.search(rf'\b(?:{pattern})\b', text, re.I)]
+    if unmodeled and not any(re.search(rf'\b(?:{UNMODELED_TERMS[name]})\b', f['text'], re.I)
+                             for name in unmodeled for f in grounded):
+        return _response(text, projection, [], abstained=True, reason='not_in_records',
+                         lead=f"{ABSTAIN_SCOPE} They don't establish a {' or '.join(unmodeled)}.")
     unknown = _unknown_names(text)
     if unknown:
         return _response(text, projection, [], abstained=True, reason='outside_case',

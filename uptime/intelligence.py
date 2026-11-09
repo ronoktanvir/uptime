@@ -23,6 +23,9 @@ BASIS_TOPICS = re.compile(r"\b(?:fees?|amounts?|credits?|calculat\w*|eligib\w*|w
                           r"award\w*|applied|claim\w*|estimat\w*|money|usd|percent\w*|price|cost|invoices?|bills?|"
                           r"decision|classif\w*|explain\w*|summar\w*|status|stage|case)\b|\$|%", re.I)
 ABSTAIN = "This case's records don't answer that. Ask about its evidence, calculation or next step."
+# Contract terms no case here models. Without a clause that states one, the guide abstains instead of listing citations.
+UNMODELED = re.compile(r"\b(?:renew\w*|non-?renewal|auto-?renew\w*|notice|terminat\w*|cancell?ation|"
+                       r"(?:initial|renewal|contract|minimum|committed)\s+term|term\s+length)\b", re.I)
 ALLOWED_ATOMS = {
     "basis": ("fee_lines", "outcome", "ledger"),
     "proof": ("required", "evidence", "citations"),
@@ -95,6 +98,11 @@ def explain(case, question):
     else:
         intent="basis"
     sources=list(dict.fromkeys(case["sources"]+["DETERMINISTIC_REPLAY"]))
+    if intent!="next" and UNMODELED.search(question) and not any(
+            UNMODELED.search(str(c.get("label",""))) for c in case.get("clauses",[]) if isinstance(c,dict)):
+        return {"answer":"This case's records don't establish that term. Ask about its evidence, calculation or next step.",
+                "intent":intent,"abstained":True,"sources":sources,
+                "model":"Verified Claude explanation plan + current deterministic case state","external_transmission":False}
     if intent=="basis" and not BASIS_TOPICS.search(question):
         return {"answer":ABSTAIN,"intent":intent,"abstained":True,"sources":sources,
                 "model":"Verified Claude explanation plan + current deterministic case state","external_transmission":False}
