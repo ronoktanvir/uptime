@@ -37,3 +37,7 @@ uv run --locked --no-sync python -m pytest tests/onboarding_finish20261109 tests
 **433 passed, 1 warning in 3.17s.** The warning is the existing Starlette/httpx deprecation. Retained intermediate failures: 1 failed / 258 passed (new model fallback lacked party scope), 1 failed / 387 passed (leading determiner case in new title check), and 1 failed / 431 passed (new requirement-card test omitted its helper argument). Each was corrected before this result. The earlier expected red phase remains recorded. See evidence logs and the completed real-worker receipt.
 
 No unseen evaluation score is claimed. Original 0/4 and Backblaze refusal remain. Full monthly claim core plus all source-semantics dependencies must be integrated atomically and the complete locked suite run before freezing for evaluation. The optional monthly evidence marker is an explicitly approved separate path; legacy absence retains incident requirements.
+
+## Combined collection correction
+
+The first complete locked run on `b1e0680` stopped during collection: **1 warning, 1 error in 1.26s**, with 5,254 items discovered. The new `test_monthly_basis_compilation.py` imported an existing root test fixture through the focused command's extra `PYTHONPATH`; the normal suite did not supply that path. The test now loads the same authored fixture by its exact file path. No application source or expected outcome changed. The failed full log is retained as `merge-b1e0680-pytest.log`; the normal locked suite is rerun after this correction.
