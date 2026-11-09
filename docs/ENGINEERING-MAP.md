@@ -21,7 +21,7 @@ flowchart TB
     I["Open: identity + scope<br/>Shared intake repairs"]
     OG["Open: unseen vendors<br/>Independent evaluation"]
     DG["Open: unseen replies<br/>Independent evaluation"]
-    H["Pending: human review<br/>Promotion + rollback"]
+    H["Recorded: local review<br/>Approve · activate · roll back"]
     N["Open: native proof<br/>Writes + credit records"]
     T["Pending: full rehearsal<br/>Two-minute presentation"]
     P["Future: customer hosting<br/>OAuth · jobs · operations"]
@@ -47,11 +47,11 @@ flowchart TB
     N --> P
     classDef verified fill:#EAF3D0,stroke:#52683D,color:#18312C;
     classDef open fill:#F6F8F0,stroke:#75806E,stroke-dasharray:5 4,color:#26352B;
-    class F,R,C,O,D,L verified;
-    class I,OG,DG,H,N,T,P open;
+    class F,R,C,O,D,L,H verified;
+    class I,OG,DG,N,T,P open;
 ```
 
-The approved hackathon path uses the verified human-posted Ramp note and the authored financial workflow. It does not depend on pretending that native credit recovery is complete. The separately prepared local review exception remains unsigned and inactive. [Exact review proposal](v4/LOCAL-REVIEW-EXCEPTION.md) · [Approved demonstration boundary](v4/DEMO-PATH-87.md)
+The approved hackathon path uses the verified human-posted Ramp note and the authored financial workflow. It does not depend on pretending that native credit recovery is complete. The separately prepared local review exception was signed and used once on November 9: CalyxQuay revisions 6–9 are recorded under the enrolled `ronok-tanvir` account and end REVOKED at revision 9. General release promotion is still gated. [Recorded review](v4/LOCAL-REVIEW-EXCEPTION.md) · [Approved demonstration boundary](v4/DEMO-PATH-87.md)
 
 ## Find the implementation
 
@@ -80,7 +80,7 @@ Test totals refer to those exact checkpoints. They measure regression coverage. 
 
 ## The next work, in dependency order
 
-1. **Complete the approved demonstration boundary.** Review the prepared exception, perform the real teammate lifecycle and rehearse the combined presentation. The human-posted Ramp note is already verified.
+1. **Complete the approved demonstration boundary.** The teammate review lifecycle is recorded and the human-posted Ramp note is verified. What remains is a timed rehearsal of the combined presentation. [Rehearsal](v4/integration90/REHEARSAL.md)
 2. **Resolve identity and claim-scope decisions.** Preserve exact source identities across onboarding and claims; represent whole-service and resource-specific obligations explicitly. These are shared dependencies for the paused evaluation work.
 3. **Evaluate onboarding and disputes in parallel.** Finish the application-path runners, freeze them, run the new independent cases once and report supported-case success separately from appropriate refusal. Known-case repairs do not replace that evidence.
 4. **Establish deeper native financial proof.** Use an authorized supported workflow and actual provider credit/bill records. The previously rejected agent posting operation remains restricted; another tool or credential is not an alternate route.

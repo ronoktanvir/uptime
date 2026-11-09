@@ -1,5 +1,29 @@
 # CalyxQuay local permission review
 
+## Recorded outcome — November 9, 2026 (current)
+
+**Used once and finished. The final recorded state is REVOKED at revision 9; the grant is COMPLETED.** No further action is possible under this grant. A new review needs a new proposal and a new exact approval. [Read-only receipt](evidence/local-review-88/recorded-review-20261109.json)
+
+| Step | Recorded at (Pacific) | Record |
+|:---|:---|:---|
+| Operator approval of the exact proposal digest `71de8edd…` | Nov 8, 10:19:59 PM | Host authority log `OWNER_APPROVED`; signed envelope written 10:20:05 PM |
+| Listener accepted the signed grant at revision 5 | Nov 8, 10:20:16 PM | Host authority log `ACCEPTED` |
+| Revisions 1–5: import, validation, shadow, binding review, shadow scenarios | Nov 7, 5:50:33 PM | Actor `scripted-test-reviewer`. Scripted preparation, **not** Ronok's decisions |
+| Revision 6: accept source interpretation | Nov 9, 2:07:28 AM | Actor `ronok-tanvir` |
+| Revision 7: approve reviewed tests → APPROVED | Nov 9, 2:07:43 AM | Actor `ronok-tanvir`, reviewer kind `authenticated_reviewer` |
+| Revision 8: activate for local evaluation → ACTIVE | Nov 9, 2:07:53 AM | Actor `ronok-tanvir`, active version `5616fe29…` |
+| Revision 9: roll back activation → REVOKED | Nov 9, 2:08:51 AM | Actor `ronok-tanvir`; host log `COMPLETED`: "Rollback ends this permission" |
+
+All five shadow checks passed at each recorded revision. The authority log contains exactly one request/action pair for each of the four permitted operations and no other operation.
+
+What this establishes: revisions 6–9 were authenticated with the key enrolled for the `ronok-tanvir` account, under the exact signed, time-bounded grant, inside the authored local workspace. What it does not establish: who physically operated the browser or ran the owner-approval and signing commands (the record does not identify an operator, and no agent in the November 9 integration performed them); a real customer's contract approval; independent release certification; or any Ramp, claim, credit or payment authority. The standard release gate remains the default for every other launch.
+
+The browser sign-in change that lets the real sign-in page pass this guard (explicit login path and empty body hash; `.jwk` picker) is integrated on `work/integration-90`. The receipt cannot show which bytes of `web/auth.js` the browser loaded at 2:07 AM, because that file was edited again later.
+
+## November 7 preparation record (historical)
+
+The text below describes the state when the proposal was prepared. It is preserved unchanged.
+
 **Prepared and tested; not enabled.** The exact unsigned proposal is `/Users/ronoktanvir/.local/share/uptime-engineering/runtime/ronok-review-87/review-proposal-88.json`. Ronok's workspace remains SHADOW at revision 5, with no named approval or active adapter. No operator approval, reviewer signature or installed exception exists. The only existing lifecycle actors are the explicitly scripted preparation records.
 
 | Review item | Exact scope |
