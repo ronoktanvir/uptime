@@ -9,6 +9,12 @@ from decimal import Decimal, localcontext
 
 from .contracts import fingerprint
 from .correspondence_interpretation import text_digest
+from .correspondence_types import Digest, Strict
+
+
+class DenialAcceptance(Strict):
+    """The exact basis digest the reviewer saw on the offered accept-denial action."""
+    basis_digest: Digest
 
 MISSING = frozenset({"component", "artifact", "filing_fields"})
 DENIAL = frozenset({"maintenance", "time_bar", "availability", "downtime"})
@@ -171,6 +177,14 @@ def _checks(desk, scope, state, current, view):
                                           and s["packet"].get("filing_cutoff") == original["packet"].get("filing_cutoff")
                                           for s in followups),
                                original=original["id"], follow_ups=[s["id"] for s in followups]))
+    if scope.vendor.casefold() == "twilio" and scope.service == "Twilio Messaging API":
+        explicit = any(e["kind"] == "coverage" for e in state["evidence"])
+        # The ordinary profile treats one provisioned single-incident status record as the
+        # month's record unless an explicit month report arrives (W5 finding F3, D07 pending).
+        checks.append(dict(check="month_coverage_basis",
+                           result="EXPLICIT_MONTH_REPORT" if explicit else "PROVISIONED_SINGLE_INCIDENT_RECORD",
+                           detail=None if explicit else "No signed complete-month report; the amount is evaluated from a "
+                                  "single status record that provisioning treats as the month's only incident."))
     if state.get("reason") == "maintenance":
         checks.append(dict(check="timely_independent_maintenance_notice",
                            result=desk._maintenance_substantiated(scope, state, evaluation)))
@@ -179,7 +193,9 @@ def _checks(desk, scope, state, current, view):
                            counterparty_downtime_microseconds=state.get("vendor_downtime_us")))
     basis = desk._denial_basis(scope, state, current)
     if state["stage"] == "DENIAL_REVIEW":
-        checks.append(dict(check="denial_ground_substantiated", result=basis is not None, basis=basis))
+        checks.append(dict(check="denial_ground_substantiated", result=basis is not None, basis=basis,
+                           basis_digest=fingerprint(basis) if basis else None,
+                           filing_cutoff=current.cutoff.isoformat() if current.cutoff else None))
     if state.get("denial_acceptance"):
         checks.append(dict(check="explicit_denial_acceptance", result=True, **state["denial_acceptance"]))
     ledger = view["ledger"]
@@ -198,6 +214,9 @@ def dispute_trace(desk, interpretations, p, claim_id):
         view = desk._view(db, p, claim_id)
         scope, state = desk._read(db, p.tenant, claim_id)
     current = desk._assess(p.tenant, scope, state, desk._now())
+    stage = view["stage"]
+    stale = stage == "DENIAL_REVIEW" and desk._denial_basis(scope, state, current) is None
+    effective = dict(state, stage="HUMAN_REVIEW") if stale else state
     texts = {e["digest"]: e["body"]["text"] for e in state["evidence"] if e["kind"] == "message"}
     replies = []
     for i, reply in enumerate(state["replies"]):
@@ -210,7 +229,7 @@ def dispute_trace(desk, interpretations, p, claim_id):
                             interpretation=dict(origin=origin, review_id=reply.get("reviewed_interpretation"),
                                                 family=reply["reason"], source=_span(reply, text)),
                             ground=GROUND.get(reply["reason"]),
-                            category=_reply_category(reply, state, scope, later)))
+                            category=_reply_category(reply, effective, scope, later)))
     reviewed = []
     if (interpretations is not None and p.role == "reviewer" and view["stage"] == "HUMAN_REVIEW"
             and view.get("interpretation_review_url")):
@@ -233,8 +252,10 @@ def dispute_trace(desk, interpretations, p, claim_id):
                                      prepare_allowed=preview["prepare_allowed"], reported_award=preview["reported_award"],
                                      assertions=preview["assertions"], preview_digest=preview["digest"]))
     category = replies[-1]["category"] if replies else None
-    if reviewed and replies and replies[-1]["interpretation"]["origin"] == "unresolved":
-        category = reviewed[-1]["assertions"]["category"]
+    own = [r for r in reviewed if r["reviewer"] == p.subject]
+    if own and replies and replies[-1]["interpretation"]["origin"] == "unresolved":
+        # Only the requester's own latest reading sets the headline; others are rows.
+        category = own[-1]["assertions"]["category"]
     procedure = current.procedure or {}
     trace = dict(
         claim=dict(id=claim_id, tenant=p.tenant, scope=scope.model_dump(), obligation_id=view["obligation_id"],
@@ -256,7 +277,8 @@ def dispute_trace(desk, interpretations, p, claim_id):
         permitted_next_actions=[a["id"] for a in view["actions"]]
             + (["interpretation-review"] if view.get("interpretation_review_url") else []),
         category=category,
-        disposition=disposition(view["stage"], state.get("reason")),
+        disposition="ESCALATE" if stale else disposition(stage, state.get("reason")),
+        stale_denial_review=stale,
         final=view["stage"] in {"DENIAL_ACCEPTED", "AWARDED"},
         ledger=view["ledger"],
         authority=AUTHORITY)

@@ -4,6 +4,7 @@ The case texts and expectations were frozen in fixtures/correspondence/novel-89 
 implementation. Test principals are scripted (SCRIPTED_NOT_ACTUAL_HUMAN).
 """
 import ast
+from types import SimpleNamespace
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -23,6 +24,7 @@ from uptime.correspondence_review import InterpretationDesk
 from uptime.correspondence_types import Delivery, Scope
 from uptime.correspondence_vendor import VendorRecord, decide_claim, render
 from test_correspondence import BODIES, ID, REVIEWER, VIEWER, env  # noqa: F401  (fixture)
+from test_correspondence_service import service  # noqa: F401  (fixture)
 from test_correspondence_interpretation import meaning
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -91,6 +93,17 @@ def trace(env, principal=REVIEWER):
 
 def actions(row):
     return [a["id"] for a in row["actions"]]
+
+
+def accept(env, principal=REVIEWER):
+    """Accept with the exact offered basis digest, or a digest that matches nothing when none is offered."""
+    offered = [a for a in env.desk.case(REVIEWER, ID)["actions"] if a["id"] == "accept-denial"]
+    return env.desk.accept_denial(principal, ID, offered[0]["basis_digest"] if offered else "0" * 64)
+
+
+UNAVAILABLE = "Action unavailable"
+COVERAGE = dict(kind="coverage", start="2026-10-01T00:00:00Z", end="2026-11-01T00:00:00Z", complete=True,
+                exclusions_removed=True, incident_ids=["evt-411"], total_eligible_minutes=29)
 
 
 def test_frozen_vendor_texts_are_outside_the_finite_grammar():
@@ -186,14 +199,16 @@ def test_n89_denial_maintenance_is_order_independent_and_explicit(env, order):
     summary = trace(env)
     assert (summary["category"], summary["disposition"]) == ("CONTRACTUAL_DENIAL", "DENIAL_SUBSTANTIATED")
     with pytest.raises(PermissionError):
-        env.desk.act(VIEWER, ID, "accept-denial")
-    final = env.act("accept-denial")
+        accept(env, VIEWER)
+    with pytest.raises(ValueError, match="exact reviewed basis digest"):
+        env.act("accept-denial")
+    final = accept(env)
     assert final["stage"] == expected["stage"] and final["actions"] == []
     assert {k: final["ledger"][k] for k in expected["ledger"]} == expected["ledger"]
     assert len(final["submissions"]) == expected["submissions"]
     assert final["denial_acceptance"]["actor"] == REVIEWER.subject
     assert final["denial_acceptance"]["basis"]["review_id"] == rid
-    assert env.act("accept-denial") == final
+    assert accept(env) == final
     closed = trace(env)
     assert (closed["category"], closed["disposition"], closed["final"]) == ("CONTRACTUAL_DENIAL", "ACCEPT_DENIAL", True)
     assert closed["correspondence"][-1]["interpretation"]["origin"] == "reviewed_interpretation"
@@ -211,8 +226,8 @@ def test_n89_short_notice_makes_the_maintenance_assertion_incorrect(env):
     assert preview["assertions"]["category"] == case["expected"]["category"]
     prepare(desk, rid, preview)
     assert trace(env)["disposition"] == "REBUT" and actions(env.get()) == ["approve-response"]
-    with pytest.raises(ValueError):
-        env.act("accept-denial")
+    with pytest.raises(ValueError, match=UNAVAILABLE):
+        accept(env)
 
 
 def test_n89_unverified_maintenance_waits_and_cannot_be_accepted(env):
@@ -222,8 +237,8 @@ def test_n89_unverified_maintenance_waits_and_cannot_be_accepted(env):
     assert preview["assertions"]["category"] == "UNRESOLVED_DENIAL"
     prepare(desk, rid, preview)
     assert env.get()["stage"] == "AWAITING_NOTICE" and trace(env)["disposition"] == "AWAIT_EVIDENCE"
-    with pytest.raises(ValueError):
-        env.act("accept-denial")
+    with pytest.raises(ValueError, match=UNAVAILABLE):
+        accept(env)
 
 
 @pytest.mark.parametrize("case_id", ["n89-escalate-legal", "n89-injection"])
@@ -235,8 +250,8 @@ def test_n89_legal_and_injected_grounds_escalate_without_effect(env, case_id):
     assert not preview["prepare_allowed"] and preview["assertions"]["category"] == "AMBIGUOUS_GROUNDS"
     with pytest.raises(ValueError):
         prepare(desk, rid, preview)
-    with pytest.raises(ValueError):
-        env.act("accept-denial")
+    with pytest.raises(ValueError, match=UNAVAILABLE):
+        accept(env)
     assert env.get() == before
     summary = trace(env)
     assert (summary["category"], summary["disposition"]) == ("AMBIGUOUS_GROUNDS", "ESCALATE")
@@ -253,8 +268,8 @@ def test_n89_compound_ground_cannot_erase_unresolved_condition(env):
     categories = [row["category"] for row in preview["assertions"]["propositions"]]
     assert categories == ["UNRESOLVED_DENIAL", "AMBIGUOUS_GROUNDS"]
     assert preview["assertions"]["category"] == "AMBIGUOUS_GROUNDS"
-    with pytest.raises(ValueError):
-        env.act("accept-denial")
+    with pytest.raises(ValueError, match=UNAVAILABLE):
+        accept(env)
     assert env.get()["stage"] == "HUMAN_REVIEW" and trace(env)["disposition"] == "ESCALATE"
 
 
@@ -338,7 +353,7 @@ def test_loop_denial_with_novel_counterparty_wording(env):
     env.now += timedelta(minutes=5)
     env.send("notice")
     assert env.get()["stage"] == loop["claimant_after_review_and_notice"]
-    final = env.act("accept-denial")
+    final = accept(env)
     assert final["stage"] == loop["after_accept_denial"]
     assert len(final["submissions"]) - 1 == loop["follow_up_submissions"]
 
@@ -374,7 +389,7 @@ def _accepted(env):
     env.send("notice")
     desk, rid, preview = reviewed(env, reading(case))
     prepare(desk, rid, preview)
-    return env.act("accept-denial")
+    return accept(env)
 
 
 def test_repeated_and_conflicting_replies_after_acceptance(env):
@@ -408,18 +423,22 @@ def test_stale_authority_cannot_accept(env, monkeypatch):
     desk, rid, preview = reviewed(env, reading(case))
     prepare(desk, rid, preview)
     with pytest.raises(KeyError):
-        env.desk.act(Principal("elsewhere", "operator", "reviewer"), ID, "accept-denial")
+        accept(env, Principal("elsewhere", "operator", "reviewer"))
     original = env.desk._assess
     monkeypatch.setattr(env.desk, "_assess", lambda *a, **k: replace(original(*a, **k), version="changed-reviewed-terms"))
     assert env.get()["actions"] == []
-    with pytest.raises(ValueError):
-        env.act("accept-denial")
+    with pytest.raises(ValueError, match=UNAVAILABLE):
+        accept(env)
+    stale = trace(env)
+    assert stale["stale_denial_review"] and stale["disposition"] == "ESCALATE"
+    assert stale["category"] == "UNRESOLVED_DENIAL" and stale["ledger"]["disputed_remainder"] == "62.13"
+    assert next(c for c in stale["deterministic_checks"] if c["check"] == "denial_ground_substantiated")["result"] is False
     monkeypatch.setattr(env.desk, "_assess", original)
     policy.setup(env.path)
     policy.configure(env.path, REVIEWER, "OBSERVE", "0.00")
     assert env.get()["actions"] == []
     with pytest.raises(PermissionError):
-        env.act("accept-denial")
+        accept(env)
     assert env.get()["stage"] == "DENIAL_REVIEW"
 
 
@@ -452,8 +471,8 @@ def test_model_candidate_or_confidence_cannot_authorize_scope_or_money(env):
         desk.prepare(REVIEWER, ID, Prepare(review_id=stored, preview_digest="0" * 64))
     with pytest.raises(ValueError):
         desk.preview(REVIEWER, ID, stored)
-    with pytest.raises(ValueError):
-        env.act("accept-denial")
+    with pytest.raises(ValueError, match=UNAVAILABLE):
+        accept(env)
     assert env.get()["stage"] == "HUMAN_REVIEW" and env.get()["ledger"]["awarded"] == "0.00"
 
 
@@ -512,6 +531,8 @@ def test_trace_is_read_only_and_digest_bound(env):
         dispute_trace(env.desk, None, Principal("bears", "", "viewer"), ID)
     assert [c["check"] for c in first["deterministic_checks"]][:2] == ["governing_evaluation", "original_filing_within_window"]
     assert {e["kind"] for e in first["evidence"]} == {"status", "impact", "invoice", "component", "notice"}
+    basis = next(c for c in first["deterministic_checks"] if c["check"] == "month_coverage_basis")
+    assert basis["result"] == "PROVISIONED_SINGLE_INCIDENT_RECORD"
 
 
 def test_mounted_routes_accept_denial_and_return_trace(tmp_path, monkeypatch):
@@ -539,11 +560,149 @@ def test_mounted_routes_accept_denial_and_return_trace(tmp_path, monkeypatch):
         preview = app.client.get(base + "/reviews/" + rid + "/preview", headers=app.human.headers).json()
         assert preview["disposition"] == "DENIAL_REVIEW"
         assert app.post(base + "/prepare-response", dict(review_id=rid, preview_digest=preview["digest"]))["stage"] == "DENIAL_REVIEW"
-        assert app.client.post(app.url + "/actions/accept-denial", json={}).status_code in {401, 403}
-        closed = app.action("accept-denial")
+        assert app.client.post(app.url + "/denial-acceptance", json=dict(basis_digest="0" * 64)).status_code in {401, 403}
+        assert app.human.post(app.url + "/actions/accept-denial", {}).status_code == 409
+        offered = app.read()["actions"][0]
+        assert offered["id"] == "accept-denial" and offered["route"] == "denial-acceptance"
+        assert app.human.post(app.url + "/denial-acceptance", dict(basis_digest="0" * 64)).status_code == 409
+        closed = app.post(app.url + "/denial-acceptance", dict(basis_digest=offered["basis_digest"]))
         assert closed["stage"] == "DENIAL_ACCEPTED" and closed["ledger"]["awarded"] == "0.00"
         assert app.client.get(app.url + "/trace").status_code == 401
         summary = app.client.get(app.url + "/trace", headers=app.human.headers).json()
         assert (summary["disposition"], summary["category"]) == ("ACCEPT_DENIAL", "CONTRACTUAL_DENIAL")
     finally:
         app.client.close()
+
+
+@pytest.mark.parametrize("late", [True, False])
+def test_historical_original_reviewed_denial_requires_explicit_acceptance(service, late):
+    """Whole-service profile: an independently witnessed original filing and a novel denial reply."""
+    from test_correspondence_resource import deliver
+    from test_correspondence_service import reports
+    from uptime.contracts import fingerprint as digest
+    rows = reports()
+    if not late:
+        rows[0][1]["content"]["unavailable_minutes"] = 504
+        rows[0][1]["content_sha256"] = digest(rows[0][1]["content"])
+    deliver(service, rows)
+    service.now = datetime(2027, 3, 8, tzinfo=UTC)
+    original = dict(kind="original_filing_receipt", source_ref="portal-intake-89", receipt_id="outside-original-89",
+                    observed_at=service.now.isoformat(), received_at="2027-03-07T00:00:00.000001Z" if late else "2027-03-06T09:00:00Z",
+                    submitted_to="local-support", fields=[])
+    deliver(service, [("vendor-fixture", original)])
+    text = ("Our intake timestamp fell outside the permitted filing interval." if late
+            else "Our tooling shows the API stayed inside its committed availability for that month, so nothing is owed.")
+    deliver(service, [("vendor-fixture", dict(kind="message", receipt_id=original["receipt_id"], text=text))])
+    assert service.read()["stage"] == "HUMAN_REVIEW"
+    desk = InterpretationDesk(service.inbox)
+    context = desk.view(REVIEWER, service.id)["context"]
+    annotation = meaning(text, "time_bar" if late else "availability")
+    desk.blind(REVIEWER, service.id, Entry(context_digest=context["digest"], interpretation=annotation))
+    rid = desk.review(REVIEWER, service.id, Review(context_digest=context["digest"], interpretation=annotation, resolutions=[dict(
+        proposition=0, verdict="accept", explanation="Scripted reading of the complete signed reply.")],
+        residuals_reviewed=True, complete_meaning_reviewed=True))["id"]
+    preview = desk.preview(REVIEWER, service.id, rid)
+    assert preview["disposition"] == "DENIAL_REVIEW" and preview["assertions"]["category"] == "CONTRACTUAL_DENIAL"
+    desk.prepare(REVIEWER, service.id, Prepare(review_id=rid, preview_digest=preview["digest"]))
+    pending = service.read()
+    assert pending["stage"] == "DENIAL_REVIEW" and [a["id"] for a in pending["actions"]] == ["accept-denial"]
+    closed = service.post(service.url + "/denial-acceptance", dict(basis_digest=pending["actions"][0]["basis_digest"]))
+    assert closed["stage"] == "DENIAL_ACCEPTED" and closed["submissions"] == [] and closed["actions"] == []
+    assert closed["ledger"]["claimed"] == closed["ledger"]["awarded"] == "0.00"
+
+
+def test_historical_timely_original_rebuts_a_novel_time_bar(service):
+    from test_correspondence_resource import deliver
+    from test_correspondence_service import reports
+    deliver(service, reports())
+    service.now = datetime(2027, 3, 8, tzinfo=UTC)
+    original = dict(kind="original_filing_receipt", source_ref="portal-intake-89t", receipt_id="outside-original-89t",
+                    observed_at=service.now.isoformat(), received_at="2027-03-06T09:00:00Z", submitted_to="local-support", fields=[])
+    deliver(service, [("vendor-fixture", original)])
+    text = "Our intake timestamp fell outside the permitted filing interval."
+    deliver(service, [("vendor-fixture", dict(kind="message", receipt_id=original["receipt_id"], text=text))])
+    desk = InterpretationDesk(service.inbox)
+    context = desk.view(REVIEWER, service.id)["context"]
+    annotation = meaning(text, "time_bar")
+    desk.blind(REVIEWER, service.id, Entry(context_digest=context["digest"], interpretation=annotation))
+    rid = desk.review(REVIEWER, service.id, Review(context_digest=context["digest"], interpretation=annotation, resolutions=[dict(
+        proposition=0, verdict="accept", explanation="Scripted reading of the complete signed reply.")],
+        residuals_reviewed=True, complete_meaning_reviewed=True))["id"]
+    preview = desk.preview(REVIEWER, service.id, rid)
+    assert preview["disposition"] != "DENIAL_REVIEW" and not preview["closure_suggested"]
+    assert preview["assertions"]["category"] != "CONTRACTUAL_DENIAL"
+
+
+def _pending(env):
+    case = CASES["n89-denial-maintenance"]
+    open_case(env, case)
+    env.now += timedelta(minutes=5)
+    env.send("notice")
+    desk, rid, preview = reviewed(env, reading(case))
+    prepare(desk, rid, preview)
+    assert env.get()["stage"] == "DENIAL_REVIEW"
+
+
+def test_mandated_principal_cannot_accept_until_a_closure_decision_type_exists(env):
+    """Critique 89 #1/#2: view and action agree, and no mandate can yet bind a closure."""
+    _pending(env)
+    mandated = SimpleNamespace(tenant="bears", subject="operator", role="reviewer", mandate_id="mandate-89", claim_decision=None)
+    assert env.desk.case(mandated, ID)["actions"] == []
+    digest = env.get()["actions"][0]["basis_digest"]
+    with pytest.raises(PermissionError):
+        env.desk.accept_denial(mandated, ID, digest)
+    assert env.get()["stage"] == "DENIAL_REVIEW" and env.get()["denial_acceptance"] is None
+
+
+def test_acceptance_is_bound_to_the_basis_the_reviewer_saw(env):
+    """Critique 89 #3: new evidence that still substantiates the ground changes the basis digest."""
+    _pending(env)
+    seen = env.get()["actions"][0]["basis_digest"]
+    env.desk.receive(Principal("bears", "status-fixture", "service"), ID,
+                     Delivery(event_id="month-report", scope=env.scope, body=COVERAGE))
+    row = env.get()
+    assert row["stage"] == "DENIAL_REVIEW" and row["actions"][0]["basis_digest"] != seen
+    with pytest.raises(ValueError, match="basis changed"):
+        env.desk.accept_denial(REVIEWER, ID, seen)
+    closed = accept(env)
+    assert closed["stage"] == "DENIAL_ACCEPTED"
+    assert closed["denial_acceptance"]["basis_digest"] == row["actions"][0]["basis_digest"]
+
+
+def test_explicit_acceptance_reopens_when_its_own_ground_fails(env, monkeypatch):
+    """Critique 89 #5: the claim may stay INELIGIBLE, but the accepted ground must still hold."""
+    _pending(env)
+    accept(env)
+    monkeypatch.setattr(type(env.desk), "_maintenance_substantiated", staticmethod(lambda *a: False))
+    env.desk.receive(Principal("bears", "status-fixture", "service"), ID,
+                     Delivery(event_id="month-report", scope=env.scope, body=COVERAGE))
+    row = env.get()
+    assert row["preflight"]["outcome"] == "INELIGIBLE"
+    assert row["stage"] == "HUMAN_REVIEW" and row["denial_acceptance"] is None and row["actions"] == []
+    with database_state(env) as state:
+        assert len(state["superseded_denial_acceptances"]) == 1
+
+
+def test_trace_headline_uses_only_the_requesters_own_reading(env):
+    """Critique 89 #6: another reviewer's later reading cannot set my headline."""
+    case = CASES["n89-partial"]
+    open_case(env, case)
+    reviewed(env, reading(case))
+    other = Principal("bears", "second-reviewer", "reviewer")
+    reviewed(env, meaning(case["text"], "unsupported"), other)
+    mine, theirs = trace(env), trace(env, other)
+    assert mine["category"] == "PARTIAL_AWARD" and theirs["category"] == "AMBIGUOUS_GROUNDS"
+    assert {r["reviewer"] for r in mine["reviewed_readings"]} == {REVIEWER.subject, other.subject}
+
+
+class database_state:
+    def __init__(self, env):
+        self.env = env
+
+    def __enter__(self):
+        from uptime.storage import database
+        with database(self.env.path) as db:
+            return self.env.desk._read(db, "bears", ID)[1]
+
+    def __exit__(self, *exc):
+        return False
