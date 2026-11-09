@@ -53,7 +53,7 @@ Every branch starts from `origin/main` at `55ea607` or later. Sessions are exist
 | 3. Ramp connection | `agent4` (`claude-opus-5-5`, xhigh) | `work/submission-ramp-20261109` | `uptime/ramp*.py`, `scripts/ramp*`, the capability matrix and operator packet |
 | 4. Presentation interface | `gent7` (`claude-opus-5-5`, xhigh) | `work/submission-ui-20261109` | `web/`, `uptime/workbench.py`, browser interaction tests |
 | 5. Independent acceptance | `gent8` (`claude-opus-5-5`, xhigh) | `work/submission-acceptance-20261109` | Acceptance report; expected outcomes stay isolated from implementers |
-| 6. README, evidence, film | to be assigned after the judge session's drafts are located | `work/submission-presentation-20261109` | `README.md`, the judge-facing guide, screenshots, storyboard |
+| 6. README, evidence, film | `agent0` (`claude-opus-5-5`, xhigh), starting from the judge session's drafts | `work/submission-presentation-20261109` | `README.md`, the judge-facing guide, screenshots, storyboard |
 
 Each owner keeps one handoff file, `docs/v4/submission/<role>.md`, with its interface notes, evidence and limits, plus its ledger `docs/v4/TEST-CHANGES-submission-<role>-20261109.md` for every changed existing test (exact name and reason).
 
@@ -89,8 +89,26 @@ Owners publish the actual field names in their handoff file before the interface
 - No force-push. Failed and interrupted runs are kept.
 - Any proposal to combine or remove an approval gate is written up separately for team review and not implemented.
 
+## Coordinator decisions
+
+Each is reversible and inside Ronok's brief. None changes an approval gate, a financial meaning or what may be sent to Ramp.
+
+| Decision | Choice | Why, and how to undo it |
+|:---|:---|:---|
+| Getting the real Ramp bill onto the page (role 3, task 5) | Add a second packaged read-only record, `fixtures/ramp/verified-demo-bill.json`, shown as a "Verified Ramp record" panel beside the unchanged November 5 worklist. Replacing the November 5 capture was rejected | The bill id, business id and operator-observed URL are already committed (20, 10 and 2 places), so nothing new is disclosed. The note stays attributed to a person, the agreement binding is NONE and no finding attaches. Undo by deleting the fixture and the panel |
+| Sign-in (roles 2 and 4) | Setup gains an explicit `--reviewer-credential PATH` and always ends by printing the credential path, account name and URL. The README's first command uses a visible directory. No automatic copy of key material into the home folder, no login URL, key in browser memory only | Removes the hidden-folder hunt without a second default copy of a private key. Undo by removing the flag and the printed block |
+| Genuine model calls for the demonstration | Role owners record the exact-request permission through the existing operator command, for authored or public text only, naming themselves as the engineering operator. Planned: six calls for three authored contracts, up to three for denials, up to three for acceptance; no retry until a pass | Ronok's brief orders the genuine runs. The permission covers model invocation only and is never a human semantic or financial approval |
+| Credit lifecycle source | The interface renders the five stages from `workflow.finance.stages[]` only | One server projection, no browser assembly of money |
+| Browser tests | Throwaway listeners on ephemeral loopback ports are allowed in automated tests | They cannot collide with the fixed service ports |
+
+## Independent result published during this push
+
+The Codex evaluation lane published its first pass at [RESULTS](../evaluation-finish-20261109/RESULTS.md) (`b6e93bd`): twelve actual Opus calls returned and all twelve proposals failed validation; 0 of 4 intended positive contracts reached SHADOW; all six contracts were refused; all eight dispute cases stopped at setup, so held-out dispute accuracy is unmeasured. A separate public control completed one model reading of a denial and a linked local rebuttal. This push demonstrates the model path on authored contracts written inside the validated grammar. It does not change those scores and must not be presented as if it did.
+
 ## Status log
 
 - **13:05 PST.** Baseline and classification recorded. Integration worktree created from `55ea607`. Roles 1–4 briefed. Role 5 follows the freeze; role 6 follows the judge session's drafts.
 - **13:08 PST.** Role 5 briefed for pre-registration only (phase A); execution waits for the frozen commit. The judge session was asked where its two drafts live.
 - **13:10 PST. Disk incident.** Free space fell from 3.4 GiB to about 0.8 GiB in under ten minutes. Cause: a Google Chrome auto-update writing about 1.5 GB of patch files to the user temp directory. The coordinator paused the updater's two processes (`kill -STOP 37425 37494`, resumable with `kill -CONT`); nothing was deleted. Free space then held near 1.0 GiB. Specialists were told to skip tests under 1.5 GiB free and to download or clone nothing. Virtual environments are copy-on-write clones and cost no space. Clearing the updater's temp files, old pytest temp trees or the uv cache is Ronok's decision. No full suite runs until space is back.
+- **13:20 PST.** All five first deliverables are pushed: `onboarding.md` (`3bc648a`, plus the guide abstention fix `72b65f6` and job receipts `611efdf`), `disputes.md` (`67fbc44`), `ramp.md` (`e8bd7dc`), `ui.md` (`0fd732c`), `acceptance.md` (`60a7ea6`, sealed expectations committed by digest). Role 2 confirms eleven clicks become four person decisions with no gate removed or combined; a standing policy for the follow-up approval is written up as a proposal only. Interface notes forwarded to role 4.
+- **13:25 PST.** `origin/main` moved to `b6e93bd` (records and progress data only). The Codex lanes closed their pass and listed queued generalization work in [NEXT-WORKSTREAMS](../NEXT-WORKSTREAMS-20261109.md); that work is not part of this push. Ronok confirmed that the Codex root did not receive this brief and that this session is the only coordinator. Role 6 assigned to `agent0`; the judge session's drafts were copied out of its scratchpad to private task storage. Free disk back to about 1.9 GiB with the updater still paused.
