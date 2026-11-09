@@ -711,9 +711,9 @@
       }
       function proposal(vendor, job) {
         const p = job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
-        const n = add(el('div', undefined, 'v4-proposal'), el('h3', 'Proposed public clauses'),
-          record({profile:p.profile, attempt_nonce:p.attempt_nonce, source_sha256:p.source_sha256, proposal_sha256:p.proposal_sha256,
-            model:p.model, session:p.session, document:p.document}));
+        const doc = p.document && typeof p.document === 'object' ? p.document : {};
+        // The document name and URI exactly as the server sends them; the digests are in "Request details" above.
+        const n = add(el('div', undefined, 'v4-proposal'), el('h3', 'Proposed public clauses'), record(compact({document:doc.name, uri:doc.uri})));
         const rows = el('ol', undefined, 'v4-clauses');
         list(p.clauses).forEach(clause => {
           if (!clause || typeof clause !== 'object') return;
@@ -752,14 +752,21 @@
         return box;
       }
       // The job as the server reports it: the model actually used and its times appear only when the server supplies them.
+      // In view: job id, state, reason, model and times. Every digest and the session sit in one closed
+      // "Request details" disclosure on the card, exact and one click away.
+      const compact = fields => { Object.keys(fields).forEach(key => { if (fields[key] === undefined || fields[key] === null || fields[key] === '') delete fields[key]; }); return fields; };
       function jobRecord(job) {
         const provider = job.provider && typeof job.provider === 'object' ? job.provider : {};
         const proposal = job.status === 'SUCCEEDED' && job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
-        const fields = {job_id:job.job_id, status:job.status, reason:job.reason, model:provider.model || proposal.model,
-          submitted:at(job.submitted_at), started:at(job.started_at), finished:at(job.finished_at),
-          request_sha256:job.request_sha256, context_sha256:job.context_sha256};
-        Object.keys(fields).forEach(key => { if (fields[key] === undefined || fields[key] === null || fields[key] === '') delete fields[key]; });
-        return fields;
+        return compact({job_id:job.job_id, status:job.status, reason:job.reason, model:provider.model || proposal.model,
+          submitted:at(job.submitted_at), started:at(job.started_at), finished:at(job.finished_at)});
+      }
+      function requestDetails(job) {
+        const provider = job.provider && typeof job.provider === 'object' ? job.provider : {};
+        const p = job.status === 'SUCCEEDED' && job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
+        return compact({request_sha256:job.request_sha256, context_sha256:job.context_sha256, profile:p.profile,
+          attempt_nonce:p.attempt_nonce, source_sha256:p.source_sha256, proposal_sha256:p.proposal_sha256, proposal_model:p.model,
+          session:p.session || provider.session});
       }
       function show(vendor, job) {
         const displayed = [job.job_id, job.status, job.candidate_available === true].join(':');
@@ -768,7 +775,8 @@
         status(m, 'Proposal job ' + job.job_id + ' is ' + shown(job.status) + '. Status is read-only from here.');
         const n = add(el('div', undefined, 'v4-job'), el('h3', 'Proposal job'),
           record(jobRecord(job)),
-          note(JOB_MESSAGES[job.status] || 'Unrecognized job status. No action is available.'));
+          note(JOB_MESSAGES[job.status] || 'Unrecognized job status. No action is available.'),
+          details('Request details', requestDetails(job)));
         if (job.status === 'SUCCEEDED') n.append(proposal(vendor, job));
         if (job.status === 'REFUSED') { const d = refusalDiagnostic(job.public_diagnostic); if (d) n.append(d); }
         disable(jobOut); jobOut.replaceChildren(n);

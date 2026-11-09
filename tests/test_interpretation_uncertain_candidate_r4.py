@@ -34,3 +34,16 @@ def test_a_cleanly_completed_request_keeps_the_ordinary_candidate_label():
     with page_for(dict(data=data, later=None, submitted=None, states=[job('SUCCEEDED')])) as page:
         expect(page.get_by_text('Requested interpretation — requires your review', exact=True)).to_be_visible()
         expect(page.get_by_text('did not complete cleanly', exact=False)).to_have_count(0)
+
+
+def test_candidate_request_digest_sits_in_a_closed_request_details_disclosure():
+    interpretation = award_annotation()
+    linked = dict(id='5' * 64, origin='model', interpretation=interpretation.model_dump(), provenance=dict(request_sha256='9' * 64))
+    data = payload(AWARD, interpretation.model_dump(), model_job('existing_request', False, job('SUCCEEDED')), [linked])
+    with page_for(dict(data=data, later=None, submitted=None, states=[job('SUCCEEDED')])) as page:
+        page.get_by_text('Requested interpretation — requires your review', exact=True).click()
+        reference = page.get_by_text('Request reference ' + '9' * 64, exact=True)
+        expect(reference).to_be_hidden()
+        expect(page.locator('blockquote').first).to_have_text(AWARD)
+        page.get_by_text('Request details', exact=True).click()
+        expect(reference).to_be_visible()
