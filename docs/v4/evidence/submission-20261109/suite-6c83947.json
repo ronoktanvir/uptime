@@ -1,0 +1,30 @@
+{
+  "tested_commit": "6c839474e95aacf31899c47afb4144bb5adb5178",
+  "branch": "work/submission-integration-20261109",
+  "contents": "origin/main b6e93bd plus role 1 onboarding 43f5b9d, role 2 disputes 8cc4f6f, role 3 ramp db9b680, role 4 interface c3a6dc5 and the verification lane's probe update 0be2955",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-6c83947",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5378 passed, 1 warning in 378.23s (0:06:18)",
+  "log": "suite-6c83947-pytest.log",
+  "started_at": "2026-11-09T21:48:05Z",
+  "finished_at": "2026-11-09T21:54:25Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "114 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0; secret check passed for 3198 versioned text objects"
+  },
+  "prior_failures_preserved": [
+    "suite-02d86f7.json",
+    "suite-c756853.json"
+  ],
+  "limits": "Regression verification of the integrated branch. It is not the frozen commit, not an independent acceptance result, and not evidence of contract generalization, human release or any Ramp effect."
+}
