@@ -1,0 +1,49 @@
+{
+  "opaque_case_id": "e86-02",
+  "public_source": "fixtures/evaluation84_public/disputes/02_missing_artifact/source.json",
+  "source_file_sha256": "3ba94678f0d99e3c154c9556883451cd7e138b3b43bb66fd9056da7b46d7629f",
+  "reply_sha256": "33c6b7fad84b564f131b5e6eb76e90abdf774eb5728a23a677c3b5cb221ee025",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "The requested item is expressly an invoice line; its literal reference is distinct from the billing-document category.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "artifact",
+        "source": {
+          "start": 0,
+          "end": 129,
+          "quote": "Please supply the invoice line identified as fee-talus-oct-33; that invoice line is missing from the claim materials we received."
+        },
+        "polarity": "positive",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [
+          {
+            "name": "artifact_ref",
+            "source": {
+              "start": 45,
+              "end": 61,
+              "quote": "fee-talus-oct-33"
+            }
+          }
+        ],
+        "artifact_type": "invoice_detail",
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 129,
+          "quote": "Please supply the invoice line identified as fee-talus-oct-33; that invoice line is missing from the claim materials we received."
+        },
+        "role": "substantive"
+      }
+    ]
+  }
+}

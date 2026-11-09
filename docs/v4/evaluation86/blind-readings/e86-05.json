@@ -1,0 +1,57 @@
+{
+  "opaque_case_id": "e86-05",
+  "public_source": "fixtures/evaluation84_public/disputes/05_full_award/source.json",
+  "source_file_sha256": "401c4b6e7fc8fcf3aa439dcb7dd58535bd56da94afb46f36fe8a2916218a44e0",
+  "reply_sha256": "832f7b97b0e140369f89102580bfbdba90c6148626e9de88159a8c9ec597f32c",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "The first USD amount restates the entire claim; the second expressly names the awarded amount.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 93,
+          "quote": "We approve the entire USD 32.40 service-credit claim. The awarded credit amount is USD 32.40."
+        },
+        "polarity": "positive",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [
+          {
+            "name": "claimed",
+            "source": {
+              "start": 22,
+              "end": 31,
+              "quote": "USD 32.40"
+            }
+          },
+          {
+            "name": "award",
+            "source": {
+              "start": 83,
+              "end": 92,
+              "quote": "USD 32.40"
+            }
+          }
+        ],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 93,
+          "quote": "We approve the entire USD 32.40 service-credit claim. The awarded credit amount is USD 32.40."
+        },
+        "role": "substantive"
+      }
+    ]
+  }
+}
