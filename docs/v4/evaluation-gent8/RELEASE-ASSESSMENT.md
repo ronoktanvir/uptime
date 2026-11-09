@@ -79,6 +79,17 @@ The 4,035 tests are the 3,967-test integration baseline plus the 68 tests new on
 
 This is unsigned regression evidence. The `regression` gate additionally requires a precommitted collection hash, one `release_regression.py` run and an independent witness signature. A green suite does not establish production readiness, unseen-source accuracy or Ramp behavior.
 
+## Team decisions reported November 9 (recording in progress)
+
+Ronok made these choices in his overview session; the overview session relayed them. When this was written, the integration owner was still recording them, and the committed decision sheet still read "Pending". They are noted here for their effect on this assessment. They do not set a release bar. **D10 and D12–D14, including the release-evidence bar D13, remain pending, and no bar is adopted.**
+
+| Decision | Reported choice | Effect on this assessment |
+|---|---|---|
+| D05 | Auto-select among supported families, with human approval before activation, proven on an independently selected unseen vendor | corpus84 supplied each contract's family, so even a successful extraction there could not prove autonomous family selection. The unseen-vendor gate needs a separate, independently selected vendor that goes through automatic selection and real human approval. Neither has run. |
+| D06 | Humans gate judgment | Review controls stay human-gated. A model's UNKNOWN or refusal on a judgment case is not expected to become automated action. |
+| D07 | Narrow published support matrix: one currency, calendar months, everything else unsupported, one real evidence source, no PDF | The corpus84 contracts are USD calendar-month cases, inside that matrix. The one real evidence source has not been onboarded. |
+| D11 | Stay local | Hosted OAuth, webhooks and deployment are out of scope for this release. The loopback-only installation stands. |
+
 ## What would change this verdict
 
 1. The team records D13: which outcomes satisfy the unseen-vendor and dispute gates.
