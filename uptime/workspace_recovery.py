@@ -98,9 +98,38 @@ def _private_new_file(path):
     os.close(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600))
 
 
+def _idle_wal(path):
+    """True for a WAL database with no -wal/-shm sidecars, i.e. no connection currently open."""
+    try:
+        with open(path, "rb") as handle:
+            header = handle.read(20)
+    except OSError:
+        return False
+    return (len(header) == 20 and header[:16] == b"SQLite format 3\x00" and header[18] == 2 and header[19] == 2
+            and not Path(str(path) + "-wal").exists() and not Path(str(path) + "-shm").exists())
+
+
+def read_only(path):
+    """Open a database that another process may own, read-only, without creating its sidecar files.
+
+    A read-only connection to an idle WAL database still creates -wal and -shm
+    files beside it (and cannot remove them). Such a database has nothing
+    outside its main file, so it is read as immutable instead. When sidecars
+    exist, a writer may hold committed pages in the WAL, so the normal read-only
+    mode is used and those pages are seen.
+    """
+    uri = Path(path).absolute().as_uri() + "?mode=ro"
+    if _idle_wal(path):
+        uri += "&immutable=1"
+    db = sqlite3.connect(uri, uri=True, timeout=10)
+    db.row_factory = sqlite3.Row
+    return db
+
+
 def _connect(path, *, readonly=False):
-    db = (sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=10) if readonly
-          else sqlite3.connect(path, timeout=10))
+    if readonly:
+        return read_only(path)
+    db = sqlite3.connect(path, timeout=10)
     db.row_factory = sqlite3.Row
     return db
 
