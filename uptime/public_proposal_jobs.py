@@ -353,6 +353,25 @@ class PublicProposalJobs:
                  int(_instant(now) >= _instant(row['expires_at'])),
                  public_diagnostic.decode() if status == 'REFUSED' and public_diagnostic is not None else None, job_id))
 
+    def attempts(self, tenant, kind, target, context_sha256, *, limit=200):
+        """Every job for one exact context in one tenant, across submitting subjects.
+
+        Read-only. Returns status, fixed reason code, request digest and (vendor REFUSED rows only)
+        the stored public diagnostic, never results, receipts, provider responses or subjects.
+        Used to keep automatic family selection consistent across reviewers and attempts.
+        """
+        if kind not in KINDS or not isinstance(target, str) or not 1 <= len(target) <= 160:
+            raise ValueError('Invalid proposal attempt scope.')
+        _hash(context_sha256)
+        with self._db() as db:
+            rows = db.execute('SELECT id, status, reason, request_sha256, public_diagnostic_json FROM public_proposal_jobs '
+                              'WHERE tenant=? AND kind=? AND target=? AND context_sha256=? ORDER BY submitted_at, id LIMIT ?',
+                              (tenant, kind, target, context_sha256, int(limit))).fetchall()
+        return [{'job_id': row['id'], 'status': row['status'], 'reason': row['reason'], 'request_sha256': row['request_sha256'],
+                 'public_diagnostic': strict_json(row['public_diagnostic_json'])
+                 if kind == 'vendor' and row['status'] == 'REFUSED' and row['public_diagnostic_json'] else None}
+                for row in rows]
+
     def refusal_diagnostic(self, tenant, subject, job_id):
         """Stored public diagnostic of the caller's own REFUSED vendor job, or None.
 

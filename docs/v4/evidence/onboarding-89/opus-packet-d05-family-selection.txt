@@ -1,0 +1,18 @@
+DECISION PACKET (Uptime W3 vendor onboarding: implementing team decision D05 "auto-select + human approve"). Skeptical architect critique in <=350 words: rank options, top risks, 2-3 falsification tests, and whether you dissent from A.
+
+Decision (owner-made, not up for debate): Uptime must select among supported typed rule families from the public source itself; unsupported or ambiguous terms refuse with a concrete review requirement; a person still approves before activation. Proof later: an independently selected unseen vendor through the ordinary app path.
+
+Current system: two supported rule families, monthly-availability/1 and resource-month/1. Three extraction profiles exist and today the OPERATOR picks one: "monthly" (model segments, strict deterministic parser), "monthly-propositions" (same prompt and input as "monthly"; validation tries the strict parser first, then guarded model propositions), "resource-month" (model returns one effect per app-defined public block). Every model call is a durable job pinned to the exact request bytes and needs a separate operator approval of those exact bytes (inference permission only). A job SUCCEEDS only if deterministic validation accepts the complete source with no unaccounted text; otherwise REFUSED, now with a verified public diagnostic (fixed codes + exact source slices). A separate offline deterministic parser (no model) compiles canonically formatted monthly sources. Adapter versions are pinned to source, overlay, extraction and evaluator semantics; SHADOW -> independent reviewer tests -> human approve -> activate.
+
+Option A (proposed): validation decides.
+1. Run the offline deterministic parser on the full source. If it compiles, select monthly (no inference). Claim: a source fully covered by strict monthly clauses cannot also carry the resource family's required clauses (per-resource scope, symptoms, provider causes, evidence), so no ambiguity check is needed.
+2. Otherwise one exact-approved job per family: "monthly-propositions" and "resource-month". No job is submitted until BOTH are approved (no partial spend).
+3. Outcome derived on read from terminal job states: exactly one SUCCEEDED -> SELECTED; both -> AMBIGUOUS refusal; none -> NO_SUPPORTED_FAMILY with each family's diagnostic as the review requirement; any CANCELLED/UNCERTAIN -> INCOMPLETE (retry with a new attempt nonce); else PENDING.
+4. API: the existing draft-signed routes accept an explicit profile "auto" (avoids a central auth allowlist change). Candidate install only from the selected job. Phase 1: refuse a candidate whose source selection is AMBIGUOUS. Phase 2, merged with the UI switch: require SELECTED and retire operator-chosen profiles at install.
+5. Human approval unchanged.
+
+B: deterministic text classifier picks one family, then one model call (cheaper; brittle; selection not grounded in validation).
+C: model classification call, then extraction (extra model judgment; confidence is not authority).
+D: sequential: monthly first, resource only if monthly fails (saves a call; never detects ambiguity).
+
+Known costs: up to 2 model calls and 2 approvals per non-canonical source; jobs are per reviewer subject.
