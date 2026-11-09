@@ -42,7 +42,7 @@ CONTROL = json.loads(CONTROL_PATH.read_text(encoding="utf-8"))
 
 CASE_ID = "local-case-85"
 TENANT = "local-tenant-85"
-SUBJECT = "local-subject-85"
+SUBJECT = "evaluation-subject-85"
 APPROVER = "harness85-test-operator"
 FAMILY = "monthly_tier"
 PROFILE = "monthly-propositions"
@@ -147,7 +147,7 @@ def _write_protected_config(protected: Path, approvals_path: Path) -> Path:
     config = protected / "public-proposal-config.json"
     _write_private(
         config,
-        _json_bytes({"executable": "/usr/bin/true", "approvals_path": str(approvals_path)}),
+        _json_bytes({"version": 1, "executable": "/usr/bin/true", "approvals_path": str(approvals_path), "kinds": ["vendor"]}),
     )
     return config
 
@@ -707,3 +707,50 @@ def test_sibling_expected_json_is_never_opened_by_prepare_or_run(world):
     # the absence check below would pass vacuously.
     assert os.path.realpath(world.base_source["document_path"]) in opened
     world.assert_gold_never_opened()
+
+
+def test_consumed_core_pin_drift_prevents_inference(world, monkeypatch):
+    prepared = world.prepare()
+    world.approve(prepared)
+    original = harness.source_pins
+    def changed(profile):
+        return {**original(profile), "uptime/vendor_model_jobs.py": "0" * 64}
+    monkeypatch.setattr(harness, "source_pins", changed)
+    report = world.run()
+    _assert_not_attempted(report, "frozen_inputs")
+    assert world.log.calls == []
+    _assert_retained(world, report)
+
+
+def test_fabricated_workspace_cannot_supply_a_model_receipt(world):
+    prepared = world.prepare()
+    world.approve(prepared)
+    marker = b"fabricated successful receipt, not a runtime database"
+    (world.attempt_dir / "workspace.sqlite").write_bytes(marker)
+    report = world.run()
+    _assert_not_attempted(report, "frozen_inputs")
+    assert world.log.calls == []
+    assert (world.attempt_dir / "workspace.sqlite").read_bytes() == marker
+    _assert_retained(world, report)
+
+
+def test_frozen_corpus_metadata_stays_local_and_does_not_issue_authority(world):
+    customer = {**CONTROL["customer"], "classification": "authored local facts",
+                "governing_fee_source": {"classification": "authored",
+                                         "document": {"text": "LOCAL_FEE_ORDER_SENTINEL"}}}
+    source = world.write_source("with-local-fee-source", customer=customer)
+    prepared = world.prepare(**source)
+    world.approve(prepared)
+    report = world.run()
+    assert report["failure_stage"] is None
+    assert b"LOCAL_FEE_ORDER_SENTINEL" not in world.log.calls[0]
+    assert report["authority"]["fee_authority_created"] is False
+    assert report["authority"]["actual_human_review"] is False
+
+
+def test_opaque_target_does_not_disclose_case_family(world):
+    prepared = world.prepare(case_id="unsupported_variable_fee", family="unsupported_variable_fee")
+    exported = json.loads((world.attempt_dir / "request-export.json").read_bytes())
+    assert re.fullmatch(r"v-[a-f0-9]{24}", exported["target"])
+    assert "unsupported_variable_fee" not in json.dumps(exported)
+    assert prepared["profile"] == "monthly-propositions"

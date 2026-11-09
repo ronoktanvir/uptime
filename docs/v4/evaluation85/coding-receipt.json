@@ -1,0 +1,53 @@
+{
+  "classification": "actual restricted coding delegation; not an inference result for corpus84",
+  "model": "claude-opus-5-5",
+  "session": "3bf79858-089c-455f-a280-a4d5dd6b4650",
+  "tools": [
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "mcp_servers": [],
+  "permission_mode": "acceptEdits",
+  "requested_effort": "xhigh",
+  "process": {
+    "returncode": 0,
+    "reason": null,
+    "elapsed_seconds": 692.637,
+    "output_bytes": 366410
+  },
+  "result": {
+    "subtype": "success",
+    "is_error": false,
+    "num_turns": 6,
+    "duration_ms": 692135,
+    "permission_denials": []
+  },
+  "work": "Authored tests/test_onboarding_evaluation_85.py only; native parent implements runner and runs tests.",
+  "original_commit": "a542a21",
+  "references": {
+    "invocation.json": {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/onboarding85-worker/invocation.json",
+      "sha256": "246c720ac736496e299bfebcc77147d695e3a392d8e9bd14b672ad6e04184cec"
+    },
+    "prompt.txt": {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/onboarding85-worker/prompt.txt",
+      "sha256": "c41b794564c5e548cc454a9e2c9d8f45b8661eb8f10ec12ebb370aa9001b8a59"
+    },
+    "stream.jsonl": {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/onboarding85-worker/stream.jsonl",
+      "sha256": "d5944dcee4481c4f45958d3deac8964a728ed57043107946e988a041421fab25"
+    },
+    "stderr.txt": {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/onboarding85-worker/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "process.json": {
+      "path": "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/onboarding85-worker/process.json",
+      "sha256": "eec9b74338506fcf2ddf0f98db068b75833e316c39b64ac18dedcb2f05bc6925"
+    }
+  },
+  "final_response": "I wrote the suite in `tests/test_onboarding_evaluation_85.py`. **I have not run it**, and it can't be collected until your `scripts/evaluate_onboarding_85.py` exists. I only read `HARNESS-INTERFACE.md`, `test_control.json` and my own new file. No Bash, Git, network or model calls.\n\n**How it's set up**\n- **Provider double:** `uptime.vendor_model_jobs.build_vendor_provider` is the only thing patched. Every double it returns logs to one shared call record. Each double has `model=MODEL`, `system=VENDOR_SYSTEM`, a fixed profile dict, a `__call__` that returns `{model, session, text}`, and `last_receipt`.\n- **Everything else is real:** each test writes a fresh protected config (0700 folder, 0600 file) whose executable is `/usr/bin/true`. Approval goes through the real `scripts.public_proposals.approve(..., public_confirmed=True)`. The queue, app and preview run for real inside `run_attempt`.\n- **expected.json guard:** every source folder gets a sibling `expected.json` holding a marker value. A process-wide audit hook records the file name every time anything opens a file. The test writes the marker file itself but never reads it back. Every test checks that no `expected.json` was opened. The dedicated guard test also confirms the hook saw `document.json` being read, so the check can't pass just because the hook isn't working.\n\n**What it covers**\n- **Prepare:**\n  - Makes zero provider calls and creates the attempt folder at 0700 with the five files at 0600.\n  - Copies `document.json` and `customer.json` byte for byte, and `request_sha256` is the SHA-256 of `request.json`.\n  - Records all the hashes in `frozen.json`, and creates no approval or other files outside the attempt folder.\n  - Puts the document text in the request and keeps out the customer-only values, case/tenant/subject, the temp path and the expected marker.\n- **Family labels:** each of the six labels maps to its declared profile.\n- **Prepare refusals (12 cases):** an unknown label, a profile name used as a label, wrong hashes, wrong file names, `expected.json` passed as an input, an extra `expected` field in the document, customer or scenario, and an attempt folder that already exists. Each case checks for zero calls, no gold read and no request written. It then re-runs prepare with the unchanged inputs and checks that succeeds, so a broken setup can't make the refusal look correct.\n- **Missing approval:** fails at the `permission` stage with zero calls. Approving afterwards still gives `FileExistsError` on a re-run.\n- **Changed inputs after prepare:** changes to the frozen document, customer or request, the original source document, or the provider profile each give a `frozen_inputs` failure with zero calls.\n- **Success:** exactly one provider call, carrying exactly the bytes in `request.json`. The run ends in `SHADOW` with a `job_id`, no promotion, and one preview per scenario returning HTTP 200. `report.json` matches the returned report, and stdout, stderr and the receipt stay out of it.\n- **Running twice:** gives `FileExistsError`, makes no new call, and leaves the saved files unchanged.\n- **Bad model output:** malformed, fenced or wrong-model output gives exactly one call, `REFUSED` at `extraction`, and no preview.\n\n**Limitations**\n1. **Config schema is a guess.** The interface doesn't define the protected config format, so `_write_protected_config` writes JSON with the keys `executable` and `approvals_path`. Check this first: if it's wrong, nearly every test will error during setup. The refusal tests' prepare re-run should catch it rather than letting them pass by accident.\n2. **`VENDOR_SYSTEM` location is a guess.** The interface doesn't say which module it's in. I assumed `uptime.vendor_model` (in `_vendor_system`).\n3. **`expected_digest` is a guess.** I assumed it's the `request_sha256` that prepare returns (in `_World.approve`).\n4. **Some expected results are my reading of the contract:**\n   - A changed original source file or provider profile counts as a `frozen_inputs` failure.\n   - A missing approval is reported as `permission`.\n   - Bad model output is reported as `REFUSED`.\n   - A preview returning HTTP 200 counts as proof it was signed. Signing isn't checked in any other way.\n   - Paths are passed as `Path` objects.\n5. **Not tested:** the \"core\" (code) pin. If the app runs in a subprocess, the file-open guard can't see what that process opens.\n6. **No timeouts.** If a job never finishes, the polling could hang."
+}
