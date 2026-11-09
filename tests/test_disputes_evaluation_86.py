@@ -395,3 +395,15 @@ def test_contesting_action_or_other_stage_is_not_met_and_takes_no_action(tmp_pat
     record = runner.denial_views(client, '/c', folder=tmp_path / 'n')
     assert record['judgment']['met'] is False and record['authority']['outcome'] == 'NOT_REACHED'
     assert client.posts == [] and not (tmp_path / 'n' / 'accept-denial.marker').exists()
+
+
+def test_contesting_set_matches_the_application_action_table():
+    from uptime.correspondence import ACTIONS
+    assert runner.CONTESTING_ACTIONS == set(ACTIONS.values()) - {'accept-denial'}
+
+
+def test_an_unknown_extra_offered_action_is_not_met(tmp_path):
+    view = dict(PENDING, actions=PENDING['actions'] + [{'id': 'some-future-action'}])
+    client = CaseClient(view)
+    record = runner.denial_views(client, '/c', folder=tmp_path / 'f')
+    assert record['judgment']['met'] is False and client.posts == []

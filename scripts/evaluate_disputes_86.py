@@ -473,7 +473,10 @@ def denial_views(client, claim_path, *, folder):
     view = view if status == 200 and isinstance(view, dict) else {}
     offered = [a for a in view.get('actions') or [] if a.get('id') == 'accept-denial']
     contesting = sorted({a.get('id') for a in view.get('actions') or []} & CONTESTING_ACTIONS)
-    judgment_met = bool(view.get('stage') == 'DENIAL_REVIEW' and len(offered) == 1 and not contesting)
+    # Exactly one offered action, accept-denial: any other offered action (including one added
+    # after this freeze) means the case is not resting on the denial (gent8 hardening, 957f56a review).
+    judgment_met = bool(view.get('stage') == 'DENIAL_REVIEW'
+                        and [a.get('id') for a in view.get('actions') or []] == ['accept-denial'] and not contesting)
     record = dict(prereg=PREREG_DENIAL_ADDENDUM, read_status=status,
                   judgment=dict(met=judgment_met, stage=view.get('stage'),
                                 actions=[a.get('id') for a in view.get('actions') or []], contesting=contesting),
