@@ -1,0 +1,70 @@
+{
+  "schema": "uptime-repository-presentation/1",
+  "checked_at": "2026-11-09T03:43:05.106559+00:00",
+  "presentation_commit": "4cba37f88a563fc30bf09036859c092747a764e1",
+  "tested_application_commit": "6bedefc4550dc5bee3187645f4ead9068b1ebbc3",
+  "preserved_application_manifest_sha256": "97c815828c3c3982ea57ce2cc9b002df0f0090db3fd8ef4a73ac5c79b2035539",
+  "scope": "Repository presentation and progress metadata only; first product edition remains Ramp-native.",
+  "runtime_changes": [],
+  "existing_tests_changed": [],
+  "authority_changes": [],
+  "checks": {
+    "local_markdown_paths": {
+      "checked": 112,
+      "missing": 0
+    },
+    "markdown_documents": 5,
+    "mermaid_diagrams": {
+      "rendered": 4,
+      "renderer": "11.12.2"
+    },
+    "banner": {
+      "svg_xml_valid": true,
+      "text_overflow": false,
+      "embedded_scripts": false
+    },
+    "readme_preview": {
+      "github_markdown_api": "rendered",
+      "desktop_width": 1100,
+      "mobile_width": 390,
+      "horizontal_page_overflow": false,
+      "preview_uses_github_like_css": true
+    },
+    "emoji_check": "passed",
+    "progress_graph": "dependency ordering, invalid graphs, and link safety passed",
+    "git_diff_check": "passed",
+    "application_source_identity": "unchanged at named tested commit"
+  },
+  "prepublication_corrections": [
+    "Fixed one nonexistent onboarding design link found by the local path check.",
+    "Shortened diagram labels and grouped the onboarding lifecycle for readability.",
+    "Used installed Chrome after the optional bundled headless browser was absent.",
+    "Corrected temporary preview JavaScript quoting; all four final diagrams rendered."
+  ],
+  "external_sources_checked": [
+    "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis",
+    "https://www.atlassian.com/legal/sla",
+    "https://docs.ramp.com/llms-api.txt"
+  ],
+  "repository_metadata": {
+    "description_updated": true,
+    "topics": [
+      "sla",
+      "contract-enforcement",
+      "ramp",
+      "fintech",
+      "financial-automation",
+      "vendor-management",
+      "python",
+      "hackathon"
+    ],
+    "visibility_observed": "public",
+    "visibility_changed": false
+  },
+  "prior_hosted_verification": {
+    "commit": "98de9b6bfd28cf692dfb3435dd7f478dba6ecceb",
+    "status": "success",
+    "url": "https://github.com/ronoktanvir/uptime/actions/runs/42437918366"
+  },
+  "interpretation": "Documentation checks do not change independent model scores, establish Ramp recovery, or enable the pending reviewer exception."
+}

@@ -1,14 +1,14 @@
 # Open the Uptime dependency map
 
-Anyone with access to this private repository can run the map on their own computer. It needs Python 3.9 or newer, but no Ramp credentials, application database or Python package installation.
+Anyone can clone this public repository and run the map on their own computer. It needs Python 3.9 or newer, but no Ramp credentials, application database or Python package installation. For a diagram directly on GitHub, start with the [engineering map](../docs/ENGINEERING-MAP.md).
 
 ```sh
-git clone git@github.com:ronoktanvir/uptime.git
+git clone https://github.com/ronoktanvir/uptime.git
 cd uptime
 python3 scripts/serve_progress.py --port 8780
 ```
 
-Open [http://127.0.0.1:8780/](http://127.0.0.1:8780/). Keep the terminal running while viewing the map; Ctrl-C stops the server. For an existing clone, run the server from that repository instead of cloning again. GitHub access must already be granted to the collaborator; knowing the repository URL does not grant access.
+Open [http://127.0.0.1:8780/](http://127.0.0.1:8780/). Keep the terminal running while viewing the map; Ctrl-C stops the server. For an existing clone, run the server from that repository instead of cloning again. Cloning the repository does not grant access to Ramp, reviewer credentials or private application state.
 
 ## Get the latest recorded progress
 
@@ -32,4 +32,4 @@ ssh -N -L 8780:127.0.0.1:8780 USER@HOST
 
 Replace `USER@HOST` with that existing SSH destination. On the teammate's computer, open `http://127.0.0.1:8780/` while the SSH connection and host dashboard remain running. Their port 8780 must be free. This uses existing SSH access; it does not enable remote login, publish a public URL or change repository permissions.
 
-A hosted shared URL is not configured. The map's evidence links require private repository access. Its companion-application link also uses localhost, so it opens an application only when that separate application is running on the viewer's machine or independently forwarded.
+A hosted shared URL is not configured. The map's evidence links point to published repository records. Its companion-application link uses localhost, so it opens an application only when that separate application is running on the viewer's machine or independently forwarded.

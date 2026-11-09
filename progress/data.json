@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-08T02:16:42.192925+00:00",
+  "updated_at": "2026-11-09T03:40:13.717708+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
@@ -12,16 +12,16 @@
       "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/local-review-88/verification.json"
     },
     {
-      "label": "Latest Python regression",
+      "label": "Prior regression checkpoint",
       "value": "3,763 passed",
       "detail": "50e041c: 3,763 tests, 1 warning in 238.48s; 75 JavaScript checks. First storage failure retained; unchanged source passed after cleanup.",
       "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/verification-50e041c.json"
     },
     {
       "label": "Hosted verification",
-      "value": "CI passed 1b4ed59",
-      "detail": "3,884 tests, 1 warning in 423.34s; all 75 JavaScript checks, graph, rehearsal and repository scan passed.",
-      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42436404503"
+      "value": "CI passed 98de9b6",
+      "detail": "GitHub Actions completed successfully for the published local-review checkpoint. Source-specific local suite: 3,967 passed, 1 warning. This does not enable the pending review permission.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42437918366"
     },
     {
       "label": "Northwind workflow",
@@ -37,9 +37,9 @@
     },
     {
       "label": "Live Ramp context",
-      "value": "Demo account connected",
-      "detail": "Exact UI bill read through the new app. bills:write granted; no write attempted yet.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/native-demo-connection-20261104.json"
+      "value": "Native note verified",
+      "detail": "A person posted the evidence-gap note on the exact Ramp demo bill. Two API reads matched its real comment ID and body. Uptime-origin posting remains unperformed.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/demo-path-87/human-ramp-note.json"
     },
     {
       "label": "Actual recovery",
@@ -80,11 +80,11 @@
     },
     {
       "id": "github",
-      "title": "Private GitHub repository",
+      "title": "GitHub repository and engineering history",
       "stream": "Foundation",
       "status": "done",
       "summary": "Focused implementation and verification commits",
-      "detail": "Focused implementation and evidence commits remain in private GitHub history. Frozen 50e041c passes 3,763 tests; native actions and independent scores remain separately tracked.",
+      "detail": "The repository is currently public. Focused implementation and verification commits preserve the work and its evidence. The latest published application checkpoint has 3,967 local passing tests and successful hosted CI; native authority and independent scores remain separate.",
       "owner": "Orchestrator",
       "depends_on": [
         "audit"
@@ -94,6 +94,10 @@
         {
           "label": "Repository",
           "url": "https://github.com/ronoktanvir/uptime"
+        },
+        {
+          "label": "Engineering map",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/ENGINEERING-MAP.md"
         },
         {
           "label": "Publication decision",
@@ -208,7 +212,7 @@
       "stream": "Onboarding",
       "status": "todo",
       "summary": "New public contracts expose extraction gaps",
-      "detail": "Paused at the team’s request. Actual public Opus jobs and explicit customer overlays are connected in the application. The studied Aster browser job reached SHADOW; controlled expired-session recovery keeps one generation. The original independent 0/4 baseline remains unchanged.",
+      "detail": "Paused at the team\u2019s request. Actual public Opus jobs and explicit customer overlays are connected in the application. The studied Aster browser job reached SHADOW; controlled expired-session recovery keeps one generation. The original independent 0/4 baseline remains unchanged.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
@@ -271,7 +275,7 @@
       "title": "Credit reconciliation & attribution",
       "stream": "Ramp integration",
       "status": "done",
-      "summary": "Award → native credit → applied bill stages",
+      "summary": "Award \u2192 native credit \u2192 applied bill stages",
       "detail": "Implemented native observation joins, independent original-filing and award witnesses, amount/currency bounds and allocation controls. The actual sandbox contains zero credits and the installed workspace has zero awards.",
       "owner": "Reconciliation engineering",
       "depends_on": [
@@ -382,7 +386,7 @@
       "stream": "Independent QA",
       "status": "todo",
       "summary": "Fresh current-application evaluation in preparation",
-      "detail": "Paused at the team’s request. Original private and public scores remain unchanged. A different-family independent author prepares new public sources and sealed expectations; no new attempts have run.",
+      "detail": "Paused at the team\u2019s request. Original private and public scores remain unchanged. A different-family independent author prepares new public sources and sealed expectations; no new attempts have run.",
       "owner": "Independent witness",
       "depends_on": [
         "adapter",
@@ -408,7 +412,7 @@
       "stream": "Onboarding",
       "status": "todo",
       "summary": "Period and filing repairs verified; broader coverage open",
-      "detail": "Paused at the team’s request. Decisions 77 and 80 implement source-bound periods and filing cutoffs. The reproduced no-deadline clause is rejected, and three valid manifests remain byte-identical. More independent source coverage remains necessary.",
+      "detail": "Paused at the team\u2019s request. Decisions 77 and 80 implement source-bound periods and filing cutoffs. The reproduced no-deadline clause is rejected, and three valid manifests remain byte-identical. More independent source coverage remains necessary.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
@@ -422,7 +426,7 @@
       "stream": "External dependencies",
       "status": "blocked",
       "summary": "Exact 48-hour proposal prepared; approval pending",
-      "detail": "Ronok’s workspace remains SHADOW revision 5. Proposal pins one adapter version, tested source, local origin and expiry. No owner approval, signature, activation or human review action has occurred.",
+      "detail": "Ronok\u2019s workspace remains SHADOW revision 5. Proposal pins one adapter version, tested source, local origin and expiry. No owner approval, signature, activation or human review action has occurred.",
       "owner": "Authorized contract reviewer",
       "depends_on": [
         "holdout"
@@ -502,7 +506,7 @@
       "stream": "Demonstration",
       "status": "done",
       "summary": "Updated financial flow verified; combined live presentation gated",
-      "detail": "Exact clauses and decimal explanations are visible. Fresh 11-step socket run completes denial cure, award and April application. Prepared browser session remains unfiled for presentation. Ronok’s live review is separate and still release-gated.",
+      "detail": "Exact clauses and decimal explanations are visible. Fresh 11-step socket run completes denial cure, award and April application. Prepared browser session remains unfiled for presentation. Ronok\u2019s live review is separate and still release-gated.",
       "owner": "Demo engineering",
       "depends_on": [
         "companion",
@@ -596,7 +600,7 @@
       "stream": "Disputes",
       "status": "todo",
       "summary": "Reviewed denial bundles preserve both assertions",
-      "detail": "Paused at the team’s request. Unchanged public annotations now map5/6 complete meanings versus original3/6;6/6 mandatory-review controls remain UNKNOWN. This is remediation on known cases, not a fresh independent score. Every proposition has separate review and audit alignment.",
+      "detail": "Paused at the team\u2019s request. Unchanged public annotations now map5/6 complete meanings versus original3/6;6/6 mandatory-review controls remain UNKNOWN. This is remediation on known cases, not a fresh independent score. Every proposition has separate review and audit alignment.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
