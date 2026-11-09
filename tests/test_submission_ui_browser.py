@@ -109,3 +109,39 @@ def test_four_destinations_fit_a_phone_and_the_overview_leads_with_the_outcome(t
         activity = page.locator('#content')
         expect(activity).to_contain_text('Workflow history')
         assert intents(directory) == 0 and errors == []
+
+
+def test_automation_workspace_needs_four_person_decisions_and_activity_shows_every_step(tmp_path):
+    """The default setup runs routine steps on the server under recorded authority; the page only shows the record."""
+    with live_workspace(tmp_path, routine_automation=True) as (app, origin, directory), \
+            browser_page(origin, {'width': 1440, 'height': 900}) as (page, errors):
+        page.goto(origin + '/')
+        login(page, directory)
+        recovery = page.locator('#finance-recovery')
+        expect(recovery).to_contain_text('Routine steps: Paused · Waiting for a person to approve.')
+        clicks = []
+        for _ in range(12):
+            buttons = recovery.locator('.actions button:not([disabled])')
+            if buttons.count() == 0:
+                break
+            label = buttons.first.inner_text().strip()
+            buttons.first.click()
+            clicks.append(label)
+            expect(recovery.locator('.help[role=status]')).to_contain_text('Recorded: ' + label + '.')
+        assert clicks[0] == 'Approve January claim' and clicks[-1] == 'Apply credit to eligible invoice', clicks
+        assert len(clicks) == 4, clicks
+        outcome = page.locator('#finance-outcome')
+        expect(outcome).to_contain_text('April invoice NW-2026-04')
+        expect(outcome).to_contain_text('$11,000.00')
+        expect(outcome).to_contain_text('$8,600.00')
+        page.locator('nav.rail-primary').get_by_role('link', name='Activity', exact=True).click()
+        steps = page.locator('.automation-step')
+        expect(steps).to_have_count(11)
+        expect(page.locator('#content')).to_contain_text('Routine steps: Complete. 4 person decisions and 7 automatic steps recorded.')
+        assert page.locator('.automation-step', has_text='Decided by').count() == 4
+        assert page.locator('.automation-step', has_text='Run automatically under the approval recorded by').count() == 2
+        assert page.locator('.automation-step', has_text='Received automatically: event').count() == 5
+        text = page.locator('#content').inner_text()
+        assert 'Filing cutoff' in text and 'response cooldown' in text
+        assert not any(token in text for token in ('T12:00:00', '+00:00'))
+        assert errors == []

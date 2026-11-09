@@ -297,6 +297,11 @@
         controls.append(again);
         status.textContent = 'Reading only: reloading the page cleared the signing key. Sign in again to take actions.';
       }
+      const routine = automationSummary(data.automation);
+      if (routine && data.automation && data.automation.enabled !== false) {
+        const link = el('a', 'See every step in Activity', 'case-link'); link.href = '#activity';
+        recovery.append(add(el('p', null, 'help automation-line'), el('span', routine + ' '), link));
+      }
       add(recovery,controls,status,inspector('Connection details', fields([['Connection destination',connection.destination],['Connection status',state(connection.status)],['Receipt status',state(connection.receipt_status)]])));
       const monthly=panel('Service credit evaluations','months'), table=el('table'), body=el('tbody');
       add(table,add(el('thead'),add(el('tr'),...['Service month','Decision','Service credit','Basis'].map(t=>{const th=el('th',t);th.scope='col';return th;}))),body);
@@ -352,6 +357,63 @@
       return coverage;
     }
     // Activity: what happened, in order, from the same projection. Absent data renders as absent.
+    // Automation state is the server's persisted record. Step times are on the case's own timeline (the clock that
+    // "As of" shows); the server's recording time stays in each step's details. No durations are derived from either.
+    const AUTOMATION_STATE = {RUNNING:'Running', PAUSED:'Paused', COMPLETE:'Complete'};
+    const PAUSE_REASON = {APPROVAL_REQUIRED:'Waiting for a person to approve', FINANCIAL_APPROVAL_REQUIRED:'Waiting for a person to approve a ledger change',
+      JUDGMENT_REQUIRED:'Waiting for a person’s judgment', UNEXPECTED_GROUND:'Stopped for a person: the vendor gave a ground the system does not recognize',
+      CONTRADICTORY_EVIDENCE:'Stopped for a person: the evidence conflicts', MISSING_AUTHORITY:'Stopped: no current approval covers the next step',
+      UNCERTAIN_DELIVERY:'Stopped: an interrupted action must be resumed by a person', WAITING:'Waiting for the next event',
+      ROUTINE_READY:'Routine steps are ready to continue'};
+    const STEP_CLASS = {INTAKE:'Intake', COMPUTATION:'Computation', DELIVERY:'Delivery', JUDGMENT:'Judgment', APPROVAL:'Approval', FINANCIAL_MUTATION:'Ledger change'};
+    const STEP_STATE = {COMPLETED:'Completed', PAUSED:'Paused', UNCERTAIN:'Outcome uncertain', FAILED:'Failed'};
+    function pauseText(automation) {
+      const pause = automation && automation.pause;
+      if (!pause || typeof pause !== 'object') return null;
+      return PAUSE_REASON[pause.reason] || state(pause.reason);
+    }
+    function authorityText(authority) {
+      const a = authority && typeof authority === 'object' ? authority : {};
+      if (a.kind === 'PERSON') return 'Decided by ' + text(a.actor || 'a signed-in reviewer');
+      if (a.kind === 'APPROVED_OPERATION') return 'Run automatically under the approval recorded by ' + text(a.actor || 'a reviewer') + (a.approved_at ? ', ' + when(a.approved_at) : '');
+      if (a.kind === 'EVENT_INTAKE') return 'Received automatically: event ' + text(a.event_id) + (a.source_subject ? ' from ' + a.source_subject : '');
+      return a.kind ? state(a.kind) : 'Authority not reported';
+    }
+    function automationSummary(automation) {
+      if (!automation || typeof automation !== 'object') return null;
+      if (automation.enabled === false) return 'Each step runs when a person presses it in this workspace.';
+      const counts = automation.counts || {}, pause = pauseText(automation);
+      const head = (AUTOMATION_STATE[automation.state] || state(automation.state)) + (pause && automation.state !== 'COMPLETE' ? ' · ' + pause : '');
+      const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+      const tally = [counts.person_decisions ? plural(counts.person_decisions, 'person decision') : null,
+        counts.automatic_steps ? plural(counts.automatic_steps, 'automatic step') : null].filter(Boolean);
+      return 'Routine steps: ' + head + '.' + (tally.length ? ' ' + tally.join(' and ') + ' recorded.' : '');
+    }
+    function automationPanel(automation, nextActions) {
+      const node = panel('Automation');
+      if (!automation || typeof automation !== 'object') return add(node, note('This workspace does not report automation runs.'));
+      node.append(note(automationSummary(automation)));
+      const offered = list(nextActions).filter(action => action && action.label).map(action => action.label);
+      if (automation.enabled !== false && offered.length && automation.state !== 'COMPLETE') node.append(note('Next: ' + offered.join(', ') + '.'));
+      const steps = list(automation.steps).filter(step => step && typeof step === 'object');
+      if (!steps.length) return add(node, note('No step has been recorded yet.'));
+      node.append(note('Times are on this case’s timeline, the same clock as “As of”. Each step’s details hold the time the server recorded it.'));
+      const items = el('ol', null, 'automation-steps');
+      steps.forEach(step => {
+        const timing = step.timing && typeof step.timing === 'object' ? step.timing : {};
+        const lines = [];
+        if (timing.filing_cutoff) lines.push('Filing cutoff ' + when(timing.filing_cutoff));
+        if (timing.not_before) lines.push('Not sent before ' + when(timing.not_before) + ', the end of the response cooldown');
+        const item = add(el('li', null, 'automation-step' + (step.state && step.state !== 'COMPLETED' ? ' attention' : '')),
+          el('time', when(step.at)), el('strong', text(step.label || state(step.operation))),
+          el('span', [STEP_CLASS[step['class']] || state(step['class']), STEP_STATE[step.state] || state(step.state)].join(' · '), 'step-state'),
+          note(authorityText(step.authority)), ...lines.map(line => note(line)), step.detail ? note(text(step.detail)) : null,
+          inspector('Step details', fields([['Recorded by the server', step.recorded_at ? when(step.recorded_at) : null], ['Intent', step.intent_id],
+            ['Approval digest', step.authority && step.authority.approval_digest], ['Event', step.authority && step.authority.event_id]].filter(([, value]) => value != null))));
+        items.append(item);
+      });
+      return add(node, items);
+    }
     function renderActivity(root, data) {
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
       const header = add(el('div', null, 'page-head'), add(el('div'), el('h1', 'Activity'), note(vendor ? vendor + ' · contract review & recovery' : 'Contract review & recovery')),
@@ -362,9 +424,12 @@
       const onboarding = data.onboarding || {};
       const coverage = panel(onboarding.vendor ? onboarding.vendor + ' coverage history in this workspace' : 'Vendor coverage history'), entries = coverageHistory(onboarding);
       coverage.append(entries.children.length ? entries : note('Coverage history not provided.'));
-      const automation = panel('Automation and model jobs');
-      automation.append(note('This workspace does not report automation runs or model jobs.'));
-      root.replaceChildren(header, history, coverage, automation);
+      const jobs = panel('Model jobs');
+      const casesLink = el('a', 'Cases', 'case-link'); casesLink.href = '#cases';
+      const agreementsLink = el('a', 'Agreements', 'case-link'); agreementsLink.href = '#agreements';
+      add(jobs, note('Each model job is shown with what it read: a vendor reply on its case, a contract on its agreement. A model proposes; a person decides.'),
+        add(el('p', null, 'help'), casesLink, el('span', ' · '), agreementsLink));
+      root.replaceChildren(header, automationPanel(data.automation, data.next_actions), history, coverage, jobs);
     }
     async function render(root, supplied) {
       const token=++epoch;

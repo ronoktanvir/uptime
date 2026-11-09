@@ -98,3 +98,22 @@ test('credit lifecycle and headline come only from the server finance projection
  assert.doesNotMatch(credit.textContent,/\$1\.00/);
  assert.match(exception.textContent,/^March price exception\$1,000\.00/);
 });
+test('activity shows the server automation record: state, pause, counts, authority and case-timeline times without durations',async()=>{
+ const automation={enabled:true,state:'PAUSED',pause:{reason:'APPROVAL_REQUIRED',detail:'server detail',operation:'approve-response',since:'2026-03-02T09:05:00+00:00'},
+  counts:{person_decisions:1,automatic_steps:2},steps:[
+  {seq:1,operation:'approve-claim',label:'Approve January claim',class:'APPROVAL',authority:{kind:'PERSON',actor:'scripted-test-reviewer'},state:'COMPLETED',at:'2026-03-01T12:00:00+00:00',recorded_at:'2026-11-09T21:33:46.126115+00:00',intent_id:'action-1',detail:null,timing:{clock:'WORKSPACE',at:'2026-03-01T12:00:00+00:00'}},
+  {seq:2,operation:'submit-claim',label:'File January claim',class:'DELIVERY',authority:{kind:'APPROVED_OPERATION',actor:'scripted-test-reviewer',approval_action:'approve-claim',approval_digest:'b'.repeat(64),approved_at:'2026-03-01T12:00:00+00:00'},state:'COMPLETED',at:'2026-03-01T12:00:00+00:00',recorded_at:'2026-11-09T21:33:46.199784+00:00',intent_id:'action-2',detail:null,timing:{clock:'WORKSPACE',at:'2026-03-01T12:00:00+00:00',filing_cutoff:'2026-03-03T00:00:00+00:00'}},
+  {seq:3,operation:'receive-denial',label:'Receive vendor response',class:'INTAKE',authority:{kind:'EVENT_INTAKE',event_id:'northwind-denial-jan',source_subject:'northwind-2026-01-vendor'},state:'UNCERTAIN',at:'2026-03-01T12:10:00+00:00',recorded_at:'2026-11-09T21:33:46.261388+00:00',intent_id:'action-3',detail:'TimeoutError',timing:{clock:'WORKSPACE',at:'2026-03-01T12:10:00+00:00'}}]};
+ const s=setup(()=>({workflow:{...projection,automation}}));await s.ui.activity(s.root);
+ const text=s.root.textContent;
+ for(const expected of ['Routine steps: Paused · Waiting for a person to approve. 1 person decision and 2 automatic steps recorded.','Next: Prepare claim.',
+   'Decided by scripted-test-reviewer','Run automatically under the approval recorded by scripted-test-reviewer, Mar 1, 2026, 12:00 UTC',
+   'Received automatically: event northwind-denial-jan from northwind-2026-01-vendor','Filing cutoff Mar 3, 2026, 00:00 UTC',
+   'Intake · Outcome uncertain','TimeoutError','Recorded by the server','Nov 9, 2026, 21:33 UTC','Times are on this case’s timeline'])
+   assert.ok(text.includes(expected),expected);
+ assert.doesNotMatch(text,/\d+ (minutes?|hours?|days?) (later|after|waiting)|waited/i);
+ assert.doesNotMatch(text,/2026-03-01T|21:33:46/);
+ const off=setup(()=>({workflow:{...projection,automation:{enabled:false,state:null,pause:null,steps:[],counts:{person_decisions:0,automatic_steps:0}}}}));
+ await off.ui.activity(off.root);assert.ok(off.root.textContent.includes('Each step runs when a person presses it in this workspace.'));
+ const none=setup();await none.ui.activity(none.root);assert.ok(none.root.textContent.includes('This workspace does not report automation runs.'));
+});

@@ -21,11 +21,11 @@ PRODUCT_WORDS = re.compile(r'synthetic|simulat|replay|fixture|\bdemo\b|post to r
 
 
 @contextmanager
-def live_workspace(tmp_path):
+def live_workspace(tmp_path, **prepare_options):
     sock = socket.socket(); sock.bind(('127.0.0.1', 0)); sock.listen(25)
     origin = 'http://127.0.0.1:' + str(sock.getsockname()[1])
     directory = tmp_path / 'owned'
-    app, private, events = setup.prepare(directory, origin)
+    app, private, events = setup.prepare(directory, origin, **prepare_options)
     with TestClient(app, base_url=origin, client=('127.0.0.1', 4510)) as client:
         setup.seed(client, app, private, events)
     server = uvicorn.Server(uvicorn.Config(app, log_level='critical', access_log=False))
