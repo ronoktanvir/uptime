@@ -15,6 +15,7 @@ def main(argv=None):
     make = sub.add_parser("backup", help="Write a new owner-only backup directory")
     make.add_argument("--db", type=Path, required=True)
     make.add_argument("--output", type=Path, required=True, help="New directory outside any repository")
+    make.add_argument("--outbox", type=Path, help="Native outbox (<native-config>.outbox.sqlite3) to include")
     check = sub.add_parser("verify", help="Recheck a backup without changing it")
     check.add_argument("--backup", type=Path, required=True)
     put = sub.add_parser("restore", help="Create a new fenced database from a verified backup")
@@ -23,6 +24,9 @@ def main(argv=None):
     put.add_argument("--tenant", required=True)
     put.add_argument("--mode", choices=("replay", "sandbox"), required=True)
     put.add_argument("--previous", type=Path, help="Readable previous database whose revocations carry forward")
+    put.add_argument("--outbox-target", type=Path,
+                     help="New outbox path; name it <native-config>.outbox.sqlite3 beside the native config in use")
+    put.add_argument("--previous-outbox", type=Path, help="Readable previous outbox whose webhook quarantines carry forward")
     ack = sub.add_parser("acknowledge", help="Record that external effects since the restore point were reconciled")
     ack.add_argument("--db", type=Path, required=True)
     ack.add_argument("--operator", required=True)
@@ -31,9 +35,11 @@ def main(argv=None):
     os.umask(0o077)
     try:
         if args.command == "backup":
-            manifest = backup(args.db.absolute(), args.output.absolute())
+            manifest = backup(args.db.absolute(), args.output.absolute(),
+                              outbox=args.outbox.absolute() if args.outbox else None)
             result = {k: manifest[k] for k in ("schema", "created_at", "binding", "case_history", "integrity")}
             result.update(database_sha256=manifest["database"]["sha256"], tables=len(manifest["tables"]),
+                          outbox=manifest.get("outbox", {}).get("status_counts"),
                           not_included=manifest["not_included"])
         elif args.command == "verify":
             manifest = verify(args.backup.absolute())
@@ -43,7 +49,9 @@ def main(argv=None):
             result = acknowledge_reconciliation(args.db.absolute(), args.operator, args.note)
         else:
             result = restore(args.backup.absolute(), args.target.absolute(), tenant=args.tenant, mode=args.mode,
-                             previous=args.previous.absolute() if args.previous else None)
+                             previous=args.previous.absolute() if args.previous else None,
+                             outbox_target=args.outbox_target.absolute() if args.outbox_target else None,
+                             previous_outbox=args.previous_outbox.absolute() if args.previous_outbox else None)
     except (RecoveryError, OSError) as exc:
         # The message never includes database contents or file data.
         parser.exit(1, f"Workspace recovery stopped: {exc if isinstance(exc, RecoveryError) else type(exc).__name__}\n")
