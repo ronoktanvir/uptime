@@ -42,7 +42,7 @@
     "tests/test_pricing.py::test_preapproval_and_retrospective_are_candidates_only",
     "docs/v4/RAMP-PRICE-EVIDENCE.md"
    ],
-   "gap": "Only authored agreements are checked; observed Ramp bills have no governing agreement or line-level terms, and no live pre-approval intervention exists. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap": "Only authored agreements are checked; observed Ramp bills have no governing agreement or line-level terms, and no live pre-approval intervention exists. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -112,7 +112,7 @@
     "docs/v4/RAMP-CREDIT-SYNC.md",
     "tests/test_ramp_case_lineage.py"
    ],
-   "gap": "Live Ramp returned zero vendor credits; application is proven only in the authored Local ledger.",
+   "gap": "Live Ramp returned zero vendor credits; application is proven only in the authored Local ledger. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -133,7 +133,7 @@
     "docs/v4/evidence/native-demo-connection-20261104.json",
     "docs/v4/evidence/demo-path-87/human-ramp-note.json"
    ],
-   "gap": "Live reads and a human-posted, API-verified note exist; no Uptime-origin write, credit or same-identity end-to-end case. The agent posting retest is blocked by automatic approval review.",
+   "gap": "Live reads and a human-posted, API-verified note exist; no Uptime-origin write, credit or same-identity end-to-end case. The agent posting retest is blocked by automatic approval review. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities). D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -178,7 +178,7 @@
     "tests/test_ramp_ui_v4.py::test_ramp_browser_navigation_and_read_only_plan",
     "docs/v4/evidence/ramp-lineage-93/live-read-20261109.json"
    ],
-   "gap": "One bill is browser-matched. Vendor list complete (411 listed, 2026-11-09); vendor detail records bounded at 100; transactions exceed the read bound.",
+   "gap": "One bill is browser-matched. Vendor list complete (411 listed, 2026-11-09); vendor detail records bounded at 100; transactions exceed the read bound. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D02"
@@ -198,7 +198,7 @@
     "tests/test_ramp.py::test_verified_draft_replay_and_ambiguous_updates",
     "docs/v4/evidence/native-demo-grants-20261106.json"
    ],
-   "gap": "Code is tested against a controlled provider only. No Uptime-origin write has occurred; the agent retest was refused by automatic approval review and must not be rerouted.",
+   "gap": "Code is tested against a controlled provider only. No Uptime-origin write has occurred; the agent retest was refused by automatic approval review and must not be rerouted. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02"
@@ -218,7 +218,7 @@
     "tests/test_ramp_credit_sync_v4.py::test_no_synthetic_award_or_bill_created_from_provider_observation",
     "docs/v4/RAMP-CREDIT-SYNC.md"
    ],
-   "gap": "The supported read returned zero credits; no manual Ramp credit has been recorded.",
+   "gap": "The supported read returned zero credits; no manual Ramp credit has been recorded. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -362,7 +362,7 @@
     "docs/v4/integration90/REHEARSAL.md",
     "docs/v4/CAPABILITIES.md"
    ],
-   "gap": "The historical film predates Northwind; the current two-minute flow is scripted and rehearsed offline but not filmed. No ROI number is claimed.",
+   "gap": "The historical film predates Northwind; the current two-minute flow is scripted and rehearsed offline but not filmed. No ROI number is claimed. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01"
@@ -416,7 +416,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Reads verified; no Uptime-origin write round-trip (restricted).",
+   "gap": "Reads verified; no Uptime-origin write round-trip (restricted). D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02"
@@ -506,7 +506,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Current flow rehearsed but not filmed; native proof absent.",
+   "gap": "Current flow rehearsed but not filmed; native proof absent. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone). D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01",
@@ -650,7 +650,7 @@
    "evidence": [
     "tests/test_portfolio_v4.py::test_all_recorded_partial_awards_are_counted_once"
    ],
-   "gap": "No explicit evidence-ready stage metric; vendor-reported vs verified award are separate records but not separate KPIs.",
+   "gap": "No explicit evidence-ready stage metric; vendor-reported vs verified award are separate records but not separate KPIs. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D09"
@@ -1058,7 +1058,7 @@
    "evidence": [
     "docs/v4/integration90/INTERFACES.md"
    ],
-   "gap": "Award source is constrained to the simulated counterparty; real memo ingestion unsupported.",
+   "gap": "Award source is constrained to the simulated counterparty; real memo ingestion unsupported. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -1773,7 +1773,7 @@
     "tests/test_ramp_records_v4.py::test_agreement_query_and_documented_payee_uuid_and_linked_po",
     "docs/v4/RAMP-RECORDS.md"
    ],
-   "gap": "The live agreement query returned zero agreements.",
+   "gap": "The live agreement query returned zero agreements. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02"
@@ -1795,7 +1795,7 @@
     "tests/test_ramp_credit_sync_v4.py::test_conflicts_durably_quarantined_without_ledger_mutation",
     "docs/v4/RAMP-CREDIT-SYNC.md"
    ],
-   "gap": "Never exercised on a non-empty live credit.",
+   "gap": "Never exercised on a non-empty live credit. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -1816,7 +1816,7 @@
    "evidence": [
     "tests/test_northwind_local_ledger.py::test_local_write_readback_and_allocation_are_distinct_durable_records"
    ],
-   "gap": "No native create/apply path exists or was used; Local ledger is not Ramp.",
+   "gap": "No native create/apply path exists or was used; Local ledger is not Ramp. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -1838,7 +1838,7 @@
     "docs/v4/decisions/ADR-0064-clean-walkthrough.md",
     "fixtures/northwind/README.md"
    ],
-   "gap": "The November 4 and 7 team directions approved authored Northwind contract, usage and invoices as a disclosed walkthrough, beyond vendor responses.",
+   "gap": "The November 4 and 7 team directions approved authored Northwind contract, usage and invoices as a disclosed walkthrough, beyond vendor responses. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": null,
    "decisions": [
     "D01"
@@ -1882,7 +1882,7 @@
     "tests/test_ramp_case_lineage.py",
     "docs/v4/RAMP-CASE-LINEAGE.md"
    ],
-   "gap": "No real memo, credit or application exists to show side by side.",
+   "gap": "No real memo, credit or application exists to show side by side. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities). D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -2026,7 +2026,7 @@
    "evidence": [
     "tests/test_allocation_ledger.py::test_two_awards_cannot_allocate_160_dollars_to_one_100_dollar_bill"
    ],
-   "gap": "Simulated awards only.",
+   "gap": "Simulated awards only. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -2457,7 +2457,7 @@
     "docs/v4/TEAM-DECISION-HANDOFF.md",
     "tests/test_operations_recovery_90.py::test_health_report_alerts_actionable_claim_cutoffs_only"
    ],
-   "gap": "An operator-run health check now reports actionable claim cutoffs, retryable reads and uncertain effects; there is still no scheduler, live webhook subscription or alert delivery. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap": "An operator-run health check now reports actionable claim cutoffs, retryable reads and uncertain effects; there is still no scheduler, live webhook subscription or alert delivery. D11 decided 2026-11-09: stay local; hosting is a later milestone. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D02",
@@ -2648,7 +2648,7 @@
    "evidence": [
     "docs/v4/evidence/demo-path-87/northwind-socket.json"
    ],
-   "gap": "Award and application are authored Local ledger events.",
+   "gap": "Award and application are authored Local ledger events. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -2669,7 +2669,7 @@
     "tests/test_twilio.py::test_four_independent_golden_outcomes_and_cp1",
     "fixtures/twilio/README.md"
    ],
-   "gap": "Outcomes verified on synthetic usage; the full claim-to-application path is shown on Northwind, not Twilio.",
+   "gap": "Outcomes verified on synthetic usage; the full claim-to-application path is shown on Northwind, not Twilio. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "external_dependency",
    "decisions": [
     "D01"
@@ -2690,7 +2690,7 @@
     "tests/test_ramp_cap_v4.py::test_840_over_800_is_only_hypothetical_and_deterministic",
     "docs/v4/RAMP-PRICE-EVIDENCE.md"
    ],
-   "gap": "Real bills lack line items; the cap comparison is hypothetical. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap": "Real bills lack line items; the cap comparison is hypothetical. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -2817,7 +2817,7 @@
    "evidence": [
     "docs/v4/CAPABILITIES.md"
    ],
-   "gap": "Stages are separate; no value/effort ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
+   "gap": "Stages are separate; no value/effort ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01",
@@ -2837,7 +2837,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Authored/synthetic customer facts.",
+   "gap": "Authored/synthetic customer facts. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "external_dependency",
    "decisions": [
     "D01"
@@ -2856,7 +2856,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Authored agreements only.",
+   "gap": "Authored agreements only. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "external_dependency",
    "decisions": [
     "D01"
@@ -2875,7 +2875,7 @@
    "evidence": [
     "tests/test_other_obligations.py::test_rebate_inclusive_threshold_after_returns"
    ],
-   "gap": "One authored Northbank agreement.",
+   "gap": "One authored Northbank agreement. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D01"
@@ -2894,7 +2894,7 @@
    "evidence": [
     "tests/test_other_obligations.py::test_notice_weekend_holiday_timezone_and_exact_receipt"
    ],
-   "gap": "One authored calendar; no notice sent.",
+   "gap": "One authored calendar; no notice sent. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D01"
@@ -2911,7 +2911,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Not implemented.",
+   "gap": "Not implemented. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01"
@@ -2928,7 +2928,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Not implemented.",
+   "gap": "Not implemented. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01"
@@ -2945,7 +2945,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Not implemented; spec marks research-only.",
+   "gap": "Not implemented; spec marks research-only. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01"
@@ -3069,7 +3069,7 @@
    "evidence": [
     "docs/v4/CAPABILITIES.md"
    ],
-   "gap": "Differentiation depends on closed-loop Ramp reconciliation, which is not yet native.",
+   "gap": "Differentiation depends on closed-loop Ramp reconciliation, which is not yet native. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities). D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -3212,7 +3212,7 @@
    "evidence": [
     "docs/v4/evidence/demo-path-87/human-ramp-note.json"
    ],
-   "gap": "Live reads and a human-posted note exist; recovery is authored.",
+   "gap": "Live reads and a human-posted note exist; recovery is authored. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02"
