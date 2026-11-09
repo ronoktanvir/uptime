@@ -164,7 +164,12 @@
       }catch(e){jobState.textContent=e.message+' Refresh the original source before continuing.';}
       finally{polling=false;}
     }
-    function showCandidates(list){rows=list;candidates.replaceChildren(el('h2','Untrusted suggestions'));for(const candidate of list){const box=el('details');box.append(el('summary',candidate.origin==='model'?'Requested interpretation — requires your review':'Saved manual suggestion'));
+    // A validated candidate can exist beside a request whose own outcome is not clean (for example UNCERTAIN after an
+    // interruption). Its request's state and reason are shown with it so it is never taken for a completed request.
+    function unclean(candidate){return candidate.origin==='model'&&job&&job.state!=='SUCCEEDED'&&job.request_sha256&&candidate.provenance?.request_sha256===job.request_sha256;}
+    function showCandidates(list){rows=list;candidates.replaceChildren(el('h2','Untrusted suggestions'));for(const candidate of list){const box=el('details');const warn=unclean(candidate);
+      box.append(el('summary',candidate.origin==='model'?(warn?`Requested interpretation — request ${job.state==='UNCERTAIN'?'outcome uncertain':job.state.toLowerCase()}; requires your review`:'Requested interpretation — requires your review'):'Saved manual suggestion'));
+      if(warn)box.append(el('p',`Request ${job.id} is ${job.state}${job.reason?' ('+job.reason+')':''}. It did not complete cleanly. This proposal passed the source checks and is linked to that request, but it is not a completed result; it changes nothing until you review it.`,'interpretation-note'));
       box.append(el('p',reviewed.has(candidate.id)?'State: reviewed by you; preview only':'State: proposed; not reviewed'));
       if(candidate.provenance?.model)box.append(el('p','Proposed by model '+candidate.provenance.model+(candidate.provenance.elapsed_seconds!=null?' in '+candidate.provenance.elapsed_seconds+' s':''),'interpretation-meta'));
       if(candidate.provenance?.request_sha256)box.append(el('p','Request reference '+candidate.provenance.request_sha256,'interpretation-meta'));
