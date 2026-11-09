@@ -1,6 +1,6 @@
 # Workstream 90 operations test ledger
 
-**No existing test function, fixture or assertion was changed.** All new controls are in `tests/test_operations_recovery_90.py`: 30 functions and 34 cases, two of them parametrized three ways.
+**No existing test function, fixture or assertion was changed.** All new controls are in `tests/test_operations_recovery_90.py`: 34 functions and 38 cases, two of them parametrized three ways.
 
 | New test | What it falsifies |
 | --- | --- |
@@ -35,7 +35,11 @@
 | `test_preflight_requires_a_recent_verified_backup_of_each_exact_workspace` | Backups are matched by exact binding, not filename; stale, tampered and missing backups and a missing workspace are each flagged |
 | `test_preflight_reads_process_names_only_and_parses_listeners` | `ps` is invoked for the command-name column only; lsof field output parses IPv4, IPv6 and wildcard listeners |
 | `test_preflight_command_prints_json_and_signals_attention` | The CLI prints the JSON report and exits 2 when attention is needed |
+| `test_restored_reviewed_comment_delivered_after_backup_is_never_reposted` | W1 request (a): a REVIEWED comment delivered after the backup is restored as PREPARED, needs a fresh review, then records DELIVERED from the thread marker with zero new POSTs |
+| `test_restored_dispatching_comment_can_only_be_reconciled` | W1 request (b): DISPATCHING becomes UNCERTAIN, execution refuses, read-back absence keeps it UNCERTAIN, and the health check shows the uncertain effect and the pending reconciliation |
+| `test_restored_metadata_is_uncertain_and_unprepared_comments_are_unchanged` | W1 request (c): reviewed metadata becomes UNCERTAIN and execution refuses; a PREPARED comment is unchanged; stored plans are byte-identical |
+| `test_outbox_restore_carries_quarantine_forward_and_refuses_mismatches` | Quarantine carries forward; a previous outbox without a target, a backup without an outbox, a non-outbox file, a foreign-tenant outbox, a byte-only rewrite and a content change are each refused |
 
-Mutation checks: nineteen targeted source mutations were each detected by their test, including the filed, closed-stage, replay, clock-skew, loopback, binding-match, tunnel, backup-age and backup-verification checks. See [ADR 96](decisions/ADR-0096-operations-recovery.md).
+Mutation checks: twenty-four targeted source mutations were each detected by their test, including the filed, closed-stage, replay, clock-skew, loopback, binding-match, tunnel, backup-age, backup-verification and all five outbox-fence checks. The outbox checksum mutant first survived because the table digests also caught the content change; a byte-only VACUUM case now pins the checksum on its own. Two first-run failures were test defects: an outbox created without opening W1's workflow had no tables, and a tamper `UPDATE` matched no rows. Both tests were corrected; no production code changed. See [ADR 96](decisions/ADR-0096-operations-recovery.md).
 
 Retained intermediate failure: the first run of `test_backup_restore_restart_preserves_authority_and_financial_state` compared the whole Ramp overview and failed only on `data_provenance.evaluated_at`, which is the current evaluation clock and not stored state. The test now strips only `evaluated_at`/`as_of` keys; every other field is still compared. A full-suite attempt started at `c52a5a4` was stopped at 12% (exit 143) because the working tree changed during the run. Its log is kept as aborted and is not counted as a result. The first run of `test_revocation_tenant_domain_is_pinned_to_the_workspace_id_domain` failed because of a test defect: `BUSINESS.upper()` is unchanged when the UUID has no hex letters, so the case check tested nothing. It now uses a UUID with letters; the production code did not change.

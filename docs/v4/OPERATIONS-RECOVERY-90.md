@@ -76,8 +76,14 @@ uv run --locked python scripts/workspace_recovery.py acknowledge --db "$HOME/.lo
 ```
 
 - **Backup** uses SQLite's online backup, so it is consistent while the server writes. It creates a new `0700` directory with a `0600` single-file copy and manifest. The manifest records the binding, the integrity result, verification of the case hash chain, and the row count and digest of every table. Paths inside any Git repository are refused.
-- **Not included:** credentials, private keys, sessions, host revocation and exception stores, configuration files, and the native outbox. Back those up with their own custodians' procedures.
+- **Not included:** credentials, private keys, sessions, host revocation and exception stores, and configuration files. Back those up with their own custodians' procedures. The native outbox (`<native-config>.outbox.sqlite3`) is included only when you pass `--outbox`.
 - **The manifest is a checksum, not a signature.** It detects corruption and partial edits, not an administrator who rewrites both files.
+- **Outbox restore** (`--outbox-target`, named `<native-config>.outbox.sqlite3` beside the native config in use) is all-or-nothing with the workspace. The fence was agreed with the W1 owner and changes only status and review, never the plan:
+  - `DISPATCHING` becomes `UNCERTAIN`, which can only be reconciled and is never resent.
+  - A `REVIEWED` comment returns to `PREPARED` and needs a fresh signed review. W1's execution reads the thread's dedup marker first, so a comment delivered after the backup is recorded `DELIVERED` with no new post.
+  - `PREPARED` and `BLOCKED` comments are unchanged.
+  - Every other unsettled metadata or decision action becomes `UNCERTAIN`.
+  - `--previous-outbox` carries webhook quarantines forward; nothing becomes active.
 - **Restore** verifies the backup and requires the expected tenant and mode. It writes only a new path, never overwrites, and refuses repository, symlinked and case-variant repository paths. It then fences the copy:
   - every unused reviewer mandate is revoked;
   - with `--previous`, later issuer, mandate and price-evidence revocations are carried forward;

@@ -823,3 +823,155 @@ def test_preflight_command_prints_json_and_signals_attention(tmp_path, capsys):
     report = json.loads(capsys.readouterr().out)
     assert code == 2 and report["schema"] == "uptime-operations-preflight/1"
     assert "BACKUP_MISSING" in {f["code"] for f in report["findings"]}
+
+
+def _w1_native(tmp_path, folder="native"):
+    """W1's real workflow, inbox and simulated provider on a native outbox file, beside a bound workspace."""
+    from test_ramp_workflow import BILL as W1_BILL, TENANT as W1_TENANT, make_finding
+    from test_ramp_workflow_webhooks import NOW as W1_NOW, BUSINESS as W1_BUSINESS, REQUEST_ID, TRIGGER, activate, \
+        deployment, native_event, signed
+    from uptime.auth_keys import public_bytes
+    from uptime.ramp_workflow import RampWorkflow, SimulatedWorkflowProvider, WorkflowReviewer
+
+    base = private_dir(tmp_path / folder)
+    workspace = base / "work.sqlite"
+    enroll(workspace, USER, generate_reviewer_key(), "reviewer", "sandbox", W1_TENANT)
+    initialize(workspace)
+    outbox = base / "native.outbox.sqlite3"
+    inbox = RampWebhookInbox(outbox, deployment(), clock=lambda: W1_NOW)
+    activate(inbox)
+    inbox.receive(*signed(native_event()))
+    records = {("bills", W1_BILL): {"id": W1_BILL, "status": "OPEN", "approval_status": "PENDING"},
+               ("unified-requests", REQUEST_ID): {"id": REQUEST_ID, "request_status": "SUBMITTED"}}
+    findings = {key: make_finding(*key) for key in records}
+    provider = SimulatedWorkflowProvider(business_id=W1_BUSINESS, records=records, clock=lambda: W1_NOW,
+                                        contexts={TRIGGER: {"node_id": "node-external-review", "service_key": "Uptime-v4"}})
+    key = generate_reviewer_key()
+    reviewers = {"test-reviewer": WorkflowReviewer(public_bytes(key))}
+
+    def open_flow(path):
+        box = RampWebhookInbox(path, deployment(), clock=lambda: W1_NOW)
+        return RampWorkflow(path, tenant=W1_TENANT, business_id=W1_BUSINESS, finding_resolver=lambda t, i: findings[t, i],
+                            reviewers=reviewers, inbox=box, inspector_origins=("https://inspector.example",),
+                            clock=lambda: W1_NOW)
+    open_flow(outbox)  # creates W1's rw_installation and rw_outbox tables
+    return dict(workspace=workspace, outbox=outbox, provider=provider, key=key, open=open_flow, tenant=W1_TENANT,
+                bill=W1_BILL, trigger=TRIGGER)
+
+
+def _restore_native(tmp_path, env, folder, **options):
+    target_dir = private_dir(tmp_path / "restored")
+    receipt = restore(folder, target_dir / "work.sqlite", tenant=env["tenant"], mode="sandbox",
+                      outbox_target=target_dir / "native.outbox.sqlite3", **options)
+    return receipt, target_dir / "native.outbox.sqlite3"
+
+
+def test_restored_reviewed_comment_delivered_after_backup_is_never_reposted(tmp_path):
+    from test_ramp_workflow import review as w1_review
+    from uptime.ramp_workflow import WorkflowError
+    env = _w1_native(tmp_path)
+    flow, provider = env["open"](env["outbox"]), env["provider"]
+    plan = flow.prepare_comment("bills", env["bill"], provider=provider)
+    w1_review(flow, env["key"], plan)
+    folder = private_dir(tmp_path / "backups") / "reviewed"
+    manifest = backup(env["workspace"], folder, outbox=env["outbox"])
+    assert manifest["outbox"]["status_counts"] == {"REVIEWED": 1}
+    assert flow.execute(plan["id"], provider=provider)["status"] == "DELIVERED"  # after the backup
+    assert len(provider.calls) == 1
+
+    receipt, restored = _restore_native(tmp_path, env, folder)
+    assert receipt["outbox"]["comment_reviews_cleared"] == 1 and receipt["outbox"]["marked_uncertain"] == 0
+    again = env["open"](restored)
+    assert again.get(plan["id"])["status"] == "PREPARED"
+    with pytest.raises(WorkflowError, match="review"):
+        again.execute(plan["id"], provider=provider)
+    w1_review(again, env["key"], again.get(plan["id"]))
+    result = again.execute(plan["id"], provider=provider)
+    assert result["status"] == "DELIVERED" and result["remote_state"]["verification"] == "EXACT_DISCUSSION_GET"
+    assert len(provider.calls) == 1  # the marker was already in the thread: zero new POSTs
+    assert os.stat(restored).st_mode & 0o777 == 0o600 and os.stat(restored).st_nlink == 1
+
+
+def test_restored_dispatching_comment_can_only_be_reconciled(tmp_path):
+    from test_ramp_workflow import review as w1_review
+    from uptime.ramp_workflow import WorkflowError
+    env = _w1_native(tmp_path)
+    flow, provider = env["open"](env["outbox"]), env["provider"]
+    plan = flow.prepare_comment("bills", env["bill"], provider=provider)
+    w1_review(flow, env["key"], plan)
+    with sqlite3.connect(env["outbox"]) as conn:
+        conn.execute("UPDATE rw_outbox SET status='DISPATCHING'")
+    folder = private_dir(tmp_path / "backups") / "dispatching"
+    backup(env["workspace"], folder, outbox=env["outbox"])
+    receipt, restored = _restore_native(tmp_path, env, folder)
+    assert receipt["outbox"]["marked_uncertain"] == 1
+    again = env["open"](restored)
+    assert again.get(plan["id"])["status"] == "UNCERTAIN"
+    with pytest.raises(WorkflowError, match="reconcile"):
+        again.execute(plan["id"], provider=provider)
+    assert again.reconcile(plan["id"], provider=provider)["status"] == "UNCERTAIN"  # absence never authorizes resend
+    assert provider.calls == []
+    codes = {f["code"] for f in check(tmp_path / "restored" / "work.sqlite", outbox=restored)["findings"]}
+    assert {"EXTERNAL_EFFECT_UNCERTAIN", "RESTORE_RECONCILIATION_PENDING"} <= codes
+
+
+def test_restored_metadata_is_uncertain_and_unprepared_comments_are_unchanged(tmp_path):
+    from test_ramp_workflow import review as w1_review
+    from uptime.ramp_workflow import WorkflowError
+    env = _w1_native(tmp_path)
+    flow, provider = env["open"](env["outbox"]), env["provider"]
+    metadata = flow.prepare_metadata(env["trigger"], provider=provider, url="https://inspector.example/cases/local-case")
+    w1_review(flow, env["key"], metadata)
+    comment = flow.prepare_comment("bills", env["bill"], provider=provider)
+    with sqlite3.connect(env["outbox"]) as conn:
+        plans = dict(conn.execute("SELECT id,plan FROM rw_outbox").fetchall())
+    folder = private_dir(tmp_path / "backups") / "metadata"
+    backup(env["workspace"], folder, outbox=env["outbox"])
+    receipt, restored = _restore_native(tmp_path, env, folder)
+    assert receipt["outbox"]["marked_uncertain"] == 1 and receipt["outbox"]["comment_reviews_cleared"] == 0
+    again = env["open"](restored)
+    assert again.get(metadata["id"])["status"] == "UNCERTAIN"
+    assert again.get(comment["id"])["status"] == "PREPARED"
+    with pytest.raises(WorkflowError, match="reconcile"):
+        again.execute(metadata["id"], provider=provider)
+    assert provider.calls == []
+    with sqlite3.connect(restored) as conn:
+        assert dict(conn.execute("SELECT id,plan FROM rw_outbox").fetchall()) == plans  # plans never rewritten
+
+
+def test_outbox_restore_carries_quarantine_forward_and_refuses_mismatches(tmp_path):
+    env = _w1_native(tmp_path)
+    folder = private_dir(tmp_path / "backups") / "active"
+    backup(env["workspace"], folder, outbox=env["outbox"])
+    with sqlite3.connect(env["outbox"]) as conn:  # after the backup, a conflicting event quarantined it
+        conn.execute("UPDATE rw_deployment SET status='quarantined'")
+    receipt, restored = _restore_native(tmp_path, env, folder, previous_outbox=env["outbox"])
+    assert receipt["outbox"]["quarantine_carried_forward"] == 1
+    with sqlite3.connect(restored) as conn:
+        assert {r[0] for r in conn.execute("SELECT status FROM rw_deployment")} == {"quarantined"}
+
+    plain = private_dir(tmp_path / "plain") / "work.sqlite"
+    with pytest.raises(RecoveryError, match="previous outbox"):
+        restore(folder, plain, tenant=env["tenant"], mode="sandbox", previous_outbox=env["outbox"])
+    no_outbox = private_dir(tmp_path / "backups-plain") / "copy"
+    backup(env["workspace"], no_outbox)
+    with pytest.raises(RecoveryError, match="does not contain"):
+        restore(no_outbox, plain, tenant=env["tenant"], mode="sandbox", outbox_target=plain.with_name("o.sqlite3"))
+    with pytest.raises(RecoveryError, match="not a native outbox"):
+        backup(env["workspace"], private_dir(tmp_path / "b2") / "x", outbox=live_workspace(tmp_path, folder="other-ws")[0])
+    foreign = _w1_native(tmp_path, folder="foreign")
+    db, _, _ = live_workspace(tmp_path, folder="tenant-a-ws")
+    with pytest.raises(RecoveryError, match="different tenant"):
+        backup(db, private_dir(tmp_path / "b3") / "x", outbox=foreign["outbox"])
+    rewritten = private_dir(tmp_path / "backups-vacuum") / "copy"
+    backup(env["workspace"], rewritten, outbox=env["outbox"])
+    conn = sqlite3.connect(rewritten / "outbox.sqlite")
+    conn.execute("VACUUM")  # same rows, different bytes: only the file checksum can tell
+    conn.close()
+    with pytest.raises(RecoveryError, match="does not match its manifest"):
+        verify(rewritten)
+    with sqlite3.connect(folder / "outbox.sqlite") as conn:
+        assert conn.execute("UPDATE rw_deployment SET status='active-tampered'").rowcount == 1
+    with pytest.raises(RecoveryError, match="outbox"):
+        verify(folder)
+    assert not plain.exists() and not plain.with_name("o.sqlite3").exists()

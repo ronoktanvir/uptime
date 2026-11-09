@@ -21,7 +21,18 @@ accidental or partial alteration, not an administrator who rewrites both.
 
 Financial and case history are not rewritten. Installation revocations live in
 the host store (installation_revocation) and apply to restored copies as well.
-The native outbox is a separate file and is not restored by this module.
+The native outbox is a separate file. It is included only when the operator
+passes it. A restored outbox is fenced as agreed with the W1 owner, changing
+only status and review, never the plan:
+
+* DISPATCHING becomes UNCERTAIN (reconcile-only, never resent);
+* a REVIEWED comment returns to PREPARED with its review cleared, so it needs a
+  fresh signed review; W1 execution reads the thread's dedup marker first and
+  records DELIVERED without posting if it was delivered after the backup;
+* PREPARED and BLOCKED comments are unchanged, so a never-sent comment does not
+  block its object permanently;
+* every other non-settled metadata or decision action becomes UNCERTAIN, because
+  metadata has no read-back and decisions are simulation-only.
 """
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -39,6 +50,7 @@ SCHEMA = "uptime-workspace-backup/1"
 RESTORE_SCHEMA = "uptime-workspace-restore/1"
 DATABASE = "workspace.sqlite"
 MANIFEST = "manifest.json"
+OUTBOX = "outbox.sqlite"
 EXTERNAL = (
     "Ramp client credential file (operator custody; never copied)",
     "reviewer and mandate-issuer private keys (holder custody; never copied)",
@@ -161,10 +173,36 @@ def _copy(source, target):
     dst.close()
 
 
-def backup(database_path, destination, *, now=None):
+def _outbox_facts(db, tenant):
+    """Tables, installation tenant and status counts of a native outbox file; refuses anything else."""
+    if db.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+        raise RecoveryError("Native outbox integrity check failed")
+    tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    if not {"rw_outbox", "rw_installation"} <= tables:
+        raise RecoveryError("The selected file is not a native outbox")
+    tenants = {r[0] for r in db.execute("SELECT tenant FROM rw_installation")}
+    if tenants != {tenant}:
+        raise RecoveryError("The native outbox belongs to a different tenant")
+    counts = dict(db.execute("SELECT status,count(*) FROM rw_outbox GROUP BY status").fetchall())
+    return tables, counts
+
+
+def backup(database_path, destination, *, outbox=None, now=None):
     source = Path(database_path)
     if not source.is_absolute() or not source.is_file() or source.is_symlink():
         raise RecoveryError("Select the existing workspace database by absolute path")
+    if outbox is not None:
+        outbox = Path(outbox)
+        if not outbox.is_absolute() or not outbox.is_file() or outbox.is_symlink() or outbox.resolve() == source.resolve():
+            raise RecoveryError("Select the existing native outbox by absolute path")
+        with _connect(source, readonly=True) as probe:
+            tenant = _binding(probe)[0]["tenant"]
+        probe.close()
+        candidate = _connect(outbox, readonly=True)
+        try:
+            _outbox_facts(candidate, tenant)
+        finally:
+            candidate.close()
     destination = _outside_repositories(destination)
     if destination.exists() or destination.is_symlink():
         raise RecoveryError("Choose a new backup directory")
@@ -183,7 +221,20 @@ def backup(database_path, destination, *, now=None):
     manifest = {"schema": SCHEMA, "created_at": _now(now), "source_name": source.name, "binding": binding,
                 "user_version": version, "integrity": "ok", "case_history": history,
                 "database": {"name": DATABASE, "sha256": _file_sha256(copy), "bytes": copy.stat().st_size},
-                "tables": digests, "not_included": list(EXTERNAL)}
+                "tables": digests,
+                "not_included": [item for item in EXTERNAL if outbox is None or "outbox" not in item]}
+    if outbox is not None:
+        saved = destination / OUTBOX
+        _private_new_file(saved)
+        _copy(outbox, saved)
+        db = _connect(saved, readonly=True)
+        try:
+            _, counts = _outbox_facts(db, binding["tenant"])
+            outbox_digests = table_digests(db)
+        finally:
+            db.close()
+        manifest["outbox"] = {"name": OUTBOX, "source_name": outbox.name, "sha256": _file_sha256(saved),
+                              "bytes": saved.stat().st_size, "tables": outbox_digests, "status_counts": counts}
     path = destination / MANIFEST
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, "wb") as handle:
@@ -229,6 +280,22 @@ def verify(backup_directory):
         raise RecoveryError("Unsupported backup manifest") from None
     if _file_sha256(folder / DATABASE) != manifest["database"]["sha256"]:
         raise RecoveryError("Backup database does not match its manifest")
+    if "outbox" in manifest:
+        try:
+            _private(folder / OUTBOX)
+            ok = _file_sha256(folder / OUTBOX) == manifest["outbox"]["sha256"]
+        except (OSError, KeyError, TypeError):
+            raise RecoveryError("Backup outbox is incomplete or unreadable") from None
+        if not ok:
+            raise RecoveryError("Backup outbox does not match its manifest")
+        db = _connect(folder / OUTBOX, readonly=True)
+        try:
+            if table_digests(db) != manifest["outbox"]["tables"]:
+                raise RecoveryError("Backup outbox contents do not match its manifest")
+        finally:
+            db.close()
+    elif (folder / OUTBOX).exists() or (folder / OUTBOX).is_symlink():
+        raise RecoveryError("Backup contains an outbox its manifest does not describe")
     db = _connect(folder / DATABASE, readonly=True)
     try:
         binding, tables = _binding(db)
@@ -316,18 +383,72 @@ def acknowledge_reconciliation(path, operator, note, *, now=None):
     return {"reconciled_at": at, "reconciled_by": operator, "restore_epochs": count}
 
 
-def restore(backup_directory, target, *, tenant, mode, previous=None, now=None):
-    """Create a new fenced workspace database from a verified backup."""
+def _stage_outbox(manifest, backup_directory, target, staging, previous_outbox, tenant):
+    _copy(Path(backup_directory) / OUTBOX, staging)
+    db = _connect(staging)
+    try:
+        if table_digests(db) != manifest["outbox"]["tables"]:
+            raise RecoveryError("Restored outbox does not match the verified backup")
+        quarantined = []
+        if previous_outbox is not None:
+            old = _connect(previous_outbox, readonly=True)
+            try:
+                old_tables, _ = _outbox_facts(old, tenant)
+                if "rw_deployment" in old_tables:
+                    quarantined = [r[0] for r in old.execute("SELECT id FROM rw_deployment WHERE status='quarantined'")]
+            finally:
+                old.close()
+        with db:
+            db.execute("BEGIN IMMEDIATE")
+            tables, _ = _outbox_facts(db, tenant)
+            reviews_cleared = db.execute(
+                "UPDATE rw_outbox SET status='PREPARED',review=NULL "
+                "WHERE status='REVIEWED' AND json_extract(plan,'$.kind')='comment'").rowcount
+            uncertain = db.execute("UPDATE rw_outbox SET status='UNCERTAIN' WHERE status='DISPATCHING'").rowcount
+            uncertain += db.execute(
+                "UPDATE rw_outbox SET status='UNCERTAIN' WHERE status NOT IN ('DELIVERED','UNCERTAIN') "
+                "AND json_extract(plan,'$.kind') IS NOT 'comment'").rowcount
+            carried = 0
+            if "rw_deployment" in tables:
+                for identity in quarantined:
+                    carried += db.execute("UPDATE rw_deployment SET status='quarantined' WHERE id=? AND status!='quarantined'",
+                                          (identity,)).rowcount
+        if db.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+            raise RecoveryError("Restored outbox failed its integrity check")
+    finally:
+        db.close()
+    return {"target_name": target.name, "marked_uncertain": uncertain, "comment_reviews_cleared": reviews_cleared,
+            "quarantine_carried_forward": carried if previous_outbox is not None else None}
+
+
+def restore(backup_directory, target, *, tenant, mode, previous=None, outbox_target=None, previous_outbox=None,
+            now=None):
+    """Create a new fenced workspace database (and optionally its native outbox) from a verified backup."""
     manifest = verify(backup_directory)
     binding = manifest["binding"]
     if (binding["tenant"], binding["mode"]) != (tenant, mode):
         raise RecoveryError("Backup belongs to a different tenant or execution mode")
+    if previous_outbox is not None and outbox_target is None:
+        raise RecoveryError("A previous outbox only applies when restoring the outbox")
+    if outbox_target is not None and "outbox" not in manifest:
+        raise RecoveryError("This backup does not contain a native outbox")
     target = _outside_repositories(target)
     _absent(target)
-    staging = target.with_name("." + target.name + ".restoring")
-    _absent(staging)
-    _private_new_file(staging)
+    pairs = [(target, target.with_name("." + target.name + ".restoring"))]
+    if outbox_target is not None:
+        outbox_target = _outside_repositories(outbox_target)
+        if outbox_target == target:
+            raise RecoveryError("The outbox must be a separate file from the workspace database")
+        _absent(outbox_target)
+        pairs.append((outbox_target, outbox_target.with_name("." + outbox_target.name + ".restoring")))
+    for _, staging in pairs:
+        _absent(staging)
+    created = []
     try:
+        for _, staging in pairs:
+            _private_new_file(staging)
+            created.append(staging)
+        staging = pairs[0][1]
         _copy(Path(backup_directory) / DATABASE, staging)
         db = _connect(staging)
         try:
@@ -350,18 +471,34 @@ def restore(backup_directory, target, *, tenant, mode, previous=None, now=None):
                 raise RecoveryError("Restored database failed its integrity check")
         finally:
             db.close()
-        os.link(staging, target)  # Fails rather than replacing a database created meanwhile.
+        outbox = None
+        if outbox_target is not None:
+            outbox = _stage_outbox(manifest, backup_directory, outbox_target, pairs[1][1], previous_outbox,
+                                   binding["tenant"])
+        linked = []
+        try:
+            for final, staging in pairs:
+                os.link(staging, final)  # Fails rather than replacing a file created meanwhile.
+                linked.append(final)
+        except OSError:
+            for final in linked:  # All or nothing: remove only what this restore just created.
+                final.unlink(missing_ok=True)
+            raise RecoveryError("A restore target appeared during restoration; nothing was restored") from None
     finally:
-        staging.unlink(missing_ok=True)
-    os.chmod(target, 0o600)
+        for staging in created:
+            staging.unlink(missing_ok=True)
+    for final, _ in pairs:
+        os.chmod(final, 0o600)
     return {"schema": RESTORE_SCHEMA, "restored_at": restored_at, "target_name": target.name,
             "backup_sha256": manifest["database"]["sha256"], "backup_created_at": manifest["created_at"],
             "binding": binding, "fenced_unused_mandates": fenced,
-            "revocations_carried_forward": carried,
+            "revocations_carried_forward": carried, "outbox": outbox,
             "reconcile_external_effects_since": manifest["created_at"],
             "native_actions": "BLOCKED_UNTIL_RECONCILED", "new_mandates": "BLOCKED_UNTIL_RECONCILED",
             "required_next_steps": [
                 "Reconcile any Ramp comment or vendor submission made after the backup time against the provider before a new action.",
                 "Record that reconciliation with `workspace_recovery.py acknowledge`; native preparation and new mandates stay refused until then.",
                 "Re-apply any revocation made after the backup unless the previous database was supplied.",
+                "Settle each UNCERTAIN native outbox action with the exact Ramp read-back; it is never resent. "
+                "Restored comments that were reviewed need a fresh signed review.",
                 "Launch with the same tenant and mode; sessions must sign in again."]}
