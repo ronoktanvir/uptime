@@ -20,7 +20,9 @@ The CalyxQuay review **cannot be performed live again**: its grant is COMPLETED 
    - Review invoice NW-2026-03 before payment
    - Complete March 2026 usage evidence
    - Next step: Approve January claim
-3. **Ramp tab:** demo bill `f74ba12c-95d0-582d-9f62-26d8057d1d37` in demo.ramp.com, showing the person-posted note (comment `376563cf…`). Do not post, edit or approve anything. Optional: the W1 read-only pre-filming check (no write) confirms the note is still there and the bill is unchanged.
+3. **Ramp tab:** demo bill `f74ba12c-95d0-582d-9f62-26d8057d1d37` in demo.ramp.com, showing the person-posted note (comment `376563cf…`). Do not post, edit or approve anything. Optional read-only checks, neither of which writes anything:
+   - W1 Ramp check: `RAMP_ENV=sandbox UPTIME_RAMP_CREDENTIAL_FILE=~/.config/uptime/ramp-demo-native.json python scripts/ramp_prefilm_check.py --output-dir ~/.local/share/uptime-engineering/runtime/ramp-lineage-20261109`. Exit 0 prints `PREFILM PASS …`. The first run, at 12:36 UTC, passed with no failures and 0 writes ([summary](../evidence/ramp-lineage-93/prefilm-20261109T123606Z.json)). It refuses to run under CI.
+   - W9 machine check: `uv run --locked python scripts/operations_preflight.py` (disk, sandbox-only Ramp environment, loopback-only ports, no tunnel, workspace health, a verified backup). It returned READY on this Mac. Night-before steps are in [DEMO-MACHINE-90.md](../DEMO-MACHINE-90.md).
 4. **Review tab:** the recorded CalyxQuay review, either the 8777 listener's read-only vendor history or [the receipt](../evidence/local-review-88/recorded-review-20261109.json). Do not sign in to act there, and never read or use the reviewer key.
 5. **Fallback open in a background tab:** the saved screens in `docs/v4/evidence/finance-guide-90/` and the receipts listed under [Fallback](#fallback).
 

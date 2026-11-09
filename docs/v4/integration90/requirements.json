@@ -85,7 +85,8 @@
    ],
    "evidence": [
     "docs/v4/evidence/browser-public-onboarding-82.json",
-    "docs/v4/evidence/local-review-88/recorded-review-20261109.json"
+    "docs/v4/evidence/local-review-88/recorded-review-20261109.json",
+    "tests/test_vendor_family_selection_89.py"
    ],
    "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
@@ -174,9 +175,10 @@
    ],
    "evidence": [
     "docs/v4/evidence/native-demo-read-20261105.json",
-    "tests/test_ramp_ui_v4.py::test_ramp_browser_navigation_and_read_only_plan"
+    "tests/test_ramp_ui_v4.py::test_ramp_browser_navigation_and_read_only_plan",
+    "docs/v4/evidence/ramp-lineage-93/live-read-20261109.json"
    ],
-   "gap": "One bill is browser-matched; vendor inventory is sampled, not complete.",
+   "gap": "One bill is browser-matched. Vendor list complete (411 listed, 2026-11-09); vendor detail records bounded at 100; transactions exceed the read bound.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D02"
@@ -770,7 +772,8 @@
     "uptime/ramp_records.py"
    ],
    "evidence": [
-    "docs/v4/CAPABILITIES.md"
+    "docs/v4/CAPABILITIES.md",
+    "tests/test_vendor_family_selection_89.py"
    ],
    "gap": "No automatic discovery from Ramp records into onboarding; operators start intake. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
    "gap_class": "missing_functionality",
@@ -810,9 +813,10 @@
     "uptime/vendor_terms.py"
    ],
    "evidence": [
-    "tests/test_vendor_catalog.py::test_multiple_arbitrary_catalog_entries_and_prose_products"
+    "tests/test_vendor_catalog.py::test_multiple_arbitrary_catalog_entries_and_prose_products",
+    "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "Rule family is supplied by the operator; submission-channel generation is not demonstrated. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap": "D05 phase 1 merged: Uptime selects among supported families from the source and refuses ambiguous ones. Phase 2 (staging only the selected job, plus the UI) is not merged, and submission-channel generation is not demonstrated.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"
@@ -1746,9 +1750,10 @@
    ],
    "evidence": [
     "docs/v4/evidence/native-demo-connection-20261104.json",
-    "tests/test_ramp_records_v4.py::test_bounded_list_and_detail_have_separate_coverage"
+    "tests/test_ramp_records_v4.py::test_bounded_list_and_detail_have_separate_coverage",
+    "docs/v4/evidence/ramp-lineage-93/vendor-inventory-20261109.json"
    ],
-   "gap": "Vendor inventory sampled (truncated).",
+   "gap": "Vendor list complete (411 listed, 2026-11-09); vendor detail records bounded at 100; transactions exceed the read bound.",
    "gap_class": "unverified_behavior",
    "decisions": []
   },
