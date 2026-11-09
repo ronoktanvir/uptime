@@ -1,5 +1,5 @@
 'use strict';
-// DOM contract: a refused vendor proposal job shows the server's verified public diagnostic as text only.
+// DOM contract: a refused rule family shows the server's verified public diagnostic as text only (decision 97 flow).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {Element, document} = require('./companion_dom.cjs');
@@ -14,57 +14,68 @@ const DIAGNOSTIC = {schema:'public-refusal-diagnostic/1', profile:'monthly', sou
     {code:'REQUIRED_TERMS_MISSING', block:null, start:null, end:null, block_sha256:null,
     explanation:'No passage establishes the listed required terms.', quote:null}],
   missing_terms:['claim filing deadline', 'credit remedy']};
-const JOB = (status, extra = {}) => ({job_id:'job-1', status, vendor_id:'aster-cove', request_sha256:HEX('a'),
-  context_sha256:HEX('b'), candidate_available:false, ...extra});
-const PERMITTED = {enabled:true, reason:'APPROVED', request_sha256:HEX('a'), context_sha256:HEX('b'), existing_job:null,
-  disclosure:{model:'claude-opus-5-5', tools:[], transmitted_fields:['input','model']}};
+const SUMMARY = {codes:['REQUIRED_TERMS_MISSING'], explanations:['No passage establishes the listed required terms.'],
+  passages:['Credits: see schedule'], missing_terms:['credit remedy']};
+const JOB = (id, status) => ({job_id:id, status, vendor_id:'aster-cove', request_sha256:HEX('a'), context_sha256:HEX('b'), candidate_available:false});
+const FAMILY = (family, label, extra) => ({family, label, enabled:true, approval_reason:null, job:null, state:null, refusal:null,
+  public_diagnostic:null, attempts:{total:1, validated:0, structural_refusals:1}, ...extra});
+const VIEW = families => ({schema:'automatic-family-selection/1', outcome:'NO_SUPPORTED_FAMILY', selected:null,
+  offline:{accepted:false, reason:'NOT_CANONICAL'}, families,
+  review_requirements:['No supported rule family represents this source.'], source_sha256:HEX('c'), selection_sha256:HEX('f'),
+  authority:{approval_gate:false, dispatch_authorized:false}});
 const button = (root, name) => root.all('button').find(b => b.textContent === name);
-const byClass = (root, cls) => root.all('div').find(n => String(n.className).split(' ').includes(cls));
+const byClass = (root, cls) => root.all('div').filter(n => String(n.className).split(' ').includes(cls));
 
-async function refused(job) {
-  const root = new Element('main'), timers = [];
+async function refused(view) {
+  const root = new Element('main'), calls = [];
   const api = async (path, body) => {
+    calls.push({path, body});
     if (body === undefined && path === '/api/vendors') return {vendors:[]};
-    if (path.endsWith('/proposal-access')) return PERMITTED;
-    if (path.endsWith('/proposal-jobs')) return JOB('QUEUED');
-    if (body === undefined && path.includes('/proposal-jobs/')) return job;
+    if (path.endsWith('/proposal-access')) return view;
     throw new Error('Unexpected request ' + path);
   };
-  const ui = create({document, reviewForms:true, getAccess:() => ({canDraft:true}), api, schedule:callback => timers.push(callback)});
+  const ui = create({document, reviewForms:true, getAccess:() => ({canDraft:true}), api, schedule:() => {}});
   await ui.render(root, 'vendors');
-  const box = byClass(root, 'v4-generator');
+  const box = byClass(root, 'v4-generator')[0];
   const f = Object.fromEntries([...box.all('input'), ...box.all('textarea'), ...box.all('select')].map(n => [n.name, n]));
   f.vendor_id.value = 'aster-cove'; f.name.value = 'Aster Cove SLA'; f.uri.value = 'urn:authored:test';
-  f.classification.value = 'synthetic_public'; f.profile.value = 'monthly'; f.text.value = SOURCE;
+  f.classification.value = 'synthetic_public'; f.text.value = SOURCE;
   await button(root, 'Check generation access').listeners.click();
-  await button(root, 'Generate proposal').listeners.click();
-  await timers.shift()();
-  return root;
+  return {root, calls};
 }
 
-test('a refused job shows fixed explanations, the exact passage and missing terms as text', async () => {
-  const root = await refused(JOB('REFUSED', {reason:'PROPOSAL_REFUSED', public_diagnostic:DIAGNOSTIC}));
-  const panel = byClass(root, 'v4-refusal');
-  assert.ok(panel, 'diagnostic panel rendered');
-  const text = panel.textContent;
-  for (const expected of ['Why this proposal was refused', DIAGNOSTIC.issues[0].explanation, DIAGNOSTIC.issues[1].explanation,
+test('a refused family shows its verified diagnostic; a family without one shows the summary', async () => {
+  const {root, calls} = await refused(VIEW([
+    FAMILY('monthly-availability/1', 'Monthly availability', {job:JOB('job-1', 'REFUSED'), state:'REFUSED_STRUCTURAL', refusal:SUMMARY, public_diagnostic:DIAGNOSTIC}),
+    FAMILY('resource-month/1', 'Resource month', {job:JOB('job-2', 'REFUSED'), state:'REFUSED_READING', refusal:SUMMARY})]));
+  const panels = byClass(root, 'v4-refusal');
+  assert.equal(panels.length, 2);
+  const verified = panels[0].textContent, summary = panels[1].textContent;
+  for (const expected of ['Why this family was refused', DIAGNOSTIC.issues[0].explanation, DIAGNOSTIC.issues[1].explanation,
     'Public source passage · block 2 · characters 0–37 · SHA-256 ' + HEX('e'),
     'Required terms not established by the source: claim filing deadline, credit remedy.',
     'Source: Aster Cove SLA · urn:authored:test · SHA-256 ' + HEX('c'), 'created no candidate'])
-    assert.ok(text.includes(expected), expected);
-  const quotes = panel.all('blockquote');
-  assert.equal(quotes.length, 1);
-  assert.equal(quotes[0].textContent, 'Vendor: <img src=x onerror=alert(1)>');
+    assert.ok(verified.includes(expected), expected);
+  // One panel per family: the verified diagnostic replaces the summary rather than repeating it.
+  assert.equal((verified.match(/Why this family was refused/g) || []).length, 1);
+  assert.ok(summary.includes('Why this family was refused') && summary.includes('Credits: see schedule'));
+  assert.ok(!summary.includes('characters') && !summary.includes('SHA-256'), 'the summary carries no offsets or digests');
+  const quotes = root.all('blockquote').map(q => q.textContent);
+  assert.deepEqual(quotes, ['Vendor: <img src=x onerror=alert(1)>', 'Credits: see schedule']);
   assert.equal(root.all('img').length, 0);
-  assert.match(root.textContent, /refused the model output/);
   assert.equal(button(root, 'Review shadow candidate request'), undefined);
+  assert.deepEqual(calls.filter(c => c.body !== undefined).map(c => c.path), ['/api/vendors/aster-cove/proposal-access']);
 });
 
-test('no diagnostic, a wrong schema or a non-refused job shows nothing extra', async () => {
-  for (const job of [JOB('REFUSED', {reason:'PROPOSAL_REFUSED'}),
-    JOB('REFUSED', {reason:'PROPOSAL_REFUSED', public_diagnostic:{...DIAGNOSTIC, schema:'other/1'}}),
-    JOB('CANCELLED', {public_diagnostic:DIAGNOSTIC})]) {
-    const root = await refused(job);
-    assert.equal(byClass(root, 'v4-refusal'), undefined, job.status);
+test('a foreign or malformed diagnostic falls back to the summary; no refusal shows nothing extra', async () => {
+  for (const diagnostic of [{...DIAGNOSTIC, schema:'other/1'}, 'not an object']) {
+    const {root} = await refused(VIEW([FAMILY('monthly-availability/1', 'Monthly availability',
+      {job:JOB('job-1', 'REFUSED'), state:'REFUSED_STRUCTURAL', refusal:SUMMARY, public_diagnostic:diagnostic})]));
+    const panels = byClass(root, 'v4-refusal');
+    assert.equal(panels.length, 1);
+    assert.ok(panels[0].textContent.includes('Why this family was refused'));
+    assert.ok(!panels[0].textContent.includes('SHA-256'), 'a rejected diagnostic contributes no verified detail');
   }
+  const {root} = await refused(VIEW([FAMILY('monthly-availability/1', 'Monthly availability', {job:JOB('job-1', 'CANCELLED'), state:'INCONCLUSIVE'})]));
+  assert.equal(byClass(root, 'v4-refusal').length, 0);
 });
