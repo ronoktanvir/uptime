@@ -32,7 +32,7 @@ The demo app already holds `bills:write`, and the agent-run native posting retes
 
 POs and Ramp agreements are context only (`LINKED_CONTEXT`). Reviewed IDs that are missing from a complete list are reported, and an incomplete list never proves absence. Names, amounts, date proximity and the contract's vendor label are never compared with Ramp data.
 
-`ContractScope` is the adapter for the shared identity contract. Under D03 (decided November 9: bounded exact source IDs), it takes exact identities with no slugging, trimming, normalization, case-folding or alias registry. Internal spaces and any Unicode form are kept as given. Values with surrounding whitespace or control characters, or longer than 512 characters, are refused rather than rewritten. That matches `claim_identity`'s bounds. `scope_from_claim_identity` maps the existing field names without changing any value. When the D03 identity contract lands, it replaces this adapter and nothing else.
+`ContractScope` takes exact identities and never rewrites them. Account and agreement IDs follow team decision D03-A through the shared `uptime.source_identity` rule (`source-identity/1`): 1–96 characters; letters, digits, single spaces and `. , ' & ( ) + : / _ -`; at least one letter or digit; already NFC. Anything else is refused, never trimmed, normalized or case-folded, so this layer accepts exactly what claim intake, onboarding and the ledger accept. Association results record `identity_version`. Tenant, contract version, vendor label, claim, award and actor labels keep local bounds: up to 512 characters, no surrounding whitespace or control characters, already NFC. `scope_from_claim_identity` maps the existing field names without changing any value. When the D03 identity contract lands, it replaces this adapter and nothing else.
 
 ## Lineage: `uptime/ramp_case_lineage.py`
 
@@ -69,12 +69,12 @@ Read-backs are ordered by observation time, and repeated captures with the same 
 
 The existing `RampCreditSync` journal and `AllocationLedger` are unchanged, and they still accept only simulated awards. This lineage is a read-side check over the same Ramp facts. Merging it with the ledger is follow-up work for after D09.
 
-## Person-operated credit procedure (prepared, not executed)
+## Person-operated credit procedure (D09)
 
-Ramp publishes no create or apply operation for vendor credits. When D09 is decided:
+D09 was decided on November 9, by the overview session under Ronok's delegated "(Recommended)" authority. Credits are created and applied through Ramp's supported operator workflow, and Uptime reconciles them by read-back of the exact credit/bill links. Award verification and allocation authority stay separate. Ramp publishes no create or apply operation, so the procedure is:
 
 1. **Create the credit.** A person with Bill Pay and vendor permissions creates the vendor credit in Ramp, either from the paid reference bill (three-dot menu → New Vendor Credit) or from the vendor's profile (New → Vendor credit). They enter the vendor's memo number and an amount no larger than the verified award, in the bill's invoice currency.
-2. **Read it back.** Run a fresh read-only `scripts/ramp_sync.py`. A reviewer then records a `CreditBinding` that names that exact credit ID and award. The lineage must then show `RECORDED` or `PARTIALLY_CREDITED`.
+2. **Read it back.** Run a fresh read-only `scripts/ramp_sync.py`, then `scripts/ramp_credit_readback.py` for the reference bill. A credit created from a paid bill shows as `CREATED_FROM_BILL_NOT_APPLIED`, which is a record, not applied value. A reviewer, separately from whoever created the credit, then records a `CreditBinding` that names that exact credit ID and award. The lineage must then show `RECORDED` or `PARTIALLY_CREDITED`.
 3. **Prepare the application.** `prepare_operator_application` writes the exact instruction and the expected post-state. It requires:
    - a clean lineage, re-verified by its digest;
    - a `VERIFIED_VENDOR_AWARD` (a walkthrough's simulated award never qualifies);
@@ -98,7 +98,20 @@ Ramp publishes no create or apply operation for vendor credits. When D09 is deci
 | `BUSINESS_MISMATCH` | The read belongs to a different Ramp business. |
 | `READ_NOT_AFTER_PREPARATION` | The read isn't later than the preparation. |
 
-These functions are tested but not exposed through any route or CLI until D09 is decided.
+After the person applies the credit, `scripts/ramp_credit_readback.py` on the target bill must show the pair as `VERIFIED_BOTH_SIDES`.
+
+**What is exposed now.** The read-back, `scripts/ramp_credit_readback.py`, reads local files only: a pre-filming receipt, or a records snapshot plus its association receipt. It reports every credit linked to one verified bill, with each link checked on both sides:
+
+| Link state | Meaning |
+|---|---|
+| `VERIFIED_BOTH_SIDES` | The bill and the credit both report the pair, with the same amount in the bill's currency. Only these count toward `applied_verified_minor`. |
+| `AMOUNT_OR_CURRENCY_CONFLICT`, `BILL_SIDE_ONLY`, `CREDIT_SIDE_ONLY` | The two sides disagree. The report needs review and the applied amount is null. |
+| `CREDIT_NOT_IN_ACTIVE_LIST`, `CREDIT_APPLICATIONS_UNAVAILABLE`, `BILL_SIDE_UNAVAILABLE` | The read can't settle the link. Archived credits aren't requested, so a missing credit is unknown, not absent. |
+| `CREATED_FROM_BILL_NOT_APPLIED` | The credit was created from this paid bill and hasn't been applied to it. |
+
+A credit from another vendor on the bill also needs review. The report never attributes a credit to an award or claim (`NOT_ATTRIBUTED_REQUIRES_REVIEWED_CREDIT_BINDING`), and `actual_recovery` is always null.
+
+**Not exposed yet, by design.** `prepare_operator_application` and `confirm_operator_application` stay tested but unexposed. Preparation needs a `VERIFIED_VENDOR_AWARD` from the separate award-verification authority D09 requires, and no product role issues one yet. Letting an operator supply an award from a file would merge the two authorities D09 keeps apart. D06's open question is also unresolved: whether one person may prepare and execute.
 
 ## The real case: demo bill `f74ba12c`
 
@@ -113,14 +126,16 @@ The lineage gives:
 
 `OBSERVED → NO_GOVERNING_AGREEMENT → INSUFFICIENT_EVIDENCE → VERIFIED_READBACK (human-posted informational comment, re-observed) → no award → no bound credit → application not applicable`
 
-Every case money field is null. The plan is `NONE / ALREADY_SURFACED_AND_VERIFIED`, so the note is not posted again. The committed human-note receipt is unchanged byte for byte (a test pins its hash). This is the only real case: no Ramp vendor or bill has been matched to the authored Northwind contract, and the lineage refuses to attach Northwind terms to this bill.
+Every case money field is null. The plan is `NONE / ALREADY_SURFACED_AND_VERIFIED`, so the note is not posted again.
 
-## Decisions that block further native work
+D09 read-back on the pre-filming capture of 12:35 UTC: `NO_APPLIED_CREDITS`. The credit list is complete and empty, the bill reports no applied credits, and `applied_verified_minor` is 0 ([report](evidence/ramp-lineage-93/credit-links-f74ba12c-20261109.json)). The D09 procedure doesn't apply to this bill: it has no governing agreement and no award. Creating a Ramp credit for it would invent value, so none was created. The committed human-note receipt is unchanged byte for byte (a test pins its hash). This is the only real case: no Ramp vendor or bill has been matched to the authored Northwind contract, and the lineage refuses to attach Northwind terms to this bill.
 
-- **D02:** Which real Ramp vendor and bill carry a contract case. Without it there is no reviewed `NativeAssociation` for real data, and Northwind stays a local-ledger walkthrough.
-- **D03:** Decided on November 9 as bounded exact source IDs; agent1 is implementing the shared identity contract. Its exact bounds aren't published yet, so `ContractScope` stays the single swap point and must be aligned once that contract lands.
-- **D06:** Whether one person may prepare and execute a credit application, and who may request a hold.
-- **D09:** How credits are created and applied, and who verifies that an award belongs to a claim. This also covers exposing the operator-application functions and merging with `AllocationLedger`.
+## Decisions and remaining authority gaps
+
+- **D02:** Decided on November 9 under delegated authority. The first native surface is a supported informational bill discussion tied to the exact evaluated record, and the person-posted note on `f74ba12c` is that surface. A contract case should prefer an existing demo vendor and bill with a matching authored agreement, never invented identities. Northwind stays a separate walkthrough and isn't provisioned into Ramp. No existing demo vendor has an authored agreement yet. That terms work belongs to W2, and it would need a reviewed `NativeAssociation` before `associate` can classify anything as applicable.
+- **D03:** Decided on November 9 as D03-A, bounded exact source identity. Account and agreement IDs here use agent1's `source-identity/1` rule. The near-duplicate filing guard applies at claim filing in `claim_identity`, not in this read-side lineage.
+- **D06:** Decided on November 9 as "humans gate judgment". Here, a person performs every native credit step and no model output affects any gate. Whether the preparer and executor must be different people isn't settled by that summary, so `confirm_operator_application` records `separation_of_duties` without enforcing it. Who may request a hold is still open.
+- **D09:** Decided on November 9 under delegated authority: the supported operator workflow, then Uptime's read-back reconciliation, with award verification and allocation authority separate. The read-back is implemented (above). Still open: which role verifies an award and records a `CreditBinding`, and merging with `AllocationLedger`.
 
 ## External proof still missing
 

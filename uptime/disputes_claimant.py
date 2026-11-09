@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal, InvalidOperation, localcontext
 
 from uptime.contracts import Citation, EvaluationResult, Money, Outcome, fingerprint
-from uptime.disputes_wire import CENT, TERMS, VERSION, Document, Reply, Ticket, canonical, deadline, instant
+from uptime.disputes_wire import CENT, TERMS, VERSION, Document, Reply, Ticket, account_identity, canonical, deadline, instant
 
 GROUPS = ("initial_documents", "supplemental_archive", "customer_notice_archive")
 
@@ -108,7 +108,8 @@ def preflight(dossier: dict, at: datetime) -> EvaluationResult:
         return result(Outcome.MISSING, "§§1, 3", "A scoped, supported whole-minute status interval and aware clock are required.")
     if at < next_month or at >= deadline(month):
         return result(Outcome.INELIGIBLE, "§3", "Outside the supported UTC post-month filing period.")
-    if not all(canonical(dossier.get(key)) for key in ("account", "region", "component_id", "invoice_id")):
+    if (not all(canonical(dossier.get(key)) for key in ("account", "region", "component_id", "invoice_id"))
+            or not account_identity(dossier.get("account"))):
         return result(Outcome.MISSING, "§3", "Canonical account, invoice, component and region identifiers are required.")
     try:
         known = available_documents(dossier, at)

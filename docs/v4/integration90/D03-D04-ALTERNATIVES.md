@@ -111,5 +111,7 @@ Owner: Ronok. Date: 2026-11-09. Ronok's choice reached three sessions, and all t
 
 **Reconciled interface:** typed scope variants exist as explicit types, and the **server** selects the variant from the governing obligation family. The client does not declare a `kind`. That satisfies both the "typed scope variants" wording and the D04-C mechanism. If Ronok intended client-declared variants (D04-A, which changes every signed request body), this record must be amended before that part is implemented.
 
+**Confirmed later on November 9:** answering the identity owner's evidence finding, Ronok chose "D04-C now, monthly keeps incident" (recorded in `agent1`'s session and relayed through the overview session). That confirms the server-selected interpretation above; no client-declared variant is being built. The monthly-availability family keeps requiring exactly one incident, because its evidence join reconciles coverage to `[scope.incident]` and takes minutes from one status interval. Whether a whole-service month can be proven without an incident is a separate, still-pending evidence-sufficiency decision.
+
 **Dissent:** the dispute owner's recorded preference for explicit identity mappings (D03-B) was not chosen. Opus 5.5 dissented on deferring duplicate control; the blocking guard answers it. Override authority for the guard is a pending decision, so the guard blocks without an override.
 

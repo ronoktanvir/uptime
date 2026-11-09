@@ -1,0 +1,1020 @@
+{
+ "schema": "financial-coverage/1",
+ "audited_source": "03b372e; identity rows updated for D03-A",
+ "authority": "Descriptive only. The engines and their refusals are the authority; never consult this file instead of evaluating.",
+ "engines": {
+  "negotiated-pricing": "uptime.pricing.evaluate_price",
+  "governing-fee": "uptime.governing_fees.FeeRegistry",
+  "monthly-availability": "uptime.vendor_eval.evaluate (tier family)",
+  "completed-steps": "uptime.credit_steps via uptime.vendor_eval.evaluate",
+  "resource-month": "uptime.vendor_resource_eval.evaluate_resource and uptime.vendor_service_month",
+  "twilio-api-sla": "uptime.twilio.evaluate",
+  "claim-identity": "uptime.claim_identity, uptime.correspondence_types.Scope and onboarding bind_overlay"
+ },
+ "dimensions": [
+  "currency",
+  "tax",
+  "rounding",
+  "calendar",
+  "proration",
+  "amendment",
+  "effective_dates",
+  "usage_tiers",
+  "fee_basis",
+  "exclusions",
+  "deadlines",
+  "identity_scope"
+ ],
+ "statuses": {
+  "SUPPORTED": "Computed exactly under the stated semantics.",
+  "ESTIMATE_ONLY": "Exact contractual estimate; no payable cents or issuance asserted.",
+  "INELIGIBLE": "Evaluated; no entitlement or discrepancy.",
+  "INSUFFICIENT_EVIDENCE": "Required facts absent or not established; amount unknown.",
+  "UNSUPPORTED_RULE": "Semantics outside the implemented operator; amount unknown.",
+  "FAIL_CLOSED_MIXED": "Refused as unsupported or missing depending on the input; never an amount.",
+  "REFUSED_AT_ONBOARDING": "Source or overlay is refused before any evaluation.",
+  "REFUSED_NO_CONTEXT": "No governing-fee context is issued.",
+  "REFUSED_AT_FILING": "Refused by the claim registry before any dispatch.",
+  "DEFECT_DECISION_PENDING": "Confirmed defect whose repair depends on a pending team decision."
+ },
+ "rows": [
+  {
+   "id": "PRC-CUR-1",
+   "engine": "negotiated-pricing",
+   "dimension": "currency",
+   "case": "Agreement version or invoice in a non-USD currency",
+   "status": "UNSUPPORTED_RULE",
+   "result": "No conversion is attempted; no amount.",
+   "enforced_by": [
+    "uptime/pricing.py::_validate_agreement",
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_unsupported_contract_interpretations",
+    "tests/test_pricing.py::test_unsupported_invoice"
+   ]
+  },
+  {
+   "id": "PRC-CUR-2",
+   "engine": "negotiated-pricing",
+   "dimension": "currency",
+   "case": "Verified sandbox bill whose currency, amount, status or origin conflicts with the mapping",
+   "status": "FAIL_CLOSED_MIXED",
+   "result": "Binding refuses; the evaluator revalidates and withholds any amount.",
+   "enforced_by": [
+    "uptime/pricing.py::_validate_binding"
+   ],
+   "tests": [
+    "tests/test_pricing_invariants.py::test_provider_identity_money_status_and_origin_invariants"
+   ]
+  },
+  {
+   "id": "PRC-TAX-1",
+   "engine": "negotiated-pricing",
+   "dimension": "tax",
+   "case": "Tax itemized separately on each line under `separate_excluded`",
+   "status": "SUPPORTED",
+   "result": "Tax is excluded from the discrepancy and never adjudicated.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_tax_excluded_only_when_separately_itemized"
+   ]
+  },
+  {
+   "id": "PRC-TAX-2",
+   "engine": "negotiated-pricing",
+   "dimension": "tax",
+   "case": "Line tax absent",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "The whole invoice is unassessed; no aggregate amount.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_tax_excluded_only_when_separately_itemized",
+    "tests/test_pricing_invariants.py::test_missing_evidence_never_has_claim_value"
+   ]
+  },
+  {
+   "id": "PRC-TAX-3",
+   "engine": "negotiated-pricing",
+   "dimension": "tax",
+   "case": "Any other tax treatment, such as tax-inclusive pricing",
+   "status": "UNSUPPORTED_RULE",
+   "result": "No allocation formula is substituted.",
+   "enforced_by": [
+    "uptime/pricing.py::_validate_agreement"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_unsupported_contract_interpretations"
+   ]
+  },
+  {
+   "id": "PRC-RND-1",
+   "engine": "negotiated-pricing",
+   "dimension": "rounding",
+   "case": "Contract rounding `line_half_up_cent`",
+   "status": "SUPPORTED",
+   "result": "Each priced line is rounded HALF_UP to cents once; the invoice total is not rounded; ambient decimal context is irrelevant.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_round_each_line_not_invoice_total",
+    "tests/test_pricing.py::test_global_decimal_context_does_not_change_evaluation"
+   ]
+  },
+  {
+   "id": "PRC-RND-2",
+   "engine": "negotiated-pricing",
+   "dimension": "rounding",
+   "case": "Any other rounding rule",
+   "status": "UNSUPPORTED_RULE",
+   "result": "No default rounding is applied.",
+   "enforced_by": [
+    "uptime/pricing.py::_validate_agreement"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_unsupported_contract_interpretations"
+   ]
+  },
+  {
+   "id": "PRC-CAL-1",
+   "engine": "negotiated-pricing",
+   "dimension": "calendar",
+   "case": "Performance instants in any UTC offset",
+   "status": "SUPPORTED",
+   "result": "The governing version is chosen by the exact UTC instant of performance; the invoice date never chooses the rate.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing_invariants.py::test_performance_resolution_invariant_across_timezones",
+    "tests/test_pricing.py::test_performance_timestamp_and_timezone_control_amendment"
+   ]
+  },
+  {
+   "id": "PRC-CAL-2",
+   "engine": "negotiated-pricing",
+   "dimension": "calendar",
+   "case": "Offset-less (naive) performance or signing timestamps",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "No timezone is assumed.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate",
+    "uptime/pricing.py::_validate_agreement"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_missing_line_proof_fails_closed",
+    "tests/test_pricing.py::test_missing_signatures_and_ambiguous_chain"
+   ]
+  },
+  {
+   "id": "PRC-PRO-1",
+   "engine": "negotiated-pricing",
+   "dimension": "proration",
+   "case": "Usage line spanning an amendment boundary",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "No time-based proration; explicit complete split allocations price each part under its own version.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_cross_amendment_needs_allocation_and_explicit_splits_work"
+   ]
+  },
+  {
+   "id": "PRC-PRO-2",
+   "engine": "negotiated-pricing",
+   "dimension": "proration",
+   "case": "Fixed monthly fee for a partial, non-UTC or non-unit month",
+   "status": "FAIL_CLOSED_MIXED",
+   "result": "No partial-month proration; no amount.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate",
+    "uptime/pricing_terms.py::compile_fixed_monthly"
+   ],
+   "tests": [
+    "tests/test_pricing_advance.py::test_advance_partial_variable_or_false_boolean_input_refuses",
+    "tests/test_pricing_advance.py::test_advance_is_explicit_exact_fixed_month_and_as_of"
+   ]
+  },
+  {
+   "id": "PRC-PRO-3",
+   "engine": "negotiated-pricing",
+   "dimension": "proration",
+   "case": "Performance after the invoice date (advance billing)",
+   "status": "UNSUPPORTED_RULE",
+   "result": "Only an exact source-backed fixed calendar-month advance with a trusted observation time is priced.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_future_performance_is_not_silently_authorized",
+    "tests/test_pricing_advance.py::test_advance_issue_one_microsecond_or_more_off_start_refuses"
+   ]
+  },
+  {
+   "id": "PRC-AMD-1",
+   "engine": "negotiated-pricing",
+   "dimension": "amendment",
+   "case": "Amendment precedence at the performance boundary",
+   "status": "SUPPORTED",
+   "result": "The latest version effective at or before performance start governs; an amendment exactly at the start governs, one exactly at the end does not.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing_advance.py::test_intervening_amendment_boundary_refuses_but_exact_start_governs",
+    "tests/test_pricing_invariants.py::test_performance_resolution_invariant_across_timezones"
+   ]
+  },
+  {
+   "id": "PRC-AMD-2",
+   "engine": "negotiated-pricing",
+   "dimension": "amendment",
+   "case": "Broken or ambiguous supersession chain, missing signature or signatory",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "No version is guessed.",
+   "enforced_by": [
+    "uptime/pricing.py::_validate_agreement"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_missing_signatures_and_ambiguous_chain"
+   ]
+  },
+  {
+   "id": "PRC-AMD-3",
+   "engine": "negotiated-pricing",
+   "dimension": "amendment",
+   "case": "Version signed after its effective date, or not known at the trusted observation time",
+   "status": "UNSUPPORTED_RULE",
+   "result": "Retroactive or later-known terms need commercial interpretation.",
+   "enforced_by": [
+    "uptime/pricing.py::_validate_agreement",
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_unsupported_contract_interpretations",
+    "tests/test_pricing_advance.py::test_future_known_or_retroactive_contract_versions_refuse"
+   ]
+  },
+  {
+   "id": "PRC-AMD-4",
+   "engine": "negotiated-pricing",
+   "dimension": "amendment",
+   "case": "Equal or decreasing amendment effective dates, or a version effective at expiry",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "The chain is refused as ambiguous.",
+   "enforced_by": [
+    "uptime/pricing.py::_validate_agreement"
+   ],
+   "tests": [
+    "tests/test_financial_coverage_89.py::test_amendment_dates_must_strictly_increase_and_precede_expiry"
+   ]
+  },
+  {
+   "id": "PRC-AMD-5",
+   "engine": "negotiated-pricing",
+   "dimension": "amendment",
+   "case": "Price increase permitted by a signed amendment",
+   "status": "INELIGIBLE",
+   "result": "Billing at the amended rate is not a discrepancy.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_later_price_increase_is_permitted_by_explicit_snapshot"
+   ]
+  },
+  {
+   "id": "PRC-EFF-1",
+   "engine": "negotiated-pricing",
+   "dimension": "effective_dates",
+   "case": "Performance before the first version or after expiry",
+   "status": "INELIGIBLE",
+   "result": "Ending exactly at expiry is in term; one microsecond later is not.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_outside_contract_dates",
+    "tests/test_financial_coverage_89.py::test_performance_may_end_exactly_at_expiry_but_not_one_microsecond_later"
+   ]
+  },
+  {
+   "id": "PRC-TIER-1",
+   "engine": "negotiated-pricing",
+   "dimension": "usage_tiers",
+   "case": "Graduated tiers with integral, upper-inclusive thresholds",
+   "status": "SUPPORTED",
+   "result": "Tiers reset for each complete performance slice; marginal rates change exactly after each threshold.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_inclusive_graduated_thresholds",
+    "tests/test_pricing_invariants.py::test_quantity_monotonicity_and_threshold_marginals"
+   ]
+  },
+  {
+   "id": "PRC-TIER-2",
+   "engine": "negotiated-pricing",
+   "dimension": "usage_tiers",
+   "case": "Volume pricing, cumulative scope, unknown boundary, bounded final tier, repeated thresholds",
+   "status": "UNSUPPORTED_RULE",
+   "result": "No alternative tier formula is substituted.",
+   "enforced_by": [
+    "uptime/pricing.py::_validate_agreement"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_ambiguous_tier_semantics_fail_closed"
+   ]
+  },
+  {
+   "id": "PRC-TIER-3",
+   "engine": "negotiated-pricing",
+   "dimension": "usage_tiers",
+   "case": "Overlapping same-product allocations, duplicate allocation or line IDs, fractional/zero quantity, unit mismatch",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "Tier attainment is not guessed.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_no_double_counting_or_arbitrary_tier_resets",
+    "tests/test_pricing.py::test_missing_line_proof_fails_closed"
+   ]
+  },
+  {
+   "id": "PRC-BAS-1",
+   "engine": "negotiated-pricing",
+   "dimension": "fee_basis",
+   "case": "Overcharge and undercharge on the same invoice",
+   "status": "SUPPORTED",
+   "result": "Both directions are reported without netting; an undercharge alone carries no claim amount.",
+   "enforced_by": [
+    "uptime/pricing.py::evaluate_price"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_undercharge_and_overcharge_reported_without_netting",
+    "tests/test_pricing.py::test_undercharge_alone_carries_no_claimable_money"
+   ]
+  },
+  {
+   "id": "PRC-BAS-2",
+   "engine": "negotiated-pricing",
+   "dimension": "fee_basis",
+   "case": "Any unassessed line on the invoice",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "Verified lines stay inspectable but the aggregate stays unknown; missing evidence outranks unsupported terms.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_no_partial_claim_when_one_line_unidentified",
+    "tests/test_financial_coverage_89.py::test_missing_evidence_outranks_an_unsupported_line_and_both_are_traced"
+   ]
+  },
+  {
+   "id": "PRC-EXC-1",
+   "engine": "negotiated-pricing",
+   "dimension": "exclusions",
+   "case": "Explicitly non-covered products",
+   "status": "INELIGIBLE",
+   "result": "Non-covered lines and their tax are excluded; an invoice of only such lines has no discrepancy.",
+   "enforced_by": [
+    "uptime/pricing.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_pricing.py::test_explicitly_noncovered_only_is_ineligible"
+   ]
+  },
+  {
+   "id": "PRC-EXC-2",
+   "engine": "negotiated-pricing",
+   "dimension": "exclusions",
+   "case": "Product both covered and excluded, or two rates for one product",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "Contradictory terms never price. Review item: classified as missing evidence rather than unsupported.",
+   "enforced_by": [
+    "uptime/pricing.py::_validate_agreement"
+   ],
+   "tests": [
+    "tests/test_financial_coverage_89.py::test_contradictory_product_scope_never_prices"
+   ]
+  },
+  {
+   "id": "FEE-BAS-1",
+   "engine": "governing-fee",
+   "dimension": "fee_basis",
+   "case": "Completed-step credit fee base",
+   "status": "SUPPORTED",
+   "result": "Only a current server-issued context priced by the negotiated engine is used; billed or browser fees never control.",
+   "enforced_by": [
+    "uptime/governing_fees.py::FeeRegistry._resolve_values",
+    "uptime/governing_fees.py::require_governing_fee"
+   ],
+   "tests": [
+    "tests/test_governing_fees.py::test_trusted_context_prices_january_and_flat_fee_never_controls",
+    "tests/test_credit_steps.py::test_completed_steps_cannot_use_untrusted_billed_fee"
+   ]
+  },
+  {
+   "id": "FEE-BAS-2",
+   "engine": "governing-fee",
+   "dimension": "fee_basis",
+   "case": "Absent, duplicate, split or credit-memo fee lines; quantity other than one",
+   "status": "REFUSED_NO_CONTEXT",
+   "result": "No fee context is issued.",
+   "enforced_by": [
+    "uptime/governing_fees.py::FeeRegistry._resolve_values"
+   ],
+   "tests": [
+    "tests/test_governing_fees.py::test_absent_duplicate_split_and_credit_memo_inputs_refuse",
+    "tests/test_governing_fees.py::test_contractual_fixed_quantity_cannot_be_minted_by_arrears_invoice"
+   ]
+  },
+  {
+   "id": "FEE-TAX-1",
+   "engine": "governing-fee",
+   "dimension": "tax",
+   "case": "Nonzero tax on the governing fee line",
+   "status": "REFUSED_NO_CONTEXT",
+   "result": "Tax allocation is not attempted.",
+   "enforced_by": [
+    "uptime/governing_fees.py::FeeRegistry._resolve_values"
+   ],
+   "tests": [
+    "tests/test_financial_coverage_89.py::test_governing_fee_line_with_nonzero_tax_is_refused"
+   ]
+  },
+  {
+   "id": "FEE-CUR-1",
+   "engine": "governing-fee",
+   "dimension": "currency",
+   "case": "Non-USD or otherwise mismatched authenticated envelope scope",
+   "status": "REFUSED_NO_CONTEXT",
+   "result": "An envelope never selects another registered fee.",
+   "enforced_by": [
+    "uptime/governing_fees.py::FeeRegistry.__init__",
+    "uptime/governing_fees.py::FeeRegistry._resolve_values"
+   ],
+   "tests": [
+    "tests/test_governing_fees.py::test_authenticated_envelope_mismatch_never_selects_another_fee"
+   ]
+  },
+  {
+   "id": "FEE-CAL-1",
+   "engine": "governing-fee",
+   "dimension": "calendar",
+   "case": "Envelope month differs from the fee line's single-unit UTC service month",
+   "status": "REFUSED_NO_CONTEXT",
+   "result": "No month is inferred from a filing timestamp.",
+   "enforced_by": [
+    "uptime/governing_fees.py::FeeRegistry._resolve_values"
+   ],
+   "tests": [
+    "tests/test_governing_fees.py::test_authenticated_envelope_mismatch_never_selects_another_fee"
+   ]
+  },
+  {
+   "id": "FEE-AMD-1",
+   "engine": "governing-fee",
+   "dimension": "amendment",
+   "case": "Invoice or versions not known at the trusted observation time; changed pricing dependencies",
+   "status": "REFUSED_NO_CONTEXT",
+   "result": "Later-known terms and revoked registries issue nothing.",
+   "enforced_by": [
+    "uptime/governing_fees.py::FeeRegistry._resolve_values"
+   ],
+   "tests": [
+    "tests/test_governing_fees.py::test_missing_source_authority_future_known_and_changed_dependencies_refuse"
+   ]
+  },
+  {
+   "id": "MON-CUR-1",
+   "engine": "monthly-availability",
+   "dimension": "currency",
+   "case": "Non-USD account overlay",
+   "status": "REFUSED_AT_ONBOARDING",
+   "result": "bind_overlay refuses the binding.",
+   "enforced_by": [
+    "uptime/vendor_terms.py::bind_overlay"
+   ],
+   "tests": [
+    "tests/test_financial_coverage_89.py::test_non_usd_overlay_is_refused_at_onboarding"
+   ]
+  },
+  {
+   "id": "MON-CAL-1",
+   "engine": "monthly-availability",
+   "dimension": "calendar",
+   "case": "Measurement other than a UTC calendar month, or business-day filing",
+   "status": "REFUSED_AT_ONBOARDING",
+   "result": "The source does not compile.",
+   "enforced_by": [
+    "uptime/vendor_terms.py::compile_terms"
+   ],
+   "tests": [
+    "tests/test_vendor_catalog.py::test_unrepresentable_terms_are_quarantined"
+   ]
+  },
+  {
+   "id": "MON-PRO-1",
+   "engine": "monthly-availability",
+   "dimension": "proration",
+   "case": "Month not wholly governed by both the contract and the account overlay",
+   "status": "UNSUPPORTED_RULE",
+   "result": "No partial-month proration, even with a valid fee context.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::evaluate"
+   ],
+   "tests": [
+    "tests/test_financial_coverage_89.py::test_month_must_be_wholly_inside_both_governing_intervals",
+    "tests/test_vendor_catalog.py::test_exact_semantic_boundaries"
+   ]
+  },
+  {
+   "id": "MON-PRO-2",
+   "engine": "monthly-availability",
+   "dimension": "proration",
+   "case": "Incomplete month measurement or exclusions not removed",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "Never treated as zero downtime.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::evaluate"
+   ],
+   "tests": [
+    "tests/test_financial_coverage_89.py::test_incomplete_month_measurement_is_missing_evidence_not_a_zero_outage",
+    "tests/test_vendor_catalog.py::test_exact_semantic_boundaries"
+   ]
+  },
+  {
+   "id": "MON-TIER-1",
+   "engine": "monthly-availability",
+   "dimension": "usage_tiers",
+   "case": "Availability credit tiers",
+   "status": "SUPPORTED",
+   "result": "Strict less-than thresholds compared as exact integer ratios; nonmonotonic tiers refuse at compile.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::rate_for",
+    "uptime/vendor_terms.py::compile_terms"
+   ],
+   "tests": [
+    "tests/test_vendor_catalog.py::test_exact_semantic_boundaries"
+   ]
+  },
+  {
+   "id": "MON-RND-1",
+   "engine": "monthly-availability",
+   "dimension": "rounding",
+   "case": "Tier family whose source states no rounding rule",
+   "status": "ESTIMATE_ONLY",
+   "result": "An exact unrounded estimate (for example 0.00125) with issuance unconfirmed; no payable cents are asserted.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::usd_estimate"
+   ],
+   "tests": [
+    "tests/test_vendor_catalog.py::test_exact_semantic_boundaries"
+   ]
+  },
+  {
+   "id": "MON-BAS-1",
+   "engine": "monthly-availability",
+   "dimension": "fee_basis",
+   "case": "Tier family fee cents missing, from another month, or for another fee line",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "Vendor totals are never substituted.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::evaluate"
+   ],
+   "tests": [
+    "tests/test_vendor_catalog.py::test_exact_semantic_boundaries"
+   ]
+  },
+  {
+   "id": "MON-EXC-1",
+   "engine": "monthly-availability",
+   "dimension": "exclusions",
+   "case": "Exclusions not attested removed; qualified exclusion language",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "Qualified language refuses at compile; unattested measurement is missing evidence.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::evaluate",
+    "uptime/vendor_terms.py::compile_terms"
+   ],
+   "tests": [
+    "tests/test_vendor_catalog.py::test_exact_semantic_boundaries",
+    "tests/test_vendor_catalog.py::test_unrepresentable_terms_are_quarantined"
+   ]
+  },
+  {
+   "id": "MON-DL-1",
+   "engine": "monthly-availability",
+   "dimension": "deadlines",
+   "case": "Filing window of N calendar days after month end",
+   "status": "SUPPORTED",
+   "result": "The cutoff is exclusive at month end + N days in UTC; one microsecond earlier is timely.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::evaluate"
+   ],
+   "tests": [
+    "tests/test_northwind_financial.py::test_filing_cutoff_is_exclusive_after_thirty_full_days_and_receipt_is_required"
+   ]
+  },
+  {
+   "id": "MON-DL-2",
+   "engine": "monthly-availability",
+   "dimension": "deadlines",
+   "case": "Receipt before the service month ends",
+   "status": "INELIGIBLE",
+   "result": "OUTSIDE_WINDOW; exactly at month end is timely. Review item: a premature filing is reported as ineligible rather than not yet fileable.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::evaluate"
+   ],
+   "tests": [
+    "tests/test_financial_coverage_89.py::test_receipt_before_month_end_is_outside_window_and_at_month_end_is_timely"
+   ]
+  },
+  {
+   "id": "MON-DL-3",
+   "engine": "monthly-availability",
+   "dimension": "deadlines",
+   "case": "Absent or offset-less receipt time",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "No receipt time is assumed.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::evaluate"
+   ],
+   "tests": [
+    "tests/test_northwind_financial.py::test_filing_cutoff_is_exclusive_after_thirty_full_days_and_receipt_is_required",
+    "tests/test_vendor_catalog.py::test_exact_semantic_boundaries"
+   ]
+  },
+  {
+   "id": "MON-AMD-1",
+   "engine": "monthly-availability",
+   "dimension": "amendment",
+   "case": "Private filing-day amendment",
+   "status": "SUPPORTED",
+   "result": "Applies only with a cited matching clause and only to the bound account.",
+   "enforced_by": [
+    "uptime/vendor_terms.py::bind_overlay"
+   ],
+   "tests": [
+    "tests/test_vendor_catalog.py::test_private_filing_amendment_changes_only_bound_account_scope"
+   ]
+  },
+  {
+   "id": "MON-IDS-1",
+   "engine": "monthly-availability",
+   "dimension": "identity_scope",
+   "case": "Observation agreement, account, product, plan or fee line absent or different from the overlay",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "No amount. Review item: a contradiction is reported like an absent fact.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::evaluate"
+   ],
+   "tests": [
+    "tests/test_financial_coverage_89.py::test_contradicting_account_observation_is_reported_as_missing_scope",
+    "tests/test_vendor_catalog.py::test_exact_semantic_boundaries"
+   ]
+  },
+  {
+   "id": "STP-TIER-1",
+   "engine": "completed-steps",
+   "dimension": "usage_tiers",
+   "case": "Completed percentage-point shortfall increments",
+   "status": "SUPPORTED",
+   "result": "Counted from exact integer ratios and capped.",
+   "enforced_by": [
+    "uptime/credit_steps.py::completed",
+    "uptime/credit_steps.py::rate"
+   ],
+   "tests": [
+    "tests/test_credit_steps.py::test_completed_steps_exact_boundaries",
+    "tests/test_northwind_financial.py::test_exact_integer_ratio_boundaries_and_cap"
+   ]
+  },
+  {
+   "id": "STP-RND-1",
+   "engine": "completed-steps",
+   "dimension": "rounding",
+   "case": "Source states one final nearest-cent half-up rounding",
+   "status": "SUPPORTED",
+   "result": "One final HALF_UP to cents; no intermediate rounding.",
+   "enforced_by": [
+    "uptime/credit_steps.py::final_cents"
+   ],
+   "tests": [
+    "tests/test_credit_steps.py::test_completed_steps_final_half_up"
+   ]
+  },
+  {
+   "id": "STP-RND-2",
+   "engine": "completed-steps",
+   "dimension": "rounding",
+   "case": "Completed-step rule without explicit final HALF_UP, or combined with tiers",
+   "status": "UNSUPPORTED_RULE",
+   "result": "Refused even when a valid governing fee context is supplied.",
+   "enforced_by": [
+    "uptime/credit_steps.py::from_manifest"
+   ],
+   "tests": [
+    "tests/test_financial_coverage_89.py::test_completed_steps_need_exclusive_scope_and_explicit_half_up_even_with_a_valid_fee"
+   ]
+  },
+  {
+   "id": "STP-BAS-1",
+   "engine": "completed-steps",
+   "dimension": "fee_basis",
+   "case": "Positive credit rate without a current matching governing-fee context",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "No amount; another scope's context is never borrowed.",
+   "enforced_by": [
+    "uptime/vendor_eval.py::evaluate",
+    "uptime/governing_fees.py::require_governing_fee"
+   ],
+   "tests": [
+    "tests/test_northwind_financial.py::test_filing_cutoff_is_exclusive_after_thirty_full_days_and_receipt_is_required",
+    "tests/test_identity_domain_89.py::test_another_accounts_fee_context_is_still_never_borrowed"
+   ]
+  },
+  {
+   "id": "RES-RND-1",
+   "engine": "resource-month",
+   "dimension": "rounding",
+   "case": "Resource or service-month credit rounding",
+   "status": "SUPPORTED",
+   "result": "HALF_UP to cents only when the source states it; otherwise an exact unrounded estimate.",
+   "enforced_by": [
+    "uptime/vendor_resource_eval.py::evaluate_resource"
+   ],
+   "tests": [
+    "tests/test_vendor_resource.py::test_rounding_only_when_source_explicit_and_issuance_is_separate",
+    "tests/test_vendor_resource.py::test_half_up_estimate_matches_independent_decimal_for_cent_residues"
+   ]
+  },
+  {
+   "id": "RES-DL-1",
+   "engine": "resource-month",
+   "dimension": "deadlines",
+   "case": "Compiled inclusive or exclusive filing cutoffs",
+   "status": "SUPPORTED",
+   "result": "Evaluated before, at and after the cutoff according to the compiled comparator.",
+   "enforced_by": [
+    "uptime/vendor_resource_eval.py::evaluate_resource"
+   ],
+   "tests": [
+    "tests/test_vendor_fixed_filing_80.py::test_inclusive_compiled_cutoff_before_at_and_after",
+    "tests/test_vendor_fixed_filing_80.py::test_exclusive_compiled_cutoff_before_at_and_after"
+   ]
+  },
+  {
+   "id": "RES-DL-2",
+   "engine": "resource-month",
+   "dimension": "deadlines",
+   "case": "Unsupported or contradictory filing language",
+   "status": "REFUSED_AT_ONBOARDING",
+   "result": "The source does not compile and stored state is unchanged.",
+   "enforced_by": [
+    "uptime/vendor_service_month.py::validate"
+   ],
+   "tests": [
+    "tests/test_vendor_fixed_filing_80.py::test_unsupported_or_contradictory_filing_blocks_refuse_without_mutation"
+   ]
+  },
+  {
+   "id": "RES-BAS-1",
+   "engine": "resource-month",
+   "dimension": "fee_basis",
+   "case": "Unpaid or unclassified fees; unseen invoiced categories",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "The evaluator abstains rather than assuming an eligible base.",
+   "enforced_by": [
+    "uptime/vendor_service_month.py::evaluate"
+   ],
+   "tests": [
+    "tests/test_vendor_service_month.py::test_unpaid_or_unclassified_fee_and_unseen_invoiced_categories_abstain"
+   ]
+  },
+  {
+   "id": "RES-EXC-1",
+   "engine": "resource-month",
+   "dimension": "exclusions",
+   "case": "Missing, out-of-scope or contradictory private attestations",
+   "status": "FAIL_CLOSED_MIXED",
+   "result": "No amount.",
+   "enforced_by": [
+    "uptime/vendor_resource_eval.py::evaluate_resource"
+   ],
+   "tests": [
+    "tests/test_vendor_resource_scoped.py::test_missing_out_of_scope_or_contradictory_private_attestations"
+   ]
+  },
+  {
+   "id": "TWL-CUR-1",
+   "engine": "twilio-api-sla",
+   "dimension": "currency",
+   "case": "Non-USD input or fee lines; negative adjustments",
+   "status": "UNSUPPORTED_RULE",
+   "result": "No conversion or netting.",
+   "enforced_by": [
+    "uptime/twilio.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_twilio.py::test_duplicate_fees_negative_adjustments_non_usd_fail_closed"
+   ]
+  },
+  {
+   "id": "TWL-TAX-1",
+   "engine": "twilio-api-sla",
+   "dimension": "tax",
+   "case": "Taxes, carrier fees and third-party charges",
+   "status": "SUPPORTED",
+   "result": "Excluded from the eligible fee base; the vendor total is never the base.",
+   "enforced_by": [
+    "uptime/twilio.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_twilio.py::test_fee_basis_not_vendor_total"
+   ]
+  },
+  {
+   "id": "TWL-RND-1",
+   "engine": "twilio-api-sla",
+   "dimension": "rounding",
+   "case": "10 percent of eligible fees",
+   "status": "SUPPORTED",
+   "result": "Exact Decimal product; no rounding rule is invented.",
+   "enforced_by": [
+    "uptime/twilio.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_twilio.py::test_exact_fractional_cent_credit_and_ambient_precision_independent"
+   ]
+  },
+  {
+   "id": "TWL-CAL-1",
+   "engine": "twilio-api-sla",
+   "dimension": "calendar",
+   "case": "Month bounds and deadline in an evidenced IANA timezone",
+   "status": "SUPPORTED",
+   "result": "Includes DST transitions and leap years.",
+   "enforced_by": [
+    "uptime/twilio.py::calendar_bounds",
+    "uptime/twilio.py::claim_deadline"
+   ],
+   "tests": [
+    "tests/test_twilio.py::test_calendar_month_dst_and_leap_year",
+    "tests/test_twilio.py::test_explicit_timezone_changes_deadline_and_month_bounds"
+   ]
+  },
+  {
+   "id": "TWL-PRO-1",
+   "engine": "twilio-api-sla",
+   "dimension": "proration",
+   "case": "Incomplete, partial-month or future coverage",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "No proration of the measurement month.",
+   "enforced_by": [
+    "uptime/twilio.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_twilio.py::test_incomplete_partial_month_and_future_coverage"
+   ]
+  },
+  {
+   "id": "TWL-EXC-1",
+   "engine": "twilio-api-sla",
+   "dimension": "exclusions",
+   "case": "Defined exclusions and scheduled maintenance",
+   "status": "SUPPORTED",
+   "result": "Excluded spans are never recounted through another record; maintenance needs at least 24 hours notice; an unknown exclusion is missing evidence.",
+   "enforced_by": [
+    "uptime/twilio.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_twilio.py::test_defined_exclusions",
+    "tests/test_twilio.py::test_scheduled_maintenance_requires_at_least_24_hours_notice",
+    "tests/test_twilio.py::test_excluded_overlap_cannot_be_counted_by_other_record",
+    "tests/test_twilio.py::test_unknown_required_facts_fail_closed"
+   ]
+  },
+  {
+   "id": "TWL-DL-1",
+   "engine": "twilio-api-sla",
+   "dimension": "deadlines",
+   "case": "Thirty-day submission window after month end",
+   "status": "SUPPORTED",
+   "result": "Inclusive local date: last day of the month plus 30 days; a timely receipt is preserved.",
+   "enforced_by": [
+    "uptime/twilio.py::claim_deadline"
+   ],
+   "tests": [
+    "tests/test_twilio.py::test_deadline_calendar_not_one_month_or_thirty_days_from_incident",
+    "tests/test_twilio.py::test_timely_receipt_preserves_claim_after_deadline_but_cannot_be_faked"
+   ]
+  },
+  {
+   "id": "TWL-BAS-1",
+   "engine": "twilio-api-sla",
+   "dimension": "fee_basis",
+   "case": "Unresolved fee classification, mapping or evidence",
+   "status": "INSUFFICIENT_EVIDENCE",
+   "result": "Never silently excluded or included.",
+   "enforced_by": [
+    "uptime/twilio.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_twilio.py::test_unresolved_fee_not_silently_excluded"
+   ]
+  },
+  {
+   "id": "TWL-BAS-2",
+   "engine": "twilio-api-sla",
+   "dimension": "fee_basis",
+   "case": "No fee, not actually incurred, or another month",
+   "status": "INELIGIBLE",
+   "result": "No claim amount.",
+   "enforced_by": [
+    "uptime/twilio.py::_evaluate"
+   ],
+   "tests": [
+    "tests/test_twilio.py::test_no_fee_unincurred_or_wrong_month_no_claim_value"
+   ]
+  },
+  {
+   "id": "IDS-D03-1",
+   "engine": "claim-identity",
+   "dimension": "identity_scope",
+   "case": "Account, agreement, vendor or service name with spaces, punctuation or non-ASCII letters (source-identity/1)",
+   "status": "SUPPORTED",
+   "result": "Accepted byte-identically by onboarding, claim intake, signed evidence, the claim registry and the ledger; padded, repeated-space, non-NFC, control and other characters are refused everywhere, never rewritten.",
+   "enforced_by": [
+    "uptime/source_identity.py::refusal",
+    "uptime/vendor_terms.py::bind_overlay",
+    "uptime/correspondence_types.py::Scope",
+    "uptime/claim_identity.py::reserve_claim",
+    "uptime/allocations.py::_scope"
+   ],
+   "tests": [
+    "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
+    "tests/test_identity_domain_89.py::test_accepted_identities_are_never_rewritten",
+    "tests/test_identity_domain_89.py::test_padded_or_irregular_accounts_are_refused_at_onboarding_intake_and_filing",
+    "tests/test_identity_domain_89.py::test_every_vendor_service_and_product_entry_point_applies_the_same_bounded_rule",
+    "tests/test_source_identity_89.py::test_every_legacy_restricted_identifier_is_accepted_byte_identically"
+   ]
+  },
+  {
+   "id": "IDS-D03-2",
+   "engine": "claim-identity",
+   "dimension": "identity_scope",
+   "case": "Onboarded source-shaped account such as `Harborline Analytics`",
+   "status": "SUPPORTED",
+   "result": "Northwind January keeps ELIGIBLE 2400.00 with the same governing fee and completed steps; another account's fee context is still never borrowed.",
+   "enforced_by": [
+    "uptime/governing_fees.py::require_governing_fee",
+    "uptime/claim_identity.py::vendor_economic_identity"
+   ],
+   "tests": [
+    "tests/test_identity_domain_89.py::test_spaced_source_account_keeps_the_same_northwind_economics",
+    "tests/test_identity_domain_89.py::test_another_accounts_fee_context_is_still_never_borrowed"
+   ]
+  },
+  {
+   "id": "IDS-D03-3",
+   "engine": "claim-identity",
+   "dimension": "identity_scope",
+   "case": "Second filing whose account or agreement differs only by case or spacing",
+   "status": "REFUSED_AT_FILING",
+   "result": "Refused before dispatch; exact retries and distinct obligations proceed. No override path exists; override authority is not approved.",
+   "enforced_by": [
+    "uptime/claim_identity.py::_near_duplicate"
+   ],
+   "tests": [
+    "tests/test_identity_domain_89.py::test_case_or_spacing_variant_cannot_file_the_same_obligation_twice",
+    "tests/test_identity_domain_89.py::test_distinct_obligations_and_exact_retries_are_not_blocked"
+   ]
+  },
+  {
+   "id": "IDS-D04-1",
+   "engine": "claim-identity",
+   "dimension": "identity_scope",
+   "case": "Whole-service and resource claims without component, incident, invoice or region",
+   "status": "DEFECT_DECISION_PENDING",
+   "result": "Every claim requires all ten scope fields; Northwind supplies authored values the monthly evaluator never reads. Repair depends on D04.",
+   "enforced_by": [
+    "uptime/correspondence_types.py::Scope"
+   ],
+   "tests": [
+    "tests/test_identity_domain_89.py::test_claim_scope_requires_every_field_for_every_obligation_family",
+    "tests/test_identity_domain_89.py::test_recorded_scopes_lack_fields_their_obligation_may_not_need",
+    "tests/test_identity_domain_89.py::test_northwind_whole_service_scope_carries_authored_values_the_evaluator_never_reads"
+   ]
+  }
+ ]
+}

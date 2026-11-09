@@ -199,3 +199,32 @@ def test_isolated_fastapi_surface_and_durable_failure(inbox, monkeypatch):
     response = client.post("/webhooks/ramp", content=raw, headers=headers)
     assert response.status_code == 503
     assert "PRIVATE" not in response.text
+
+
+@pytest.mark.parametrize("bad_type", [[], {}, 1, None])
+def test_malformed_event_type_is_a_400_not_an_unhandled_exception(inbox, bad_type):
+    event = native_event()
+    event["type"] = bad_type
+    with pytest.raises(WebhookError) as caught:
+        inbox.receive(*signed(event))
+    assert caught.value.status == 400
+
+
+def test_duplicate_webhook_headers_rejected(inbox):
+    client = TestClient(create_webhook_app(inbox))
+    raw, headers = signed(native_event())
+    response = client.post("/webhooks/ramp", content=raw, headers=[*headers.items(), ("x-ramp-signature", headers["X-Ramp-Signature"])])
+    assert response.status_code == 400
+    assert inbox.events() == []
+
+
+@pytest.mark.parametrize("receipt", [{"success": 1}, {"success": True, "extra": 1}, [("success", True)], "success"])
+def test_verification_receipt_must_be_exactly_success_true(tmp_path, receipt):
+    box = RampWebhookInbox(tmp_path/"native.db", deployment(), clock=lambda: NOW)
+    event = {"type": "webhooks.verification", "challenge": "ramp_challenge_receipt_shape_test"}
+    box.receive(*signed(event))
+    with pytest.raises(RampError, match="receipt"):
+        box.record_verification(event["challenge"], receipt)
+    assert box.status() == "pending_verification"
+    box.record_verification(event["challenge"], {"success": True})
+    assert box.status() == "active"

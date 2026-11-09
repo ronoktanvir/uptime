@@ -151,9 +151,19 @@ def test_conflicting_duplicate_and_source_alias_cannot_double_count(tmp_path):
     award, credit = post(ledger)
     ledger.record_bill("tenant", bill())
     ledger.apply("tenant", application())
-    # Equivalent normalized spellings replay exactly, including NFC scope IDs.
-    ledger.record_award(" tenant ", " case-1 ", {**award, "id": " award-1 ", "currency": "usd"})
-    ledger.apply("tenant", {**application(), "id": " allocation-1 "})
+    # Decision D03-A (2026-11-09): padded or non-NFC spellings are refused, never trimmed into a
+    # matching identity. Exact replays stay idempotent; the currency-code case rule is unchanged.
+    for args in ((" tenant ", "case-1", award), ("tenant", " case-1 ", award), ("tenant", "case-1", {**award, "id": " award-1 "})):
+        with pytest.raises(ValueError):
+            ledger.record_award(*args)
+    with pytest.raises(ValueError):
+        ledger.apply("tenant", {**application(), "id": " allocation-1 "})
+    for refused in (" account", "account ", "Cafe\u0301 Nord"):
+        with pytest.raises(ValueError, match="Invalid account_id"):
+            canonical(refused, "account_id")
+    assert canonical("Cedar Orrery Studio", "account_id") == "Cedar Orrery Studio"
+    ledger.record_award("tenant", "case-1", {**award, "currency": "usd"})
+    ledger.apply("tenant", application())
     for row in ({**application(), "amount_cents": 1}, {**application(), "id": "cloned"}):
         with pytest.raises(ValueError):
             ledger.apply("tenant", row)

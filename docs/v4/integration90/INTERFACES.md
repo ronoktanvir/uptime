@@ -30,7 +30,7 @@ The November 3 CP1 wire contract in [docs/orchestration/INTERFACES.md](../../orc
 
 **Agreed target (implementation on `work/identity-pricing-89`):**
 
-- Explicit scope types per obligation: **whole-service month**, **resource period** and **incident-specific**. Each declares its required fields; component, incident and region are required only where the governing obligation needs them.
+- Explicit scope types per obligation: **whole-service month**, **resource period** and **incident-specific**. Each declares its required fields; component, incident and region are required only where the governing obligation needs them. Ronok confirmed this server-selected form on 2026-11-09 ("D04-C now, monthly keeps incident"). The **monthly-availability** family still requires exactly one incident, because its evidence join reconciles coverage to `[scope.incident]`. Proving a whole-service month without an incident is a separate pending decision.
 - The server selects the variant from the governing obligation family resolved from trusted terms, through a versioned table. Signed request bodies keep their current shape; the client sends no `kind`. Unknown or ambiguous families are refused.
 - "Not applicable" (a field the variant forbids) stays distinct from "unknown" (a required field not yet evidenced). A scope defect is a distinct invalid-scope refusal, never INSUFFICIENT_EVIDENCE. An invoice the fee basis needs is named as missing evidence.
 - No component, incident or region is ever invented. The vendor-name shape check at `correspondence.py:193` is replaced by the family table.

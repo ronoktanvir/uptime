@@ -7,7 +7,7 @@ from decimal import Decimal, localcontext
 import json
 from pathlib import Path
 
-from .mandates import check_claim_decision, claim_preview
+from .mandates import check_claim_decision, check_closure_decision, claim_preview, closure_preview
 from .contracts import Outcome, Source, fingerprint
 from .claim_identity import TABLE as CLAIM_IDENTITY_TABLE, claim_key, reserve_claim
 from .correspondence_artifacts import HISTORICAL, approved_artifact, artifact_conflict as _artifact_conflict, validate_arrival
@@ -34,20 +34,12 @@ def reviewed_reply(state):
 
 
 def hold_reviewed_denial(state):
-    """A reviewed reading never closes a claim by itself; acceptance is a separate explicit action."""
-    if state["stage"] == "DENIAL_ACCEPTED" and reviewed_reply(state) and not state.get("denial_acceptance"):
-        state["stage"] = DENIAL_REVIEW
+    """D06 "Humans gate judgment": no reading, grammar or reviewed, closes a claim by itself.
 
-
-def closure_permitted(p):
-    """Mirror of mandates.check_claim_decision's legacy exemption. No mandate type can bind a closure yet.
-
-    A principal carrying any mandate or claim decision, or outside the legacy
-    workspace exemption, cannot accept a denial until the integration owner adds
-    a closure-bound decision type (requested; D06 pending).
+    Closing is a separate explicit reviewer action bound to the substantiated basis.
     """
-    return (p.role == "reviewer" and p.tenant == "bears" and getattr(p, "claim_decision", None) is None
-            and not getattr(p, "mandate_id", None))
+    if state["stage"] == "DENIAL_ACCEPTED" and state["replies"] and not state.get("denial_acceptance"):
+        state["stage"] = DENIAL_REVIEW
 
 
 def supersede_acceptance(state):
@@ -69,6 +61,10 @@ CREATE TABLE IF NOT EXISTS inbox_migration (name TEXT NOT NULL PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS inbox_claim (
  tenant TEXT NOT NULL, id TEXT NOT NULL, obligation TEXT NOT NULL, scope TEXT NOT NULL,
  state TEXT NOT NULL, PRIMARY KEY(tenant,id), UNIQUE(tenant,obligation));
+CREATE TABLE IF NOT EXISTS inbox_refusal (
+ tenant TEXT NOT NULL, account TEXT NOT NULL, source TEXT NOT NULL, event_id TEXT NOT NULL,
+ claim TEXT NOT NULL, digest TEXT NOT NULL, reason TEXT NOT NULL, received TEXT NOT NULL,
+ PRIMARY KEY(tenant,account,source,event_id));
 CREATE TABLE IF NOT EXISTS inbox_delivery (
  tenant TEXT NOT NULL, account TEXT NOT NULL, source TEXT NOT NULL, event_id TEXT NOT NULL,
  claim TEXT NOT NULL, digest TEXT NOT NULL, received TEXT NOT NULL,
@@ -293,7 +289,41 @@ class CorrespondenceDesk:
                     (p.tenant, p.subject, event.scope.account, subscription_id(event.scope), scoped, fallback)).fetchone()
             if not sender:
                 raise PermissionError("Service has no source grant on this account.")
-            return self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p)
+            result = self._receive(db, p.tenant, event.scope.account, sender["source"], claim_id, event, p)
+        # A refusal's case record and approval clearance commit before the sender sees the refusal.
+        if result.get("refused"):
+            raise ValueError(result["refused"])
+        return result
+
+    @staticmethod
+    def _scope_refusal(event, source, scope):
+        """The signed grant's own nested-identity and service-month checks, applied on every channel."""
+        from .evidence_applicability import temporal_refusal
+        from .source_config import event_in_scope
+        if event_in_scope(event, source, scope):
+            return None
+        return (temporal_refusal(event.body, scope.month)
+                or "The " + event.body.kind + " record names an identity outside the granted claim scope.")
+
+    def _contradiction(self, state, event, source, principal, digest, reason, now):
+        """Keep a refused, authenticated contradiction out of evidence, but in front of a person.
+
+        A record wholly for another service month is a misrouted delivery: it voids any
+        approval but does not hold the claim. A record naming another identity (account,
+        resource, region, invoice, component...) contradicts this claim's scope and holds
+        every outbound or closing action until a person resolves it (retraction: F7, pending).
+        """
+        blocking = "outside service month" not in reason
+        state.setdefault("contradicting_deliveries", []).append(dict(
+            event_id=event.event_id, source=source, subject=principal.subject, kind=event.body.kind,
+            digest=digest, reason=reason, received_at=now.isoformat(), blocking=blocking))
+        if state["approval"]:
+            state["stage"] = "DRAFTED" if not state["submissions"] else "RESPONSE_DRAFTED"
+            state["approval"] = None
+        if state["submissions"] and state["stage"] in {"NEEDS_EVIDENCE", "RESPONSE_DRAFTED", "AWAITING_NOTICE", DENIAL_REVIEW}:
+            state["stage"] = "HUMAN_REVIEW"
+        audit(state, now, principal.subject, "Refused an out-of-scope " + event.body.kind + " delivery: " + reason,
+              VENDOR if source == "vendor" else SOURCES, event_id=event.event_id, digest=digest)
 
     def _receive(self, db, tenant, account, source, claim_id, event, principal):
         if source != SOURCE[event.body.kind] or account != event.scope.account or observe_only(db, tenant):
@@ -309,7 +339,20 @@ class CorrespondenceDesk:
             if previous["digest"] != digest:
                 raise ValueError("Delivery identity was reused with different content.")
             return dict(event_id=event.event_id, digest=digest, received_at=previous["received"])
+        refused = db.execute("SELECT digest,reason FROM inbox_refusal WHERE tenant=? AND account=? AND source=? AND event_id=?",
+                             (tenant, account, source, event.event_id)).fetchone()
+        if refused:
+            if refused["digest"] != digest:
+                raise ValueError("Delivery identity was reused with different content.")
+            return dict(event_id=event.event_id, digest=digest, refused=refused["reason"])
         now = self._now()
+        reason = self._scope_refusal(event, source, scope)
+        if reason:
+            self._contradiction(state, event, source, principal, digest, reason, now)
+            self._save(db, tenant, claim_id, state)
+            db.execute("INSERT INTO inbox_refusal VALUES(?,?,?,?,?,?,?,?)",
+                       (tenant, account, source, event.event_id, claim_id, digest, reason, now.isoformat()))
+            return dict(event_id=event.event_id, digest=digest, refused=reason)
         validate_arrival(body, now)
         if any(e["digest"] == digest for e in state["evidence"]):
             audit(state, now, source, "Recorded an identical-content delivery alias.", digest=digest)
@@ -378,6 +421,7 @@ class CorrespondenceDesk:
                     state["replies"].append(reply)
                     state["cooldown"] = (now + FOLLOW_UP).isoformat()
                     apply_response_state(state, current)
+                    hold_reviewed_denial(state)
                     audit(state, now, "claimant", "Linked vendor reply to verified historical receipt.", VENDOR, receipt=body["receipt_id"])
                 else:
                     self._reply(tenant, scope, state, fact, now)
@@ -612,7 +656,7 @@ class CorrespondenceDesk:
 
     def _denial_basis(self, scope, state, current):
         """Re-derive from current evidence and governing terms only that a reviewed denial ground holds."""
-        if state["stage"] != DENIAL_REVIEW or not reviewed_reply(state):
+        if state["stage"] != DENIAL_REVIEW or not state["replies"]:
             return None
         reviewed = state.get("interpretation_review")
         if reviewed and (reviewed["contract_version"] != current.version
@@ -622,7 +666,7 @@ class CorrespondenceDesk:
             return None
         reply = state["replies"][-1]
         return dict(reason=state["reason"], reply_digest=reply["digest"], receipt=reply["receipt"],
-                    review_id=reply["reviewed_interpretation"], evidence_digest=current.evidence_digest,
+                    review_id=reply.get("reviewed_interpretation"), evidence_digest=current.evidence_digest,
                     contract_version=current.version, contract_source_sha256=current.contract_source_sha256,
                     outcome=str(current.evaluation.outcome), clauses=[asdict(c) for c in current.evaluation.clauses])
 
@@ -630,10 +674,14 @@ class CorrespondenceDesk:
         reviewed = state.get("interpretation_review")
         if reviewed and (reviewed["contract_version"] != current.version or reviewed["contract_source_sha256"] != current.contract_source_sha256):
             return []
+        if any(c.get("blocking") for c in state.get("contradicting_deliveries", [])):
+            return []
         if state["stage"] == DENIAL_REVIEW:
             # Stopping is not bounded by the filing window; it sends nothing.
             basis = self._denial_basis(scope, state, current)
-            if not closure_permitted(p) or basis is None:
+            # Ronok's decision 2a: mandated principals need a closure-bound ClosureDecision,
+            # checked at acceptance; the legacy unmandated reviewer exemption is unchanged.
+            if p.role != "reviewer" or basis is None:
                 return []
             return [dict(id="accept-denial", label="Accept Denial", basis_digest=fingerprint(basis),
                          route="denial-acceptance")]
@@ -654,15 +702,15 @@ class CorrespondenceDesk:
             return []
         return [dict(id=action, label=action.replace("-", " ").title())]
 
-    def _accept_denial(self, p, scope, state, current, now, basis_digest):
+    def _accept_denial(self, db, p, claim_id, scope, state, current, now, basis_digest):
         """Explicit reviewer stop bound to the exact basis the reviewer saw. No money or packet."""
-        if not closure_permitted(p):
-            raise PermissionError("No claim-decision mandate type can bind a denial acceptance for this principal.")
         offered = [a for a in self._actions(p, scope, state, current, now) if a["id"] == "accept-denial"]
         if not offered:
             raise ValueError("Action unavailable for the current policy, filing window, evidence and stage.")
         if basis_digest != offered[0]["basis_digest"]:
             raise ValueError("The denial basis changed after it was reviewed; review the current evidence again.")
+        # Decision 2a: exact closure-bound mandate (or the legacy exemption), against the pre-change state.
+        check_closure_decision(db, p, closure_preview(claim_id, basis_digest, scope.model_dump(), state))
         basis = self._denial_basis(scope, state, current)
         state["stage"] = "DENIAL_ACCEPTED"
         state["approval"] = None
@@ -685,7 +733,7 @@ class CorrespondenceDesk:
                 if not state.get("denial_acceptance"):
                     if basis_digest is None:
                         raise ValueError("Accepting a denial requires the exact reviewed basis digest.")
-                    self._accept_denial(p, scope, state, current, now, basis_digest)
+                    self._accept_denial(db, p, claim_id, scope, state, current, now, basis_digest)
                     self._save(db, p.tenant, claim_id, state)
             else:
                 if (state["approval"] and state["approval"]["action"] == action
@@ -779,12 +827,19 @@ class CorrespondenceDesk:
         replies = [{**r, "text": next(e["body"]["text"] for e in state["evidence"] if e["digest"] == r["digest"])} for r in state["replies"]]
         actions = [] if observe_only(db, p.tenant) else self._actions(p, scope, state, current, now)
         if p.tenant != "bears" and actions:
+            closing = [offer for offer in actions if offer["id"] == "accept-denial"]
+            filing = [offer for offer in actions if offer["id"] != "accept-denial"]
+            for offer in closing:
+                # The exact decision an issuer binds; acceptance never builds an outbound packet.
+                offer["mandate_closure"] = closure_preview(claim_id, offer["basis_digest"], scope.model_dump(), state).model_dump()
             try:
-                packet = self._packet(p.tenant, claim_id, scope, state, current)
-                for offer in actions:
-                    offer["mandate_claim"] = claim_preview(offer["id"], scope.model_dump(), packet).model_dump()
+                if filing:
+                    packet = self._packet(p.tenant, claim_id, scope, state, current)
+                    for offer in filing:
+                        offer["mandate_claim"] = claim_preview(offer["id"], scope.model_dump(), packet).model_dump()
             except ValueError:
-                actions = []
+                filing = []
+            actions = filing + closing
         return dict(id=claim_id, title="Claim correspondence · " + scope.invoice, vendor=scope.vendor,
                     mode="LOCAL_SIMULATOR", policy="ASSISTED", tenant=p.tenant, scope=scope.model_dump(), stage=stage,
                     outcome=outcome, amount=amount, currency=scope.currency, contract_version=current.version or None,
@@ -802,5 +857,6 @@ class CorrespondenceDesk:
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
                     requested_artifact=state.get("requested_artifact"), historical_procedure=current.procedure,
                     obligation_id=obligation_id, policy_dispatchable=False, ledger=ledger,
-                    denial_acceptance=state.get("denial_acceptance"), trace_url="/api/correspondence/claims/" + claim_id + "/trace",
+                    denial_acceptance=state.get("denial_acceptance"),
+                    contradicting_deliveries=state.get("contradicting_deliveries", []), trace_url="/api/correspondence/claims/" + claim_id + "/trace",
                     financials=[dict(label=k.replace("_", " ").title(), value=scope.currency + " " + v, sources=SOURCES) for k,v in ledger.items()])

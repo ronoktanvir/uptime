@@ -102,6 +102,10 @@ def test_incomplete_contradictory_or_expired_evidence_cannot_authorize_cure(regi
     if fault == "unpaid":
         rows[3][1]["lines"][0]["payment_state"] = "unpaid"
     deliver(regional, [("vendor-fixture", original(late=fault == "late-original"))])
+    if fault == "wrong-region":
+        # Decision 89b (W5 F2): the foreign-region monitor row is refused before storage.
+        refused = regional.source(*rows.pop(1))
+        assert refused.status_code == 409 and "outside the granted claim scope" in refused.text
     deliver(regional, rows)
     changes = {"ticket_id":"different-ticket"} if fault == "wrong-ticket" else {"message_ref":"another-note"} if fault == "wrong-message" else {}
     portal_reply(regional, "We are still reviewing." if fault == "ambiguous" else "Please attach the missing logs.", **changes)

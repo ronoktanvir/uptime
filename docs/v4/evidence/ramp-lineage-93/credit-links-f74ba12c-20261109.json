@@ -1,0 +1,22 @@
+{
+  "actual_recovery": null,
+  "applied_verified_minor": 0,
+  "attribution": "NOT_ATTRIBUTED_REQUIRES_REVIEWED_CREDIT_BINDING",
+  "bill_amount_minor": 84000,
+  "bill_currency": "USD",
+  "bill_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+  "bill_status": "OPEN",
+  "capture_checksum": "8d42567fdf7ee3e27edd5979d3097db72cf948ec8a8bf931e3b9ed5df0d3e8bd",
+  "credits_list": {
+    "archived_requested": false,
+    "complete": true,
+    "status": "EMPTY"
+  },
+  "links": [],
+  "observed_at": "2026-11-09T12:35:33.038627+00:00",
+  "provider_business_id": "1569e402-460e-4952-adad-9df27db628a0",
+  "reasons": [],
+  "schema": "uptime-ramp-credit-links/1",
+  "status": "NO_APPLIED_CREDITS",
+  "writes_attempted": false
+}

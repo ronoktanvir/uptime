@@ -160,8 +160,10 @@ def test_n89_cure_inapplicable_escalates(env):
     desk, rid, preview = reviewed(env, reading(case))
     prepare(desk, rid, preview)
     env.now += timedelta(hours=1)
-    env.send("component", data={**BODIES["component"], "component_id": "api-west"})
+    with pytest.raises(ValueError, match="outside the granted claim scope"):
+        env.send("component", data={**BODIES["component"], "component_id": "api-west"})
     assert env.get()["stage"] == "HUMAN_REVIEW" and trace(env)["disposition"] == "ESCALATE"
+    assert trace(env)["contradicting_deliveries"][0]["kind"] == "component"
     assert len(env.get()["submissions"]) == 1
 
 
@@ -643,15 +645,32 @@ def _pending(env):
     assert env.get()["stage"] == "DENIAL_REVIEW"
 
 
-def test_mandated_principal_cannot_accept_until_a_closure_decision_type_exists(env):
-    """Critique 89 #1/#2: view and action agree, and no mandate can yet bind a closure."""
+def test_mandated_principal_needs_an_exact_closure_decision(env, monkeypatch):
+    """Critique 89 #1/#2 and Ronok's decision 2a: a closure-bound mandate on the exact basis and claim state."""
+    from uptime import mandates
     _pending(env)
-    mandated = SimpleNamespace(tenant="bears", subject="operator", role="reviewer", mandate_id="mandate-89", claim_decision=None)
-    assert env.desk.case(mandated, ID)["actions"] == []
-    digest = env.get()["actions"][0]["basis_digest"]
+    offer = env.get()["actions"][0]
+    mandated = SimpleNamespace(tenant="bears", subject="operator", role="reviewer", mandate_id="mandate-89", closure_decision=None)
+    assert [a["id"] for a in env.desk.case(mandated, ID)["actions"]] == ["accept-denial"]
     with pytest.raises(PermissionError):
-        env.desk.accept_denial(mandated, ID, digest)
+        env.desk.accept_denial(mandated, ID, offer["basis_digest"])
+    # Isolate this desk's binding from the installed-mandate signature recheck (tests/test_mandate_claim_closure_2a.py).
+    monkeypatch.setattr(mandates, "recheck_financial_mandate", lambda db, p: None)
+    with database_state(env) as state:
+        stale = mandates.closure_preview(ID, offer["basis_digest"], env.scope.model_dump(), state)
+    assert stale.claim_state_sha256 == env.get()["state_sha256"] and stale.max_amount_cents == 0
+    env.send("notice", event_id="notice-alias")  # identical content: state changes, basis does not
+    assert env.get()["actions"][0]["basis_digest"] == offer["basis_digest"]
+    with pytest.raises(PermissionError):
+        env.desk.accept_denial(SimpleNamespace(**{**vars(mandated), "closure_decision": stale}), ID, offer["basis_digest"])
+    other_basis = stale.model_copy(update={"basis_sha256": "0" * 64, "claim_state_sha256": env.get()["state_sha256"]})
+    with pytest.raises(PermissionError):
+        env.desk.accept_denial(SimpleNamespace(**{**vars(mandated), "closure_decision": other_basis}), ID, offer["basis_digest"])
     assert env.get()["stage"] == "DENIAL_REVIEW" and env.get()["denial_acceptance"] is None
+    with database_state(env) as state:
+        exact = mandates.closure_preview(ID, offer["basis_digest"], env.scope.model_dump(), state)
+    closed = env.desk.accept_denial(SimpleNamespace(**{**vars(mandated), "closure_decision": exact}), ID, offer["basis_digest"])
+    assert closed["stage"] == "DENIAL_ACCEPTED" and closed["ledger"]["awarded"] == "0.00"
 
 
 def test_acceptance_is_bound_to_the_basis_the_reviewer_saw(env):
@@ -706,3 +725,45 @@ class database_state:
 
     def __exit__(self, *exc):
         return False
+
+
+def test_other_tenant_view_offers_closure_preview_without_building_a_packet(tmp_path, monkeypatch):
+    """Critique 89 #2 under decision 2a: a mandated workspace sees the exact closure decision to issue."""
+    from uptime import correspondence
+    from uptime.correspondence_types import Claim
+    from test_correspondence import SCOPE, SOURCES, START
+    monkeypatch.setattr(correspondence, "check_claim_decision", lambda *a: None)  # isolate filing mandates
+    clock = [START]
+    desk = CorrespondenceDesk(tmp_path / "acme.db", clock=lambda: clock[0])
+    tenant, reviewer = "acme", Principal("acme", "operator", "reviewer")
+    desk.provision(tenant, SCOPE.account, SCOPE.vendor, SCOPE.contract, SCOPE.service, SCOPE.component, SCOPE.region)
+    for source in set(SOURCES.values()):
+        desk.bind_sender(tenant, SCOPE.account, source, source + "-fixture")
+    desk.create(reviewer, Claim(claim_id=ID, scope=SCOPE))
+    def send(kind, body=None, event_id=None):
+        desk.receive(Principal(tenant, SOURCES[kind] + "-fixture", "service"), ID,
+                     Delivery(event_id=event_id or kind, scope=SCOPE, body=body or BODIES[kind]))
+    for kind in ("status", "impact", "invoice", "component"):
+        send(kind)
+    desk.act(reviewer, ID, "approve-claim")
+    receipt = desk.act(reviewer, ID, "submit-claim")["submissions"][0]["id"]
+    text = CASES["n89-denial-maintenance"]["text"]
+    send("message", dict(kind="message", text=text, receipt_id=receipt), "reply")
+    clock[0] += timedelta(minutes=5)
+    send("notice")
+    bridge = InterpretationDesk(desk)
+    context = bridge.view(reviewer, ID)["context"]
+    annotation = meaning(text, "maintenance")
+    bridge.blind(reviewer, ID, Entry(context_digest=context["digest"], interpretation=annotation))
+    rid = bridge.review(reviewer, ID, Review(context_digest=context["digest"], interpretation=annotation, candidate_id=None,
+        resolutions=[dict(proposition=0, verdict="accept", explanation="Scripted reading of the complete signed reply.")],
+        residuals_reviewed=True, complete_meaning_reviewed=True))["id"]
+    preview = bridge.preview(reviewer, ID, rid)
+    bridge.prepare(reviewer, ID, Prepare(review_id=rid, preview_digest=preview["digest"]))
+    view = desk.case(reviewer, ID)
+    assert view["stage"] == "DENIAL_REVIEW" and [a["id"] for a in view["actions"]] == ["accept-denial"]
+    offer = view["actions"][0]
+    assert offer["mandate_closure"]["basis_sha256"] == offer["basis_digest"]
+    assert offer["mandate_closure"]["claim_state_sha256"] == view["state_sha256"] and offer["mandate_closure"]["max_amount_cents"] == 0
+    with pytest.raises(PermissionError):
+        desk.accept_denial(reviewer, ID, offer["basis_digest"])  # no closure decision in a mandated tenant

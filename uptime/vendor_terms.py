@@ -301,11 +301,22 @@ def bind_overlay(manifest, overlay):
         raise ValueError('Resource mappings require a resource-month contract.')
     if overlay.currency != 'USD' or manifest['agreement'] is not None and scoped[0] != manifest['agreement']:
         raise ValueError('Unsupported agreement or fee currency.')
-    for value in (overlay.agreement, overlay.product, overlay.plan, overlay.account, overlay.fee_line_ref):
+    from .source_identity import refusal as identity_refusal
+    # Decision D03-A (extended to vendor and product names on 2026-11-09): identity-bearing names are
+    # exact source identities, refused, never rewritten, in the same bounded domain as claim intake.
+    # Plan and fee line keep their source grammar.
+    if any(identity_refusal(value) for value in (overlay.agreement, overlay.account, overlay.product, manifest['vendor'])):
+        raise ValueError('Missing or ambiguous overlay binding: account, agreement, product and vendor must be bounded exact source identities.')
+    for value in (overlay.plan, overlay.fee_line_ref):
         if not _match(NAME, value):
             raise ValueError('Missing or ambiguous overlay binding.')
     if resource:
         from .vendor_resource_terms import norm
+        # Finding F5 (Ronok, 2026-11-09: require reviewed binding). A source that names no agreement
+        # cannot bind an overlay agreement by itself; the reviewed governing-terms attestation must bind
+        # the exact overlay agreement to this document, its effective date and unamended economics.
+        if manifest['agreement'] is None and overlay.governing_terms is None:
+            raise ValueError('The overlay agreement must be bound to its governing document by a reviewed governing-terms attestation.')
         if 'precedence' in manifest or overlay.governing_terms is not None:
             attestation=overlay.governing_terms
             required={'scope','measurement','exclusions','tiers','fee_basis','rounding','filing','remedy'}
@@ -328,8 +339,9 @@ def bind_overlay(manifest, overlay):
                                 (overlay.cause_aliases, manifest.get('provider_causes', []) + manifest['exclusions'])]:
             if aliases and any(not norm(key) or value not in labels for key,value in aliases.items()):
                 raise ValueError('Private observation aliases must map to cited service definitions.')
+        # The governing-terms attestation is the only private statement the fixed profile accepts (F5 binding).
         if manifest.get('aggregate_monitor') and any((overlay.override,overlay.subscription_record,overlay.billing_period,
-                                                       overlay.governing_terms,overlay.cause_aliases,overlay.symptom_aliases)):
+                                                       overlay.cause_aliases,overlay.symptom_aliases)):
             raise ValueError('Unsupported private amendment to the fixed service-month profile.')
         if overlay.override and manifest['filing']['kind'] != 'calendar_days':
             raise ValueError('A calendar-day override cannot implicitly replace billing cycles.')

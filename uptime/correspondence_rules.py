@@ -145,6 +145,14 @@ def assess(tenant, scope, events, at, filed=None, resolver: Resolver | None = No
         invoice["digest"], at, scope.contract, currency=scope.currency, submitted_at=filed,
         submission_ref="local-receipt" if filed else "")
     result = twilio.evaluate(data)
+    if (result.outcome == Outcome.INELIGIBLE and "coverage" not in grouped and exclusion == twilio.Exclusion.NONE
+            and any("at or above the strict less-than threshold" in line for line in result.trace)):
+        # D07 / W5 F3: one provisioned status record is a lower bound on the month's downtime.
+        # It can establish a breach (fixed 10% credit), but not that the target was met.
+        why = ("A signed complete-month coverage report is required before concluding the availability "
+               "target was met; one status record establishes only a lower bound on downtime.")
+        return Assessment(EvaluationResult(Outcome.MISSING, result.clauses, tuple(result.trace) + (why,), (why,)),
+                          cutoff, version, digest)
     measurement = None
     if result.outcome == Outcome.ELIGIBLE:
         # This tight profile admits one verified, fully in-month qualifying incident.

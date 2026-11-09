@@ -1,0 +1,71 @@
+{
+ "schema": "uptime-integration-verification/1",
+ "branch": "work/integration-90",
+ "tested_commit": "1b627ad642770e6b87924c1deace395611496a6b",
+ "fresh_clone": true,
+ "clone_status_lines": 0,
+ "started_at": "2026-11-09T11:44:18Z",
+ "ended_at": "2026-11-09T11:54:47Z",
+ "commands": {
+  "uv_sync": "uv sync --locked",
+  "pytest": "uv run --locked pytest -p no:cacheprovider -o tmp_path_retention_policy=failed --basetemp=<scratch>/bt",
+  "node": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+  "progress_graph": "node scripts/test_progress_graph.cjs",
+  "rehearse": "uv run --locked python scripts/rehearse.py",
+  "check_repo": "uv run --locked python scripts/check_repo.py",
+  "render_check": "uv run --locked python scripts/render_requirements.py --check"
+ },
+ "steps": {
+  "uv_sync": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "pytest": {
+   "exit": 0,
+   "seconds": 589
+  },
+  "node": {
+   "exit": 0,
+   "seconds": 1
+  },
+  "progress_graph": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "rehearse": {
+   "exit": 0,
+   "seconds": 2
+  },
+  "check_repo": {
+   "exit": 0,
+   "seconds": 37
+  },
+  "render_check": {
+   "exit": 0,
+   "seconds": 0
+  }
+ },
+ "pytest_result": "================= 4110 passed, 1 warning in 586.65s (0:09:46) ==================",
+ "node_counts": {
+  "tests": 75,
+  "pass": 75,
+  "fail": 0
+ },
+ "progress_graph": "Progress graph: dependency ordering, invalid graphs, and link safety passed.",
+ "check_repo": "Secret check passed for 2240 versioned text objects.",
+ "merged_increments": {
+  "W1 Ramp case lineage (agent4)": "1c8bc86",
+  "W3 requirement card and refusal diagnostics (agent2)": "f9153b2, edf0c05",
+  "W5 evidence period applicability (gen5)": "5b02d61, dcec513",
+  "W9 operations recovery (gen6)": "27e4926",
+  "Browser sign-in fix (from $HOME/uptime working tree)": "2205f0a",
+  "Hard-kill restart probe (gent8, from 52bea97)": "37d73f2"
+ },
+ "not_merged": [
+  "D03/D04 implementation (work/identity-pricing-89)",
+  "W4 dispute disposition (work/dispute-disposition-89)",
+  "W7 finance view and guide (work/finance-guide-90)",
+  "Evaluation 84-86 runners (work/release-evaluation-gent8; paused by AGENTS.md)"
+ ],
+ "limits": "Regression coverage only. No Ramp, model, vendor or human action occurred. Not recovery, release or generalization evidence."
+}

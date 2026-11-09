@@ -42,7 +42,7 @@
     "tests/test_pricing.py::test_preapproval_and_retrospective_are_candidates_only",
     "docs/v4/RAMP-PRICE-EVIDENCE.md"
    ],
-   "gap": "Only authored agreements are checked; observed Ramp bills have no governing agreement or line-level terms, and no live pre-approval intervention exists.",
+   "gap": "Only authored agreements are checked; observed Ramp bills have no governing agreement or line-level terms, and no live pre-approval intervention exists. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -85,9 +85,10 @@
    ],
    "evidence": [
     "docs/v4/evidence/browser-public-onboarding-82.json",
-    "docs/v4/evidence/local-review-88/recorded-review-20261109.json"
+    "docs/v4/evidence/local-review-88/recorded-review-20261109.json",
+    "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded.",
+   "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05",
@@ -111,7 +112,7 @@
     "docs/v4/RAMP-CREDIT-SYNC.md",
     "tests/test_ramp_case_lineage.py"
    ],
-   "gap": "Live Ramp returned zero vendor credits; application is proven only in the authored Local ledger.",
+   "gap": "Live Ramp returned zero vendor credits; application is proven only in the authored Local ledger. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -132,7 +133,7 @@
     "docs/v4/evidence/native-demo-connection-20261104.json",
     "docs/v4/evidence/demo-path-87/human-ramp-note.json"
    ],
-   "gap": "Live reads and a human-posted, API-verified note exist; no Uptime-origin write, credit or same-identity end-to-end case. The agent posting retest is blocked by automatic approval review.",
+   "gap": "Live reads and a human-posted, API-verified note exist; no Uptime-origin write, credit or same-identity end-to-end case. The agent posting retest is blocked by automatic approval review. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities). D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -154,7 +155,7 @@
    "evidence": [
     "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions"
    ],
-   "gap": "The guide is locally assembled, not a grounded LLM conversation.",
+   "gap": "The guide is locally assembled, not a grounded LLM conversation. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10",
@@ -174,9 +175,10 @@
    ],
    "evidence": [
     "docs/v4/evidence/native-demo-read-20261105.json",
-    "tests/test_ramp_ui_v4.py::test_ramp_browser_navigation_and_read_only_plan"
+    "tests/test_ramp_ui_v4.py::test_ramp_browser_navigation_and_read_only_plan",
+    "docs/v4/evidence/ramp-lineage-93/live-read-20261109.json"
    ],
-   "gap": "One bill is browser-matched; vendor inventory is sampled, not complete.",
+   "gap": "One bill is browser-matched. Vendor list complete (411 listed, 2026-11-09); vendor detail records bounded at 100; transactions exceed the read bound. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D02"
@@ -196,7 +198,7 @@
     "tests/test_ramp.py::test_verified_draft_replay_and_ambiguous_updates",
     "docs/v4/evidence/native-demo-grants-20261106.json"
    ],
-   "gap": "Code is tested against a controlled provider only. No Uptime-origin write has occurred; the agent retest was refused by automatic approval review and must not be rerouted.",
+   "gap": "Code is tested against a controlled provider only. No Uptime-origin write has occurred; the agent retest was refused by automatic approval review and must not be rerouted. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02"
@@ -214,9 +216,10 @@
    ],
    "evidence": [
     "tests/test_ramp_credit_sync_v4.py::test_no_synthetic_award_or_bill_created_from_provider_observation",
-    "docs/v4/RAMP-CREDIT-SYNC.md"
+    "docs/v4/RAMP-CREDIT-SYNC.md",
+    "docs/v4/evidence/ramp-lineage-93/credit-links-f74ba12c-20261109.json"
    ],
-   "gap": "The supported read returned zero credits; no manual Ramp credit has been recorded.",
+   "gap": "The supported read returned zero credits; no manual Ramp credit has been recorded. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation). D09 read-back implemented; demo bill f74ba12c has NO_APPLIED_CREDITS (complete, empty list, 2026-11-09). Stays external until a person creates and applies a real credit against a verified award.",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -274,7 +277,7 @@
     "tests/test_disputes.py::test_frozen_decision_traces",
     "tests/test_disputes.py::test_heldout_oracle_kills_seeded_overpayment"
    ],
-   "gap": "Counterparty is simulated; unseen reply interpretation scored 0/50.",
+   "gap": "Counterparty is simulated; unseen reply interpretation scored 0/50. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D13"
@@ -294,7 +297,7 @@
     "tests/test_onboarding_lifecycle.py::test_test_actor_activation_restart_rollback_and_stale_action",
     "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked"
    ],
-   "gap": "Promotion in the Atlassian lab is by a scripted reviewer; the lab is vendor-specific.",
+   "gap": "Promotion in the Atlassian lab is by a scripted reviewer; the lab is vendor-specific. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -316,7 +319,7 @@
     "docs/v4/evidence/resume-7882178.json",
     "tests/test_operations_recovery_90.py::test_backup_restore_restart_preserves_authority_and_financial_state"
    ],
-   "gap": "Local SQLite only; no hosted durability.",
+   "gap": "Local SQLite only; no hosted durability. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
    "gap_class": "external_dependency",
    "decisions": [
     "D11"
@@ -338,7 +341,7 @@
     "tests/test_ramp_workflow_webhooks.py::test_native_event_duplicate_is_durable_minimized",
     "docs/v4/OPUS46-SECURITY-TRIAGE.md"
    ],
-   "gap": "No hosted webhook; local operator remains a trust root.",
+   "gap": "No hosted webhook; local operator remains a trust root. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
    "gap_class": "external_dependency",
    "decisions": [
     "D11"
@@ -360,7 +363,7 @@
     "docs/v4/integration90/REHEARSAL.md",
     "docs/v4/CAPABILITIES.md"
    ],
-   "gap": "The historical film predates Northwind; the current two-minute flow is scripted and rehearsed offline but not filmed. No ROI number is claimed.",
+   "gap": "The historical film predates Northwind; the current two-minute flow is scripted and rehearsed offline but not filmed. No ROI number is claimed. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01"
@@ -392,9 +395,10 @@
    "implementation": [],
    "evidence": [
     "docs/orchestration/CHECKPOINTS.md",
-    "docs/v4/STATUS.md"
+    "docs/v4/STATUS.md",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains.",
+   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -413,7 +417,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Reads verified; no Uptime-origin write round-trip (restricted).",
+   "gap": "Reads verified; no Uptime-origin write round-trip (restricted). D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02"
@@ -431,7 +435,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Scripted reviewer in the Atlassian lab; separate recorded human review is CalyxQuay only.",
+   "gap": "Scripted reviewer in the Atlassian lab; separate recorded human review is CalyxQuay only. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -449,7 +453,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Unseen reply generalization 0/50.",
+   "gap": "Unseen reply generalization 0/50. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D13"
@@ -467,7 +471,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Local only.",
+   "gap": "Local only. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
    "gap_class": "external_dependency",
    "decisions": [
     "D11"
@@ -485,7 +489,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Independent probes previously found real bugs after green suites; fresh independent evaluation is paused.",
+   "gap": "Independent probes previously found real bugs after green suites; fresh independent evaluation is paused. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D13"
@@ -503,7 +507,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Current flow rehearsed but not filmed; native proof absent.",
+   "gap": "Current flow rehearsed but not filmed; native proof absent. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone). D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01",
@@ -522,9 +526,10 @@
     "uptime/vendor_terms.py"
    ],
    "evidence": [
-    "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked"
+    "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04).",
+   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -546,7 +551,7 @@
     "tests/test_onboarding_lifecycle.py::test_unknown_field_quarantined_and_cannot_preserve_prior_approval",
     "tests/test_onboarding_rules.py::test_untrusted_extractions_rejected"
    ],
-   "gap": "Finite supported rule families.",
+   "gap": "Finite supported rule families. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -586,8 +591,8 @@
     "tests/test_contracts.py::test_financial_input_rejects_non_decimal_or_nonfinite",
     "tests/test_pricing.py::test_performance_timestamp_and_timezone_control_amendment"
    ],
-   "gap": "USD only; general proration, tax allocation and business calendars refuse.",
-   "gap_class": "missing_functionality",
+   "gap": "Matches the D07 narrow matrix decided 2026-11-09: USD only; proration, tax allocation and business calendars refuse by decision.",
+   "gap_class": null,
    "decisions": [
     "D07"
    ]
@@ -646,7 +651,7 @@
    "evidence": [
     "tests/test_portfolio_v4.py::test_all_recorded_partial_awards_are_counted_once"
    ],
-   "gap": "No explicit evidence-ready stage metric; vendor-reported vs verified award are separate records but not separate KPIs.",
+   "gap": "No explicit evidence-ready stage metric; vendor-reported vs verified award are separate records but not separate KPIs. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D09"
@@ -667,7 +672,7 @@
     "tests/test_journey_api.py::test_action_body_cannot_override_server_authority",
     "tests/test_onboarding_lifecycle.py::test_other_tenant_cannot_read_overlay_promote_or_reuse_action"
    ],
-   "gap": "Local host administrator remains trusted.",
+   "gap": "Local host administrator remains trusted. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
    "gap_class": "external_dependency",
    "decisions": [
     "D11"
@@ -688,7 +693,7 @@
    "evidence": [
     "tests/test_release_boundaries.py::test_partial_application_preserves_disputed_remainder"
    ],
-   "gap": "Implemented with different stage names split across disputes, correspondence and allocation; WITHDRAWN and CLOSED_UNRECOVERABLE have no equivalent.",
+   "gap": "Implemented with different stage names split across disputes, correspondence and allocation; WITHDRAWN and CLOSED_UNRECOVERABLE have no equivalent. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -709,7 +714,7 @@
     "tests/test_disputes.py::test_corroboration_required_before_accepting_exclusion",
     "docs/v4/PHASE78-REVIEWED-DENIAL-BUNDLE.md"
    ],
-   "gap": "Finite reply grammar; 0/50 unseen supported replies recognized.",
+   "gap": "Finite reply grammar; 0/50 unseen supported replies recognized. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D06",
@@ -728,9 +733,10 @@
    ],
    "evidence": [
     "tests/test_disputes.py::test_exact_cooldown_allows_followup",
-    "tests/test_disputes.py::test_no_appeal_without_new_scoped_document"
+    "tests/test_disputes.py::test_no_appeal_without_new_scoped_document",
+    "docs/v4/integration90/D06-ACTION-MATRIX.md"
    ],
-   "gap": "One evidence follow-up after the original filing (stricter than two) with a 24-hour cooldown; standing autonomy policy undecided.",
+   "gap": "One evidence follow-up after the original filing (stricter than two) with a 24-hour cooldown; standing autonomy policy undecided. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D06"
@@ -747,9 +753,10 @@
     "uptime/policy.py"
    ],
    "evidence": [
-    "docs/v4/integration90/INTERFACES.md"
+    "docs/v4/integration90/INTERFACES.md",
+    "docs/v4/integration90/D06-ACTION-MATRIX.md"
    ],
-   "gap": "Modes exist (ASSISTED default, cap 0.00); no dedicated shutoff control beyond OBSERVE; the action matrix is a pending team decision.",
+   "gap": "Modes exist (ASSISTED default, cap 0.00); no dedicated shutoff control beyond OBSERVE; the action matrix is a pending team decision. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -766,9 +773,10 @@
     "uptime/ramp_records.py"
    ],
    "evidence": [
-    "docs/v4/CAPABILITIES.md"
+    "docs/v4/CAPABILITIES.md",
+    "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "No automatic discovery from Ramp records into onboarding; operators start intake.",
+   "gap": "No automatic discovery from Ramp records into onboarding; operators start intake. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"
@@ -788,7 +796,7 @@
    "evidence": [
     "docs/v4/GOVERNING-FEE-65A.md"
    ],
-   "gap": "No real customer agreement is available in Ramp data.",
+   "gap": "No real customer agreement is available in Ramp data. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
    "gap_class": "external_dependency",
    "decisions": [
     "D07"
@@ -806,9 +814,10 @@
     "uptime/vendor_terms.py"
    ],
    "evidence": [
-    "tests/test_vendor_catalog.py::test_multiple_arbitrary_catalog_entries_and_prose_products"
+    "tests/test_vendor_catalog.py::test_multiple_arbitrary_catalog_entries_and_prose_products",
+    "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "Rule family is supplied by the operator; submission-channel generation is not demonstrated.",
+   "gap": "D05 phase 1 merged: Uptime selects among supported families from the source and refuses ambiguous ones. Phase 2 (staging only the selected job, plus the UI) is not merged, and submission-channel generation is not demonstrated.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"
@@ -828,7 +837,7 @@
    "evidence": [
     "tests/test_onboarding_rules.py::test_held_out_contract_scenarios"
    ],
-   "gap": "Shadow cases are authored by reviewers, not generated per vendor across every category.",
+   "gap": "Shadow cases are authored by reviewers, not generated per vendor across every category. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -849,7 +858,7 @@
     "tests/test_onboarding_rules.py::test_independent_gold_catches_plausible_but_wrong_credit_rates",
     "tests/test_vendor_requirements_89.py"
    ],
-   "gap": "No separate security-scan stage; the signed release gate is unsatisfied.",
+   "gap": "No separate security-scan stage; the signed release gate is unsatisfied. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D13"
@@ -868,7 +877,7 @@
    "evidence": [
     "tests/test_onboarding_lifecycle.py::test_initial_shadow_contains_no_approval_and_viewer_cannot_mutate"
    ],
-   "gap": "Labels are authored; no disagreement-report artifact across live events.",
+   "gap": "Labels are authored; no disagreement-report artifact across live events. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D13"
@@ -889,7 +898,7 @@
     "docs/v4/evidence/local-review-88/recorded-review-20261109.json",
     "tests/test_onboarding_lifecycle.py::test_reviewer_can_restore_prior_version_with_same_governing_terms"
    ],
-   "gap": "One bounded local review recorded under the enrolled account; general release promotion remains gated.",
+   "gap": "One bounded local review recorded under the enrolled account; general release promotion remains gated. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "external_dependency",
    "decisions": [
     "D05",
@@ -909,7 +918,7 @@
    "evidence": [
     "docs/v4/TEAM-DECISION-HANDOFF.md"
    ],
-   "gap": "Dependency-bound re-approval exists; outcome quality metrics do not.",
+   "gap": "Dependency-bound re-approval exists; outcome quality metrics do not. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D13"
@@ -948,7 +957,7 @@
    "evidence": [
     "docs/v4/integration90/INTERFACES.md"
    ],
-   "gap": "Objects exist per subsystem; there is no single Customer, ContractDocument, EvidenceBundle or ExternalAction type.",
+   "gap": "Objects exist per subsystem; there is no single Customer, ContractDocument, EvidenceBundle or ExternalAction type. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D03"
@@ -965,9 +974,10 @@
     "uptime/vendor_terms.py"
    ],
    "evidence": [
-    "docs/v4/integration90/INTERFACES.md"
+    "docs/v4/integration90/INTERFACES.md",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "Overlay identity values use a different domain from claim intake.",
+   "gap": "Overlay identity values use a different domain from claim intake. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
    "gap_class": "bug",
    "decisions": [
     "D03"
@@ -990,7 +1000,7 @@
     "tests/test_evidence_applicability_91.py",
     "docs/v4/EVIDENCE-SUPPORT-MATRIX-91.md"
    ],
-   "gap": "Requirements are per-family code, not a shared typed requirement record.",
+   "gap": "Requirements are per-family code, not a shared typed requirement record. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D07"
@@ -1025,9 +1035,10 @@
     "uptime/claim_identity.py"
    ],
    "evidence": [
-    "docs/v4/integration90/INTERFACES.md"
+    "docs/v4/integration90/INTERFACES.md",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities.",
+   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -1048,7 +1059,7 @@
    "evidence": [
     "docs/v4/integration90/INTERFACES.md"
    ],
-   "gap": "Award source is constrained to the simulated counterparty; real memo ingestion unsupported.",
+   "gap": "Award source is constrained to the simulated counterparty; real memo ingestion unsupported. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -1087,7 +1098,7 @@
    "evidence": [
     "tests/test_pricing.py::test_missing_signatures_and_ambiguous_chain"
    ],
-   "gap": "Order-form/amendment chains only; no explicit MSA precedence layer.",
+   "gap": "Order-form/amendment chains only; no explicit MSA precedence layer. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D07"
@@ -1164,7 +1175,7 @@
     "tests/test_twilio.py::test_fee_basis_not_vendor_total",
     "tests/test_pricing.py::test_no_partial_claim_when_one_line_unidentified"
    ],
-   "gap": "Observed Ramp bills lack line facts.",
+   "gap": "Observed Ramp bills lack line facts. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
    "gap_class": "external_dependency",
    "decisions": [
     "D07"
@@ -1185,7 +1196,7 @@
     "tests/test_pricing.py::test_round_each_line_not_invoice_total",
     "tests/test_pricing.py::test_tax_excluded_only_when_separately_itemized"
    ],
-   "gap": "USD only; promotions not modelled; non-USD fails closed.",
+   "gap": "Under the D07 narrow matrix (2026-11-09), USD only and taxes in other forms return unsupported by decision. Promotions are not modelled and are not in the matrix.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D07"
@@ -1242,7 +1253,8 @@
    "evidence": [
     "tests/test_evidence.py::test_provenance_mismatch",
     "tests/test_reconciliation.py::test_duplicate_or_conflicting_observations_cannot_inflate_money",
-    "tests/test_evidence_applicability_91.py"
+    "tests/test_evidence_applicability_91.py",
+    "tests/test_correspondence_intake_scope_89b.py"
    ],
    "gap": null,
    "gap_class": null,
@@ -1260,9 +1272,12 @@
    ],
    "evidence": [
     "tests/test_claim_identity.py::test_concurrent_routes_have_one_owner",
-    "docs/v4/decisions/ADR-0024-cross-route-claim-identity.md"
+    "docs/v4/decisions/ADR-0024-cross-route-claim-identity.md",
+    "tests/test_identity_domain_89.py",
+    "tests/test_disputes_identity_89c.py",
+    "tests/test_reconciliation_identity_d03.py"
    ],
-   "gap": "Channel and agreement version are deliberately excluded to dedupe across routes (ADR-0024); account/agreement domains disagree across routes.",
+   "gap": "Channel and agreement version are deliberately excluded to dedupe across routes (ADR-0024); account/agreement domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
    "gap_class": "bug",
    "decisions": [
     "D03"
@@ -1293,7 +1308,8 @@
    "owner": "W2",
    "implementation": [],
    "evidence": [
-    "tests/test_twilio.py::test_not_customer_affected_and_other_api_do_not_count"
+    "tests/test_twilio.py::test_not_customer_affected_and_other_api_do_not_count",
+    "tests/test_evidence_status_source_91a.py::test_wrong_vendor_incident_component_or_month_is_refused"
    ],
    "gap": null,
    "gap_class": null,
@@ -1405,7 +1421,7 @@
     "tests/test_pricing.py::test_fixture_oracles_and_payment_immutability",
     "tests/test_ramp_cap_v4.py::test_840_over_800_is_only_hypothetical_and_deterministic"
    ],
-   "gap": "Adjustment is a candidate only.",
+   "gap": "Adjustment is a candidate only. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
    "gap_class": "external_dependency",
    "decisions": [
     "D07"
@@ -1499,7 +1515,7 @@
     "tests/test_release_boundaries.py::test_partial_application_preserves_disputed_remainder",
     "tests/test_correspondence.py::test_receipt_correction_and_independent_partial_award"
    ],
-   "gap": "Remainder is preserved and sent to review; no separate remainder filing path.",
+   "gap": "Remainder is preserved and sent to review; no separate remainder filing path. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -1580,7 +1596,7 @@
     "tests/test_disputes.py::test_sensitive_attachment_closes_automatic_dispatch",
     "tests/test_disputes_v4.py::test_minimization_precedes_simulator_and_approval_hashes_wire"
    ],
-   "gap": "Redaction relies on declared classification; no content-level secret/PII detection.",
+   "gap": "Redaction relies on declared classification; no content-level secret/PII detection. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10"
@@ -1599,7 +1615,9 @@
    ],
    "gap": null,
    "gap_class": null,
-   "decisions": []
+   "decisions": [
+    "D13"
+   ]
   },
   {
    "id": "RG-2",
@@ -1644,9 +1662,10 @@
    "implementation": [],
    "evidence": [
     "tests/test_pricing.py::test_missing_line_proof_fails_closed",
-    "tests/test_other_obligations.py::test_missing_annual_data"
+    "tests/test_other_obligations.py::test_missing_annual_data",
+    "tests/test_identity_domain_89.py"
    ],
-   "gap": "A spaced account identity can turn an ELIGIBLE month into INSUFFICIENT_EVIDENCE for a non-evidence reason (reported by the identity specialist).",
+   "gap": "A spaced account identity can turn an ELIGIBLE month into INSUFFICIENT_EVIDENCE for a non-evidence reason (reported by the identity specialist). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
    "gap_class": "bug",
    "decisions": [
     "D03"
@@ -1732,9 +1751,10 @@
    ],
    "evidence": [
     "docs/v4/evidence/native-demo-connection-20261104.json",
-    "tests/test_ramp_records_v4.py::test_bounded_list_and_detail_have_separate_coverage"
+    "tests/test_ramp_records_v4.py::test_bounded_list_and_detail_have_separate_coverage",
+    "docs/v4/evidence/ramp-lineage-93/vendor-inventory-20261109.json"
    ],
-   "gap": "Vendor inventory sampled (truncated).",
+   "gap": "Vendor list complete (411 listed, 2026-11-09); vendor detail records bounded at 100; transactions exceed the read bound.",
    "gap_class": "unverified_behavior",
    "decisions": []
   },
@@ -1754,7 +1774,7 @@
     "tests/test_ramp_records_v4.py::test_agreement_query_and_documented_payee_uuid_and_linked_po",
     "docs/v4/RAMP-RECORDS.md"
    ],
-   "gap": "The live agreement query returned zero agreements.",
+   "gap": "The live agreement query returned zero agreements. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02"
@@ -1774,9 +1794,10 @@
    ],
    "evidence": [
     "tests/test_ramp_credit_sync_v4.py::test_conflicts_durably_quarantined_without_ledger_mutation",
-    "docs/v4/RAMP-CREDIT-SYNC.md"
+    "docs/v4/RAMP-CREDIT-SYNC.md",
+    "docs/v4/evidence/ramp-lineage-93/credit-links-f74ba12c-20261109.json"
    ],
-   "gap": "Never exercised on a non-empty live credit.",
+   "gap": "Never exercised on a non-empty live credit. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation). D09 read-back implemented; demo bill f74ba12c has NO_APPLIED_CREDITS (complete, empty list, 2026-11-09). Stays external until a person creates and applies a real credit against a verified award.",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -1797,7 +1818,7 @@
    "evidence": [
     "tests/test_northwind_local_ledger.py::test_local_write_readback_and_allocation_are_distinct_durable_records"
    ],
-   "gap": "No native create/apply path exists or was used; Local ledger is not Ramp.",
+   "gap": "No native create/apply path exists or was used; Local ledger is not Ramp. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -1819,7 +1840,7 @@
     "docs/v4/decisions/ADR-0064-clean-walkthrough.md",
     "fixtures/northwind/README.md"
    ],
-   "gap": "The November 4 and 7 team directions approved authored Northwind contract, usage and invoices as a disclosed walkthrough, beyond vendor responses.",
+   "gap": "The November 4 and 7 team directions approved authored Northwind contract, usage and invoices as a disclosed walkthrough, beyond vendor responses. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": null,
    "decisions": [
     "D01"
@@ -1863,7 +1884,7 @@
     "tests/test_ramp_case_lineage.py",
     "docs/v4/RAMP-CASE-LINEAGE.md"
    ],
-   "gap": "No real memo, credit or application exists to show side by side.",
+   "gap": "No real memo, credit or application exists to show side by side. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities). D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -1884,7 +1905,7 @@
    "evidence": [
     "tests/test_pricing.py::test_missing_signatures_and_ambiguous_chain"
    ],
-   "gap": "No automatic discovery or linking of agreements from Ramp or document stores.",
+   "gap": "No automatic discovery or linking of agreements from Ramp or document stores. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D07"
@@ -1904,7 +1925,7 @@
    "evidence": [
     "docs/v4/evidence/browser-public-onboarding-82.json"
    ],
-   "gap": "Public baseline 0/4 supported extractions.",
+   "gap": "Public baseline 0/4 supported extractions. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05",
@@ -1924,9 +1945,11 @@
     "uptime/source_config.py"
    ],
    "evidence": [
-    "tests/test_evidence.py::test_provenance_mismatch"
+    "tests/test_evidence.py::test_provenance_mismatch",
+    "tests/test_evidence_status_source_91a.py::test_real_public_record_through_the_ordinary_signed_enrollment_path",
+    "docs/v4/evidence/evidence-custody-90/public-status-live-91a.json"
    ],
-   "gap": "Signed controlled sources only; production telemetry/support enrollment absent.",
+   "gap": "One real public source is enrolled (Twilio public status page, decision 91a). Its intake path is verified and its launch path unverified (harness-hosted). Customer telemetry and support-ticket enrollment are absent. Whether this satisfies D07's real-source item is Ronok's call.",
    "gap_class": "external_dependency",
    "decisions": [
     "D07"
@@ -1984,7 +2007,7 @@
    "evidence": [
     "docs/v4/PHASE75-DISPUTE-RUNTIME.md"
    ],
-   "gap": "Human semantic review required; unseen replies 0/50.",
+   "gap": "Human semantic review required; unseen replies 0/50. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D06",
@@ -2005,7 +2028,7 @@
    "evidence": [
     "tests/test_allocation_ledger.py::test_two_awards_cannot_allocate_160_dollars_to_one_100_dollar_bill"
    ],
-   "gap": "Simulated awards only.",
+   "gap": "Simulated awards only. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -2022,9 +2045,11 @@
     "uptime/intelligence.py"
    ],
    "evidence": [
-    "tests/test_intelligence.py::test_guide_ignores_commands_and_cannot_mutate_case"
+    "tests/test_intelligence.py::test_guide_ignores_commands_and_cannot_mutate_case",
+    "tests/test_intelligence_abstain_95.py::test_unsupported_questions_abstain_and_keep_their_intent_label",
+    "tests/test_finance_guide_90.py"
    ],
-   "gap": "Deterministic local explanations; no grounded LLM guide.",
+   "gap": "Within D12 (read-only first): the guides answer from cited case facts and abstain when unsupported. No model composer, because under D10 case data needs customer consent. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10",
@@ -2273,7 +2298,7 @@
    "evidence": [
     "docs/v4/integration90/INTERFACES.md"
    ],
-   "gap": "Single-turn deterministic answers.",
+   "gap": "Single-turn deterministic answers. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D12"
@@ -2326,7 +2351,7 @@
    "evidence": [
     "tests/test_storage.py::test_schema_mismatch_fails_closed"
    ],
-   "gap": "SQLite with hash-chained revisions; hosted database is a deployment decision.",
+   "gap": "SQLite with hash-chained revisions; hosted database is a deployment decision. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
    "gap_class": "external_dependency",
    "decisions": [
     "D11"
@@ -2348,7 +2373,7 @@
     "tests/test_operations_recovery_90.py::test_bounded_read_retries_only_follow_transient_failures",
     "docs/v4/OPERATIONS-RECOVERY-90.md"
    ],
-   "gap": "Local queue and outbox; uncertain work is intentionally not retried; no hosted workers.",
+   "gap": "Local queue and outbox; uncertain work is intentionally not retried; no hosted workers. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D11"
@@ -2367,7 +2392,7 @@
    "evidence": [
     "tests/test_journey_api.py::test_dashboard_and_case_evidence_have_exact_provenance"
    ],
-   "gap": "Per-case timeline and audit only; no tracing or metrics.",
+   "gap": "Per-case timeline and audit only; no tracing or metrics. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D11"
@@ -2412,7 +2437,7 @@
     "tests/test_operations_recovery_90.py::test_installation_revocation_survives_restart_and_restore_and_stays_tenant_scoped",
     "tests/test_operations_recovery_90.py::test_backup_contains_no_credentials_or_session_material"
    ],
-   "gap": "Loopback-only; hosted threat boundary undecided.",
+   "gap": "Loopback-only; hosted threat boundary undecided. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
    "gap_class": "external_dependency",
    "decisions": [
     "D11"
@@ -2434,7 +2459,7 @@
     "docs/v4/TEAM-DECISION-HANDOFF.md",
     "tests/test_operations_recovery_90.py::test_health_report_alerts_actionable_claim_cutoffs_only"
    ],
-   "gap": "An operator-run health check now reports actionable claim cutoffs, retryable reads and uncertain effects; there is still no scheduler, live webhook subscription or alert delivery.",
+   "gap": "An operator-run health check now reports actionable claim cutoffs, retryable reads and uncertain effects; there is still no scheduler, live webhook subscription or alert delivery. D11 decided 2026-11-09: stay local; hosting is a later milestone. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D02",
@@ -2456,7 +2481,7 @@
     "docs/v4/RAMP-FEASIBILITY.md",
     "docs/v4/CUSTOMER-INSTALLATION-DESIGN.md"
    ],
-   "gap": "Client-credentials only. A customer installation design and durable installation revocation exist (W9); authorization-code consent, token refresh and hosted callbacks are not implemented.",
+   "gap": "Client-credentials only. A customer installation design and durable installation revocation exist (W9); authorization-code consent, token refresh and hosted callbacks are not implemented. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D11"
@@ -2582,9 +2607,10 @@
     "web/app.js"
    ],
    "evidence": [
-    "docs/v4/CAPABILITIES.md"
+    "docs/v4/CAPABILITIES.md",
+    "docs/v4/integration90/D06-ACTION-MATRIX.md"
    ],
-   "gap": "Modes and cap exist; no explicit shutdown control or follow-up policy editor.",
+   "gap": "Modes and cap exist; no explicit shutdown control or follow-up policy editor. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -2601,9 +2627,10 @@
     "uptime/intelligence.py"
    ],
    "evidence": [
-    "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions"
+    "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions",
+    "tests/test_intelligence_abstain_95.py::test_unsupported_questions_abstain_and_keep_their_intent_label"
    ],
-   "gap": "Locally assembled; not an LLM conversation.",
+   "gap": "Within D12 (read-only first): the guides answer from cited case facts and abstain when unsupported. No model composer, because under D10 case data needs customer consent. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10",
@@ -2623,7 +2650,7 @@
    "evidence": [
     "docs/v4/evidence/demo-path-87/northwind-socket.json"
    ],
-   "gap": "Award and application are authored Local ledger events.",
+   "gap": "Award and application are authored Local ledger events. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -2644,7 +2671,7 @@
     "tests/test_twilio.py::test_four_independent_golden_outcomes_and_cp1",
     "fixtures/twilio/README.md"
    ],
-   "gap": "Outcomes verified on synthetic usage; the full claim-to-application path is shown on Northwind, not Twilio.",
+   "gap": "Outcomes verified on synthetic usage; the full claim-to-application path is shown on Northwind, not Twilio. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "external_dependency",
    "decisions": [
     "D01"
@@ -2665,7 +2692,7 @@
     "tests/test_ramp_cap_v4.py::test_840_over_800_is_only_hypothetical_and_deterministic",
     "docs/v4/RAMP-PRICE-EVIDENCE.md"
    ],
-   "gap": "Real bills lack line items; the cap comparison is hypothetical.",
+   "gap": "Real bills lack line items; the cap comparison is hypothetical. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -2686,7 +2713,7 @@
    "evidence": [
     "docs/orchestration/CHECKPOINTS.md"
    ],
-   "gap": "Scripted reviewer; separate from unseen-vendor proof.",
+   "gap": "Scripted reviewer; separate from unseen-vendor proof. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -2703,7 +2730,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "No Slack source, fixture or test exists.",
+   "gap": "No Slack source, fixture or test exists. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"
@@ -2792,7 +2819,7 @@
    "evidence": [
     "docs/v4/CAPABILITIES.md"
    ],
-   "gap": "Stages are separate; no value/effort ranking or minimum-value policy.",
+   "gap": "Stages are separate; no value/effort ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01",
@@ -2812,7 +2839,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Authored/synthetic customer facts.",
+   "gap": "Authored/synthetic customer facts. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "external_dependency",
    "decisions": [
     "D01"
@@ -2831,7 +2858,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Authored agreements only.",
+   "gap": "Authored agreements only. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "external_dependency",
    "decisions": [
     "D01"
@@ -2850,7 +2877,7 @@
    "evidence": [
     "tests/test_other_obligations.py::test_rebate_inclusive_threshold_after_returns"
    ],
-   "gap": "One authored Northbank agreement.",
+   "gap": "One authored Northbank agreement. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D01"
@@ -2869,7 +2896,7 @@
    "evidence": [
     "tests/test_other_obligations.py::test_notice_weekend_holiday_timezone_and_exact_receipt"
    ],
-   "gap": "One authored calendar; no notice sent.",
+   "gap": "One authored calendar; no notice sent. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D01"
@@ -2886,7 +2913,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Not implemented.",
+   "gap": "Not implemented. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01"
@@ -2903,7 +2930,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Not implemented.",
+   "gap": "Not implemented. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01"
@@ -2920,7 +2947,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "Not implemented; spec marks research-only.",
+   "gap": "Not implemented; spec marks research-only. D01 chosen 2026-11-09 under delegation (handoff default: native demo, then hosted milestone).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01"
@@ -2956,7 +2983,7 @@
     "docs/v4/decisions/INDEX.md",
     "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
    ],
-   "gap": "D14 (replace blanket consultation) is pending; the November 5 direction limits review to one concise critique.",
+   "gap": "D14 decided 2026-11-09: the execution policy replaces mandatory consultation; Opus is used when useful or requested. The AGENTS.md wording awaits Ronok's direct confirmation.",
    "gap_class": null,
    "decisions": [
     "D14"
@@ -3044,7 +3071,7 @@
    "evidence": [
     "docs/v4/CAPABILITIES.md"
    ],
-   "gap": "Differentiation depends on closed-loop Ramp reconciliation, which is not yet native.",
+   "gap": "Differentiation depends on closed-loop Ramp reconciliation, which is not yet native. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities). D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02",
@@ -3060,7 +3087,8 @@
    "owner": "W2",
    "implementation": [],
    "evidence": [
-    "tests/test_twilio.py::test_public_incident_or_internal_telemetry_alone_not_enough"
+    "tests/test_twilio.py::test_public_incident_or_internal_telemetry_alone_not_enough",
+    "tests/test_evidence_status_source_91a.py::test_real_public_record_through_the_ordinary_signed_enrollment_path"
    ],
    "gap": null,
    "gap_class": null,
@@ -3152,7 +3180,7 @@
    "evidence": [
     "docs/v4/CAPABILITIES.md"
    ],
-   "gap": "No value ranking or minimum-value policy.",
+   "gap": "No value ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -3186,7 +3214,7 @@
    "evidence": [
     "docs/v4/evidence/demo-path-87/human-ramp-note.json"
    ],
-   "gap": "Live reads and a human-posted note exist; recovery is authored.",
+   "gap": "Live reads and a human-posted note exist; recovery is authored. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
    "gap_class": "external_dependency",
    "decisions": [
     "D02"
@@ -3218,7 +3246,7 @@
    "evidence": [
     "uptime/other_obligations.py"
    ],
-   "gap": "Non-monetary remedies beyond notices are not modelled.",
+   "gap": "Non-monetary remedies beyond notices are not modelled. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D07"
@@ -3295,7 +3323,7 @@
    "evidence": [
     "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
    ],
-   "gap": "Identity and scope domains disagree across routes.",
+   "gap": "Identity and scope domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -3328,7 +3356,7 @@
    "evidence": [
     "uptime/policy.py"
    ],
-   "gap": "Action matrix undecided.",
+   "gap": "Action matrix undecided. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -3420,7 +3448,7 @@
    "evidence": [
     "uptime/intelligence.py"
    ],
-   "gap": "Guide not an LLM.",
+   "gap": "Guide not an LLM. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D12"

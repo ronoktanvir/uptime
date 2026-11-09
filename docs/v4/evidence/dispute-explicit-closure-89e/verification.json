@@ -1,0 +1,26 @@
+{
+ "branch": "work/dispute-explicit-closure-89e",
+ "base": "work/dispute-coverage-89d a350019",
+ "decision": "D06 (Ronok); Q2 option A chosen 2026-11-09 04:28 PST by the overview session under Ronok's delegated (Recommended) authority",
+ "runs": [
+  {
+   "source": "prototype before test edits",
+   "result": "6 failed, 1002 passed, 1 warning in 253.33s",
+   "failed": [
+    "tests/test_correspondence.py::test_known_and_newly_received_maintenance",
+    "tests/test_correspondence_filing_refs.py::test_signed_original_retains_exact_fields_and_pins_through_valid_threshold_denial",
+    "tests/test_correspondence_language_56.py::test_claim_bound_lateness_uses_actual_original_receipt[True]",
+    "tests/test_correspondence_language_56.py::test_correct_availability_denial_comes_from_signed_measurements_not_percent_claim",
+    "tests/test_correspondence_service.py::test_correct_denial_of_independently_witnessed_original_requires_actual_signed_ground[False]",
+    "tests/test_correspondence_service.py::test_correct_denial_of_independently_witnessed_original_requires_actual_signed_ground[True]"
+   ]
+  },
+  {
+   "source": "after explicit-acceptance test edits (before oracle-v2 wiring of one test)",
+   "result": "1024 passed, 1 warning in 217.83s",
+   "command": "tests/test_correspondence*.py tests/test_disputes*.py tests/test_northwind*.py tests/test_cross_claims.py tests/test_v4_routes_integration.py tests/test_portfolio_v4.py tests/test_ramp_award_claim_integration.py tests/test_ramp_award_procedural.py tests/test_source_config_v4.py",
+   "log_sha256": "69ce7665a26a4b4842699c0ff58062b4d0b01c0373967d77c08ddc07c8d43542"
+  }
+ ],
+ "note": "After the broad run only tests/test_correspondence.py changed (it now reads the intermediate step from oracle-v2-d06.json); it and the disposition tests were re-run on the committed source."
+}

@@ -4,6 +4,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
+from .source_identity import SourceIdentity
+
 Id = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$", max_length=96)]
 Name = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9 ._/-]{0,94}[A-Za-z0-9]$|^[A-Za-z0-9]$", max_length=96)]
 Amount = Annotated[str, StringConstraints(pattern=r"^(0|[1-9][0-9]{0,11})(\.[0-9]{1,2})?$", max_length=15)]
@@ -15,10 +17,10 @@ class Strict(BaseModel):
 
 
 class Scope(Strict):
-    account: Id
-    vendor: Name
-    contract: Id
-    service: Name
+    account: SourceIdentity
+    vendor: SourceIdentity
+    contract: SourceIdentity
+    service: SourceIdentity
     component: Id
     invoice: Id
     incident: Id
@@ -89,10 +91,10 @@ class Line(Strict):
     amount: Amount
     # Omitted fields inherit the authenticated invoice envelope. An explicit
     # contradictory identity cannot be silently replaced with case scope.
-    account: Id | None = None
-    vendor: Name | None = None
-    contract: Id | None = None
-    service: Name | None = None
+    account: SourceIdentity | None = None
+    vendor: SourceIdentity | None = None
+    contract: SourceIdentity | None = None
+    service: SourceIdentity | None = None
     component: Id | None = None
     invoice: Id | None = None
     incident: Id | None = None
@@ -155,7 +157,7 @@ class ResourceLine(Strict):
     gross_cents: int | None = Field(default=None, ge=0, le=10**15)
     discount_cents: int | None = Field(default=None, ge=0, le=10**15)
     discount_ref: Id | None = None
-    product: Name | None = None
+    product: SourceIdentity | None = None
     region: Id | None = None
     recurring: bool | None = None
     payment_state: Literal["paid","voided","unpaid"] | None = None
@@ -165,8 +167,8 @@ class ResourceLine(Strict):
 
 class MonitorRow(Interval):
     ref: Id
-    account: Id
-    product: Name
+    account: SourceIdentity
+    product: SourceIdentity
     region: Id
     resource_id: Id
     status: Name
@@ -255,7 +257,7 @@ class ServiceInvoice(ServiceRecord):
 
 class MaintenanceRecord(Interval):
     ref: Id
-    account: Id
+    account: SourceIdentity
     resource_id: Id
     state: Literal["announced", "confirmed_unannounced"] = "announced"
     announced_at: Annotated[str, StringConstraints(max_length=40)] | None = None
@@ -275,8 +277,8 @@ class MaintenanceEvidence(Report):
 class IssuedCredit(Strict):
     ref: Id
     credit_id: Id
-    agreement: Id
-    account: Id
+    agreement: SourceIdentity
+    account: SourceIdentity
     resource_id: Id
     month: Annotated[str, StringConstraints(pattern=r"^20[0-9]{2}-(0[1-9]|1[0-2])$")]
     currency: Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]

@@ -1,6 +1,6 @@
 # Installation, recovery and operations — workstream 90
 
-**Status, November 9, 2026:** local controls are implemented and tested on branch `work/operations-90`. Hosted customer installation is **designed, not implemented**: it depends on the pending team decision D11 (hosting, identity owner and signing-key custody). Nothing here publishes, tunnels or hosts the current local app. [Decision 96](decisions/ADR-0096-operations-recovery.md) · [Customer installation design](CUSTOMER-INSTALLATION-DESIGN.md) · [Test ledger](TEST-CHANGES-90-OPERATIONS.md)
+**Status, November 9, 2026:** local controls are implemented and tested on branch `work/operations-90`. Hosted customer installation is **designed, not implemented**: D11 was decided as **stay local for now** (Ronok's decision on November 9, 2026, relayed by the progress-review session; the integration owner is recording it), so it is deferred to a later hosted milestone, not blocked. Nothing here publishes, tunnels or hosts the current local app. [Decision 96](decisions/ADR-0096-operations-recovery.md) · [Customer installation design](CUSTOMER-INSTALLATION-DESIGN.md) · [Test ledger](TEST-CHANGES-90-OPERATIONS.md) · [Demo machine readiness and recovery](DEMO-MACHINE-90.md)
 
 ## Actual trust boundary
 
@@ -46,21 +46,23 @@ The refresh only reads. It requests no scope beyond the already approved grant s
 
 ## Daily operation and failure classes
 
+Before a demo or presentation, run `scripts/operations_preflight.py` across every workspace and port in use. It is read-only and covers disk space, the sandbox-only Ramp environment, tunnels, loopback-only listeners, workspace health and verified recent backups. See [the demo-machine guide](DEMO-MACHINE-90.md).
+
 `scripts/operations_check.py` is read-only. It makes no provider request, sends nothing, retries nothing and changes no database. Exit `0` means OK. Exit `2` means at least one `ATTENTION` finding. Exit `1` means the database could not be read; treat that as a failure, never as healthy. Schedule it with the operator's own `launchd` or cron job. This workstream installs no scheduler, and the report only prints. Delivering an alert to a person is a remaining deployment requirement.
 
 | Operation | Class | What happens on failure or restart | Retry policy |
 | --- | --- | --- | --- |
 | Ramp refresh (token exchange plus reads) | Retryable read | The existing capture stays. An interrupted import stays `pending` and resumes when the same refresh runs again. | `--attempts 1..3`; reruns the whole read only after a *raised* transport failure or HTTP 429/500/502/503/504, waiting 5s then 30s. In practice that means token and business-read failures. A 429/5xx on an individual resource is recorded as `PARTIAL` or `UNAVAILABLE` in the capture and is **not** retried; rerun the refresh later to fill it. Never after a refusal, scope or binding error, or revocation. Each attempt exchanges a new token. `RampNetworkError` is never retried on a write path. |
-| Capture freshness | Monitoring | `RAMP_CAPTURE_STALE` after 24h (`--stale-hours`). Native preparation already refuses captures older than 24h. | Rerun the refresh. |
+| Capture freshness | Monitoring | `RAMP_CAPTURE_STALE` after 24h (`--stale-hours`). `RAMP_CAPTURE_NEAR_LIMIT` (INFO, with `expires_at`) within 4h of that limit. Native preparation already refuses captures older than 24h. `CLOCK_BEHIND_CAPTURE` if the host clock is more than 5 minutes earlier than the latest capture; fix the clock before trusting freshness or deadlines. | Rerun the refresh. |
 | Model proposal job | Uncertain external effect (cost) | On restart, RUNNING becomes `UNCERTAIN` and QUEUED becomes `CANCELLED`. No provider call is repeated (`test_recovery_distinguishes_reserved_and_dispatched_work_without_running_either`). | Never automatic. A new attempt needs a new exact approval. |
 | Native bill comment (outbox) | Uncertain external effect | A crash after dispatch leaves `UNCERTAIN`, and the delivery is never resent. Agent posting remains blocked by the execution-policy rejection. | Reconcile against the same Ramp thread; never resend. |
-| Ramp webhook event | Authenticated intake | Signature over raw bytes; the same ID with the same bytes is a no-op; the same ID with different bytes quarantines the subscription; older events are `OUT_OF_ORDER`; events older than 7 days or more than 5 minutes in the future are refused. | No retry; the provider redelivers. The receiver is not publicly served (D11). |
+| Ramp webhook event | Authenticated intake | Signature over raw bytes; the same ID with the same bytes is a no-op; the same ID with different bytes quarantines the subscription; older events are `OUT_OF_ORDER`; events older than 7 days or more than 5 minutes in the future are refused. | No retry; the provider redelivers. The receiver is not publicly served (D11: stay local for this deliverable). |
 | Signed inbound source | Authenticated intake | 60s timestamp window, single-use nonce, instance binding; restart invalidates outstanding proofs. | The sender signs a new request. |
-| Claim cutoff | Deadline alert | `CLAIM_DEADLINE_APPROACHING` lists `ELIGIBLE` and `INSUFFICIENT_EVIDENCE` cases whose cutoff falls within 7 days (`--deadline-days`). Missing evidence stays distinct from ineligibility. | Not applicable. |
+| Claim cutoff | Deadline alert | Sandbox workspaces only. `CLAIM_DEADLINE_APPROACHING` lists `ELIGIBLE` and `INSUFFICIENT_EVIDENCE` cases whose cutoff falls within 7 days (`--deadline-days`). `CLAIM_DEADLINE_PASSED_UNFILED` (INFO) lists those whose cutoff passed in the last 30 days. Both skip cases at a filed or closed stage and cases whose obligation already has an initial filing reservation. Missing evidence stays distinct from ineligibility. Replay workspaces report `deadlines.status = NOT_EVALUATED`, because they run on recorded time. | Not applicable. |
 
 Other findings: `DATABASE_INTEGRITY`, `CASE_HISTORY_INTEGRITY`, `RAMP_IMPORT_INTERRUPTED`, `MODEL_JOB_OUTCOME_UNKNOWN`, `EXTERNAL_EFFECT_UNCERTAIN` and `OUTBOX_MISSING` (use `--outbox`), `WEBHOOK_QUARANTINED`, `REVOCATION_STORE_UNSAFE`, `REVOCATION_HOST_RECORD_MISSING`, `RESTORE_RECONCILIATION_PENDING` and `CONFIGURATION_CUSTODY`. The custody check inspects owner, mode, link count and repository location without reading file contents.
 
-Dispute appeal clocks are enforced by the dispute engine when an action is taken; they are not yet listed by the health check.
+Dispute response (supplement) windows are computed and enforced by the dispute engine from signed evidence when an action is taken. The health check does not recompute them, to avoid a second copy of that logic.
 
 ## Back up, verify and restore
 
@@ -74,8 +76,14 @@ uv run --locked python scripts/workspace_recovery.py acknowledge --db "$HOME/.lo
 ```
 
 - **Backup** uses SQLite's online backup, so it is consistent while the server writes. It creates a new `0700` directory with a `0600` single-file copy and manifest. The manifest records the binding, the integrity result, verification of the case hash chain, and the row count and digest of every table. Paths inside any Git repository are refused.
-- **Not included:** credentials, private keys, sessions, host revocation and exception stores, configuration files, and the native outbox. Back those up with their own custodians' procedures.
+- **Not included:** credentials, private keys, sessions, host revocation and exception stores, and configuration files. Back those up with their own custodians' procedures. The native outbox (`<native-config>.outbox.sqlite3`) is included only when you pass `--outbox`.
 - **The manifest is a checksum, not a signature.** It detects corruption and partial edits, not an administrator who rewrites both files.
+- **Outbox restore** (`--outbox-target`, named `<native-config>.outbox.sqlite3` beside the native config in use) is all-or-nothing with the workspace. The fence was agreed with the W1 owner and changes only status and review, never the plan:
+  - `DISPATCHING` becomes `UNCERTAIN`, which can only be reconciled and is never resent.
+  - A `REVIEWED` comment returns to `PREPARED` and needs a fresh signed review. W1's execution reads the thread's dedup marker first, so a comment delivered after the backup is recorded `DELIVERED` with no new post.
+  - `PREPARED` and `BLOCKED` comments are unchanged.
+  - Every other unsettled metadata or decision action becomes `UNCERTAIN`.
+  - `--previous-outbox` carries webhook quarantines forward; nothing becomes active.
 - **Restore** verifies the backup and requires the expected tenant and mode. It writes only a new path, never overwrites, and refuses repository, symlinked and case-variant repository paths. It then fences the copy:
   - every unused reviewer mandate is revoked;
   - with `--previous`, later issuer, mandate and price-evidence revocations are carried forward;
@@ -97,16 +105,16 @@ Uptime persists no Ramp token, so there is nothing local to delete. Under Ramp's
 
 ## Remaining deployment requirements
 
-These are not met by the local deployment, and each needs the named team decision:
+These are not met by the local deployment. D11 keeps this deliverable local, so they are deferred to a later hosted milestone; each still needs the named decision details when that milestone opens:
 
-1. **D11 hosting and trust roots:** managed identity for operators and reviewers, ownership and rotation of signing keys, and a threat model for an administrator who is not the customer.
-2. **Customer OAuth installation:** authorization-code flow, server-side state, encrypted refresh-token custody, single-flight refresh, and revocation calls on uninstall. [Design](CUSTOMER-INSTALLATION-DESIGN.md). Also D10 for data that leaves the installation.
+1. **Hosted trust roots (later D11 milestone):** managed identity for operators and reviewers, ownership and rotation of signing keys, and a threat model for an administrator who is not the customer.
+2. **Customer OAuth installation:** authorization-code flow, server-side state, encrypted refresh-token custody, single-flight refresh, and revocation calls on uninstall. [Design](CUSTOMER-INSTALLATION-DESIGN.md). Under D10 (decided November 9), credentials, tokens and customer captures never go to a model.
 3. **Public HTTPS webhook receiver:** a per-installation secret in a managed store and a root-operated verification transport. The existing inbox logic is reusable; it is not served today.
 4. **Durable distributed workers:** a database-backed queue with leases and fencing tokens, replacing the single-process SQLite locks and in-memory nonce caches.
 5. **Off-host backups:** encrypted, with retention, scheduled restore drills, and authenticated (signed) manifests.
 6. **Alert delivery:** paging or email from the health check, with an accountable on-call operator.
 7. **Host revocation for issuer, source and price-evidence keys,** so they survive restore without `--previous`.
-8. **Customer data lifecycle:** retention and deletion on uninstall (D10/D11), and redacted centralized logs.
+8. **Customer data lifecycle:** retention and deletion on uninstall (undecided; later hosted milestone), and redacted centralized logs.
 9. **Native action proof:** still governed by D02 and the separate execution-policy rejection. Nothing here retries or reroutes the blocked native posting.
 
 ## Rollback

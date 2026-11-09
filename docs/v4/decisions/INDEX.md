@@ -102,3 +102,8 @@ Current implementation and test boundaries appear in [engineering status](../STA
 - [93 — One Ramp case identity from financial record to reconciliation](ADR-0093-ramp-case-lineage.md)
 - [96 — Workspace recovery, installation revocation and operations health](ADR-0096-operations-recovery.md)
 - [89 — Reviewed denial acceptance and dispute trace](ADR-0089-reviewed-denial-acceptance.md)
+- [95 — Grounded read-only finance guide and next steps](ADR-0095-grounded-finance-guide.md)
+- [Team decisions of 2026-11-09 (owner Ronok): D03 bounded exact source IDs, D04 server-selected scope variants, D05 auto-select plus human approval, D06 humans gate judgment, D07 narrow published matrix, D11 stay local](../TEAM-DECISION-HANDOFF.md#team-decision-sheet)
+- [91a — Twilio public status page as the first real evidence source](ADR-0091a-public-status-source.md)
+- [97 — Automatic rule-family selection (D05 phase 1)](ADR-0097-automatic-family-selection.md)
+- [Ronok's 2a — closure-bound accept-denial mandate](../integration90/D06-ACTION-MATRIX.md)

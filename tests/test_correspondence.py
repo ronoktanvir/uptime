@@ -16,6 +16,7 @@ from uptime.correspondence_types import Claim, Delivery, Scope
 from uptime.correspondence_vendor import VendorRecord, adjudicate
 
 ORACLE = json.loads((Path(__file__).parents[1] / "fixtures/correspondence/oracle.json").read_text())
+ORACLE_D06 = json.loads((Path(__file__).parents[1] / "fixtures/correspondence/oracle-v2-d06.json").read_text())
 SCOPE = Scope(account="account-71", vendor="Twilio", contract="agreement-X", service="Twilio Messaging API",
               component="api-east", invoice="oct-invoice", incident="evt-411", currency="USD",
               month="2026-10", region="east")
@@ -111,6 +112,11 @@ def test_known_and_newly_received_maintenance(tmp_path):
     assert msg["stage"] == "AWAITING_NOTICE" and not msg["actions"]
     later.now += timedelta(minutes=10)
     later.send("notice")
+    # D06 (Q2 option A): the substantiated maintenance ground closes only on explicit acceptance.
+    pending = ORACLE_D06["notice_first_obtained_after_filing"]["before_acceptance"]
+    offered = later.get()["actions"]
+    assert later.get()["stage"] == pending["stage"] and [a["id"] for a in offered] == pending["actions"]
+    later.desk.accept_denial(REVIEWER, ID, offered[0]["basis_digest"])
     row = later.get()
     assert row["stage"] == ORACLE["notice_first_obtained_after_filing"]["stage"]
     assert row["evidence"][-1]["received_at"] > receipt["at"] and len(row["submissions"]) == 1
@@ -182,9 +188,13 @@ def test_source_identity_and_scope_fail_closed(env):
 def test_mismatched_fee_and_component_prevent_further_packet(env):
     env.build()
     env.act("approve-claim")
-    env.send("invoice", data=dict(kind="invoice", lines=[dict(id="a", kind="affected_api", amount="84.00", account="someone-else")]), event_id="another")
+    with pytest.raises(ValueError, match="outside the granted claim scope"):
+        env.send("invoice", data=dict(kind="invoice", lines=[dict(id="a", kind="affected_api", amount="84.00", account="someone-else")]), event_id="another")
     row = env.get()
-    assert row["preflight"]["outcome"] == "INSUFFICIENT_EVIDENCE" and not row["actions"] and row["approval"] is None
+    # Decision 89b (W5 F2): the foreign row is refused before storage, so the in-scope
+    # invoice still evaluates; the contradiction voids the approval and is shown to a person.
+    assert row["preflight"]["outcome"] == "ELIGIBLE" and not row["actions"] and row["approval"] is None
+    assert [c["event_id"] for c in row["contradicting_deliveries"]] == ["another"]
     with pytest.raises(ValueError):
         env.act("submit-claim")
 
@@ -204,7 +214,8 @@ def test_no_sentinel_reaches_local_outbox(env):
 def test_contradictory_component_stops_rebuttal(env):
     env.file()
     env.message("We lack the affected component identifier.")
-    env.send("component", data={**BODIES["component"], "component_id":"unrelated"})
+    with pytest.raises(ValueError, match="outside the granted claim scope"):
+        env.send("component", data={**BODIES["component"], "component_id":"unrelated"})
     assert env.get()["stage"] == "HUMAN_REVIEW" and not env.get()["actions"]
 
 
@@ -234,9 +245,12 @@ def test_negative_and_quoted_statements_are_proposals_only(text):
 
 def test_invoice_scope_mismatch_without_other_invoice(env):
     env.send("status"); env.send("impact")
-    env.send("invoice", data=dict(kind="invoice", lines=[dict(id="a", kind="affected_api", amount="84.00", month="2025-10")]))
+    with pytest.raises(ValueError, match="outside the granted claim scope"):
+        env.send("invoice", data=dict(kind="invoice", lines=[dict(id="a", kind="affected_api", amount="84.00", month="2025-10")]))
     assert env.get()["outcome"] == "INSUFFICIENT_EVIDENCE"
-    assert "contradicts" in env.get()["trace"][0]
+    # Decision 89b (W5 F2): refused before storage; the claim awaits an in-scope invoice.
+    assert "Awaiting an authenticated invoice" in env.get()["trace"][0]
+    assert env.get()["contradicting_deliveries"][0]["kind"] == "invoice"
 
 
 def test_substantive_contradictory_vendor_response_and_exact_alias(env):

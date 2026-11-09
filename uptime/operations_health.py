@@ -20,6 +20,7 @@ import sqlite3
 import stat
 
 from . import installation_revocation
+from .claim_identity import TABLE as CLAIM_DISPATCH_TABLE
 from .storage import _read_versions
 from .workspace_recovery import pending_reconciliation
 
@@ -28,6 +29,12 @@ ROOT = Path(__file__).resolve().parents[1]
 # The vendor and correspondence model queues share this durable table.
 JOB_TABLES = ("public_proposal_jobs",)
 ACTIONABLE_OUTCOMES = {"ELIGIBLE", "INSUFFICIENT_EVIDENCE"}
+# Stages after which a claim cutoff no longer calls for operator action.
+CLOSED_STAGES = {"HISTORICAL_FILING", "AWARDED", "APPLIED", "APPLIED_UNATTRIBUTED", "RAMP_APPLIED_ATTRIBUTED",
+                 "POSTED_ATTRIBUTED", "EXPIRED"}
+CLOCK_TOLERANCE = timedelta(minutes=5)
+NEAR_LIMIT = timedelta(hours=4)
+MISSED_LOOKBACK = timedelta(days=30)
 
 
 def _instant(value):
@@ -106,10 +113,18 @@ def check(db_path, *, now=None, stale_after=timedelta(hours=24), deadline_window
             else:
                 age = now - _instant(latest[0])
                 report["ramp_capture"] = {"observed_at": latest[0], "age_hours": round(age.total_seconds() / 3600, 2)}
-                if mode == "sandbox" and age > stale_after:
+                if age < -CLOCK_TOLERANCE:
+                    note("ATTENTION", "CLOCK_BEHIND_CAPTURE",
+                         "The host clock is earlier than the latest capture; freshness and deadline alerts are unreliable "
+                         "until the clock is corrected.")
+                elif mode == "sandbox" and age > stale_after:
                     note("ATTENTION", "RAMP_CAPTURE_STALE",
                          "Latest Ramp capture is older than the freshness limit; rerun the read-only refresh.",
                          retryable_read=True)
+                elif mode == "sandbox" and stale_after - age <= NEAR_LIMIT:
+                    note("INFO", "RAMP_CAPTURE_NEAR_LIMIT",
+                         "The latest capture expires for native preparation soon; refresh before reviewing native actions.",
+                         expires_at=(_instant(latest[0]) + stale_after).isoformat(), retryable_read=True)
             if pending:
                 note("ATTENTION", "RAMP_IMPORT_INTERRUPTED",
                      "An import stopped before publication; rerunning the same refresh resumes it.",
@@ -158,19 +173,36 @@ def check(db_path, *, now=None, stale_after=timedelta(hours=24), deadline_window
                      "Native actions and new mandates are refused until external effects since the backup are reconciled.",
                      reconcile_since=since)
 
-        due = []
-        for case_id, payload in cases.items():
-            cutoff = payload.get("claim_cutoff_exclusive") or payload.get("claim_cutoff")
-            at = _instant(cutoff) if cutoff else None
-            if at is None or payload.get("outcome") not in ACTIONABLE_OUTCOMES:
-                continue
-            if now <= at < now + deadline_window:
-                due.append({"case_id": case_id, "claim_cutoff": cutoff, "outcome": payload.get("outcome"),
-                            "stage": payload.get("stage")})
-        if due:
-            note("ATTENTION", "CLAIM_DEADLINE_APPROACHING",
-                 "Claim cutoffs fall inside the alert window; missing evidence stays missing, not ineligible.",
-                 cases=sorted(due, key=lambda c: c["claim_cutoff"]))
+        if mode != "sandbox":
+            # Replay workspaces run on recorded time; wall-clock deadline alerts would be noise.
+            report["deadlines"] = {"status": "NOT_EVALUATED", "reason": "Replay mode uses recorded time"}
+        else:
+            filed = set()
+            if CLAIM_DISPATCH_TABLE in tables:
+                filed = {r[0] for r in db.execute(f"SELECT obligation FROM {CLAIM_DISPATCH_TABLE} WHERE step='initial'")}
+            due, missed = [], []
+            for case_id, payload in cases.items():
+                cutoff = payload.get("claim_cutoff_exclusive") or payload.get("claim_cutoff")
+                at = _instant(cutoff) if cutoff else None
+                if (at is None or payload.get("outcome") not in ACTIONABLE_OUTCOMES
+                        or payload.get("stage") in CLOSED_STAGES or payload.get("obligation_id") in filed):
+                    continue
+                item = {"case_id": case_id, "claim_cutoff": cutoff, "outcome": payload.get("outcome"),
+                        "stage": payload.get("stage")}
+                if now <= at < now + deadline_window:
+                    due.append(item)
+                elif now - MISSED_LOOKBACK <= at < now:
+                    missed.append(item)
+            report["deadlines"] = {"status": "EVALUATED", "approaching": len(due), "passed_unfiled": len(missed),
+                                   "window_days": deadline_window.days}
+            if due:
+                note("ATTENTION", "CLAIM_DEADLINE_APPROACHING",
+                     "Unfiled claim cutoffs fall inside the alert window; missing evidence stays missing, not ineligible.",
+                     cases=sorted(due, key=lambda c: c["claim_cutoff"]))
+            if missed:
+                note("INFO", "CLAIM_DEADLINE_PASSED_UNFILED",
+                     "These cutoffs passed in the last 30 days with no recorded initial filing; review before closing.",
+                     cases=sorted(missed, key=lambda c: c["claim_cutoff"]))
     finally:
         db.close()
 
