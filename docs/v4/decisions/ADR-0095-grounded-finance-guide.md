@@ -2,6 +2,14 @@
 
 Status: implemented on `work/finance-guide-90` for integration review. November 9, 2026, America/Los_Angeles. Owner: W7 (finance views and guide). This record covers the deterministic view and guide only. It does not decide D10 (model data policy) or D12 (guide scope); both remain unrecorded team decisions.
 
+**Update, November 9 (after implementation).** The team decisions are now recorded in [the decision handoff](../TEAM-DECISION-HANDOFF.md) on `work/integration-90` at `de48db5`:
+
+- **D12, read-only first.** The guide cites clauses, explains calculations, navigates to missing evidence and abstains on unsupported questions. It never drafts or prepares actions. This matches the implementation below.
+- **D10, public material only to Claude until a customer consents.** Private overlays stay local. Every case answer is built from the walkthrough's customer overlay, so model wording for case questions stays unimplemented. A future composer could only receive public material.
+- **D14.** Mandatory Opus critiques are no longer required.
+
+The paragraph above, written before these decisions were recorded, is kept unchanged as the record of that time.
+
 [Decision packet](packets/95-grounded-finance-guide.md) · [Actual Opus 5.5 critique](reviews/95-grounded-finance-guide.json), model `claude-opus-5-5`, session `4d9dc03f-9377-4504-8dfe-700c039d148c` · [Test ledger](../TEST-CHANGES-finance-guide-90.md)
 
 ## Choice
@@ -23,6 +31,10 @@ Model-composed answer wording is the change that depends on D10 and D12. At the 
 - whether the guide may only explain or may also prepare actions.
 
 **Write-lock interface request.** `uptime/server.py` (W0) wraps every POST in one write lock. The deterministic guide holds it for milliseconds. A future model composer must not run under that lock. A read-only POST exemption, or a separate read path, would be a W0 interface change. It depends on D10/D12 and is recorded by the integration owner as such. Nothing changes now.
+
+## Legacy case-inspector guide (D12 follow-up)
+
+The older guide in the advanced case ledger (`uptime/intelligence.py`, `POST /api/guide`) assembled an answer for any question. It answered "What is the weather?" with fee and outcome text. Under D12 it now abstains on fallback questions that name nothing the case explains, and it returns `abstained`. Its intent labels and every existing assertion are unchanged. The integration owner approved the change within D12.
 
 ## Criticism and response
 
