@@ -19,6 +19,7 @@ import unicodedata
 from uuid import UUID
 
 from .contracts import fingerprint
+from .source_identity import VERSION as IDENTITY_VERSION, refusal as _identity_refusal
 
 SCHEMA = "uptime-ramp-association/1"
 APPLICABLE, NOT_APPLICABLE, UNKNOWN, CONFLICT = "APPLICABLE", "NOT_APPLICABLE", "UNKNOWN", "CONFLICT"
@@ -38,16 +39,27 @@ def _fail(code):
 
 
 def exact_identity(value, code="INVALID_IDENTITY"):
-    """Exact source identity: kept byte-for-byte, never slugged, trimmed, normalized or case-folded.
+    """Exact local label (tenant, version, claim, award, actor): kept byte-for-byte, never rewritten.
 
-    D03 (decided 2026-11-09, "bounded exact source IDs"): exact values are accepted
-    consistently end to end. Internal spaces and any Unicode form are kept as given.
-    The bounds match the existing ``claim_identity`` rule (non-empty, no surrounding
-    whitespace, no control characters) plus a 512-character limit, so the two layers
-    cannot disagree. The shared D03 identity contract replaces this adapter when it lands.
+    Account and agreement identities use ``contract_identity`` (D03-A). These other
+    labels keep local bounds: non-empty, at most 512 characters, no surrounding
+    whitespace or control characters, and already NFC. As in ``source-identity/1``,
+    a non-NFC value is refused, never normalized.
     """
     if (not isinstance(value, str) or not value or value != value.strip() or len(value) > 512
+            or unicodedata.normalize("NFC", value) != value
             or any(unicodedata.category(c).startswith("C") for c in value)):
+        _fail(code)
+    return value
+
+
+def contract_identity(value, code="INVALID_CONTRACT_IDENTITY"):
+    """Account or agreement identity under team decision D03-A (``source-identity/1``).
+
+    Delegates to the shared ``uptime.source_identity`` rule, so this layer can never
+    accept a value that claim intake, onboarding or the ledger refuses, or the reverse.
+    """
+    if _identity_refusal(value) is not None:
         _fail(code)
     return value
 
@@ -80,8 +92,10 @@ class ContractScope:
     effective_end: date | None = None
 
     def validated(self):
-        for name in ("tenant", "contract_id", "contract_version", "account_id", "vendor_label"):
+        for name in ("tenant", "contract_version", "vendor_label"):
             exact_identity(getattr(self, name), "INVALID_CONTRACT_IDENTITY")
+        contract_identity(self.contract_id)
+        contract_identity(self.account_id)
         if not (isinstance(self.currency, str) and re.fullmatch(r"[A-Z]{3}", self.currency)):
             _fail("INVALID_CURRENCY")
         if type(self.effective_start) is not date or (
@@ -301,7 +315,7 @@ def associate(snapshot: dict, scope: ContractScope, association: NativeAssociati
     counts = {}
     for row in records:
         counts[row["status"]] = counts.get(row["status"], 0) + 1
-    return {"schema": SCHEMA, "tenant": scope.tenant, "contract_id": scope.contract_id,
+    return {"schema": SCHEMA, "identity_version": IDENTITY_VERSION, "tenant": scope.tenant, "contract_id": scope.contract_id,
             "contract_version": scope.contract_version, "account_id": scope.account_id,
             "provider_business_id": association.provider_business_id, "vendor_id": association.vendor_id,
             "entity_ids": list(association.entity_ids), "currency": scope.currency,
