@@ -36,4 +36,6 @@ The helper `live_workspace` in `tests/test_finance_browser_90.py` gained `**prep
   - `test_four_destinations_fit_a_phone_and_the_overview_leads_with_the_outcome`
   - `test_automation_workspace_needs_four_person_decisions_and_activity_shows_every_step`
 - `web/browser-contract.test.cjs`: `server stage labels render as sent; the browser never renames a state to hide its destination` (`d596979`)
+- `web/workspace_ui.test.cjs`: `the recovery card labels the claim’s own stage and shows the credit’s latest recorded stage beside it` (`61a6fb0`)
+- `tests/test_interpretation_uncertain_candidate_r4.py`: `test_uncertain_request_state_and_reason_sit_beside_its_validated_candidate` and `test_a_cleanly_completed_request_keeps_the_ordinary_candidate_label` (`f58e964`)
 - `web/model_job_display.test.cjs`: `a denial model job shows the model the server reports and its latest time, in UTC, and nothing it does not report` (`6374478`)

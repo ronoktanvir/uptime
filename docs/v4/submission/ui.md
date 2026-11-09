@@ -102,10 +102,27 @@ Screenshots, taken from this branch's build:
 
 The before screenshots are listed in (a).
 
-## (g) Limits and open items
+## (g) Checks after roles 1–3 were merged (November 9, about 14:00 PST)
 
-- **Ramp records link.** The Overview's Ramp card links to `#records` ("Open Ramp records"); the card still says no Ramp bill is linked to this agreement. Ramp records is also under More tools. Agent4's "Verified Ramp record" panel can be confirmed there only after role 3 is merged; I will check it on a workflow workspace then.
-- **Model-job screens for the film** (Corvid Ledger contract job and the unclear-denial reading) are coded against the published fields. They are not yet checked at 1440×900 against real recorded jobs: role 1's provider fields are not merged into this branch.
-- **Uncertain denial jobs.** The denial reading loads server candidates after an `UNCERTAIN` job, as the existing decision 60/75 flow does: a validated proposal may already exist. A refused job never shows a candidate. Whether an uncertain job's validated candidate should be hidden is a domain question for agents 2 and 3, and I have not changed it.
-- **Advanced tools.** The seeded comparison portfolio under More tools now shows its server labels verbatim, including "simulated" where the destination is the vendor simulator. The presenter guide already says not to open those screens in the recording.
+The branch was merged with the integration commit `c756853` (roles 1 and 3) and the role 2 head `8cc4f6f`.
+
+- **Ramp records (`#records`).**
+  - The Overview's Ramp card still says "Ramp bill: Not linked" and that no Ramp bill is linked to this agreement. Its link, "Open Ramp records", opens `#records` with More tools expanded and Ramp records marked current.
+  - Agent4's **Verified Ramp record** panel is the first panel on that page. It reads "Saved verified record of one Ramp demo bill… Not a live read" and shows bill `f74ba12c…`, the person-observed link and the person-posted note read back.
+  - Checked at 1440×900 with no page errors. [Screenshot](../evidence/submission-ui/after-ramp-records-1440.png).
+- **Recorded contract job (Corvid Ledger).**
+  - Source: a scratch copy of role 1's preserved workspace, served on 8847 and deleted afterwards. Signed in as `role1-operator`; the access read used the authored public fixture and attempt `initial`, and no new job was submitted.
+  - The job card shows job `26ee4e3f…`, status SUCCEEDED, model `claude-opus-5-5`, and submitted, started and finished at Nov 9, 2026, 21:17 UTC. Every clause quote is shown untrimmed beside its typed value, and the vendor card shows SHADOW.
+  - Review-history times are now formatted dates.
+  - Checked at 1440×900. [Screenshot](../evidence/submission-ui/after-contract-job-1440.png).
+- **Denial reading.**
+  - An UNCERTAIN request's validated candidate stays visible and inert, per the coordinator's ruling. Its summary names the uncertain outcome, and a note beside it gives the job id, state and reason. The request line shows the model and latest time when the receipt has them.
+  - Checked in Chrome with recorded-shape fixtures (`tests/test_interpretation_uncertain_candidate_r4.py`). The real recorded unclear-denial workspace has not been checked yet (see (h)).
+- **Recovery card.** "Claim stage" (the claim's own server value, unchanged) is shown next to "Credit stage", the latest recorded stage from `finance.stages`, so an applied credit no longer sits under "Current stage: awarded".
+
+## (h) Limits and open items
+
+- **Recorded unclear-denial workspace:** not yet checked at 1440. The coordinator is confirming with agent3 whether that workspace still exists.
+- **Ramp page (agent4's `web/ramp_ui.js`), for the coordinator to route:** the header line prints `Updated 2026-11-05T00:36:21.156851+00:00` as a raw instant, and the verified record shows `NO_APPLIED_CREDITS` and the resource codes (`TRUNCATED`) as raw enums. I have not edited that file.
+- **Advanced tools (coordinator question 4).** The legacy projections carry a structured stage (`metric.key`: exposure, estimated, claimed, awarded, posted, applied; action ids such as `record-credit`) but no destination field. The only destination signal is the per-stage source codes (`SIMULATED_VENDOR` and similar), and the November 4 direction excludes showing those as classification badges. Showing "state, destination" there would need a new server field, so the screens show the server's labels verbatim. The presenter guide keeps them out of the recording.
 - **Cooldown display.** The cooldown line reads "Not sent before …, the end of the response cooldown" whenever `timing.not_before` is present. The 24-hour duration is not computed in the browser.
