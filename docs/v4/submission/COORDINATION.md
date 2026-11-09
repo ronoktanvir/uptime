@@ -105,6 +105,30 @@ Each is reversible and inside Ronok's brief. None changes an approval gate, a fi
 
 The Codex evaluation lane published its first pass at [RESULTS](../evaluation-finish-20261109/RESULTS.md) (`b6e93bd`): twelve actual Opus calls returned and all twelve proposals failed validation; 0 of 4 intended positive contracts reached SHADOW; all six contracts were refused; all eight dispute cases stopped at setup, so held-out dispute accuracy is unmeasured. A separate public control completed one model reading of a denial and a linked local rebuttal. This push demonstrates the model path on authored contracts written inside the validated grammar. It does not change those scores and must not be presented as if it did.
 
+## Integration and suites
+
+The coordinator merges delivered branches and runs `uv run --locked pytest` once per merge, one run at a time. Branches that are ready together and share no files are merged in a single merge commit, so one run covers that merge. Every run is kept, including the failed ones.
+
+| Commit | Contents | Full suite | Other checks | Receipt |
+|:---|:---|:---|:---|:---|
+| `02d86f7` | `main` `b6e93bd` plus role 2 at `5e913b2` | **2 failed, 5,308 passed**, 1 warning, 444.98 s | 104 JavaScript checks, graph, rehearsal, secret scan pass | [suite-02d86f7](../evidence/submission-20261109/suite-02d86f7.json) |
+| `c756853` | plus role 2 fix `888d64f`, role 1 `43f5b9d`, role 3 `db9b680` | **1 failed, 5,366 passed**, 1 warning, 380.78 s | 109 JavaScript checks, graph, rehearsal, secret scan pass | [suite-c756853](../evidence/submission-20261109/suite-c756853.json) |
+| `6c83947` | plus probe update `0be2955`, role 2 job view `8cc4f6f`, role 4 `c3a6dc5` | **5,378 passed**, 1 warning, 378.23 s | 114 JavaScript checks, graph, rehearsal, secret scan pass | [suite-6c83947](../evidence/submission-20261109/suite-6c83947.json) |
+
+What the failures were:
+
+- **Restart probe (both failed runs).** `tests/test_release_probes_gent8.py::test_hard_kill_mid_flow_preserves_state_idempotency_and_final_ledger` failed with `assert (0 + 4) == 11`. Role 2 made routine automation the default for workspaces created by the setup command, so the probe's four reviewer actions finished the walkthrough. The product state was correct. The probe's owner kept it on the eleven-step path with `--step-by-step`, with every assertion unchanged, and added a real-process kill for the automated default.
+- **Browser test (first run only).** A Playwright test failed when Google Chrome auto-updated during the run and closed the launched browser. It passed alone on the same commit and in both later runs.
+
+Not yet merged: role 2's `28fd9ac` (an older recorded workspace lacked one column of the step history) and role 4's follow-up checks. The frozen commit will be named after those are merged and a run passes.
+
+## What this push changed, and its limits
+
+- **Clicks.** The walkthrough's eleven clicks are four reviewer decisions: approve claim, approve response, post to Local ledger, apply credit. Seven steps run on the server under an existing approval or a signed source event, each with its authority recorded. No approval gate was removed or combined. A standing policy for the follow-up approval is a written proposal only.
+- **Model on screen.** Six genuine `claude-opus-5-5` calls on three authored contracts, none repeated: one of two intended positives reached SHADOW with eleven exact quotations, the other was refused for vendor naming, and the control was refused. One genuine call read an authored unclear vendor reply and the case went to human review with nothing awarded. Both recorded runs are preserved and shown from copies. Nothing was approved or activated by a model or on a person's behalf.
+- **Ramp.** A saved verified record of the sandbox bill that carries the person-posted note is shown beside the earlier worklist, with read time, completeness and the exact Ramp link. The capture sanitizer now keeps vendor names and invoice numbers, as the brief's task asks; other private fields are still stripped. Nothing from Uptime has been written to Ramp.
+- **Limits.** Correct denial is covered only by automated tests; no served workspace shows it. Vendor names show as not captured until a person runs a read-only capture. An Uptime-origin Ramp comment needs a current signed native release, which does not exist. Advanced screens under "More tools" show the seeded data's own labels. Independent scores are unchanged: 0 of 4 intended positives in the latest pass.
+
 ## Status log
 
 - **13:05 PST.** Baseline and classification recorded. Integration worktree created from `55ea607`. Roles 1–4 briefed. Role 5 follows the freeze; role 6 follows the judge session's drafts.
@@ -112,4 +136,5 @@ The Codex evaluation lane published its first pass at [RESULTS](../evaluation-fi
 - **13:10 PST. Disk incident.** Free space fell from 3.4 GiB to about 0.8 GiB in under ten minutes. Cause: a Google Chrome auto-update writing about 1.5 GB of patch files to the user temp directory. The coordinator paused the updater's two processes (`kill -STOP 37425 37494`, resumable with `kill -CONT`); nothing was deleted. Free space then held near 1.0 GiB. Specialists were told to skip tests under 1.5 GiB free and to download or clone nothing. Virtual environments are copy-on-write clones and cost no space. Clearing the updater's temp files, old pytest temp trees or the uv cache is Ronok's decision. No full suite runs until space is back.
 - **13:13 PST.** All five first deliverables are pushed: `onboarding.md` (`3bc648a`, plus the guide abstention fix `72b65f6` and job receipts `611efdf`), `disputes.md` (`67fbc44`), `ramp.md` (`e8bd7dc`), `ui.md` (`0fd732c`), `acceptance.md` (`60a7ea6`, sealed expectations committed by digest). Role 2 confirms eleven clicks become four person decisions with no gate removed or combined; a standing policy for the follow-up approval is written up as a proposal only. Interface notes forwarded to role 4.
 - **13:19 PST.** `origin/main` moved to `b6e93bd` (records and progress data only). The Codex lanes closed their pass and listed queued generalization work in [NEXT-WORKSTREAMS](../NEXT-WORKSTREAMS-20261109.md); that work is not part of this push. Ronok confirmed that the Codex root did not receive this brief and that this session is the only coordinator. Role 6 assigned to `agent0`; the judge session's drafts were copied out of its scratchpad to private task storage. Free disk back to about 1.9 GiB with the updater still paused.
+- **13:55 PST.** Roles 1–4 are integrated and verified. See "Integration and suites" below. Ronok confirmed at about 13:42 PST that the existing sessions keep these roles through the freeze; he had intended the roles for new agents, and the coordinator had assigned them to existing sessions without asking first.
 - **13:21 PST.** Free disk is 17 GiB. The coordinator resumed the paused Chrome updater (`kill -CONT`), so nothing it paused is left stopped and nothing was deleted. The test hold is lifted; the check-before-running rule (skip under 1.5 GiB free) stays.
