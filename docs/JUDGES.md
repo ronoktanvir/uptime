@@ -34,7 +34,7 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 - **Authored:** the Northwind contract, amendment, usage records, invoices and vendor replies. Northwind Cloud and the buyer are fictional.
 - **Local:** the vendor's side of the dispute is a counterparty built into Uptime, and credits go to a local ledger. No real vendor is contacted, and no money moves in Ramp.
 - **Scripted:** the walkthrough's reviewer account, `scripted-test-reviewer`, is a test account, not a record of a person's approval.
-- **Recorded:** the model readings were made on November 9 through the ordinary application routes, on authored contracts and an authored unclear reply, one call each with no retries. Their provider receipts are kept. Northwind's own contract and its vendor's log request are handled by fixed rules, with no model call.
+- **Recorded:** the model readings were made on November 9 through the ordinary application routes, on authored contracts and an authored unclear reply: one call per rule family, so two per contract and six for the three contracts, plus one for the unclear reply, none retried. Their provider receipts are kept. Northwind's own contract and its vendor's log request are handled by fixed rules, with no model call. The log request uses wording the rules know; a request worded differently goes to a reviewer.
 - **Real:** the Ramp sandbox reads, and the note a person posted on sandbox bill `f74ba12c-95d0-582d-9f62-26d8057d1d37`.
 
 ## Five questions, answered
@@ -45,13 +45,25 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 
 **What happens on an unfamiliar contract?** Today it usually refuses, and says where. In the latest independent first pass, 12 actual Opus calls returned and all 12 proposals failed validation: 0 of 4 intended positive contracts reached shadow and all 6 were refused. All 8 dispute cases stopped at setup, so held-out dispute accuracy is unmeasured. Earlier first attempts (0 of 4, 3 of 6, 0 of 50) and a refused public SLA (Backblaze) stand. A refusal never produces a number. [Results](v4/evaluation-finish-20261109/RESULTS.md)
 
-**Who authorizes follow-up?** A reviewer: in the product, an enrolled person; in the walkthrough, whoever is driving it, signed in as the scripted test account. The reviewer approves the claim packet and the response, then posts and applies the credit. Uptime runs only intake and the dispatch of steps a reviewer already approved. Correctly accepting a vendor's denial is covered only by automated tests through the same signed routes; no demo workspace shows it. No standing policy lets it act alone, and it stops on anything unexpected: a new legal ground, contradictory evidence, or uncertain delivery.
+**Who authorizes follow-up?** A reviewer: in the product, an enrolled person; in the walkthrough, whoever is driving it, signed in as the scripted test account. The reviewer approves the claim packet and the response, then posts and applies the credit. Uptime runs only intake and the dispatch of steps a reviewer already approved. Correctly accepting a vendor's denial is not shown in any demo workspace. Automated tests cover it through the same signed routes. The independent acceptance run also exercised one such case over real HTTP: an announced maintenance window, corroborated by the customer's own notice, reached denial review with only acceptance offered and closed on a signed acceptance, with nothing awarded. A genuinely late filing could not be used, because the routes refuse to file after the cutoff. [Acceptance report](v4/submission/acceptance.md) No standing policy lets it act alone, and it stops on anything unexpected: a new legal ground, contradictory evidence, or uncertain delivery.
 
 **What remains unimplemented?**
 - Any write to Ramp by Uptime, payment holds, and recording vendor credits in Ramp.
 - Real vendor delivery: the claim channel is still undecided.
 - Reliable reading of unseen contracts, and measured accuracy on unseen dispute replies.
 - A hosted installation with Ramp sign-in.
+
+## Independent acceptance
+
+A separate session checked the frozen build `52f1a2f` from a fresh clone, following only the published instructions, against expectations it sealed by digest before it saw the build.
+- **The walkthrough:** sign-in and four reviewer decisions, with seven automatic steps between them.
+- **Matched the sealed expectations:** the money, 58 of 58 citations and the authority recorded for each step.
+- **Safety:** no unsafe acceptance, invented evidence or unauthorized money movement was observed.
+- **The model work** was verified from its receipts. It is recorded, not live.
+- **Not shown:** generalization. The independent cohort reached shadow on 0 of 4 contracts.
+- **Ramp:** nothing reaches Ramp from Uptime.
+
+The [acceptance report](v4/submission/acceptance.md) has the evidence, the controls and its five ranked findings ("Bugs and risks, ranked by consequence").
 
 ## Evidence index
 

@@ -25,7 +25,7 @@ A service credit is rarely automatic. Under [Twilio's API SLA](https://www.twili
 | **Know what you are owed** | Reread the SLA, the order form and every amendment. | Terms become typed rules, each linked to its clause. |
 | **Prove it** | Total the downtime in a spreadsheet. | Evidence is matched to the service month. Missing evidence gives "needs evidence", never a guess. |
 | **Claim it in time** | Remember the window, write the ticket. | The deadline is tracked; the claim packet waits for a person's approval. |
-| **Handle the reply** | Hunt for whatever the vendor asks for. | A recognised request is answered with verified evidence. Anything else goes to a person. |
+| **Handle the reply** | Hunt for whatever the vendor asks for. | A request in wording the rules know is answered with verified evidence. Other wording goes to a reviewer. |
 | **Confirm the money** | Hope the next invoice is lower. | Claimed, awarded, posted and applied are separate stages of one credit, applied once. |
 
 We do not publish a time or dollar saving: no measurement supports one, and public outage reports alone cannot establish what a particular customer is owed.
@@ -82,14 +82,14 @@ Use a new folder name for each fresh run; add `--resume` to reopen one. [Full se
 
 <!-- SCREENSHOT 2 (phase 2, from the frozen build): docs/assets/submission/contract-reading.png — a recorded Claude Opus 5.5 reading of an authored contract: each proposed term beside its quoted sentence, the validation result and the shadow state. -->
 
-Claude Opus 5.5 does two things. It proposes contract terms for wording the fixed rules do not know, and it proposes a reading of a vendor's reply, with the cited text, for a reviewer to check. Both run through the ordinary application routes. Before each call, an operator records permission for that exact request, covering the model call only. In these runs the operator was the engineering agent running the demonstration, named as such in the receipts. The model gets no tools. Its output is a proposal: it cannot approve itself, invent evidence or set an amount. Northwind's own agreement, and its vendor's request for a log, are handled by fixed rules with no model call.
+Claude Opus 5.5 does two things. It proposes contract terms for wording the fixed rules do not know, and it proposes a reading of a vendor's reply, with the cited text, for a reviewer to check. Both run through the ordinary application routes. Before each call, an operator records permission for that exact request, covering the model call only. In these runs the operator was the engineering agent running the demonstration, named as such in the receipts. The model gets no tools. Its output is a proposal: it cannot approve itself, invent evidence or set an amount. Northwind's own agreement is read by fixed rules with no model call. So is its vendor's request for a log, which uses wording the rules know; a request worded differently goes to a reviewer.
 
 **On authored contracts, recorded November 9:**
 - Of two contracts written inside the supported grammar, one (Corvid Ledger) reached shadow with 11 exact quotations from its text.
 - The other (Halden Relay) was refused for the same vendor-naming reason as the independent cohort.
 - A third, a deliberate control, was refused.
 - An authored unclear vendor reply was read as unsupported, citing the whole reply, and went to a reviewer with nothing awarded.
-- Each call took 5–15 seconds, with one call per case and no retries.
+- The model was called once per rule family: two calls per contract, six for the three contracts, and one more for the unclear reply. Each call took 5–15 seconds, and none was retried.
 
 [Recorded runs](docs/v4/submission/onboarding-runbook.md) · [Recorded reply reading](docs/v4/evidence/submission-disputes-20261109/denial-model-job.json)
 
@@ -109,7 +109,7 @@ What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-58
 |:---|:---|:---|
 | **Money engine** | SLA credits, price checks, amendments, deadlines, exclusions and credit allocation, with exact decimal arithmetic and a clause citation for every amount | Supports specific contract wording families; anything else is refused, with the passage named |
 | **Contract reading** | Deterministic parser for known wording; Claude Opus 5.5 proposals for other wording, validated by code and staged in shadow | Not reliable yet: 1 of 2 authored contracts reached shadow in the demo's recorded runs, and 0 of 4 intended positives in the latest independent pass |
-| **Disputes** | Denial → evidence cure → reviewed response → award, with routine steps run automatically and a reviewer deciding each judgment; for a reply the rules do not recognize, the model proposes a reading with the cited text, for a reviewer to check | Held-out dispute accuracy unmeasured. Replies come from a local counterparty; no real vendor is contacted |
+| **Disputes** | Denial → evidence cure → reviewed response → award, with routine steps run automatically and a reviewer deciding each judgment; for a reply the rules do not recognize, the model proposes a reading with the cited text, for a reviewer to check | Evidence requests are recognized only in wording the rules know; other wording goes to a reviewer. Held-out dispute accuracy unmeasured. Replies come from a local counterparty; no real vendor is contacted |
 | **Approvals** | A reviewer approves the claim, the response, posting and application; each approval is bound to the exact content approved | In the walkthrough the presenter acts as a scripted test reviewer account; that is not a record of an enrolled person's approval |
 | **Ramp reads** | Bills, vendors, transactions, purchase orders and approvals from the Ramp sandbox, with read time and completeness | Read-only, and a person starts each read; the demo uses the sandbox, not a customer business |
 | **Ramp write-back** | One person-posted note, read back by Uptime through the API | No Uptime-originated Ramp write; vendor credits, payment holds and approval steps in Ramp are not built |
@@ -120,7 +120,7 @@ What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-58
 
 ## Verification
 
-The badge above runs the full check suite on every push to `main`. The frozen submission build's full run is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-52f1a2f.json). These are regression results, not a measure of model accuracy or production readiness.
+The badge above runs the full check suite on every push to `main`. The frozen submission build's full run is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-52f1a2f.json). These are regression results, not a measure of model accuracy or production readiness. An independent acceptance run on a fresh clone of that build followed only these published instructions; its results, limits and ranked findings are in [the acceptance report](docs/v4/submission/acceptance.md) ([summary](docs/JUDGES.md#independent-acceptance)).
 
 ```sh
 uv run --locked pytest
