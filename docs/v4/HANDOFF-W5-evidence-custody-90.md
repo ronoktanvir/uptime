@@ -53,7 +53,7 @@ Changed by other owners in W5 files, reviewed here: agent1's D04-C commit `e29fa
 - Merged-head acceptance (`23805c9`, detached checkout plus the acceptance file): **219 passed, 1 warning in 183.94 s** ([receipt](evidence/evidence-custody-90/acceptance-merged-91.json)).
 - Branch focused run at `a924aae` (17 files, including all Northwind suites): **401 passed, 1 warning in 328.72 s** ([receipt](evidence/evidence-custody-90/verification-91.json)).
 - Live public run, November 9 at 12:26:26 UTC: 50 incidents; incident `fm5fk85h6glc` was delivered by the real signed CLI over a loopback socket; the retry returned the identical receipt; the claim stayed `INSUFFICIENT_EVIDENCE` with a null amount ([receipt](evidence/evidence-custody-90/public-status-live-91a.json)).
-- Preserved failures: three failed intermediate runs during decision 91 and one during 91a, listed in the test ledger. No existing test was edited by W5.
+- Preserved failures, listed in the test ledger: two failed intermediate runs and one flaw found by the Opus critique during decision 91, and one failed run during 91a. No existing test was edited by W5.
 
 ## Decisions
 
