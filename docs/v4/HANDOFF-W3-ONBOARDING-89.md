@@ -72,7 +72,7 @@ Focused runs used a unique `--basetemp` with `-o tmp_path_retention_policy=faile
 
 - **ONB-1, discovery from Ramp records: not met; deferred until after the demo by agent0.** Stored Ramp vendors keep IDs only, so discovery needs a reviewed binding between an adapter slot and a Ramp vendor ID (D03; W1/W0).
 - **Exclusions and conditions.** The monthly family refuses any exclusion or qualifier, and most real public SLAs contain one (D07 narrow matrix). Supporting cited exclusions would be a semantic expansion needing a team decision. Do not make it before the D05 run (selector bias).
-- **Evaluation 84 causes not addressed:** model-flagged clauses, the deterministic `/candidates` parser on the unknown clauses, the resource-month block 4 flag, and the aggregate fixed-period phrasing. After D04-C, the verification lane expects the 11 `monthly_tier` dispute cases to refuse with "requires incident".
+- **Evaluation 84 causes not addressed:** model-flagged clauses, the deterministic `/candidates` parser on the unknown clauses, the resource-month block 4 flag, and the aggregate fixed-period phrasing. After D04-C, the verification lane expects the 11 `monthly_tier` dispute cases to refuse with "requires incident". The monthly claim-basis contract's strict-parser causes (9 of 11 clauses) have a deferred, ready-to-implement plan: [REMEDIATION-1A-STRICT-TEMPLATES.md](REMEDIATION-1A-STRICT-TEMPLATES.md). The overview session deferred it under Ronok's delegated authority until he decides whole-month sufficiency.
 - **Submission channel.** It is visible on the card but never delivered; delivery waits on D08.
 - **Re-review.** Every active adapter needs one renewed review after the batched semantics change; fresh setups need none.
 
