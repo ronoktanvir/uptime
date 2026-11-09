@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-09T20:49:30.112445+00:00",
+  "updated_at": "2026-11-09T20:52:46.081232+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
@@ -58,6 +58,12 @@
       "value": "0/4 accepted; unseen vendor refused",
       "detail": "Corpus84 supported extraction first attempts: 0/4. Backblaze automatic family selection returned NO_SUPPORTED_FAMILY. Neither is rescored after remediation.",
       "url": "https://github.com/ronoktanvir/uptime/blob/671edc5/docs/v4/evaluation-gent8/D05-RESULT.md"
+    },
+    {
+      "label": "Actual public dispute control",
+      "value": "1 invocation; local rebuttal receipt",
+      "detail": "Opus5.5 returned a grounded time-bar reading. Separate scripted review produced a signed local response receipt. Claimed90; awarded/posted/applied0. This public authored control is excluded from the held-out score.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/evaluation-finish-20261109/public-provider-control-result.json"
     }
   ],
   "nodes": [
@@ -700,6 +706,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T20:52:46.081232+00:00",
+      "title": "Actual provider control reaches local rebuttal receipt",
+      "detail": "Verified Opus5.5 session, empty tools/MCP, one call. Model output left state unchanged; separately frozen scripted review and local actions produced a response linked to the original receipt. No Ramp receipt or recovered money.14-case independent batch continues.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/evaluation-finish-20261109/public-provider-control-result.json"
+    },
     {
       "at": "2026-11-09T20:49:30.112445+00:00",
       "title": "Final combined suite passes5,298 tests; independent run cleared",

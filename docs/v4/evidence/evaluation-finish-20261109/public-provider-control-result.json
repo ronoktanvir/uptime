@@ -1,0 +1,57 @@
+{
+  "schema": "public-provider-control-result/1",
+  "recorded_at": "2026-11-09T20:52:01.445932+00:00",
+  "application_commit": "805dd1cfe3eb08d4adf3810913cb5d53eb4e3c9f",
+  "classification": "Separate public authored control; excluded from the sealed14-case cohort and unseen-generalization score.",
+  "first_application_provider_attempt": true,
+  "pre_model_header_preflight_failures_retained": 2,
+  "model": {
+    "id": "claude-opus-5-5",
+    "session": "05980a62-0724-43e4-a16d-fdef9bbf3274",
+    "tools": [],
+    "mcp_servers": [],
+    "request_sha256": "0960e8afa8db89964a0ef74ee85d0c4508a478c219624ef88bf271a73d1eb80d",
+    "stdout_sha256": "b9191e3c6d98fc191d9bb69a408afc83ec735a0ea7c9458dcef24ccbf157b055",
+    "verified_outcome": "CANDIDATE_RECORDED",
+    "actual_calls": 1,
+    "duration_ms": 2753,
+    "input_tokens": 2,
+    "output_tokens": 205,
+    "cache_creation_input_tokens": 5371
+  },
+  "raw_candidate": {
+    "families": [
+      "time_bar"
+    ],
+    "matches_frozen_source_reading_exactly": true,
+    "claim_state_unchanged": true,
+    "actual_human_acceptance": false
+  },
+  "scripted_source_review": {
+    "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+    "candidate_acceptance": false,
+    "reading_origin": "separately frozen public source reading",
+    "reason": "time_bar",
+    "disposition": "RESPONSE_DRAFTED",
+    "continuation": "LOCAL_RESPONSE_RECEIPT_ONLY"
+  },
+  "local_receipts": {
+    "count": 2,
+    "original_receipt": "LOCAL-043e1dd4b1d2a561a22dffee",
+    "response_receipt": "LOCAL-707820285a17515ebc8f6038",
+    "response_links_original": true,
+    "stage": "AWAITING_VENDOR",
+    "is_ramp_receipt": false
+  },
+  "financial_stages": {
+    "estimated": "90.00",
+    "claimed": "90.00",
+    "awarded": "0.00",
+    "posted": "0.00",
+    "applied": "0.00"
+  },
+  "external_actions": [],
+  "actual_money_recovered": "0.00",
+  "raw_result_sha256": "e0f8ce67ee2d63f4bdbb09a61db7b2467241a447969d2e94199eb3e8f199ffb5",
+  "raw_artifacts_location": "Protected local evaluation task directory; no raw model stream or request is committed."
+}

@@ -4,7 +4,7 @@
 
 The resumed onboarding and dispute work is integrated on verified source `805dd1c`: **5,298 passed, 1 warning in357.07s**. It adds generic strict-source wording, an explicitly grounded whole-month evidence path, authenticated refusal auditing and effective-period scope selection. The earlier failed runs and their corrections remain in history. [Current execution record](FINISH-20261109.md) · [Full regression receipt](evidence/finish-20261109/final-805dd1c.json).
 
-The independent six-contract/eight-reply cohort is frozen and cleared to run once; results are pending. Four additional public route probes passed separately. Historical scores are not rescored. Historical monthly filing receipts remain unsupported, human release gates remain unsatisfied, and agent-run Ramp posting remains prohibited. The presentation workspace and Ronok's recorded review are unchanged.
+The independent six-contract/eight-reply cohort is running once; results are pending. A separate public control used one actual Opus5.5 invocation to interpret a time-bar denial, followed by an explicitly scripted review and a linked local response receipt; no award, posting, application or external action occurred. [Public control receipt](evidence/evaluation-finish-20261109/public-provider-control-result.json). Four additional public route probes passed separately. Historical scores are not rescored. Historical monthly filing receipts remain unsupported, human release gates remain unsatisfied, and agent-run Ramp posting remains prohibited. The presentation workspace and Ronok's recorded review are unchanged.
 
 ## Earlier November 9 integration history
 
