@@ -121,3 +121,20 @@ No existing test changed. These existing tests run unchanged alongside the new f
 
 Result: **94 passed, 1 warning in 87.66s**.
 
+## Dispute interaction and Ramp record wording (W4 request and demo copy)
+
+No existing test changed. New tests:
+
+| File | Count | Purpose |
+| --- | ---: | --- |
+| `tests/helpers/denial_acceptance.test.cjs` | 6 | Covers the following: <ul><li>"Accept denial" posts only `{basis_digest}` to `/denial-acceptance`, never `/actions/accept-denial`.</li><li>A stale-basis 409 accepts nothing and reloads the new offer.</li><li>A malformed offer or a read-only session cannot post.</li><li>The read-only dispute record uses plain labels and keeps vendor text inert.</li><li>A blocking contradicting delivery is explained, and nothing is inferred from the stage.</li><li>89b checks are worded by meaning; `contradicting_deliveries_unresolved: true` is never "pass".</li></ul> |
+| `tests/test_interpretation_denial_label_95.py` | 1 | Real Chrome. A DENIAL_REVIEW preview names the ground-recording step and shows plain classifications. The step posts to `/prepare-response` only. |
+| `web/ramp_wording.test.cjs` | 2 | Ramp record codes read as meaning-preserving wording, while other codes stay exact. Native routes lead each row and record page. Unverified URLs offer none. |
+
+Results:
+
+- JavaScript: **92/92**
+- Correspondence, disposition and interpretation suites, including W4's unchanged `test_correspondence_disposition_89.py`: **69 passed**
+- Companion and correspondence browser suites after the 89b follow-up: **25 passed**
+- Ramp, workspace and finance browser tests: **6 passed**
+
