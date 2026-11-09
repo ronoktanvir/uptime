@@ -82,3 +82,20 @@ def test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake(tmp_
         assert stored['account'] == account and stored['contract'] == agreement  # exact bytes, not rewritten
     finally:
         app.client.close()
+
+
+def test_socket_authority_attacks_are_refused_without_state_change(tmp_path):
+    """Real loopback HTTP to a separate server process; complements the in-process authority tests."""
+    from scripts import probe_socket_authority_gent8 as authority
+
+    result = authority.run(tmp_path / 'probe', tmp_path / 'receipt.json')
+    names = {probe['name'] for probe in result['probes']}
+    assert names == {'body_tampered_after_signing', 'proof_rebound_to_other_path', 'cross_origin_header',
+                     'missing_action_header', 'bearer_session_without_proof', 'forged_rehearsal_key_login',
+                     'exact_replay_of_accepted_request'}
+    for probe in result['probes']:
+        assert probe['refused'] is True and probe['http_status'] in (401, 403, 409), probe
+        assert probe['state_unchanged'] is True, probe
+    # Control: the same signed route accepts one fresh legitimate request.
+    assert result['legitimate_action']['http_status'] == 200 and result['legitimate_action']['state_changed'] is True
+    assert result['authority_kind'] == 'SCRIPTED_REVIEWER'

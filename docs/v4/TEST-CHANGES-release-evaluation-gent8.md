@@ -23,3 +23,4 @@ Both replaced tests were new on this branch and never on integration. The replac
 | Added test | Reason |
 |---|---|
 | `tests/test_preflight_evaluation84.py::test_dispute_claim_basis_contracts_cannot_be_activated_on_the_deterministic_route` | New. Records the second dispute setup dependency: both claim-basis contracts are QUARANTINED on the no-model candidate route, so 12/12 replies lack an active adapter for their claim. |
+| `tests/test_release_probes_gent8.py::test_socket_authority_attacks_are_refused_without_state_change` | New. Seven signed-request attacks over real loopback against a separate server process: each is refused with no state change, and one fresh legitimate action is accepted. |

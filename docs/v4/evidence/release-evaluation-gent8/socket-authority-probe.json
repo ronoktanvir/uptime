@@ -1,0 +1,96 @@
+{
+  "schema": "socket-authority-probe-gent8/1",
+  "at": "2026-11-09T12:27:30.309524+00:00",
+  "transport": "REAL_LOOPBACK_HTTP",
+  "process_model": "separate OS server process",
+  "authority_kind": "SCRIPTED_REVIEWER",
+  "probe_sha256": "b36d8d811ba1a64b5f24b9b70b1807171cfbe1c784e25b432c73188559c43919",
+  "probes": [
+    {
+      "name": "body_tampered_after_signing",
+      "http_status": 403,
+      "refused": true,
+      "state_unchanged": true
+    },
+    {
+      "name": "proof_rebound_to_other_path",
+      "http_status": 403,
+      "refused": true,
+      "state_unchanged": true
+    },
+    {
+      "name": "cross_origin_header",
+      "http_status": 403,
+      "refused": true,
+      "state_unchanged": true
+    },
+    {
+      "name": "missing_action_header",
+      "http_status": 403,
+      "refused": true,
+      "state_unchanged": true
+    },
+    {
+      "name": "bearer_session_without_proof",
+      "http_status": 403,
+      "refused": true,
+      "state_unchanged": true
+    },
+    {
+      "name": "forged_rehearsal_key_login",
+      "http_status": 403,
+      "refused": true,
+      "state_unchanged": true
+    },
+    {
+      "name": "exact_replay_of_accepted_request",
+      "http_status": 403,
+      "refused": true,
+      "state_unchanged": true
+    }
+  ],
+  "legitimate_action": {
+    "http_status": 200,
+    "state_changed": true,
+    "ledger_before": {
+      "destination": "Local ledger",
+      "estimated": "2400.00",
+      "claimed": "0.00",
+      "awarded": "0.00",
+      "posted": "0.00",
+      "applied": "0.00",
+      "currency": "USD",
+      "record_ids": {
+        "award": null,
+        "credit": null,
+        "application": null
+      },
+      "unapplied_credit": "0.00",
+      "bill": {
+        "id": null,
+        "original_amount": null,
+        "outstanding_amount": null
+      }
+    },
+    "ledger_after": {
+      "destination": "Local ledger",
+      "estimated": "2400.00",
+      "claimed": "0.00",
+      "awarded": "0.00",
+      "posted": "0.00",
+      "applied": "0.00",
+      "currency": "USD",
+      "record_ids": {
+        "award": null,
+        "credit": null,
+        "application": null
+      },
+      "unapplied_credit": "0.00",
+      "bill": {
+        "id": null,
+        "original_amount": null,
+        "outstanding_amount": null
+      }
+    }
+  }
+}

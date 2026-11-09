@@ -66,6 +66,7 @@ ADR-0084 rules apply: no pooled percentage. Supported-case success, correct nega
 |---|---|---|
 | Hard-kill restart mid-flow, with duplicate replay across the kill ([receipt](../evidence/release-evaluation-gent8/restart-probe-c1fa513.json)) | Two OS processes over loopback | PASS. State equal after restart, replay unchanged, 11/11 actions, $8,600 outstanding. |
 | Identity propagation, onboarding to claim intake | Offline schema check over all 12 corpus contexts, plus signed TestClient across both routes | **Defect reproduced (D03).** The vendor route evaluates a spaced identity as ELIGIBLE 52.17 in shadow. Claim intake refuses the same identity with 422 on `account` and `contract` only. A provisioned identifier-domain control is accepted. |
+| Socket authority attacks ([receipt](../evidence/release-evaluation-gent8/socket-authority-probe.json)) | Separate OS server process over loopback | PASS. 7/7 refused with HTTP 403, and the authoritative workflow and ledger were unchanged after each: body tampered after signing, proof rebound to another path, cross-origin header, missing action header, bearer session without proof, forged-key login, exact replay of an accepted request. A fresh legitimate signed action was accepted (200). |
 | 118-probe audit gate: prompt injection, forged authority, tenant crossing, stale and replayed authority, financial miscalculation, overcounting, browser sibling origin | Mixed (unit, TestClient, browser) | 118/118 PASS (unsigned) |
 | Real transport timeout and terminal state | Fake CLI through `SafePublicClaude` | PASS after the runner fix |
 | `independent_final_fix_verifier.py` | — | **Exit 1.** Its preserved originals were edited in `5463bcb` after pinning. Integrity finding; not re-pinned. [log](../evidence/release-evaluation-gent8/final-fix-verifier-c1fa513.log) |
@@ -74,7 +75,7 @@ The coverage inventory found these remaining gaps:
 
 - Space-containing identities: the HTTP-level gap is now covered by the D03 reproduction test. It stays TestClient-level, not socket-level.
 - Allocation conflicts are tested only in-process; the ledger has no HTTP route.
-- Stale-authority, tenant-crossing and injection checks have no socket-level coverage.
+- Signed-request authority now has socket-level coverage (proof replay, body/path rebinding, forged key, origin, CSRF header). Stale-authority-after-source-change, tenant crossing and injection still have none.
 - Release-attestation forgery is tested only at unit level.
 
 ## Regression
