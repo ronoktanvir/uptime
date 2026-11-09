@@ -120,7 +120,7 @@ What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-58
 
 ## Verification
 
-The badge above runs the full check suite on every push to `main`. The latest full local run is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/finish-20261109/final-805dd1c.json). These are regression results, not a measure of model accuracy or production readiness.
+The badge above runs the full check suite on every push to `main`. The frozen submission build's full run is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-52f1a2f.json). These are regression results, not a measure of model accuracy or production readiness.
 
 ```sh
 uv run --locked pytest
