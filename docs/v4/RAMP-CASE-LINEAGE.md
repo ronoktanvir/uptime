@@ -32,7 +32,7 @@ The demo app already holds `bills:write`, and the agent-run native posting retes
 
 POs and Ramp agreements are context only (`LINKED_CONTEXT`). Reviewed IDs that are missing from a complete list are reported, and an incomplete list never proves absence. Names, amounts, date proximity and the contract's vendor label are never compared with Ramp data.
 
-`ContractScope` is the adapter for the shared identity contract. It takes exact identities: internal spaces are kept, while surrounding whitespace, control characters or non-NFC text are refused rather than rewritten. That matches `claim_identity`. `scope_from_claim_identity` maps the existing field names without changing any value. When the D03 identity contract lands, it replaces this adapter and nothing else.
+`ContractScope` is the adapter for the shared identity contract. Under D03 (decided November 9: bounded exact source IDs), it takes exact identities with no slugging, trimming, normalization, case-folding or alias registry. Internal spaces and any Unicode form are kept as given. Values with surrounding whitespace or control characters, or longer than 512 characters, are refused rather than rewritten. That matches `claim_identity`'s bounds. `scope_from_claim_identity` maps the existing field names without changing any value. When the D03 identity contract lands, it replaces this adapter and nothing else.
 
 ## Lineage: `uptime/ramp_case_lineage.py`
 
@@ -118,7 +118,7 @@ Every case money field is null. The plan is `NONE / ALREADY_SURFACED_AND_VERIFIE
 ## Decisions that block further native work
 
 - **D02:** Which real Ramp vendor and bill carry a contract case. Without it there is no reviewed `NativeAssociation` for real data, and Northwind stays a local-ledger walkthrough.
-- **D03:** The shared identity representation. `ContractScope` is the single swap point.
+- **D03:** Decided on November 9 as bounded exact source IDs; agent1 is implementing the shared identity contract. Its exact bounds aren't published yet, so `ContractScope` stays the single swap point and must be aligned once that contract lands.
 - **D06:** Whether one person may prepare and execute a credit application, and who may request a hold.
 - **D09:** How credits are created and applied, and who verifies that an award belongs to a claim. This also covers exposing the operator-application functions and merging with `AllocationLedger`.
 

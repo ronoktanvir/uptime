@@ -42,6 +42,7 @@ Points where we disagree, or which are deferred:
   - `Bill.status` is the published `OPEN|PAID` enum.
   - The default credit list excludes archived credits. Our sync requests `include_fully_used=true`.
   - The help-article hash is recorded in the platform-verification receipt. The page itself isn't committed.
+- **D03 alignment.** The overview session relayed Ronok's November 9 decision: bounded exact source IDs, with no slugging, trimming, case-folding or alias registry. The first commit also refused non-NFC text, which `claim_identity` accepts. That extra refusal was removed so both layers accept exactly the same values. Agent1's shared contract remains the swap point.
 - **Parallel source of truth.** Accepted as a cost. Merging with `AllocationLedger` is follow-up work after D09.
 
 ## Validation

@@ -198,7 +198,10 @@ def later(hours, credits, **april):
 
 def test_exact_identity_keeps_spaces_and_refuses_rewrites():
     assert exact_identity("Northwind account 0042") == "Northwind account 0042"
-    for bad in (" Northwind", "Northwind ", "", "line\nbreak", "Café", 42):
+    # D03: an exact value in any Unicode form is kept as given, never normalized.
+    decomposed = "Cafe\u0301"
+    assert exact_identity(decomposed) == decomposed and decomposed != "Caf\u00e9"
+    for bad in (" Northwind", "Northwind ", "", "line\nbreak", 42):
         with pytest.raises(AssociationError):
             exact_identity(bad)
     mapped = scope_from_claim_identity({"tenant": TENANT, "vendor": "Northwind Data Services", "account": ACCOUNT,

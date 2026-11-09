@@ -38,14 +38,15 @@ def _fail(code):
 
 
 def exact_identity(value, code="INVALID_IDENTITY"):
-    """Exact source identity: kept byte-for-byte, never slugged, trimmed or case-folded.
+    """Exact source identity: kept byte-for-byte, never slugged, trimmed, normalized or case-folded.
 
-    Internal spaces are valid source identity (D03). Surrounding whitespace, control
-    characters or non-NFC text are refused rather than silently rewritten, matching
-    the existing ``claim_identity`` rule so the two layers cannot disagree.
+    D03 (decided 2026-11-09, "bounded exact source IDs"): exact values are accepted
+    consistently end to end. Internal spaces and any Unicode form are kept as given.
+    The bounds match the existing ``claim_identity`` rule (non-empty, no surrounding
+    whitespace, no control characters) plus a 512-character limit, so the two layers
+    cannot disagree. The shared D03 identity contract replaces this adapter when it lands.
     """
     if (not isinstance(value, str) or not value or value != value.strip() or len(value) > 512
-            or unicodedata.normalize("NFC", value) != value
             or any(unicodedata.category(c).startswith("C") for c in value)):
         _fail(code)
     return value

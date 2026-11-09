@@ -26,6 +26,8 @@ These are kept rather than squashed away:
 - **After the critique fixes:** 23 tests failed because they had to supply the new binding registry and a current association. One tampering test first "edited" a value to the value it already had; it now changes a real value.
 - **Self-review after the first commit:** two gaps found in the module itself. Double-binding review was dropped when the bound credit was never observed, and a note receipt without `observed_at` raised an error instead of being refused. Both are fixed, each with new cases.
 
+- **D03 alignment:** after D03 was decided, this branch's own `test_exact_identity_keeps_spaces_and_refuses_rewrites` stopped expecting decomposed Unicode to be refused. It now asserts the value is kept exactly as given. That test is new in this branch, not an existing integration test.
+
 Production assertions were not weakened at any step.
 
 ## Results
