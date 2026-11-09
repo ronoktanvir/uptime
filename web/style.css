@@ -46,3 +46,5 @@
 .northwind-field dd,.attention-item .help,.guide-sentences span{overflow-wrap:anywhere}
 .ramp-row-link{display:inline-block;margin-top:6px;font-size:12px}
 .section-grid>*{min-width:0}
+.guide-suggestions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+.guide-suggestions .suggestion{font-size:13px;padding:6px 10px;white-space:normal;text-align:left;max-width:100%}
