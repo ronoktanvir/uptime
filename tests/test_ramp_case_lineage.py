@@ -22,7 +22,7 @@ from uptime.contracts import Citation
 from uptime.pricing import Agreement, ContractVersion, Rate, Tier
 from uptime.ramp import Token
 from uptime.ramp_association import (
-    APPLICABLE, CONFLICT, NOT_APPLICABLE, UNKNOWN, AssociationError, ContractScope,
+    APPLICABLE, CONFLICT, NOT_APPLICABLE, UNKNOWN, AssociationError, ContractScope, contract_identity,
     NativeAssociation, applicability, associate, exact_identity, scope_from_claim_identity,
 )
 from uptime.ramp_case_lineage import (
@@ -198,10 +198,9 @@ def later(hours, credits, **april):
 
 def test_exact_identity_keeps_spaces_and_refuses_rewrites():
     assert exact_identity("Northwind account 0042") == "Northwind account 0042"
-    # D03: an exact value in any Unicode form is kept as given, never normalized.
-    decomposed = "Cafe\u0301"
-    assert exact_identity(decomposed) == decomposed and decomposed != "Caf\u00e9"
-    for bad in (" Northwind", "Northwind ", "", "line\nbreak", 42):
+    # D03-A: a non-NFC value is refused, never normalized; the NFC form is accepted as given.
+    assert exact_identity("Caf\u00e9") == "Caf\u00e9"
+    for bad in (" Northwind", "Northwind ", "", "line\nbreak", "Cafe\u0301", 42):
         with pytest.raises(AssociationError):
             exact_identity(bad)
     mapped = scope_from_claim_identity({"tenant": TENANT, "vendor": "Northwind Data Services", "account": ACCOUNT,
@@ -676,3 +675,25 @@ def test_double_binding_needs_review_even_when_credit_is_not_observed():
     lineage, _, _ = contract_case((later(1, []),), registry=(BINDING, other_case))
     assert stage(lineage, "CREDIT")["status"] == "ABSENT_FROM_COMPLETE_LIST"
     assert lineage["review_required"] == ["CREDIT_BOUND_TO_MULTIPLE_CASES"] and lineage["status"] == "REVIEW_REQUIRED"
+
+
+def test_account_and_agreement_follow_the_shared_source_identity_rule():
+    """D03-A: this layer accepts and refuses exactly what uptime.source_identity does."""
+    from uptime.source_identity import VERSION, refusal
+    samples = ["Northwind account 0042", "Northwind MSA 2026", "Acme, Inc.", "O'Neil & Sons (US)", "Caf\u00e9",
+               "harborline-001", "a" * 96, "a" * 97, "Northwind  MSA", "Cafe\u0301", "a|b", "MSA#7", "...",
+               " Northwind", "Northwind\u2014MSA"]
+    for value in samples:
+        accepted = refusal(value) is None
+        try:
+            contract_identity(value)
+            assert accepted, value
+        except AssociationError:
+            assert not accepted, value
+        if not accepted:
+            with pytest.raises(AssociationError, match="INVALID_CONTRACT_IDENTITY"):
+                replace(scope(), account_id=value).validated()
+            with pytest.raises(AssociationError, match="INVALID_CASE_IDENTITY"):
+                identity(contract_id=value).validated()
+    snapshot = capture(T0, base_bills())
+    assert associate(snapshot, scope(), native(), provider_business_id=BUSINESS)["identity_version"] == VERSION

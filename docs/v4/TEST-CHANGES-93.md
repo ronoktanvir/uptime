@@ -27,6 +27,7 @@ These are kept rather than squashed away:
 - **Self-review after the first commit:** two gaps found in the module itself. Double-binding review was dropped when the bound credit was never observed, and a note receipt without `observed_at` raised an error instead of being refused. Both are fixed, each with new cases.
 
 - **D03 alignment:** after D03 was decided, this branch's own `test_exact_identity_keeps_spaces_and_refuses_rewrites` stopped expecting decomposed Unicode to be refused. It now asserts the value is kept exactly as given. That test is new in this branch, not an existing integration test.
+- **D03-A switch (after integration merge `572d5b5`):** `tests/test_ramp_case_lineage.py::test_exact_identity_keeps_spaces_and_refuses_rewrites` is now an integrated test, and it changed again. It returns to expecting decomposed Unicode (`Cafe\u0301`) to be refused, and checks that the NFC form is accepted unchanged. Reason: agent1's implemented D03-A rule refuses non-NFC values, so the earlier relaxation was based on an incomplete summary. New test: `test_account_and_agreement_follow_the_shared_source_identity_rule` checks 15 values, so account and agreement acceptance can't drift from `uptime.source_identity.refusal`.
 
 Production assertions were not weakened at any step.
 
@@ -34,4 +35,5 @@ Production assertions were not weakened at any step.
 
 - **Focused (new file only):** 55 passed in 1.49s; 58 passed in 2.35s after the self-review fixes.
 - **Focused Ramp, allocation, reconciliation and credit suites:** 1,064 passed, 1 warning in 82.86s. This run used the new file before the critique fixes.
-- **Full suite:** recorded below once run on the frozen tested commit.
+- **Full suite (integration owner, fresh clone):** `work/integration-90` at `1b627ad`, containing this branch at `1c8bc86`: 4,110 passed, 1 warning in 586.65s.
+- **D03-A switch:** tested on a local, unpushed merge of `work/integration-90` and `work/identity-pricing-89` (`6ebaffe`). This file plus `tests/test_source_identity_89.py`: 96 passed. Ramp, reconciliation, credit, allocation and identity suites: 1,166 passed, 1 warning in 25.71s. Real demo-bill lineage digest unchanged (`6b000b14…`). The integration suite after D03-A merges is the full run of record.
