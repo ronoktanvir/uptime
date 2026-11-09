@@ -15,7 +15,8 @@
     return `${currency === 'USD' ? '$' : text(currency) + ' '}${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${fraction == null ? '' : '.' + fraction}`;
   }
   function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized}) {
-    let epoch = 0, busy = false, uncertain = false;
+    // After a recorded action the page re-renders; focus moves to the next offered step so keyboard use continues there.
+    let epoch = 0, busy = false, uncertain = false, focusNextStep = false;
     const el = (tag, value, cls) => { const n = doc.createElement(tag); if (value != null) n.textContent = text(value); if (cls) n.className = cls; return n; };
     const add = (n, ...children) => { children.filter(Boolean).forEach(c => n.append(c)); return n; };
     const note = value => el('p',value,'help');
@@ -169,7 +170,7 @@
           try {
             await api('/api/workspace/workflow/actions/'+encodeURIComponent(action.id),{});
             if (token !== epoch) return;
-            await render(root);await onRefresh();
+            focusNextStep=true;try{await render(root);}finally{focusNextStep=false;}await onRefresh();
           } catch(error) {
             if(token !== epoch) return;
             if(error.status === 401 && typeof onUnauthorized === 'function') {
@@ -216,6 +217,11 @@
       list(data.audit).forEach(event=>timeline.append(add(el('li'),el('time',event.at),el('span',event.event),event.ref ? el('code',event.ref) : null)));
       history.append(timeline.children.length ? timeline : note('No workflow actions recorded.'));
       root.replaceChildren(header,...(attention ? [attention] : []),metrics,...(stageNote ? [stageNote] : []),...(ramp ? [ramp] : []),contract,recovery,monthly,add(el('div',null,'section-grid'),pricing,billing),...(guide ? [guide] : []),...(data.onboarding ? [expansion] : []),detail,history);
+      if (focusNextStep) {
+        focusNextStep=false;
+        const next=Array.from(controls.children).find(c=>c.tagName==='BUTTON' && !c.disabled), target=next || recovery.children[0];
+        if (target && typeof target.focus==='function') target.focus();
+      }
     }
     async function render(root, supplied) {
       const token=++epoch;
