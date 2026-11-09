@@ -22,8 +22,27 @@ from .correspondence_service import join_service, service_procedure
 from .correspondence_history import procedure
 from .correspondence_artifacts import HISTORICAL
 from .correspondence_artifacts import SUPPLEMENTS
-from .vendor_terms import candidate_version
+from .vendor_terms import candidate_version, private_filing_days
 from .claim_identity import resource_remedy
+
+
+def _override_semantics(manifest, overlay):
+    """F4 (2026-11-09): a private filing amendment governs only months from its effective_from.
+
+    Without an override the original value is returned unchanged, so fingerprints of
+    adapters without a private amendment keep their exact bytes.
+    """
+    override = overlay.get("override")
+    if not override:
+        return manifest["filing_days"]
+    return [manifest["filing_days"], {"filing_days": override.get("filing_days"),
+                                      "effective_from": override.get("effective_from")}]
+
+
+def _monthly_cutoff(manifest, overlay, month):
+    """Exclusive monthly filing cutoff; raises ValueError when the amendment is unsupported."""
+    _, following = calendar_bounds(instant(month + "-01T00:00:00Z").date(), "UTC")
+    return following + timedelta(days=private_filing_days(overlay, month, manifest["filing_days"]))
 
 
 def _economics(manifest, overlay):
@@ -37,7 +56,9 @@ def _economics(manifest, overlay):
         semantics = {k:manifest.get(k) for k in fields}
         semantics["tiers"] = [(t["below_units"],t["credit_units"]) for t in manifest["tiers"]]
         semantics["billing_period"] = overlay.get("billing_period", {}).get("kind") if overlay.get("billing_period") else None
-        semantics["override"] = overlay.get("override",{}).get("filing_days")
+        override = overlay.get("override")
+        semantics["override"] = ({"filing_days": override.get("filing_days"), "effective_from": override.get("effective_from")}
+                                 if override else None)
         semantics["private_plan"] = overlay["plan"]
         semantics["private_mappings"] = [overlay.get(k) for k in ("symptom_aliases","cause_aliases","public_plan","public_product")]
         return fingerprint(semantics)
@@ -45,12 +66,12 @@ def _economics(manifest, overlay):
         from .vendor_eval import rate_for
         # Validate the exhaustive variant; never mix old tiers with stepped rules.
         rate_for(manifest, overlay["product"], overlay["plan"], 1, 1)
-        filing_days = overlay.get("override", {}).get("filing_days", manifest["filing_days"])
+        filing_days = _override_semantics(manifest, overlay)
         return fingerprint([manifest["family"], manifest["period"], manifest["remedy"], overlay["plan"],
                             manifest["credit_rule"], manifest["credit_rounding"], filing_days])
     tiers = sorted((t["below_units"], t["credit_units"]) for t in manifest["tiers"]
                    if t["product"] == overlay["product"] and t["plan"] == overlay["plan"])
-    filing_days = overlay.get("override", {}).get("filing_days", manifest["filing_days"])
+    filing_days = _override_semantics(manifest, overlay)
     return fingerprint([manifest["family"], manifest["period"], manifest["remedy"], overlay["plan"], tiers, filing_days])
 
 
@@ -214,7 +235,7 @@ def resolve_active(path, tenant, scope, events, at, *, governing_fees=None):
         filed = instant(receipts[0]["at"]) if receipts else at
         resource = manifest["family"] == "resource-month/1"
         aggregate = bool(manifest.get("aggregate_monitor"))
-        filing = raw = gap = cutoff = historical = None
+        filing = raw = gap = cutoff = historical = unsupported = None
         governing_fee = None
         if resource and not semantic_gap and not aggregate and any(e["kind"] in HISTORICAL for e in events):
             try:
@@ -240,8 +261,11 @@ def resolve_active(path, tenant, scope, events, at, *, governing_fees=None):
             elif resource:
                 obs, filing = join_resource(scope, events, manifest, overlay, filed, receipts, bindings=semantics)
             else:
-                _, following = calendar_bounds(instant(scope.month+"-01T00:00:00Z").date(), "UTC")
-                cutoff = following + timedelta(days=overlay.get("override",{}).get("filing_days",manifest["filing_days"]))
+                try:
+                    cutoff = _monthly_cutoff(manifest, overlay, scope.month)
+                except ValueError as error:
+                    unsupported = str(error)
+                    raise
                 obs = _joined_observation(scope, events, overlay, filed)
                 if manifest.get('credit_rule') and governing_fees is not None:
                     from .governing_fees import authenticated_invoice_snapshot
@@ -277,7 +301,10 @@ def resolve_active(path, tenant, scope, events, at, *, governing_fees=None):
     if overlay.get("override"):
         cited += (Citation(overlay["override"]["source_ref"], fingerprint(overlay["override"]),
                            "Signed filing-window override", "urn:uptime:private:filing-amendment"),)
-    if gap:
+    if unsupported:
+        # An unsupported private amendment is a contract-terms limit, not missing evidence.
+        result = EvaluationResult(Outcome.UNSUPPORTED, cited, (unsupported,))
+    elif gap:
         result = EvaluationResult(Outcome.MISSING, cited, (gap,), (gap,))
     else:
         amount = Money(Decimal(raw["amount"])) if raw["amount"] is not None else None
