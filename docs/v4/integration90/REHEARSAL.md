@@ -57,6 +57,7 @@ From the W7 sweep of a fresh workspace at 390 px and 1360 px: no sideways scroll
 - That the Northwind contract governs the Ramp bill. The W1 lineage explicitly refuses that link (`NO_GOVERNING_AGREEMENT`, all money null).
 - That CalyxQuay is active, that revisions 1–5 are Ronok's decisions, or that the local review is release certification.
 - That the guide uses a model. It answers from fixed, cited case facts; D10 and D12 keep it read-only, with no case data sent to a model.
+- That the unseen-vendor onboarding (D05) succeeded or will succeed. It has not run, and a correct refusal is the likely outcome.
 - Any accuracy or ROI number. The onboarding evaluation's first attempts accepted 0 of 4 supported extractions, and the D13 bar is not met.
 
 ## If asked (not in the two minutes)
@@ -64,7 +65,7 @@ From the W7 sweep of a fresh workspace at 390 px and 1360 px: no sideways scroll
 - **"A status page isn't customer proof."** Show the W5 public status receipt ([public-status-live-91a.json](../evidence/evidence-custody-90/public-status-live-91a.json)). Twilio's real published incident `fm5fk85h6glc` was delivered as a signed status record, and the claim stayed INSUFFICIENT_EVIDENCE with a null amount until customer impact is shown. Disclosure: "the claim account is a local test scope; the outage is Twilio's real published incident." To re-run it, use `scripts/rehearse_public_status.py` in its own harness-hosted workspace, never the Northwind presentation workspace. Running it live needs one public HTTPS GET.
 - **"Where did this clause come from?"** Show the W5 custody receipt ([document-custody-91.json](../evidence/evidence-custody-90/document-custody-91.json)). A read-only audit re-sliced 77 of 77 stored citations, across 5 adapter versions in the presentation and review workspaces, from the stored source text at the stated offsets, with matching document and quote hashes. It proves where the words are, not that the interpretation is right.
 - **"What happened in the dispute?"** Open the **Dispute record** panel on the Northwind case. It shows the vendor's missing-evidence request, the cure and the reported award, each with its checks. It shows only Claimed and Awarded; posting and application are on the bill reconciliation screen.
-- **"How do new vendors get added?"** Point to the adapter requirement card (decision 90) and D05: on the integration branch, Uptime selects the rule family from the source itself (decisions 97 and phase 2), and a person still approves before activation. The demo build `fde492c` predates phase 2. The unseen-vendor proof has not run.
+- **"How do new vendors get added?"** Point to the adapter requirement card (decision 90) and D05: on the integration branch, Uptime selects the rule family from the source itself (decisions 97 and phase 2), and a person still approves before activation. The demo build `fde492c` predates phase 2. The unseen-vendor proof has not run. Do not promise that the unseen vendor will onboard successfully. Most public SLAs carry maintenance or force-majeure exclusions, which the monthly family refuses under D07. The likely honest outcome is NO_SUPPORTED_FAMILY with the exact passage cited: a correct refusal, not a promoted adapter.
 
 ## Fallback
 
