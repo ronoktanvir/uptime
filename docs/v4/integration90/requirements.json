@@ -1248,7 +1248,8 @@
    "evidence": [
     "tests/test_evidence.py::test_provenance_mismatch",
     "tests/test_reconciliation.py::test_duplicate_or_conflicting_observations_cannot_inflate_money",
-    "tests/test_evidence_applicability_91.py"
+    "tests/test_evidence_applicability_91.py",
+    "tests/test_correspondence_intake_scope_89b.py"
    ],
    "gap": null,
    "gap_class": null,
@@ -1267,7 +1268,9 @@
    "evidence": [
     "tests/test_claim_identity.py::test_concurrent_routes_have_one_owner",
     "docs/v4/decisions/ADR-0024-cross-route-claim-identity.md",
-    "tests/test_identity_domain_89.py"
+    "tests/test_identity_domain_89.py",
+    "tests/test_disputes_identity_89c.py",
+    "tests/test_reconciliation_identity_d03.py"
    ],
    "gap": "Channel and agreement version are deliberately excluded to dedupe across routes (ADR-0024); account/agreement domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
    "gap_class": "bug",
@@ -1300,7 +1303,8 @@
    "owner": "W2",
    "implementation": [],
    "evidence": [
-    "tests/test_twilio.py::test_not_customer_affected_and_other_api_do_not_count"
+    "tests/test_twilio.py::test_not_customer_affected_and_other_api_do_not_count",
+    "tests/test_evidence_status_source_91a.py::test_wrong_vendor_incident_component_or_month_is_refused"
    ],
    "gap": null,
    "gap_class": null,
@@ -1934,9 +1938,11 @@
     "uptime/source_config.py"
    ],
    "evidence": [
-    "tests/test_evidence.py::test_provenance_mismatch"
+    "tests/test_evidence.py::test_provenance_mismatch",
+    "tests/test_evidence_status_source_91a.py::test_real_public_record_through_the_ordinary_signed_enrollment_path",
+    "docs/v4/evidence/evidence-custody-90/public-status-live-91a.json"
    ],
-   "gap": "Signed controlled sources only; production telemetry/support enrollment absent. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap": "One real public source is enrolled (Twilio public status page, decision 91a). Its intake path is verified and its launch path unverified (harness-hosted). Customer telemetry and support-ticket enrollment are absent. Whether this satisfies D07's real-source item is Ronok's call.",
    "gap_class": "external_dependency",
    "decisions": [
     "D07"
@@ -2032,9 +2038,11 @@
     "uptime/intelligence.py"
    ],
    "evidence": [
-    "tests/test_intelligence.py::test_guide_ignores_commands_and_cannot_mutate_case"
+    "tests/test_intelligence.py::test_guide_ignores_commands_and_cannot_mutate_case",
+    "tests/test_intelligence_abstain_95.py::test_unsupported_questions_abstain_and_keep_their_intent_label",
+    "tests/test_finance_guide_90.py"
    ],
-   "gap": "Deterministic local explanations; no grounded LLM guide. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
+   "gap": "Within D12 (read-only first): the guides answer from cited case facts and abstain when unsupported. No model composer, because under D10 case data needs customer consent. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10",
@@ -2612,9 +2620,10 @@
     "uptime/intelligence.py"
    ],
    "evidence": [
-    "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions"
+    "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions",
+    "tests/test_intelligence_abstain_95.py::test_unsupported_questions_abstain_and_keep_their_intent_label"
    ],
-   "gap": "Locally assembled; not an LLM conversation. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
+   "gap": "Within D12 (read-only first): the guides answer from cited case facts and abstain when unsupported. No model composer, because under D10 case data needs customer consent. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D10",
@@ -3071,7 +3080,8 @@
    "owner": "W2",
    "implementation": [],
    "evidence": [
-    "tests/test_twilio.py::test_public_incident_or_internal_telemetry_alone_not_enough"
+    "tests/test_twilio.py::test_public_incident_or_internal_telemetry_alone_not_enough",
+    "tests/test_evidence_status_source_91a.py::test_real_public_record_through_the_ordinary_signed_enrollment_path"
    ],
    "gap": null,
    "gap_class": null,
