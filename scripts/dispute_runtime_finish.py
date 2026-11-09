@@ -131,6 +131,38 @@ def read_public_json(path, allowed_paths, access_log):
     return json.loads(_read_logged(resolved, access_log, 'public'))
 
 
+
+def assert_all_terminal(case_ids, attempt_root):
+    """Require the batch's complete record and no pending/uncertain case before grading.
+
+    This guard reads results only. It never opens an expected file to decide
+    whether a case may be dropped or whether its prerequisite should be changed.
+    """
+    root = _resolved_regular(Path(attempt_root) / 'ungraded-results.json')
+    result = json.loads(root.read_bytes())
+    expected = set(case_ids)
+    rows = result.get('cases', [])
+    if (not expected or len(expected) != len(case_ids) or len(rows) != len(expected)
+            or {r.get('id') for r in rows} != expected
+            or result.get('terminal_case_records') != len(expected)):
+        raise PermissionError('Every declared case needs one terminal result before grading.')
+    for row in rows:
+        if row.get('outcome') == 'RUNNER_ERROR':
+            raise PermissionError('A runner error needs terminal-state reconciliation before grading.')
+        folder = Path(attempt_root) / row['id']
+        evidence = folder / ('report.json' if row.get('kind') == 'onboarding' else 'result.json')
+        if not evidence.is_file():
+            # A source setup refusal uses the same terminal result shape for both kinds.
+            evidence = folder / 'result.json'
+        case = json.loads(_resolved_regular(evidence).read_bytes())
+        if any(job.get('status') in {'QUEUED', 'RUNNING'} for job in case.get('jobs', [])):
+            raise PermissionError('A proposal job is still pending; expected outcomes remain sealed.')
+        dispatch = case.get('dispatch') or {}
+        if dispatch.get('job') and dispatch['job'].get('state') in {'QUEUED', 'RUNNING'}:
+            raise PermissionError('A dispute job is still pending; expected outcomes remain sealed.')
+    return True
+
+
 def read_gold(path, *, gold_paths, case_ids, attempt_root, access_log):
     """Gold access only after every declared case has a terminal result."""
     assert_all_terminal(case_ids, attempt_root)
