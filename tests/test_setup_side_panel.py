@@ -91,7 +91,8 @@ def test_cli_create_and_resume_print_the_framing_line_only_when_given(tmp_path):
     printed = json.loads(created.stdout.strip().splitlines()[-1])
     lines = created.stderr.strip().splitlines()
     assert printed['side_panel_origin'] == PANEL
-    assert lines[-4] == 'Only the side panel of ' + PANEL + ' may frame this served workspace.'
+    assert lines[-5] == 'Only the side panel of ' + PANEL + ' may frame this served workspace.'
+    assert lines[-4].startswith('Sign in with the reviewer file below')
     assert lines[-3:] == [str(directory / 'scripted-reviewer.jwk'), SCRIPT, printed['origin']]
     before = (directory / 'workspace.json').read_bytes()
     plain = cli(directory, '--resume')

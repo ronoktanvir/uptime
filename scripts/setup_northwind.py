@@ -306,9 +306,9 @@ def main():
                           routine_automation=bool(private.get('routine_automation',False)),
                           **({'side_panel_origin':side_panel} if side_panel else {}))),flush=True)
     # Plain sign-in block; only the path of the private key file is ever printed.
-    print("Sign in with the reviewer file below (private key, mode 0600; never share or commit it).",file=sys.stderr)
     if side_panel:
         print('Only the side panel of '+side_panel+' may frame this served workspace.',file=sys.stderr)
+    print("Sign in with the reviewer file below (private key, mode 0600; never share or commit it).",file=sys.stderr)
     print(str(credential),file=sys.stderr)
     print(SCRIPT,file=sys.stderr)
     print(private['origin'],file=sys.stderr,flush=True)
