@@ -96,7 +96,28 @@ Already implemented and tested; no code change was needed. Version = `fingerprin
 
 ### Unsupported cases and refusal reasons
 
-Intake quarantine reasons stay generic by design, because exception text can quote private overlays or model output. Substantive in-app reasons for **refused proposal jobs** would need `public_proposal_jobs` to retain a byte-checked public diagnostic on REFUSED jobs, as `vendor_public_diagnostics` already does offline for resource-month. That module is shared with W4 correspondence jobs, so this is filed as an interface-change request to the integration owner, not edited here.
+Intake quarantine reasons stay generic by design, because exception text can quote private overlays or model output.
+
+**Refused proposal jobs now carry a verified public diagnostic** ([decision 90 addendum](decisions/ADR-0090-adapter-requirement-card.md#addendum-public-refusal-diagnostics-for-vendor-proposal-jobs)). `GET /api/vendors/{id}/proposal-jobs/{job}` returns `public_diagnostic` with:
+
+- the validator's own finding as a fixed code and explanation;
+- the exact public passage it names, re-sliced from the source after the job's pinned context is re-verified;
+- the required terms that the validator established are missing.
+
+Codes:
+
+| Code | Meaning |
+|---|---|
+| `UNSUPPORTED_SOURCE_MATERIAL` | The validator could not represent this passage. |
+| `EXTRACTION_FLAGGED_UNSUPPORTED` | The extraction flagged this passage, and the validator refused on that basis. |
+| `UNSUPPORTED_BLOCK_PROPOSITION`, `ISSUER_AUTHORITY_UNESTABLISHED` | Resource-month block findings. |
+| `REQUIRED_TERMS_MISSING` | Required terms are absent; for example, "claim filing deadline". |
+| `SOURCE_COVERAGE_INCOMPLETE` | The source does not establish every required term. |
+| `PROPOSAL_NOT_SOURCE_GROUNDED` | The extraction did not quote the source exactly. |
+| `OUTPUT_NOT_STRUCTURED` | The extraction output was not structured. |
+| `PUBLIC_PROPOSITION_UNESTABLISHED` | Fallback with no location. |
+
+The browser does not render it yet; `web/` belongs to W7, and a request has gone to the integration owner. A refusal remains a refusal. It is not successful onboarding.
 
 ## 6. CalyxQuay recorded review: documentation reconciliation
 
