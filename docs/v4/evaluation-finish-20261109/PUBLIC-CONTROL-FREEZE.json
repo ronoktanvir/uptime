@@ -1,0 +1,17 @@
+{
+  "schema": "public-route-control-preregistration/1",
+  "frozen_at": "2026-11-09T20:14:23.335621+00:00",
+  "classification": "public authored control; not sealed cohort or independent generalization",
+  "purpose": "Exercise a new contract and wording through the real public model and signed local continuation; preserve failures and no retry.",
+  "max_application_model_invocations": 1,
+  "pins": {
+    "prepared.json": "78aac57b087a9ebda1b519a546d7f34a36c661a215a6668324dd54f921309c61",
+    "blind.json": "b5125f23bd01990be87b96ba62ac8794ae77f9005423060f5152d64b86e07de4"
+  },
+  "expected_local_arithmetic": "1200.00 * 0.075 = 90.00; timely filing permits a rebuttal, not an award.",
+  "authority": "scripted source reading and local actions only; no real human or native financial authority",
+  "authors": [
+    "evaluation custodian, source/setup/blind reading"
+  ],
+  "actual_model_jobs_started": 0
+}

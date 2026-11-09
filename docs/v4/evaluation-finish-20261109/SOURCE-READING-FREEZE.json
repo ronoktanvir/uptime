@@ -1,0 +1,14 @@
+{
+  "schema": "source-reading-freeze/1",
+  "session": "2c0cfe79-7934-4c86-ae01-d0c54ffc0a2d",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "expected_answers_provided": false,
+  "actual_application_outputs_provided": false,
+  "frozen_at": "2026-11-09T20:14:48.650746+00:00",
+  "count": 8,
+  "valid_grounding": 0,
+  "invalid_grounding": 8,
+  "sha256": "51a69f54dd5c4f7a687622c8e982868cca630df976b06cc34ee92f94a49ff272",
+  "authority": "scripted source reading, not an actual human decision or scored gold"
+}
