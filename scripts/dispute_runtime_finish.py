@@ -133,7 +133,7 @@ def read_public_json(path, allowed_paths, access_log):
 
 
 def assert_all_terminal(case_ids, attempt_root):
-    """Require the batch's complete record and no pending/uncertain case before grading.
+    """Require the complete batch record and no pending job before grading.
 
     This guard reads results only. It never opens an expected file to decide
     whether a case may be dropped or whether its prerequisite should be changed.

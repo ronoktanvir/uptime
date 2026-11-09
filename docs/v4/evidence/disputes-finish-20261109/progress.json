@@ -1,8 +1,8 @@
 {
   "schema": "uptime-workstream-progress/1",
   "workstream": "disputes-finish-20261109",
-  "updated_at": "2026-11-09T20:15:35.604965+00:00",
-  "phase": "strict month core and authenticated refusal auditing verified; ready for combined integration",
+  "updated_at": "2026-11-09T20:28:53.697873+00:00",
+  "phase": "cross-period scope regression fixed; ready for corrected integration",
   "state": "ready_for_integration",
   "branch": "work/disputes-finish-20261109",
   "commits": [
@@ -51,6 +51,13 @@
       "failed": 0,
       "warnings": 1,
       "seconds": 6.18
+    },
+    {
+      "scope": "effective-period scope correction, ordinary routes and resource/service regressions",
+      "passed": 171,
+      "failed": 0,
+      "warnings": 1,
+      "seconds": 20.8
     }
   ],
   "remaining": [
@@ -64,5 +71,9 @@
     "../../decisions/reviews/disputes-auth-refusal-20261109-opus-worker.json",
     "../../decisions/reviews/disputes-monthly-20261109-opus-worker.json"
   ],
-  "processes": "All delegated workers completed. No persistence after runtime shutdown is claimed."
+  "processes": "All delegated workers completed. No persistence after runtime shutdown is claimed.",
+  "changed_existing_test": {
+    "name": "tests/test_v4_routes_integration.py::test_active_effective_dates_must_cover_entire_measurement_month",
+    "reason": "Entirely out-of-period claim now refuses at intake with409 and no stored row; partial-month test unchanged."
+  }
 }

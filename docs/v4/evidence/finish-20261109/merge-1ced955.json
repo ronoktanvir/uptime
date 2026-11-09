@@ -1,0 +1,19 @@
+{
+  "tested_commit": "1ced95575e14cdca0f229921458ba83473d141eb",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=/tmp/uptime-finish-1ced955",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5270 passed, 1 warning in 363.11s (0:06:03)",
+  "log": "merge-1ced955-pytest.log",
+  "secret_check": "Secret check passed for 3000 versioned text objects.",
+  "progress_graph": "Dependency ordering, invalid graphs and link safety passed.",
+  "verified_at": "2026-11-09T20:24:29.245767+00:00",
+  "remaining": "Read-only review subsequently found non-overlapping future scope versions cause false ambiguity. Correction and frozen independent evaluation remain pending. No release or native action authority."
+}

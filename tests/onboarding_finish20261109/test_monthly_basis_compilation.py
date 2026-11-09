@@ -11,7 +11,12 @@ import pytest
 from uptime.vendor_model import MODEL, proposal_input, proposal_receipt, validate_proposal, verify_receipt
 from uptime.vendor_monthly_basis import KIND, validate_monthly_evidence_basis
 from uptime.vendor_terms import Document, compile_terms
-from test_vendor_catalog import DOC, proposition_document
+# Load this existing authored fixture by its file path so collection does not
+# depend on an ad-hoc PYTHONPATH or pytest visiting the root test module first.
+from pathlib import Path
+import runpy
+_catalog = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'test_vendor_catalog.py'))
+DOC, proposition_document = _catalog['DOC'], _catalog['proposition_document']
 from test_monthly_basis_helper import QUOTE
 
 
