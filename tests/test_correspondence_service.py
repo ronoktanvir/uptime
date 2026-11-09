@@ -29,7 +29,9 @@ def service(tmp_path, monkeypatch):
     monkeypatch.setenv("UPTIME_PUBLIC_EXTRACTIONS", str(tmp_path))
     monkeypatch.setenv("UPTIME_MODEL_PROPOSITIONS", "1")
     base = "/api/vendors/aggregate-connector"
-    state = env.post(base + "/candidates", dict(document=DOC, overlay=OVERLAY))
+    from governing_binding_89 import reviewed_binding  # F5 (2026-11-09): unnamed-agreement source binding
+    from test_vendor_service_month import manifest as compass_manifest
+    state = env.post(base + "/candidates", dict(document=DOC, overlay=reviewed_binding(compass_manifest(), OVERLAY)))
     assert state["state"] == "SHADOW", state
     from test_vendor_semantic_bindings import review_submission
     state=env.post(base+'/semantic-bindings',dict(revision=state['revision'],

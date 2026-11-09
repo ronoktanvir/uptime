@@ -86,3 +86,31 @@ Coverage matrix: `IDS-D03-1` and `IDS-D03-2` are now SUPPORTED, `IDS-D03-3` (REF
 No existing test changed. New: `tests/test_identity_domain_89.py::test_every_vendor_service_and_product_entry_point_applies_the_same_bounded_rule` (24 values × 9 entry points: onboarding product and vendor, claim and signed-line vendor/service, resource-line and monitor product, new-filing vendor and service), including `Cloud Hosting (EU)`. The coverage row `IDS-D03-1` now names vendor and service.
 
 Results: decision-89 files 146 passed in 3.42s; identity-related suites 3529 passed, 1 warning in 387.23s.
+
+## F5: reviewed agreement binding
+
+Ronok decided "require reviewed binding" on 2026-11-09. `bind_overlay` now refuses an overlay for a resource source that names no agreement, unless the overlay carries the reviewed governing-terms attestation binding that exact agreement to the exact document, effective date and unamended economics. Whole-service profiles may carry exactly that attestation and still refuse every other private amendment.
+
+**First run after the change:** 32 failed and 1 errored, as the decision intends. Every failure bound an authored source that names no agreement (the Compass and Oriole whole-service texts) without a binding.
+
+**Existing tests changed (fixtures only; no assertion, amount or authority check changed):**
+
+- `tests/test_vendor_service_month.py`, helper `run()` and `test_service_aggregate_signed_api_produces_case_and_rollback`: the authored Compass overlay is bound through `reviewed_binding(manifest, OVERLAY)`.
+- `tests/test_vendor_resource_period_scope_77.py`, helper `reviewed()`: an overlay for an unnamed-agreement source receives the same authored binding. Overlays for sources that name their agreement are unchanged.
+- `tests/test_correspondence_service.py`, fixture `service`: the API-installed Compass candidate carries the binding.
+- `tests/test_correspondence_filing_refs.py`, fixture `filing`: the API-installed Compass variant carries a binding computed from the same compiled rows. It is shared by every function in `test_correspondence_filing_refs.py` (33) and `test_correspondence_plan_refs.py` (34). Those 67 errored at setup in the wide run (3082 passed, 67 errors) and pass after the fixture change (67 passed), with unchanged assertions.
+
+These fixtures carry the following previously failing functions, which pass unchanged in their assertions (amounts `20.99` and `10.00` included):
+
+- `test_vendor_service_month.py`: every function that binds Compass. That includes `test_attested_aggregate_source_exact_month_basis_threshold_and_fixed_clock`, `test_fractional_minutes_at_strict_threshold_are_exact`, `test_invalid_or_out_of_month_durations_abstain`, `test_missing_or_unbound_evidence_never_becomes_a_zero_observation`, `test_unpaid_or_unclassified_fee_and_unseen_invoiced_categories_abstain` and `test_service_aggregate_signed_api_produces_case_and_rollback`.
+- `test_vendor_fixed_filing_80.py`: `test_inclusive_compiled_cutoff_before_at_and_after` and `test_exclusive_compiled_cutoff_before_at_and_after`.
+- `test_vendor_resource_period_scope_77.py`: `test_april_aggregate_source_compiles_end_to_end_with_scope_and_original_citation`.
+- `test_vendor_semantic_bindings.py`: `test_unknown_fee_category_is_not_included_by_failing_to_match_an_exclusion`.
+- `test_economic_scope_delimiters.py`: `test_historical_shadow_also_refuses_new_draft_before_inbox_audit[service-True]` and `test_aggregate_legacy_collision_refuses_local_submission_without_partial_writes`.
+
+**New:**
+
+- `tests/governing_binding_89.py`: an authored fixture helper. It is labelled as fixture data, not a real review.
+- `tests/test_agreement_binding_f5.py`: 6 functions, 12 cases. They check that an unbound overlay is refused for any agreement; that the binding admits exactly its own agreement and document; that a mismatched or incomplete binding is refused; that a binding cannot be reused for another agreement; that the fixed profile still refuses other private amendments; and that a source naming its agreement still binds by exact equality.
+
+Stored adapters are unaffected. A read-only count found that every stored manifest names its agreement.
