@@ -20,7 +20,7 @@
     UNATTRIBUTED:'Comment in Ramp; author not verified'};
   const RESOURCE = {bills:'Bills', transactions:'Card transactions', purchase_orders:'Purchase orders', vendors:'Vendors',
     credits:'Vendor credits', comments:'Bill comments', agreements:'Agreements', approvals:'Approvals'};
-  const when = iso => typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(iso) ? iso.slice(0,16).replace('T',' ') + ' UTC' : 'time not recorded';
+  const when = iso => instant(iso) || 'time not recorded';
   function coverageText(capture) {
     if (!capture) return null;
     const partial = list(capture.resources).filter(r => list(capture.incomplete_lists).includes(r.name));
@@ -35,7 +35,28 @@
     const ctx = row.ramp_context;
     return !!ctx && row.amount != null && ctx.finding_attachable !== true && ctx.agreement_binding?.status !== 'HYPOTHETICAL';
   }
-  const shown = value => value == null ? 'Not provided' : typeof value === 'object' ? JSON.stringify(clean(value)) : CODES[value] || String(value);
+  // Instants render as "Nov 5, 2026, 00:36 UTC" everywhere on this page; the API values are unchanged.
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\d{2}:\d{2})$/;
+  function instant(value) {
+    if (typeof value !== 'string' || !INSTANT.test(value)) return null;
+    const date = new Date(value.replace(/(\.\d{3})\d+/, '$1'));
+    if (Number.isNaN(date.getTime())) return null;
+    const two = n => String(n).padStart(2, '0');
+    return `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}, ${two(date.getUTCHours())}:${two(date.getUTCMinutes())} UTC`;
+  }
+  const shown = value => value == null ? 'Not provided' : typeof value === 'object' ? JSON.stringify(clean(value)) : CODES[value] || instant(value) || String(value);
+  // Plain words for read-status codes, keeping their exact meaning: partial stays partial,
+  // and a list that was not requested is never described as empty.
+  const LIST_STATUS = {COMPLETE:'complete list', EMPTY:'complete list, none in Ramp', TRUNCATED:'partial list',
+    PARTIAL:'partial list, some reads failed', UNAVAILABLE:'not read, unavailable', FORBIDDEN:'not read, not permitted',
+    NOT_REQUESTED:'not requested'};
+  const CREDIT_STATUS = {NO_APPLIED_CREDITS:'No credits applied to this bill',
+    VERIFIED_APPLICATIONS:'Credits applied, confirmed on both the bill and the credit',
+    REVIEW_REQUIRED:'Credit records disagree; needs review', UNKNOWN:'Credit status unknown from this read'};
+  const FRESHNESS = {FRESH:'read within the last 24 hours', STALE:'older than 24 hours'};
+  const listStatus = value => LIST_STATUS[value] || shown(value);
+  const creditStatus = links => links ? CREDIT_STATUS[links.status] || shown(links.status) : 'Not read';
   function providerURL(value) {
     if (typeof value !== 'string' || !(value === 'https://demo.ramp.com' || value.startsWith('https://demo.ramp.com/'))) return null;
     try {
@@ -90,13 +111,14 @@
     }
     function worklist(root, data) {
       const head = add(el('div', null, 'page-head'), add(el('div'), el('h1', 'Ramp worklist'), note('Review bills, contract findings and supporting evidence.')),
-        el('div', `Updated ${shown(data.as_of)} · ${shown(data.snapshot_status?.freshness)}`, 'as-of'));
+        el('div', `Updated ${data.as_of ? when(data.as_of) : 'time not recorded'} · ${FRESHNESS[data.snapshot_status?.freshness] || shown(data.snapshot_status?.freshness)}`, 'as-of'));
       const captured = coverageText(data.capture);
       if (captured) add(head, el('p', captured, 'help ramp-capture'));
       const coverage = add(el('details', null, 'panel ramp-details'), el('summary', 'Record coverage'));
-      add(coverage, record(data.snapshot_status));
+      const status = data.snapshot_status;
+      add(coverage, record(status && typeof status === 'object' ? {...status, freshness: FRESHNESS[status.freshness] || status.freshness} : status));
       const resources = el('div', null, 'ramp-resources');
-      list(data.resources).forEach(r => resources.append(add(el('article', null, 'ramp-resource'), el('h3', r.name), el('span', r.status, 'pill'), note(`Records: ${shown(r.count)} · Complete: ${r.complete === true ? 'yes' : r.complete === false ? 'no' : 'unknown'}`), record(r.issues))));
+      list(data.resources).forEach(r => resources.append(add(el('article', null, 'ramp-resource'), el('h3', RESOURCE[r.name] || r.name), el('span', listStatus(r.status), 'pill'), note(`Records kept: ${shown(r.count)} · Complete: ${r.complete === true ? 'yes' : r.complete === false ? 'no' : 'unknown'}`), record(r.issues))));
       add(coverage, resources);
       const ledger = section('Financial records'), controls = el('div', null, 'filters');
       const select = el('select'); select.setAttribute('aria-label', 'Record filter');
@@ -138,7 +160,7 @@
         record({comment:data.writeback?.comment,blank_canvas:data.writeback?.blank_canvas,scope_receipt_at:data.writeback?.scope_receipt_at}),
         note('Delivery receipts apply only to their exact object, operation and authoritative readback. Accepted delivery does not prove approval execution or cash recovery.'));
       const gaps = list(data.resources).filter(r => r.complete !== true);
-      const warning = gaps.length ? note('Incomplete resource coverage: ' + gaps.map(r => `${shown(r.name)} (${shown(r.status)})`).join(', ') + '. Listed records are not a complete portfolio.') : null;
+      const warning = gaps.length ? note('Not every list in this read is complete. ' + gaps.map(r => `${RESOURCE[r.name] || shown(r.name)}: ${listStatus(r.status)}`).join('; ') + '. Listed records are not a complete portfolio.') : null;
       const verified = verifiedPanel(data.verified_record);
       root.replaceChildren(head, ...(warning ? [warning] : []), ...(verified ? [verified] : []), ledger, coverage, authority,
         details('Credit reconciliation',data.credit_sync),
@@ -157,7 +179,7 @@
         invoice:ctx.invoice_number || 'Not captured', amount:ctx.amount ? `${ctx.amount.currency} ${ctx.amount.amount}` : 'Amount unavailable',
         status:ctx.status, ramp_status:ctx.status_summary, approval:ctx.approval_status,
         finding:evidenceGap ? 'Evidence gap: the governing agreement or usage evidence is missing' : shown(v.finding?.outcome),
-        contract_terms:'No contract terms are attached to this bill', vendor_credits:ctx.credit_links ? ctx.credit_links.status : 'Not read'}));
+        contract_terms:'No contract terms are attached to this bill', vendor_credits:creditStatus(ctx.credit_links)}));
       const notes = list(ctx.discussion).map(d => note(`${ATTRIBUTION[d.attribution] || 'Comment in Ramp'} · ${when(d.created_at)} · Comment ID: ${shown(d.comment_id)}`));
       add(panel, el('h3','Ramp discussion'), ...(notes.length ? notes : [note('No comments read on this bill.')]),
         note('Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
@@ -172,7 +194,7 @@
         status:ctx.status, ramp_status:ctx.status_summary, approval:ctx.approval_status,
         read_from_ramp:when(ctx.observed_at), ramp_link:basis,
         agreement:ctx.agreement_binding?.status === 'BOUND' ? ctx.agreement_binding.contract_id : ctx.agreement_binding?.status === 'HYPOTHETICAL' ? 'Hypothetical terms only' : 'No agreement bound to this record',
-        vendor_credits:ctx.credit_links ? ctx.credit_links.status : 'Not read for this record'}));
+        vendor_credits:ctx.credit_links ? creditStatus(ctx.credit_links) : 'Not read for this record'}));
       const notes=list(ctx.discussion).map(d => note(`${ATTRIBUTION[d.attribution] || 'Comment in Ramp'} · ${when(d.created_at)} · Comment ID: ${shown(d.comment_id)}`));
       add(panel, el('h3','Ramp discussion'), ...(notes.length ? notes : [note('No comments read on this record.')]),
         note('Uptime reads this record from Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));

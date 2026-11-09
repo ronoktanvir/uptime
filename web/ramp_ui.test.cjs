@@ -28,7 +28,8 @@ test('default unpaid filter excludes paid, unknown and non-bill records; all rem
 test('pagination bounds 1000 records while all types are selectable; source and money stay exact',async()=>{
   const s=setup(()=>({records:Array.from({length:1000},(_,i)=>({...row,id:String(i)})),snapshot_status:{freshness:'STALE'},resources:[{name:'bills',status:'TRUNCATED',complete:false,count:1000,issues:['page limit']}],writeback:{comment:'NOT_GRANTED'}}));
   await s.ui.render(s.root);assert.equal(s.root.all('tbody')[0].all('tr').length,25);assert.match(s.root.textContent,/1000 of 1000/);
-  for(const text of ['STALE','TRUNCATED','NOT_GRANTED','9007199254740993.01'])assert.ok(s.root.textContent.includes(text));
+  for(const text of ['older than 24 hours','partial list','NOT_GRANTED','9007199254740993.01'])assert.ok(s.root.textContent.includes(text));
+  assert.doesNotMatch(s.root.textContent,/STALE|TRUNCATED/);
   await click(s.root,'Next page');assert.match(s.root.textContent,/Page 2 of 40/);
   await s.root.all('button').find(b=>b.className==='case-link').listeners.click();assert.equal(s.routes[0],'ramp/25');
   const select=s.root.all('select')[0];select.value='transactions';select.listeners.change();assert.match(s.root.textContent,/No matching records/);
@@ -68,7 +69,7 @@ const partial={account_complete:false,observed_at:'2026-11-05T00:36:21+00:00',in
   resources:[{name:'bills',retained:6,listed:6,has_next:false},{name:'transactions',retained:12,listed:40,has_next:true}]};
 test('a partial capture says what is missing and is never presented as the complete account',async()=>{
   const s=setup(()=>({records:[{...row,ramp_context:ctx}],capture:partial,resources:[]}));await s.ui.render(s.root);
-  assert.match(s.root.textContent,/Read from Ramp 2026-11-05 00:36 UTC\. Partial capture\. Card transactions: 12 kept of 40 listed, more remain in Ramp\. This is not the complete account\./);
+  assert.match(s.root.textContent,/Read from Ramp Nov 5, 2026, 00:36 UTC\. Partial capture\. Card transactions: 12 kept of 40 listed, more remain in Ramp\. This is not the complete account\./);
   const done=setup(()=>({records:[],capture:{...partial,account_complete:true,incomplete_lists:[]},resources:[]}));await done.ui.render(done.root);
   assert.match(done.root.textContent,/read to the end/);assert.doesNotMatch(done.root.textContent,/Partial capture/);
 });
@@ -90,8 +91,8 @@ test('a finding amount is withheld on a Ramp record without an exact agreement b
 test('record page shows exact Ramp identity, freshness, link basis and person attribution; no local confirmation',async()=>{
   const s=setup(()=>({...row,provider_uri:null,ramp_context:ctx}));await s.ui.render(s.root,row.id);
   const text=s.root.textContent;
-  for(const expected of ['Ramp record','Example Vendor','INV-1001','USD 840','APPROVAL_PENDING','2026-11-09 12:35 UTC','observed in Ramp by a person',
-    'Posted by a person in Ramp; Uptime read it back on this bill','376563cf','No agreement bound to this record','NO_APPLIED_CREDITS',
+  for(const expected of ['Ramp record','Example Vendor','INV-1001','USD 840','APPROVAL_PENDING','Nov 9, 2026, 12:35 UTC','observed in Ramp by a person',
+    'Posted by a person in Ramp; Uptime read it back on this bill','376563cf','No agreement bound to this record','No credits applied to this bill',
     'A local ledger entry is never shown here as a Ramp confirmation','No agreement is bound to this Ramp record'])assert.ok(text.includes(expected),expected);
   assert.equal(s.root.all('a').filter(a=>a.textContent==='Open record in Ramp')[0].href,'https://demo.ramp.com/bill-pay/bills/list/native-id');
   assert.equal(s.root.children[1].className,'page-head');
@@ -104,7 +105,7 @@ test('the verified Ramp record panel is a dated saved record with its own busine
   const s=setup(()=>({records:[row],capture:{...partial,custody:'packaged_receipt',business_id:null},verified_record:verified,resources:[]}));
   await s.ui.render(s.root);const text=s.root.textContent;
   for(const expected of ['Saved worklist from an earlier Ramp demo installation; its Ramp business is not recorded in this capture.',
-    'Verified Ramp record','Saved record read from Ramp 2026-11-09 22:00 UTC, started by a person. Not a live read.',
+    'Verified Ramp record','Saved record read from Ramp Nov 9, 2026, 22:00 UTC, started by a person. Not a live read.',
     'Only this bill’s records are kept here','1569e402-460e-4952-adad-9df27db628a0',
     'f74ba12c-95d0-582d-9f62-26d8057d1d37','Name not captured','USD 840','Evidence gap: the governing agreement or usage evidence is missing',
     'No contract terms are attached to this bill','Posted by a person in Ramp; Uptime read it back on this bill','Uptime has made no write to Ramp'])
@@ -113,4 +114,23 @@ test('the verified Ramp record panel is a dated saved record with its own busine
   const open=s.root.all('a').find(a=>a.textContent==='Open this bill in Ramp');
   assert.equal(open.href,'https://demo.ramp.com/bill-pay/bills/list/f74ba12c-95d0-582d-9f62-26d8057d1d37');
   const none=setup(()=>({records:[row],resources:[]}));await none.ui.render(none.root);assert.doesNotMatch(none.root.textContent,/Verified Ramp record/);
+});
+test('instants and read-status codes render as exact plain words; server values stay unchanged',async()=>{
+  const data={as_of:'2026-11-05T00:36:21.156851+00:00',snapshot_status:{freshness:'HISTORICAL_REPLAY',observed_at:'2026-11-05T00:36:21.156851+00:00'},
+    records:[{...row,ramp_context:ctx}],capture:partial,
+    resources:[{name:'vendors',status:'TRUNCATED',complete:false,count:12},{name:'purchase_orders',status:'NOT_REQUESTED',complete:false,count:0},
+      {name:'agreements',status:'EMPTY',complete:true,count:0},{name:'approvals',status:'PARTIAL',complete:false,count:3}],
+    credit_sync:{observed_at:'2026-11-09T22:00:38+00:00'}};
+  const s=setup(()=>data);await s.ui.render(s.root);const text=s.root.textContent;
+  assert.match(text,/Updated Nov 5, 2026, 00:36 UTC · Saved capture \(not live\)/);
+  assert.match(text,/Vendors: partial list; Purchase orders: not requested; Approvals: partial list, some reads failed/);
+  assert.match(text,/complete list, none in Ramp/);
+  assert.doesNotMatch(text,/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/);
+  assert.doesNotMatch(text,/TRUNCATED|NOT_REQUESTED|HISTORICAL_REPLAY/);
+  assert.doesNotMatch(text,/Purchase orders: (none|complete)/);
+  assert.equal(data.resources[0].status,'TRUNCATED');
+  for(const [status,words] of [['NO_APPLIED_CREDITS','No credits applied to this bill'],['REVIEW_REQUIRED','Credit records disagree; needs review'],['UNKNOWN','Credit status unknown from this read']]){
+    const d=setup(()=>({...row,ramp_context:{...ctx,credit_links:{status}}}));await d.ui.render(d.root,row.id);
+    assert.ok(d.root.textContent.includes(words),words);assert.ok(!d.root.textContent.includes(status),status);
+  }
 });

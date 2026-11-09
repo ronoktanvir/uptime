@@ -36,6 +36,14 @@ One more test changed in `web/ramp_ui.test.cjs`:
 
 - **`the verified Ramp record panel is a dated saved record with its own business, beside an attributed worklist`:** the expected text is now "Saved record read from Ramp 2026-11-09 22:00 UTC, started by a person. Not a live read." plus the excerpt note. The coordinator's custody wording.
 
+### Display fixes from gent7's 1440×900 check
+
+Reason for every change below: times on the Ramp page now render as "Nov 5, 2026, 00:36 UTC", and read-status codes render as exact plain words. The server values are unchanged.
+
+- **`web/ramp_ui.test.cjs`, `pagination bounds 1000 records while all types are selectable; source and money stay exact`** (pre-existing): the expected `'STALE'` and `'TRUNCATED'` are now `'older than 24 hours'` and `'partial list'`. It also now asserts that those raw codes no longer reach the screen. `NOT_GRANTED` and the exact amount are still asserted.
+- **`web/ramp_wording.test.cjs`, `worklist codes read as ordinary, meaning-preserving wording; other codes stay exact`** (pre-existing): the expected `'TRUNCATED'` is now `'Vendors: partial list'`. `NOT_GRANTED` and `UNAVAILABLE` are still asserted exactly.
+- **`web/ramp_ui.test.cjs`, three tests from this branch:** `a partial capture says what is missing and is never presented as the complete account`, `record page shows exact Ramp identity, freshness, link basis and person attribution; no local confirmation` and `the verified Ramp record panel is a dated saved record with its own business, beside an attributed worklist`. Their expected times use the new format. The record-page test expects "No credits applied to this bill" instead of `NO_APPLIED_CREDITS`.
+
 ## New tests
 
 - **`tests/test_ramp_context.py`, 13 cases:**
@@ -65,12 +73,21 @@ One more test changed in `web/ramp_ui.test.cjs`:
 
 - **Packaging tests in `tests/test_ramp_context.py`:** `test_packaging_keeps_only_the_bill_its_vendor_and_its_comment` and `test_packaging_refuses_an_association_that_does_not_verify` (which also covers the new `scripts/ramp_package_verified_record.py`, which never overwrites).
 
+- **`web/ramp_ui.test.cjs`, `instants and read-status codes render as exact plain words; server values stay unchanged`:**
+  - no raw ISO instant anywhere on the page;
+  - "Vendors: partial list; Purchase orders: not requested; Approvals: partial list, some reads failed";
+  - an empty list reads "complete list, none in Ramp";
+  - "not requested" never reads as none or complete;
+  - the credit statuses read in plain words;
+  - the server value stays `TRUNCATED`.
+
 ## Failed first attempts
 
 - After the first workspace change, `tests/test_ramp_award_procedural.py` failed with `Invalid snapshot checksum or schema`. The workspace view adds a local `status` key, and the strict snapshot validator inside the credit read-back refused it. Fixed in `ramp_context` by passing the capture without that key. Not fixed by loosening the validator.
 - A first combined run passed the extra test files as one argument and ran nothing (`no tests ran`). Rerun with explicit paths.
 - The first packaging tests gave the second bill a vendor the test double doesn't serve, and raised `StopIteration`. They now use the double's second vendor.
 - One packaging assertion checked that "PRIVATE" was absent from the excerpt. The double uses "PRIVATE" as its vendor *name*, which is meant to be kept. The assertion now checks what was intended: comment records carry only ID, parent and time, never text.
+- After the display change, the updated pagination test caught raw `STALE` still printed inside the "Record coverage" details. Freshness is now mapped there as well.
 - The first `checksum` refusal case changed a bill that was already `PAID`, so nothing changed and the loader correctly accepted the file. The test now flips another bill's status; the loader is unchanged.
 
 ## Results
@@ -78,4 +95,5 @@ One more test changed in `web/ramp_ui.test.cjs`:
 - `tests/test_ramp*.py`, `tests/test_credit_steps.py`, `tests/test_reconciliation.py`, `tests/test_film_ramp_v4.py`, `tests/test_operations_recovery_90.py` and `tests/test_workspace_ui_v4.py`: 1,144 passed, 1 warning in 46.82s at `318668b`. **1,155 passed, 1 warning in 27.71s** with the verified record.
 - `node --test web/*.test.cjs tests/helpers/*.test.cjs`: 108 passed at `318668b`; **109 passed, 0 failed** with the verified record.
 - Rebuilt record, on `7472ecb` plus this change: the focused Ramp set gave **1,162 passed, 1 warning in 25.51s**; `node --test web/*.test.cjs tests/helpers/*.test.cjs` gave **114 passed, 0 failed**; `scripts/check_repo.py` passed.
+- Display fixes: `node --test web/*.test.cjs tests/helpers/*.test.cjs` gave **115 passed, 0 failed**. `tests/test_ramp_ui_v4.py`, `tests/test_workspace_ui_v4.py`, `tests/test_ramp*.py` and `tests/test_film_ramp_v4.py` gave **1,061 passed, 1 warning in 21.34s**. `scripts/check_repo.py` passed.
 - The full suite is left to the coordinator after the integration merge.
