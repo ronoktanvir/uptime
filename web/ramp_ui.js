@@ -24,7 +24,9 @@
   function coverageText(capture) {
     if (!capture) return null;
     const partial = list(capture.resources).filter(r => list(capture.incomplete_lists).includes(r.name));
-    const read = `Read from Ramp ${when(capture.observed_at)}.`;
+    const source = capture.custody === 'packaged_receipt' ? 'Saved worklist from an earlier Ramp demo installation; its Ramp business is not recorded in this capture. '
+      : capture.business_id ? `Ramp business ${capture.business_id}. ` : '';
+    const read = `${source}Read from Ramp ${when(capture.observed_at)}.`;
     if (capture.account_complete === true) return `${read} Every bill, transaction and purchase-order list in this capture was read to the end.`;
     const parts = partial.map(r => `${RESOURCE[r.name] || r.name}: ${r.retained} kept of ${r.listed == null ? 'an unknown number' : r.listed} listed${r.has_next ? ', more remain in Ramp' : ''}`);
     return `${read} Partial capture. ${parts.join('; ')}. This is not the complete account.`;
@@ -137,9 +139,27 @@
         note('Delivery receipts apply only to their exact object, operation and authoritative readback. Accepted delivery does not prove approval execution or cash recovery.'));
       const gaps = list(data.resources).filter(r => r.complete !== true);
       const warning = gaps.length ? note('Incomplete resource coverage: ' + gaps.map(r => `${shown(r.name)} (${shown(r.status)})`).join(', ') + '. Listed records are not a complete portfolio.') : null;
-      root.replaceChildren(head, ...(warning ? [warning] : []), ledger, coverage, authority,
+      const verified = verifiedPanel(data.verified_record);
+      root.replaceChildren(head, ...(warning ? [warning] : []), ...(verified ? [verified] : []), ledger, coverage, authority,
         details('Credit reconciliation',data.credit_sync),
         details('Writeback evidence',data.writeback),note(data.portfolio_note || 'No portfolio note returned.'));
+    }
+    function verifiedPanel(v) {
+      if (!v || !v.ramp_context) return null;
+      const ctx = v.ramp_context, panel = section('Verified Ramp record');
+      add(panel, note(`Saved verified record of one Ramp demo bill, read from Ramp ${when(v.capture?.observed_at)}. Not a live read.`));
+      const url = providerURL(ctx.ramp_link?.url);
+      if (url) { const open = el('a', 'Open this bill in Ramp', 'ramp-native-link'); open.href = url; open.target = '_blank'; open.rel = 'noopener noreferrer'; add(panel, open, note(LINK_BASIS[ctx.ramp_link.basis] || 'Link basis not recorded')); }
+      const evidenceGap = v.finding?.outcome === 'INSUFFICIENT_EVIDENCE';
+      add(panel, record({business:ctx.business_id, vendor:ctx.vendor_name || 'Name not captured', vendor_id:ctx.vendor_id, bill:ctx.object_id,
+        invoice:ctx.invoice_number || 'Not captured', amount:ctx.amount ? `${ctx.amount.currency} ${ctx.amount.amount}` : 'Amount unavailable',
+        status:ctx.status, ramp_status:ctx.status_summary, approval:ctx.approval_status,
+        finding:evidenceGap ? 'Evidence gap: the governing agreement or usage evidence is missing' : shown(v.finding?.outcome),
+        contract_terms:'No contract terms are attached to this bill', vendor_credits:ctx.credit_links ? ctx.credit_links.status : 'Not read'}));
+      const notes = list(ctx.discussion).map(d => note(`${ATTRIBUTION[d.attribution] || 'Comment in Ramp'} · ${when(d.created_at)} · Comment ID: ${shown(d.comment_id)}`));
+      add(panel, el('h3','Ramp discussion'), ...(notes.length ? notes : [note('No comments read on this bill.')]),
+        note('Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
+      return panel;
     }
     function rampRecord(ctx) {
       const panel=section('Ramp record');

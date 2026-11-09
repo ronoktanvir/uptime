@@ -12,7 +12,7 @@ from .storage import case_versions, database, persist_case
 from .ramp import ORIGIN, RampError, uuid_text
 from .ramp_records import load_snapshot, _validate_snapshot
 from .ramp_findings import binding_digest, evaluate_snapshot
-from .ramp_context import capture_summary, record_context
+from .ramp_context import capture_summary, record_context, verified_record
 from .ramp_credit_sync import RampCreditSync
 from .ramp_terms_store import RampTermsStore
 from . import installation_revocation
@@ -313,6 +313,9 @@ class RampWorkspace:
                              for c in rows] if snapshot else [],
                     capture=capture_summary(snapshot,business_id=self._business_of(snapshot),custody=custody,
                                             freshness=snapshot["status"]["freshness"]) if snapshot else None,
+                    # The presentation workspace shows the one verified demo bill beside its older
+                    # packaged worklist. A real installation shows only its own imported capture.
+                    verified_record=verified_record() if custody=="packaged_receipt" else None,
                     credit_sync={"journal":state,"captured_credits":len(snapshot["resources"]["credits"]["records"])
                                  if snapshot and snapshot["resources"]["credits"]["status"] in {"COMPLETE","EMPTY","PARTIAL","TRUNCATED"} else None,
                                  "verified_award_attribution":attribution,

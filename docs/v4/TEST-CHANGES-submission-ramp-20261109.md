@@ -36,13 +36,24 @@ Reason: role 3 task 3 asks for vendor names and invoice references in the workli
   - local-ledger activity never appears as a Ramp confirmation.
 - **`web/ramp_ui.test.cjs`, 4 cases:** the partial-capture statement and the complete statement; vendor name, invoice and verified link, with a missing name stated and an unsafe link dropped; a finding amount withheld without an exact binding; the record page's Ramp identity, freshness, link basis and person attribution, with no local confirmation.
 
+- **Verified record (coordinator option A):** 11 more cases in `tests/test_ramp_context.py`:
+  - the record is the exact demo bill with the person-attributed note;
+  - the file holds no credentials, hashes or query strings;
+  - anything that doesn't verify is refused (7 cases: schema, URL, digest, bill, write flag, capture checksum, late association);
+  - Northwind terms can't attach to the verified bill;
+  - the panel appears only beside the packaged presentation worklist.
+
+  One more case in `web/ramp_ui.test.cjs`: the panel is a dated saved record with its own business, beside a worklist attributed to the earlier installation.
+- **Fixture names:** the test vendor name `"DocuSign"` was replaced with `"Example Vendor"` in this branch's new tests, so no vendor name looks inferred (coordinator condition 4).
+
 ## Failed first attempts
 
 - After the first workspace change, `tests/test_ramp_award_procedural.py` failed with `Invalid snapshot checksum or schema`. The workspace view adds a local `status` key, and the strict snapshot validator inside the credit read-back refused it. Fixed in `ramp_context` by passing the capture without that key. Not fixed by loosening the validator.
 - A first combined run passed the extra test files as one argument and ran nothing (`no tests ran`). Rerun with explicit paths.
+- The first `checksum` refusal case changed a bill that was already `PAID`, so nothing changed and the loader correctly accepted the file. The test now flips another bill's status; the loader is unchanged.
 
 ## Results
 
-- `tests/test_ramp*.py`, `tests/test_credit_steps.py`, `tests/test_reconciliation.py`, `tests/test_film_ramp_v4.py`, `tests/test_operations_recovery_90.py` and `tests/test_workspace_ui_v4.py`: **1,144 passed, 1 warning in 46.82s**.
-- `node --test web/*.test.cjs tests/helpers/*.test.cjs`: **108 passed, 0 failed**.
+- `tests/test_ramp*.py`, `tests/test_credit_steps.py`, `tests/test_reconciliation.py`, `tests/test_film_ramp_v4.py`, `tests/test_operations_recovery_90.py` and `tests/test_workspace_ui_v4.py`: 1,144 passed, 1 warning in 46.82s at `318668b`. **1,155 passed, 1 warning in 27.71s** with the verified record.
+- `node --test web/*.test.cjs tests/helpers/*.test.cjs`: 108 passed at `318668b`; **109 passed, 0 failed** with the verified record.
 - The full suite is left to the coordinator after the integration merge.

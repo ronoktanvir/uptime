@@ -58,7 +58,7 @@ test('client uses injected auth, text nodes and no embedded provider or direct t
   const source=fs.readFileSync(__dirname+'/ramp_ui.js','utf8');assert.doesNotMatch(source,/\bfetch\s*\(|innerHTML|iframe|localStorage|sessionStorage|\.style\s*[.=]|setAttribute\(['"]on/);
 });
 
-const ctx={business_id:'1569e402-460e-4952-adad-9df27db628a0',object_type:'bills',object_id:'native-id',vendor_id:'vendor-1',vendor_name:'DocuSign',
+const ctx={business_id:'1569e402-460e-4952-adad-9df27db628a0',object_type:'bills',object_id:'native-id',vendor_id:'vendor-1',vendor_name:'Example Vendor',
   entity_id:'entity-1',invoice_number:'INV-1001',amount:{currency:'USD',amount:'840'},status:'OPEN',status_summary:'APPROVAL_PENDING',approval_status:'PENDING',
   observed_at:'2026-11-09T12:35:33.038627+00:00',capture_checksum:'c',ramp_link:{url:'https://demo.ramp.com/bill-pay/bills/list/native-id',basis:'OPERATOR_OBSERVED_URL'},
   agreement_binding:{status:'NONE',contract_id:null,binding_digest:null},finding_attachable:false,
@@ -75,9 +75,9 @@ test('a partial capture says what is missing and is never presented as the compl
 test('rows show vendor name, invoice and a verified link; a missing name is stated, never inferred',async()=>{
   const s=setup(()=>({records:[{...row,ramp_context:ctx},{...row,id:'b2',provider_uri:null,ramp_context:{...ctx,vendor_name:null,invoice_number:null,ramp_link:null}}],resources:[]}));
   await s.ui.render(s.root);const text=s.root.textContent;
-  for(const expected of ['DocuSign','Invoice: INV-1001','Vendor ID: vendor-1','Ramp status: APPROVAL_PENDING','Vendor name not captured','Invoice: not captured'])assert.ok(text.includes(expected),expected);
+  for(const expected of ['Example Vendor','Invoice: INV-1001','Vendor ID: vendor-1','Ramp status: APPROVAL_PENDING','Vendor name not captured','Invoice: not captured'])assert.ok(text.includes(expected),expected);
   const links=s.root.all('a');assert.equal(links.length,1);assert.equal(links[0].href,'https://demo.ramp.com/bill-pay/bills/list/native-id');
-  assert.equal(links[0].attrs['aria-label'],'Open DocuSign in Ramp');
+  assert.equal(links[0].attrs['aria-label'],'Open Example Vendor in Ramp');
   const unsafe=setup(()=>({records:[{...row,provider_uri:null,ramp_context:{...ctx,ramp_link:{url:'https://evil.example/x',basis:'OPERATOR_OBSERVED_URL'}}}],resources:[]}));
   await unsafe.ui.render(unsafe.root);assert.equal(unsafe.root.all('a').length,0);
 });
@@ -90,9 +90,26 @@ test('a finding amount is withheld on a Ramp record without an exact agreement b
 test('record page shows exact Ramp identity, freshness, link basis and person attribution; no local confirmation',async()=>{
   const s=setup(()=>({...row,provider_uri:null,ramp_context:ctx}));await s.ui.render(s.root,row.id);
   const text=s.root.textContent;
-  for(const expected of ['Ramp record','DocuSign','INV-1001','USD 840','APPROVAL_PENDING','2026-11-09 12:35 UTC','observed in Ramp by a person',
+  for(const expected of ['Ramp record','Example Vendor','INV-1001','USD 840','APPROVAL_PENDING','2026-11-09 12:35 UTC','observed in Ramp by a person',
     'Posted by a person in Ramp; Uptime read it back on this bill','376563cf','No agreement bound to this record','NO_APPLIED_CREDITS',
     'A local ledger entry is never shown here as a Ramp confirmation','No agreement is bound to this Ramp record'])assert.ok(text.includes(expected),expected);
   assert.equal(s.root.all('a').filter(a=>a.textContent==='Open record in Ramp')[0].href,'https://demo.ramp.com/bill-pay/bills/list/native-id');
   assert.equal(s.root.children[1].className,'page-head');
+});
+const verified={kind:'SAVED_VERIFIED_RECORD',live_read:false,capture:{observed_at:'2026-11-09T12:35:33.038627+00:00'},
+  ramp_context:{...ctx,vendor_name:null,invoice_number:null,object_id:'f74ba12c-95d0-582d-9f62-26d8057d1d37',
+    ramp_link:{url:'https://demo.ramp.com/bill-pay/bills/list/f74ba12c-95d0-582d-9f62-26d8057d1d37',basis:'OPERATOR_OBSERVED_URL'}},
+  finding:{outcome:'INSUFFICIENT_EVIDENCE',amount:null},contract_terms:'NONE_BOUND',actual_recovery:null};
+test('the verified Ramp record panel is a dated saved record with its own business, beside an attributed worklist',async()=>{
+  const s=setup(()=>({records:[row],capture:{...partial,custody:'packaged_receipt',business_id:null},verified_record:verified,resources:[]}));
+  await s.ui.render(s.root);const text=s.root.textContent;
+  for(const expected of ['Saved worklist from an earlier Ramp demo installation; its Ramp business is not recorded in this capture.',
+    'Verified Ramp record','read from Ramp 2026-11-09 12:35 UTC. Not a live read.','1569e402-460e-4952-adad-9df27db628a0',
+    'f74ba12c-95d0-582d-9f62-26d8057d1d37','Name not captured','USD 840','Evidence gap: the governing agreement or usage evidence is missing',
+    'No contract terms are attached to this bill','Posted by a person in Ramp; Uptime read it back on this bill','Uptime has made no write to Ramp'])
+    assert.ok(text.includes(expected),expected);
+  assert.doesNotMatch(text,/DocuSign|Northwind/);
+  const open=s.root.all('a').find(a=>a.textContent==='Open this bill in Ramp');
+  assert.equal(open.href,'https://demo.ramp.com/bill-pay/bills/list/f74ba12c-95d0-582d-9f62-26d8057d1d37');
+  const none=setup(()=>({records:[row],resources:[]}));await none.ui.render(none.root);assert.doesNotMatch(none.root.textContent,/Verified Ramp record/);
 });

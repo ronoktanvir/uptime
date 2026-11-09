@@ -36,7 +36,7 @@ def demo_capture(comments=True, **bill):
     """A capture shaped like the real demo business, with the committed note's exact IDs."""
     row = raw_bill(DEMO_BILL, total=84000, status="OPEN", issued="2026-10-29T00:00:00+00:00")
     row.update({"approval_status": "PENDING", "invoice_number": "INV-1001", **bill})
-    row["vendor"]["name"] = "DocuSign"
+    row["vendor"]["name"] = "Example Vendor"
     thread = {DEMO_BILL: [{"id": DEMO_COMMENT, "created_at": NOTE["created_at"], "message": "PRIVATE",
                            "user_id": uid(77)}]} if comments else {}
     return capture(T0, [row], comments=thread)
@@ -129,7 +129,7 @@ def test_person_posted_note_stays_attributed_to_the_person_on_the_exact_bill():
     context = record_context(snapshot, case_for(snapshot, DEMO_BILL), business_id=DEMO_BUSINESS)
     assert context["discussion"] == [{"comment_id": DEMO_COMMENT, "created_at": NOTE["created_at"],
                                       "attribution": "PERSON_POSTED_VERIFIED_READBACK"}]
-    assert (context["vendor_name"], context["invoice_number"]) == ("DocuSign", "INV-1001")
+    assert (context["vendor_name"], context["invoice_number"]) == ("Example Vendor", "INV-1001")
     assert context["amount"] == {"currency": "USD", "amount": "840"}
     assert context["native_confirmation"] == "RAMP_READ_ONLY" and context["actual_recovery"] is None
 
@@ -183,3 +183,76 @@ def test_local_ledger_activity_never_appears_as_ramp_confirmation(tmp_path, monk
     assert after["discussion"][0]["attribution"] == "PERSON_POSTED_VERIFIED_READBACK"
     overview = workspace.overview()
     assert overview["capture"]["business_id"] == DEMO_BUSINESS and overview["capture"]["custody"] == "operator_import"
+
+
+# --- Saved verified record of the demo bill (coordinator option A) ------------------------
+
+from uptime.ramp_context import VERIFIED_RECORD, verified_record  # noqa: E402
+
+FORBIDDEN = ("client_id", "token", "secret", "password", "cookie", "authorization", "bearer")
+
+
+def test_verified_record_is_the_exact_demo_bill_with_the_person_attributed_note():
+    record = verified_record()
+    assert record["kind"] == "SAVED_VERIFIED_RECORD" and record["live_read"] is False
+    context = record["ramp_context"]
+    assert (context["business_id"], context["object_id"]) == (DEMO_BUSINESS, DEMO_BILL)
+    assert context["ramp_link"] == {"url": DEMO_URL, "basis": "OPERATOR_OBSERVED_URL"}
+    assert context["vendor_name"] is None  # Only a captured vendor record may supply it
+    assert context["agreement_binding"]["status"] == "NONE" and context["finding_attachable"] is False
+    assert [d["attribution"] for d in context["discussion"]] == ["PERSON_POSTED_VERIFIED_READBACK"]
+    assert context["credit_links"]["status"] == "NO_APPLIED_CREDITS"
+    assert record["finding"]["outcome"] == "INSUFFICIENT_EVIDENCE" and record["finding"]["amount"] is None
+    assert record["capture"]["observed_at"] == "2026-11-09T12:35:33.038627+00:00"
+
+
+def test_verified_record_file_holds_no_credentials_hashes_or_query_strings():
+    raw = VERIFIED_RECORD.read_text().lower()
+    assert not any(word in raw for word in FORBIDDEN)
+    body = json.loads(VERIFIED_RECORD.read_text())
+    assert set(body["association"]) == {"schema", "status", "origin", "business_id", "bill_id", "browser_url",
+                                        "browser_url_source", "observed_at", "bill_record_sha256",
+                                        "verified_read_scopes", "write_attempted"}
+    assert "?" not in body["association"]["browser_url"] and body["association"]["write_attempted"] is False
+
+
+@pytest.mark.parametrize("change", ["schema", "url", "digest", "bill", "status", "checksum", "late"])
+def test_verified_record_refuses_anything_that_does_not_verify(tmp_path, change):
+    body = json.loads(VERIFIED_RECORD.read_text())
+    association, capture = body["association"], body["capture"]
+    if change == "schema": body["schema"] = "other/1"
+    elif change == "url": association["browser_url"] = DEMO_URL + "?x=1"
+    elif change == "digest": association["bill_record_sha256"] = "0" * 64
+    elif change == "bill": association["bill_id"] = uid(5)
+    elif change == "status": association["write_attempted"] = True
+    elif change == "checksum":  # Another bill changes; only the capture checksum can catch it
+        other = next(r for r in capture["resources"]["bills"]["records"] if r["id"] != DEMO_BILL)
+        other["status"] = "OPEN" if other["status"] == "PAID" else "PAID"
+    elif change == "late": association["observed_at"] = "2026-11-09T15:00:00+00:00"
+    path = tmp_path / "verified.json"
+    path.write_text(json.dumps(body))
+    assert verified_record(path) is None
+
+
+def test_northwind_terms_cannot_attach_to_the_verified_demo_bill():
+    body = json.loads(VERIFIED_RECORD.read_text())
+    capture = body["capture"]
+    northwind = case_for(capture, DEMO_BILL, outcome="ELIGIBLE", amount="1000.00",
+                         data_provenance={"binding_digest": "d" * 64, "terms_mode": "OPERATOR_ATTESTED"})
+    # Even a reviewed-looking binding attaches only if the workspace holds it for this capture.
+    context = record_context(capture, northwind, business_id=DEMO_BUSINESS, association=body["association"])
+    assert context["finding_attachable"] is False and context["agreement_binding"]["status"] == "CONFLICT"
+    synthetic = dict(northwind, sources=["SYNTHETIC_CUSTOMER"])
+    context = record_context(capture, synthetic, business_id=DEMO_BUSINESS, agreements={"d" * 64: "Northwind MSA"})
+    assert context["finding_attachable"] is False and context["agreement_binding"]["contract_id"] is None
+
+
+def test_panel_appears_only_beside_the_packaged_presentation_worklist(tmp_path, monkeypatch):
+    replay = RampWorkspace(Workbench(tmp_path / "replay.sqlite", "replay")).overview()
+    assert replay["verified_record"]["ramp_context"]["object_id"] == DEMO_BILL
+    assert replay["capture"]["custody"] == "packaged_receipt"
+    assert DEMO_BILL not in {r["provider_id"] for r in replay["records"]}  # The worklist is the earlier installation
+    monkeypatch.setattr(installation_revocation, "REVOCATION_ROOT", tmp_path / "no-revocations")
+    installed = RampWorkspace(Workbench(tmp_path / "sandbox.sqlite", "sandbox", tenant="ramp-context"))
+    installed.import_observation(capture(T0, base_bills()), BUSINESS)
+    assert installed.overview()["verified_record"] is None

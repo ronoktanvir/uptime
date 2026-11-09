@@ -16,14 +16,22 @@ Rules this module enforces:
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta
+import hashlib
 import json
 from pathlib import Path
 
+from .ramp import RampError
+from .ramp_association import AssociationError, native_id
 from .ramp_case_lineage import credit_links
-from .ramp_findings import _link
+from .ramp_findings import _link, evaluate_snapshot
+from .ramp_records import _validate_snapshot
 
 ROOT = Path(__file__).resolve().parents[1]
 HUMAN_NOTE = ROOT / "docs/v4/evidence/demo-path-87/human-ramp-note.json"
+VERIFIED_RECORD = ROOT / "fixtures/ramp/verified-demo-bill.json"
+VERIFIED_SCHEMA = "uptime-ramp-verified-record/1"
+DEMO_BILL_URL = "https://demo.ramp.com/bill-pay/bills/list/"
 LIST_KEYS = ("listed", "list_complete", "has_next", "pages_read", "page_size", "max_pages")
 WORKLIST = ("bills", "transactions", "purchase_orders")
 
@@ -142,3 +150,43 @@ def record_context(snapshot, case, *, business_id, association=None, agreements=
             "agreement_binding": binding, "finding_attachable": attachable,
             "discussion": discussion, "credit_links": credits,
             "native_confirmation": "RAMP_READ_ONLY", "actual_recovery": None}
+
+
+def verified_record(path=VERIFIED_RECORD):
+    """A saved, verified record of one Ramp demo bill, or None when anything fails to verify.
+
+    The file holds a sanitized capture and the association receipt for one bill. Shown
+    only as a saved record with its read time, never as a live read. The bill must be in
+    the capture with the exact digest the association verified; the link is the exact URL
+    a person observed for that bill. No agreement is bound, so no finding amount attaches.
+    """
+    try:
+        body = json.loads(Path(path).read_text())
+        if body.get("schema") != VERIFIED_SCHEMA:
+            return None
+        capture, association = body["capture"], body["association"]
+        _validate_snapshot(capture)
+        business, bill_id = native_id(association["business_id"]), native_id(association["bill_id"])
+        observed, read = (datetime.fromisoformat(association["observed_at"]),
+                          datetime.fromisoformat(capture["observed_at"]))
+        row = next((r for r in capture["resources"]["bills"]["records"]
+                    if r.get("kind") == "bill" and r["id"] == bill_id), None)
+        if (association.get("status") != "ONE_BILL_READ_VERIFIED" or association.get("write_attempted") is not False
+                or association.get("browser_url") != DEMO_BILL_URL + bill_id or row is None
+                or abs(observed - read) > timedelta(hours=1)
+                or hashlib.sha256(json.dumps(row, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+                                  ).hexdigest() != association.get("bill_record_sha256")):
+            return None
+    except (OSError, ValueError, KeyError, TypeError, RampError, AssociationError):
+        return None
+    case = next(c for c in evaluate_snapshot(capture, as_of=datetime.fromisoformat(capture["completed_at"]))
+                if c["provider_object_type"] == "bills" and c["provider_id"] == bill_id)
+    context = record_context(capture, case, business_id=business, association=association)
+    return {"kind": "SAVED_VERIFIED_RECORD", "live_read": False,
+            "statement": "Saved verified record of one Ramp demo bill. Not a live read.",
+            "capture": capture_summary(capture, business_id=business, custody="packaged_verified_record",
+                                       freshness="HISTORICAL_REPLAY"),
+            "ramp_context": context,
+            "finding": {"outcome": case["outcome"], "finding_kind": case.get("finding_kind"),
+                        "missing": list(case.get("missing") or []), "amount": None},
+            "contract_terms": "NONE_BOUND", "actual_recovery": None}
