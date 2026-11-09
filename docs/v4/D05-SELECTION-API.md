@@ -32,7 +32,7 @@ All routes already exist and are draft-signed. The client never names a family.
 
 Family states: `VALIDATED`, `REFUSED_STRUCTURAL`, `REFUSED_READING`, `NOT_EVALUATED`, `INCONCLUSIVE`, `PENDING`, or `null` (not submitted).
 
-## Browser change requested of W7
+## Browser change (implemented by W3 on `work/onboarding-d05-ui-89`; gent7 reviews)
 
 1. Remove the required "Extraction profile" select and send `"profile": "auto"`.
 2. Render the selection view:
@@ -43,7 +43,7 @@ Family states: `VALIDATED`, `REFUSED_STRUCTURAL`, `REFUSED_READING`, `NOT_EVALUA
 3. On `SELECTED`, offer staging through the route for its `method`. Show no staging control for any other outcome.
 4. Optionally show `family_selection` beside the approve controls.
 
-Tests that move to the automatic flow with the browser change:
+Tests moved to the automatic flow with the browser change (see the W3 ledger):
 - `tests/test_vendor_auth83.py::test_expired_browser_session_recovers_same_job_without_resubmitting`
 - `tests/test_vendor_model_jobs_browser.py::test_browser_checks_permission_generates_and_stages_separate_overlay[manual]`
 - `tests/test_vendor_model_jobs_browser.py::test_browser_checks_permission_generates_and_stages_separate_overlay[utf8_file]`

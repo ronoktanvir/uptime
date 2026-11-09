@@ -1,6 +1,6 @@
 # ADR 97: automatic rule-family selection (D05)
 
-Status: phase 1 implemented on `work/onboarding-generalization-89`. Phase 2, which retires operator-chosen profiles at candidate install, waits for the W7 interface change. The independent unseen-vendor proof has **not** been run. November 9, 2026, America/Los_Angeles. Workstream W3. Owner decision: D05 "auto-select plus human approval" (Ronok, 2026-11-09, [team decision sheet](../TEAM-DECISION-HANDOFF.md#team-decision-sheet)).
+Status: phase 1 merged into integration (`296ee1b`). Phase 2 (operator-chosen profiles retired at candidate install) and the browser change are on `work/onboarding-d05-ui-89`, for gent7's review and agent0's merge. The independent unseen-vendor proof has **not** been run. November 9, 2026, America/Los_Angeles. Workstream W3. Owner decision: D05 "auto-select plus human approval" (Ronok, 2026-11-09, [team decision sheet](../TEAM-DECISION-HANDOFF.md#team-decision-sheet)).
 
 ## What the owner decided
 

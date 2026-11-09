@@ -16,6 +16,7 @@ from uptime.auth_client import ReviewerClient
 from uptime.auth_keys import generate_reviewer_key
 from uptime.server import create_app
 from test_vendor_model_jobs_runtime import (DOC, OVERLAY, P, VENDOR, approved, finished, runtime)
+from test_vendor_family_selection_89 import selecting  # noqa: F401 (fixture)
 
 BASE = '/api/vendors/' + VENDOR
 CHROME = Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
@@ -100,11 +101,20 @@ def test_provider_work_does_not_hold_the_application_post_lock(signed, monkeypat
     assert len(provider.calls) == 1
 
 
-@pytest.mark.parametrize('entry', ['manual', 'utf8_file'])
-def test_browser_checks_permission_generates_and_stages_separate_overlay(runtime, tmp_path, entry):
-    db, _, provider, jobs, _ = runtime
-    document = DOC if entry == 'manual' else DOC | {'text': DOC['text'].replace('\n', '\r\n')}
-    body, _ = approved(runtime, document)
+@pytest.mark.parametrize('entry', ['manual', 'utf8_file', 'offline'])
+def test_browser_checks_permission_generates_and_stages_separate_overlay(selecting, tmp_path, entry):
+    """D05: the browser never names a family. Uptime selects it; only the selected result can be staged."""
+    from test_vendor_family_selection_89 import (CANONICAL, CANONICAL_OVERLAY, PROSE, PROSE_AS_RESOURCE, PROSE_OVERLAY,
+                                                 PROSE_PROPOSAL, VENDOR as AUTO, approve, blocks_text)
+    db, _, provider, jobs, _ = selecting
+    if entry == 'offline':
+        document, overlay = CANONICAL, CANONICAL_OVERLAY
+    else:
+        document = PROSE if entry == 'manual' else PROSE | {'text': PROSE['text'].replace('\n', '\r\n')}
+        overlay = PROSE_OVERLAY
+        provider.outputs = {'monthly-propositions': json.dumps({'clauses': PROSE_PROPOSAL}),
+                            'resource-month': blocks_text(document, PROSE_AS_RESOURCE)}
+        approve(selecting, document)
     key = generate_reviewer_key()
     enroll(db, P.subject, key, tenant=P.tenant, mode='replay')
     sock = socket.socket(); sock.bind(('127.0.0.1', 0)); sock.listen(25)
@@ -130,47 +140,56 @@ def test_browser_checks_permission_generates_and_stages_separate_overlay(runtime
                 'name': 'scripted-runtime-account.json', 'mimeType': 'application/json', 'buffer': json.dumps(key).encode()})
             page.get_by_role('button', name='Sign in', exact=True).click()
             page.get_by_role('button', name='Check generation access', exact=True).wait_for()
-            for label, value in [('Proposal vendor identifier', VENDOR), ('Public document name', document['name']),
+            assert page.get_by_label('Extraction profile', exact=True).count() == 0
+            for label, value in [('Proposal vendor identifier', AUTO), ('Public document name', document['name']),
                                  ('Public document URI', document['uri'])]:
                 page.get_by_label(label, exact=True).fill(value)
-            if entry == 'manual':
+            if entry != 'utf8_file':
                 page.get_by_label('Exact public source text (sent exactly as entered)', exact=True).fill(document['text'])
             else:
                 page.get_by_label('Import UTF-8 source file (optional)', exact=True).set_input_files({
                     'name': 'public-source.txt', 'mimeType': 'text/plain', 'buffer': document['text'].encode('utf-8')})
                 page.get_by_text('Source file loaded.', exact=False).wait_for()
                 assert '\r' not in page.get_by_label('Exact public source text (sent exactly as entered)', exact=True).input_value()
-            page.get_by_label('Public document origin', exact=True).select_option(DOC['classification'])
-            page.get_by_label('Extraction profile', exact=True).select_option('monthly')
-            assert page.get_by_role('button', name='Generate proposal', exact=True).is_disabled()
+            page.get_by_label('Public document origin', exact=True).select_option(document['classification'])
+            assert page.get_by_role('button', name='Generate proposals', exact=True).is_disabled()
             page.get_by_role('button', name='Check generation access', exact=True).click()
-            page.get_by_text('Generation is permitted for this exact request.', exact=False).wait_for()
-            assert provider.calls == []
-            if entry == 'utf8_file':
-                # Editing the normalized display creates a new LF source, not a silent reuse of file bytes.
-                page.get_by_label('Exact public source text (sent exactly as entered)', exact=True).fill(DOC['text'])
-                page.get_by_text('Text edited. This is a new source request;', exact=False).wait_for()
-                assert page.get_by_role('button', name='Generate proposal', exact=True).is_disabled()
-                page.get_by_role('button', name='Check generation access', exact=True).click()
-                page.get_by_text('Generation is not available for this exact request:', exact=False).wait_for()
-                assert provider.calls == []
-                page.get_by_label('Import UTF-8 source file (optional)', exact=True).set_input_files({
-                    'name': 'public-source.txt', 'mimeType': 'text/plain', 'buffer': document['text'].encode('utf-8')})
-                page.get_by_text('Source file loaded.', exact=False).wait_for()
-                page.get_by_role('button', name='Check generation access', exact=True).click()
+            if entry == 'offline':
+                page.get_by_text('Uptime selected the Monthly availability family.', exact=False).wait_for()
+                assert page.get_by_role('button', name='Generate proposals', exact=True).is_disabled()
+            else:
                 page.get_by_text('Generation is permitted for this exact request.', exact=False).wait_for()
-            page.get_by_role('button', name='Generate proposal', exact=True).click()
-            page.get_by_role('heading', name='Proposed public clauses', exact=True).wait_for(timeout=10000)
-            assert len(provider.calls) == 1
-            assert json.loads(provider.calls[0])['input']['text'] == document['text']
-            assert page.locator('.v4-proposal blockquote').count() == 9
+                assert provider.calls == []
+                if entry == 'utf8_file':
+                    # Editing the normalized display creates a new LF source, not a silent reuse of file bytes.
+                    page.get_by_label('Exact public source text (sent exactly as entered)', exact=True).fill(PROSE['text'])
+                    page.get_by_text('Text edited. This is a new source request;', exact=False).wait_for()
+                    assert page.get_by_role('button', name='Generate proposals', exact=True).is_disabled()
+                    page.get_by_role('button', name='Check generation access', exact=True).click()
+                    page.get_by_text('Generation is not available for this exact request:', exact=False).wait_for()
+                    assert provider.calls == []
+                    page.get_by_label('Import UTF-8 source file (optional)', exact=True).set_input_files({
+                        'name': 'public-source.txt', 'mimeType': 'text/plain', 'buffer': document['text'].encode('utf-8')})
+                    page.get_by_text('Source file loaded.', exact=False).wait_for()
+                    page.get_by_role('button', name='Check generation access', exact=True).click()
+                    page.get_by_text('Generation is permitted for this exact request.', exact=False).wait_for()
+                page.get_by_role('button', name='Generate proposals', exact=True).click()
+                page.get_by_text('Every family evaluation has finished.', exact=False).wait_for(timeout=15000)
+                assert sorted(provider.calls) == ['monthly-propositions', 'resource-month']
+                page.get_by_role('button', name='Refresh proposal status', exact=True).click()
+                page.get_by_role('heading', name='Proposed public clauses', exact=True).wait_for(timeout=10000)
+                assert page.get_by_text('Why this family was refused', exact=True).count() == 1
+                monthly = next(json.loads(r) for r in provider.requests if json.loads(r)['profile'] == 'monthly-propositions')
+                assert monthly['input']['text'] == document['text']
+                assert page.locator('.v4-proposal blockquote').count() == len(PROSE_PROPOSAL)
             assert not page.get_by_role('button', name='Approve reviewed tests', exact=True).count()
-            page.get_by_label('Private customer overlay for this proposal (JSON object; never sent for extraction)', exact=True).fill(json.dumps(OVERLAY))
+            page.get_by_label('Private customer overlay for this proposal (JSON object; never sent for extraction)', exact=True).fill(json.dumps(overlay))
             page.get_by_role('button', name='Review shadow candidate request', exact=True).click()
             page.get_by_role('button', name='Confirm shadow candidate', exact=True).click()
             page.get_by_role('button', name='Submit independent tests', exact=True).wait_for()
             assert page.get_by_text('SHADOW', exact=True).count() > 0
-            assert len(provider.calls) == 1 and OVERLAY['account'].encode() not in provider.calls[0]
+            assert len(provider.calls) == (0 if entry == 'offline' else 2)
+            assert all(overlay['account'].encode() not in request for request in provider.requests)
             assert not page.get_by_role('button', name='Approve reviewed tests', exact=True).count()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert errors == []

@@ -15,7 +15,9 @@ from uptime.auth import enroll
 from uptime.auth_keys import generate_reviewer_key
 from uptime.server import create_app
 from uptime import vendor_registry
-from test_vendor_model_jobs_runtime import DOC, OVERLAY, P, VENDOR, approved, runtime
+from test_vendor_model_jobs_runtime import P
+from test_vendor_family_selection_89 import (PROSE as DOC, PROSE_AS_RESOURCE, PROSE_OVERLAY as OVERLAY, PROSE_PROPOSAL,
+                                             VENDOR, approve, blocks_text, selecting)  # noqa: F401 (fixture)
 from test_vendor_model_jobs_browser import CHROME
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -27,9 +29,11 @@ def test_v4_auth_recovery_dom_controls():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-def test_expired_browser_session_recovers_same_job_without_resubmitting(runtime, tmp_path):
-    db, _, provider, jobs, _ = runtime
-    approved(runtime)
+def test_expired_browser_session_recovers_same_job_without_resubmitting(selecting, tmp_path):
+    db, _, provider, jobs, _ = selecting
+    provider.outputs = {'monthly-propositions': json.dumps({'clauses': PROSE_PROPOSAL}),
+                        'resource-month': blocks_text(DOC, PROSE_AS_RESOURCE)}
+    approve(selecting, DOC)
     key = generate_reviewer_key()
     enroll(db,P.subject,key,tenant=P.tenant,mode='replay')
     sock=socket.socket();sock.bind(('127.0.0.1',0));sock.listen(25)
@@ -61,17 +65,18 @@ def test_expired_browser_session_recovers_same_job_without_resubmitting(runtime,
                                     ('Public document URI',DOC['uri']),('Exact public source text (sent exactly as entered)',DOC['text'])]:
                     page.get_by_label(label,exact=True).fill(value)
                 page.get_by_label('Public document origin',exact=True).select_option(DOC['classification'])
-                page.get_by_label('Extraction profile',exact=True).select_option('monthly')
                 page.get_by_role('button',name='Check generation access',exact=True).click()
             def review():
                 page.get_by_label('Private customer overlay for this proposal (JSON object; never sent for extraction)',exact=True).fill(json.dumps(OVERLAY))
                 page.get_by_role('button',name='Review shadow candidate request',exact=True).click()
             page.goto(origin+'/#vendors');login();source()
             page.get_by_text('Generation is permitted for this exact request.',exact=False).wait_for()
-            page.get_by_role('button',name='Generate proposal',exact=True).click()
+            page.get_by_role('button',name='Generate proposals',exact=True).click()
+            page.get_by_text('Every family evaluation has finished.',exact=False).wait_for(timeout=15000)
+            page.get_by_role('button',name='Refresh proposal status',exact=True).click()
             page.get_by_role('heading',name='Proposed public clauses',exact=True).wait_for(timeout=10000)
             assert 'SUCCEEDED' in page.locator('.v4-status').inner_text()
-            assert len(provider.calls)==1
+            assert len(provider.calls)==2
             original_job=page.locator('.v4-job dd').first.inner_text()
             review()
             old_confirm=page.get_by_role('button',name='Confirm shadow candidate',exact=True).element_handle()
@@ -88,23 +93,23 @@ def test_expired_browser_session_recovers_same_job_without_resubmitting(runtime,
             assert not any(method=='POST' and path.endswith('/candidate') for method,path,_ in responses)
             assert vendor_registry.catalog(db,P)['vendors']==[]
             assert jobs.get(P.tenant,P.subject,original_job)['status']=='SUCCEEDED'
-            assert len(provider.calls)==1
+            assert len(provider.calls)==2
             before=len(responses)
             old_confirm.evaluate("button => button.dispatchEvent(new Event('click'))")
             assert len(responses)==before
             login();source()
             page.get_by_role('heading',name='Proposed public clauses',exact=True).wait_for(timeout=10000)
             assert 'SUCCEEDED' in page.locator('.v4-status').inner_text()
-            assert page.get_by_role('button',name='Generate proposal',exact=True).is_disabled()
+            assert page.get_by_role('button',name='Generate proposals',exact=True).is_disabled()
             assert page.get_by_text(original_job,exact=True).count()>0
-            assert len(provider.calls)==1
+            assert len(provider.calls)==2
             assert len([1 for method,path,_ in responses if method=='POST' and path.endswith('/proposal-jobs')])==1
             old_confirm.evaluate("button => button.dispatchEvent(new Event('click'))")
             review();page.get_by_role('button',name='Confirm shadow candidate',exact=True).click()
             page.get_by_role('button',name='Submit independent tests',exact=True).wait_for()
             candidate=vendor_registry.get_vendor(db,P,VENDOR)
             assert candidate['state']=='SHADOW' and candidate['reviewer'] is None and candidate['active_version'] is None
-            assert len(provider.calls)==1
+            assert len(provider.calls)==2
             assert len([1 for method,path,_ in responses if method=='POST' and path.endswith('/candidate')])==1
             assert len([1 for method,path,_ in responses if method=='POST' and path.endswith('/proposal-jobs')])==1
             assert errors==[] and page.evaluate('document.documentElement.scrollWidth <= innerWidth')

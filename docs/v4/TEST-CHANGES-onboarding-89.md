@@ -77,3 +77,20 @@ Full `uv run --locked pytest`: not run on this branch, at the integration owner'
 - D05 phase 1: new file **22 passed, 1 warning in 1.78s** (first collection failed on a parametrize name that clashed with an imported module; fixed). Focused set (all `test_vendor_*`, `test_onboarding*`, proposal-job, correspondence model-job, route and authority tests): **1174 passed, 1 warning in 71.27s**.
 - D05 phase 2 (`work/onboarding-d05-phase2-89`): `test_vendor_family_selection_89.py` **25 passed**, including three new phase 2 tests (`test_operator_chosen_profile_cannot_stage_a_candidate`, `test_a_job_selection_did_not_choose_cannot_stage_a_candidate`, `test_an_incomplete_selection_cannot_stage_its_validated_job`). With `test_vendor_model_jobs_browser.py`, `test_vendor_auth83.py` and `test_vendor_monthly_profile_79.py`: **3 failed, 38 passed in 110.19s**. All three failures are browser tests that drive the current "Extraction profile" select, and they pass only with the W7 change in [D05-SELECTION-API.md](D05-SELECTION-API.md): `test_browser_checks_permission_generates_and_stages_separate_overlay[manual]`, `[utf8_file]` and `test_vendor_auth83.py::test_expired_browser_session_recovers_same_job_without_resubmitting`. Phase 2 is therefore not mergeable without that change.
 
+## D05 phase 2 browser change (`work/onboarding-d05-ui-89`)
+
+`web/v4_ui.js` no longer offers an "Extraction profile" select; it sends `profile: "auto"` and renders the selection view. This was assigned to W3 under Ronok's delegated authority, with gent7 (W7) reviewing. Changed existing tests, each keeping its original safety assertions:
+
+| Test | Reason for change |
+|---|---|
+| `tests/test_vendor_model_jobs_browser.py::test_browser_checks_permission_generates_and_stages_separate_overlay[manual]`, `[utf8_file]` | The profile select is gone. The test now uses a prose source and a per-family provider double, so the model path still runs: two family jobs, GET-only polling, an explicit refresh, then staging only the selected job. The exact-text, CRLF/edit invalidation, overlay-separation, no-approval-control and 390 px assertions are unchanged. Model call count is now 2 (one per family). |
+| `…[offline]` (new parameter) | Canonical source selected offline; staged via `POST /candidates` with zero model calls. |
+| `tests/test_vendor_auth83.py::test_expired_browser_session_recovers_same_job_without_resubmitting` | Same flow change. Every recovery assertion is kept: no candidate POST while expired, the same job recovered, one `proposal-jobs` POST, one candidate POST. Model call count is 2. |
+| `tests/helpers/vendor_model_jobs.test.cjs` | Rewritten for the selection view. The original controls are kept (draft access, exact untrimmed body, invalidation, GET-only polling, safe text, overlay review, lost-reservation recovery, superseded responses, separate local form). New controls: no profile control, review requirements verbatim, staging only on `SELECTED`, offline staging route, non-selected jobs unstaged. 10 tests. |
+| `tests/helpers/vendor_auth83.test.cjs` | The mock server answers with selection views; each 401 path and the overlapping-read guarantee are kept. |
+| `tests/helpers/vendor_monthly_profile79.test.cjs` | The phase 79 contract ("the profile is explicit") is retired by D05. It is replaced by: no profile control exists, `auto` is always sent, and any source edit revokes confirmation. |
+
+Not changed by W3: `tests/helpers/refusal_diagnostic.test.cjs` (gent7's, round 3) still sets the removed profile field. gent7 moves it onto this SHA. No pytest test runs it.
+
+Results: the JS helpers (`vendor_auth83`, `vendor_monthly_profile79`, `vendor_model_jobs`) **24 passed**; `browser-contract`, `v4_ui` and `advanced_companion` **33 passed**. The Python set (`test_vendor_model_jobs_browser`, `test_vendor_auth83`, `test_vendor_monthly_profile_79`, `test_vendor_family_selection_89`, `test_advanced_companion`, `test_vendor_model_jobs_runtime`, `test_vendor_refusal_diagnostics_89`, `test_vendor_requirements_89`) **81 passed, 1 warning in 25.81s**.
+

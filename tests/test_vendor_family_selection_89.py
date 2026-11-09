@@ -67,9 +67,10 @@ class FamilyProvider:
     profile = {'name': 'explicit-public-test-provider', 'revision': 1}
 
     def __init__(self):
-        self.calls, self.outputs = [], {}
+        self.calls, self.outputs, self.requests = [], {}, []
 
     def __call__(self, request):
+        self.requests.append(request)
         self.calls.append(json.loads(request)['profile'])
         return {'model': MODEL, 'session': 'scripted-family-provider', 'text': self.outputs[json.loads(request)['profile']]}
 
