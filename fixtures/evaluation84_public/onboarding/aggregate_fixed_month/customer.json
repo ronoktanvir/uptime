@@ -1,0 +1,163 @@
+{
+  "classification": "synthetic_customer",
+  "overlay": {
+    "agreement": "Velvet Tern February Service Undertaking",
+    "account": "Cedar Orrery Studio",
+    "product": "Index Ferry",
+    "plan": "Grove",
+    "effective_from": "2036-02-01",
+    "effective_until": "2036-02-29",
+    "fee_line_ref": "fee-velvet-feb-36",
+    "currency": "USD"
+  },
+  "scenarios": [
+    {
+      "name": "timely_outage",
+      "facts": {
+        "agreement": "Velvet Tern February Service Undertaking",
+        "account": "Cedar Orrery Studio",
+        "product": "Index Ferry",
+        "plan": "Grove",
+        "month": "2036-02",
+        "fee_line_ref": "fee-velvet-feb-36",
+        "received_at": "2036-03-11T08:00:00Z",
+        "service_monitor": {
+          "agreement": "Velvet Tern February Service Undertaking",
+          "account": "Cedar Orrery Studio",
+          "product": "Index Ferry",
+          "plan": "Grove",
+          "month": "2036-02",
+          "ref": "velvet-monitor-feb36",
+          "recorded_at": "2036-03-02T10:00:00Z",
+          "complete": true,
+          "verified": true,
+          "content": {
+            "source": "simulated_vendor",
+            "unavailable_minutes": "167.04"
+          },
+          "content_sha256": "21778bf434c9602cd408a7b52884f9d7edf31ce0c9eeaf91c1c094b68949d0b9"
+        },
+        "service_invoice": {
+          "agreement": "Velvet Tern February Service Undertaking",
+          "account": "Cedar Orrery Studio",
+          "product": "Index Ferry",
+          "plan": "Grove",
+          "month": "2036-02",
+          "ref": "velvet-invoice-feb36",
+          "recorded_at": "2036-03-02T10:00:00Z",
+          "complete": true,
+          "verified": true,
+          "content": {
+            "paid": true,
+            "currency": "USD",
+            "lines": [
+              {
+                "ref": "fee-velvet-feb-36",
+                "kind": "recurring_subscription",
+                "category": "Index Ferry",
+                "amount_cents": 92840
+              },
+              {
+                "ref": "velvet-support-feb36",
+                "kind": "support",
+                "category": "support charges",
+                "amount_cents": 7300
+              },
+              {
+                "ref": "velvet-tax-feb36",
+                "kind": "tax",
+                "category": "Taxes",
+                "amount_cents": 8010
+              }
+            ]
+          },
+          "content_sha256": "fc23cc24ed2f90bd1982b15222f1bbf4aa25affe50416fd2a3ea152e577a1bcb"
+        },
+        "filing_proof": {
+          "agreement": "Velvet Tern February Service Undertaking",
+          "account": "Cedar Orrery Studio",
+          "product": "Index Ferry",
+          "plan": "Grove",
+          "month": "2036-02",
+          "verified": true,
+          "ref": "velvet-receipt-feb36",
+          "received_at": "2036-03-11T08:00:00Z"
+        }
+      }
+    },
+    {
+      "name": "no_outage",
+      "facts": {
+        "agreement": "Velvet Tern February Service Undertaking",
+        "account": "Cedar Orrery Studio",
+        "product": "Index Ferry",
+        "plan": "Grove",
+        "month": "2036-02",
+        "fee_line_ref": "fee-velvet-feb-36",
+        "received_at": "2036-03-11T08:00:00Z",
+        "service_monitor": {
+          "agreement": "Velvet Tern February Service Undertaking",
+          "account": "Cedar Orrery Studio",
+          "product": "Index Ferry",
+          "plan": "Grove",
+          "month": "2036-02",
+          "ref": "velvet-monitor-feb36",
+          "recorded_at": "2036-03-02T10:00:00Z",
+          "complete": true,
+          "verified": true,
+          "content": {
+            "source": "simulated_vendor",
+            "unavailable_minutes": "0"
+          },
+          "content_sha256": "9aa35a325ec9f78b6bbd0228ef712019456fe3bc84247b4d7c25f0cd5dbfa3fb"
+        },
+        "service_invoice": {
+          "agreement": "Velvet Tern February Service Undertaking",
+          "account": "Cedar Orrery Studio",
+          "product": "Index Ferry",
+          "plan": "Grove",
+          "month": "2036-02",
+          "ref": "velvet-invoice-feb36",
+          "recorded_at": "2036-03-02T10:00:00Z",
+          "complete": true,
+          "verified": true,
+          "content": {
+            "paid": true,
+            "currency": "USD",
+            "lines": [
+              {
+                "ref": "fee-velvet-feb-36",
+                "kind": "recurring_subscription",
+                "category": "Index Ferry",
+                "amount_cents": 92840
+              },
+              {
+                "ref": "velvet-support-feb36",
+                "kind": "support",
+                "category": "support charges",
+                "amount_cents": 7300
+              },
+              {
+                "ref": "velvet-tax-feb36",
+                "kind": "tax",
+                "category": "Taxes",
+                "amount_cents": 8010
+              }
+            ]
+          },
+          "content_sha256": "fc23cc24ed2f90bd1982b15222f1bbf4aa25affe50416fd2a3ea152e577a1bcb"
+        },
+        "filing_proof": {
+          "agreement": "Velvet Tern February Service Undertaking",
+          "account": "Cedar Orrery Studio",
+          "product": "Index Ferry",
+          "plan": "Grove",
+          "month": "2036-02",
+          "verified": true,
+          "ref": "velvet-receipt-feb36",
+          "received_at": "2036-03-11T08:00:00Z"
+        }
+      }
+    }
+  ]
+}

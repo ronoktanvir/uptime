@@ -1,0 +1,6 @@
+{
+  "name": "Pollen Jetty Monthly SLA",
+  "uri": "urn:uptime:evaluation84:ambiguous_deadline",
+  "classification": "synthetic_public",
+  "text": "Pollen Jetty Monthly SLA\nPollen Jetty supplies Query Loom on the Saffron plan during 2038-01-01 through 2038-12-31. Monthly availability for a UTC calendar month is 100 multiplied by (1 minus unavailable minutes divided by all minutes in the month).\nMonthly availability below 99.6% yields a future invoice credit of 16% of the affected monthly service fee in USD.\nA claim must arrive within 12 days after the reporting period closes. For this filing sentence only, reporting period means either the UTC service month or the account's invoice cycle; both definitions are equally applicable and neither takes precedence. The account invoice cycle may end on a different day.\n"
+}

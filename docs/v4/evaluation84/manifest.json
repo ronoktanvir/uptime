@@ -1,0 +1,296 @@
+{
+  "schema": "evaluation84-independent-public-corpus/1",
+  "base_commit": "70f9cc2",
+  "author": "independent GPT-family Codex subagent, native high-reasoning assignment; no human verification asserted",
+  "status": "frozen_before_first_runtime_or_model_result",
+  "classification": "fresh independently authored public evaluation; not private blind performance",
+  "family_routing": "Author-selected semantic family is supplied context; family discovery is not evaluated.",
+  "sealed_gold_root": "/Users/ronoktanvir/.local/share/uptime-engineering/review/evaluation84-sealed-expectations",
+  "gold_comparison_rules_sha256": "20bd7cc9422b0a197045469a4e963a78500beb62dd5e7fab95897395fbba77b2",
+  "entries": [
+    {
+      "id": "monthly_tier",
+      "kind": "onboarding",
+      "family_context": "monthly-tier",
+      "profile": "monthly-propositions",
+      "public_document": "fixtures/evaluation84_public/onboarding/monthly_tier/document.json",
+      "local_customer": "fixtures/evaluation84_public/onboarding/monthly_tier/customer.json",
+      "gold_relative_path": "onboarding/monthly_tier/expected.json",
+      "gold_sha256": "cc27b18a1fad4ca99445724849a8dabdfad2a0dfac468dc587ca6e600431f7f9",
+      "source_text_sha256": "a9bba7a85b6ca2a46e969f0e1feee25f388658a3a469e75729ceeae89df3b511"
+    },
+    {
+      "id": "completed_step",
+      "kind": "onboarding",
+      "family_context": "monthly-completed-steps",
+      "profile": "monthly-propositions",
+      "public_document": "fixtures/evaluation84_public/onboarding/completed_step/document.json",
+      "local_customer": "fixtures/evaluation84_public/onboarding/completed_step/customer.json",
+      "gold_relative_path": "onboarding/completed_step/expected.json",
+      "gold_sha256": "172154ba6595df34b600bdd815815c1ef09cd6e827192895cb66546956bafeec",
+      "source_text_sha256": "df1043f142868665a59a094365d1ff8f61bbbfac7d893ad45cd7e5fbff232cfd"
+    },
+    {
+      "id": "resource_month",
+      "kind": "onboarding",
+      "family_context": "resource-month",
+      "profile": "resource-month",
+      "public_document": "fixtures/evaluation84_public/onboarding/resource_month/document.json",
+      "local_customer": "fixtures/evaluation84_public/onboarding/resource_month/customer.json",
+      "gold_relative_path": "onboarding/resource_month/expected.json",
+      "gold_sha256": "5447231a5ce1be998893720b3f5ad0d5ffba943bd8e120d65a71d9426b0e2d63",
+      "source_text_sha256": "091af589a85e39514fa329de716f47e9ba7af173b336c975573e698de56cda5f"
+    },
+    {
+      "id": "aggregate_fixed_month",
+      "kind": "onboarding",
+      "family_context": "aggregate-fixed-month",
+      "profile": "resource-month",
+      "public_document": "fixtures/evaluation84_public/onboarding/aggregate_fixed_month/document.json",
+      "local_customer": "fixtures/evaluation84_public/onboarding/aggregate_fixed_month/customer.json",
+      "gold_relative_path": "onboarding/aggregate_fixed_month/expected.json",
+      "gold_sha256": "789383d2a0faff798ecaf63ba4f4602ac39572a225d7ed86992f13d88baa6bd2",
+      "source_text_sha256": "27d509091a7ce1acfe8d9b0cbd7b770690d3cc6abb061b625460ef92fd57ed5e"
+    },
+    {
+      "id": "unsupported_variable_fee",
+      "kind": "onboarding",
+      "family_context": "monthly-tier",
+      "profile": "monthly-propositions",
+      "public_document": "fixtures/evaluation84_public/onboarding/unsupported_variable_fee/document.json",
+      "local_customer": "fixtures/evaluation84_public/onboarding/unsupported_variable_fee/customer.json",
+      "gold_relative_path": "onboarding/unsupported_variable_fee/expected.json",
+      "gold_sha256": "de5e073d26a3b8e5f35634a25a13f42c82e60c5efe7e9a458aac42462b599622",
+      "source_text_sha256": "df1d259a36341e673795d40ba7b5edf9612dbabdae4084dea1e0b94238e39fed"
+    },
+    {
+      "id": "ambiguous_deadline",
+      "kind": "onboarding",
+      "family_context": "monthly-tier",
+      "profile": "monthly-propositions",
+      "public_document": "fixtures/evaluation84_public/onboarding/ambiguous_deadline/document.json",
+      "local_customer": "fixtures/evaluation84_public/onboarding/ambiguous_deadline/customer.json",
+      "gold_relative_path": "onboarding/ambiguous_deadline/expected.json",
+      "gold_sha256": "5cd5a17da8be5d0ca9ee0e0bd76d9122b1c3e9c18d5eebeef844ad633b56766f",
+      "source_text_sha256": "60a1ee530c064a6e99c7187661bc5756a2e3b0fdc0aa5de18b45bb860cf4d268"
+    },
+    {
+      "id": "01_late_filing",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/01_late_filing/source.json",
+      "gold_relative_path": "disputes/01_late_filing/expected.json",
+      "gold_sha256": "ab45b3f1e4c00a3f8771911f3fdd02d50e31bc6ed09cd4a288e49b32d96cefde",
+      "reply_text_sha256": "2643e58c9e7f1e7ba56867153156001883fd22943bafbc1b98b22e1f919f6364"
+    },
+    {
+      "id": "02_missing_artifact",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/02_missing_artifact/source.json",
+      "gold_relative_path": "disputes/02_missing_artifact/expected.json",
+      "gold_sha256": "7d52a50da4e2fac543eb8d15ea83a805fa87645a5e538c848639d807fe634b2f",
+      "reply_text_sha256": "33c6b7fad84b564f131b5e6eb76e90abdf774eb5728a23a677c3b5cb221ee025"
+    },
+    {
+      "id": "03_availability_denial",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/03_availability_denial/source.json",
+      "gold_relative_path": "disputes/03_availability_denial/expected.json",
+      "gold_sha256": "077cc133c2cf9f7965b80feaa62e06d2bae5b2b5c996eacfc4f732476e663ea5",
+      "reply_text_sha256": "c37dd07999a302c9565d99c16df9d162f6ee0dacdffdd8132a4f68aaf28d8463"
+    },
+    {
+      "id": "04_maintenance_denial",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/04_maintenance_denial/source.json",
+      "gold_relative_path": "disputes/04_maintenance_denial/expected.json",
+      "gold_sha256": "08cfd35e2686e4b53728d9a73c9419b36bd7a77ab6bda2aa1eefd34588ebdf37",
+      "reply_text_sha256": "9de50c908fbcc1baa045c863de3f288f9702dd138d5d33f601fc18d6c87722ec"
+    },
+    {
+      "id": "05_full_award",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/05_full_award/source.json",
+      "gold_relative_path": "disputes/05_full_award/expected.json",
+      "gold_sha256": "7479f12a989c4f6134cef4917cc8c64aa325ba533ee86373142b94549df5115c",
+      "reply_text_sha256": "832f7b97b0e140369f89102580bfbdba90c6148626e9de88159a8c9ec597f32c"
+    },
+    {
+      "id": "06_partial_award",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/06_partial_award/source.json",
+      "gold_relative_path": "disputes/06_partial_award/expected.json",
+      "gold_sha256": "74f01161439c435367e76ac699d6deaac95af21f40cd215598ea635139bb84ba",
+      "reply_text_sha256": "3df5a064d3ef36dcb7714422ea5f93c2af31d05039f9f1e36d28436894a8150d"
+    },
+    {
+      "id": "07_review_conditional",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/07_review_conditional/source.json",
+      "gold_relative_path": "disputes/07_review_conditional/expected.json",
+      "gold_sha256": "7f7dc1831934b683397d2573a9571d41e2dadd3ce3e1ddcb6e207b7f817863ea",
+      "reply_text_sha256": "738dfe368fcd325a6958720cde4536fbd2cbb13f35846fbaa750aff108478f8f"
+    },
+    {
+      "id": "08_review_contradiction",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/08_review_contradiction/source.json",
+      "gold_relative_path": "disputes/08_review_contradiction/expected.json",
+      "gold_sha256": "199be025ea8225f4bc73e3c00f3c176b41a79509ff913c17aefd5c54f0f7a529",
+      "reply_text_sha256": "38b686617b5c5c64cfdc2d09af14be3cfe7af1f8a64a6c8342c9ada913b9f10d"
+    },
+    {
+      "id": "09_review_currency",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/09_review_currency/source.json",
+      "gold_relative_path": "disputes/09_review_currency/expected.json",
+      "gold_sha256": "fb2c16fd06f3c53359e1e5749f74912fc5c1f403835342c181acb4c24649f911",
+      "reply_text_sha256": "5a8f59eb6cf803fc89694b3256617aff7138faf02e3f006d7798d550d6b623d5"
+    },
+    {
+      "id": "10_review_release",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/10_review_release/source.json",
+      "gold_relative_path": "disputes/10_review_release/expected.json",
+      "gold_sha256": "37e7d4fabd8a6b12a985d6176b86e69205f68af973be4cff36ac8655844312cf",
+      "reply_text_sha256": "e9a750de8f0291d4b6ee7d22c63a4a256d37781003e243d1ed40ac3a9ffbde1f"
+    },
+    {
+      "id": "11_review_quotation",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/11_review_quotation/source.json",
+      "gold_relative_path": "disputes/11_review_quotation/expected.json",
+      "gold_sha256": "07a9e1eaa70b23041d6f0c0318ddaada9aad8ea6e721bbe0e6060656fd76ada4",
+      "reply_text_sha256": "6cad62c3cc14c9649b92dabad76e7510899b9a3eee975890a17608b028037f21"
+    },
+    {
+      "id": "12_review_unbound_claim",
+      "kind": "dispute",
+      "public_source": "fixtures/evaluation84_public/disputes/12_review_unbound_claim/source.json",
+      "gold_relative_path": "disputes/12_review_unbound_claim/expected.json",
+      "gold_sha256": "0b9287a53f0a2a6ba1d7f28c0d3d7a607854af6fc1fcd35ac079087ff6e8c6d7",
+      "reply_text_sha256": "5211a1338c391c5883bc5ffdf91fc0fcb76425da3cffe105b15a8c7dbae856ef"
+    }
+  ],
+  "files": [
+    {
+      "path": "fixtures/evaluation84_public/disputes/01_late_filing/source.json",
+      "sha256": "f30b299ca3481d143069aa272fcfbc7ac5eb2643ef276a27c55f21dc0da1abbe",
+      "bytes": 1722
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/02_missing_artifact/source.json",
+      "sha256": "3ba94678f0d99e3c154c9556883451cd7e138b3b43bb66fd9056da7b46d7629f",
+      "bytes": 1754
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/03_availability_denial/source.json",
+      "sha256": "1fae827bc79e60531cf33c2822b2979b9b45eb7525808197e77176ae9fa7f3cb",
+      "bytes": 1756
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/04_maintenance_denial/source.json",
+      "sha256": "391e6f9c251ec43702fca5a26ba2441dd658288b561cd6b3f88311e71831cdf5",
+      "bytes": 1750
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/05_full_award/source.json",
+      "sha256": "401c4b6e7fc8fcf3aa439dcb7dd58535bd56da94afb46f36fe8a2916218a44e0",
+      "bytes": 1700
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/06_partial_award/source.json",
+      "sha256": "45e490122dc4e537c49330667dd6e2c2ef5d15428bf4d05ef6a719a1ab9598e1",
+      "bytes": 1712
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/07_review_conditional/source.json",
+      "sha256": "4ba17801c12d7694aa26fdb3783d9231ca890b47991e30594e870aa84029bdd7",
+      "bytes": 1756
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/08_review_contradiction/source.json",
+      "sha256": "988a02f00a7c20743c49ce1bbab8e570413dc9f4bc2ede63c2a068c791fcc2ea",
+      "bytes": 1793
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/09_review_currency/source.json",
+      "sha256": "4ff6166b48f4eab9763344b07813c6ac92ec064a3b91b6e4efc1bd743ad7d3aa",
+      "bytes": 1732
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/10_review_release/source.json",
+      "sha256": "c9deb08a0568103af6977659cf4412b78d133dbccb4a96afb1c82f8d8536b62d",
+      "bytes": 1828
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/11_review_quotation/source.json",
+      "sha256": "3fb8af87b6e0f783978e916c0556a826495a430abdf09be182a3e0033b0843bb",
+      "bytes": 1815
+    },
+    {
+      "path": "fixtures/evaluation84_public/disputes/12_review_unbound_claim/source.json",
+      "sha256": "7fc8bf613437f279fcad45dd431f4ca537855782fcb749f1ed12a9be179c5183",
+      "bytes": 2065
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/aggregate_fixed_month/customer.json",
+      "sha256": "86343ae8b20dfe28dd57613cc976a020d9b80e9e12d2ab482be2e090c36d5541",
+      "bytes": 5405
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/aggregate_fixed_month/document.json",
+      "sha256": "53b93d2caccf4ceb12402a31005b8e4c0b7266f4ab8bdccac16b99ee304cc157",
+      "bytes": 1315
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/ambiguous_deadline/customer.json",
+      "sha256": "a22b26c3660a8472aa704604034b6d5f764af0f3a42334a7c971ced1f4e6d877",
+      "bytes": 354
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/ambiguous_deadline/document.json",
+      "sha256": "f01faa1e3be7455181b312f72247bfa606d0cf3ea37962ce982745364d2338e3",
+      "bytes": 828
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/completed_step/customer.json",
+      "sha256": "bd5d7db52088e9607db810027f79ec2fd47f8642d5e5aed67be00abefe7578eb",
+      "bytes": 4286
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/completed_step/document.json",
+      "sha256": "f9e350d0d7be179cca2461b1e8a9db6fb138faa7f1acb99985f820cd78158fab",
+      "bytes": 961
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/monthly_tier/customer.json",
+      "sha256": "18a3a5d52e1fda0626fa765441bf844f8a17ad5937f6f74a596ae2ec98e77048",
+      "bytes": 4281
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/monthly_tier/document.json",
+      "sha256": "ed88ac8ec5b669f488cfeac3ba5b1de0531f0fc20158427caf6b4f3d4fbd1862",
+      "bytes": 936
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/resource_month/customer.json",
+      "sha256": "0171e92c86442b6cfc4a9605ddb1fb2b40e77782918db7a6f8b76aa7dde9f983",
+      "bytes": 3092
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/resource_month/document.json",
+      "sha256": "487f63775562785af357a8eec0c8dfc2ac37df59beb2dee7dae8a224767e37a0",
+      "bytes": 1277
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/unsupported_variable_fee/customer.json",
+      "sha256": "f5cc5efbc01781a7770593584f2de7dce3db202ac78744a85694a9008d168a89",
+      "bytes": 368
+    },
+    {
+      "path": "fixtures/evaluation84_public/onboarding/unsupported_variable_fee/document.json",
+      "sha256": "0b2a8a3eb4920f346bbee46fb84db612d5c660d4e9ac61bbf4aa8129946bb801",
+      "bytes": 834
+    }
+  ]
+}

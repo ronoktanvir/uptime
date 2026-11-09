@@ -1,0 +1,116 @@
+{
+  "classification": "synthetic_customer",
+  "overlay": {
+    "agreement": "Talus Signal Availability Agreement",
+    "account": "Cedar Orrery Studio",
+    "product": "Event Relay",
+    "plan": "Orchard",
+    "effective_from": "2033-01-01",
+    "effective_until": "2033-12-31",
+    "fee_line_ref": "fee-talus-oct-33",
+    "currency": "USD"
+  },
+  "scenarios": [
+    {
+      "name": "timely_outage",
+      "facts": {
+        "agreement": "Talus Signal Availability Agreement",
+        "account": "Cedar Orrery Studio",
+        "product": "Event Relay",
+        "plan": "Orchard",
+        "fee_line_ref": "fee-talus-oct-33",
+        "month": "2033-10",
+        "eligible_downtime_minutes": 100,
+        "monitor_source": "simulated_vendor",
+        "month_complete": true,
+        "exclusions_removed": true,
+        "monthly_fee_cents": 36000,
+        "received_at": "2033-11-12T09:00:00Z",
+        "monitor_ref": "monitor-2033-10",
+        "fee_ref": "fee-talus-oct-33",
+        "monitor_month": "2033-10",
+        "fee_month": "2033-10"
+      }
+    },
+    {
+      "name": "no_outage",
+      "facts": {
+        "agreement": "Talus Signal Availability Agreement",
+        "account": "Cedar Orrery Studio",
+        "product": "Event Relay",
+        "plan": "Orchard",
+        "fee_line_ref": "fee-talus-oct-33",
+        "month": "2033-10",
+        "eligible_downtime_minutes": 0,
+        "monitor_source": "simulated_vendor",
+        "month_complete": true,
+        "exclusions_removed": true,
+        "monthly_fee_cents": 36000,
+        "received_at": "2033-11-12T09:00:00Z",
+        "monitor_ref": "monitor-2033-10",
+        "fee_ref": "fee-talus-oct-33",
+        "monitor_month": "2033-10",
+        "fee_month": "2033-10"
+      }
+    }
+  ],
+  "governing_fee_source": {
+    "classification": "synthetic_customer",
+    "document": {
+      "name": "Talus Signal fixed monthly order",
+      "ref": "order-TS-ORCHARD-2033",
+      "text": "Talus Signal fixed monthly order TS-ORCHARD-2033. Cedar Orrery Studio orders quantity one of Event Relay on the Orchard plan for a fixed USD 360.00 monthly service fee. The order covers the period 2033-01-01 through 2033-12-31 inclusive. Billing is monthly in arrears, after each UTC calendar service month ends. Tax is zero. This fee order supplements Talus Signal Availability Agreement without changing availability, service-credit percentages, filing terms, or remedies."
+    },
+    "pricing_facts": {
+      "vendor": "Talus Signal",
+      "vendor_id": "vendor-monthly_tier",
+      "customer": "Cedar Orrery Studio",
+      "customer_id": "customer-cedar-orrery",
+      "contract_id": "TS-ORCHARD-2033",
+      "sla_agreement": "Talus Signal Availability Agreement",
+      "service": "Event Relay",
+      "plan": "Orchard",
+      "quantity": "1",
+      "currency": "USD",
+      "fixed_monthly_fee_cents": 36000,
+      "effective_from": "2033-01-01",
+      "effective_until": "2033-12-31",
+      "invoicing_timing": "monthly_in_arrears",
+      "signature_at": "2032-12-14T15:00:00Z"
+    },
+    "invoice": {
+      "id": "invoice-TS-ORCHARD-2033-2033-10",
+      "ref": "invoice-ref-TS-ORCHARD-2033",
+      "vendor": "Talus Signal",
+      "vendor_id": "vendor-monthly_tier",
+      "customer": "Cedar Orrery Studio",
+      "customer_id": "customer-cedar-orrery",
+      "contract_id": "TS-ORCHARD-2033",
+      "issued_at": "2033-11-02T11:00:00Z",
+      "observed_at": "2033-11-02T11:00:00Z",
+      "paid": true,
+      "currency": "USD",
+      "service_start": "2033-10-01T00:00:00Z",
+      "service_end_exclusive": "2033-11-01T00:00:00Z",
+      "lines": [
+        {
+          "ref": "fee-talus-oct-33",
+          "service": "Event Relay",
+          "plan": "Orchard",
+          "quantity": "1",
+          "unit_price_cents": 36000,
+          "net_amount_cents": 36000,
+          "tax_cents": 0
+        }
+      ],
+      "net_amount_cents": 36000,
+      "tax_cents": 0,
+      "total_amount_cents": 36000
+    },
+    "custody": {
+      "kind": "scripted_test_source",
+      "ref": "custody-TS-ORCHARD-2033",
+      "statement": "These fictional source facts are authored for a local test. A harness may attest their local custody but may not represent them as an actual customer signature, human approval, or external provider confirmation."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Velvet Tern February Service Undertaking",
+  "uri": "urn:uptime:evaluation84:aggregate_fixed_month",
+  "classification": "synthetic_public",
+  "text": "Velvet Tern February Service Undertaking\nVelvet Tern supplies Index Ferry on the Grove plan for one service period: from 2036-02-01T00:00:00Z inclusive until 2036-03-01T00:00:00Z exclusive. This is the complete UTC calendar month of February 2036, containing 29 days and 41760 minutes. No other month is covered by this undertaking.\nVelvet Tern's complete account-level report of unavailable minutes is the authoritative availability measurement for Index Ferry. Availability equals 100 multiplied by (1 minus the reported unavailable minutes divided by 41760).\nAvailability below 99.7% earns a service credit equal to 11% of the paid monthly recurring subscription charge for Index Ferry on the Grove plan. Taxes and support charges are excluded. Round the final credit to the nearest cent, with exact half cents rounded upward.\nThe paid invoice and the complete vendor report must each identify the account and service month and have a recorded timestamp and an integrity digest of their content.\nThe claim for February 2036 must be received by Velvet Tern no later than 2036-03-14T16:00:00Z. The remedy is a noncash service credit only.\n"
+}

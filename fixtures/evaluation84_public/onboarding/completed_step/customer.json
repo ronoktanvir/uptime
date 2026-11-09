@@ -1,0 +1,116 @@
+{
+  "classification": "synthetic_customer",
+  "overlay": {
+    "agreement": "Mistral Loom Service Promise",
+    "account": "Cedar Orrery Studio",
+    "product": "Archive Shuttle",
+    "plan": "Lantern",
+    "effective_from": "2034-01-01",
+    "effective_until": "2034-12-31",
+    "fee_line_ref": "fee-mistral-nov-34",
+    "currency": "USD"
+  },
+  "scenarios": [
+    {
+      "name": "timely_outage",
+      "facts": {
+        "agreement": "Mistral Loom Service Promise",
+        "account": "Cedar Orrery Studio",
+        "product": "Archive Shuttle",
+        "plan": "Lantern",
+        "fee_line_ref": "fee-mistral-nov-34",
+        "month": "2034-11",
+        "eligible_downtime_minutes": 432,
+        "monitor_source": "simulated_vendor",
+        "month_complete": true,
+        "exclusions_removed": true,
+        "monthly_fee_cents": 78503,
+        "received_at": "2034-12-08T12:10:00Z",
+        "monitor_ref": "monitor-2034-11",
+        "fee_ref": "fee-mistral-nov-34",
+        "monitor_month": "2034-11",
+        "fee_month": "2034-11"
+      }
+    },
+    {
+      "name": "no_outage",
+      "facts": {
+        "agreement": "Mistral Loom Service Promise",
+        "account": "Cedar Orrery Studio",
+        "product": "Archive Shuttle",
+        "plan": "Lantern",
+        "fee_line_ref": "fee-mistral-nov-34",
+        "month": "2034-11",
+        "eligible_downtime_minutes": 0,
+        "monitor_source": "simulated_vendor",
+        "month_complete": true,
+        "exclusions_removed": true,
+        "monthly_fee_cents": 78503,
+        "received_at": "2034-12-08T12:10:00Z",
+        "monitor_ref": "monitor-2034-11",
+        "fee_ref": "fee-mistral-nov-34",
+        "monitor_month": "2034-11",
+        "fee_month": "2034-11"
+      }
+    }
+  ],
+  "governing_fee_source": {
+    "classification": "synthetic_customer",
+    "document": {
+      "name": "Mistral Loom fixed monthly order",
+      "ref": "order-ML-LANTERN-2034",
+      "text": "Mistral Loom fixed monthly order ML-LANTERN-2034. Cedar Orrery Studio orders quantity one of Archive Shuttle on the Lantern plan for a fixed USD 785.03 monthly service fee. The order covers the period 2034-01-01 through 2034-12-31 inclusive. Billing is monthly in arrears, after each UTC calendar service month ends. Tax is zero. This fee order supplements Mistral Loom Service Promise without changing availability, service-credit percentages, filing terms, or remedies."
+    },
+    "pricing_facts": {
+      "vendor": "Mistral Loom",
+      "vendor_id": "vendor-completed_step",
+      "customer": "Cedar Orrery Studio",
+      "customer_id": "customer-cedar-orrery",
+      "contract_id": "ML-LANTERN-2034",
+      "sla_agreement": "Mistral Loom Service Promise",
+      "service": "Archive Shuttle",
+      "plan": "Lantern",
+      "quantity": "1",
+      "currency": "USD",
+      "fixed_monthly_fee_cents": 78503,
+      "effective_from": "2034-01-01",
+      "effective_until": "2034-12-31",
+      "invoicing_timing": "monthly_in_arrears",
+      "signature_at": "2033-12-11T15:00:00Z"
+    },
+    "invoice": {
+      "id": "invoice-ML-LANTERN-2034-2034-11",
+      "ref": "invoice-ref-ML-LANTERN-2034",
+      "vendor": "Mistral Loom",
+      "vendor_id": "vendor-completed_step",
+      "customer": "Cedar Orrery Studio",
+      "customer_id": "customer-cedar-orrery",
+      "contract_id": "ML-LANTERN-2034",
+      "issued_at": "2034-12-02T11:00:00Z",
+      "observed_at": "2034-12-02T11:00:00Z",
+      "paid": true,
+      "currency": "USD",
+      "service_start": "2034-11-01T00:00:00Z",
+      "service_end_exclusive": "2034-12-01T00:00:00Z",
+      "lines": [
+        {
+          "ref": "fee-mistral-nov-34",
+          "service": "Archive Shuttle",
+          "plan": "Lantern",
+          "quantity": "1",
+          "unit_price_cents": 78503,
+          "net_amount_cents": 78503,
+          "tax_cents": 0
+        }
+      ],
+      "net_amount_cents": 78503,
+      "tax_cents": 0,
+      "total_amount_cents": 78503
+    },
+    "custody": {
+      "kind": "scripted_test_source",
+      "ref": "custody-ML-LANTERN-2034",
+      "statement": "These fictional source facts are authored for a local test. A harness may attest their local custody but may not represent them as an actual customer signature, human approval, or external provider confirmation."
+    }
+  }
+}

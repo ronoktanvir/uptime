@@ -1,0 +1,47 @@
+{
+  "id": "04_maintenance_denial",
+  "vendor": "Harbor Fern",
+  "reply": "The reported interruption was scheduled maintenance and is excluded from covered downtime. We therefore deny the service credit.",
+  "context": {
+    "claim_ref": "E84-04_maintenance_denial",
+    "agreement": "Harbor Fern Resource SLA",
+    "account": "Cedar Orrery Studio",
+    "product": "Queue Basin",
+    "plan": "Cobalt",
+    "month": "2035-09",
+    "currency": "USD",
+    "claimed_amount_cents": 14815,
+    "claim_basis": {
+      "document_path": "fixtures/evaluation84_public/onboarding/resource_month/document.json",
+      "customer_path": "fixtures/evaluation84_public/onboarding/resource_month/customer.json",
+      "scenario_name": "timely_outage"
+    },
+    "filing": {
+      "required_by": "2035-10-19T18:00:00Z",
+      "received_at": "2035-10-10T13:00:00Z",
+      "receipt_ref": "receipt-04_maintenance_denial"
+    },
+    "evidence": [
+      {
+        "ref": "fee-harbor-sep-35",
+        "category": "invoice_line",
+        "description": "Complete paid affected-service fee line, with scope and amount as in the referenced customer facts.",
+        "available": true
+      },
+      {
+        "ref": "harbor-monitor-sep35",
+        "category": "monitor",
+        "description": "Complete scoped service observation as in the referenced customer facts.",
+        "available": true
+      }
+    ],
+    "contract_facts": [
+      "The attached claim basis supplies the complete governing source, affected fee, service observations, and actual receipt.",
+      "No settlement, release, waiver, foreign-currency award, or authority to negotiate has been accepted."
+    ],
+    "sender": {
+      "role": "vendor_claims",
+      "authority": "synthetic_vendor"
+    }
+  }
+}
