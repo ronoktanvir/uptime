@@ -726,7 +726,19 @@ def independent_inbox_controls(public, *, semantic_review=None):
                         text="The filing window expired."), "independent-late-denial", arrived.isoformat()):
                         raise BoundaryError("INDEPENDENT_LATE_DENIAL_REFUSED")
                     row = transport.get(path, "independent_late_readback")
-                    result["passed"] = bool(row and row["stage"] == "DENIAL_ACCEPTED" and not row["actions"] and not row["submissions"])
+                    # D06 (decision 89e): a substantiated denial waits for an explicit reviewer
+                    # acceptance bound to the offered basis; nothing closes the claim by itself.
+                    offered = [a for a in (row or {}).get("actions", []) if a.get("id") == "accept-denial"]
+                    pending = bool(row and row["stage"] == "DENIAL_REVIEW" and len(row["actions"]) == 1
+                                   and len(offered) == 1 and not row["submissions"])
+                    result["before_acceptance"] = dict(stage=row["stage"] if row else None,
+                                                       actions=[a.get("id") for a in (row or {}).get("actions", [])],
+                                                       submissions_count=len((row or {}).get("submissions", [])))
+                    accepted = (transport.post(path+"/denial-acceptance", {"basis_digest": offered[0]["basis_digest"]},
+                                               "independent_late_accept_denial") if pending else None)
+                    row = transport.get(path, "independent_late_closed_readback") if accepted else row
+                    result["passed"] = bool(pending and accepted and row and row["stage"] == "DENIAL_ACCEPTED"
+                                            and not row["actions"] and not row["submissions"])
                 else:
                     if not row or row["amount"] != scenarios[0]["expected"]["amount"]:
                         raise BoundaryError("INDEPENDENT_SIGNED_POSITIVE_NOT_READY")
