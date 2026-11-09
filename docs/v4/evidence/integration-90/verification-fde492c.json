@@ -1,0 +1,91 @@
+{
+ "schema": "uptime-integration-verification/1",
+ "branch": "work/integration-90",
+ "tested_commit": "fde492c7eb78fb0b1736cd215593133abfd598a6",
+ "fresh_clone": true,
+ "clone_status_lines": 0,
+ "started_at": "2026-11-09T12:50:44Z",
+ "ended_at": "2026-11-09T13:00:04Z",
+ "commands": {
+  "uv_sync": "uv sync --locked",
+  "pytest": "uv run --locked pytest -p no:cacheprovider -o tmp_path_retention_policy=failed --basetemp=<scratch>/bt",
+  "node": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+  "progress_graph": "node scripts/test_progress_graph.cjs",
+  "rehearse": "uv run --locked python scripts/rehearse.py",
+  "check_repo": "uv run --locked python scripts/check_repo.py",
+  "render_check": "uv run --locked python scripts/render_requirements.py --check"
+ },
+ "steps": {
+  "uv_sync": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "pytest": {
+   "exit": 0,
+   "seconds": 525
+  },
+  "node": {
+   "exit": 0,
+   "seconds": 1
+  },
+  "progress_graph": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "rehearse": {
+   "exit": 0,
+   "seconds": 1
+  },
+  "check_repo": {
+   "exit": 0,
+   "seconds": 33
+  },
+  "render_check": {
+   "exit": 0,
+   "seconds": 0
+  }
+ },
+ "pytest_result": "================= 4523 passed, 1 warning in 523.01s (0:08:43) ==================",
+ "node_counts": {
+  "tests": 92,
+  "pass": 92,
+  "fail": 0
+ },
+ "progress_graph": "Progress graph: dependency ordering, invalid graphs, and link safety passed.",
+ "check_repo": "Secret check passed for 2548 versioned text objects.",
+ "merged_increments_round1": {
+  "W1 Ramp case lineage (agent4)": "1c8bc86",
+  "W3 requirement card and refusal diagnostics (agent2)": "f9153b2, edf0c05",
+  "W5 evidence period applicability (gen5)": "5b02d61, dcec513",
+  "W9 operations recovery (gen6)": "27e4926",
+  "Browser sign-in fix (from $HOME/uptime working tree)": "2205f0a",
+  "Hard-kill restart probe (gent8, from 52bea97)": "37d73f2"
+ },
+ "added_in_round3": {
+  "Ronok 2a closure-bound accept-denial mandate (W0)": "b36827f",
+  "Webhook hardening (W1 request, W0 file)": "c69d2ca",
+  "W9 preflight, deadline alerts, restore fence, demo-machine runbook (gen6)": "b3a3fef",
+  "W1 outbox safety, contract tests, pre-filming check (agent4)": "1ae1960",
+  "W4 narrow F3 rule (agent3, delegated)": "a350019",
+  "W4 intake scope 89b and wire identity 89c (agent3)": "99a603c, f29b260",
+  "W3 D05 phase 1 automatic family selection (agent2)": "6d31f93",
+  "W5 public status source and custody audit (gen5)": "8d3a54d, df16d9d",
+  "W7 guide abstention, denial UI, presenter sweep (gent7)": "0b6523e, d0c590e, 3f13db8",
+  "Verification-lane probes (gent8)": "2056856 (probe file only)"
+ },
+ "added_in_round2": {
+  "D03-A identity (agent1)": "6ebaffe (merge 1f6238e)",
+  "W1 Ramp association on source-identity/1 (agent4)": "e8cb350 as a8bc96e",
+  "W0 reconciliation identity check": "3dbe8ab",
+  "W4 reviewed denial acceptance (agent3)": "16116ee (merge b5cd49e)",
+  "W7 finance view and guide (gent7)": "db779c3, 679133c",
+  "W9 decision notes (gen6)": "4a8a80a, 25d0a5e"
+ },
+ "not_merged_round1": [
+  "D03/D04 implementation (work/identity-pricing-89)",
+  "W4 dispute disposition (work/dispute-disposition-89)",
+  "W7 finance view and guide (work/finance-guide-90)",
+  "Evaluation 84-86 runners (work/release-evaluation-gent8; paused by AGENTS.md)"
+ ],
+ "limits": "Regression coverage only. No Ramp, model, vendor or human action occurred. Not recovery, release or generalization evidence."
+}
