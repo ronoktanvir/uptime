@@ -31,7 +31,9 @@ Corrected current-status records (history preserved): [LOCAL-REVIEW-EXCEPTION.md
 | `e6e8b6b` | docs | D03/D04 decision record (owner Ronok, 2026-11-09) and agreed interfaces |
 | `2beb1d3` | docs | November 3 orchestration records marked as historical |
 | `64343fa` | test | Fresh-clone suite at `1b627ad`: 4,110 passed, 1 warning; status and progress refreshed |
-| `b5cd49e` | merge | W4 reviewed denial acceptance and dispute trace (`16116ee`). **Not covered by the recorded suite**; the next integration run covers it |
+| `b5cd49e` | merge | W4 reviewed denial acceptance and dispute trace (`16116ee`). Covered by hosted CI at `64343fa` (4,147 passed, 1 warning) |
+| `0f39570` | merge | W7 finance view, grounded read-only guide and refusal-diagnostic UI (`db779c3`). **Not yet covered by a full suite** |
+| `93d896a` | docs | Ronok's D05, D06, D07 and D11 decisions and the D04 clarification |
 
 Other commits link ledgers, ADRs and capability rows.
 
