@@ -40,6 +40,25 @@
   const list = value => Array.isArray(value) ? value : [];
   const shown = value => value === null || value === undefined || value === '' ? 'Not provided' : String(value);
   const label = key => key.replaceAll('_', ' ');
+  // Plain wording for server dispute codes; unknown codes are shown as lower-case words, never guessed.
+  const CATEGORY = {MISSING_EVIDENCE:'missing evidence', CONTRACTUAL_DENIAL:'contractual denial',
+    INCORRECT_FACTUAL_ASSERTION:'incorrect factual assertion', UNRESOLVED_DENIAL:'unresolved denial',
+    PARTIAL_AWARD:'partial award', AWARD_REPORTED:'award reported', CHANGED_SCOPE:'changed scope', AMBIGUOUS_GROUNDS:'ambiguous grounds'};
+  const DISPOSITION = {PREPARE_CLAIM:'prepare the claim', AWAIT_RESPONSE:'awaiting the vendor response',
+    AWAIT_CURE_EVIDENCE:'awaiting the requested evidence', AWAIT_EVIDENCE:'awaiting evidence',
+    DENIAL_SUBSTANTIATED:'denial ground substantiated; accepting it is a separate step', ACCEPT_DENIAL:'denial accepted',
+    AWARD_RECORDED:'award recorded', PARTIAL_AWARD_RECORDED:'partial award recorded', ESCALATE:'needs a reviewer'};
+  const CHECKS = {governing_evaluation:'Governing evaluation', original_filing_within_window:'Original filing within the window',
+    follow_ups_preserve_original_filing:'Follow-ups keep the original filing', month_coverage_basis:'Month coverage basis',
+    timely_independent_maintenance_notice:'Timely independent maintenance notice', verified_measurement:'Verified measurement',
+    denial_ground_substantiated:'Denial ground substantiated', explicit_denial_acceptance:'Explicit denial acceptance',
+    award_not_above_claim:'Award not above the claim', contradicting_deliveries_unresolved:'Unresolved contradicting deliveries',
+    status_origin:'Status record origin'};
+  // Results whose true/false does not mean pass/fail.
+  const RESULTS = {contradicting_deliveries_unresolved:{true:'yes, review needed', false:'none'},
+    status_origin:{ENROLLED_SOURCE_NOT_ORIGIN_VERIFIED:'enrolled source; origin not verified', NO_STATUS_RECORD:'no status record'}};
+  const NEXT = {'accept-denial':'Accept denial', 'interpretation-review':'Review vendor wording'};
+  const plain = (map, value) => value == null ? 'Not determined' : map[value] || String(value).replaceAll('_', ' ').toLowerCase();
   const hidden = /secret|token|password|authorization|cookie|credential|private_key|service_key|signature/i;
   function parseJSON(text, kind) {
     let value;
@@ -196,11 +215,98 @@
       list(data.actions).forEach(action => {
         const id = typeof action === 'string' ? action : action.id;
         if (typeof id !== 'string' || !id) return;
+        if (action && typeof action === 'object' && action.route === 'denial-acceptance') {
+          // The generic action route refuses this; the offer is bound to the exact denial basis the server showed.
+          if (typeof action.basis_digest !== 'string' || !/^[a-f0-9]{64}$/.test(action.basis_digest)) return;
+          const accept = button('Accept denial', () => acceptDenial(m, base, action.basis_digest));
+          m.writes.push(accept);
+          n.append(accept, note('Closes this claim on the substantiated denial ground. No further follow-up is sent and no credit is recorded.'));
+          return;
+        }
         const b = button(typeof action === 'string' ? label(action) : (action.label === 'Replay shadow checks' ? 'Run shadow checks' : action.label) || label(id), () => mutate(m, base + '/actions/' + encodeURIComponent(id), {}));
         m.writes.push(b); n.append(b);
       });
       if (!n.children.length) n.append(note('No approved action is available in the returned server state.'));
       return n;
+    }
+    async function acceptDenial(m, base, digest) {
+      if (!writable() || mounts.get(m.root) !== m) return;
+      busy = true; sync(); status(m, 'Submitting for server authorization…');
+      let reload = false;
+      try {
+        const result = await request(m, base + '/denial-acceptance', {basis_digest:digest});
+        if (!active(m)) return;
+        reload = true;
+        status(m, 'The server recorded the denial acceptance at stage ' + shown(result?.stage) + '.');
+      } catch (error) {
+        if (!active(m)) return;
+        if (error?.status === 409) {
+          reload = true;
+          status(m, 'The denial basis changed since this page loaded. Nothing was accepted. Showing the current offer.');
+        } else {
+          uncertain = true;
+          status(m, 'Request did not complete reliably. Its outcome may be unknown. Refresh server state before another change.');
+        }
+      } finally {
+        busy = false; sync();
+        if (reload && mounts.get(m.root) === m && m.claimId) {
+          const message = m.status?.textContent;
+          await inspect(m.root, m.claimId);
+          const current = mounts.get(m.root);
+          if (current && message) status(current, message);
+        }
+      }
+    }
+    // Records a source sent for another account or resource. A blocking one stops every case action until a person reviews it.
+    function contradictions(items) {
+      const rows = list(items).filter(item => item && typeof item === 'object');
+      if (!rows.length) return null;
+      const blocking = rows.some(item => item.blocking === true);
+      const n = add(el('div', undefined, 'v4-review v4-contradictions'), el('h4', blocking ? 'Review needed: conflicting source record' : 'Conflicting source records'),
+        note(blocking ? 'A source sent a record for another account or resource. A person must review it; this case offers no action until then.'
+          : 'A source sent a record for another account or resource. It is recorded and does not block this case.'));
+      const ul = el('ul');
+      rows.forEach(item => ul.append(el('li', [shown(item.kind), shown(item.subject ?? item.source), shown(item.received_at), shown(item.reason)].join(' · ')
+        + (item.blocking === true ? ' · blocking' : ''))));
+      return add(n, ul);
+    }
+    function disputeRecord(m, url) {
+      const n = add(el('div', undefined, 'v4-review v4-dispute-record'), el('h3', 'Dispute record'));
+      const out = el('div'); out.setAttribute('aria-live', 'polite');
+      const load = button('Show dispute record', async () => {
+        if (!active(m)) return;
+        load.disabled = true; out.replaceChildren(note('Loading the read-only dispute record…'));
+        try {
+          const t = await request(m, url);
+          if (!active(m)) return;
+          const facts = el('dl', undefined, 'v4-record');
+          for (const [k, v] of [['Disposition', plain(DISPOSITION, t.disposition)], ['Category', plain(CATEGORY, t.category)],
+            ['Final', t.final === true ? 'Yes' : 'No'], ['Claimed', t.ledger?.claimed], ['Awarded', t.ledger?.awarded]]) add(facts, el('dt', k), el('dd', v));
+          out.replaceChildren(facts);
+          if (t.stale_denial_review === true) out.append(note('The denial basis changed after review. This claim needs a reviewer again before any acceptance.'));
+          const conflicts = contradictions(t.contradicting_deliveries);
+          if (conflicts) out.append(conflicts);
+          list(t.correspondence).forEach(reply => {
+            const row = add(el('div', undefined, 'v4-dispute-reply'), el('strong', 'Vendor reply · ' + shown(reply.received_at)),
+              note('Ground: ' + shown(reply.ground) + ' · Category: ' + plain(CATEGORY, reply.category)), el('blockquote', reply.text));
+            const quote = reply.interpretation?.source?.quote;
+            if (typeof quote === 'string' && quote) row.append(note('Relied-on passage'), el('blockquote', quote));
+            out.append(row);
+          });
+          const checks = el('ul', undefined, 'v4-checks');
+          list(t.deterministic_checks).forEach(c => {
+            const special = RESULTS[c.check] && RESULTS[c.check][String(c.result)];
+            checks.append(el('li', plain(CHECKS, c.check) + ': '
+              + (special || (c.result === true ? 'pass' : c.result === false ? 'fail' : plain({}, c.result)))));
+          });
+          if (checks.children.length) out.append(el('h4', 'Deterministic checks'), checks);
+          const next = list(t.permitted_next_actions).map(id => NEXT[id] || label(String(id)));
+          out.append(note('Permitted next actions: ' + (next.length ? next.join(', ') : 'none') + '.'), note(shown(t.authority)));
+        } catch (error) {
+          if (active(m)) out.replaceChildren(note(error?.status === 401 ? 'Sign in again to read the dispute record.' : 'Dispute record unavailable. Nothing was changed.'));
+        } finally { load.disabled = false; }
+      });
+      return add(n, note('A read-only summary of the replies, checks and permitted next actions. It grants no approval or closure.'), load, out);
     }
     function inspector(m, data, correspondence = false) {
       const n = section(correspondence ? 'Correspondence case' : 'Case evidence & financial references');
@@ -217,7 +323,11 @@
           n.append(review, note('The review page uses your enrolled identity. Meaning review alone cannot file, close a denial or change money.'));
         }
         const id = data.claim_id ?? data.id;
+        const conflicts = contradictions(data.contradicting_deliveries);
+        if (conflicts) n.append(conflicts);
         if (typeof id === 'string' && id) n.append(actions(m, data, '/api/correspondence/claims/' + encodeURIComponent(id)));
+        if (typeof id === 'string' && id && data.trace_url === '/api/correspondence/claims/' + id + '/trace')
+          n.append(disputeRecord(m, '/api/correspondence/claims/' + encodeURIComponent(id) + '/trace'));
       }
       return n;
     }

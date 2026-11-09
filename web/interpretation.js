@@ -208,8 +208,13 @@
           result.append(el('p',pi===null?'No proposition drives a deterministic disposition; the reply stays in human review.':`Primary proposition ${pi+1} (${reviewedProps[pi]?.family}) is the only input to the deterministic disposition.`));
           for(const r of preview.retained_propositions||[])result.append(el('p',`Retained proposition ${r.index+1}: ${r.family} · ${r.polarity} · ${r.modality} · ${r.referent} — informational only; no award, ledger or action effect.`));
         }
-        if(preview.closure_suggested)result.append(el('p','The evidence supports a denial; closure remains a separate review decision.'));
-        if(preview.prepare_allowed)result.append(button('Prepare evidence-backed response draft',async()=>{const changed=await api(base+'/prepare-response',{review_id:review.id,preview_digest:preview.digest});result.replaceChildren(el('h2','Draft prepared'),el('p',changed.stage+' · Existing exact approval and submission permissions still apply.'));}));
+        const categories={MISSING_EVIDENCE:'missing evidence',CONTRACTUAL_DENIAL:'contractual denial',INCORRECT_FACTUAL_ASSERTION:'incorrect factual assertion',UNRESOLVED_DENIAL:'unresolved denial',PARTIAL_AWARD:'partial award',AWARD_REPORTED:'award reported',CHANGED_SCOPE:'changed scope',AMBIGUOUS_GROUNDS:'ambiguous grounds'};
+        const kind=v=>categories[v]||String(v).replaceAll('_',' ').toLowerCase();
+        if(preview.assertions&&preview.assertions.category)result.append(el('p','Classification: '+kind(preview.assertions.category)));
+        (preview.assertions?.propositions||[]).forEach((row,i)=>{if(row&&row.category)result.append(el('p',`Proposition ${i+1} classification: ${kind(row.category)}`));});
+        const denial=preview.disposition==='DENIAL_REVIEW';
+        if(preview.closure_suggested)result.append(el('p',denial?'The denial ground is substantiated. Accepting the denial is a separate step on the case page.':'The evidence supports a denial; closure remains a separate review decision.'));
+        if(preview.prepare_allowed)result.append(button(denial?'Record the substantiated denial ground (acceptance is a separate step)':'Prepare evidence-backed response draft',async()=>{const changed=await api(base+'/prepare-response',{review_id:review.id,preview_digest:preview.digest});result.replaceChildren(el('h2','Draft prepared'),el('p',changed.stage+' · Existing exact approval and submission permissions still apply.'));}));
         else result.append(el('p','No response preparation is authorized by this preview.'));
         decisions.append(result);
       }));
