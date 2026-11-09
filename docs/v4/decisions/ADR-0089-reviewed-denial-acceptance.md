@@ -141,3 +141,30 @@ Branch `work/dispute-intake-scope-89b`, commit `a794d55`, on `work/integration-9
 **Validation.** Focused runs across the dispute tests and the 32 other intake callers: the first design gave **2 failed, 1666 passed**; the final design gave **1669 passed, 1 warning**. See [evidence/dispute-intake-scope-89b/verification.json](../evidence/dispute-intake-scope-89b/verification.json). Five existing tests move only at the refused delivery. Their safety assertions are unchanged, and the ledger lists each by name.
 
 **Rollback.** Revert `a794d55`. Stored `contradicting_deliveries` and `inbox_refusal` rows become inert history. No evidence, hash, signature or idempotency key of an accepted delivery changes.
+
+## Addenda 89c–89f: decisions recorded on 2026-11-09
+
+Every item below is merged in `work/integration-90`. Each lists who decided it and whether that was Ronok personally or delegated.
+
+- **89c: exact source identities on the legacy Twilio route.** Ronok's D03-A, extended to vendor and service names; agent1's `source_identity` interface. Commits `0af939d` and `f29b260`.
+  - The legacy `Ticket.account`, `vendor` and `product` are refused, never rewritten, when they fall outside `source-identity/1`. The claimant returns `INSUFFICIENT_EVIDENCE` or `UNSUPPORTED`, the counterparty `CONTESTED_SCOPE`, and construction raises.
+  - Oracle pins and replay traces are byte-identical. 248 passed.
+- **89d: narrow month-coverage rule.** D07; W5 finding F3, option A. Q1 was chosen at 04:28 PST by the overview session **under Ronok's delegated (Recommended) authority, not by Ronok personally**. Commit `a350019`.
+  - In the ordinary Twilio profile, a target-met result built from one provisioned status record, with no signed complete-month report and no substantiated exclusion, is `INSUFFICIENT_EVIDENCE` naming the report.
+  - A breach still yields the fixed 10% credit (`twilio.py:21`, `:405–413`).
+  - 0 existing tests moved; 1004 passed. The full F3 rule (option B), measured in a reverted experiment, failed 168 cases across 112 tests; it remains a recorded later option.
+- **89e: no denial closes a claim without explicit acceptance.** Ronok's D06 ("Humans gate judgment"); Q2 option A, chosen at 04:28 PST **under delegated authority**. Commit `53e29ee`.
+  - The finite-grammar path no longer closes a substantiated maintenance, late-filing or availability denial by itself. It reaches `DENIAL_REVIEW` like a reviewed reading.
+  - A new oracle version, `fixtures/correspondence/oracle-v2-d06.json`, holds the intermediate step; the frozen `oracle.json` is untouched.
+  - Six existing tests gain one explicit acceptance step before unchanged terminal assertions. 1024 passed.
+  - This supersedes the "finite-grammar automatic closure is pre-existing and D06-dependent" note above.
+- **89f: closure-bound mandate.** Ronok's decision 2a, implemented by agent0 in `b36827f`; W4 wiring in `7579fdd`.
+  - `accept-denial` calls `mandates.check_closure_decision` with `closure_preview(claim, basis digest, scope, pre-change state)`.
+  - A mandated workspace's case view carries `mandate_closure` on the offer and never builds an outbound packet for it.
+  - The fail-closed `closure_permitted` gate and the W0 interface request above are both resolved. 1187 passed.
+- **Evaluation86.** Ronok personally chose "3a": resume once D04-C lands, first attempts only.
+  - agent3 executes; gent8 validates and grades.
+  - The runner branch `work/dispute-evaluation-86-run` has the frozen readings (`9e49ac9`) and corpus (`042d701`) merged unchanged, plus an offline per-case plan. No model call has been made.
+  - All 12 public sources leave component, incident, invoice and region unstated. Whether monthly-tier claims require an incident under D04-C's family table decides whether they can proceed past setup. No harness may invent one.
+
+The trace category and disposition for the authored Northwind walkthrough were checked through the real services: missing-evidence request, cure, then award reported, with every deterministic check true. The W7 dispute-record panel renders only Claimed and Awarded from the trace ledger, so it never shows a Local-ledger posting as zero.
