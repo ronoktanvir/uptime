@@ -74,6 +74,43 @@ No step approves an interpretation, adapter or activation. Failed and timed-out 
 - [`genuine-calls-summary.json`](../evidence/submission-onboarding-20261109/genuine-calls-summary.json): the six jobs, verified model, sessions, costs, timestamps, approvals and provenance notes;
 - one `*-initial.json` per contract: source, selection view, job views with provider receipts, and the adapter and requirements for the staged contract.
 
+## Preserved recorded workspace (for the film)
+
+The six recorded jobs and the SHADOW Corvid Ledger adapter are kept, unmodified, in an owner-only copy made after the server stopped (database SHA-256 `9043eaaf356071a1f45a841daf075a8cb3ee1945c009cd6b8437f95cb3241736`):
+
+`~/.local/share/uptime-engineering/tasks/submission-onboarding-20261109/recorded-workspace/`
+
+It holds `workspace.sqlite`, `protected/config.json` (pointing at its own `protected/approvals.json`), the disposable `role1-operator.jwk` credential and the request exports. The original run folder `~/.local/share/uptime-engineering/runtime/submission-onboarding-20261109/` is also kept.
+
+Serve it from a checkout of the integrated build that contains this branch:
+
+```bash
+uv run --locked python scripts/serve.py --db ~/.local/share/uptime-engineering/tasks/submission-onboarding-20261109/recorded-workspace/workspace.sqlite --mode replay --tenant submission-onboarding --port 8812 --public-proposal-config ~/.local/share/uptime-engineering/tasks/submission-onboarding-20261109/recorded-workspace/protected/config.json
+```
+
+Sign in at `http://127.0.0.1:8812/#vendors` as `role1-operator` with that credential file.
+
+**Read-only in effect.** All six jobs are terminal. Re-submitting the same request returns the same job, and the stored approvals expire at 2026-11-10T03:15Z. A new model call needs a new attempt identifier and a new operator approval. Signing in adds only a session record; staging again returns the same SHADOW revision.
+
+**Newer builds.** No migration is needed: the job table and registry tables are created idempotently. The recorded jobs and the adapter stay readable as `SELECTED`/SHADOW only while the build keeps these pins unchanged:
+- `uptime/vendor_model_jobs.py` SHA-256 `b90f74d8cc6c1bc0c0ba42031fd752b76e8d71fefa612c4c18cd60f8aa70268c`;
+- semantics revisions monthly `1b53500d662220505d125983684ec1753a937ad172fe12472acca712456dbf4a` and resource `7a9b09ee450f8e93affdede4b464c5052ed93a85ce258bc42f88dd34f3952b54`;
+- the Claude CLI binary at `~/.local/share/claude/versions/2.1.318`.
+
+If any changes, the selection view no longer finds the jobs, and the adapter shows REVIEW_REQUIRED. That is correct staleness, not damage. The job pages and their receipts remain readable. To check a build:
+
+```bash
+uv run --locked python -c "from uptime import vendor_terms; print(vendor_terms.SEMANTICS_REVISIONS)"
+```
+
+```bash
+shasum -a 256 uptime/vendor_model_jobs.py
+```
+
+As of `a40fd84` (integration), every pinned file equals the code that ran. The only difference is `public_proposal_jobs.py`, which this branch changes.
+
+**Film labelling.** Label the beat as a recorded run: job `26ee4e3f-e5e2-47c7-aebe-e1f4dc7c7402`, model `claude-opus-5-5`, session `41f4dcb6-ca5e-4c43-ac01-95d222de9737`, finished 2026-11-09 21:17:38Z. State that it is an authored contract, staged in SHADOW, not approved or active.
+
 ## What not to claim
 
 - The authored success is not a generalization score; the independent result is 0/4.

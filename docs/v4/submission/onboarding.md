@@ -73,6 +73,10 @@ Six calls, one per supported family per authored contract. Model `claude-opus-5-
 
 **Independent cohort, for comparison:** 0/4 intended positives, 6/6 refused, every monthly reading failing identifier grounding first. The authored positives were written inside the validated grammar (no-model pre-check), so their success is a demonstration, not a score. The Halden Relay refusal shows that the cohort's failure class also appears on in-grammar text. The generalization fix belongs to the next workstream and is not in this push; no grounding check was relaxed.
 
+**Code that ran.**
+- Halden Relay ran on `611efdf` exactly: the server started at 13:14:00 PST, after that commit, with no uncommitted `uptime/` change.
+- Corvid Ledger and the control ran on code byte-identical to `c4b64dd`'s `uptime/` tree. The server restarted at 13:17:17 PST, after the last diagnostics edit at 13:17:07; that file is unchanged in `c4b64dd`. The only later `uptime/` change is `finance_guide.py` in `57dc7e3` (13:21:18), after both runs.
+
 **Limits:**
 - The control's conflicting-terms and exclusion refusals were not reached by its genuine monthly call, because identifier grounding failed first. They are shown by `tests/test_submission_refusal_location.py` and `tests/test_vendor_selection_refusals_89.py`.
 - The Halden Relay record keeps the generic explanation it was stored with. Its precise passage is shown by an offline replay with the current code.
