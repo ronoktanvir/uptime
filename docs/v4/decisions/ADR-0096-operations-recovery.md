@@ -46,7 +46,7 @@ My first proposal (everything to `UNCERTAIN`) was rejected for that reason. Acti
 ## Validation
 
 - The original repairs were reproduced before any change. 14 existing suites passed at `03b372e`: 252 passed, 1 warning.
-- 26 new test cases are in `tests/test_operations_recovery_90.py`.
+- At the time of this ADR, 26 new test cases were in `tests/test_operations_recovery_90.py`. The final count is 40 cases with 27 detected mutations: see the [test ledger](../TEST-CHANGES-90-OPERATIONS.md) and the [W9 handoff](../HANDOFF-W9-OPERATIONS.md), which also records integration round 6 (`3f60647`: 4,664 passed).
 - The W1 owner (agent4) approved the three Ramp-file changes after running 983 Ramp, reconciliation, credit-step and workstream tests on `0d97fbe`. Their notes are applied: a test pins the tenant domain to `Id`, write paths never retry `RampNetworkError`, and the runbook states that per-resource 429/5xx results are not retried.
 - Ten source mutations were each detected by their targeted test:
   - fence removed;
