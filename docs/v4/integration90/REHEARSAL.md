@@ -53,6 +53,7 @@ If someone other than Ronok presents, say "Ronok's enrolled account" rather than
 ## If asked (not in the two minutes)
 
 - **"A status page isn't customer proof."** Show the W5 public status receipt ([public-status-live-91a.json](../evidence/evidence-custody-90/public-status-live-91a.json)). Twilio's real published incident `fm5fk85h6glc` was delivered as a signed status record, and the claim stayed INSUFFICIENT_EVIDENCE with a null amount until customer impact is shown. Disclosure: "the claim account is a local test scope; the outage is Twilio's real published incident." To re-run it, use `scripts/rehearse_public_status.py` in its own harness-hosted workspace, never the Northwind presentation workspace. Running it live needs one public HTTPS GET.
+- **"Where did this clause come from?"** Show the W5 custody receipt ([document-custody-91.json](../evidence/evidence-custody-90/document-custody-91.json)). A read-only audit re-sliced 77 of 77 stored citations, across 5 adapter versions in the presentation and review workspaces, from the stored source text at the stated offsets, with matching document and quote hashes. It proves where the words are, not that the interpretation is right.
 - **"How do new vendors get added?"** Point to the adapter requirement card (decision 90) and the D05 decision: Uptime selects among supported rule families, and a person approves before activation. Auto-selection is not built yet.
 
 ## Fallback
