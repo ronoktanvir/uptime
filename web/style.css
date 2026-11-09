@@ -88,3 +88,14 @@
 #finance-recovery .northwind-fields{margin:10px 0}
 @media(max-width:900px){.outcome{grid-template-columns:minmax(0,1fr)}.lifecycle-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.rail-primary{margin-top:18px;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);overflow-x:auto}.rail-more{margin-top:10px}.outcome-row.outcome-total dd,.outcome-value{font-size:25px}}
+/* Activity: the server's automation record, one row per step; times on the case timeline. */
+.automation-steps{list-style:none;margin:14px 0 0;padding:0}
+.automation-step{display:grid;grid-template-columns:minmax(150px,190px) minmax(0,1fr);column-gap:18px;padding:12px 0;border-top:1px solid var(--line)}
+.automation-step>time{grid-row:1/span 8;color:var(--muted);font-size:12px;padding-top:2px;font-variant-numeric:tabular-nums}
+.automation-step>strong{font-size:15px;color:var(--text)}
+.automation-step>.step-state{font-size:12px;color:var(--muted)}
+.automation-step>.help{margin:2px 0}
+.automation-step>.inspector{margin-top:4px}
+.automation-step.attention{border-left:3px solid #c98b24;padding-left:12px}
+.automation-line{margin:12px 0 0}
+@media(max-width:700px){.automation-step{grid-template-columns:minmax(0,1fr)}.automation-step>time{grid-row:auto}}

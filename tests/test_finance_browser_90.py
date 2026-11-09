@@ -98,7 +98,7 @@ def test_attention_guide_keyboard_actions_and_expired_session_recovery(tmp_path)
         assert page.evaluate('location.hash') == ''
         # Keyboard guide: Enter submits; Tab reaches the citation; Enter on it focuses the cited section.
         answer = ask(page, 'When is the filing deadline?')
-        expect(answer).to_contain_text('The January 2026 claim must be received before 2026-03-03T00:00:00+00:00. It has not been filed.')
+        expect(answer).to_contain_text('The January 2026 claim must be received before Mar 3, 2026, 00:00 UTC. It has not been filed.')
         page.get_by_label('Question', exact=True).focus(); page.keyboard.press('Tab'); page.keyboard.press('Tab')
         assert page.evaluate('document.activeElement.textContent') == 'Source: Filing deadline'
         page.keyboard.press('Enter')

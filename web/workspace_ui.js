@@ -45,6 +45,8 @@
       return sign + whole + (fraction ? '.' + fraction : '') + '%';
     });
   }
+  // A server instant inside a sentence (for example a filing cutoff) is shown as a date and time; the text is otherwise unchanged.
+  const instants = value => text(value).replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})/g, match => when(match));
   const shortRef = value => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value) ? value.slice(0, 10) + '…' : text(value);
   const isZero = value => /^-?0*(\.0*)?$/.test(String(value));
   function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true}) {
@@ -190,7 +192,7 @@
       function show(result) {
         const parts = [];
         list(result.sentences).forEach(sentence => {
-          const row = add(el(result.abstained ? 'p' : 'li'), el('span', sentence.text));
+          const row = add(el(result.abstained ? 'p' : 'li'), el('span', instants(sentence.text)));
           list(sentence.citations).forEach(id => {
             const cite = list(result.citations).find(c => c.id === id);
             if (cite) row.append(add(el('span', null, 'guide-citation'), cite.section ? jumpButton('Source: ' + text(cite.label), cite.section) : el('span', 'Source: ' + text(cite.label)), cite.ref ? el('code', cite.ref) : null));
@@ -252,7 +254,7 @@
         const items = el('ol', null, 'attention-list');
         list(finance.attention).forEach(item => {
           const row = add(el('li', null, 'attention-item'), el('span', OWNERS[item.owner] || 'Next step', 'attention-owner'),
-            el('h3', item.title), note(item.detail));
+            el('h3', item.title), note(instants(item.detail)));
           if (item.section) row.append(jumpButton('Show details', item.section));
           items.append(row);
         });
