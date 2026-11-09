@@ -138,3 +138,38 @@ Results:
 - Companion and correspondence browser suites after the 89b follow-up: **25 passed**
 - Ramp, workspace and finance browser tests: **6 passed**
 
+## D05 automatic selection follow-up (branch `work/refusal-diagnostic-auto-89`, on agent2's `f1a37a1`)
+
+**Changed test (my own, from `5312938`): `tests/helpers/refusal_diagnostic.test.cjs`.** Its two tests are replaced:
+
+| Old test | New test |
+| --- | --- |
+| "a refused job shows fixed explanations, the exact passage and missing terms as text" | "a refused family shows its verified diagnostic; a family without one shows the summary" |
+| "no diagnostic, a wrong schema or a non-refused job shows nothing extra" | "a foreign or malformed diagnostic falls back to the summary; no refusal shows nothing extra" |
+
+Reason: decision 97 (D05) removes the "Extraction profile" select. A refused job is no longer opened in its own job view; each family's refusal appears in the selection view. On `f1a37a1` the old tests failed with `TypeError: Cannot set properties of undefined (setting 'value')`: 0 passed, 2 failed.
+
+The assertions are not weakened. They still pin all of the following:
+
+- fixed server explanations
+- exact block, offsets and SHA-256
+- missing terms
+- the source document
+- inert markup in quoted passages
+- no staging control
+- no post other than the read-only selection request
+
+They now also check two new points:
+
+- the verified diagnostic replaces the summary rather than repeating it;
+- a rejected diagnostic contributes no verified detail.
+
+UI change, one line in `web/v4_ui.js`: each family row prefers `refusalDiagnostic(f.public_diagnostic, 'Why this family was refused')` and falls back to agent2's `familyRefusal(f.refusal)` summary. The heading is kept so agent2's browser assertions are unchanged.
+
+Results on this branch:
+
+- JavaScript: 94/94
+- `test_vendor_model_jobs_browser`, `test_vendor_auth83`, `test_vendor_family_selection_89`, `test_advanced_companion`, finance, workspace and Ramp UI browser tests, and `test_v4_authority_browser`: **43 passed, 1 warning in 36.81s**
+- the same set on `f1a37a1` alone: 43 passed; JavaScript there was 92/94, the two failures being the old file above
+- Use-screen sweep at 390 px: no sideways scroll, no demo wording, no page errors
+

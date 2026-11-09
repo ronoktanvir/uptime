@@ -528,7 +528,8 @@
               request:f.enabled === true ? 'approved for these exact bytes' : reasonText(f.approval_reason),
               job_id:job ? job.job_id : null, job_status:job ? job.status : null, attempts:f.attempts}));
           if (f.disclosure && typeof f.disclosure === 'object') add(row, el('h4', 'Exact public transmission'), record(f.disclosure));
-          add(row, familyRefusal(f.refusal));
+          // The verified per-family diagnostic carries exact offsets and SHA-256; the summary is the fallback.
+          add(row, refusalDiagnostic(f.public_diagnostic, 'Why this family was refused') || familyRefusal(f.refusal));
           n.append(row);
         });
         state.progress = el('ul', undefined, 'v4-progress');
@@ -627,9 +628,9 @@
       }
       // A verified diagnostic from the server: fixed explanations, exact public passages and missing terms.
       // Every value is rendered as text. A refusal stays a refusal; nothing here offers a candidate.
-      function refusalDiagnostic(value) {
+      function refusalDiagnostic(value, heading = 'Why this proposal was refused') {
         if (!value || typeof value !== 'object' || value.schema !== 'public-refusal-diagnostic/1') return null;
-        const box = add(el('div', undefined, 'v4-review v4-refusal'), el('h4', 'Why this proposal was refused'));
+        const box = add(el('div', undefined, 'v4-review v4-refusal'), el('h4', heading));
         list(value.issues).filter(issue => issue && typeof issue === 'object').forEach(issue => {
           const row = add(el('div', undefined, 'v4-refusal-issue'), el('p', shown(issue.explanation)));
           if (typeof issue.quote === 'string' && issue.quote) {
