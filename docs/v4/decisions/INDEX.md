@@ -101,3 +101,4 @@ Current implementation and test boundaries appear in [engineering status](../STA
 - [91 — Refuse out-of-period evidence at the signed source grant](ADR-0091-evidence-temporal-applicability.md)
 - [93 — One Ramp case identity from financial record to reconciliation](ADR-0093-ramp-case-lineage.md)
 - [96 — Workspace recovery, installation revocation and operations health](ADR-0096-operations-recovery.md)
+- [89 — Reviewed denial acceptance and dispute trace](ADR-0089-reviewed-denial-acceptance.md)
