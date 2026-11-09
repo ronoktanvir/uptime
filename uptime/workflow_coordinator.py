@@ -37,18 +37,31 @@ def setup(path):
         db.execute('''CREATE TABLE IF NOT EXISTS workspace_workflow_step (
             seq INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT NOT NULL, class TEXT NOT NULL,
             authority TEXT NOT NULL, state TEXT NOT NULL, at TEXT NOT NULL, recorded_at TEXT NOT NULL,
-            intent_id TEXT, detail TEXT)''')
+            intent_id TEXT, detail TEXT, timing TEXT)''')
         for operation in ('UPDATE', 'DELETE'):
             db.execute(f"CREATE TRIGGER IF NOT EXISTS workflow_step_no_{operation.lower()} BEFORE {operation} "
                        "ON workspace_workflow_step BEGIN SELECT RAISE(ABORT,'Workflow step history is append-only'); END")
 
 
-def record(workflow, operation, authority, state, intent_id=None, detail=None):
+def record(workflow, operation, authority, state, intent_id=None, detail=None, timing=None):
     with database(workflow.bench.path) as db, db:
-        db.execute('INSERT INTO workspace_workflow_step(operation,class,authority,state,at,recorded_at,intent_id,detail) '
-                   'VALUES(?,?,?,?,?,?,?,?)',
+        db.execute('INSERT INTO workspace_workflow_step(operation,class,authority,state,at,recorded_at,intent_id,detail,timing) '
+                   'VALUES(?,?,?,?,?,?,?,?,?)',
                    (operation, CLASSES.get(operation, 'UNKNOWN'), json.dumps(authority, sort_keys=True), state,
-                    workflow.now().isoformat(), datetime.now(UTC).isoformat(), intent_id, detail))
+                    workflow.now().isoformat(), datetime.now(UTC).isoformat(), intent_id, detail,
+                    None if timing is None else json.dumps(timing, sort_keys=True)))
+
+
+def timing(workflow, p, claim, operation, effect):
+    """When the step happens on the workspace's own timeline, and the limits it respects there."""
+    value = dict(clock='WORKSPACE', at=effect.get('at'))
+    if operation in DISPATCH_APPROVAL:
+        value['filing_cutoff'] = claim.get('filing_cutoff')
+    if operation == 'submit-response':
+        with database(workflow.bench.path) as db:
+            _, state = workflow.inbox._read(db, p.tenant, workflow.claim_id)
+        value['not_before'] = state['cooldown']  # the 24-hour response cooldown; never shortened
+    return value
 
 
 def authority(workflow, p, claim, operation, effect, *, person):
@@ -124,7 +137,8 @@ def steps(workflow):
         rows = db.execute('SELECT * FROM workspace_workflow_step ORDER BY seq').fetchall()
     return [dict(seq=row['seq'], operation=row['operation'], label=workflow.labels.get(row['operation'], row['operation']),
                  **{'class': row['class']}, authority=json.loads(row['authority']), state=row['state'], at=row['at'],
-                 recorded_at=row['recorded_at'], intent_id=row['intent_id'], detail=row['detail']) for row in rows]
+                 recorded_at=row['recorded_at'], intent_id=row['intent_id'], detail=row['detail'],
+                 timing=json.loads(row['timing']) if row['timing'] else None) for row in rows]
 
 
 def view(workflow, p, claim):

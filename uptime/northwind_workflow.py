@@ -658,12 +658,14 @@ class WorkspaceWorkflow:
             if old['status']!='EXECUTING':raise ValueError('This action requires review after an interrupted or stale operation.')
             expected=json.loads(old['expected']);operation=old['operation']
             step_authority=dict(kind='PERSON',actor=p.subject,resumed=True)
+            step_timing=dict(clock='WORKSPACE',at=expected['effect'].get('at'))
         else:
             descriptor=self._descriptor(p,claim)
             if not descriptor or descriptor['id']!=identity:raise ValueError('Stale or unavailable workflow action.')
             operation=descriptor['operation']
             expected=dict(pin=descriptor['pin'],effect=self._effect(p,operation,claim))
             step_authority=coordinator.authority(self,p,claim,operation,expected['effect'],person=person)
+            step_timing=coordinator.timing(self,p,claim,operation,expected['effect'])
             with database(self.bench.path) as db,db:
                 if db.execute("SELECT 1 FROM workspace_workflow_intent WHERE status='EXECUTING'").fetchone():
                     raise ValueError('Resolve the existing interrupted action first.')
@@ -689,7 +691,7 @@ class WorkspaceWorkflow:
             if not self._done(p,operation,effect,claim):raise ValueError('Domain result does not match the locked operation.')
         with database(self.bench.path) as db,db:
             db.execute("UPDATE workspace_workflow_intent SET status='COMPLETED',result_ref=? WHERE id=?",(claim['state_sha256'],identity))
-        coordinator.record(self,operation,step_authority,'COMPLETED',identity)
+        coordinator.record(self,operation,step_authority,'COMPLETED',identity,timing=step_timing)
 
 
 def register_workspace_workflow(app,bench,auth,config=None):

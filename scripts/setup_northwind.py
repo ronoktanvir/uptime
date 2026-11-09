@@ -224,8 +224,8 @@ def main():
     args=parser.parse_args()
     if args.public_proposal_config and not args.serve:
         parser.error('--public-proposal-config requires --serve')
-    if args.resume and (args.step_by_step or args.reviewer_credential or args.counterparty_reply!='request-log'):
-        parser.error('--step-by-step and --reviewer-credential apply when a workspace is created')
+    if args.resume and (args.step_by_step or args.counterparty_reply!='request-log'):
+        parser.error('--step-by-step and --counterparty-reply apply when a workspace is created')
     app,private,events=(open_workspace(args.directory) if args.resume else
                         prepare(args.directory,args.origin,routine_automation=not args.step_by_step,
                                 reviewer_credential=args.reviewer_credential,counterparty_reply=args.counterparty_reply))
@@ -235,13 +235,21 @@ def main():
             actor,_=seed(client,app,private,events)
             projection=checked(client.get('/api/workspace/workflow',headers=actor.headers))
             (args.directory/'initial-projection.json').write_text(json.dumps(projection,indent=2)+'\n')
-    credential=(args.reviewer_credential.expanduser().absolute() if args.reviewer_credential and not args.resume
-                else args.directory.absolute()/'scripted-reviewer.jwk')
+    credential=args.directory.absolute()/'scripted-reviewer.jwk'
+    if args.reviewer_credential:
+        credential=args.reviewer_credential.expanduser().absolute()
+        if args.resume:
+            # Same key as the workspace copy, written through the same protected writer; no new key handling.
+            from uptime.auth_keys import rehearsal_key,write_credential
+            write_credential(credential,rehearsal_key(private['rehearsal_secret']),ROOT)
     print(json.dumps(dict(directory=str(args.directory),origin=private['origin'],account=SCRIPT,
                           reviewer_credential_file=str(credential),
                           routine_automation=bool(private.get('routine_automation',False)))),flush=True)
-    print(f"Sign in: open {private['origin']}, choose 'Sign in with reviewer file', and select {credential} "
-          "(private key; mode 0600; never share or commit it).",file=sys.stderr,flush=True)
+    # Plain sign-in block; only the path of the private key file is ever printed.
+    print("Sign in with the reviewer file below (private key, mode 0600; never share or commit it).",file=sys.stderr)
+    print(str(credential),file=sys.stderr)
+    print(SCRIPT,file=sys.stderr)
+    print(private['origin'],file=sys.stderr,flush=True)
     if args.serve:
         if args.public_proposal_config:
             # Seeding closes its TestClient lifecycle. Construct the configured

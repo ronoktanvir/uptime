@@ -202,3 +202,48 @@ def test_step_history_is_append_only(tmp_path):
                 db.execute('DELETE FROM workspace_workflow_step')
     finally:
         client.close()
+
+
+def test_dispatch_happens_on_the_workspace_timeline_at_the_cooldown_and_inside_the_cutoff(tmp_path):
+    app, client, actor = world(tmp_path / 'timeline')
+    try:
+        while (view := read(client, actor))['next_actions']:
+            act(client, actor, view['next_actions'][0]['id'])
+        steps = {s['operation']: s for s in read(client, actor)['automation']['steps']}
+        filed, sent = steps['submit-claim']['timing'], steps['submit-response']['timing']
+        assert filed['clock'] == sent['clock'] == 'WORKSPACE'
+        assert filed['at'] < filed['filing_cutoff']
+        # Sent exactly when the 24-hour cooldown ends on the workspace's own timeline, never earlier.
+        assert sent['at'] == sent['not_before'] and sent['at'] < sent['filing_cutoff']
+        assert steps['submit-response']['at'] == sent['at']
+        assert steps['approve-response']['timing']['at'] < sent['not_before']
+    finally:
+        client.close()
+
+
+def test_setup_prints_a_plain_sign_in_block_and_writes_a_visible_protected_copy(tmp_path):
+    import json
+    import os
+    import stat
+    import subprocess
+    import sys
+    script = setup.ROOT / 'scripts' / 'setup_northwind.py'
+    directory, copy, again = tmp_path / 'ws', tmp_path / 'visible' / 'reviewer.jwk', tmp_path / 'visible' / 'again.jwk'
+    copy.parent.mkdir()
+    run = lambda *extra: subprocess.run([sys.executable, str(script), '--directory', str(directory), *extra],
+                                        capture_output=True, text=True, timeout=300, cwd=setup.ROOT)
+    created = run('--reviewer-credential', str(copy))
+    assert created.returncode == 0, created.stderr[-2000:]
+    printed = json.loads(created.stdout.strip().splitlines()[-1])
+    assert printed['reviewer_credential_file'] == str(copy) and printed['routine_automation'] is True
+    origin = printed['origin']
+    assert created.stderr.strip().splitlines()[-3:] == [str(copy), SCRIPT, origin]
+    assert stat.S_IMODE(os.stat(copy).st_mode) == 0o600
+    key = json.loads(copy.read_text())
+    assert key['d'] not in created.stdout + created.stderr  # never the key material, only its path
+    assert copy.read_text() == (directory / 'scripted-reviewer.jwk').read_text()
+    resumed = run('--resume', '--reviewer-credential', str(again))
+    assert resumed.returncode == 0, resumed.stderr[-2000:]
+    assert again.read_text() == copy.read_text() and resumed.stderr.strip().splitlines()[-3:] == [str(again), SCRIPT, origin]
+    plain = run('--resume')
+    assert plain.stderr.strip().splitlines()[-3:] == [str(directory / 'scripted-reviewer.jwk'), SCRIPT, origin]
