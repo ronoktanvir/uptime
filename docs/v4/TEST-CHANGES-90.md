@@ -32,3 +32,9 @@ Updated from `2056856` with two more listener-level probes. A source revised aft
 | File | Change | Reason |
 |:---|:---|:---|
 | `tests/test_mandate_claim_closure_2a.py` | **New file**, 9 tests (10 cases) | The new `ClosureDecision` mandate action `accept-denial` is bound to `scope_sha256`, the reviewed `basis_sha256` and `claim_state_sha256` (`[scope, state]`), with `max_amount_cents` fixed at 0 and local purpose `claim-closure`. The tests check: exact binding (mismatched basis, scope or state is refused); no money; an issuer without the `claim-closure` purpose cannot close; the closure path requires a closure decision; a closure cannot move paths or combine with claim, credit or native effects; existing mandates keep their signing bytes; the legacy unmandated reviewer exemption is unchanged. 8 of the first 9 failed before the implementation. No existing test changed. Authority-related focused set, including signed mandates, local review exception, correspondence, portfolio, operations and probes: 4,432 passed, 1 warning. |
+
+## W1 interface request: webhook hardening (W0 `ramp_webhooks.py`)
+
+| File | Change | Reason |
+|:---|:---|:---|
+| `tests/test_ramp_workflow_webhooks.py` | **Added** three new tests at the end of the file: `test_malformed_event_type_is_a_400_not_an_unhandled_exception` (4 cases) and `test_duplicate_webhook_headers_rejected`, both from W1's source commit `c61c384`, plus `test_verification_receipt_must_be_exactly_success_true` (4 cases, new here). No existing test or assertion changed. | A non-string event type such as `[]` or `{}` raised `TypeError` instead of a 400. A verification receipt of `{"success": 1}` activated the deployment because `1 == True`. Before the fix, 6 of the new cases failed: 2 type cases, plus the receipt cases, which also need the new read-only `status()`. After it, the file passed 28, and all `tests/test_ramp*.py` passed 1,007 with 1 warning. |
