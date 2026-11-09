@@ -1,0 +1,33 @@
+{
+  "tested_commit": "ff7977c254c65a542e4d8d35f629d14bc79f10ab",
+  "branch": "work/submission-integration-20261109",
+  "contents": "96615d8 plus role 3 at a15d987: verified Ramp excerpt rebuilt from the read Ronok started on 2026-11-09 at 22:00 UTC, formatted times and plain-word read states on the Ramp page",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-ff7977c",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5386 passed, 1 warning in 361.23s (0:06:01)",
+  "log": "suite-ff7977c-pytest.log",
+  "started_at": "2026-11-09T22:20:13Z",
+  "finished_at": "2026-11-09T22:26:16Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "115 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "prior_runs_preserved": [
+    "suite-02d86f7.json",
+    "suite-c756853.json",
+    "suite-6c83947.json",
+    "suite-96615d8-aborted.json",
+    "suite-96615d8-run2.json"
+  ],
+  "limits": "Regression verification of the integrated branch. Not the frozen commit, not an independent acceptance result, and not evidence of contract generalization, human release or any Ramp effect."
+}
