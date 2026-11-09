@@ -1,0 +1,71 @@
+{
+  "opaque_case_id": "e86-10",
+  "public_source": "fixtures/evaluation84_public/disputes/10_review_release/source.json",
+  "source_file_sha256": "c9deb08a0568103af6977659cf4412b78d133dbccb4a96afb1c82f8d8536b62d",
+  "reply_sha256": "e9a750de8f0291d4b6ee7d22c63a4a256d37781003e243d1ed40ac3a9ffbde1f",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "The monetary offer is conditional on a release and admission, with a separate legal-signature obligation; these are not ordinary award authority.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 209,
+          "quote": "We offer USD 32.40 only as consideration for a release of all outage claims, including future claims, and admission that the service met its commitments. Acceptance must be signed by your legal representative."
+        },
+        "polarity": "positive",
+        "modality": "offered",
+        "referent": "current_claim",
+        "conditions": [
+          {
+            "start": 19,
+            "end": 152,
+            "quote": "only as consideration for a release of all outage claims, including future claims, and admission that the service met its commitments"
+          }
+        ],
+        "slots": [
+          {
+            "name": "award",
+            "source": {
+              "start": 9,
+              "end": 18,
+              "quote": "USD 32.40"
+            }
+          }
+        ],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      },
+      {
+        "family": "unsupported",
+        "source": {
+          "start": 0,
+          "end": 209,
+          "quote": "We offer USD 32.40 only as consideration for a release of all outage claims, including future claims, and admission that the service met its commitments. Acceptance must be signed by your legal representative."
+        },
+        "polarity": "positive",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 209,
+          "quote": "We offer USD 32.40 only as consideration for a release of all outage claims, including future claims, and admission that the service met its commitments. Acceptance must be signed by your legal representative."
+        },
+        "role": "unsupported"
+      }
+    ]
+  }
+}

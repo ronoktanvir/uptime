@@ -1,0 +1,56 @@
+{
+  "opaque_case_id": "e86-01",
+  "public_source": "fixtures/evaluation84_public/disputes/01_late_filing/source.json",
+  "source_file_sha256": "f30b299ca3481d143069aa272fcfbc7ac5eb2643ef276a27c55f21dc0da1abbe",
+  "reply_sha256": "2643e58c9e7f1e7ba56867153156001883fd22943bafbc1b98b22e1f919f6364",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "The vendor asserts lateness and an unconditional absence of award for the named claim; both are retained.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "time_bar",
+        "source": {
+          "start": 0,
+          "end": 112,
+          "quote": "We declined claim E84-01_late_filing because it arrived after the filing deadline. No service credit is awarded."
+        },
+        "polarity": "positive",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      },
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 112,
+          "quote": "We declined claim E84-01_late_filing because it arrived after the filing deadline. No service credit is awarded."
+        },
+        "polarity": "negative",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 112,
+          "quote": "We declined claim E84-01_late_filing because it arrived after the filing deadline. No service credit is awarded."
+        },
+        "role": "substantive"
+      }
+    ]
+  }
+}

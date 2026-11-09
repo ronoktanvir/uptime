@@ -1,0 +1,14 @@
+{
+  "classification": "synthetic_customer",
+  "overlay": {
+    "agreement": "Pollen Jetty Monthly SLA",
+    "account": "Cedar Orrery Studio",
+    "product": "Query Loom",
+    "plan": "Saffron",
+    "effective_from": "2038-01-01",
+    "effective_until": "2038-12-31",
+    "fee_line_ref": "fee-pollen-jun38",
+    "currency": "USD"
+  },
+  "scenarios": []
+}

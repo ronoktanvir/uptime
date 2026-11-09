@@ -1,0 +1,40 @@
+{
+  "opaque_case_id": "e86-09",
+  "public_source": "fixtures/evaluation84_public/disputes/09_review_currency/source.json",
+  "source_file_sha256": "4ff6166b48f4eab9763344b07813c6ac92ec064a3b91b6e4efc1bd743ad7d3aa",
+  "reply_sha256": "5a8f59eb6cf803fc89694b3256617aff7138faf02e3f006d7798d550d6b623d5",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "The offered settlement is in EUR against a USD claim without an agreed conversion; the supported USD award model cannot represent that meaning.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "unsupported",
+        "source": {
+          "start": 0,
+          "end": 110,
+          "quote": "We settle the USD 32.40 claim with a credit of EUR 29.00. No exchange rate or conversion date has been agreed."
+        },
+        "polarity": "positive",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 110,
+          "quote": "We settle the USD 32.40 claim with a credit of EUR 29.00. No exchange rate or conversion date has been agreed."
+        },
+        "role": "unsupported"
+      }
+    ]
+  }
+}

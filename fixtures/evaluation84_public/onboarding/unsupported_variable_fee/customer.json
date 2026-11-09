@@ -1,0 +1,14 @@
+{
+  "classification": "synthetic_customer",
+  "overlay": {
+    "agreement": "Thistle Meridian Response Agreement",
+    "account": "Cedar Orrery Studio",
+    "product": "Packet Orchard",
+    "plan": "Amber",
+    "effective_from": "2037-01-01",
+    "effective_until": "2037-12-31",
+    "fee_line_ref": "fee-thistle-jul37",
+    "currency": "USD"
+  },
+  "scenarios": []
+}

@@ -1,0 +1,77 @@
+{
+  "opaque_case_id": "e86-07",
+  "public_source": "fixtures/evaluation84_public/disputes/07_review_conditional/source.json",
+  "source_file_sha256": "4ba17801c12d7694aa26fdb3783d9231ca890b47991e30594e870aa84029bdd7",
+  "reply_sha256": "738dfe368fcd325a6958720cde4536fbd2cbb13f35846fbaa750aff108478f8f",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "Renewal is a condition for prospective approval; no present unconditional award is stated.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 125,
+          "quote": "We can approve USD 32.40 if you renew Archive Shuttle for another year. Until that renewal is signed, no award has been made."
+        },
+        "polarity": "positive",
+        "modality": "conditional",
+        "referent": "current_claim",
+        "conditions": [
+          {
+            "start": 25,
+            "end": 70,
+            "quote": "if you renew Archive Shuttle for another year"
+          }
+        ],
+        "slots": [
+          {
+            "name": "award",
+            "source": {
+              "start": 15,
+              "end": 24,
+              "quote": "USD 32.40"
+            }
+          }
+        ],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      },
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 125,
+          "quote": "We can approve USD 32.40 if you renew Archive Shuttle for another year. Until that renewal is signed, no award has been made."
+        },
+        "polarity": "negative",
+        "modality": "conditional",
+        "referent": "current_claim",
+        "conditions": [
+          {
+            "start": 72,
+            "end": 100,
+            "quote": "Until that renewal is signed"
+          }
+        ],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 125,
+          "quote": "We can approve USD 32.40 if you renew Archive Shuttle for another year. Until that renewal is signed, no award has been made."
+        },
+        "role": "substantive"
+      }
+    ]
+  }
+}

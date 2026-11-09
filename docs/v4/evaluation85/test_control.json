@@ -1,0 +1,103 @@
+{
+  "document": {
+    "name": "Orchard Beacon authored harness control",
+    "uri": "urn:authored:harness85",
+    "classification": "synthetic_public",
+    "text": "Service Level Agreement\nVendor: Orchard Beacon\nAgreement: OB-2026-1\nEffective: 2026-01-01 through 2026-12-31\nAvailability is measured over each UTC calendar month.\n| Product | Plan | Monthly uptime below | Service credit |\n| --- | --- | --- | --- |\n| Data API | Team | 99.5% | 10% |\nClaims must be received within 20 calendar days after month end.\nService credits apply to affected monthly fees on a future invoice."
+  },
+  "customer": {
+    "overlay": {
+      "agreement": "OB-2026-1",
+      "account": "LOCAL_ONLY_ACCOUNT_85",
+      "product": "Data API",
+      "plan": "Team",
+      "effective_from": "2026-01-01",
+      "effective_until": "2026-12-31",
+      "fee_line_ref": "LOCAL_ONLY_FEE_85",
+      "currency": "USD"
+    },
+    "scenarios": [
+      {
+        "name": "authored local observation",
+        "facts": {
+          "agreement": "OB-2026-1",
+          "account": "LOCAL_ONLY_ACCOUNT_85",
+          "product": "Data API",
+          "plan": "Team",
+          "fee_line_ref": "LOCAL_ONLY_FEE_85",
+          "month": "2026-07",
+          "eligible_downtime_minutes": 300,
+          "monitor_source": "simulated_vendor",
+          "month_complete": true,
+          "exclusions_removed": true,
+          "monthly_fee_cents": 10000,
+          "received_at": "2026-08-02T12:00:00Z",
+          "monitor_ref": "local-authored-monitor",
+          "fee_ref": "local-authored-fee"
+        }
+      }
+    ]
+  },
+  "proposal": {
+    "clauses": [
+      {
+        "quote": "Service Level Agreement",
+        "field": "heading",
+        "value": null
+      },
+      {
+        "quote": "Vendor: Orchard Beacon",
+        "field": "vendor",
+        "value": "Orchard Beacon"
+      },
+      {
+        "quote": "Agreement: OB-2026-1",
+        "field": "agreement",
+        "value": "OB-2026-1"
+      },
+      {
+        "quote": "Effective: 2026-01-01 through 2026-12-31",
+        "field": "effective",
+        "value": [
+          "2026-01-01",
+          "2026-12-31"
+        ]
+      },
+      {
+        "quote": "Availability is measured over each UTC calendar month.",
+        "field": "period",
+        "value": "utc_calendar_month"
+      },
+      {
+        "quote": "| Product | Plan | Monthly uptime below | Service credit |",
+        "field": "table_header",
+        "value": null
+      },
+      {
+        "quote": "| --- | --- | --- | --- |",
+        "field": "table_separator",
+        "value": null
+      },
+      {
+        "quote": "| Data API | Team | 99.5% | 10% |",
+        "field": "tier",
+        "value": {
+          "product": "Data API",
+          "plan": "Team",
+          "below": "99.5",
+          "credit": "10"
+        }
+      },
+      {
+        "quote": "Claims must be received within 20 calendar days after month end.",
+        "field": "filing_days",
+        "value": 20
+      },
+      {
+        "quote": "Service credits apply to affected monthly fees on a future invoice.",
+        "field": "remedy",
+        "value": "affected_monthly_fees_future_invoice"
+      }
+    ]
+  }
+}

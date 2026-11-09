@@ -1,0 +1,65 @@
+{
+  "opaque_case_id": "e86-08",
+  "public_source": "fixtures/evaluation84_public/disputes/08_review_contradiction/source.json",
+  "source_file_sha256": "988a02f00a7c20743c49ce1bbab8e570413dc9f4bc2ede63c2a068c791fcc2ea",
+  "reply_sha256": "38b686617b5c5c64cfdc2d09af14be3cfe7af1f8a64a6c8342c9ada913b9f10d",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "The two current determinations conflict, and the text expressly says neither supersedes the other.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 156,
+          "quote": "Final determination for this claim: we award USD 32.40. Final determination for this same claim: we award no credit. Neither statement supersedes the other."
+        },
+        "polarity": "positive",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [
+          {
+            "name": "award",
+            "source": {
+              "start": 45,
+              "end": 54,
+              "quote": "USD 32.40"
+            }
+          }
+        ],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      },
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 156,
+          "quote": "Final determination for this claim: we award USD 32.40. Final determination for this same claim: we award no credit. Neither statement supersedes the other."
+        },
+        "polarity": "negative",
+        "modality": "asserted",
+        "referent": "current_claim",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 156,
+          "quote": "Final determination for this claim: we award USD 32.40. Final determination for this same claim: we award no credit. Neither statement supersedes the other."
+        },
+        "role": "substantive"
+      }
+    ]
+  }
+}

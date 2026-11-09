@@ -1,0 +1,47 @@
+{
+  "id": "06_partial_award",
+  "vendor": "Talus Signal",
+  "reply": "We award USD 19.25 of the requested USD 32.40 service credit. The remaining USD 13.15 is denied.",
+  "context": {
+    "claim_ref": "E84-06_partial_award",
+    "agreement": "Talus Signal Availability Agreement",
+    "account": "Cedar Orrery Studio",
+    "product": "Event Relay",
+    "plan": "Orchard",
+    "month": "2033-10",
+    "currency": "USD",
+    "claimed_amount_cents": 3240,
+    "claim_basis": {
+      "document_path": "fixtures/evaluation84_public/onboarding/monthly_tier/document.json",
+      "customer_path": "fixtures/evaluation84_public/onboarding/monthly_tier/customer.json",
+      "scenario_name": "timely_outage"
+    },
+    "filing": {
+      "required_by": "2033-11-22T23:59:59.999999Z",
+      "received_at": "2033-11-12T09:00:00Z",
+      "receipt_ref": "receipt-06_partial_award"
+    },
+    "evidence": [
+      {
+        "ref": "fee-talus-oct-33",
+        "category": "invoice_line",
+        "description": "Complete paid affected-service fee line, with scope and amount as in the referenced customer facts.",
+        "available": true
+      },
+      {
+        "ref": "monitor-2033-10",
+        "category": "monitor",
+        "description": "Complete scoped service observation as in the referenced customer facts.",
+        "available": true
+      }
+    ],
+    "contract_facts": [
+      "The attached claim basis supplies the complete governing source, affected fee, service observations, and actual receipt.",
+      "No settlement, release, waiver, foreign-currency award, or authority to negotiate has been accepted."
+    ],
+    "sender": {
+      "role": "vendor_claims",
+      "authority": "synthetic_vendor"
+    }
+  }
+}

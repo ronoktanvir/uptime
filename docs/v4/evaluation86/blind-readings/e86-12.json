@@ -1,0 +1,65 @@
+{
+  "opaque_case_id": "e86-12",
+  "public_source": "fixtures/evaluation84_public/disputes/12_review_unbound_claim/source.json",
+  "source_file_sha256": "7fc8bf613437f279fcad45dd431f4ca537855782fcb749f1ed12a9be179c5183",
+  "reply_sha256": "5211a1338c391c5883bc5ffdf91fc0fcb76425da3cffe105b15a8c7dbae856ef",
+  "author": "Codex /root/opus_disputes_71 source-only prospective reading",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "method": "Read frozen public reply and context only; no sealed expected files, provider responses or runtime outcomes read. Pin before inference. Never included in provider context.",
+  "reasoning": "The amount and denial have ambiguous claim referents; neither can be bound to this claim.",
+  "interpretation": {
+    "propositions": [
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 157,
+          "quote": "Of the two claims in this thread, one receives USD 32.40 and the other receives no credit. We have not identified which determination belongs to which claim."
+        },
+        "polarity": "positive",
+        "modality": "asserted",
+        "referent": "ambiguous",
+        "conditions": [],
+        "slots": [
+          {
+            "name": "award",
+            "source": {
+              "start": 47,
+              "end": 56,
+              "quote": "USD 32.40"
+            }
+          }
+        ],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      },
+      {
+        "family": "award",
+        "source": {
+          "start": 0,
+          "end": 157,
+          "quote": "Of the two claims in this thread, one receives USD 32.40 and the other receives no credit. We have not identified which determination belongs to which claim."
+        },
+        "polarity": "negative",
+        "modality": "asserted",
+        "referent": "ambiguous",
+        "conditions": [],
+        "slots": [],
+        "artifact_type": null,
+        "scope_field": null,
+        "filing_fields": []
+      }
+    ],
+    "segments": [
+      {
+        "source": {
+          "start": 0,
+          "end": 157,
+          "quote": "Of the two claims in this thread, one receives USD 32.40 and the other receives no credit. We have not identified which determination belongs to which claim."
+        },
+        "role": "substantive"
+      }
+    ]
+  }
+}
