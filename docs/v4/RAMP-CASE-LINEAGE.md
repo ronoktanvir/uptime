@@ -47,7 +47,7 @@ POs and Ramp agreements are context only (`LINKED_CONTEXT`). Reviewed IDs that a
    - *Approval-step and Blank Canvas surfaces.* These are never credited, because no configured integration exists.
    - *Uncertain Uptime outbox delivery.* It is read back in the same thread and never resent.
 5. **Award.** An award already confirmed elsewhere, with the same claim, contract, account, native vendor and currency. This module never creates an award.
-6. **Credit.** A reviewed `CreditBinding` links one native credit to one award. Every binding for the tenant is checked together: one credit bound to two cases, or one award split across credits, needs attribution review.
+6. **Credit.** A reviewed `CreditBinding` links one native credit to one award. Every binding for the tenant is checked together: one credit bound to two cases, or one award split across credits, needs attribution review, even when the credit hasn't been observed yet.
 7. **Application.** The applied amount is the sum of credit-to-bill applications that both the credit and the bill report with equal amounts, on bills that are applicable to the contract. If any pair can't be verified, the applied amount is null.
 
 The money fields are separate and have no total: finding estimate, claimed (always null here), awarded, recorded credit, remaining credit, applied, and draft reserved. `actual_recovery` is always null. A recorded credit with no application reports applied `0`, which is an observed fact; it isn't missing data.

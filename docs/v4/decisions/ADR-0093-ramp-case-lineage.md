@@ -46,7 +46,7 @@ Points where we disagree, or which are deferred:
 
 ## Validation
 
-`tests/test_ramp_case_lineage.py` is a new file of 55 controlled cases. It covers association, identity breaks, partial and full application, drafts, reciprocity, reversal, absence, duplicates, truncation, double attribution, notes, holds, the outbox, preparation gates, read-back outcomes and the preserved receipt. Snapshots come from an injected read-only fake provider through the real `sync_records` sanitizer and validator. These tests are not live execution.
+`tests/test_ramp_case_lineage.py` is a new file of 58 controlled cases. It covers association, identity breaks, partial and full application, drafts, reciprocity, reversal, absence, duplicates, truncation, double attribution, notes, holds, the outbox, preparation gates, read-back outcomes and the preserved receipt. Snapshots come from an injected read-only fake provider through the real `sync_records` sanitizer and validator. These tests are not live execution.
 
 Focused Ramp, allocation, reconciliation and credit suites: 1,064 passed with 1 warning, before the final critique fixes. The full-suite result and tested commit are recorded in [TEST-CHANGES-93](../TEST-CHANGES-93.md).
 

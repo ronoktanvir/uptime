@@ -447,6 +447,8 @@ def test_evidence_gap_note_is_informational_and_never_duplicated():
     (dict(body=EVIDENCE_GAP_NOTE + " Payment stopped."), "NOTE_BODY_NOT_APPROVED"),
     (dict(status="NOT_FOUND"), "NOTE_NOT_VERIFIED"),
     (dict(write_attempted=True), "NOTE_NOT_VERIFIED"),
+    (dict(observed_at=None), "NOTE_NOT_VERIFIED"),
+    (dict(observed_at="2026-04-30T01:50:35"), "NOTE_NOT_VERIFIED"),
 ])
 def test_note_receipt_must_match_the_same_object(changes, code):
     assert gap_case(note_receipt(**changes))["refusals"] == [code]
@@ -664,3 +666,10 @@ def test_concurrent_use_elsewhere_is_not_a_wrong_amount_and_executor_is_recorded
                                           executed_by="finance reviewer")
     assert result["status"] == "CONFIRMED_CREDIT_ALSO_USED_ELSEWHERE"
     assert result["separation_of_duties"] is False and result["retry_allowed"] is False
+
+
+def test_double_binding_needs_review_even_when_credit_is_not_observed():
+    other_case = CreditBinding(CREDIT, "award northwind 2", "claim February", "fixture:other-binding", "f" * 64)
+    lineage, _, _ = contract_case((later(1, []),), registry=(BINDING, other_case))
+    assert stage(lineage, "CREDIT")["status"] == "ABSENT_FROM_COMPLETE_LIST"
+    assert lineage["review_required"] == ["CREDIT_BOUND_TO_MULTIPLE_CASES"] and lineage["status"] == "REVIEW_REQUIRED"

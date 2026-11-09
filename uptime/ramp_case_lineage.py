@@ -298,6 +298,12 @@ def _surface_stage(chain, surface, finding, snapshots):
             return chain.refuse("SURFACE", "NOTE_NOT_VERIFIED")
         if surface.get("body") != EVIDENCE_GAP_NOTE:
             return chain.refuse("SURFACE", "NOTE_BODY_NOT_APPROVED")
+        try:
+            receipt_at = _instant(surface["observed_at"])
+            if receipt_at.utcoffset() is None:
+                raise ValueError
+        except (KeyError, TypeError, ValueError):
+            return chain.refuse("SURFACE", "NOTE_NOT_VERIFIED")
         # The approved note asserts missing evidence; it must not sit on a monetary finding.
         if finding.get("outcome") != "INSUFFICIENT_EVIDENCE" or finding.get("amount") is not None:
             return chain.refuse("SURFACE", "NOTE_CONTRADICTS_FINDING")
@@ -312,7 +318,7 @@ def _surface_stage(chain, surface, finding, snapshots):
                     reobserved.append(snapshot["observed_at"])
                     found = True
             if not found and _thread_complete(snapshot, "bill", identity.object_id) and \
-                    _instant(snapshot["observed_at"]) >= _instant(surface.get("observed_at")):
+                    _instant(snapshot["observed_at"]) >= receipt_at:
                 absent.append(snapshot["observed_at"])
         if absent:
             # The receipt was true when read; a later complete thread read without it is a real change.
@@ -472,7 +478,7 @@ def _credit_stage(chain, binding, award, snapshots, association, registry):
         exclusivity.append("CREDIT_BOUND_TO_MULTIPLE_CASES")
     if any(other.award_id == binding.award_id and other.credit_id != binding.credit_id for other in registry):
         exclusivity.append("AWARD_SPLIT_ACROSS_CREDITS_REQUIRES_ATTRIBUTION")
-    history, last_present, issues = [], None, []
+    history, last_present, issues = [], None, list(exclusivity)
     previous_pairs, credit_facts = {}, None
     for snapshot in snapshots:
         state, row = _credit_view(snapshot, binding.credit_id)
@@ -522,12 +528,12 @@ def _credit_stage(chain, binding, award, snapshots, association, registry):
     latest = history[-1] if history else None
     if last_present is None:
         status = "NOT_OBSERVED" if not history or latest["state"] == "NOT_OBSERVED" else "ABSENT_FROM_COMPLETE_LIST"
-        chain.add("CREDIT", status, credit_id=binding.credit_id, history=history)
+        chain.review.extend(sorted(set(issues)))  # Double binding still needs review when unobserved.
+        chain.add("CREDIT", status, credit_id=binding.credit_id, history=history, issues=sorted(set(issues)))
         chain.add("APPLICATION", "UNKNOWN", applied_minor=None, reason="CREDIT_NOT_OBSERVED")
         return
     if last_present["total_minor"] > award.amount_minor:
         issues.append("CREDIT_EXCEEDS_AWARD_REQUIRES_ATTRIBUTION_REVIEW")
-    issues.extend(exclusivity)
     unique = sorted(set(issues))
     credit_status = ("REVIEW_REQUIRED" if unique else "ARCHIVED" if last_present["archived"] else
                      "RECORDED" if last_present["total_minor"] == award.amount_minor else "PARTIALLY_CREDITED")
