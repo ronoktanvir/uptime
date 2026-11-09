@@ -1,8 +1,8 @@
 {
   "schema": "uptime-workstream-progress/1",
   "workstream": "onboarding-finish-20261109",
-  "updated_at": "2026-11-09T19:58:11.881448+00:00",
-  "phase": "strict-template implementation and explicit monthly-basis compiler wiring",
+  "updated_at": "2026-11-09T20:05:46.838840+00:00",
+  "phase": "compiler/model integration implemented; final focused validation",
   "state": "in_progress",
   "branch": "work/onboarding-finish-20261109",
   "commits": [
@@ -22,6 +22,13 @@
       "failed": 4,
       "deselected": 18,
       "seconds": 0.56
+    },
+    {
+      "scope": "strict templates, explicit monthly model wire, financial and compatibility controls",
+      "passed": 388,
+      "failed": 0,
+      "warnings": 1,
+      "seconds": 3.56
     }
   ],
   "actual_model": {
@@ -40,14 +47,16 @@
   },
   "completed": [
     "Public worker receipt committed and pushed.",
-    "Explicit complete-service-month source-marker helper implemented and focused-tested."
+    "Explicit complete-service-month source-marker helper implemented and focused-tested.",
+    "Nine-clause generic strict-template compiler implemented by actual Opus worker.",
+    "Public model prompt, proposition compiler and receipt revalidation support explicit monthly marker.",
+    "Separate contradictory incident clauses, scope ambiguity and decimal boundary controls pass."
   ],
   "in_progress": [
-    "Opus is editing generic strict-template compiler and diagnostics.",
-    "Parent is integrating source-grounded optional monthly basis through public model proposals.",
-    "Independent authored boundary and full-source contradiction controls prepared."
+    "Opus finishes its second authored diagnostics-parity test module.",
+    "Parent freezes source, records complete focused checks and publishes implementation commit."
   ],
-  "remaining_blocker": "Compiler/model integration and focused checks must pass before combined monthly join integration and independent evaluation.",
+  "remaining_blocker": "Combined monthly claim core and its complete reviewed-semantics dependency pins must be integrated before independent evaluation.",
   "ledger": "docs/v4/TEST-CHANGES-onboarding-finish-20261109.md",
   "decision_refs": [
     "docs/v4/REMEDIATION-1A-STRICT-TEMPLATES.md",
