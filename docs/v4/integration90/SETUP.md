@@ -1,6 +1,6 @@
 # Reproduce Uptime from a fresh checkout
 
-Verified on November 9, 2026, by cloning `work/integration-90` into an empty directory and running the commands below. Results: [STATUS.md](../STATUS.md#november-9-integration) and the fresh-checkout receipt under `docs/v4/evidence/integration-90/`.
+Verified on November 9, 2026: every integration round cloned `work/integration-90` into an empty directory and ran exactly the commands under "Build and verify". The latest code round, 6 (`3f60647`), gave 4,664 passed with 1 warning, and 104 JavaScript checks; the other checks passed. Receipts: `docs/v4/evidence/integration-90/verification-<commit>.json`, with the full pytest logs beside them. The local clones came from the same pushed commits as GitHub.
 
 ## Requirements
 
@@ -40,6 +40,18 @@ uv run --locked python scripts/setup_northwind.py \
 Open http://127.0.0.1:8776 and sign in as `scripted-test-reviewer` with `scripted-reviewer.jwk` from that directory. Use a new directory for each fresh presentation, and add `--resume` to restart without resetting state. The walkthrough's contract, usage, vendor replies and ledger are authored demonstration inputs; see `fixtures/northwind/README.md` and [the rehearsal](REHEARSAL.md).
 
 Progress map (read-only snapshot): `python3 scripts/serve_progress.py --port 8780`, then open http://127.0.0.1:8780.
+
+Before a presentation (optional, both read-only):
+
+```sh
+uv run --locked python scripts/operations_preflight.py
+RAMP_ENV=sandbox UPTIME_RAMP_CREDENTIAL_FILE=~/.config/uptime/ramp-demo-native.json \
+  python scripts/ramp_prefilm_check.py --output-dir ~/.local/share/uptime-engineering/runtime/ramp-lineage-20261109
+```
+
+The first checks disk space, loopback-only ports, the absence of tunnels, workspace health and backups. The second needs the protected sandbox credential, refuses to run under CI and makes no writes. See [DEMO-MACHINE-90.md](../DEMO-MACHINE-90.md) and [the rehearsal](REHEARSAL.md).
+
+For a presentation, serve a frozen checkout of a tested commit (`git worktree add --detach <dir> <commit>`) rather than a branch other people are editing.
 
 Live Ramp sandbox reads need the protected local credential setup in [RAMP-DEMO-CONNECTION.md](../RAMP-DEMO-CONNECTION.md) and [OPERATIONS.md](../OPERATIONS.md). Never put credentials, reviewer keys, local databases or sealed evaluation answers in Git or in a model prompt.
 

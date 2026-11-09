@@ -57,6 +57,16 @@ Other commits link ledgers, ADRs and capability rows.
 
 Decision records: Ronok's own decisions are D03 (including the name extension), D04-C ("monthly keeps incident"), D05, D06, D07, D10, D11, D12, D13, D14, the guard with no override, F5, and 1a/2a/3a. Delegated (handoff defaults chosen by the overview session): D01, D02, D09, F3 option A and the familiar-denial closure. D08 is with Ronok. See [the handoff](../TEAM-DECISION-HANDOFF.md#team-decision-sheet) and [D06 action matrix](D06-ACTION-MATRIX.md).
 
+
+## Workstream handoff reports
+
+Each specialist's required handoff (commits, files, behavior, actual results, gaps, decision provenance, rollback, missing external proof):
+
+- [HANDOFF-89-identity-pricing.md](../HANDOFF-89-identity-pricing.md)
+- [HANDOFF-W3-ONBOARDING-89.md](../HANDOFF-W3-ONBOARDING-89.md)
+
+Reports still to arrive are linked as they merge.
+
 ## Rollback
 
 Nothing has been merged to `main` or `v4/integration`; `origin/main` is still `03b372e`.

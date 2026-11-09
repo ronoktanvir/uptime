@@ -1,7 +1,7 @@
 {
  "schema": "uptime-v3-requirements/1",
- "as_of": "2026-11-09",
- "baseline_commit": "03b372e64e4eb69aa0de991e3654db41bd1be915",
+ "as_of": "2026-11-09 (round 6, 3f60647)",
+ "baseline_commit": "3f606471d38364959d814ba50629ee0a73951500",
  "dispositions": {
   "MET": "Implemented and verified with the kind of evidence the requirement asks for.",
   "MET_LOCAL": "Implemented and verified in local tests or with authored/controlled data; any live or external part is named in the gap.",
@@ -396,10 +396,15 @@
    "evidence": [
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md",
-    "tests/test_identity_domain_89.py"
+    "tests/test_identity_domain_89.py",
+    "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
+    "tests/test_identity_domain_89.py::test_recorded_requests_no_longer_refuse_their_exact_source_identities",
+    "tests/test_release_probes_gent8.py::test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake",
+    "tests/test_claim_scope_89.py::test_table_is_versioned_and_monthly_keeps_incident",
+    "tests/test_claim_scope_89.py::test_unsupported_family_is_refused"
    ],
-   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91` and verified by round 5 (4,663 passed).",
-   "gap_class": "bug",
+   "gap": "Shared claim interface now uses one bounded exact identity type (D03, merged `1f6238e`/`7f41a0d`) and server-selected scope variants (D04-C, merged `6f43a91`). Round 5/6 full suites passed with these merged (`6f43a91`: 4,663; `3f60647`: 4,664).",
+   "gap_class": null,
    "decisions": [
     "D03",
     "D04"
@@ -519,7 +524,7 @@
    "group": "Architecture invariants",
    "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#hard-architecture-invariants",
    "requirement": "One finance/case interface with typed vendor extensions; vendor template and customer overlay separate; deterministic versioned contract resolution.",
-   "disposition": "PARTIAL",
+   "disposition": "MET_LOCAL",
    "owner": "W0",
    "implementation": [
     "uptime/contracts.py",
@@ -527,10 +532,15 @@
    ],
    "evidence": [
     "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked",
-    "tests/test_identity_domain_89.py"
+    "tests/test_identity_domain_89.py",
+    "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
+    "tests/test_identity_domain_89.py::test_recorded_requests_no_longer_refuse_their_exact_source_identities",
+    "tests/test_release_probes_gent8.py::test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake",
+    "tests/test_claim_scope_89.py::test_table_is_versioned_and_monthly_keeps_incident",
+    "tests/test_claim_scope_89.py::test_unsupported_family_is_refused"
    ],
-   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91` and verified by round 5 (4,663 passed).",
-   "gap_class": "bug",
+   "gap": "One identity domain across routes (D03) and server-selected scope variants (D04-C); the monthly-availability family still requires one incident, and whole-month sufficiency is a pending decision. Round 5/6 full suites passed with these merged (`6f43a91`: 4,663; `3f60647`: 4,664).",
+   "gap_class": null,
    "decisions": [
     "D03",
     "D04"
@@ -976,10 +986,15 @@
    ],
    "evidence": [
     "docs/v4/integration90/INTERFACES.md",
-    "tests/test_identity_domain_89.py"
+    "tests/test_identity_domain_89.py",
+    "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
+    "tests/test_identity_domain_89.py::test_recorded_requests_no_longer_refuse_their_exact_source_identities",
+    "tests/test_release_probes_gent8.py::test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake",
+    "tests/test_claim_scope_89.py::test_table_is_versioned_and_monthly_keeps_incident",
+    "tests/test_claim_scope_89.py::test_unsupported_family_is_refused"
    ],
-   "gap": "Overlay identity values use a different domain from claim intake. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
-   "gap_class": "bug",
+   "gap": "Overlay identity now uses source-identity/1, the same domain as claim intake (D03); F5 requires a reviewed agreement binding. Round 5/6 full suites passed with these merged (`6f43a91`: 4,663; `3f60647`: 4,664).",
+   "gap_class": null,
    "decisions": [
     "D03"
    ]
@@ -1029,7 +1044,7 @@
    "group": "Shared interfaces",
    "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#14-v3-engineering-contracts-and-parallel-critical-path-ownership",
    "requirement": "Case: organization, obligation, scope, financial state, stage, authorizations, idempotency key, provider refs, clocks.",
-   "disposition": "PARTIAL",
+   "disposition": "MET_LOCAL",
    "owner": "W0",
    "implementation": [
     "uptime/correspondence_types.py",
@@ -1037,10 +1052,15 @@
    ],
    "evidence": [
     "docs/v4/integration90/INTERFACES.md",
-    "tests/test_identity_domain_89.py"
+    "tests/test_identity_domain_89.py",
+    "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
+    "tests/test_identity_domain_89.py::test_recorded_requests_no_longer_refuse_their_exact_source_identities",
+    "tests/test_release_probes_gent8.py::test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake",
+    "tests/test_claim_scope_89.py::test_table_is_versioned_and_monthly_keeps_incident",
+    "tests/test_claim_scope_89.py::test_unsupported_family_is_refused"
    ],
-   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91` and verified by round 5 (4,663 passed).",
-   "gap_class": "bug",
+   "gap": "Scope fields are optional per server-selected variant (D04-C) and identities use source-identity/1 (D03). Legal/dispute clocks live on the case, not the scope. Round 5/6 full suites passed with these merged (`6f43a91`: 4,663; `3f60647`: 4,664).",
+   "gap_class": null,
    "decisions": [
     "D03",
     "D04"
@@ -1276,10 +1296,15 @@
     "docs/v4/decisions/ADR-0024-cross-route-claim-identity.md",
     "tests/test_identity_domain_89.py",
     "tests/test_disputes_identity_89c.py",
-    "tests/test_reconciliation_identity_d03.py"
+    "tests/test_reconciliation_identity_d03.py",
+    "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
+    "tests/test_identity_domain_89.py::test_recorded_requests_no_longer_refuse_their_exact_source_identities",
+    "tests/test_release_probes_gent8.py::test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake",
+    "tests/test_claim_scope_89.py::test_table_is_versioned_and_monthly_keeps_incident",
+    "tests/test_claim_scope_89.py::test_unsupported_family_is_refused"
    ],
-   "gap": "Channel and agreement version are deliberately excluded to dedupe across routes (ADR-0024); account/agreement domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
-   "gap_class": "bug",
+   "gap": "Channel and agreement version stay deliberately excluded to dedupe across routes (ADR-0024). Identity domains now agree (D03), and a blocking near-duplicate guard refuses case/spacing variants. Round 5/6 full suites passed with these merged (`6f43a91`: 4,663; `3f60647`: 4,664).",
+   "gap_class": null,
    "decisions": [
     "D03"
    ]
@@ -1664,10 +1689,15 @@
    "evidence": [
     "tests/test_pricing.py::test_missing_line_proof_fails_closed",
     "tests/test_other_obligations.py::test_missing_annual_data",
-    "tests/test_identity_domain_89.py"
+    "tests/test_identity_domain_89.py",
+    "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
+    "tests/test_identity_domain_89.py::test_recorded_requests_no_longer_refuse_their_exact_source_identities",
+    "tests/test_release_probes_gent8.py::test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake",
+    "tests/test_claim_scope_89.py::test_table_is_versioned_and_monthly_keeps_incident",
+    "tests/test_claim_scope_89.py::test_unsupported_family_is_refused"
    ],
-   "gap": "A spaced account identity can turn an ELIGIBLE month into INSUFFICIENT_EVIDENCE for a non-evidence reason (reported by the identity specialist). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet.",
-   "gap_class": "bug",
+   "gap": "The spaced-identity degradation is fixed by D03; the Northwind January result stays ELIGIBLE. Round 5/6 full suites passed with these merged (`6f43a91`: 4,663; `3f60647`: 4,664).",
+   "gap_class": null,
    "decisions": [
     "D03"
    ]
@@ -2040,7 +2070,7 @@
    "group": "Logical agents",
    "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#3-agent-responsibilities-and-state-boundaries",
    "requirement": "Dashboard guide explains decisions and cites clauses without bypassing permissions.",
-   "disposition": "PARTIAL",
+   "disposition": "MET_LOCAL",
    "owner": "W7",
    "implementation": [
     "uptime/intelligence.py"
@@ -2050,8 +2080,8 @@
     "tests/test_intelligence_abstain_95.py::test_unsupported_questions_abstain_and_keep_their_intent_label",
     "tests/test_finance_guide_90.py"
    ],
-   "gap": "Within D12 (read-only first): the guides answer from cited case facts and abstain when unsupported. No model composer, because under D10 case data needs customer consent. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet.",
-   "gap_class": "missing_functionality",
+   "gap": "Within D12 (read-only first): deterministic cited answers that abstain when unsupported and cannot prepare actions. No model composer, since D10 requires customer consent for case data.",
+   "gap_class": null,
    "decisions": [
     "D10",
     "D12"
@@ -2449,7 +2479,7 @@
    "group": "Stack, storage and operations",
    "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#economic-truth",
    "requirement": "Continuous detection, evidence collection and deadline tracking.",
-   "disposition": "NOT_MET",
+   "disposition": "PARTIAL",
    "owner": "W0",
    "implementation": [
     "uptime/evidence_refresh.py",
@@ -2460,7 +2490,7 @@
     "docs/v4/TEAM-DECISION-HANDOFF.md",
     "tests/test_operations_recovery_90.py::test_health_report_alerts_actionable_claim_cutoffs_only"
    ],
-   "gap": "An operator-run health check now reports actionable claim cutoffs, retryable reads and uncertain effects; there is still no scheduler, live webhook subscription or alert delivery. D11 decided 2026-11-09: stay local; hosting is a later milestone. D02 chosen 2026-11-09 under delegation (informational bill discussion on the exact evaluated record; no invented identities).",
+   "gap": "An operator-run health check reports actionable claim cutoffs, retryable reads and uncertain effects. There is no scheduler, live webhook subscription or alert delivery; hosting is deferred by D11 (stay local).",
    "gap_class": "missing_functionality",
    "decisions": [
     "D02",
@@ -3318,14 +3348,19 @@
    "group": "Open decisions recommended in the spec (§11)",
    "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
    "requirement": "Canonical finance workflow plus typed vendor extensions.",
-   "disposition": "PARTIAL",
+   "disposition": "MET_LOCAL",
    "owner": "W0",
    "implementation": [],
    "evidence": [
-    "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
+    "docs/v4/integration90/D03-D04-ALTERNATIVES.md",
+    "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
+    "tests/test_identity_domain_89.py::test_recorded_requests_no_longer_refuse_their_exact_source_identities",
+    "tests/test_release_probes_gent8.py::test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake",
+    "tests/test_claim_scope_89.py::test_table_is_versioned_and_monthly_keeps_incident",
+    "tests/test_claim_scope_89.py::test_unsupported_family_is_refused"
    ],
-   "gap": "Identity and scope domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91` and verified by round 5 (4,663 passed).",
-   "gap_class": "bug",
+   "gap": "One canonical identity and scope contract now serves both routes (D03, D04-C). Round 5/6 full suites passed with these merged (`6f43a91`: 4,663; `3f60647`: 4,664).",
+   "gap_class": null,
    "decisions": [
     "D03",
     "D04"

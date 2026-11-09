@@ -1,5 +1,7 @@
 # Unresolved blockers — November 9, 2026
 
+**State at integration round 6 (`3f60647`, fresh clone: 4,664 passed, 1 warning).** Decided on November 9: D03–D07 and D10–D14, plus the D03 name extension, the guard (no override), F5 and 1a/2a/3a, all by Ronok. Chosen under his delegation: D01, D02, D09, F3 option A and the familiar-denial closure. **Still with Ronok:** D08; whole-month evidence sufficiency; the D05 unseen-vendor promotion path (options a/b/c below); whether one person may both prepare and execute an operator credit application; uninstall retention; the D14 `AGENTS.md` wording; the scoring rule for future evaluation reruns; filming from `fde492c` versus a rebuild.
+
 Each blocker names its type, the owner who can move it, what unblocks it and the evidence. Types follow the checklist: **bug**, **missing functionality**, **unverified behavior**, **external dependency**. "Team" means a recorded human decision. Requirement IDs refer to [the completion checklist](REQUIREMENTS.md).
 
 ## Hard restrictions (do not work around)
