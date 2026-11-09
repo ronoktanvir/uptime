@@ -1,0 +1,3 @@
+Initial progress graph check: failed because a newly queued node used unsupported status planned. Corrected data to the existing todo vocabulary; test unchanged.
+Progress JSON and linked handoff targets verified.
+Progress graph: dependency ordering, invalid graphs, and link safety passed.

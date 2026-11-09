@@ -25,6 +25,7 @@ PROVIDER = 'correspondence'
 KIND = 'correspondence'
 STATES = ('QUEUED', 'RUNNING', 'SUCCEEDED', 'REFUSED', 'CANCELLED', 'UNCERTAIN')
 TERMINAL = frozenset({'SUCCEEDED', 'REFUSED', 'CANCELLED', 'UNCERTAIN'})
+PROVIDER_KEYS = ('model', 'session', 'cost_usd', 'usage', 'returncode', 'transport', 'elapsed_seconds')
 RESULT_KEYS = ('candidate_id', 'claim', 'kind', 'context_digest', 'request_sha256', 'response_sha256', 'representation',
                'semantic_review_required', 'ledger_unchanged', 'external_actions')
 
@@ -108,7 +109,12 @@ class CorrespondenceModelJobs:
         view = dict(id=None if identity is None else str(identity)[:200], state=state, terminal=state in TERMINAL,
                     kind=KIND, target=_text(_field(job, 'target')),
                     context_digest=_text(_field(job, 'context_sha256')), request_sha256=_text(_field(job, 'request_sha256')),
-                    reason=_text(_field(job, 'reason', 'reason_code', 'error_code')), result=None)
+                    reason=_text(_field(job, 'reason', 'reason_code', 'error_code')), result=None,
+                    submitted_at=_text(_field(job, 'submitted_at')), started_at=_text(_field(job, 'started_at')),
+                    finished_at=_text(_field(job, 'finished_at')))
+        provider = _field(job, 'provider')
+        if isinstance(provider, dict):  # the shared service's bounded public receipt subset, any state
+            view['provider'] = {k: deepcopy(provider[k]) for k in PROVIDER_KEYS if k in provider}
         result = _field(job, 'result')
         if state == 'SUCCEEDED' and isinstance(result, dict):
             view['result'] = {k: deepcopy(result[k]) for k in RESULT_KEYS if k in result}

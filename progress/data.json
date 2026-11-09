@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-11-09T20:52:46.081232+00:00",
+  "updated_at": "2026-11-09T21:06:41.238941+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Onboarding and dispute remediation is integrated and verified:5,298 tests passed. The frozen independent cohort of six contracts and eight replies is now authorized to run once; results are pending. Native Ramp posting stays restricted, and the recorded demo workspaces remain intact.",
+  "summary": "Implementation and regression verification are complete for this pass, but unseen onboarding and dispute generalization remain blocked. The14-case first pass staged0/4 author-intended positive contracts; all8 disputes stopped in setup. A separate actual-provider public control succeeded. Native Ramp posting stays restricted.",
   "evidence": [
     {
       "label": "Latest combined regression",
@@ -19,9 +19,9 @@
     },
     {
       "label": "Hosted verification",
-      "value": "Prior combined checkpoint passed",
-      "detail": "Hosted checks passed fordd8a04c and9a7bada. The final corrected source passed locally; its hosted result is recorded separately.",
-      "url": "https://github.com/ronoktanvir/uptime/actions"
+      "value": "Verified source passed hosted checks",
+      "detail": "48f5ad6 hosted run:5,298 Python checks,104 JavaScript checks, graph validation, offline rehearsal and secret scan passed.",
+      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42696709386"
     },
     {
       "label": "Northwind workflow",
@@ -64,6 +64,12 @@
       "value": "1 invocation; local rebuttal receipt",
       "detail": "Opus5.5 returned a grounded time-bar reading. Separate scripted review produced a signed local response receipt. Claimed90; awarded/posted/applied0. This public authored control is excluded from the held-out score.",
       "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/evaluation-finish-20261109/public-provider-control-result.json"
+    },
+    {
+      "label": "New independent first pass",
+      "value": "0/4 intended positives; dispute accuracy unmeasured",
+      "detail": "6 contracts refused after12 actual successful Opus returns.2 negative controls also refused without established substantive discrimination.6 dispute adapter setup failures and2 source-reading failures;0 held-out reply dispatches. Original scores remain unchanged.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evaluation-finish-20261109/RESULTS.md"
     }
   ],
   "nodes": [
@@ -216,15 +222,15 @@
       "id": "adapter",
       "title": "Declarative vendor onboarding",
       "stream": "Onboarding",
-      "status": "active",
-      "summary": "Generic compiler remediation verified; new-case evaluation running",
-      "detail": "Generic exact-source templates and public model compilation support explicit complete-month report contracts. Unsupported conditions, contradictory clauses and ambiguous end dates refuse. Actual Opus worker completed; no held-out answers supplied.",
+      "status": "blocked",
+      "summary": "Bounded compiler works; unseen staging remains0/4",
+      "detail": "Nine generic strict wording classes and exact citations are implemented. Every new contract stopped at identifier grounding on the monthly model path; no unseen SHADOW candidate was produced. Some intended-positive obligations also exceed current operators, a functionality/scope interpretation gap.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
         "security"
       ],
-      "next_action": "Publish separately scored unseen-case results; ordinary version-specific human review is still required before activation.",
+      "next_action": "Extend exact-source title/party/identifier grounding and operator diagnostics; validate with fresh sources without weakening financial or activation gates.",
       "links": [
         {
           "label": "Current work and ownership",
@@ -390,9 +396,9 @@
       "id": "holdout",
       "title": "Independent onboarding & denial acceptance",
       "stream": "Independent QA",
-      "status": "active",
-      "summary": "Frozen14-case evaluation cleared on verified source",
-      "detail": "Six new authored contracts and eight replies, with sealed expectations. Public controls and source-preparation failures are separate from actual application/model outcomes. Original scores remain unchanged.",
+      "status": "blocked",
+      "summary": "14-case first pass finished; acceptance not established",
+      "detail": "No cases dropped or retried.0/4 author-intended positives staged;2/2 negatives refused without demonstrated substantive discrimination.8 disputes stopped before inference, so model accuracy is unmeasured. Separate public control succeeds but does not enter this score.",
       "owner": "Independent witness",
       "depends_on": [
         "adapter",
@@ -401,11 +407,15 @@
         "source_meaning",
         "monthly_evidence"
       ],
-      "next_action": "Run once, retain all14 cases and score only after every attempt is terminal.",
+      "next_action": "Run fresh independent end-to-end sources and a separately preregistered reply-only cohort on a verified contract.",
       "links": [
         {
-          "label": "Current work and ownership",
-          "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/FINISH-20261109.md"
+          "label": "Independent results and limitations",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evaluation-finish-20261109/RESULTS.md"
+        },
+        {
+          "label": "Next parallel workstreams",
+          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/NEXT-WORKSTREAMS-20261109.md"
         }
       ]
     },
@@ -413,14 +423,14 @@
       "id": "grammar",
       "title": "Contract wording and explicit evidence basis",
       "stream": "Onboarding",
-      "status": "active",
-      "summary": "Generic monthly wording remediation implemented",
-      "detail": "No vendor-name branches or frozen evaluation source was added. Exact citations and whole-source refusal checks remain. Arbitrary contract prose and unsupported financial families remain outside this implementation.",
+      "status": "todo",
+      "summary": "Next: source-grounded natural identifiers and explicit operator coverage",
+      "detail": "Identifier grounding is the first observed monthly refusal. Incident-relative filing/cure and per-incident minute steps are unimplemented or differ from current operators; do not confuse that gap with a narrower agreed product scope.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Measure unseen acceptance and refusal independently; preserve historical 0/4.",
+      "next_action": "Implement released generic wording classes with positive and negative controls; take new financial semantics through the recorded D14 decision boundary.",
       "links": [
         {
           "label": "Current work and ownership",
@@ -606,9 +616,9 @@
       "id": "response_coverage",
       "title": "New vendor response coverage",
       "stream": "Disputes",
-      "status": "active",
-      "summary": "Dispute blockers and independent runner preparation",
-      "detail": "The team approved a separate explicit-contract whole-month path with complete signed coverage, resolved exclusions and independent eligible fees. Legacy incident contracts remain unchanged. Opus workers implement the join and refusal journal.",
+      "status": "blocked",
+      "summary": "Public model control succeeds; held-out reply reasoning remains unmeasured",
+      "detail": "One actual Opus time-bar reading led, through separate scripted review, to a signed local rebuttal receipt. All8 held-out replies stopped at prerequisites. Compound semantic roles and residual source text remain representation gaps.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -620,7 +630,7 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/FINISH-20261109.md"
         }
       ],
-      "next_action": "Verify the new evidence join and authenticated refusal audit, then freeze source for independent evaluation."
+      "next_action": "Keep dispute work concurrent: prepare fresh reply-only cases against a verified governing contract, then test actual inference, correct-denial review, cure and escalation separately."
     },
     {
       "id": "source_meaning",
@@ -706,6 +716,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T21:06:41.238941+00:00",
+      "title": "Independent results published; generalization blockers remain",
+      "detail": "12 actual successful Opus returns; all6 contract proposals refused.0/4 author-intended positives staged;2 negatives refused for incidental rather than established substantive reasons.8 disputes stopped in setup. Scope disagreements and every first attempt retained; next parallel work is documented.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evaluation-finish-20261109/RESULTS.md"
+    },
     {
       "at": "2026-11-09T20:52:46.081232+00:00",
       "title": "Actual provider control reaches local rebuttal receipt",

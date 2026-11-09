@@ -1,9 +1,9 @@
 {
   "schema": "uptime-workstream-progress/1",
   "workstream": "onboarding-finish-20261109",
-  "updated_at": "2026-11-09T20:49:30.112445+00:00",
-  "phase": "integrated and full regression verified; independent evaluation running",
-  "state": "integrated",
+  "updated_at": "2026-11-09T21:06:41.238941+00:00",
+  "phase": "implementation verified; independent first pass complete with unresolved generalization",
+  "state": "completed_with_remaining_gaps",
   "branch": "work/onboarding-finish-20261109",
   "commits": [
     "5a4af21",
@@ -63,10 +63,8 @@
     "Public model prompt, proposition compiler and receipt revalidation support explicit monthly marker.",
     "Separate contradictory incident clauses, scope ambiguity and decimal boundary controls pass."
   ],
-  "in_progress": [
-    "Independent frozen-cohort execution and separately reported scoring."
-  ],
-  "remaining_blocker": "Combined monthly claim core and its complete reviewed-semantics dependency pins must be integrated before independent evaluation.",
+  "in_progress": [],
+  "remaining_blocker": "Unseen onboarding remains0/4 author-intended positives; held-out dispute reasoning is unmeasured because setup failed. See independent RESULTS and next parallel workstreams.",
   "ledger": "docs/v4/TEST-CHANGES-onboarding-finish-20261109.md",
   "decision_refs": [
     "docs/v4/REMEDIATION-1A-STRICT-TEMPLATES.md",
@@ -84,5 +82,11 @@
       "warnings": 1,
       "seconds": 357.07
     }
+  ],
+  "remaining": [
+    "Natural source identifier grounding and explicit operator coverage.",
+    "Reply-only independent evaluation and compound source-reading representation.",
+    "Historical monthly filing receipts remain unsupported.",
+    "Ordinary human release and native Ramp restrictions remain."
   ]
 }
