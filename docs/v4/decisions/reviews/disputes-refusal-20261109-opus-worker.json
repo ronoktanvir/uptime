@@ -1,0 +1,33 @@
+{
+  "task": "verified-source-refusal-journal",
+  "model_observed": "claude-opus-5-5",
+  "requested_effort": "high",
+  "session_id": "0f4e344a-5128-4e7e-baa6-586b89db296e",
+  "tools_observed": [
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "mcp_servers": [],
+  "authentication": "existing Claude Code OAuth subscription",
+  "exit_code": 0,
+  "elapsed_seconds": 227.145,
+  "parent_validation": "53 passed in 0.32s",
+  "files_sha256": {
+    "uptime/correspondence_refusals.py": "3ec2f7b2547fa51ba76a43370d97b87018f866bfc5143620fd88e4e2e107c1cf",
+    "tests/disputes_finish_20261109/test_refusal_journal.py": "464d18a175ff1e5e083985b99303567590f68838a4342c9d27ef41e70840441c"
+  },
+  "limitations": [
+    "Focused tests only; root owns required full merge suite.",
+    "Helper does not itself authenticate or authorize a request.",
+    "No private evaluation data, customer records, credentials or native actions delegated."
+  ],
+  "prior_attempt": {
+    "session_id": "723292a0-1458-46c5-bd66-5a679025c7ef",
+    "exit_code": 143,
+    "elapsed_seconds": 754.745,
+    "outcome": "Stopped after proposal and superseded overbroad draft; not a completed implementation."
+  }
+}

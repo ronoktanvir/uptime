@@ -1,0 +1,51 @@
+{
+  "schema": "uptime-independent-authored-freeze/1",
+  "frozen_at": "2026-11-09T20:08:01.264041+00:00",
+  "author": {
+    "model": "claude-opus-5-5",
+    "effort": "xhigh",
+    "session": "c2885ff9-3d13-4d06-8dbf-c2261c1363d0",
+    "subscription": "authenticated Claude Code",
+    "tools": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep"
+    ],
+    "mcp_servers": [],
+    "result_error": false,
+    "duration_ms": 1271392
+  },
+  "inputs_given_to_author": [
+    "approved public semantics",
+    "declarative source schema"
+  ],
+  "not_given": [
+    "application implementation",
+    "historic cases or gold",
+    "customer information"
+  ],
+  "counts": {
+    "contracts": 6,
+    "replies": 8
+  },
+  "commitments": {
+    "source.json": {
+      "sha256": "c044e03cf81c8eead8dd65c7c715a933463aeec61d04903c52169cb27ecd682a",
+      "bytes": 83029
+    },
+    "expected.json": {
+      "sha256": "a7671b7d5beff9df6214f6681d24fa8937bbf87ff25c8fcaf53cd9c45233dd2a",
+      "bytes": 49917
+    },
+    "AUTHORING.md": {
+      "sha256": "9bf8a9f8291c0425a8e0c7c514b084804d7fc9e123a0bee5b12e7b19590d5a3b",
+      "bytes": 7281
+    }
+  },
+  "attempts_at_freeze": 0,
+  "expected_read_for_scoring": false,
+  "independence": "Independent of implementation workers, authored by same model family; not independent human/legal certification.",
+  "sources_kept_from_implementers_until_terminal": true
+}

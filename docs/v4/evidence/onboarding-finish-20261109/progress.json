@@ -1,0 +1,77 @@
+{
+  "schema": "uptime-workstream-progress/1",
+  "workstream": "onboarding-finish-20261109",
+  "updated_at": "2026-11-09T20:13:43.913122+00:00",
+  "phase": "compiler and model path verified; ready for combined integration",
+  "state": "ready_for_integration",
+  "branch": "work/onboarding-finish-20261109",
+  "commits": [
+    "5a4af21",
+    "dee9698"
+  ],
+  "focused_results": [
+    {
+      "scope": "explicit monthly basis helper",
+      "passed": 24,
+      "failed": 0,
+      "seconds": 0.24
+    },
+    {
+      "scope": "authored financial controls before remediation (expected red phase)",
+      "passed": 0,
+      "failed": 4,
+      "deselected": 18,
+      "seconds": 0.56
+    },
+    {
+      "scope": "strict templates, explicit monthly model wire, financial and compatibility controls",
+      "passed": 388,
+      "failed": 0,
+      "warnings": 1,
+      "seconds": 3.56
+    },
+    {
+      "scope": "final strict/model/monthly-marker/requirements compatibility",
+      "passed": 433,
+      "failed": 0,
+      "warnings": 1,
+      "seconds": 3.17
+    }
+  ],
+  "actual_model": {
+    "model": "claude-opus-5-5",
+    "session_id": "afe5029a-1c61-44e7-814c-d113a349494c",
+    "requested_effort": "xhigh",
+    "state": "completed",
+    "tools": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep"
+    ],
+    "mcp_servers": [],
+    "elapsed_seconds": 1605.32
+  },
+  "completed": [
+    "Public worker receipt committed and pushed.",
+    "Explicit complete-service-month source-marker helper implemented and focused-tested.",
+    "Nine-clause generic strict-template compiler implemented by actual Opus worker.",
+    "Public model prompt, proposition compiler and receipt revalidation support explicit monthly marker.",
+    "Separate contradictory incident clauses, scope ambiguity and decimal boundary controls pass."
+  ],
+  "in_progress": [
+    "Integrate the separately owned monthly claim core and atomic semantics pins; run the full locked suite."
+  ],
+  "remaining_blocker": "Combined monthly claim core and its complete reviewed-semantics dependency pins must be integrated before independent evaluation.",
+  "ledger": "docs/v4/TEST-CHANGES-onboarding-finish-20261109.md",
+  "decision_refs": [
+    "docs/v4/REMEDIATION-1A-STRICT-TEMPLATES.md",
+    "User approved separate strict whole-month evidence path on 2026-11-09; integration owner records the decision."
+  ],
+  "limits": [
+    "No independent evaluation result is claimed by these development controls.",
+    "Original 0/4 and Backblaze refusal unchanged.",
+    "No Ramp write, human review or financial action."
+  ]
+}

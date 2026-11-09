@@ -5,6 +5,7 @@ challenges. The server stores only its public key. Private keys stay with the op
 This is a single-process loopback prototype.
 """
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from hashlib import sha256
 import hmac
 import json
@@ -22,8 +23,9 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 from . import mandates
 from .auth_keys import public_bytes, rehearsal_key, verify_reviewer
 from .contracts import DraftReviewer, Principal, fingerprint
+from .correspondence_refusals import ROUTE_PREFIX, ROUTE_SUFFIX, record_verified_source_refusal
 from .correspondence_types import Id
-from .source_config import SourceGrant, SourceGrants, SourceRegistry
+from .source_config import CLAIM, SourceGrant, SourceGrants, SourceRegistry
 from .storage import database
 
 TENANT = "bears"
@@ -379,22 +381,39 @@ class Authority:
         body = await request.body()
         message = service_message(self.instance, self.origin, subject, path, body, stamp, nonce, self.tenant,
                                   self.mode if isinstance(key, SourceGrant) else None)
+        refusal = None
         if isinstance(key, SourceGrant):
-            valid = key.verify(message, proof) and key.allows(path, body)
-            if valid and self.source_registry and key.public_key != self.services[subject].public_key:
+            verified = key.verify(message, proof)
+            allowed = verified and key.allows(path, body)
+            # A rotated key must keep its identity binding before it can be attributed at all,
+            # including in an out-of-scope refusal.
+            if verified and self.source_registry and key.public_key != self.services[subject].public_key:
                 try:
                     mandates.remember_source_keys(self.path, [(subject, key.public_key)])
                 except PermissionError:
                     raise HTTPException(403, "Source key belongs to a separate authority") from None
             key_id = "ed25519-sha256:" + digest(bytes.fromhex(key.public_key))
             grant_id = fingerprint([self.tenant, self.mode, key.model_dump()])
+            if verified and not allowed and claim_events_route(path):
+                refusal = {"tenant": self.tenant, "subject": subject, "key_id": key_id, "grant_id": grant_id,
+                           "request_path": path, "body_sha256": digest(body)}
         else:
-            valid = bool(re.fullmatch(r"[a-f0-9]{64}", proof)) and hmac.compare_digest(signature(key.encode(), message), proof)
+            verified = allowed = (bool(re.fullmatch(r"[a-f0-9]{64}", proof))
+                                  and hmac.compare_digest(signature(key.encode(), message), proof))
             key_id = "fixture-hmac:" + signature(key.encode(), "uptime-local-fixture-key-id-v1")
             grant_id = fingerprint([self.tenant, self.mode, subject, key_id, "LOCAL_FIXTURE"])
         with self.lock:
             self.prune()
-            if not valid or (subject, nonce) in self.deliveries:
+            if not verified or (subject, nonce) in self.deliveries:
+                raise HTTPException(403, "Invalid, out-of-scope or reused inbound proof")
+            if not allowed:
+                # Audit only a verified, current, unspent signed delivery. The nonce stays unspent
+                # and the journal deduplicates repeats. A journal failure denies, never accepts.
+                if refusal is not None:
+                    try:
+                        record_verified_source_refusal(self.path, **refusal, received_at=datetime.now(UTC))
+                    except Exception:
+                        raise HTTPException(503, "Inbound service is temporarily unavailable") from None
                 raise HTTPException(403, "Invalid, out-of-scope or reused inbound proof")
             # The acceptance window includes future timestamps. Retain through its full end.
             self.deliveries[(subject, nonce)] = int(stamp) + TTL
@@ -408,6 +427,13 @@ class Authority:
         app.add_api_route("/api/auth/context", lambda: {"instance": self.instance, "origin": self.origin,
                                                          "mode": self.mode, "tenant": self.tenant},
                           methods=["GET"])
+
+
+def claim_events_route(path):
+    """The exact correspondence claim events route a source refusal can be audited under."""
+    inner = path[len(ROUTE_PREFIX):-len(ROUTE_SUFFIX)]
+    return (path.startswith(ROUTE_PREFIX) and path.endswith(ROUTE_SUFFIX)
+            and len(path) > len(ROUTE_PREFIX) + len(ROUTE_SUFFIX) and bool(CLAIM.fullmatch(inner)))
 
 
 def service_message(instance, origin, subject, path, body, stamp, nonce, tenant=TENANT, mode=None):

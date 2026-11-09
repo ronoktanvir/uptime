@@ -21,6 +21,15 @@ missing terms. Split headings, table headers, separators and table rows into sep
 Fields: vendor, agreement (string each); effective ([inclusive ISO start date, inclusive ISO end date or null if genuinely open-ended]);
 period (use "utc_calendar_month" only when explicit); filing_days (integer days after month end);
 remedy (use "affected_monthly_fees_future_invoice" only when explicit);
+if the affected monthly fee in USD and future-invoice credit are stated in two separate clauses, label each
+clause remedy with that same value only when both halves are explicitly present in this complete source.
+availability_formula (use "one_minus_eligible_downtime_over_month_minutes" only for the explicit formula
+100 times (1 minus eligible downtime minutes divided by total minutes in the month));
+tier_selection (use "highest_applicable_only" only when the source explicitly states only the highest
+applicable percentage applies and percentages do not accumulate; preserve that whole statement together).
+evidence_basis (use "complete_service_month/1" only for an explicit whole-service complete UTC calendar-month
+report basis AND an explicit statement that incident identifiers are not required; quote both parts together,
+including their semicolon, as one element). Never infer this permission from a missing incident requirement.
 tier (object with product, plan, below and credit; below and credit are *strings* in percent units,
 without percent signs). A scope clause may have field "scope" and value {"product": "exact name", "plan": "exact name"}
 for a later table that omits these names.

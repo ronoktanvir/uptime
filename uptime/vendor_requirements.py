@@ -38,7 +38,7 @@ _NONOPERATIVE = {'heading', 'table_header', 'table_separator', 'nonmaterial'}
 # Every operative citation field and manifest key the monthly compilers currently emit.
 # Anything else is reported for review instead of being assumed harmless.
 _MONTHLY_FIELDS = {'vendor', 'agreement', 'effective', 'period', 'filing_days', 'remedy', 'tier', 'scope',
-                   'credit_rule', 'credit_rounding'}
+                   'credit_rule', 'credit_rounding', 'availability_formula', 'tier_selection', 'evidence_basis'}
 _MONTHLY_KEYS = _MONTHLY_FIELDS - {'tier'} | {'family', 'document', 'citations', 'tiers', 'interpretation'}
 
 # Resource-month proposition keys that ground each element in a cited source block.

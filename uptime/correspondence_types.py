@@ -226,6 +226,60 @@ class ResourceInvoice(Report):
     lines: list[ResourceLine] = Field(min_length=1, max_length=300)
 
 
+Month = Annotated[str, StringConstraints(pattern=r"^20[0-9]{2}-(0[1-9]|1[0-2])$")]
+Currency = Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
+MONTHLY_IDENTITY = ("account", "vendor", "contract", "service", "month", "currency")
+
+
+class MonthGap(Interval):
+    """A measurement gap inside the reported month. Strict whole-month evidence requires none."""
+    ref: Id
+
+
+class UnresolvedExclusion(Interval):
+    """A candidate exclusion the source could not resolve. Strict whole-month evidence requires none."""
+    ref: Id
+    reason: Name
+
+
+class MonthlyEvidence(Report, Interval):
+    """Strict whole-service month evidence (opt-in basis complete_service_month/1; uptime.correspondence_monthly).
+
+    Gaps and unresolved exclusions must be stated explicitly (no defaults), downtime is a strict integer
+    number of whole minutes, and there is no incident, component or region field to invent. Repeated
+    identity is optional; when present it must equal the claim scope, and an explicit null is refused.
+    """
+    plan: Name
+    complete: bool
+    exclusions_removed: bool
+    gaps: list[MonthGap] = Field(max_length=300)
+    unresolved_exclusions: list[UnresolvedExclusion] = Field(max_length=300)
+    eligible_downtime_minutes: int = Field(ge=0, le=44640)
+    account: SourceIdentity | None = None
+    vendor: SourceIdentity | None = None
+    contract: SourceIdentity | None = None
+    service: SourceIdentity | None = None
+    month: Month | None = None
+    currency: Currency | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _absent_identity_is_not_null(cls, data):
+        if isinstance(data, dict) and any(name in data and data[name] is None for name in MONTHLY_IDENTITY):
+            raise ValueError("Omit a repeated identity field that is not stated; null is not accepted.")
+        return data
+
+
+class MonthlyCoverage(MonthlyEvidence):
+    """The status source's complete, exclusion-adjusted measurement of the whole service month."""
+    kind: Literal["monthly_coverage"]
+
+
+class MonthlyAttribution(MonthlyEvidence):
+    """The customer source's independent attribution of the same month's eligible downtime."""
+    kind: Literal["monthly_attribution"]
+
+
 class ServiceRecord(Report):
     plan: Name
     complete: bool
@@ -431,7 +485,8 @@ class Delivery(Strict):
     scope: Scope
     body: Annotated[Status | Coverage | Impact | Component | Notice | Invoice | Message | ResourceStatus
                     | ResourceAttribution | ResourceInvoice | ServiceMonitor | ServiceInvoice | BillingCalendar | ProviderTelemetry | CustomerTelemetry | CustodianAttestation | PortalResponse
-                    | FilingMaterial | RequestEvidence | HistoricalReceipt | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification, Field(discriminator="kind")]
+                    | FilingMaterial | RequestEvidence | HistoricalReceipt | AccountConditions | MaintenanceEvidence | PriorCreditEvidence | Artifact | Verification
+                    | MonthlyCoverage | MonthlyAttribution, Field(discriminator="kind")]
 
 
 class Empty(Strict):
@@ -443,4 +498,5 @@ SOURCE = dict(status="status", coverage="status", impact="customer", component="
               custodian_attestation="customer", portal_response_receipt="vendor",
               service_monitor="status", service_invoice="billing",
               resource_invoice="billing", billing_calendar="billing", maintenance_evidence="customer", prior_credit_evidence="billing", account_conditions="customer", filing_material="customer", request_evidence="customer", artifact="customer",
-              status_verification="status", billing_verification="billing")
+              status_verification="status", billing_verification="billing",
+              monthly_coverage="status", monthly_attribution="customer")

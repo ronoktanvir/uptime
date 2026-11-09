@@ -1,0 +1,63 @@
+{
+  "schema": "uptime-evaluation-progress/1",
+  "updated_at": "2026-11-09T20:10:50.700366+00:00",
+  "state": "PREPARING_FROZEN_SUPPLEMENT",
+  "lane": "independent-evaluation",
+  "implementation_base": "579997f1adb17b1ce5ea5c50b366cf1fe562b170",
+  "commits": [
+    "787f2f3",
+    "c5fecb2",
+    "6b9e571"
+  ],
+  "new_cohort": {
+    "contracts": 6,
+    "replies": 8,
+    "source_authoring": "FROZEN",
+    "expected_commitment": "a7671b7d5beff9df6214f6681d24fa8937bbf87ff25c8fcaf53cd9c45233dd2a",
+    "scored_attempts_started": 0,
+    "source_sha256": "c044e03cf81c8eead8dd65c7c715a933463aeec61d04903c52169cb27ecd682a"
+  },
+  "historical_results": {
+    "onboarding_accepted": "0/4",
+    "supported_replies": "0/50",
+    "backblaze": "NO_SUPPORTED_FAMILY",
+    "superseded": false
+  },
+  "runner_checks": {
+    "passed": 56,
+    "warnings": 1,
+    "seconds": "2.28",
+    "provider": "explicit controlled double; not inference evidence"
+  },
+  "blocked_stage": "Source-only readings and wire mappings running; awaiting integrator frozen merged app SHA.",
+  "ready_components": [
+    "create-only onboarding attempts",
+    "source and implementation pin checks",
+    "real claim-scope preflight with explicitly assumed adapter",
+    "signed local dispute setup and ordinary model queue composition",
+    "raw candidate separated from scripted source projection",
+    "terminal readback after job drain with poll evidence retained",
+    "separate signed local response continuation check"
+  ],
+  "actual_opus_sessions": [
+    {
+      "id": "fc0483a1-a8ee-475a-a5f9-247953793f18",
+      "purpose": "public runner review and preflight tests",
+      "state": "COMPLETE",
+      "model": "claude-opus-5-5",
+      "effort": "xhigh"
+    },
+    {
+      "id": "c2885ff9-3d13-4d06-8dbf-c2261c1363d0",
+      "purpose": "independent authored supplementary source corpus",
+      "state": "COMPLETE",
+      "model": "claude-opus-5-5",
+      "effort": "xhigh"
+    }
+  ],
+  "external_actions": [],
+  "authority": "scripted local evaluation only; no actual-human release certification",
+  "remaining_setup_limits": [
+    "Historical original filing receipts currently require active reviewed resource-month terms; monthly late-filing setups are refused rather than inventing a local original."
+  ]
+}

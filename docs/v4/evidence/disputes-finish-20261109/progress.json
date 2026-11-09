@@ -1,0 +1,68 @@
+{
+  "schema": "uptime-workstream-progress/1",
+  "workstream": "disputes-finish-20261109",
+  "updated_at": "2026-11-09T20:15:35.604965+00:00",
+  "phase": "strict month core and authenticated refusal auditing verified; ready for combined integration",
+  "state": "ready_for_integration",
+  "branch": "work/disputes-finish-20261109",
+  "commits": [
+    "97bb8bb",
+    "f3292be",
+    "a568a55",
+    "e8b7f88",
+    "078415a"
+  ],
+  "dependency": {
+    "canonical_compiler": "b9930c5",
+    "local_verification_import": "71f3e72"
+  },
+  "focused_results": [
+    {
+      "scope": "source refusal helper",
+      "passed": 53,
+      "failed": 0,
+      "seconds": 0.32
+    },
+    {
+      "scope": "signed source hook, journal and authority regressions",
+      "passed": 98,
+      "failed": 0,
+      "warnings": 1,
+      "seconds": 5.92
+    },
+    {
+      "scope": "core and legacy regression selection",
+      "passed": 417,
+      "failed": 0,
+      "warnings": 1,
+      "seconds": 4.25
+    },
+    {
+      "scope": "ordinary source-derived monthly routes",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 1,
+      "seconds": 1.27
+    },
+    {
+      "scope": "final combined dispute selection with compiler dependency",
+      "passed": 491,
+      "failed": 0,
+      "warnings": 1,
+      "seconds": 6.18
+    }
+  ],
+  "remaining": [
+    "Combined integration must pin all new monthly source semantics and run the full suite.",
+    "Independent evaluation pending on frozen integrated source.",
+    "Historical monthly filing receipts remain unsupported; source-only setup refusals must remain visible.",
+    "Native Ramp write remains prohibited."
+  ],
+  "model_receipts": [
+    "../../decisions/reviews/disputes-refusal-20261109-opus-worker.json",
+    "../../decisions/reviews/disputes-auth-refusal-20261109-opus-worker.json",
+    "../../decisions/reviews/disputes-monthly-20261109-opus-worker.json"
+  ],
+  "processes": "All delegated workers completed. No persistence after runtime shutdown is claimed."
+}

@@ -88,7 +88,7 @@
     "docs/v4/evidence/local-review-88/recorded-review-20261109.json",
     "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a correct refusal with no candidate, so selection is not yet demonstrated. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a safe refusal with no candidate whose correctness is not established, so selection is not yet demonstrated. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05",
@@ -297,7 +297,7 @@
     "tests/test_onboarding_lifecycle.py::test_test_actor_activation_restart_rollback_and_stale_action",
     "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked"
    ],
-   "gap": "Promotion in the Atlassian lab is by a scripted reviewer; the lab is vendor-specific. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a correct refusal with no candidate, so selection is not yet demonstrated.",
+   "gap": "Promotion in the Atlassian lab is by a scripted reviewer; the lab is vendor-specific. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a safe refusal with no candidate whose correctness is not established, so selection is not yet demonstrated.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -440,7 +440,7 @@
     "docs/orchestration/CHECKPOINTS.md",
     "docs/v4/STATUS.md"
    ],
-   "gap": "Scripted reviewer in the Atlassian lab; separate recorded human review is CalyxQuay only. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a correct refusal with no candidate, so selection is not yet demonstrated.",
+   "gap": "Scripted reviewer in the Atlassian lab; separate recorded human review is CalyxQuay only. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a safe refusal with no candidate whose correctness is not established, so selection is not yet demonstrated.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -561,7 +561,7 @@
     "tests/test_onboarding_lifecycle.py::test_unknown_field_quarantined_and_cannot_preserve_prior_approval",
     "tests/test_onboarding_rules.py::test_untrusted_extractions_rejected"
    ],
-   "gap": "Finite supported rule families. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a correct refusal with no candidate, so selection is not yet demonstrated.",
+   "gap": "Finite supported rule families. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a safe refusal with no candidate whose correctness is not established, so selection is not yet demonstrated.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -827,7 +827,7 @@
     "tests/test_vendor_catalog.py::test_multiple_arbitrary_catalog_entries_and_prose_products",
     "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "D05 phases 1 and 2 merged: Uptime selects the family from the source, refuses ambiguous sources and stages only the selected job. Submission-channel generation is not demonstrated, and the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a correct refusal with no candidate, so selection is not yet demonstrated.",
+   "gap": "D05 phases 1 and 2 merged: Uptime selects the family from the source, refuses ambiguous sources and stages only the selected job. Submission-channel generation is not demonstrated, and the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a safe refusal with no candidate whose correctness is not established, so selection is not yet demonstrated.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"
@@ -909,7 +909,7 @@
     "docs/v4/evidence/local-review-88/recorded-review-20261109.json",
     "tests/test_onboarding_lifecycle.py::test_reviewer_can_restore_prior_version_with_same_governing_terms"
    ],
-   "gap": "One bounded local review recorded under the enrolled account; general release promotion remains gated. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a correct refusal with no candidate, so selection is not yet demonstrated. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap": "One bounded local review recorded under the enrolled account; general release promotion remains gated. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a safe refusal with no candidate whose correctness is not established, so selection is not yet demonstrated. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "external_dependency",
    "decisions": [
     "D05",
@@ -1956,7 +1956,7 @@
    "evidence": [
     "docs/v4/evidence/browser-public-onboarding-82.json"
    ],
-   "gap": "Public baseline 0/4 supported extractions. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a correct refusal with no candidate, so selection is not yet demonstrated. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap": "Public baseline 0/4 supported extractions. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a safe refusal with no candidate whose correctness is not established, so selection is not yet demonstrated. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05",
@@ -2744,7 +2744,7 @@
    "evidence": [
     "docs/orchestration/CHECKPOINTS.md"
    ],
-   "gap": "Scripted reviewer; separate from unseen-vendor proof. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a correct refusal with no candidate, so selection is not yet demonstrated.",
+   "gap": "Scripted reviewer; separate from unseen-vendor proof. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a safe refusal with no candidate whose correctness is not established, so selection is not yet demonstrated.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -2761,7 +2761,7 @@
    "evidence": [
     "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
    ],
-   "gap": "No Slack source, fixture or test exists. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a correct refusal with no candidate, so selection is not yet demonstrated.",
+   "gap": "No Slack source, fixture or test exists. D05 decided 2026-11-09 (auto-select plus human approval); phases 1 and 2 merged; the first unseen-vendor proof (Backblaze public SLA, verification lane, cccb5a0) returned NO_SUPPORTED_FAMILY, a safe refusal with no candidate whose correctness is not established, so selection is not yet demonstrated.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"

@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-11-09T20:03:33.655053+00:00",
+  "updated_at": "2026-11-09T20:16:11.546813+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Onboarding and dispute remediation is running in parallel with actual Claude Code Opus 5.5 workers. The team approved a strict complete-month evidence path; implementation is in progress. Independent runners and held-out evaluations are separate. Ramp posting stays restricted.",
+  "summary": "Onboarding grammar, explicit whole-month evidence and authenticated refusal auditing are integrated for verification. Real Opus 5.5 coding workers completed their bounded work. The combined full suite is next; the independent 14-case cohort is frozen and remains unscored. Ramp posting stays restricted.",
   "evidence": [
     {
       "label": "Latest merged regression",
@@ -211,14 +211,14 @@
       "title": "Declarative vendor onboarding",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Strict contract templates under remediation",
-      "detail": "Actual Opus 5.5 coding worker, xhigh requested; generic authored controls, exact citations and refusal semantics. No held-out answers supplied.",
+      "summary": "Nine strict wording classes implemented; 433 focused checks passed",
+      "detail": "Generic exact-source templates and public model compilation support explicit complete-month report contracts. Unsupported conditions, contradictory clauses and ambiguous end dates refuse. Actual Opus worker completed; no held-out answers supplied.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
         "security"
       ],
-      "next_action": "Finish nine clause classes and diagnostic parity, then independent preflight.",
+      "next_action": "Verify combined source and run the frozen independent cohort; new ordinary review is required for changed semantics.",
       "links": [
         {
           "label": "Current work and ownership",
@@ -385,8 +385,8 @@
       "title": "Independent onboarding & denial acceptance",
       "stream": "Independent QA",
       "status": "active",
-      "summary": "Independent evaluation preparation",
-      "detail": "Independent review found the old dispute CLI has NOT READY entry points despite passing helper tests. A supplementary runnable harness and preregistered holdout are being prepared; original results and bytes stay preserved.",
+      "summary": "Six new contracts and eight replies frozen; no score yet",
+      "detail": "One-shot runners retain setup refusals and dispatch results separately. Corpus and sealed expectation hashes were committed before any scored inference. Public controls remain separate from independent generalization.",
       "owner": "Independent witness",
       "depends_on": [
         "adapter",
@@ -395,7 +395,7 @@
         "source_meaning",
         "monthly_evidence"
       ],
-      "next_action": "Run only after prerequisites pass, preserving first attempts and separate outcome classes.",
+      "next_action": "Run against the verified source freeze after the full suite, without rewriting prior first attempts.",
       "links": [
         {
           "label": "Current work and ownership",
@@ -408,13 +408,13 @@
       "title": "Additional contract families",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Generic parser and citation preservation",
-      "detail": "Source interpretation is being repaired without vendor-name branches or invented facts. Original failed evaluations remain preserved.",
+      "summary": "Generic monthly wording remediation implemented",
+      "detail": "No vendor-name branches or frozen evaluation source was added. Exact citations and whole-source refusal checks remain. Arbitrary contract prose and unsupported financial families remain outside this implementation.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Focused positive, contradictory and financial-boundary checks.",
+      "next_action": "Measure unseen acceptance and refusal independently; preserve historical 0/4.",
       "links": [
         {
           "label": "Current work and ownership",
@@ -682,15 +682,15 @@
       "title": "Strict complete-month evidence path",
       "stream": "Financial correctness",
       "status": "active",
-      "summary": "Explicit source opt-in; independent complete report and fee evidence",
-      "detail": "Team approved the separate path. Basis and period admission slices are integrated; whole-month join and signed source controls are being implemented. Incident-based contracts stay unchanged.",
+      "summary": "Two-source complete-month join implemented; ordinary route checks passed",
+      "detail": "An explicit reviewed source clause selects exact complete-month status plus independently authenticated fees. Optional customer attribution must agree. Legacy incident contracts stay unchanged. Signed out-of-scope deliveries remain denied and gain a metadata-only audit.",
       "owner": "Disputes + onboarding owners",
       "depends_on": [
         "rules",
         "identity",
         "bindings"
       ],
-      "next_action": "Integrate schema, parser, join and semantics pins together; run negative and financial checks before independent evaluation.",
+      "next_action": "Run the complete locked regression suite and independent evaluation; historical monthly filing receipts remain unsupported.",
       "links": [
         {
           "label": "Approved decision",
@@ -700,6 +700,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T20:16:11.546813+00:00",
+      "title": "Parallel code ready; combined regression starting",
+      "detail": "Onboarding focused:433 passed. Dispute lane with compiler:491 passed. Combined ordinary-route, semantics-pin and runner checks:68 passed. Actual Opus coding sessions completed. Independent 14-case scores are still pending.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/FINISH-20261109.md"
+    },
     {
       "at": "2026-11-09T20:03:33.655053+00:00",
       "title": "First merged monthly increment passes 4,727 tests",

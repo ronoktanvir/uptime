@@ -1,0 +1,26 @@
+{
+  "task": "signed-source-auth-refusal-hook",
+  "model_observed": "claude-opus-5-5",
+  "requested_effort": "high",
+  "session_id": "9f7c1709-36dc-417c-b697-5b4cb6d07020",
+  "tools_observed": [
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "mcp_servers": [],
+  "authentication": "existing Claude Code OAuth subscription",
+  "exit_code": 0,
+  "elapsed_seconds": 303.406,
+  "parent_validation": "98 passed, 1 warning in 5.92s",
+  "files_sha256": {
+    "uptime/auth.py": "8e62f740eececfedfb8cc4ffe287edd4ba6a73f99ec955d8a48d9bbcfd454ca8",
+    "tests/auth_refusal_finish_20261109/test_signed_refusal_hook.py": "2d79c71245b4e4dd2f38f0ecb548f3e883457c075b3c79f7a4c0975a0153cc71"
+  },
+  "limits": [
+    "Focused local tests, not independent evaluation or full merge suite.",
+    "No actual reviewer key or human decision, native Ramp write or external vendor communication performed."
+  ]
+}

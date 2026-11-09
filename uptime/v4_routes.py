@@ -24,6 +24,17 @@ from .correspondence_artifacts import HISTORICAL
 from .correspondence_artifacts import SUPPLEMENTS
 from .vendor_terms import candidate_version, private_filing_days
 from .claim_identity import resource_remedy
+from .claim_scope import InvalidClaimScope, complete_service_month
+from .correspondence_monthly import monthly_observation
+
+
+def _grounded_basis(manifest, source_text):
+    """Whether an opt-in whole-month marker, if present, is exact and grounded in the reviewed source."""
+    try:
+        complete_service_month(manifest, source_text)
+    except InvalidClaimScope:
+        return False
+    return True
 
 
 def _override_semantics(manifest, overlay):
@@ -121,6 +132,7 @@ def _active_publication(db, tenant, scope):
             or manifest["document"]["sha256"] != sha256(artifact["source_text"].encode()).hexdigest()
             or (manifest["family"] == "monthly-availability/1" and
                 (manifest["period"] != "utc_calendar_month" or manifest["remedy"] != "affected_monthly_fees_future_invoice"))
+            or not _grounded_basis(manifest, artifact["source_text"])
             or state["active_version"] != version or overlay["currency"] != scope.currency):
         return None
     # A later publication may assert different terms for a month already
@@ -145,6 +157,7 @@ def _active_publication(db, tenant, scope):
         left, right = _period(old_manifest, old_overlay)
         if left <= month_last and right >= month_start and (
                 old_manifest["family"] != manifest["family"] or _economics(old_manifest, old_overlay) != _economics(manifest, overlay)
+                or old_manifest.get("evidence_basis") != manifest.get("evidence_basis")
                 or old_overlay["fee_line_ref"] != overlay["fee_line_ref"]):
             return None
     return installation, state, manifest, overlay
@@ -266,7 +279,11 @@ def resolve_active(path, tenant, scope, events, at, *, governing_fees=None):
                 except ValueError as error:
                     unsupported = str(error)
                     raise
-                obs = _joined_observation(scope, events, overlay, filed)
+                if complete_service_month(manifest):
+                    # Opt-in strict whole-service month evidence; grounded in _active_publication.
+                    obs = monthly_observation(scope, events, overlay, filed, at)
+                else:
+                    obs = _joined_observation(scope, events, overlay, filed)
                 if manifest.get('credit_rule') and governing_fees is not None:
                     from .governing_fees import authenticated_invoice_snapshot
                     invoices=[e for e in events if e['kind']=='invoice']
