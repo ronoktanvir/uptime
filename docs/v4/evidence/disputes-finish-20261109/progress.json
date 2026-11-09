@@ -1,9 +1,9 @@
 {
   "schema": "uptime-workstream-progress/1",
   "workstream": "disputes-finish-20261109",
-  "updated_at": "2026-11-09T20:49:30.112445+00:00",
-  "phase": "integrated and full regression verified; independent evaluation running",
-  "state": "integrated",
+  "updated_at": "2026-11-09T21:06:41.238941+00:00",
+  "phase": "implementation verified; independent first pass complete with unresolved generalization",
+  "state": "completed_with_remaining_gaps",
   "branch": "work/disputes-finish-20261109",
   "commits": [
     "97bb8bb",
@@ -61,10 +61,10 @@
     }
   ],
   "remaining": [
-    "Combined integration must pin all new monthly source semantics and run the full suite.",
-    "Independent evaluation pending on frozen integrated source.",
-    "Historical monthly filing receipts remain unsupported; source-only setup refusals must remain visible.",
-    "Native Ramp write remains prohibited."
+    "Natural source identifier grounding and explicit operator coverage.",
+    "Reply-only independent evaluation and compound source-reading representation.",
+    "Historical monthly filing receipts remain unsupported.",
+    "Ordinary human release and native Ramp restrictions remain."
   ],
   "model_receipts": [
     "../../decisions/reviews/disputes-refusal-20261109-opus-worker.json",
@@ -84,7 +84,6 @@
       "seconds": 357.07
     }
   ],
-  "in_progress": [
-    "Independent frozen-cohort execution and separately reported scoring."
-  ]
+  "in_progress": [],
+  "remaining_blocker": "Unseen onboarding remains0/4 author-intended positives; held-out dispute reasoning is unmeasured because setup failed. See independent RESULTS and next parallel workstreams."
 }
