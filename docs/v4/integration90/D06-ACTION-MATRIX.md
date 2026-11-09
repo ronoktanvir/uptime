@@ -15,7 +15,7 @@ Legend for "D06 target": **Person** (an authenticated human reviewer acts each t
 | Accept a reviewed vendor-reply interpretation (`correspondence_review.py`) | Reviewer | **Person** | Source-locked interpretation; multi-ground or conditional readings stay UNKNOWN |
 | Accept a denial (`accept-denial`, decision 89) | Reviewer, after a deterministic match moves the case to `DENIAL_REVIEW` | **Person** (legal ground) | Re-runs the denial check; award, ledger and submissions unchanged |
 | Close a familiar-wording maintenance denial | Previously closed automatically by the finite grammar | **Person**: through `DENIAL_REVIEW` plus explicit `accept-denial` (chosen 2026-11-09 under Ronok's delegation; new oracle version, frozen file untouched; W4 implements) | Same as above |
-| Mandated accept-denial (`ClaimDecision` action, W4 request) | Not available; mandated workspaces fail closed | **Person, if added** | Put to Ronok as options A (add a closure-bound action) or B (keep failing closed). The overview session declined to choose it under delegation. Until he answers, mandated workspaces fail closed. Not implemented |
+| Mandated accept-denial (`ClaimDecision` action) | Being added by W0 per Ronok's 2a (2026-11-09) | **Person** | Bound to the reviewed `basis_sha256` and `claim_state_sha256`; `max_amount_cents=0`; local purpose `claim-closure`; no money or outbound effect |
 | Change workspace policy mode or cap (`policy.configure`) | Reviewer; `ASSISTED` is the default with cap USD 0.00 | **Person** | Cap 0–10,000 USD at cent precision; history is append-only |
 | Enroll a source grant, issue a mandate, approve or sign a local exception | Host operator commands | **Never** by an agent | Nobody signs as Ronok or reads a reviewer key |
 
@@ -52,7 +52,7 @@ Legend for "D06 target": **Person** (an authenticated human reviewer acts each t
 1. **Policy record.** `policy_revision` stores only mode and cap. A standing policy also needs actor (a `service-*` principal), permitted action class, evidence class, scope (claim/vendor), expiry and escalation route. That is a W0 schema change.
 2. **Policy executor.** Nothing runs evidence retrieval or factual follow-ups under policy today; every run is started by a person. Building one needs the record above and a test for each limit in this matrix.
 3. **Simulator automation.** `POLICY_AUTOMATED` dispatch of `submit-claim` predates D06. Keep it limited to the simulated counterparty and decide its future together with D08.
-4. **Mandated accept-denial** (W4 request): needs Ronok's confirmation because it adds a mandate action.
+4. **Mandated accept-denial:** Ronok chose to add it (2a); W0 implements it.
 5. **Undecided sub-questions:** the pre-reading screen, and preparer/executor separation for operator credit applications.
 
 None of these gaps is needed for the November 10 demonstration. The demo runs every judgment step as an explicit reviewer action.
