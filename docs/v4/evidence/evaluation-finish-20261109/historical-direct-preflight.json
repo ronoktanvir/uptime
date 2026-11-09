@@ -1,0 +1,120 @@
+{
+  "schema": "historical-direct-preflight-finish/1",
+  "application_commit": "87b3464adf0f838319445015d90c5f8b18a7e722",
+  "checked_at": "2026-11-09T20:34:15.653140+00:00",
+  "route": "Direct deterministic source compiler, overlay binding and real scope discriminator if reached",
+  "not_tested": [
+    "ordinary public-model automatic selection",
+    "activated adapter setup",
+    "fee/evidence authority",
+    "dispute interpretation or continuation"
+  ],
+  "source_manifest_sha256": "1b2ecd449c7eea2b6fe0bcaae9b58304a7bffa02579a43e246230cc09bcd8619",
+  "source_pins_verified": {
+    "fixtures/evaluation84_public/disputes/01_late_filing/source.json": "f30b299ca3481d143069aa272fcfbc7ac5eb2643ef276a27c55f21dc0da1abbe",
+    "fixtures/evaluation84_public/onboarding/monthly_tier/document.json": "ed88ac8ec5b669f488cfeac3ba5b1de0531f0fc20158427caf6b4f3d4fbd1862",
+    "fixtures/evaluation84_public/onboarding/monthly_tier/customer.json": "18a3a5d52e1fda0626fa765441bf844f8a17ad5937f6f74a596ae2ec98e77048",
+    "fixtures/evaluation84_public/disputes/02_missing_artifact/source.json": "3ba94678f0d99e3c154c9556883451cd7e138b3b43bb66fd9056da7b46d7629f",
+    "fixtures/evaluation84_public/disputes/03_availability_denial/source.json": "1fae827bc79e60531cf33c2822b2979b9b45eb7525808197e77176ae9fa7f3cb",
+    "fixtures/evaluation84_public/disputes/04_maintenance_denial/source.json": "391e6f9c251ec43702fca5a26ba2441dd658288b561cd6b3f88311e71831cdf5",
+    "fixtures/evaluation84_public/onboarding/resource_month/document.json": "487f63775562785af357a8eec0c8dfc2ac37df59beb2dee7dae8a224767e37a0",
+    "fixtures/evaluation84_public/onboarding/resource_month/customer.json": "0171e92c86442b6cfc4a9605ddb1fb2b40e77782918db7a6f8b76aa7dde9f983",
+    "fixtures/evaluation84_public/disputes/05_full_award/source.json": "401c4b6e7fc8fcf3aa439dcb7dd58535bd56da94afb46f36fe8a2916218a44e0",
+    "fixtures/evaluation84_public/disputes/06_partial_award/source.json": "45e490122dc4e537c49330667dd6e2c2ef5d15428bf4d05ef6a719a1ab9598e1",
+    "fixtures/evaluation84_public/disputes/07_review_conditional/source.json": "4ba17801c12d7694aa26fdb3783d9231ca890b47991e30594e870aa84029bdd7",
+    "fixtures/evaluation84_public/disputes/08_review_contradiction/source.json": "988a02f00a7c20743c49ce1bbab8e570413dc9f4bc2ede63c2a068c791fcc2ea",
+    "fixtures/evaluation84_public/disputes/09_review_currency/source.json": "4ff6166b48f4eab9763344b07813c6ac92ec064a3b91b6e4efc1bd743ad7d3aa",
+    "fixtures/evaluation84_public/disputes/10_review_release/source.json": "c9deb08a0568103af6977659cf4412b78d133dbccb4a96afb1c82f8d8536b62d",
+    "fixtures/evaluation84_public/disputes/11_review_quotation/source.json": "3fb8af87b6e0f783978e916c0556a826495a430abdf09be182a3e0033b0843bb",
+    "fixtures/evaluation84_public/disputes/12_review_unbound_claim/source.json": "7fc8bf613437f279fcad45dd431f4ca537855782fcb749f1ed12a9be179c5183"
+  },
+  "gold_opened": false,
+  "inference_calls": 0,
+  "original_scores_changed": false,
+  "rows": [
+    {
+      "id": "01_late_filing",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "02_missing_artifact",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "03_availability_denial",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "04_maintenance_denial",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 1."
+    },
+    {
+      "id": "05_full_award",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "06_partial_award",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "07_review_conditional",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "08_review_contradiction",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "09_review_currency",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "10_review_release",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "11_review_quotation",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    },
+    {
+      "id": "12_review_unbound_claim",
+      "stage": "direct_source_setup",
+      "outcome": "NOT_READY_VIA_DIRECT_COMPILER",
+      "error_type": "ValueError",
+      "reason": "Unsupported source language at clause 5."
+    }
+  ]
+}
