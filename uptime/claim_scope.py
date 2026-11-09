@@ -25,7 +25,9 @@ absent everywhere else, so the legacy table entry is unchanged.
 Stored claims are grandfathered: they are read and evaluated with their stored scope.
 This module only decides admissibility of new intake; it grants no entitlement.
 """
+from calendar import monthrange
 from dataclasses import dataclass
+from datetime import date
 from hashlib import sha256
 import json
 import re
@@ -161,8 +163,30 @@ def variant_for(manifest, overlay, source_text=None):
     return ResourcePeriodScope(RESOURCE_FAMILY, frozenset({"component"} | regional | needed))
 
 
+def _period_overlaps(artifact, first, last):
+    """Keep every source/overlay interval touching the month; do not choose within a split month."""
+    def day(value):
+        if type(value) is not str or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+            raise ValueError("Expected an exact date.")
+        return date.fromisoformat(value)
+
+    try:
+        effective, overlay = artifact["manifest"]["effective"], artifact["overlay"]
+        if not isinstance(effective, list) or len(effective) != 2:
+            raise ValueError("Expected a source interval.")
+        source_first = day(effective[0])
+        overlay_first, overlay_last = day(overlay["effective_from"]), day(overlay["effective_until"])
+        source_last = day(effective[1]) if effective[1] is not None else None
+        if overlay_first > overlay_last or source_last is not None and source_first > source_last:
+            raise ValueError("Reversed interval.")
+        left, right = max(source_first, overlay_first), min(source_last or overlay_last, overlay_last)
+    except (KeyError, TypeError, ValueError):
+        raise InvalidClaimScope("The installed agreement has an invalid effective period; scope requires review.") from None
+    return left <= right and left <= last and right >= first
+
+
 def _installed(db, tenant, scope):
-    """Manifests and overlays installed for this exact identity, whether shadow or active."""
+    """Installed exact-identity artifacts whose governing interval touches the claim month."""
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name='v4_vendor_event'").fetchone():
         return []
     rows = db.execute("""SELECT a.payload FROM v4_vendor_event e
@@ -176,7 +200,10 @@ def _installed(db, tenant, scope):
           AND json_extract(a.payload, '$.overlay.agreement')=?
           AND json_extract(a.payload, '$.overlay.product')=?""",
                       (tenant, scope.vendor, scope.account, scope.contract, scope.service)).fetchall()
-    return [json.loads(row[0]) for row in rows]
+    first = date.fromisoformat(scope.month + "-01")
+    last = date(first.year, first.month, monthrange(first.year, first.month)[1])
+    artifacts = [json.loads(row[0]) for row in rows]
+    return [artifact for artifact in artifacts if _period_overlaps(artifact, first, last)]
 
 
 def resolve(db, tenant, scope):
