@@ -25,3 +25,13 @@ None changed so far. Routine automation is a persisted workspace setting:
 
 - Existing workflow, ledger and finance tests on the changed code (step-by-step default): **121 passed**.
 - Combined with the new tests and the correspondence model-job tests (job view now carries timestamps and the shared `provider` receipt subset): **160 passed, 1 warning**.
+
+## Later increments (`1646930`, `0225970`, `2742be0`)
+
+No existing test changed.
+
+New tests, added to `tests/test_workflow_coordinator_r2.py` (12 tests now):
+- `test_dispatch_happens_on_the_workspace_timeline_at_the_cooldown_and_inside_the_cutoff`
+- `test_setup_prints_a_plain_sign_in_block_and_writes_a_visible_protected_copy`
+
+First run of the 12: **1 failed, 11 passed.** The sign-in test expected the test-module origin (`:8765`), but the CLI default is `:8776`. The test now compares against the origin the CLI prints. No application code changed for this fix. Second run, with the workflow, finance and model-job tests: **156 passed, 1 warning**.

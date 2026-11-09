@@ -1,6 +1,6 @@
 # Role 2: dispute automation within policy (agent3)
 
-Branch `work/submission-disputes-20261109`, started from `origin/main` at `55ea607` on November 9, 2026. The task text is Ronok's coordination brief (12:50 PST), relayed by the coordinator. This file holds the action inventory, the coordinator design, the interface fields role 4 renders, and the setup-side sign-in proposal. It is updated as implementation lands. **Status: design published; implementation in progress.**
+Branch `work/submission-disputes-20261109`, started from `origin/main` at `55ea607` on November 9, 2026. The task text is Ronok's coordination brief (12:50 PST), relayed by the coordinator. This file holds the action inventory, the coordinator design, the interface fields role 4 renders, and the setup-side sign-in proposal. It is updated as implementation lands. **Status: implemented and pushed** (commits in section 7). It is waiting for coordinator integration.
 
 ## 1. The eleven walkthrough operations versus D06
 
@@ -72,7 +72,20 @@ All values come from `GET /api/workspace/workflow` (`workflow.*`) or the existin
   - `state`: `COMPLETED`, `PAUSED` or `UNCERTAIN`.
 - `counts`: `{person_decisions, automatic_steps}`.
 
-`workflow.next_actions` is unchanged in shape. After this change it offers only person decisions, or "Resume interrupted action".
+- **Clocks.** Each step has two clocks:
+  - `at`: the **workspace's own timeline**, the authored event clock that `workflow.as_of` also shows.
+  - `recorded_at`: wall-clock UTC when the server recorded the step.
+- **`timing` per step:** `{clock: "WORKSPACE", at, filing_cutoff?, not_before?}`.
+  - Dispatches (`submit-claim`, `submit-response`) carry `filing_cutoff`.
+  - `submit-response` also carries `not_before`, the end of the 24-hour response cooldown.
+- **How workspace time advances.** For each step, the workflow moves the workspace clock forward to that step's effect time, never backwards:
+  - an authored event's own `known_at` for intake;
+  - the cooldown end for the response dispatch.
+  - So the response is sent **at** `not_before` on the workspace timeline, one day after the approval's `timing.at`. It is not sent instantly.
+  - The interface can show "Sent after the 24-hour cooldown, <date>" from `timing.not_before` and `timing.at`.
+  - The coordinator never shortens or skips the cooldown or the filing cutoff. A test asserts `at == not_before` and `at < filing_cutoff`.
+
+`workflow.next_actions` is unchanged in shape. After this change it offers only person decisions, "Continue routine steps" (only after an interrupted automatic run) or "Resume interrupted action". Additional fields: `automation.enabled` (the persisted workspace setting) and `steps[].detail` (an error class for a `FAILED` automatic step).
 
 ### 3b. Headline and the credit lifecycle (existing fields; two additions)
 
@@ -134,4 +147,64 @@ This is my setup-side half; the coordinator reconciles it with role 4.
 
 ## 7. Progress
 
-To be filled with commits, tests, the genuine model call and counts as they land.
+### Commits on `work/submission-disputes-20261109`
+
+| Commit | What |
+|---|---|
+| `67fbc44` | This design |
+| `da3a909` | Coordinator, persisted step history, automation view, month fields, setup automation default and visible credential, job timestamps and receipt passthrough |
+| `1646930` | Authored, hash-pinned "unclear" reply variant (`--counterparty-reply unclear`) and the one-call denial model-job runner |
+| `0225970` | Receipt of the genuine model job |
+| `2742be0` | Workspace-timeline timing per step; the plain sign-in block (last three lines: path, account, URL); `--reviewer-credential` with `--resume` |
+
+### Tests
+
+```sh
+uv run --locked --offline pytest -q -p no:cacheprovider --basetemp=<own dir> -o tmp_path_retention_policy=failed \
+  tests/test_workflow_coordinator_r2.py tests/test_northwind_workflow.py tests/test_northwind_local_ledger.py \
+  tests/test_finance_view_90.py tests/test_finance_guide_90.py tests/test_correspondence_model_jobs_75.py \
+  tests/test_correspondence_public_queue_75.py
+```
+
+Result on `2742be0`: **156 passed, 1 warning**. No existing test changed; see `docs/v4/TEST-CHANGES-submission-disputes-20261109.md`.
+
+### Genuine model call (one; no retry)
+
+| Field | Value |
+|---|---|
+| Model | `claude-opus-5-5` |
+| Job | `29f371d0-0a49-4b3b-9454-64eaf7bb1261`, `SUCCEEDED` on its only attempt |
+| Session | `ce56dc6e-7a02-45be-b8c5-e91d8dfdf03e` |
+| Tools / MCP | empty / empty |
+| Usage, cost | 418 output tokens; 0.045 USD client-reported |
+| Request | SHA-256 `1bdc9057…`, approved for one invocation by "agent3 (engineering operator, role 2)" through `scripts/public_proposals.py approve --confirm-authored-public --hours 1` |
+| Receipt | [`evidence/submission-disputes-20261109/denial-model-job.json`](../evidence/submission-disputes-20261109/denial-model-job.json). Raw request and response stay outside Git. |
+
+- **Input:** the authored unclear January reply.
+- **Proposed reading:** `unsupported`, citing the whole reply (bytes 0–200), shown before the semantic review. The scripted reviewer had saved its own reading first.
+- **Scripted semantic review:** category `AMBIGUOUS_GROUNDS`; preparing a response is refused.
+- **Result:** the case stays in `HUMAN_REVIEW` (escalation), awarded 0.00, one filing, scope unchanged.
+
+### The three outcomes
+
+| Outcome | Where it works today | Evidence |
+|---|---|---|
+| Cure missing evidence | The Northwind walkthrough, coordinated | `test_routine_steps_run_under_existing_authority_and_only_person_decisions_are_offered`: a log request, then automatic artifact and verification intake, approved response sent at the cooldown, award, credit, application |
+| Escalate ambiguity | The Northwind walkthrough with `--counterparty-reply unclear` | The genuine model job above; `test_an_unfamiliar_vendor_reply_pauses_for_the_reviewer_instead_of_continuing` |
+| Accept a correct denial through its authorized control | **Correspondence cases, not the Northwind walkthrough** | `test_correspondence_adversarial_http_89h.py::test_familiar_maintenance_denial_is_order_independent_and_closes_only_on_acceptance` (signed routes, explicit `accept-denial`); `test_blind_acceptance.py` late-denial control; the coordinator's `JUDGMENT_REQUIRED` pause test; the role-4 accept-denial control (gent7, `a47fb5a`). The authored Northwind facts make the January claim valid, so a correct denial there would need different authored facts. I did not invent any. |
+
+### Click and approval counts (actual, from the tests)
+
+| Branch | Before | After |
+|---|---|---|
+| Cure (Northwind) | 11 clicks; 4 of them person decisions | **4 clicks**, all person decisions: approve claim, approve response, post credit, apply credit; 7 automatic steps with recorded authority |
+| Escalation (Northwind, unclear reply) | 3 clicks to reach the reply (approve, file, receive); then the reviewer's reading, model request and review | **1 click** (approve claim). Filing and intake are automatic, then a pause at `UNEXPECTED_GROUND`. The reviewer's own reading, the model request and the semantic review remain person actions. |
+| Correct denial (correspondence cases) | Approval and filing clicks; closure was automatic for familiar wording before D06 89e | Unchanged here. Closure is the explicit `accept-denial` (person), which the coordinator never performs. |
+
+### Limitations
+
+- Counterparty replies and the reviewer are authored and scripted. Automatic intake is not proof of a real vendor channel (D08).
+- The correct-denial branch is not in the Northwind walkthrough (see above).
+- With routine automation off (`--step-by-step`, and the Python `prepare()` default), every step is a click, as before. The browser tests (gent7) and the restart and socket probes (gent8) use that default until their owners move them.
+- A failed or timed-out model job shows a receipt only once role 1's shared job projection (agent2, `611efdf`) is merged. My job view passes that `provider` block through.
+- No full suite run here; the coordinator runs it after integration.
