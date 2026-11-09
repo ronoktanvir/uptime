@@ -8,7 +8,11 @@ Claude Code subscription authentication was observed as `oauth_token`; the actua
 
 ## Test changes
 
-Implementation and tests are in progress. No existing test has changed yet. The classifier parity tests will need named migrations where formerly unrecognized source forms gain explicit support; refusals for contradictory or ambiguous terms must remain.
+Changed existing test: `tests/test_vendor_strict_diagnostics_89.py::test_first_unread_clause_is_the_clause_the_parser_refuses`. A bare title or explicit party statement is now recognized; a second such statement remains a duplicate refusal. The test therefore accepts the exact duplicate-vendor/agreement refusal when no unsupported-clause index exists. No monetary or authority assertion was weakened.
+
+New authored modules: `test_strict_template_remediation_20261109.py` (nine classes, exact spans, duplication, qualifiers, arithmetic), `test_strict_diagnostics_remediation_parity_20261109.py` (classifier/parser parity), `test_parent_financial_controls.py` (hand-calculated tier, fee, cutoff and unknown boundaries), `test_monthly_basis_helper.py` (explicit marker validation) and `test_monthly_basis_compilation.py` (strict/model paths, receipt revalidation, whole-source conflicts, source scope, requirement-card compatibility).
+
+Before committing, the parent changed the newly authored `test_effective_sentences` and `test_unsupported_effective_sentences_refuse_at_their_clause`: bare “until” no longer assumes an inclusive end date. Explicit “until and including” remains supported. New `test_model_cannot_make_ambiguous_until_inclusive` checks the model fallback cannot bypass that refusal.
 
 ## Verification
 
@@ -21,3 +25,15 @@ The user approved a separate strict whole-month path during this work. `vendor_m
 New tests in `tests/onboarding_finish20261109/test_monthly_basis_helper.py` cover legacy absence, explicit acceptance, partial/rolling/incident/conditional variants, unsupported family/remedy, duplicate or missing citations, invalid spans and ambiguous service scope. **24 passed in 0.24s** using the locked existing environment and a unique temporary directory. No existing tests changed in this slice.
 
 Independent authored development controls in `test_parent_financial_controls.py` recorded the expected red phase before grammar implementation: **4 failed, 18 deselected in 0.56s**, all four at the unsupported source parser, not monetary arithmetic. These controls are not independent evaluation scores.
+
+## Final focused verification and retained failures
+
+Final focused command, using the existing locked environment and `PYTHONPATH` containing this worktree and its test directories:
+
+```sh
+uv run --locked --no-sync python -m pytest tests/onboarding_finish20261109 tests/test_vendor_strict_diagnostics_89.py tests/test_vendor_catalog.py tests/test_vendor_family_selection_89.py tests/test_vendor_unlabeled_parties_84r.py tests/test_vendor_filing_override_f4.py tests/test_vendor_model_jobs_runtime.py tests/test_public_proposal_jobs.py tests/test_vendor_resource.py tests/test_vendor_requirements_89.py -q --basetemp=/tmp/uptime-onboarding-final7 -o tmp_path_retention_policy=failed
+```
+
+**433 passed, 1 warning in 3.17s.** The warning is the existing Starlette/httpx deprecation. Retained intermediate failures: 1 failed / 258 passed (new model fallback lacked party scope), 1 failed / 387 passed (leading determiner case in new title check), and 1 failed / 431 passed (new requirement-card test omitted its helper argument). Each was corrected before this result. The earlier expected red phase remains recorded. See evidence logs and the completed real-worker receipt.
+
+No unseen evaluation score is claimed. Original 0/4 and Backblaze refusal remain. Full monthly claim core plus all source-semantics dependencies must be integrated atomically and the complete locked suite run before freezing for evaluation. The optional monthly evidence marker is an explicitly approved separate path; legacy absence retains incident requirements.

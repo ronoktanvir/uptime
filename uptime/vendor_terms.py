@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field
 
 from .contracts import fingerprint
+from .vendor_monthly_basis import KIND as MONTHLY_BASIS, is_monthly_basis_clause, validate_monthly_evidence_basis
 
 REVISION = 'monthly-availability/1'
 PERCENT_SCALE = 1_000_000  # integer units per percent
@@ -152,6 +153,111 @@ TABLE_HEADERS = (
     {'service credit', 'service credit (%)', 'credit', 'credit rate'},
 )
 
+# Released strict remediation templates (onboarding remediation plan classes 1-3, 5, 7-11). Each states a term
+# this family already supports in one common, unambiguous way. They are tried only after every original
+# template has failed, so a clause the parser already read keeps its exact reading. Exclusions, conditions,
+# negation and other qualifiers do not match and stay refused (D07).
+SUPPLY_VERB = r'(?:provides|supplies|offers|delivers|operates)'
+PARTY_STATEMENT = rf'(?P<vendor>{NAME}) {SUPPLY_VERB} (?P<product>{NAME}) (?:on|under) the (?P<plan>{NAME}) plan'
+EFFECTIVE_SENTENCE = rf'This agreement (?:takes effect|is effective) on ({DAY}) (?:and ends on|through|until and including) ({DAY})'
+_TIMES, _MINUS, _OVER = r'(?: ?[×*] ?| (?:x|times|multiplied by) )', r'(?: ?[−–-] ?| minus )', r'(?: ?[÷/] ?| divided by )'
+# Exactly the evaluator's measure: 100 × (1 − eligible downtime minutes ÷ total minutes in the month).
+AVAILABILITY_FORMULA = (
+    r'(?:monthly )?(?:service )?(?:availability|uptime)(?: percentage)? (?:is calculated as|is computed as|equals|=) '
+    rf'100{_TIMES}\(1{_MINUS}(?P<inner>\()?(?:the )?eligible downtime minutes{_OVER}(?:the )?total minutes in the '
+    r'(?:UTC )?(?:calendar )?month(?(inner)\))\)')
+UNSCOPED_TIER = (
+    rf'(?:monthly )?(?:availability|uptime) (?:below|less than|under) (?P<below>{NUMBER})% '
+    rf'(?:earns|qualifies for|results in|receives) (?:a |an )?(?P<rate>{NUMBER})% (?:service )?credit')
+# A statement of rate_for's existing rule: only the most severe applicable tier, never a sum of tiers.
+HIGHEST_TIER_ONLY = (r'Only the highest applicable (?:service )?(?:credit )?percentage applies(?:;|,? and) '
+                     r'(?:service )?(?:credit )?percentages do not accumulate')
+FEE_BASIS = r'The (?:service )?credit percentage applies to the affected monthly (?:service )?fee in USD'
+FUTURE_INVOICE = (r'(?:service )?credits (?:are|will be) (?:applied|credited) (?:to|on) '
+                  r'(?:a |the |your )?(?:future|next) invoice')
+ARTICLE_FILING = rf'An? {FILING}'  # Source clauses only; a private filing amendment keeps the FILING grammar.
+FORMULA_VALUE = 'one_minus_eligible_downtime_over_month_minutes'
+TIER_SELECTION_VALUE = 'highest_applicable_only'
+OPTIONAL_TERMS = frozenset({'availability_formula', 'tier_selection', 'evidence_basis'})
+_CONNECTORS = frozenset({'a', 'an', 'and', 'as', 'at', 'by', 'for', 'in', 'of', 'on', 'or', 'the', 'to', 'with', '&'})
+_TITLE_WORD = r"[A-Z0-9][A-Za-z0-9&'+_/\-]*"
+_TITLE_REFUSED = (r'\b(?:not?|non|never|without|except|excluding|unless|if|only|draft|proposed|sample|example|template|'
+                  r'amend(?:ed|ment|ments)?|addend(?:um|a)|supplement(?:al|ary)?|superseded|expired|terminated|former|'
+                  r'prior|previous|beta|preview|trial|summary|schedule|exhibit|appendix|annex)\b')
+_DATE_TEXT = (r'\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|'
+              r'oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|(?:19|20)[0-9]{2})\b|[0-9][-/.][0-9]')
+_SUBJECT_TOKEN = r"[A-Z0-9][A-Za-z0-9'.,+_\-]*|&"
+_SCOPE_TOKEN = r"[A-Z0-9][A-Za-z0-9'.+_\-]*"
+_PARTY_REFUSED = (r'\b(?:a|an|the|this|that|these|those|each|every|any|all|some|certain|other|its?|their|our|we|us|you|'
+                  r'your|they|not?|non|never|without|except|excluding|exclude[sd]?|unless|if|when|whenever|where|while|'
+                  r'only|provided|subject|includ(?:e|es|ed|ing)|may|might|can|could|should|would|must|shall|will|also|'
+                  r'either|neither|nor|and|or|via|through|beta|preview|trial|affiliates?|subsidiar(?:y|ies)|resellers?|'
+                  r'licensors?|(?:sub)?contractors?|customers?|subscribers?)\b')
+_ROLE_SUBJECTS = frozenset({'vendor', 'provider', 'service provider', 'supplier', 'company', 'licensor', 'party'})
+
+
+def _title(clause, quote, index, text, start, end):
+    """Class 1: the document's bare first line, title-cased, at most 12 words, ending in "Agreement"."""
+    words = clause.split(' ')
+    return (index == 1 and text is not None and quote == clause and not text[:start].strip()
+            and re.match(r'[ \t]*(?:\r?\n|\Z)', text[end:]) is not None
+            and 2 <= len(words) <= 12 and words[-1] == 'Agreement' and words[0].casefold() not in _CONNECTORS
+            and all(re.fullmatch(_TITLE_WORD, word) or word in _CONNECTORS for word in words)
+            and not re.search(r'[.!?;:,]', clause) and not re.search(_TITLE_REFUSED, clause, re.IGNORECASE)
+            and not re.search(_DATE_TEXT, clause, re.IGNORECASE) and _match(NAME, clause) is not None)
+
+
+def _party(clause, quote):
+    """Class 2: (vendor, product, plan) when the vendor is the exact, unqualified subject of one supply verb."""
+    m = _match(PARTY_STATEMENT, clause)
+    if (not m or ' '.join(quote.split()) != quote  # identity bytes are never whitespace-normalized
+            or len(re.findall(rf'\b{SUPPLY_VERB}\b', clause, re.IGNORECASE)) != 1
+            or len(re.findall(r'\b(?:on|under) the\b', clause, re.IGNORECASE)) != 1
+            or len(re.findall(r'\bplan\b', clause, re.IGNORECASE)) != 1):
+        return None
+    from .source_identity import refusal
+    vendor, product, plan = m['vendor'], m['product'], m['plan']
+    subject = vendor.split(' ')
+    if (refusal(vendor) or vendor.casefold() in _ROLE_SUBJECTS or vendor.endswith(',') or '&' in (subject[0], subject[-1])
+            or not all(re.fullmatch(_SUBJECT_TOKEN, token) for token in subject)
+            or re.search(_PARTY_REFUSED, vendor, re.IGNORECASE)):
+        return None
+    for name in (product, plan):
+        if (not all(re.fullmatch(_SCOPE_TOKEN, token) for token in name.split(' '))
+                or re.search(_PARTY_REFUSED, name, re.IGNORECASE)):
+            return None
+    return vendor, product, plan
+
+
+def _remediated(clause, quote=None, *, index=None, text=None, start=0, end=0, scoped_tier_before=False):
+    """(category, value) under a released remediation template, else None. Pure; shared with strict diagnostics.
+
+    The title template needs the clause position (`index`, `text`, `start`, `end`); an inherited-scope tier
+    needs an explicitly scoped tier earlier in the document. Without that context neither is recognized.
+    """
+    quote = clause if quote is None else quote
+    if is_monthly_basis_clause(quote):
+        return 'evidence_basis', MONTHLY_BASIS
+    if _title(clause, quote, index, text, start, end):
+        return 'agreement_title', clause
+    if party := _party(clause, quote):
+        return 'vendor_party_statement', party
+    if m := _match(EFFECTIVE_SENTENCE, clause):
+        return 'effective_sentence', (m[1], m[2])
+    if _match(AVAILABILITY_FORMULA, clause):
+        return 'availability_formula', FORMULA_VALUE
+    if scoped_tier_before and (m := _match(UNSCOPED_TIER, clause)):
+        return 'tier_inherited_scope', (m['below'], m['rate'])
+    if _match(HIGHEST_TIER_ONLY, clause):
+        return 'tier_selection', TIER_SELECTION_VALUE
+    if _match(FEE_BASIS, clause):
+        return 'remedy_fee_basis', None
+    if _match(FUTURE_INVOICE, clause):
+        return 'remedy_future_invoice', None
+    if m := _match(ARTICLE_FILING, clause):
+        return 'filing_days_article', m[1]
+    return None
+
 
 def _clauses(text, segments):
     if segments is None:
@@ -194,6 +300,8 @@ def compile_terms(document, *, segments=None):
         'tiers': [], 'citations': []}
     seen = set()
     table = None
+    # Remediation-template state; it stays empty, and the result unchanged, for a document using none of them.
+    declared, scoped, party, inherited, halves = [], [], [], [], {}
 
     def atom(key, value, citation):
         if key in seen:
@@ -208,6 +316,8 @@ def compile_terms(document, *, segments=None):
         manifest['tiers'].append(dict(product=product, plan=plan, below_units=percent_units(below),
                                       credit_units=percent_units(credit), citation=citation['id']))
         citation['field'] = 'tier'
+        declared.append((product, plan))
+        scoped.append(citation['id'])
 
     clauses = _clauses(document.text, segments)
     if not 1 <= len(clauses) <= 200:
@@ -269,16 +379,64 @@ def compile_terms(document, *, segments=None):
         elif _match(r'(?:#*\s*)?(?:(?:Monthly )?Availability|Service Level) (?:Agreement|Schedule|Commitment)|'
                     r'Synthetic public (?:test )?(?:contract|agreement)', clause):
             c['field'] = 'heading'
+        elif found := _remediated(clause, quote, index=c['id'], text=document.text, start=start, end=end,
+                                  scoped_tier_before=bool(scoped)):
+            kind, value = found
+            if kind == 'agreement_title':  # a labeled agreement as well is a duplicate
+                atom('agreement', value, c)
+            elif kind == 'vendor_party_statement':
+                atom('vendor', value[0], c)
+                party.append(value[1:])
+                declared.append(value[1:])
+            elif kind == 'effective_sentence':
+                if date.fromisoformat(value[0]) > date.fromisoformat(value[1]):
+                    raise ValueError('Reversed effective interval.')
+                atom('effective', list(value), c)
+            elif kind == 'tier_inherited_scope':
+                # The scope is resolved after the whole document is read; it must then be unique.
+                inherited.append(dict(below_units=percent_units(value[0]), credit_units=percent_units(value[1]),
+                                      citation=c['id'], scope_citation=scoped[-1]))
+                c['field'] = 'tier'
+            elif kind in ('remedy_fee_basis', 'remedy_future_invoice'):
+                if kind in halves:
+                    raise ValueError('Duplicate or conflicting source clause: remedy')
+                halves[kind] = c['id']
+                c['field'] = 'remedy'
+            elif kind == 'filing_days_article':
+                if not 1 <= int(value) <= 365:
+                    raise ValueError('Filing window outside supported interval.')
+                atom('filing_days', int(value), c)
+            else:  # availability_formula, tier_selection: statements of the evaluator's existing semantics
+                atom(kind, value, c)
         else:
             raise ValueError(f'Unsupported source language at clause {c["id"]}.')
+    if halves:
+        # Classes 9 + 10: only the fee basis and the future-invoice clause together state the existing remedy.
+        if 'remedy' in seen:
+            raise ValueError('Duplicate or conflicting source clause: remedy')
+        if len(halves) == 2:
+            seen.add('remedy')
+            manifest['remedy'] = 'affected_monthly_fees_future_invoice'
+    if party or inherited:
+        # Class 2 declares one scope; class 7 inherits only a unique explicitly declared product/plan.
+        scopes = set(declared)
+        if 'credit_rule' in manifest:
+            scopes.add((manifest['credit_rule']['product'], manifest['credit_rule']['plan']))
+        if len(scopes) != 1:
+            raise ValueError('Ambiguous product/plan scope.')
+        (product, plan), = scopes
+        manifest['tiers'] += [dict(product=product, plan=plan, **term) for term in inherited]
     required={'vendor', 'agreement', 'effective', 'period', 'filing_days', 'remedy'}
     if 'credit_rule' in manifest:
         required |= {'credit_rule','credit_rounding'}
-    if document.text[cursor:].strip() or seen != required:
+    if document.text[cursor:].strip() or seen - OPTIONAL_TERMS != required:
         raise ValueError('Document lacks complete, unambiguous source coverage.')
+    validate_monthly_evidence_basis(manifest)
     if 'credit_rule' in manifest:
         if manifest['tiers']:
             raise ValueError('Tier and completed-step rules cannot share one scope.')
+        if 'tier_selection' in manifest:
+            raise ValueError('A highest-applicable tier statement cannot govern a completed-step rule.')
         del manifest['tiers']  # A tier-only reader must refuse, never infer zero.
         from .credit_steps import from_manifest
         from_manifest(manifest)
@@ -397,7 +555,7 @@ def private_filing_days(overlay, month, default):
 # A reviewed artifact is coupled to the actual source installed in this process.
 # A comment-only change can conservatively require fresh review. Historical receipts stay readable.
 _COMMON_SEMANTIC_FILES = ('contracts.py','vendor_terms.py','vendor_eval.py','vendor_model.py','vendor_registry.py','claim_identity.py','credit_steps.py','pricing.py','pricing_terms.py','governing_fees.py')
-_PROFILE_FILES = {REVISION: _COMMON_SEMANTIC_FILES,
+_PROFILE_FILES = {REVISION: _COMMON_SEMANTIC_FILES + ('vendor_monthly_basis.py',),
                   'resource-month/1': _COMMON_SEMANTIC_FILES + ('vendor_bindings.py','vendor_resource_terms.py','vendor_resource_eval.py','vendor_resource_operators.py','vendor_resource_predicates.py','vendor_resource_scopes.py','vendor_service_month.py','twilio.py')}
 SEMANTICS_REVISIONS = {
     family: fingerprint({'protocol':'reviewed-semantics/1','family':family,'files':{
@@ -431,6 +589,8 @@ def compile_propositions(document, clauses):
                 'classification': document.classification, 'sha256': sha256(document.text.encode()).hexdigest()},
                 'tiers': [], 'citations': []}
     seen, scope, header = set(), None, None
+    remedy_halves = set()
+    party_scope = None
     header_fields = []
     qualifiers = r'\b(?:unless|except|exclud(?:e|es|ed|ing)|provided|subject to|only if|conditional|cap(?:ped)?|maximum|' \
                  r'discretion|refund|business days|rolling|not|greater than|above|at least|up to|at most|may|can|maintenance)\b|<=|≤'
@@ -442,6 +602,33 @@ def compile_propositions(document, clauses):
         manifest['citations'].append(citation)
         if not isinstance(field, str) or field == 'unsupported':
             raise ValueError(f'Model identified unsupported material at clause {index}.')
+        # These literal templates contain the exact negation/semicolon that
+        # states supported semantics. They are exceptions only for a full
+        # recognized clause, never for a keyword or a model's assertion.
+        normalized = text.removesuffix('.').strip()
+        if field in OPTIONAL_TERMS:
+            valid = ((field == 'evidence_basis' and value == MONTHLY_BASIS and is_monthly_basis_clause(quote))
+                     or (field == 'availability_formula' and value == FORMULA_VALUE
+                         and _match(AVAILABILITY_FORMULA, normalized))
+                     or (field == 'tier_selection' and value == TIER_SELECTION_VALUE
+                         and _match(HIGHEST_TIER_ONLY, normalized)))
+            if not valid:
+                raise ValueError('Optional evidence or calculation term is not explicitly grounded.')
+            if field in seen:
+                raise ValueError('Duplicate or ambiguous proposed field.')
+            seen.add(field)
+            manifest[field] = value
+            header = None
+            continue
+        if field == 'remedy' and value == 'affected_monthly_fees_future_invoice':
+            half = ('fee' if _match(FEE_BASIS, normalized) else
+                    'invoice' if _match(FUTURE_INVOICE, normalized) else None)
+            if half is not None:
+                if half in remedy_halves or 'remedy' in seen:
+                    raise ValueError('Duplicate or ambiguous proposed remedy.')
+                remedy_halves.add(half)
+                header = None
+                continue
         if re.search(r'[.!?]\s+(?=[A-Z])|;', text):
             raise ValueError('A monthly proposition must cite a single contract statement.')
         if '|' not in text:
@@ -461,11 +648,20 @@ def compile_propositions(document, clauses):
             if (not isinstance(value, str) or not _match(NAME, value) or value.casefold() not in lower
                     or not (labeled or stated)):
                 raise ValueError('Ungrounded vendor or agreement identifier.')
+            if field == 'vendor' and (party := _party(normalized, quote)) and party[0] == value:
+                # The same narrowly recognized supply sentence used by the
+                # strict compiler states this scope, rather than inventing it
+                # from an overlay or an LLM's missing-value guess.
+                party_scope = (party[1], party[2])
+                scope = {'product': party[1], 'plan': party[2], 'citation': index}
         elif field == 'effective':
+            if re.search(r'\buntil\b(?! and including)', lower):
+                raise ValueError('Effective end date must explicitly establish inclusion.')
             if (not isinstance(value, list) or len(value) != 2 or not isinstance(value[0], str)
                     or value[1] is not None and not isinstance(value[1], str)
                     or re.findall(DAY, text) != [v for v in value if v is not None]
-                    or not re.search(r'\b(?:effective|valid)\b', lower)):
+                    or not (re.search(r'\b(?:effective|valid)\b', lower)
+                            or _match(EFFECTIVE_SENTENCE, normalized))):
                 raise ValueError('Effective interval must match explicit source dates.')
             date.fromisoformat(value[0])
             if value[1] is not None and date.fromisoformat(value[0]) > date.fromisoformat(value[1]):
@@ -497,6 +693,8 @@ def compile_propositions(document, clauses):
                     or not re.search(r'\b(?:applies|covers|scope|product|plan)\b', lower)
                     or '%' in lower or re.search(r'\b(?:must|required|when|if)\b', lower)):
                 raise ValueError('Ambiguous scope clause.')
+            if party_scope is not None and (value['product'], value['plan']) != party_scope:
+                raise ValueError('Ambiguous product/plan scope.')
             scope = value | {'citation': index}
             header = None
             continue
@@ -569,8 +767,17 @@ def compile_propositions(document, clauses):
         manifest[field] = value
         header = None
     required = {'vendor', 'agreement', 'effective', 'period', 'filing_days', 'remedy'}
-    if seen != required or not manifest['tiers']:
+    if remedy_halves:
+        if 'remedy' in seen:
+            raise ValueError('Duplicate or ambiguous proposed remedy.')
+        if remedy_halves == {'fee', 'invoice'}:
+            seen.add('remedy')
+            manifest['remedy'] = 'affected_monthly_fees_future_invoice'
+    if seen - OPTIONAL_TERMS != required or not manifest['tiers']:
         raise ValueError('Incomplete model propositions.')
+    if party_scope is not None and any((t['product'], t['plan']) != party_scope for t in manifest['tiers']):
+        raise ValueError('Ambiguous product/plan scope.')
+    validate_monthly_evidence_basis(manifest)
     manifest['tiers'].sort(key=lambda t: (t['product'], t['plan'], t['below_units']))
     last = {}
     for tier in manifest['tiers']:
