@@ -301,3 +301,32 @@ def test_server_read_failure_is_recorded_not_retried(tmp_path):
         expected_request_sha256=REQ_SHA, pinned_blind=BLIND, read_state=lambda: {}, folder=tmp_path / 'r',
         poll_seconds=.05, poll_interval=.01, read_job=broken)
     assert record['server_terminal'] == dict(read_error='KeyError')
+
+
+# --- offline plan (agent3): pinned public inputs only; the sealed root is never opened ---
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_plan_pins_public_inputs_and_never_opens_the_sealed_root(tmp_path):
+    import sys
+    sealed = json.loads((ROOT / runner.CORPUS_MANIFEST).read_text())['sealed_gold_root']
+    opened = []
+    def audit(event, args):
+        if event == 'open' and args and isinstance(args[0], (str, bytes, os.PathLike)):
+            opened.append(os.fsdecode(args[0]))
+    sys.addaudithook(audit)
+    value = runner.plan_cases(ROOT)
+    assert not [path for path in opened if path.startswith(sealed)]
+    assert len(value['cases']) == 12 and value['model_calls'] == 0
+    for case in value['cases']:
+        assert set(case['stated_scope']) == {'account', 'vendor', 'contract', 'service', 'currency', 'month'}
+        assert case['not_stated'] == ['component', 'incident', 'invoice', 'region']
+        assert case['claim_basis_family'] in {'monthly_tier', 'resource_month'}
+    assert sorted(c['claim_basis_family'] for c in value['cases']).count('monthly_tier') == 11
+
+
+def test_plan_refuses_a_changed_public_input(tmp_path, monkeypatch):
+    monkeypatch.setattr(runner, 'CORPUS_MANIFEST_SHA256', '0' * 64)
+    with pytest.raises(ValueError, match='Pinned public input changed'):
+        runner.plan_cases(ROOT)

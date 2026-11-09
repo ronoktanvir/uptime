@@ -374,6 +374,69 @@ def score(*_args, **_kwargs):
     raise NotImplementedError('Deferred until the sealed oracle schema exists; fields are not guessed.')
 
 
+# --- offline per-case plan (agent3; no model, no server, no gold) ----------------
+
+CORPUS_MANIFEST = 'docs/v4/evaluation84/manifest.json'
+CORPUS_MANIFEST_SHA256 = '1b2ecd449c7eea2b6fe0bcaae9b58304a7bffa02579a43e246230cc09bcd8619'
+READINGS_MANIFEST = 'docs/v4/evaluation86/blind-readings/manifest.json'
+READINGS_MANIFEST_SHA256 = '5f1ab847b84f34daea5e4189edf4a3064044e0a1cfac3dcd7356423ca4deb831'
+# Claim-scope fields as the public source states them. Nothing is derived, slugged or invented.
+SOURCE_SCOPE = (('account', ('context', 'account')), ('vendor', ('vendor',)), ('contract', ('context', 'agreement')),
+                ('service', ('context', 'product')), ('currency', ('context', 'currency')), ('month', ('context', 'month')))
+NOT_STATED = ('component', 'incident', 'invoice', 'region')
+
+
+def _pinned_bytes(root, relative, expected):
+    data = (Path(root) / relative).read_bytes()
+    if digest(data) != expected:
+        raise ValueError(f'Pinned public input changed: {relative}')
+    return data
+
+
+def plan_cases(root):
+    """Verify every pinned public input and map each frozen reading to its source; read no gold."""
+    root = Path(root).resolve(strict=True)
+    manifest = json.loads(_pinned_bytes(root, CORPUS_MANIFEST, CORPUS_MANIFEST_SHA256))
+    files = {}
+    for item in manifest['files']:
+        data = _pinned_bytes(root, item['path'], item['sha256'])
+        if len(data) != item['bytes']:
+            raise ValueError(f'Pinned public input size changed: {item["path"]}')
+        files[item['path']] = data
+    families = {e['public_document']: e['id'] for e in manifest['entries'] if e['kind'] == 'onboarding'}
+    readings = json.loads(_pinned_bytes(root, READINGS_MANIFEST, READINGS_MANIFEST_SHA256))
+    if readings.get('gold_read') or readings.get('provider_results_seen') or readings.get('normal_runtime_outcomes_seen'):
+        raise ValueError('Frozen readings must be source-only.')
+    cases = []
+    for entry in readings['readings']:
+        reading_bytes = _pinned_bytes(root, entry['path'], entry['sha256'])
+        reading = json.loads(reading_bytes)
+        source_path = reading['public_source']
+        if source_path not in files or digest(files[source_path]) != reading['source_file_sha256']:
+            raise ValueError(f'Reading {entry["id"]} is not bound to a pinned public source.')
+        source = json.loads(files[source_path])
+        if digest(source['reply'].encode('utf-8')) != reading['reply_sha256']:
+            raise ValueError(f'Reading {entry["id"]} reply digest differs.')
+        context = source['context']
+        stated = {}
+        for field, keys in SOURCE_SCOPE:
+            value = source
+            for key in keys:
+                value = value[key]
+            stated[field] = value
+        basis = context['claim_basis']
+        cases.append(dict(
+            id=entry['id'], public_source=source_path, source_sha256=reading['source_file_sha256'],
+            reply_sha256=reading['reply_sha256'], reading=entry['path'], reading_sha256=entry['sha256'],
+            stated_scope=stated, not_stated=[f for f in NOT_STATED if f not in stated],
+            claim_basis_family=families.get(basis['document_path']), scenario_name=basis['scenario_name'],
+            setup_only_inputs=[basis['document_path'], basis['customer_path']],
+            filing=dict(context['filing']),
+            model_request_excludes=['customer facts', 'claimed amount', 'scripted reading', 'contract facts', 'expected outcomes']))
+    return dict(corpus_manifest_sha256=CORPUS_MANIFEST_SHA256, readings_manifest_sha256=READINGS_MANIFEST_SHA256,
+                sealed_gold_root_opened=False, model_calls=0, cases=cases)
+
+
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
@@ -383,7 +446,14 @@ def main(argv=None):
     verify.add_argument('--base-commit', required=True)
     sub.add_parser('prepare')
     sub.add_parser('run')
+    plan = sub.add_parser('plan', help='Offline: verify pinned public inputs and emit the per-case plan')
+    plan.add_argument('--root', required=True)
+    plan.add_argument('--output', required=True)
     args = parser.parse_args(argv)
+    if args.command == 'plan':
+        value = plan_cases(args.root)
+        print(json.dumps(dict(output=args.output, sha256=create_json(args.output, value), cases=len(value['cases']))))
+        return 0
     if args.command == 'verify':
         pins = pin_current_code(args.root, args.base_commit)
         print(json.dumps(dict(tree_sha256=pins['tree_sha256'], files=len(pins['files']), runner=pins['runner'])))
