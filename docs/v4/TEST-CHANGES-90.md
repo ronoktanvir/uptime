@@ -9,3 +9,9 @@ No existing test function or assertion changed on `work/integration-90`. Special
 | `tests/test_release_probes_gent8.py` | **New file** (from the verification lane, commit `52bea97`), 1 test | Hard-kills a real server process mid-way through the 11-action Northwind flow and checks state, idempotency and the final Local ledger after restart. |
 
 A "dispositions are correct" test does not exist and should not: the record's integrity is mechanical, while the truth of each disposition is reviewed by people against the cited evidence.
+
+## D03 follow-up in W0 reconciliation
+
+| File | Change | Reason |
+|:---|:---|:---|
+| `tests/test_reconciliation_identity_d03.py` | **New file**, 16 cases | `reconciliation._required` accepted any printable text, so an em dash, a repeated space, non-NFC text or a 97-character account could reconcile while claim intake and the ledger refused it. `account_id` and `contract_id` now use `source_identity.refusal`, with no rewriting. Accepted values, including spaced names, reconcile unchanged, and comparison stays exact (no case folding). Before the fix, 10 refusal cases failed; after it, all 16 pass. No existing test changed. Focused reconciliation/ledger/portfolio/lineage set: 296 passed, 1 warning. |
