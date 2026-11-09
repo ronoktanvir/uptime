@@ -11,6 +11,15 @@
   function when(value){const d=typeof value==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(value)?new Date(value):null;if(!d||Number.isNaN(d.getTime()))return value==null?'':String(value);
     const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()];
     return `${m} ${d.getUTCDate()}, ${d.getUTCFullYear()}, ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')} UTC`;}
+  // The provider receipt as the server passes it through; only reported fields are shown.
+  function jobReceipt(job){const r=job&&job.provider&&typeof job.provider==='object'?job.provider:null;if(!r)return '';const parts=[];
+    if(Number.isInteger(r.returncode))parts.push('return code '+r.returncode);
+    if(Number.isInteger(r.tool_events))parts.push(r.tool_events+' tool event'+(r.tool_events===1?'':'s'));
+    if(Array.isArray(r.tool_inventory))parts.push(r.tool_inventory.length?'tools available: '+r.tool_inventory.join(', '):'no tools available');
+    if(Array.isArray(r.mcp_inventory))parts.push(r.mcp_inventory.length?'MCP servers: '+r.mcp_inventory.join(', '):'no MCP servers');
+    if(r.client_reported_cost_usd!=null&&/^\d+(\.\d+)?$/.test(String(r.client_reported_cost_usd)))parts.push('client-reported cost USD '+r.client_reported_cost_usd);
+    if(typeof r.session==='string'&&r.session)parts.push('session '+r.session);
+    return parts.length?' Receipt: '+parts.join(' · ')+'.':'';}
   function jobTime(job){const model=job.provider&&typeof job.provider==='object'&&typeof job.provider.model==='string'&&job.provider.model?' Model '+job.provider.model+'.':'';return model+(job.finished_at?' Finished '+when(job.finished_at)+'.':job.started_at?' Started '+when(job.started_at)+'.':job.submitted_at?' Submitted '+when(job.submitted_at)+'.':'');}
   const JOB_TEXT={QUEUED:'Request queued. It runs only as the exact approved request; nothing is applied automatically.',
     RUNNING:'Request running. You can keep working; nothing is applied automatically.',
@@ -147,7 +156,7 @@
       model.hidden=!blind;model.disabled=!jobInfo.can_request||!!job;
       requestNote.textContent=job?'A request for this exact source already exists. It is never sent again automatically.':(jobInfo.message||'Permission status unavailable.');
     }
-    function showJob(){refresh.hidden=!job;jobState.textContent=job?`Request ${job.id}: ${JOB_TEXT[job.state]||JOB_TEXT.UNCERTAIN}${jobTime(job)}`:'';updateRequest();}
+    function showJob(){refresh.hidden=!job;jobState.textContent=job?`Request ${job.id}: ${JOB_TEXT[job.state]||JOB_TEXT.UNCERTAIN}${jobTime(job)}${jobReceipt(job)}`:'';updateRequest();}
     const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
     async function loadCandidates(){
       const latest=await api(base);
@@ -164,7 +173,12 @@
       }catch(e){jobState.textContent=e.message+' Refresh the original source before continuing.';}
       finally{polling=false;}
     }
-    function showCandidates(list){rows=list;candidates.replaceChildren(el('h2','Untrusted suggestions'));for(const candidate of list){const box=el('details');box.append(el('summary',candidate.origin==='model'?'Requested interpretation — requires your review':'Saved manual suggestion'));
+    // A validated candidate can exist beside a request whose own outcome is not clean (for example UNCERTAIN after an
+    // interruption). Its request's state and reason are shown with it so it is never taken for a completed request.
+    function unclean(candidate){return candidate.origin==='model'&&job&&job.state!=='SUCCEEDED'&&job.request_sha256&&candidate.provenance?.request_sha256===job.request_sha256;}
+    function showCandidates(list){rows=list;candidates.replaceChildren(el('h2','Untrusted suggestions'));for(const candidate of list){const box=el('details');const warn=unclean(candidate);
+      box.append(el('summary',candidate.origin==='model'?(warn?`Requested interpretation — request ${job.state==='UNCERTAIN'?'outcome uncertain':job.state.toLowerCase()}; requires your review`:'Requested interpretation — requires your review'):'Saved manual suggestion'));
+      if(warn)box.append(el('p',`Request ${job.id} is ${job.state}${job.reason?' ('+job.reason+')':''}. It did not complete cleanly. This proposal passed the source checks and is linked to that request, but it is not a completed result; it changes nothing until you review it.`,'interpretation-note'));
       box.append(el('p',reviewed.has(candidate.id)?'State: reviewed by you; preview only':'State: proposed; not reviewed'));
       if(candidate.provenance?.model)box.append(el('p','Proposed by model '+candidate.provenance.model+(candidate.provenance.elapsed_seconds!=null?' in '+candidate.provenance.elapsed_seconds+' s':''),'interpretation-meta'));
       if(candidate.provenance?.request_sha256)box.append(el('p','Request reference '+candidate.provenance.request_sha256,'interpretation-meta'));
@@ -229,7 +243,7 @@
     if(blind){load(blind);save.hidden=true;showReview();showCandidates(data.candidates);if(job&&!job.terminal)poll();}
     else{makeEditor();updateAdd();}
   }
-  global.UptimeInterpretation={mount,quoteSpan,jobTime};
+  global.UptimeInterpretation={mount,quoteSpan,jobTime,jobReceipt};
   const root=document.getElementById('interpretation-root');
   if(root){const claim=new URLSearchParams(location.search).get('claim')||'';root.replaceChildren(global.uptimeAuth.signInForm(()=>mount(root,global.uptimeAPI,claim).catch(e=>{root.textContent=e.message;})));}
 })(window);

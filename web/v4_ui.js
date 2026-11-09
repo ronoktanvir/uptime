@@ -321,8 +321,10 @@
       const refs = {case_id:data.case_id ?? data.claim_id ?? data.id, receipt_id:data.receipt_id, packet_id:data.packet_id,
         memo_id:data.memo_id, credit_id:data.credit_id, bill_id:data.bill_id, application_id:data.application_id};
       add(n, record(refs), provenance(data.sources));
-      for (const [title, value] of [['Decision & unknowns', {outcome:data.outcome, state:data.state ?? data.stage, unknowns:data.unknowns, missing:data.missing ?? data.preflight?.missing, owner:data.owner, filing_cutoff:data.filing_cutoff, next_contact:data.next_contact, financials:data.financials}], ['Event timeline', data.timeline ?? data.events], ['Evidence & receipts', {evidence:data.evidence, receipts:data.receipts, submissions:data.submissions, replies:data.replies}], ['Current and historical evaluation', {evaluation:data.evaluation ?? data.preflight, history:data.history, trace:data.trace}]]) {
-        add(n, el('h3', title), record(value));
+      add(n, el('h3', 'Decision & unknowns'), record({outcome:data.outcome, state:data.state ?? data.stage, unknowns:data.unknowns, missing:data.missing ?? data.preflight?.missing, owner:data.owner, filing_cutoff:at(data.filing_cutoff), next_contact:at(data.next_contact), financials:data.financials}));
+      // Receipts, digests and evaluator traces stay exact but collapsed, one click away.
+      for (const [title, value] of [['Event timeline', data.timeline ?? data.events], ['Evidence & receipts', {evidence:data.evidence, receipts:data.receipts, submissions:data.submissions, replies:data.replies}], ['Current and historical evaluation', {evaluation:data.evaluation ?? data.preflight, history:data.history, trace:data.trace}]]) {
+        add(n, details(title, value));
       }
       add(n, details('Complete server case record', data));
       if (correspondence) {
@@ -451,7 +453,7 @@
       box.append(note(current));
       const items = el('ol', undefined, 'v4-history');
       rows.forEach(row => items.append(add(el('li'), el('strong', 'Revision ' + shown(row.revision) + ' · ' + shown(row.kind)),
-        note(shown(row.at) + ' · ' + (/^scripted-/.test(String(row.actor)) ? 'Scripted preparation (' + row.actor + ')' : 'Recorded under account ' + shown(row.actor))))));
+        note(shown(at(row.at)) + ' · ' + (/^scripted-/.test(String(row.actor)) ? 'Scripted preparation (' + row.actor + ')' : 'Recorded under account ' + shown(row.actor))))));
       return add(box, items);
     }
     function vendor(m, data) {
@@ -926,7 +928,15 @@
       items.forEach(item => {
         const id = typeof item === 'string' ? item : item.claim_id ?? item.id;
         const n = section(shown(id));
-        if (typeof item === 'object') add(n, provenance(item.sources), record(item));
+        // A short summary first; the complete server record (hashes, trace, evaluation) stays one click away.
+        if (item && typeof item === 'object') {
+          const scope = item.scope && typeof item.scope === 'object' ? item.scope : {};
+          const summary = {title:item.title, vendor:item.vendor, month:scope.month, stage:item.stage ?? item.state, outcome:item.outcome,
+            amount:item.amount, currency:item.currency};
+          Object.keys(summary).forEach(key => { if (summary[key] === undefined) delete summary[key]; });
+          const full = add(el('details', undefined, 'v4-record'), el('summary', 'Complete case record'), provenance(item.sources), record(item));
+          add(n, record(summary), full);
+        }
         if (typeof id === 'string' && id) n.append(button('Inspect case ' + id, () => active(m) && inspect(m.root, id)));
         m.body.append(n);
       });
