@@ -96,3 +96,11 @@ Results: the JS helpers (`vendor_auth83`, `vendor_monthly_profile79`, `vendor_mo
 
 After merging integration head `c55f2fd`, the broad focused set reported **1 failed, 1182 passed, 1 warning in 58.84s**. The failure was a race in the new browser tests: with an instant provider double, both family jobs can finish before the submit response is computed, so the page goes straight to `SELECTED` and never shows the "finished" message. Both browser tests now accept either path through `await_selected_proposal`. `test_vendor_model_jobs_browser.py` and `test_vendor_auth83.py` then gave **7 passed** on two consecutive runs.
 
+
+## Generated draft categories, ONB-4 (`work/onboarding-drafts-89`, on top of the F4/F6 batch)
+
+`vendor_requirements` drafts (outside the reviewed-semantics hash) add:
+- **Timezone:** the last timely second stated in UTC−07:00 (`ELIGIBLE`), the window close stated in UTC+05:30 (`INELIGIBLE`), and a receipt time without an offset (`INSUFFICIENT_EVIDENCE`).
+- **Private filing amendment:** when a private amendment takes effect in a later governed month, two boundary cases in that month under its own window (F4).
+
+Added `tests/test_vendor_drafts_categories_89.py` (3 tests, hand-computed). Every draft is checked against the real evaluator. With `test_vendor_requirements_89.py` (its shadow and property checks now include the timezone drafts) and `test_vendor_filing_override_f4.py`: **28 passed, 1 warning**. Existing tests changed: none.
