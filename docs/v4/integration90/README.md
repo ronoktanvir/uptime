@@ -64,6 +64,7 @@ Each specialist's required handoff (commits, files, behavior, actual results, ga
 
 - [HANDOFF-89-identity-pricing.md](../HANDOFF-89-identity-pricing.md)
 - [HANDOFF-W3-ONBOARDING-89.md](../HANDOFF-W3-ONBOARDING-89.md)
+- [W7-HANDOFF-90.md](../W7-HANDOFF-90.md)
 
 Reports still to arrive are linked as they merge.
 
