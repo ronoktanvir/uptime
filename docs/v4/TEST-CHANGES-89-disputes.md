@@ -85,3 +85,17 @@ Runs:
    - That test's original `actions == []` assertion now passes without being weakened.
    - The earlier draft of the `test_mismatched_fee_and_component_prevent_further_packet` change, which expected `approve-claim` to be offered, was withdrawn before commit. That test keeps `not row["actions"]`.
 3. After tightening, the touched files gave **148 passed**. The final broad result is recorded in `docs/v4/evidence/dispute-intake-scope-89b/verification.json`.
+
+## D04-C input mapping (agent1)
+
+These are test-input and harness alignments for D04-C (Ronok, 2026-11-09: server-side scope family table, "monthly keeps incident"). Fixture bytes, frozen `novel-89` cases, both oracle files, `oracle-v2-d06.json`, and every expected category, disposition, stage and ledger are unchanged. Full reasons are in [TEST-CHANGES-89.md](TEST-CHANGES-89.md#d04-c-server-side-claim-scope-family-table).
+
+- `tests/test_correspondence.py`, `SCOPE`: Twilio region dropped (not applicable).
+- `tests/test_correspondence.py`, new `counterparty_record()`: verifies `vendor_record.json`'s attachment digests under its authored ten-field scope, then re-envelopes the same authored documents under the region-less claim scope.
+- `test_correspondence.py::test_independent_simulator_new_evidence_and_oracle`: uses `counterparty_record()`.
+- `test_correspondence.py::test_no_twilio_fallback_for_other_vendor`: an unknown family is refused at intake (`InvalidClaimScope`), and nothing is drafted.
+- `test_correspondence.py::test_authoritative_active_resolver_version_and_scope_binding`: the injected resolver also declares its monthly family; the scope drops component and region.
+- `tests/test_correspondence_disposition_89.py`, `record()`: uses `counterparty_record()`.
+- `test_correspondence_intake_scope_89b.py::test_identity_contradiction_holds_actions_but_a_misroute_does_not`: the contradicting line identity is the account instead of region.
+- `tests/test_correspondence_service.py`, fixture `service`, and `tests/test_correspondence_filing_refs.py`, fixture `filing`: the claim is created after the candidate terms are installed.
+- `test_correspondence_service.py::test_fixed_cutoff_uses_actual_local_receipt_and_whole_service_obligation`: a whole-service claim has no component, so the alias is refused earlier with 409 "obligation already exists".

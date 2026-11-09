@@ -171,3 +171,41 @@ Two consequences shaped most test edits. First, a claim can no longer be created
 
 - `tests/test_claim_scope_89.py`: the family table, variant checks, unknown and ambiguous refusal, the Twilio entry, absent-versus-null, and byte-identical ten-field serialization.
 - `tests/test_source_config_d04c.py`: W5-labelled, 6 functions and 8 cases, implementing gen5's conditions (a)–(c).
+
+### Region rule refinement
+
+A resource-month claim needs its region only when the terms bind a regional subscription (the condition `claim_identity.resource_remedy` already uses) or when a filing field cites a region. Requiring it always would force callers to invent a region. Accordingly:
+
+- `test_resource_period_requires_resource_and_only_cited_or_subscribed_fields` covers four cases.
+- The e86-04 invariant uses a regional resource manifest.
+- These tests drop a region that does not apply to their non-regional terms:
+  - `tests/test_ramp_award_claim_integration.py`, `historical()`;
+  - `tests/test_correspondence_receipt_version.py`, `test_signed_public_source_proof_covers_original_pin_and_new_terms_cannot_repin_it`;
+  - `tests/test_ramp_award_procedural.py`, `exercise`.
+- `correspondence.create` checks for a regional remedy only when a region is present.
+
+### Blind-acceptance harness (assigned by the integration owner after W4 `f3bb0cc`)
+
+`scripts/blind_acceptance.py` no longer invents scope placeholders. Earlier blind runs used the previous harness, which sent `region="unasserted"`/`"independent-region"`, `incident="unasserted-incident"` and `invoice="unasserted-invoice"`. Their published results and receipts (`BLIND-RESULTS`, earlier evidence) are left exactly as recorded and are not reinterpreted.
+
+- New helper `applicable_scope()` keeps only the obligation fields the governing family needs.
+- The general control installs the authored monthly terms and sends only the incident.
+- The independent control names its resource and invoice; no incident or region is invented.
+- Its status verification links to the authored outage interval's own reference, `facts["intervals"][0]["ref"]`. That is the same value the scope incident used to carry.
+- The frozen blind case omits an unknown invoice, incident or region. A 409 at intake is recorded as the new fail code `SCOPE_FAMILY_REFUSED`, and a refused intake records `calculation_available = False`.
+
+`tests/test_blind_acceptance.py` changes, each an expected-behaviour change made by the decision, in harness-behaviour tests rather than sealed gold:
+
+- `test_quarantined_case_still_attempts_signed_denial_and_general_control`: with no installed terms the claim is refused at intake. The expectation changes from `NO_READY_DENIAL_REFUSED` to `SCOPE_FAMILY_REFUSED` (and not `NO_READY_DENIAL_REFUSED`). The quarantine, the generality delivery and the absent calculation are unchanged.
+- `test_new_listener_uses_exact_ed25519_grants_without_socket_claim`: uses the built-in Twilio scope (no region), so a claim exists without installed terms. The signed-grant assertions are unchanged.
+- `test_separate_generality_control_reaches_signed_inbox_without_holdout_gold` and `test_actual_public_artifact_signed_positive_negative_cure_and_late_routes`: no test edit. They pass through the harness changes above.
+
+Result: `tests/test_blind_acceptance.py` 37 passed, 1 warning.
+
+### Newly merged tests aligned after the integration merge
+
+- `tests/test_evidence_acceptance_91.py`, `telemetry()` (W5 input): the telemetry row carries its own literal region (`"east"`), because the Twilio claim scope no longer has one.
+- `tests/test_release_probes_gent8.py`:
+  - `SocketApp.signed_event` signs the applicable scope the App provisions and files.
+  - `test_socket_source_change_after_approval_blocks_submission` and `test_socket_injected_reply_duplicate_delivery_and_replay_create_no_money` install the governing terms before intake.
+  - Their money and authority assertions are unchanged.

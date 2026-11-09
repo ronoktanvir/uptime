@@ -56,7 +56,8 @@ def intake(tmp_path):
 
 
 def telemetry(**changes):
-    row = dict(ref="row-1", account=SCOPE.account, product=SCOPE.service, region=SCOPE.region,
+    # D04-C (2026-11-09): the Twilio claim scope has no region; the telemetry row keeps its own region (W5 input).
+    row = dict(ref="row-1", account=SCOPE.account, product=SCOPE.service, region="east",
                resource_id=SCOPE.component, status="unavailable", **OCTOBER)
     body = dict(kind="provider_telemetry", source_ref="monitor-export", observed_at="2026-11-01T06:00:00Z",
                 source_id="monitor-1", complete=True, records=[row], **MONTH)
