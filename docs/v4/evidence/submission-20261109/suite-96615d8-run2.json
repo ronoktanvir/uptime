@@ -1,0 +1,33 @@
+{
+  "tested_commit": "96615d836a856fb10e867cfaae2d45cb0fc2baf1",
+  "branch": "work/submission-integration-20261109",
+  "contents": "6c83947 plus role 2 at c612114 (step-history column for older recorded workspaces)",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-96615d8",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5379 passed, 1 warning in 362.85s (0:06:02)",
+  "log": "suite-96615d8-run2-pytest.log",
+  "started_at": "2026-11-09T22:13:01Z",
+  "finished_at": "2026-11-09T22:19:05Z",
+  "run": "second run of this commit; the first was aborted after hanging in a browser launch (suite-96615d8-aborted.json). The runner now aborts itself if its log does not grow for 300 seconds.",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "114 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "prior_runs_preserved": [
+    "suite-02d86f7.json",
+    "suite-c756853.json",
+    "suite-6c83947.json",
+    "suite-96615d8-aborted.json"
+  ],
+  "limits": "Regression verification of the integrated branch. Not the frozen commit, not an independent acceptance result, and not evidence of contract generalization, human release or any Ramp effect."
+}

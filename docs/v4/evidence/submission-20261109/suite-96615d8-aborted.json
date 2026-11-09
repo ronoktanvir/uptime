@@ -1,0 +1,23 @@
+{
+  "tested_commit": "96615d836a856fb10e867cfaae2d45cb0fc2baf1",
+  "branch": "work/submission-integration-20261109",
+  "contents": "6c83947 plus role 2 at c612114 (step-history column for older recorded workspaces)",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-96615d8",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 134,
+  "pytest_result": "no result: the run was aborted by the coordinator after it stopped advancing",
+  "log": "suite-96615d8-aborted-pytest.log",
+  "started_at": "2026-11-09T22:04:44Z",
+  "aborted_at": "2026-11-09T22:11:42Z",
+  "what_happened": "The log stopped growing nine seconds in, after the first test of tests/test_advanced_companion.py. After almost seven minutes the coordinator sent SIGABRT so faulthandler would print the stacks. The main thread was inside Playwright's event loop waiting on the browser; the application server thread was idle.",
+  "follow_up": "tests/test_advanced_companion.py run alone on the same commit: 4 passed in 4.83s. A second full run of the same commit is recorded in suite-96615d8-run2.json.",
+  "likely_cause": "Environmental and unproven: Google Chrome on this machine was part-way through an auto-update, with frameworks 156.0.8078.80 and 157.0.8103.40 both installed. An earlier run on 02d86f7 lost its browser during that update.",
+  "limits": "Not a result. Kept so the second run is not mistaken for a first attempt."
+}
