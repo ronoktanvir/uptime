@@ -216,9 +216,10 @@
    ],
    "evidence": [
     "tests/test_ramp_credit_sync_v4.py::test_no_synthetic_award_or_bill_created_from_provider_observation",
-    "docs/v4/RAMP-CREDIT-SYNC.md"
+    "docs/v4/RAMP-CREDIT-SYNC.md",
+    "docs/v4/evidence/ramp-lineage-93/credit-links-f74ba12c-20261109.json"
    ],
-   "gap": "The supported read returned zero credits; no manual Ramp credit has been recorded. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
+   "gap": "The supported read returned zero credits; no manual Ramp credit has been recorded. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation). D09 read-back implemented; demo bill f74ba12c has NO_APPLIED_CREDITS (complete, empty list, 2026-11-09). Stays external until a person creates and applies a real credit against a verified award.",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
@@ -1793,9 +1794,10 @@
    ],
    "evidence": [
     "tests/test_ramp_credit_sync_v4.py::test_conflicts_durably_quarantined_without_ledger_mutation",
-    "docs/v4/RAMP-CREDIT-SYNC.md"
+    "docs/v4/RAMP-CREDIT-SYNC.md",
+    "docs/v4/evidence/ramp-lineage-93/credit-links-f74ba12c-20261109.json"
    ],
-   "gap": "Never exercised on a non-empty live credit. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation).",
+   "gap": "Never exercised on a non-empty live credit. D09 chosen 2026-11-09 under delegation (native operator workflow plus read-back reconciliation). D09 read-back implemented; demo bill f74ba12c has NO_APPLIED_CREDITS (complete, empty list, 2026-11-09). Stays external until a person creates and applies a real credit against a verified award.",
    "gap_class": "external_dependency",
    "decisions": [
     "D09"
