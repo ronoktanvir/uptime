@@ -115,14 +115,18 @@ The branch was merged with the integration commit `c756853` (roles 1 and 3) and 
   - The job card shows job `26ee4e3f…`, status SUCCEEDED, model `claude-opus-5-5`, and submitted, started and finished at Nov 9, 2026, 21:17 UTC. Every clause quote is shown untrimmed beside its typed value, and the vendor card shows SHADOW.
   - Review-history times are now formatted dates.
   - Checked at 1440×900. [Screenshot](../evidence/submission-ui/after-contract-job-1440.png).
-- **Denial reading.**
-  - An UNCERTAIN request's validated candidate stays visible and inert, per the coordinator's ruling. Its summary names the uncertain outcome, and a note beside it gives the job id, state and reason. The request line shows the model and latest time when the receipt has them.
-  - Checked in Chrome with recorded-shape fixtures (`tests/test_interpretation_uncertain_candidate_r4.py`). The real recorded unclear-denial workspace has not been checked yet (see (h)).
+- **Recorded denial reading (job `29f371d0`).**
+  - Source: a scratch copy of agent3's preserved workspace, served at its recorded origin 8823 from this branch with role 2 `c612114` merged. It was stopped and deleted afterwards, and the preserved database hash (`1a035ab2…`) is unchanged.
+  - Overview: Claim stage "human review", Credit stage "Claimed", and "Routine steps: Paused · Stopped for a person: the vendor gave a ground the system does not recognize." It then shows the server's own detail ("The vendor reply needs the reviewer's reading and semantic review."), "1 person decision and 2 automatic steps recorded" and "No actions available". Lifecycle: Estimated and Claimed $2,400.00; Awarded, Posted and Applied $0.00.
+  - The new link "Open this claim's case and correspondence" opens `#cases/inbox-northwind-2026-01`, where the server's "Review unfamiliar vendor wording" link leads to the reading. The case page used to show 54 hashes, 34 raw timestamps and the raw rate fraction; it now shows none of them on screen. Its timeline, receipts and evaluation trace are in collapsed inspectors, and the complete record is one click away.
+  - Reading page: the reply text, then the reviewer's own reading. The job line reads "Request 29f371d0…: Request completed… Model claude-opus-5-5. Finished Nov 9, 2026, 21:20 UTC. Receipt: return code 0 · 0 tool events · no tools available · no MCP servers · client-reported cost USD 0.044891 · session ce56dc6e…".
+  - Candidate: "Proposed by model claude-opus-5-5". Both returned propositions read "unsupported" and cite the whole reply (bytes 0–200), shown untrimmed and as returned. "Show dispute record" on the case page loads the read-only disposition.
+  - No page errors. Screenshots: [Overview](../evidence/submission-ui/after-denial-overview-1440.png) · [Reading](../evidence/submission-ui/after-denial-reading-1440.png).
+  - Separately, an UNCERTAIN request's validated candidate stays visible and inert, per the coordinator's ruling. Its summary and a note beside it give the job id, state and reason (`tests/test_interpretation_uncertain_candidate_r4.py`).
 - **Recovery card.** "Claim stage" (the claim's own server value, unchanged) is shown next to "Credit stage", the latest recorded stage from `finance.stages`, so an applied credit no longer sits under "Current stage: awarded".
 
 ## (h) Limits and open items
 
-- **Recorded unclear-denial workspace:** not yet checked at 1440. The coordinator is confirming with agent3 whether that workspace still exists.
 - **Ramp page (agent4's `web/ramp_ui.js`), for the coordinator to route:** the header line prints `Updated 2026-11-05T00:36:21.156851+00:00` as a raw instant, and the verified record shows `NO_APPLIED_CREDITS` and the resource codes (`TRUNCATED`) as raw enums. I have not edited that file.
 - **Advanced tools (coordinator question 4).** The legacy projections carry a structured stage (`metric.key`: exposure, estimated, claimed, awarded, posted, applied; action ids such as `record-credit`) but no destination field. The only destination signal is the per-stage source codes (`SIMULATED_VENDOR` and similar), and the November 4 direction excludes showing those as classification badges. Showing "state, destination" there would need a new server field, so the screens show the server's labels verbatim. The presenter guide keeps them out of the recording.
 - **Cooldown display.** The cooldown line reads "Not sent before …, the end of the response cooldown" whenever `timing.not_before` is present. The 24-hour duration is not computed in the browser.
