@@ -1,0 +1,97 @@
+{
+  "read_at": "2026-11-09",
+  "method": "sqlite3 URI mode=ro&immutable=1 on runtime/ronok-review-87/workspace.db; v4_vendor_event rows for vendor calyxquay only. No key file opened, no write, no review action.",
+  "interpretation": "Revisions 1-5 are scripted preparation (scripted-test-reviewer). Revisions 6-9 are actions recorded under account ronok-tanvir, which the registry labels authenticated_reviewer; the record does not itself establish physical human presence. Final state REVOKED at revision 9 with no active version.",
+  "events": [
+    {
+      "revision": 1,
+      "at": "2026-11-08T01:50:33.706324+00:00",
+      "actor": "scripted-test-reviewer",
+      "kind": "Imported public document and separate tenant overlay",
+      "state": "DRAFT",
+      "version": "f3f38f47a36b9d1f8b092eff065bd6ce18a3d399990d2bde0afd85ca59c7b279",
+      "active_version": null,
+      "reviewer_kind": null
+    },
+    {
+      "revision": 2,
+      "at": "2026-11-08T01:50:33.706345+00:00",
+      "actor": "scripted-test-reviewer",
+      "kind": "Validated source coverage, typed thresholds and governing dates",
+      "state": "VALIDATED",
+      "version": "f3f38f47a36b9d1f8b092eff065bd6ce18a3d399990d2bde0afd85ca59c7b279",
+      "active_version": null,
+      "reviewer_kind": null
+    },
+    {
+      "revision": 3,
+      "at": "2026-11-08T01:50:33.706355+00:00",
+      "actor": "scripted-test-reviewer",
+      "kind": "Shadow only; waiting for independent reviewer cases",
+      "state": "SHADOW",
+      "version": "f3f38f47a36b9d1f8b092eff065bd6ce18a3d399990d2bde0afd85ca59c7b279",
+      "active_version": null,
+      "reviewer_kind": null
+    },
+    {
+      "revision": 4,
+      "at": "2026-11-08T01:50:33.712260+00:00",
+      "actor": "scripted-test-reviewer",
+      "kind": "Named pre-pricing source and literal evidence binding review",
+      "state": "SHADOW",
+      "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+      "active_version": null,
+      "reviewer_kind": null
+    },
+    {
+      "revision": 5,
+      "at": "2026-11-08T01:50:33.727465+00:00",
+      "actor": "scripted-test-reviewer",
+      "kind": "Executed reviewer-authored scenarios in shadow",
+      "state": "SHADOW",
+      "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+      "active_version": null,
+      "reviewer_kind": null
+    },
+    {
+      "revision": 6,
+      "at": "2026-11-09T10:07:28.452894+00:00",
+      "actor": "ronok-tanvir",
+      "kind": "Accept source interpretation for this review",
+      "state": "SHADOW",
+      "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+      "active_version": null,
+      "reviewer_kind": null
+    },
+    {
+      "revision": 7,
+      "at": "2026-11-09T10:07:43.472393+00:00",
+      "actor": "ronok-tanvir",
+      "kind": "Approve reviewed tests",
+      "state": "APPROVED",
+      "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+      "active_version": null,
+      "reviewer_kind": "authenticated_reviewer"
+    },
+    {
+      "revision": 8,
+      "at": "2026-11-09T10:07:53.719300+00:00",
+      "actor": "ronok-tanvir",
+      "kind": "Activate for local evaluation",
+      "state": "ACTIVE",
+      "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+      "active_version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+      "reviewer_kind": "authenticated_reviewer"
+    },
+    {
+      "revision": 9,
+      "at": "2026-11-09T10:08:51.303092+00:00",
+      "actor": "ronok-tanvir",
+      "kind": "Roll back activation",
+      "state": "REVOKED",
+      "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+      "active_version": null,
+      "reviewer_kind": "authenticated_reviewer"
+    }
+  ]
+}

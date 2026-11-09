@@ -1,0 +1,73 @@
+{
+  "purpose": "Single concise Opus 5.5 critique of decision 90 (read-only adapter requirement card and generated drafts).",
+  "invocation": "claude -p --model claude-opus-5-5 --tools '' --strict-mcp-config --setting-sources '' --no-session-persistence --output-format json (empty temporary cwd; packet on stdin)",
+  "cli_version": "2.1.318 (Claude Code)",
+  "packet_sha256": "3eecc7a217d31a64277d3f92593c8f142698a32d311e9b330d28216deb3f910f",
+  "packet_bytes": 18734,
+  "packet_contents": "Decision text plus the then-current public source of uptime/vendor_requirements.py. No credentials, customer captures, private overlays or sealed evaluation material.",
+  "verified_model": [
+    "claude-opus-5-5"
+  ],
+  "envelope": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 44022,
+    "num_turns": 1,
+    "result": "**Ranking:** A > D > B > C. C is worst because generated tests that count toward approval are circular. B duplicates intake refusals and invalidates every recorded review. D doesn't meet the assignment.\n\n**Dissent:** None on the choice. A has defects to fix before ship.\n\n**Defects**\n1. **Resource card hides missing citations.** In `_resource_card`, any element that is present but uncited becomes `FAMILY_DEFINED`. Exclusions present but uncited become `PRESENT` with `[]` citations. That is legitimate only for the aggregate evidence default. For `eligible_fee`, `deadline` and `exclusions`, uncited means `REVIEW_REQUIRED`.\n2. **Private overlay exposure.** The card and drafts echo `account`, `agreement`, `fee_line_ref`, `currency` and the override `source_ref`. The GET endpoint needs the same authorization as reading the artifact, not just vendor visibility.\n3. **Unhashed claims about the compiler.** \"NONE_STATED: compiler refuses exclusions\" asserts compiler behavior from outside the semantics hash, and the monthly card never inspects the manifest itself. If a later compiler revision admits exclusions, the card misreports while every review flips to REVIEW_REQUIRED.\n4. **Crashes, not refusals.** An overlay missing `product`, `plan` or `effective_until` raises `KeyError`. An override with `filing_days: None` raises `TypeError`. Both surface as HTTP 500s.\n5. **`_money` doesn't round.** It never rounds to cents, so a fine-grained `credit_units` value prints something like `12.345`. Equality with the evaluator is only proven for the cases you tested.\n6. **Unconfirmed date semantics.** `end <= last` assumes `effective_until` is inclusive. Confirm against the evaluator, or December may be falsely treated as governed.\n\n**Top risks**\n- **Draft laundering.** The 422 only blocks posting drafts unchanged. Renaming `derived` to `expected` is trivial, so reviewers may approve the adapter's own reading of the source.\n- **Misreading the card.** `complete: true` reads like \"ready to approve,\" and the USD 1,000.00 placeholder reads like a real customer amount.\n- **Silent drift.** Card logic can diverge from the hashed compiler and evaluator, with no revision bump to signal it.\n\n**Falsification tests**\n1. **Compiler pin.** Compile a monthly source containing an exclusion clause and assert intake refuses it. Mutate a resource manifest to drop the `filing` citation and assert the deadline element becomes `REVIEW_REQUIRED`. If either fails, card statuses can't be trusted.\n2. **Laundering probe.** Fingerprint draft `facts` and compare them with approved independent suites over the first N reviews. Substantial overlap shows drafts are replacing independent authorship. Then add a provenance or overlap warning to the reviewer UI. This needs no registry change.\n3. **Property sweep.** Run thousands of random tier percents, month lengths, fee values and filing overrides. Assert every draft equals the shadow evaluator, amounts are exact to the cent, and no input causes a 500. Any mismatch or 500 means the drafts can't serve as a behavior inspection tool.\n\n**Ship condition:** Fix defects 1, 2 and 4, rename `complete` to `no_open_requirements`, and label the placeholder fee in every scenario.",
+    "session_id": "3b18edac-7a5e-47cd-b7db-0e0e8ce3a8f1",
+    "total_cost_usd": 0.1483858,
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 2,
+        "outputTokens": 3592,
+        "cacheReadInputTokens": 649,
+        "cacheCreationInputTokens": 9551,
+        "webSearchRequests": 0,
+        "costUSD": 0.1483858,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 2411,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 9551,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 9551,
+      "cache_read_input_tokens": 649,
+      "output_tokens": 3592,
+      "output_tokens_details": {
+        "thinking_tokens": 2411
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 9551,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 3592,
+          "cache_read_input_tokens": 649,
+          "cache_creation_input_tokens": 9551,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 9551
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    }
+  }
+}
