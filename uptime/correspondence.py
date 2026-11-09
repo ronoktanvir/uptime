@@ -1,5 +1,6 @@
 """Durable local claim inbox. No outgoing transport. Signed-source deliveries are independent of filing."""
 from contextlib import contextmanager
+from copy import deepcopy
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal, localcontext
@@ -21,7 +22,38 @@ VENDOR = [Source.VENDOR.value, Source.REPLAY.value]
 TERMINAL = {"AWARDED", "PARTIAL_AWARD_REVIEW", "DENIAL_ACCEPTED", "HUMAN_REVIEW"}
 FOLLOW_UP = timedelta(hours=24)
 ACTIONS = {"DRAFTED": "approve-claim", "CLAIM_APPROVED": "submit-claim",
-           "RESPONSE_DRAFTED": "approve-response", "RESPONSE_APPROVED": "submit-response"}
+           "RESPONSE_DRAFTED": "approve-response", "RESPONSE_APPROVED": "submit-response",
+           "DENIAL_REVIEW": "accept-denial"}
+# Decision 89: a reviewed (non-grammar) reading whose denial ground the
+# deterministic rules substantiate waits here for an explicit reviewer stop.
+DENIAL_REVIEW = "DENIAL_REVIEW"
+
+
+def reviewed_reply(state):
+    return bool(state["replies"] and state["replies"][-1].get("reviewed_interpretation"))
+
+
+def hold_reviewed_denial(state):
+    """A reviewed reading never closes a claim by itself; acceptance is a separate explicit action."""
+    if state["stage"] == "DENIAL_ACCEPTED" and reviewed_reply(state) and not state.get("denial_acceptance"):
+        state["stage"] = DENIAL_REVIEW
+
+
+def closure_permitted(p):
+    """Mirror of mandates.check_claim_decision's legacy exemption. No mandate type can bind a closure yet.
+
+    A principal carrying any mandate or claim decision, or outside the legacy
+    workspace exemption, cannot accept a denial until the integration owner adds
+    a closure-bound decision type (requested; D06 pending).
+    """
+    return (p.role == "reviewer" and p.tenant == "bears" and getattr(p, "claim_decision", None) is None
+            and not getattr(p, "mandate_id", None))
+
+
+def supersede_acceptance(state):
+    """Keep an explicit acceptance as history once later evidence reopens the case."""
+    if state["stage"] != "DENIAL_ACCEPTED" and state.get("denial_acceptance"):
+        state.setdefault("superseded_denial_acceptances", []).append(state.pop("denial_acceptance"))
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS inbox_account (
  tenant TEXT NOT NULL, account TEXT NOT NULL, vendor TEXT NOT NULL, contract TEXT NOT NULL,
@@ -327,6 +359,7 @@ class CorrespondenceDesk:
                 if any(r["receipt"] == body["receipt_id"] for r in state["replies"]):
                     state["stage"] = "HUMAN_REVIEW"
                     state["approval"] = None
+                    supersede_acceptance(state)
                     state["replies"].append(dict(reason="contradictory_correspondence", span=None, event_id=fact["event_id"],
                         digest=digest, receipt=body["receipt_id"], received_at=now.isoformat(), sources=VENDOR))
                     audit(state, now, "claimant", "Additional substantive vendor correspondence requires review.", VENDOR)
@@ -362,12 +395,18 @@ class CorrespondenceDesk:
             if state["replies"][-1].get("reason") != "contradictory_correspondence":
                 current = self._assess(tenant, scope, state, now)
                 apply_response_state(state, current)
+                supersede_acceptance(state)
+                hold_reviewed_denial(state)
             return
         if state["stage"] in TERMINAL:
-            evaluation = self._assess(tenant, scope, state, now).evaluation
+            current = self._assess(tenant, scope, state, now)
+            evaluation = current.evaluation
+            ground_lost = (state["stage"] == "DENIAL_ACCEPTED" and state.get("denial_acceptance") is not None
+                           and not self._ground_holds(scope, state, current))
             if (state["stage"] in {"AWARDED", "PARTIAL_AWARD_REVIEW"} and evaluation.outcome != Outcome.ELIGIBLE
-                    or state["stage"] == "DENIAL_ACCEPTED" and evaluation.outcome != Outcome.INELIGIBLE):
+                    or state["stage"] == "DENIAL_ACCEPTED" and evaluation.outcome != Outcome.INELIGIBLE or ground_lost):
                 state["stage"] = "HUMAN_REVIEW"
+                supersede_acceptance(state)
                 audit(state, now, "claimant", "Later contradictory evidence requires review; historical receipts remain recorded.")
             return
         if state["approval"]:
@@ -392,13 +431,24 @@ class CorrespondenceDesk:
             elif any(e["kind"] == "component" and e["digest"] not in initial for e in state["evidence"]):
                 state["stage"] = "RESPONSE_DRAFTED"
                 audit(state, now, "claimant", "Drafted one supplemental packet using newly acquired matching component evidence.")
+        if state["stage"] == "RESPONSE_DRAFTED" and evaluation.outcome != Outcome.ELIGIBLE:
+            # A drafted rebuttal or cure needs a currently eligible, cited claim.
+            # Later evidence that removes that basis returns the case to a person.
+            state["stage"] = "HUMAN_REVIEW"
+            audit(state, now, "claimant", "Later evidence no longer supports the drafted response; review required.")
 
     @staticmethod
-    def _maintenance(scope, state, evaluation, now):
+    def _maintenance_substantiated(scope, state, evaluation):
+        return confirmed_maintenance(scope, state["evidence"]) and evaluation.outcome == Outcome.INELIGIBLE
+
+    @classmethod
+    def _maintenance(cls, scope, state, evaluation, now):
         reports = [e for e in state["evidence"] if e["kind"] in {"notice", "maintenance_evidence"}]
-        if confirmed_maintenance(scope, state["evidence"]) and evaluation.outcome == Outcome.INELIGIBLE:
+        if cls._maintenance_substantiated(scope, state, evaluation):
             state["stage"] = "DENIAL_ACCEPTED"
-            audit(state, now, "claimant", "A timely, independently authenticated notice covers the scoped interruption.")
+            hold_reviewed_denial(state)
+            audit(state, now, "claimant", "A timely, independently authenticated notice covers the scoped interruption."
+                  + (" Acceptance requires an explicit reviewer action." if state["stage"] == DENIAL_REVIEW else ""))
         elif not reports:
             state["stage"] = "AWAITING_NOTICE"
         elif (len(state["submissions"]) == 1 and evaluation.outcome == Outcome.ELIGIBLE
@@ -547,10 +597,46 @@ class CorrespondenceDesk:
                             current.evidence_digest, money(current.evaluation.amount.amount) if current.evaluation.amount else None,
                             [asdict(c) for c in current.evaluation.clauses]])
 
+    def _ground_holds(self, scope, state, current):
+        """The deterministic rule for the latest reply's stated ground, from current evidence and terms only."""
+        reply = state["replies"][-1] if state["replies"] else None
+        if reply is None:
+            return False
+        if receipt_chain(state):
+            probe = deepcopy(state)
+            probe["stage"] = "HUMAN_REVIEW"
+            probe["replies"][-1] = {k: v for k, v in reply.items() if k != "reviewed_interpretation"}
+            apply_response_state(probe, current)
+            return probe["stage"] == "DENIAL_ACCEPTED"
+        return state["reason"] == "maintenance" and self._maintenance_substantiated(scope, state, current.evaluation)
+
+    def _denial_basis(self, scope, state, current):
+        """Re-derive from current evidence and governing terms only that a reviewed denial ground holds."""
+        if state["stage"] != DENIAL_REVIEW or not reviewed_reply(state):
+            return None
+        reviewed = state.get("interpretation_review")
+        if reviewed and (reviewed["contract_version"] != current.version
+                         or reviewed["contract_source_sha256"] != current.contract_source_sha256):
+            return None
+        if not self._ground_holds(scope, state, current):
+            return None
+        reply = state["replies"][-1]
+        return dict(reason=state["reason"], reply_digest=reply["digest"], receipt=reply["receipt"],
+                    review_id=reply["reviewed_interpretation"], evidence_digest=current.evidence_digest,
+                    contract_version=current.version, contract_source_sha256=current.contract_source_sha256,
+                    outcome=str(current.evaluation.outcome), clauses=[asdict(c) for c in current.evaluation.clauses])
+
     def _actions(self, p, scope, state, current, now):
         reviewed = state.get("interpretation_review")
         if reviewed and (reviewed["contract_version"] != current.version or reviewed["contract_source_sha256"] != current.contract_source_sha256):
             return []
+        if state["stage"] == DENIAL_REVIEW:
+            # Stopping is not bounded by the filing window; it sends nothing.
+            basis = self._denial_basis(scope, state, current)
+            if not closure_permitted(p) or basis is None:
+                return []
+            return [dict(id="accept-denial", label="Accept Denial", basis_digest=fingerprint(basis),
+                         route="denial-acceptance")]
         cutoff = instant(current.procedure["response_cutoff"]) if current.procedure and current.procedure.get("response_cutoff") else current.cutoff
         if (p.role != "reviewer" or not (action := ACTIONS.get(state["stage"]))
                 or cutoff is None or now >= cutoff):
@@ -568,7 +654,26 @@ class CorrespondenceDesk:
             return []
         return [dict(id=action, label=action.replace("-", " ").title())]
 
-    def act(self, p, claim_id, action):
+    def _accept_denial(self, p, scope, state, current, now, basis_digest):
+        """Explicit reviewer stop bound to the exact basis the reviewer saw. No money or packet."""
+        if not closure_permitted(p):
+            raise PermissionError("No claim-decision mandate type can bind a denial acceptance for this principal.")
+        offered = [a for a in self._actions(p, scope, state, current, now) if a["id"] == "accept-denial"]
+        if not offered:
+            raise ValueError("Action unavailable for the current policy, filing window, evidence and stage.")
+        if basis_digest != offered[0]["basis_digest"]:
+            raise ValueError("The denial basis changed after it was reviewed; review the current evidence again.")
+        basis = self._denial_basis(scope, state, current)
+        state["stage"] = "DENIAL_ACCEPTED"
+        state["approval"] = None
+        state["denial_acceptance"] = dict(actor=p.subject, at=now.isoformat(), basis=basis, basis_digest=fingerprint(basis))
+        audit(state, now, p.subject, "Accepted a denial ground that governing terms and independent evidence substantiate. "
+              "No follow-up will be prepared.", VENDOR, basis=fingerprint(basis))
+
+    def accept_denial(self, p, claim_id, basis_digest):
+        return self.act(p, claim_id, "accept-denial", basis_digest=basis_digest)
+
+    def act(self, p, claim_id, action, *, basis_digest=None):
         authorize(p, True)
         with self._write(p.tenant) as db:
             scope, state = self._read(db, p.tenant, claim_id)
@@ -576,40 +681,47 @@ class CorrespondenceDesk:
             if any(r["action"] == action for r in state["submissions"]):
                 return self._view(db, p, claim_id)
             current = self._assess(p.tenant, scope, state, now)
-            if (state["approval"] and state["approval"]["action"] == action
-                    and state["approval"].get("binding") == self._approval_binding(current)):
-                return self._view(db, p, claim_id)
-            if action not in {a["id"] for a in self._actions(p, scope, state, current, now)}:
-                raise ValueError("Action unavailable for the current policy, filing window, evidence and stage.")
-            packet = self._packet(p.tenant, claim_id, scope, state, current)
-            check_claim_decision(p, action, scope.model_dump(), packet, db)
-            digest = fingerprint(packet)
-            if action.startswith("approve-"):
-                state["approval"] = dict(action=action, actor=p.subject, at=now.isoformat(), digest=digest,
-                                         binding=self._approval_binding(current),
-                                         evidence_authorities=_issuers(state))
-                state["stage"] = "CLAIM_APPROVED" if action == "approve-claim" else "RESPONSE_APPROVED"
-                audit(state, now, p.subject, "Approved exact local packet.", digest=digest)
+            if action == "accept-denial":
+                if not state.get("denial_acceptance"):
+                    if basis_digest is None:
+                        raise ValueError("Accepting a denial requires the exact reviewed basis digest.")
+                    self._accept_denial(p, scope, state, current, now, basis_digest)
+                    self._save(db, p.tenant, claim_id, state)
             else:
-                if not state["approval"] or state["approval"]["digest"] != digest:
-                    raise ValueError("The current packet differs from the approved content.")
-                receipt = dict(id="LOCAL-" + digest[:24], action=action, at=now.isoformat(), digest=digest, packet=packet,
-                               requested=packet["requested"], approval=state["approval"],
-                               evidence_digests=[a["digest"] for a in packet["artifacts"]], sources=VENDOR)
-                historical = receipt_chain(state)
-                initial = state["submissions"][0]["id"] if state["submissions"] else None
-                if historical:
-                    initial = "HIST-" + fingerprint([p.tenant, scope.model_dump(), historical[0]["body"]["receipt_id"]])
-                reserve_claim(db, tenant=p.tenant, vendor=scope.vendor, account=scope.account,
-                              agreement_id=current.agreement_id, agreement_version=current.version, service=scope.service,
-                              month=scope.month, remedy=current.remedy, route="historical-receipt" if historical else "correspondence", case_id=claim_id,
-                              packet_digest=digest, scope=scope.model_dump(), receipt_id=receipt["id"], at=receipt["at"],
-                              initial_receipt_id=initial)
-                state["submissions"].append(receipt)
-                state["approval"] = None
-                state["stage"] = "AWAITING_VENDOR"
-                audit(state, now, p.subject, "Filed approved packet in the isolated local outbox.", VENDOR, receipt=receipt["id"])
-            self._save(db, p.tenant, claim_id, state)
+                if (state["approval"] and state["approval"]["action"] == action
+                        and state["approval"].get("binding") == self._approval_binding(current)):
+                    return self._view(db, p, claim_id)
+                if action not in {a["id"] for a in self._actions(p, scope, state, current, now)}:
+                    raise ValueError("Action unavailable for the current policy, filing window, evidence and stage.")
+                packet = self._packet(p.tenant, claim_id, scope, state, current)
+                check_claim_decision(p, action, scope.model_dump(), packet, db)
+                digest = fingerprint(packet)
+                if action.startswith("approve-"):
+                    state["approval"] = dict(action=action, actor=p.subject, at=now.isoformat(), digest=digest,
+                                             binding=self._approval_binding(current),
+                                             evidence_authorities=_issuers(state))
+                    state["stage"] = "CLAIM_APPROVED" if action == "approve-claim" else "RESPONSE_APPROVED"
+                    audit(state, now, p.subject, "Approved exact local packet.", digest=digest)
+                else:
+                    if not state["approval"] or state["approval"]["digest"] != digest:
+                        raise ValueError("The current packet differs from the approved content.")
+                    receipt = dict(id="LOCAL-" + digest[:24], action=action, at=now.isoformat(), digest=digest, packet=packet,
+                                   requested=packet["requested"], approval=state["approval"],
+                                   evidence_digests=[a["digest"] for a in packet["artifacts"]], sources=VENDOR)
+                    historical = receipt_chain(state)
+                    initial = state["submissions"][0]["id"] if state["submissions"] else None
+                    if historical:
+                        initial = "HIST-" + fingerprint([p.tenant, scope.model_dump(), historical[0]["body"]["receipt_id"]])
+                    reserve_claim(db, tenant=p.tenant, vendor=scope.vendor, account=scope.account,
+                                  agreement_id=current.agreement_id, agreement_version=current.version, service=scope.service,
+                                  month=scope.month, remedy=current.remedy, route="historical-receipt" if historical else "correspondence", case_id=claim_id,
+                                  packet_digest=digest, scope=scope.model_dump(), receipt_id=receipt["id"], at=receipt["at"],
+                                  initial_receipt_id=initial)
+                    state["submissions"].append(receipt)
+                    state["approval"] = None
+                    state["stage"] = "AWAITING_VENDOR"
+                    audit(state, now, p.subject, "Filed approved packet in the isolated local outbox.", VENDOR, receipt=receipt["id"])
+                self._save(db, p.tenant, claim_id, state)
         # The active resolver reads durable submission receipts on a separate
         # connection. Render only after this transaction has committed them.
         return self.case(p, claim_id)
@@ -646,7 +758,7 @@ class CorrespondenceDesk:
         claimed = submitted[0]["requested"] if submitted else "0.00"
         awarded = state["awarded"]
         stage = state["stage"]
-        unresolved = stage in {"HUMAN_REVIEW", "PARTIAL_AWARD_REVIEW", "NEEDS_EVIDENCE", "AWAITING_NOTICE", "RESPONSE_DRAFTED", "RESPONSE_APPROVED"}
+        unresolved = stage in {"HUMAN_REVIEW", "PARTIAL_AWARD_REVIEW", "NEEDS_EVIDENCE", "AWAITING_NOTICE", "RESPONSE_DRAFTED", "RESPONSE_APPROVED", DENIAL_REVIEW}
         ledger = dict(estimated=predicted, claimed=claimed, awarded=awarded, posted="0.00", applied="0.00",
                       disputed_remainder=remainder(claimed, awarded) if unresolved else "0.00")
         amount = awarded if stage in {"AWARDED", "PARTIAL_AWARD_REVIEW"} else predicted if not submitted and evaluation.amount else None
@@ -690,4 +802,5 @@ class CorrespondenceDesk:
                     filing_cutoff=current.cutoff.isoformat() if current.cutoff else None, next_contact=state["cooldown"],
                     requested_artifact=state.get("requested_artifact"), historical_procedure=current.procedure,
                     obligation_id=obligation_id, policy_dispatchable=False, ledger=ledger,
+                    denial_acceptance=state.get("denial_acceptance"), trace_url="/api/correspondence/claims/" + claim_id + "/trace",
                     financials=[dict(label=k.replace("_", " ").title(), value=scope.currency + " " + v, sources=SOURCES) for k,v in ledger.items()])

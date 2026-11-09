@@ -1,0 +1,52 @@
+{
+ "decision": 89,
+ "model_requested": "claude-opus-5-5",
+ "process_status": "completed",
+ "returncode": 0,
+ "duration_seconds": 100,
+ "command": "claude -p <prompt> --model claude-opus-5-5 --tools \"Glob,Grep,Read\" --strict-mcp-config --permission-mode default --output-format stream-json --verbose",
+ "cwd": "worktrees/dispute-disposition-89",
+ "reviewed_commit": "3454b33",
+ "prompt_sha256": "86ac9545f4b1932151a89e5a82a625628e68af8d30fdadbae49e804d2277d128",
+ "packet_sha256": "e073b907a6442252595e229d2e2e47d149698fe0f51a83eb31aa3edc0dce20ac",
+ "stream_sha256": "11d2d205a87368c5b741cfeb013178376c953affd1ffc908bfb8cc3142c05d9b",
+ "stream_location": "~/.local/share/uptime-engineering/tasks/disputes-89/critique.jsonl (outside Git)",
+ "init": [
+  {
+   "model": "claude-opus-5-5",
+   "session_id": "95a8f57d-4a08-4e14-bfd8-9528e9c46e38",
+   "tools": [
+    "Glob",
+    "Grep",
+    "Read"
+   ],
+   "mcp_servers": []
+  }
+ ],
+ "tool_calls": [
+  "Read",
+  "Grep",
+  "Read",
+  "Grep",
+  "Read",
+  "Grep",
+  "Grep",
+  "Grep",
+  "Read",
+  "Grep",
+  "Read",
+  "Grep",
+  "Grep",
+  "Grep"
+ ],
+ "result": {
+  "subtype": "success",
+  "is_error": false,
+  "session_id": "95a8f57d-4a08-4e14-bfd8-9528e9c46e38",
+  "duration_ms": 98604,
+  "text": "**Verdict: adopt with named changes.** Option 3 is the right shape, but the explicit stop is weaker on authority than the actions it sits beside.\n\n**Defects, most serious first**\n\n1. **Accepting a denial skips the mandate check.** The accept branch at `uptime/correspondence.py:639-651` never calls `check_claim_decision`. Every other claim action goes through it. Outside the hard-coded `bears` tenant, that check requires a bound `claim_decision` and re-checks the financial mandate (`uptime/mandates.py:104-114`). Acceptance drops the disputed remainder from 62.13 to 0.00 with nothing more than `role == \"reviewer\"`. Giving up a claim is a money decision and needs the same scoped mandate.\n\n2. **The view and the action disagree, and no test catches it.** For non-`bears` tenants, `_view` builds `_packet` for each offered action (`correspondence.py:742-748`). `_base_packet` raises when the outcome is not ELIGIBLE (`:528`), or when there is no response material on the historical path. So `accept-denial` is hidden from the case view, yet `act` still accepts it. Every 89 test uses `bears`, so this never shows up.\n\n3. **Acceptance isn't tied to what the reviewer saw.** `act(p, claim_id, action)` takes no expected `basis_digest` or `state_sha256`. The basis is re-derived when the transaction commits (`:644`). If new evidence or clauses arrive between viewing and clicking and the ground still holds, the recorded basis is one the reviewer never saw. The review bridge binds digests; this step doesn't.\n\n4. **Stale states never move and the trace overstates them.**\n   - Nothing moves a case out of `DENIAL_REVIEW` when the governing terms rotate. `_actions` returns `[]` (`:607-608`), but the stage persists. Meanwhile the rebuttal window keeps running, and `_actions` exempts this stage from the filing window (`:609-613`).\n   - The trace keys off the stage alone: `denial_category` returns CONTRACTUAL_DENIAL and `disposition` returns DENIAL_SUBSTANTIATED (`correspondence_disposition.py:39-41, 47-50`), even when `denial_ground_substantiated` is False (`:180-182`).\n   - The rollback note's mapping of `DENIAL_REVIEW` to `HUMAN_REVIEW` should also be the live behaviour whenever `_denial_basis` is None.\n\n5. **An accepted denial survives losing its stated ground.** `correspondence.py:392-395` reopens an acceptance only if the outcome stops being INELIGIBLE. If later evidence voids the maintenance notice but the claim is ineligible for another reason, the acceptance stays closed while its recorded basis is false. It should re-derive `_denial_basis` and reopen when the reason no longer matches the one accepted.\n\n6. **The trace headline can be set by another reviewer.** At `correspondence_disposition.py:236-237` the case category comes from `reviewed[-1]`, the most recently created review by anyone. That makes it order-dependent and pins the requester to someone else's reading. The blind gate protects the per-row display but not the headline.\n\nThe residual risk the packet itself names, a waiver mislabelled as maintenance, is still there. The two-proposition limit and `bundle_loses_meaning` narrow it reasonably.\n\n**Missing falsification tests**\n\n1. **Non-`bears` tenant with a mandate-bound reviewer:** `accept-denial` should appear in the view and be refused without a matching `claim_decision`. Today it is hidden yet succeeds.\n2. **Stale view:** view a case in `DENIAL_REVIEW`, deliver a second notice or `maintenance_evidence` that still substantiates the ground, then accept with the old digest. It should be refused; today it succeeds and records a different basis.\n3. **Terms rotate, or the response cutoff passes, while in `DENIAL_REVIEW`:** expect `HUMAN_REVIEW`, no DENIAL_SUBSTANTIATED, and the remainder kept. A variant: after acceptance, swap the timely notice for a short one while another ground keeps the claim INELIGIBLE, and expect it to reopen.\n\n**Dissent:** none on the option itself. Options 1 and 2 keep message order deciding the outcome, and option 4 lets a person's wording give up a valid claim. My objection is to the implementation: an explicit stop should carry the same mandate and digest binding as any other decision that changes money.\n\nI only read files and changed nothing."
+ },
+ "inputs": "Public repository source and same-team authored synthetic fixtures only; no credentials, customer captures, private evaluator material or sealed answers.",
+ "working_tree_note": "The parent edited act() in the working tree while the critique ran. The critique cites the committed 3454b33 layout (inline accept branch at correspondence.py:639-651), so its findings refer to the reviewed commit.",
+ "count": "One critique; no second review or council."
+}

@@ -22,42 +22,79 @@ class VendorRecord:
     maintenance_notice: str | None = None
 
 
-def adjudicate(packet, record: VendorRecord, filed_at):
+@dataclass(frozen=True)
+class Decision:
+    """The counterparty's structured decision from its own records; wording is rendered separately."""
+    code: str
+    amount: str | None = None
+
+
+# Historical wording, unchanged byte for byte. Other renderings may be supplied by
+# a caller; they never change what the counterparty decided.
+WORDING = {
+    "SCOPE_UNVERIFIED": "We cannot reconcile the account, governing terms or destination.",
+    "TERMS_UNVERIFIED": "The applicable agreement for the complete service month is unverified.",
+    "WINDOW_CLOSED": "We received this claim outside the filing window.",
+    "DOCUMENT_UNVERIFIED": "We cannot establish the authenticity of the submitted documentation.",
+    "COVERAGE_UNVERIFIED": "We cannot verify the coverage record.",
+    "DOCUMENTATION_NEEDED": "Please supply the affected endpoint identifier and its supporting record.",
+    "MAINTENANCE_EXCLUDED": "This interruption falls within scheduled maintenance announced in advance.",
+    "THRESHOLD_MET": "Our measured service availability satisfies the applicable threshold.",
+    "FEES_UNVERIFIED": "Covered charges require further verification.",
+    "PRECISION_UNVERIFIED": "Settlement precision or covered charges require further verification.",
+    "AWARD": "We have approved a service credit of USD {amount}.",
+}
+
+
+def render(decision: Decision, wording=None):
+    return (wording or WORDING)[decision.code].format(amount=decision.amount)
+
+
+def decide_claim(packet, record: VendorRecord, filed_at) -> Decision:
+    """Isolated decision from the private record and the approved packet only.
+
+    It reads no claimant event store, oracle, expected outcome or step number. Any
+    extra packet field (for example an asserted outcome) is ignored.
+    """
     scope = record.scope
     if (packet.get("tenant") != record.tenant or packet.get("scope") != scope.model_dump()
             or scope.vendor.casefold() != "twilio" or scope.service != "Twilio Messaging API" or scope.currency != "USD"
             or packet.get("version") != VERSION or packet.get("destination") != "isolated-local-simulator"
             or packet.get("subject") != "SLA Claim"):
-        return "We cannot reconcile the account, governing terms or destination."
+        return Decision("SCOPE_UNVERIFIED")
     if scope.month < VERSION[:7] or scope.month == VERSION[:7]:
-        return "The applicable agreement for the complete service month is unverified."
+        return Decision("TERMS_UNVERIFIED")
     if filed_at >= deadline(scope.month):
-        return "We received this claim outside the filing window."
+        return Decision("WINDOW_CLOSED")
     if any((a["kind"], a["digest"]) not in record.attachments for a in packet["artifacts"]):
-        return "We cannot establish the authenticity of the submitted documentation."
+        return Decision("DOCUMENT_UNVERIFIED")
     kinds = {a["kind"] for a in packet["artifacts"]}
     if not {"status", "impact", "invoice"} <= kinds:
-        return "We cannot verify the coverage record."
+        return Decision("COVERAGE_UNVERIFIED")
     if "component" not in kinds:
-        return "Please supply the affected endpoint identifier and its supporting record."
+        return Decision("DOCUMENTATION_NEEDED")
     start, end = instant(record.start), instant(record.end)
     if record.maintenance_notice and instant(record.maintenance_notice) <= start - timedelta(hours=24):
-        return "This interruption falls within scheduled maintenance announced in advance."
+        return Decision("MAINTENANCE_EXCLUDED")
     import calendar
     month = start.strftime("%Y-%m")
     duration = end - start
     total = timedelta(days=calendar.monthrange(start.year, start.month)[1])
     if (month != scope.month or (end - timedelta(microseconds=1)).strftime("%Y-%m") != month or
             duration < timedelta(minutes=5) or duration * 2000 <= total):
-        return "Our measured service availability satisfies the applicable threshold."
+        return Decision("THRESHOLD_MET")
     if not record.affected_fees.is_finite() or record.affected_fees < 0:
-        return "Covered charges require further verification."
+        return Decision("FEES_UNVERIFIED")
     with localcontext() as ctx:
         ctx.prec = 50
         amount = min(Decimal(packet["requested"]), record.affected_fees * Decimal("0.10"))
         if not amount.is_finite() or amount <= 0 or amount != amount.quantize(Decimal("0.01")):
-            return "Settlement precision or covered charges require further verification."
-        return f"We have approved a service credit of USD {amount:.2f}."
+            return Decision("PRECISION_UNVERIFIED")
+        return Decision("AWARD", f"{amount:.2f}")
+
+
+def adjudicate(packet, record: VendorRecord, filed_at, wording=None):
+    return render(decide_claim(packet, record, filed_at), wording)
 
 
 @dataclass(frozen=True)
