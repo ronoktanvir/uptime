@@ -80,3 +80,9 @@ The three D04 characterization tests in that file are unchanged.
 - `test_distinct_obligations_and_exact_retries_are_not_blocked` (3 cases).
 
 Coverage matrix: `IDS-D03-1` and `IDS-D03-2` are now SUPPORTED, `IDS-D03-3` (REFUSED_AT_FILING) is added, and `STP-BAS-1` now cites the fee-context non-borrowing test.
+
+## D03 extension to vendor and service names
+
+No existing test changed. New: `tests/test_identity_domain_89.py::test_every_vendor_service_and_product_entry_point_applies_the_same_bounded_rule` (24 values × 9 entry points: onboarding product and vendor, claim and signed-line vendor/service, resource-line and monitor product, new-filing vendor and service), including `Cloud Hosting (EU)`. The coverage row `IDS-D03-1` now names vendor and service.
+
+Results: decision-89 files 146 passed in 3.42s; identity-related suites 3529 passed, 1 warning in 387.23s.

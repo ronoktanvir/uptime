@@ -130,7 +130,7 @@ The name-shaped dependencies that remain are deliberate or decision-bound:
 
 | ID | Dimension | Case | Status | Result |
 | --- | --- | --- | --- | --- |
-| `IDS-D03-1` | identity scope | Account or agreement with spaces, punctuation or non-ASCII letters (source-identity/1) | SUPPORTED | Accepted byte-identically by onboarding, claim intake, signed evidence, the claim registry and the ledger; padded, repeated-space, non-NFC, control and other characters are refused everywhere, never rewritten. |
+| `IDS-D03-1` | identity scope | Account, agreement, vendor or service name with spaces, punctuation or non-ASCII letters (source-identity/1) | SUPPORTED | Accepted byte-identically by onboarding, claim intake, signed evidence, the claim registry and the ledger; padded, repeated-space, non-NFC, control and other characters are refused everywhere, never rewritten. |
 | `IDS-D03-2` | identity scope | Onboarded source-shaped account such as `Harborline Analytics` | SUPPORTED | Northwind January keeps ELIGIBLE 2400.00 with the same governing fee and completed steps; another account's fee context is still never borrowed. |
 | `IDS-D03-3` | identity scope | Second filing whose account or agreement differs only by case or spacing | REFUSED_AT_FILING | Refused before dispatch; exact retries and distinct obligations proceed. No override path exists; override authority is not approved. |
 | `IDS-D04-1` | identity scope | Whole-service and resource claims without component, incident, invoice or region | DEFECT_DECISION_PENDING | Every claim requires all ten scope fields; Northwind supplies authored values the monthly evaluator never reads. Repair depends on D04. |

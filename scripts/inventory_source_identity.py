@@ -20,7 +20,9 @@ import unicodedata
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from uptime.source_identity import VERSION, refusal  # noqa: E402
 
-IDENTITY_KEYS = {"account", "agreement", "contract", "account_id", "contract_id", "agreement_id", "public_agreement"}
+ACCOUNT_KEYS = {"account", "agreement", "contract", "account_id", "contract_id", "agreement_id", "public_agreement"}
+NAME_KEYS = {"vendor", "service", "product", "public_product"}  # D03 extension, 2026-11-09
+IDENTITY_KEYS = ACCOUNT_KEYS
 LEGACY_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}")
 
 
@@ -83,7 +85,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("databases", nargs="+", type=Path)
     parser.add_argument("--root", type=Path, required=True, help="report paths relative to this directory")
+    parser.add_argument("--names", action="store_true", help="inventory vendor, service and product names instead")
     args = parser.parse_args()
+    global IDENTITY_KEYS
+    IDENTITY_KEYS = NAME_KEYS if args.names else ACCOUNT_KEYS
     report = {"rule": VERSION, "fields": sorted(IDENTITY_KEYS), "values_printed": False, "databases": {}}
     for path in args.databases:
         counts, refused = inventory(path)
