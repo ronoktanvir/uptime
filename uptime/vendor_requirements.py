@@ -29,7 +29,7 @@ from .vendor_terms import PERCENT_SCALE, semantics_revision
 SCHEMA = 'adapter-requirements/1'
 MONTHLY = 'monthly-availability/1'
 RESOURCE = 'resource-month/1'
-ELEMENTS = ('source_clauses', 'eligible_fee', 'evidence', 'exclusions', 'deadline')
+ELEMENTS = ('source_clauses', 'eligible_fee', 'evidence', 'exclusions', 'deadline', 'submission_channel')
 # Status vocabulary. Only REVIEW_REQUIRED leaves an open requirement.
 PRESENT, FAMILY_DEFINED, NONE_STATED, REVIEW_REQUIRED = 'PRESENT', 'FAMILY_DEFINED', 'NONE_STATED', 'REVIEW_REQUIRED'
 # Placeholder affected fee for draft observations. Drafts are shadow material, never a customer amount.
@@ -48,6 +48,7 @@ _RESOURCE_KEYS = {
     'evidence': ('evidence', 'symptoms', 'provider_causes', 'aggregate_monitor', 'record_integrity', 'telemetry'),
     'exclusions': ('exclusions', 'maintenance'),
     'deadline': ('filing', 'fixed_filing', 'cure_clock', 'supplement'),
+    'submission_channel': ('submission_channel', 'request_fields'),
 }
 
 
@@ -123,6 +124,9 @@ def _monthly_card(manifest, overlay):
         elements.append(_element('deadline', PRESENT, cites['filing_days'], detail))
     else:
         elements.append(_missing('deadline', 'the claim filing deadline'))
+    elements.append(_element('submission_channel', NONE_STATED, detail={
+        'basis': 'The monthly family records no claim submission channel or request fields. Claims are delivered '
+                 'only through a separately configured and authorized channel (D08).'}))
     requirements = ['Author independent expectations, including at least one eligible case with an exact amount '
                     'and one refusal, from the cited clauses rather than from generated drafts.']
     if manifest.get('interpretation'):
@@ -147,6 +151,10 @@ def _resource_card(manifest, overlay):
         elif name == 'exclusions':
             elements.append(_element(name, NONE_STATED, detail={
                 'basis': 'Every source block was accounted for and none states an exclusion.'}))
+        elif name == 'submission_channel':
+            # Informational: delivery uses a separately configured and authorized channel (D08); never sent from here.
+            elements.append(_element(name, NONE_STATED, detail={
+                'basis': 'No source block states a claim submission channel or required request fields.'}))
         else:
             elements.append(_missing(name, ' / '.join(keys)))
     requirements = ['Accept or reject the model-proposed interpretation of every cited block.',
