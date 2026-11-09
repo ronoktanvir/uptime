@@ -40,6 +40,9 @@ def status_delivery(snapshot: Snapshot, incident_id: str, scope: Scope, *, now: 
         raise StatusSourceRefusal("The public snapshot is older than 24 hours; refresh it before delivery.")
     if scope.vendor.casefold() != "twilio":
         raise StatusSourceRefusal("This source publishes only Twilio status observations.")
+    # Claim scopes may omit incident or component (D04-C); a public incident record needs both.
+    if getattr(scope, "incident", None) is None or getattr(scope, "component", None) is None:
+        raise StatusSourceRefusal("A public status record needs a grant naming one incident and one component.")
     if scope.incident != incident_id:
         raise StatusSourceRefusal(f"The grant names incident {scope.incident}, not {incident_id}.")
     row = next((o for o in snapshot.observations if o.incident_id == incident_id), None)
