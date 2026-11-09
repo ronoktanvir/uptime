@@ -8,6 +8,7 @@ from tempfile import NamedTemporaryFile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from uptime.auth import bind_workspace
+from uptime.installation_revocation import require_workspace_active
 from uptime.ramp import RampError, SandboxRampProvider
 from uptime.ramp_installation import current_business
 from uptime.ramp_records import sync_records
@@ -18,6 +19,8 @@ from uptime.workbench import Workbench
 def refresh(path, tenant, *, page_size=20, max_pages=2, detail_limit=12,
             all_purchase_orders=False, provider=None):
     bind_workspace(path, "sandbox", False, tenant)
+    # A revoked installation makes no provider request, not even a token exchange.
+    require_workspace_active(path, tenant)
     provider = provider or SandboxRampProvider()
     business_id = current_business(provider)
     workspace = RampWorkspace(Workbench(path, "sandbox", tenant=tenant))
@@ -53,7 +56,7 @@ def main():
                 temp.replace(args.export)
             finally:
                 temp.unlink(missing_ok=True)
-    except (RampError, ValueError, OSError) as exc:
+    except (RampError, ValueError, OSError, PermissionError) as exc:
         parser.exit(1, f"Ramp workspace refresh stopped ({type(exc).__name__}). Check sandbox grants and tenant binding.\n")
     print(json.dumps({"capture": result["digest"], "status": result["status"],
                       "resources": {k: {"status": v["status"], "read_back": len(v["records"])}
