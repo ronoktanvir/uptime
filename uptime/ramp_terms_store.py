@@ -19,6 +19,7 @@ from .pricing import Agreement, ContractVersion, Rate, Tier, evaluate_price
 from .ramp import RampError
 from .ramp_findings import PriceBinding, ServiceMapping, VERSION, _bound_invoice, line_digest
 from .ramp_records import _validate_snapshot
+from .source_identity import SourceIdentity
 from .source_config import EdVerifier, Key, Strict, Subject, _check_file, _protected_path
 from .storage import database
 
@@ -109,7 +110,8 @@ class TermsPacket(Strict):
     bill_digest: Key
     vendor_id: ObjectID
     entity_id: ObjectID
-    agreement_id: Ref
+    # Decision D03-A: an exact bounded source identity, or a legacy reference kept byte-identical.
+    agreement_id: Ref | SourceIdentity
     agreement_expires: Date
     versions: list[VersionTerms] = Field(min_length=1,max_length=12)
     mappings: list[Mapping] = Field(min_length=1,max_length=100)

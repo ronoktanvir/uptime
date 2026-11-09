@@ -4,6 +4,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
+from .source_identity import SourceIdentity
+
 Id = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,95}$", max_length=96)]
 Name = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9 ._/-]{0,94}[A-Za-z0-9]$|^[A-Za-z0-9]$", max_length=96)]
 Amount = Annotated[str, StringConstraints(pattern=r"^(0|[1-9][0-9]{0,11})(\.[0-9]{1,2})?$", max_length=15)]
@@ -15,9 +17,9 @@ class Strict(BaseModel):
 
 
 class Scope(Strict):
-    account: Id
+    account: SourceIdentity
     vendor: Name
-    contract: Id
+    contract: SourceIdentity
     service: Name
     component: Id
     invoice: Id
@@ -89,9 +91,9 @@ class Line(Strict):
     amount: Amount
     # Omitted fields inherit the authenticated invoice envelope. An explicit
     # contradictory identity cannot be silently replaced with case scope.
-    account: Id | None = None
+    account: SourceIdentity | None = None
     vendor: Name | None = None
-    contract: Id | None = None
+    contract: SourceIdentity | None = None
     service: Name | None = None
     component: Id | None = None
     invoice: Id | None = None
@@ -165,7 +167,7 @@ class ResourceLine(Strict):
 
 class MonitorRow(Interval):
     ref: Id
-    account: Id
+    account: SourceIdentity
     product: Name
     region: Id
     resource_id: Id
@@ -255,7 +257,7 @@ class ServiceInvoice(ServiceRecord):
 
 class MaintenanceRecord(Interval):
     ref: Id
-    account: Id
+    account: SourceIdentity
     resource_id: Id
     state: Literal["announced", "confirmed_unannounced"] = "announced"
     announced_at: Annotated[str, StringConstraints(max_length=40)] | None = None
@@ -275,8 +277,8 @@ class MaintenanceEvidence(Report):
 class IssuedCredit(Strict):
     ref: Id
     credit_id: Id
-    agreement: Id
-    account: Id
+    agreement: SourceIdentity
+    account: SourceIdentity
     resource_id: Id
     month: Annotated[str, StringConstraints(pattern=r"^20[0-9]{2}-(0[1-9]|1[0-2])$")]
     currency: Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]

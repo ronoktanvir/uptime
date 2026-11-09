@@ -1,0 +1,829 @@
+{
+ "databases": {
+  "runtime/northwind-final-browser-001/local-ledger.db": {
+   "refused_value_sha256": {},
+   "tables": {
+    "local_ledger_binding": {
+     "scope.account_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "scope.contract_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    },
+    "local_ledger_record": {
+     "$.account_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "$.contract_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    }
+   }
+  },
+  "runtime/northwind-final-browser-001/workspace.db": {
+   "refused_value_sha256": {
+    "v4_vendor_artifact.manifest.agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ],
+    "v4_vendor_artifact.overlay.public_agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ],
+    "v4_vendor_artifact.propositions.agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ]
+   },
+   "tables": {
+    "allocation_scope": {
+     "account_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "contract_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    },
+    "case_revision": {
+     "$.account": {
+      "legacy_restricted_id": 6,
+      "total": 6
+     },
+     "$.agreement": {
+      "legacy_restricted_id": 6,
+      "total": 6
+     },
+     "detail.account": {
+      "legacy_restricted_id": 6,
+      "total": 6
+     },
+     "detail.agreement": {
+      "legacy_restricted_id": 6,
+      "total": 6
+     },
+     "economic_identity.account": {
+      "legacy_restricted_id": 6,
+      "total": 6
+     },
+     "economic_identity.agreement_id": {
+      "legacy_restricted_id": 6,
+      "total": 6
+     }
+    },
+    "case_snapshot": {
+     "$.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "$.agreement": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "detail.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "detail.agreement": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "economic_identity.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "economic_identity.agreement_id": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     }
+    },
+    "claim_dispatch_identity_v2": {
+     "$.account": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "$.contract": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     }
+    },
+    "dispute_artifacts": {
+     "account": {
+      "legacy_restricted_id": 25,
+      "total": 25
+     }
+    },
+    "dispute_cases": {
+     "$.account": {
+      "legacy_restricted_id": 29,
+      "total": 29
+     }
+    },
+    "dispute_manifests": {
+     "account": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    },
+    "inbox_account": {
+     "account": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "contract": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    },
+    "inbox_claim": {
+     "$.account": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     },
+     "$.contract": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     },
+     "packet.agreement_id": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "scope.account": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "scope.contract": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     }
+    },
+    "inbox_delivery": {
+     "account": {
+      "legacy_restricted_id": 16,
+      "total": 16
+     }
+    },
+    "inbox_sender": {
+     "account": {
+      "legacy_restricted_id": 16,
+      "total": 16
+     }
+    },
+    "inbox_sender_scope": {
+     "account": {
+      "legacy_restricted_id": 16,
+      "total": 16
+     }
+    },
+    "v4_vendor_artifact": {
+     "manifest.agreement": {
+      "character:EM DASH": 6,
+      "legacy_restricted_id": 4,
+      "refused:character": 6,
+      "total": 10
+     },
+     "overlay.account": {
+      "legacy_restricted_id": 10,
+      "total": 10
+     },
+     "overlay.agreement": {
+      "legacy_restricted_id": 10,
+      "total": 10
+     },
+     "overlay.public_agreement": {
+      "character:EM DASH": 6,
+      "refused:character": 6,
+      "total": 6
+     },
+     "propositions.agreement": {
+      "character:EM DASH": 6,
+      "refused:character": 6,
+      "total": 6
+     }
+    },
+    "v4_vendor_event": {
+     "facts.account": {
+      "legacy_restricted_id": 108,
+      "total": 108
+     },
+     "facts.agreement": {
+      "legacy_restricted_id": 108,
+      "total": 108
+     },
+     "fields.account": {
+      "total": 81,
+      "widened_only": 81
+     },
+     "filing_proof.account": {
+      "legacy_restricted_id": 81,
+      "total": 81
+     },
+     "filing_proof.agreement": {
+      "legacy_restricted_id": 81,
+      "total": 81
+     },
+     "service_invoice.account": {
+      "legacy_restricted_id": 81,
+      "total": 81
+     },
+     "service_invoice.agreement": {
+      "legacy_restricted_id": 81,
+      "total": 81
+     },
+     "service_monitor.account": {
+      "legacy_restricted_id": 54,
+      "total": 54
+     },
+     "service_monitor.agreement": {
+      "legacy_restricted_id": 54,
+      "total": 54
+     }
+    },
+    "workspace_workflow_intent": {
+     "credit.account_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "credit.contract_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "scope.account": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     },
+     "scope.contract": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     }
+    },
+    "workspace_workflow_invoice": {
+     "scope.account": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "scope.contract": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    }
+   }
+  },
+  "runtime/northwind-presentation-87/local-ledger.db": {
+   "refused_value_sha256": {},
+   "tables": {
+    "local_ledger_binding": {
+     "scope.account_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "scope.contract_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    }
+   }
+  },
+  "runtime/northwind-presentation-87/workspace.db": {
+   "refused_value_sha256": {
+    "v4_vendor_artifact.manifest.agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ],
+    "v4_vendor_artifact.overlay.public_agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ],
+    "v4_vendor_artifact.propositions.agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ]
+   },
+   "tables": {
+    "case_snapshot": {
+     "$.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "$.agreement": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "detail.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "detail.agreement": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "economic_identity.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "economic_identity.agreement_id": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     }
+    },
+    "dispute_artifacts": {
+     "account": {
+      "legacy_restricted_id": 25,
+      "total": 25
+     }
+    },
+    "dispute_cases": {
+     "$.account": {
+      "legacy_restricted_id": 29,
+      "total": 29
+     }
+    },
+    "dispute_manifests": {
+     "account": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    },
+    "inbox_account": {
+     "account": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "contract": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    },
+    "inbox_claim": {
+     "$.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "$.contract": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     }
+    },
+    "inbox_delivery": {
+     "account": {
+      "legacy_restricted_id": 9,
+      "total": 9
+     }
+    },
+    "inbox_sender": {
+     "account": {
+      "legacy_restricted_id": 16,
+      "total": 16
+     }
+    },
+    "inbox_sender_scope": {
+     "account": {
+      "legacy_restricted_id": 16,
+      "total": 16
+     }
+    },
+    "v4_vendor_artifact": {
+     "manifest.agreement": {
+      "character:EM DASH": 2,
+      "legacy_restricted_id": 1,
+      "refused:character": 2,
+      "total": 3
+     },
+     "overlay.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "overlay.agreement": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "overlay.public_agreement": {
+      "character:EM DASH": 2,
+      "refused:character": 2,
+      "total": 2
+     },
+     "propositions.agreement": {
+      "character:EM DASH": 2,
+      "refused:character": 2,
+      "total": 2
+     }
+    },
+    "v4_vendor_event": {
+     "facts.account": {
+      "legacy_restricted_id": 36,
+      "total": 36
+     },
+     "facts.agreement": {
+      "legacy_restricted_id": 36,
+      "total": 36
+     },
+     "fields.account": {
+      "total": 27,
+      "widened_only": 27
+     },
+     "filing_proof.account": {
+      "legacy_restricted_id": 27,
+      "total": 27
+     },
+     "filing_proof.agreement": {
+      "legacy_restricted_id": 27,
+      "total": 27
+     },
+     "service_invoice.account": {
+      "legacy_restricted_id": 27,
+      "total": 27
+     },
+     "service_invoice.agreement": {
+      "legacy_restricted_id": 27,
+      "total": 27
+     },
+     "service_monitor.account": {
+      "legacy_restricted_id": 18,
+      "total": 18
+     },
+     "service_monitor.agreement": {
+      "legacy_restricted_id": 18,
+      "total": 18
+     }
+    }
+   }
+  },
+  "runtime/northwind-verification-87/local-ledger.db": {
+   "refused_value_sha256": {},
+   "tables": {
+    "local_ledger_binding": {
+     "scope.account_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "scope.contract_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    },
+    "local_ledger_record": {
+     "$.account_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "$.contract_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    }
+   }
+  },
+  "runtime/northwind-verification-87/workspace.db": {
+   "refused_value_sha256": {
+    "v4_vendor_artifact.manifest.agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ],
+    "v4_vendor_artifact.overlay.public_agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ],
+    "v4_vendor_artifact.propositions.agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ]
+   },
+   "tables": {
+    "allocation_scope": {
+     "account_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "contract_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    },
+    "case_snapshot": {
+     "$.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "$.agreement": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "detail.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "detail.agreement": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "economic_identity.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "economic_identity.agreement_id": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     }
+    },
+    "claim_dispatch_identity_v2": {
+     "$.account": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "$.contract": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     }
+    },
+    "dispute_artifacts": {
+     "account": {
+      "legacy_restricted_id": 25,
+      "total": 25
+     }
+    },
+    "dispute_cases": {
+     "$.account": {
+      "legacy_restricted_id": 29,
+      "total": 29
+     }
+    },
+    "dispute_manifests": {
+     "account": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    },
+    "inbox_account": {
+     "account": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "contract": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    },
+    "inbox_claim": {
+     "$.account": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     },
+     "$.contract": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     },
+     "packet.agreement_id": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "scope.account": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "scope.contract": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     }
+    },
+    "inbox_delivery": {
+     "account": {
+      "legacy_restricted_id": 16,
+      "total": 16
+     }
+    },
+    "inbox_sender": {
+     "account": {
+      "legacy_restricted_id": 16,
+      "total": 16
+     }
+    },
+    "inbox_sender_scope": {
+     "account": {
+      "legacy_restricted_id": 16,
+      "total": 16
+     }
+    },
+    "v4_vendor_artifact": {
+     "manifest.agreement": {
+      "character:EM DASH": 2,
+      "legacy_restricted_id": 1,
+      "refused:character": 2,
+      "total": 3
+     },
+     "overlay.account": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "overlay.agreement": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     },
+     "overlay.public_agreement": {
+      "character:EM DASH": 2,
+      "refused:character": 2,
+      "total": 2
+     },
+     "propositions.agreement": {
+      "character:EM DASH": 2,
+      "refused:character": 2,
+      "total": 2
+     }
+    },
+    "v4_vendor_event": {
+     "facts.account": {
+      "legacy_restricted_id": 36,
+      "total": 36
+     },
+     "facts.agreement": {
+      "legacy_restricted_id": 36,
+      "total": 36
+     },
+     "fields.account": {
+      "total": 27,
+      "widened_only": 27
+     },
+     "filing_proof.account": {
+      "legacy_restricted_id": 27,
+      "total": 27
+     },
+     "filing_proof.agreement": {
+      "legacy_restricted_id": 27,
+      "total": 27
+     },
+     "service_invoice.account": {
+      "legacy_restricted_id": 27,
+      "total": 27
+     },
+     "service_invoice.agreement": {
+      "legacy_restricted_id": 27,
+      "total": 27
+     },
+     "service_monitor.account": {
+      "legacy_restricted_id": 18,
+      "total": 18
+     },
+     "service_monitor.agreement": {
+      "legacy_restricted_id": 18,
+      "total": 18
+     }
+    },
+    "workspace_workflow_intent": {
+     "credit.account_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "credit.contract_id": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "scope.account": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     },
+     "scope.contract": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     }
+    },
+    "workspace_workflow_invoice": {
+     "scope.account": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     },
+     "scope.contract": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    }
+   }
+  },
+  "runtime/ronok-review-87/workspace.db": {
+   "refused_value_sha256": {
+    "v4_vendor_artifact.manifest.agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ],
+    "v4_vendor_artifact.overlay.public_agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ],
+    "v4_vendor_artifact.propositions.agreement": [
+     "b4a778b4fc61a3ba5a34424ef6bb89aa10a78b0241d44a47a243c55fdd1e0903"
+    ]
+   },
+   "tables": {
+    "dispute_artifacts": {
+     "account": {
+      "legacy_restricted_id": 25,
+      "total": 25
+     }
+    },
+    "dispute_cases": {
+     "$.account": {
+      "legacy_restricted_id": 29,
+      "total": 29
+     }
+    },
+    "dispute_manifests": {
+     "account": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    },
+    "v4_vendor_artifact": {
+     "manifest.agreement": {
+      "character:EM DASH": 2,
+      "refused:character": 2,
+      "total": 2
+     },
+     "overlay.account": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "overlay.agreement": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "overlay.public_agreement": {
+      "character:EM DASH": 2,
+      "refused:character": 2,
+      "total": 2
+     },
+     "propositions.agreement": {
+      "character:EM DASH": 2,
+      "refused:character": 2,
+      "total": 2
+     }
+    },
+    "v4_vendor_event": {
+     "facts.account": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     },
+     "facts.agreement": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     },
+     "fields.account": {
+      "total": 15,
+      "widened_only": 15
+     },
+     "filing_proof.account": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     },
+     "filing_proof.agreement": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     },
+     "service_invoice.account": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     },
+     "service_invoice.agreement": {
+      "legacy_restricted_id": 15,
+      "total": 15
+     },
+     "service_monitor.account": {
+      "legacy_restricted_id": 10,
+      "total": 10
+     },
+     "service_monitor.agreement": {
+      "legacy_restricted_id": 10,
+      "total": 10
+     }
+    }
+   }
+  },
+  "workbench-sandbox.sqlite": {
+   "refused_value_sha256": {},
+   "tables": {
+    "dispute_artifacts": {
+     "account": {
+      "legacy_restricted_id": 25,
+      "total": 25
+     }
+    },
+    "dispute_cases": {
+     "$.account": {
+      "legacy_restricted_id": 29,
+      "total": 29
+     }
+    },
+    "dispute_manifests": {
+     "account": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    }
+   }
+  }
+ },
+ "fields": [
+  "account",
+  "account_id",
+  "agreement",
+  "agreement_id",
+  "contract",
+  "contract_id",
+  "public_agreement"
+ ],
+ "rule": "source-identity/1",
+ "total_refused": 36,
+ "values_printed": false
+}
