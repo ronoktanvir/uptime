@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-09T11:55:18.891064+00:00",
+  "updated_at": "2026-11-09T13:02:13.519973+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
@@ -7,9 +7,9 @@
   "evidence": [
     {
       "label": "Latest local verification",
-      "value": "4,110 passed, 1 warning",
-      "detail": "1b627ad fresh clone of work/integration-90: 4,110 passed, 1 warning in 586.65s; 75 JavaScript checks. Regression coverage, not recovery or release evidence.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-90/docs/v4/evidence/integration-90/verification.json"
+      "value": "4,523 passed",
+      "detail": "fde492c (demo build) fresh clone: 4,523 passed, 1 warning in 523.01s; 92 JavaScript checks. Regression coverage, not recovery or release evidence.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-90/docs/v4/evidence/integration-90/verification-fde492c.json"
     },
     {
       "label": "Prior regression checkpoint",
@@ -251,7 +251,7 @@
       "title": "Financial identity & source pins",
       "stream": "Security",
       "status": "done",
-      "summary": "Four reproduced lifecycle defects corrected",
+      "summary": "D03 bounded exact identity merged; D04-C in progress",
       "detail": "Independent verification passes distinct-resource totals, regional intake, compound-denial escalation and attribution after a lawful reply. Legacy delimiter collisions now refuse before financial writes. Ambiguous archive rows remain readable for review.",
       "owner": "Security + financial engineering",
       "depends_on": [
@@ -465,14 +465,14 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "4,110 passed, 1 warning at 1b627ad",
+      "summary": "4,523 passed at fde492c (demo build)",
       "detail": "Frozen 50e041c passes the full suite. The initial disk-full result remains recorded; no source or assertions changed before retry.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
         "companion"
       ],
-      "next_action": "Run the complete suite after the D03/D04 implementation merge.",
+      "next_action": "Round 4 after D04-C merges.",
       "links": [
         {
           "label": "Current frozen verification",
@@ -505,14 +505,14 @@
       "title": "Two-minute deterministic demonstration",
       "stream": "Demonstration",
       "status": "done",
-      "summary": "Two-minute script rehearsed offline; timed run and film pending",
+      "summary": "Demo build verified over HTTP; presentation listener ready; timed run and film pending",
       "detail": "Exact clauses and decimal explanations are visible. Fresh 11-step socket run completes denial cure, award and April application. Prepared browser session remains unfiled for presentation. Ronok\u2019s live review is separate and still release-gated.",
       "owner": "Demo engineering",
       "depends_on": [
         "companion",
         "publication"
       ],
-      "next_action": "A presenter runs the script against a stopwatch; film the Northwind flow if required by D01.",
+      "next_action": "Ronok runs the script against a stopwatch and records when ready.",
       "links": [
         {
           "label": "Rehearsal",
@@ -681,6 +681,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T13:02:13.519973+00:00",
+      "title": "Demo build fde492c verified",
+      "detail": "Round 3: 4,523 passed on a fresh clone. 11-step walkthrough passed over real HTTP. A fresh presentation workspace serves on 8776 from a frozen checkout. Decisions D01\u2013D07 and D09\u2013D14 are recorded (D01, D02 and D09 delegated); D08 is with Ronok.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-90/docs/v4/integration90/REHEARSAL.md"
+    },
     {
       "at": "2026-11-09T11:55:18.891064+00:00",
       "title": "Integration 90: checklist, ownership and recorded review",
