@@ -1,10 +1,41 @@
-# Identity and scope: changes that depend on D03 and D04 — decision 89
+# Identity and scope: D03 implementation and D04 dependencies — decision 89
 
-**Status:** characterization only. **No D03 or D04 option is adopted or recommended here.** Both remain pending team decisions in the [team decision handoff](TEAM-DECISION-HANDOFF.md). The team-facing alternatives and their migration consequences are owned by the integration workstream (`docs/v4/integration90/D03-D04-ALTERNATIVES.md` on `work/integration-90`). This page lists exactly which code, stored records and tests a chosen option must change or deliberately preserve, so the decision can be implemented once without rediscovery.
+## Decision and implementation status (2026-11-09)
 
-Audited source: `03b372e`. Executable reproduction: `tests/test_identity_domain_89.py`. Line numbers are as of that commit.
+Ronok decided D03 and D04 on 2026-11-09. In this session he confirmed both and then selected **D04-C** when asked to choose between C and A; the integration owner recorded the same choice ([decision record](https://github.com/ronoktanvir/uptime/blob/work/integration-90/docs/v4/integration90/D03-D04-ALTERNATIVES.md), integration commit `e6e8b6b`). The single Opus 5.5 critique for this decision is decision 94 (session `83b1b59b-7fbe-42e5-84fe-f67986752dfc`). This implementation follows that critique's accepted conditions and makes no new departure, so no further consultation was run.
 
-## What is reproduced
+**D03-A, bounded exact source identity, with a blocking near-duplicate guard: implemented on this branch.**
+
+| Change | Location |
+| --- | --- |
+| One versioned rule, `source-identity/1`: 1–96 characters; Unicode letters, digits, single ASCII spaces and `. , ' & ( ) + : / _ -`; at least one letter or digit; no leading, trailing or repeated space; already NFC. Refused, never rewritten. The legacy restricted `Id` domain is a strict subset (property-tested), so stored bytes, keys, hashes and signatures are unchanged. | `uptime/source_identity.py` (`refusal`, `source_identity`, `SourceIdentity`) |
+| Claim intake and signed evidence: `Scope.account`, `Scope.contract`, signed invoice `Line.account`/`contract`, `MonitorRow.account`, `MaintenanceRecord.account`, `IssuedCredit.account`/`agreement`. | `uptime/correspondence_types.py` |
+| Onboarding overlay account and agreement use the same rule. Product, plan and fee line keep their source grammar. | `uptime/vendor_terms.py` (`bind_overlay`) |
+| New filings must carry a bounded account. Historical rows import unchanged. | `uptime/claim_identity.py` (`reserve_claim`) |
+| **Blocking guard:** a new initial filing is refused (`NearDuplicateIdentity`) when an existing filing for the same tenant, vendor, service, month and remedy has an account and agreement equal to it up to case or spacing only. Exact retries and distinct obligations proceed. **No override path exists**; an override would be new authority that has not been approved. | `uptime/claim_identity.py` (`_near_duplicate`) |
+| Ledger identities are refused instead of trimmed or NFC-normalized; ledger account and contract follow the shared rule. UUID text keeps its existing canonical form. | `uptime/allocations.py` (`canonical`, `_scope`) |
+| Ramp terms agreement ID accepts the shared rule and keeps legacy references (which may contain `#`) byte-identical. | `uptime/ramp_terms_store.py` |
+
+**Inventory before implementation** (decision-94 condition): all stored claim-facing account and agreement values — overlays, claim scopes, dispatch identities and ledger scopes in the operator runtime databases — already satisfy `source-identity/1` (zero refusals). The only 36 refusals are em dashes in *public source titles* (`manifest.agreement`, `overlay.public_agreement`, `propositions.agreement`), which D03-A does not retype and which remain governed by source grounding. Values were never printed; refusals are recorded only by SHA-256. [Inventory receipt](evidence/identity-pricing-89/source-identity-inventory.json) · `scripts/inventory_source_identity.py`
+
+**Reviewed-approval churn.** `vendor_terms.py` and `claim_identity.py` are pinned by `SEMANTICS_REVISIONS`, so active adapters require renewed review after integration. That includes the Northwind walkthrough's installed adapter. This is the designed protection against stale authority. Renew through the normal reviewed procedure; never by reactivating old approvals. The D04 change will touch `governing_fees.py`, which is pinned too, so integrate D03 and D04 together if possible, so that adapters need renewed review only once.
+
+**Residual D03 items, not changed here:**
+
+- `uptime/reconciliation.py` `_required` (integration owner) and `uptime/disputes_wire.py` `Ticket.account` (dispute owner) still accept any printable value without surrounding whitespace, for example an em dash. They sit on award-reconciliation and legacy Twilio paths, so a value they accept may still be refused by the shared rule. Each needs a one-line `source_identity` check from its owner.
+- Product, service and vendor names keep two different grammars: onboarding `NAME` accepts `& ( ) , ' +`, while claim `Scope.service`/`vendor` (`Name`) refuse them, so `Cloud Hosting (EU)` would still be stranded. D03-A as recorded covers only account and agreement. Extending it needs a team decision.
+- Evidence-custody finding F5 (`uptime/vendor_terms.py:302`, `uptime/vendor_resource_terms.py:572`): a resource manifest without an agreement name accepts any overlay agreement. D03-A preserves exact bytes but does not tie the private agreement identity to its governing document. That needs a reviewed binding or a recorded "public document governs" statement, owned with onboarding.
+- Override authority for the near-duplicate guard remains pending and unimplemented.
+
+**D04-C: decided; implementation paused on a finding.** The generic monthly-availability evidence adapter (`uptime/v4_routes.py` `_joined_observation`) derives countable downtime from one status interval and requires the signed monthly coverage to list exactly `[scope.incident]`. `scripts/setup_northwind.py` states that the authored monthly intake requires exactly one incident interval. A whole-service monthly claim without an incident therefore cannot be evaluated as eligible unless the evidence-sufficiency rule for monthly coverage changes. That is a financial-meaning change, so it goes to the team rather than being redesigned here. The characterization below remains accurate for D04.
+
+---
+
+Audited source for the characterization below: `03b372e`. Executable checks: `tests/test_identity_domain_89.py`. Line numbers are as of that commit.
+
+## What was reproduced on `03b372e`
+
+The D03 rows below cite the characterization tests committed at `4ad4506`. Under D03-A they were replaced by invariants with new names, listed in the [test-change ledger](TEST-CHANGES-89.md). The D04 rows remain current.
 
 | Defect | Reproduction | Observed |
 | --- | --- | --- |
@@ -76,7 +107,7 @@ Editing any of `contracts.py`, `vendor_terms.py`, `vendor_eval.py`, `vendor_mode
 
 ## Tests a D03 or D04 change would have to update
 
-Each must be updated deliberately and recorded by exact name in a test-change ledger.
+Each must be updated deliberately and recorded by exact name in a test-change ledger. For D03-A, the [test-change ledger](TEST-CHANGES-89.md) records which of these actually changed. The other existing tests listed here still pass unchanged, because they assert refusals that `source-identity/1` keeps.
 
 | Test | Coupling |
 | --- | --- |
@@ -107,6 +138,8 @@ These come from the assignment and apply to any chosen option:
 - With only the account representation changed, the Northwind January case returns the same `ELIGIBLE 2400.00` as the authored identity.
 - A whole-service monthly claim and a resource or regional claim both reach their correct workflows; missing *required* scope still refuses, and “not applicable” stays distinct from “unknown”. No incident, region or invoice reference is invented to satisfy a schema.
 
-## Not done here
+## Boundaries and rollback
 
-No source, schema, stored record, fixture, receipt or test outside the two decision-89 test files was changed. No Opus consultation was run for D03/D04: the integration workstream runs the single combined critique. No model, Ramp, vendor or reviewer action occurred.
+The characterization commit `4ad4506` changed no source. The D03-A commit changes only the files listed in the status section, plus one existing ledger test and the decision-89 tests named in the [test-change ledger](TEST-CHANGES-89.md). No stored record, fixture input, receipt or signature was rewritten. No model, Ramp, vendor or reviewer action occurred. The only Opus critique for D03/D04 is decision 94.
+
+Rollback: revert the D03-A commit. Intake then refuses spaced accounts and agreements again, and the ledger resumes trimming. Claims accepted in the meantime keep their stored bytes and keys. List them and freeze them for review; never delete or re-key them. Revert also restores the previous `SEMANTICS_REVISIONS`. Adapters renewed under D03-A need renewed review again rather than reactivation of their older approvals.

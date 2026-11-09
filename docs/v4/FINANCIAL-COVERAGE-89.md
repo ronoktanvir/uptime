@@ -1,6 +1,6 @@
 # Financial coverage matrix — decision 89
 
-**Status:** published support matrix for the deterministic financial engines on audited source `03b372e`. It describes existing behaviour and changes no financial logic. The engines and their refusals remain the only authority: a consumer must evaluate, never consult this table instead.
+**Status:** published support matrix for the deterministic financial engines, audited on source `03b372e`, with the identity rows updated for decision D03-A. It describes behaviour; the financial rows are unchanged by D03-A. The engines and their refusals remain the only authority: a consumer must evaluate, never consult this table instead.
 
 **Machine-readable form:** [`coverage/financial-coverage-89.json`](coverage/financial-coverage-89.json) (`financial-coverage/1`). `tests/test_financial_coverage_89.py` checks that every row cites existing tests and enforcement symbols, that every requested dimension has an explicit refusal row, and that this page lists exactly the machine rows. Every cited test must pass in the normal suite.
 
@@ -19,7 +19,7 @@ The audit did find classification and representation issues. None of them create
 | `MON-IDS-1` | An observation whose account or fee line *contradicts* the overlay is reported as missing, like an absent fact. | Missing and contradictory evidence should stay distinguishable. | Evaluator owner; overlaps D03 identity semantics. |
 | `MON-DL-2` | A receipt before the service month ends is INELIGIBLE / OUTSIDE_WINDOW (also in the resource evaluator). | A premature filing is “not yet fileable”, not a lost entitlement; workflows must not close the obligation. | Evaluator owner; independent of D03/D04. |
 | `MON-RND-1`, `RES-RND-1` | Sources without a rounding clause yield exact sub-cent estimates (for example `0.00125`, `12.505`) with issuance unconfirmed. | Correctly not invented; presenters must not call such an estimate a payable amount. | Presentation only. |
-| Historical import | `claim_identity._backfill` assigns the availability remedy to an unreserved historical inbox record when the vendor label folds to `twilio` (`uptime/claim_identity.py:275`). | A vendor-name rule on a history-only path; current filings reserve explicitly. | W0 owns `claim_identity.py`; change with the D03 migration. |
+| Historical import | `claim_identity._backfill` assigns the availability remedy to an unreserved historical inbox record when the vendor label folds to `twilio` (`uptime/claim_identity.py:275`). | A vendor-name rule on a history-only path; current filings reserve explicitly. | Identity owner; unchanged by D03-A because it governs only already-stored history. |
 | Governing-fee month | `FeeRegistry` compares the service month using the line's own offset (`uptime/governing_fees.py:187`). | Safe today because the fixed-month pricer requires zero-offset lines and fails closed first. Keep the coupling if either side changes. | Pricing owner. |
 
 ## Fixture-name independence
@@ -28,7 +28,7 @@ The audit did find classification and representation issues. None of them create
 
 The name-shaped dependencies that remain are deliberate or decision-bound:
 
-- Northwind works end to end partly because its authored IDs (`harborline-001`, `NW-2026-001`) fit the restricted claim-intake domain. A source-shaped account such as `Harborline Analytics` is stranded (`IDS-D03-2`). Repair depends on D03; see [identity and scope dependencies](IDENTITY-SCOPE-CONTRACT-89.md).
+- On audited source `03b372e`, Northwind worked end to end partly because its authored IDs (`harborline-001`, `NW-2026-001`) fit the restricted claim-intake domain, and a source-shaped account such as `Harborline Analytics` was stranded. Decision D03-A removes that dependency: the same account now produces the same Northwind economics (`IDS-D03-2`). See [identity and scope](IDENTITY-SCOPE-CONTRACT-89.md).
 - The Twilio evaluator is intentionally specific to Twilio's April 9, 2026 published SLA; its evidence requirements and fee exclusions are preserved (`TWL-*`).
 - Generic interval helpers `_merge` and `_subtract` live in `uptime/twilio.py` and are imported by the resource evaluators. This is structural only; moving them would change pinned evaluator hashes, so it is not done here.
 
@@ -130,8 +130,9 @@ The name-shaped dependencies that remain are deliberate or decision-bound:
 
 | ID | Dimension | Case | Status | Result |
 | --- | --- | --- | --- | --- |
-| `IDS-D03-1` | identity scope | Exact source identity with spaces, punctuation or a trailing space | DEFECT_DECISION_PENDING | Onboarding accepts values that claim intake, Ramp terms or the claim key refuse; the preserved 422 refusals reproduce. Repair depends on D03. |
-| `IDS-D03-2` | identity scope | Onboarded spaced or trailing-space account | DEFECT_DECISION_PENDING | Identical Northwind economics degrade from ELIGIBLE 2400.00 to INSUFFICIENT_EVIDENCE because no fee context can be issued; a trailing space cannot form a claim key. Repair depends on D03. |
+| `IDS-D03-1` | identity scope | Account or agreement with spaces, punctuation or non-ASCII letters (source-identity/1) | SUPPORTED | Accepted byte-identically by onboarding, claim intake, signed evidence, the claim registry and the ledger; padded, repeated-space, non-NFC, control and other characters are refused everywhere, never rewritten. |
+| `IDS-D03-2` | identity scope | Onboarded source-shaped account such as `Harborline Analytics` | SUPPORTED | Northwind January keeps ELIGIBLE 2400.00 with the same governing fee and completed steps; another account's fee context is still never borrowed. |
+| `IDS-D03-3` | identity scope | Second filing whose account or agreement differs only by case or spacing | REFUSED_AT_FILING | Refused before dispatch; exact retries and distinct obligations proceed. No override path exists; override authority is not approved. |
 | `IDS-D04-1` | identity scope | Whole-service and resource claims without component, incident, invoice or region | DEFECT_DECISION_PENDING | Every claim requires all ten scope fields; Northwind supplies authored values the monthly evaluator never reads. Repair depends on D04. |
 
 ## Outside this matrix

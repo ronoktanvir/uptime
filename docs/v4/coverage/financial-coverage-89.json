@@ -1,6 +1,6 @@
 {
  "schema": "financial-coverage/1",
- "audited_source": "03b372e",
+ "audited_source": "03b372e; identity rows updated for D03-A",
  "authority": "Descriptive only. The engines and their refusals are the authority; never consult this file instead of evaluating.",
  "engines": {
   "negotiated-pricing": "uptime.pricing.evaluate_price",
@@ -34,6 +34,7 @@
   "FAIL_CLOSED_MIXED": "Refused as unsupported or missing depending on the input; never an amount.",
   "REFUSED_AT_ONBOARDING": "Source or overlay is refused before any evaluation.",
   "REFUSED_NO_CONTEXT": "No governing-fee context is issued.",
+  "REFUSED_AT_FILING": "Refused by the claim registry before any dispatch.",
   "DEFECT_DECISION_PENDING": "Confirmed defect whose repair depends on a pending team decision."
  },
  "rows": [
@@ -739,7 +740,7 @@
    ],
    "tests": [
     "tests/test_northwind_financial.py::test_filing_cutoff_is_exclusive_after_thirty_full_days_and_receipt_is_required",
-    "tests/test_identity_domain_89.py::test_spaced_onboarded_account_is_stranded_before_claim_and_governing_fee"
+    "tests/test_identity_domain_89.py::test_another_accounts_fee_context_is_still_never_borrowed"
    ]
   },
   {
@@ -950,34 +951,52 @@
    "id": "IDS-D03-1",
    "engine": "claim-identity",
    "dimension": "identity_scope",
-   "case": "Exact source identity with spaces, punctuation or a trailing space",
-   "status": "DEFECT_DECISION_PENDING",
-   "result": "Onboarding accepts values that claim intake, Ramp terms or the claim key refuse; the preserved 422 refusals reproduce. Repair depends on D03.",
+   "case": "Account or agreement with spaces, punctuation or non-ASCII letters (source-identity/1)",
+   "status": "SUPPORTED",
+   "result": "Accepted byte-identically by onboarding, claim intake, signed evidence, the claim registry and the ledger; padded, repeated-space, non-NFC, control and other characters are refused everywhere, never rewritten.",
    "enforced_by": [
+    "uptime/source_identity.py::refusal",
     "uptime/vendor_terms.py::bind_overlay",
     "uptime/correspondence_types.py::Scope",
-    "uptime/claim_identity.py::_identity"
+    "uptime/claim_identity.py::reserve_claim",
+    "uptime/allocations.py::_scope"
    ],
    "tests": [
-    "tests/test_identity_domain_89.py::test_identity_validators_disagree_on_exact_source_values",
-    "tests/test_identity_domain_89.py::test_onboarding_accepts_identities_that_claim_intake_or_claim_key_cannot_represent",
-    "tests/test_identity_domain_89.py::test_recorded_claim_intake_refusals_reproduce_on_current_source"
+    "tests/test_identity_domain_89.py::test_every_account_and_agreement_entry_point_applies_the_same_bounded_rule",
+    "tests/test_identity_domain_89.py::test_accepted_identities_are_never_rewritten",
+    "tests/test_identity_domain_89.py::test_padded_or_irregular_accounts_are_refused_at_onboarding_intake_and_filing",
+    "tests/test_source_identity_89.py::test_every_legacy_restricted_identifier_is_accepted_byte_identically"
    ]
   },
   {
    "id": "IDS-D03-2",
    "engine": "claim-identity",
    "dimension": "identity_scope",
-   "case": "Onboarded spaced or trailing-space account",
-   "status": "DEFECT_DECISION_PENDING",
-   "result": "Identical Northwind economics degrade from ELIGIBLE 2400.00 to INSUFFICIENT_EVIDENCE because no fee context can be issued; a trailing space cannot form a claim key. Repair depends on D03.",
+   "case": "Onboarded source-shaped account such as `Harborline Analytics`",
+   "status": "SUPPORTED",
+   "result": "Northwind January keeps ELIGIBLE 2400.00 with the same governing fee and completed steps; another account's fee context is still never borrowed.",
    "enforced_by": [
     "uptime/governing_fees.py::require_governing_fee",
     "uptime/claim_identity.py::vendor_economic_identity"
    ],
    "tests": [
-    "tests/test_identity_domain_89.py::test_spaced_onboarded_account_is_stranded_before_claim_and_governing_fee",
-    "tests/test_identity_domain_89.py::test_trailing_space_account_passes_onboarding_but_not_economic_identity"
+    "tests/test_identity_domain_89.py::test_spaced_source_account_keeps_the_same_northwind_economics",
+    "tests/test_identity_domain_89.py::test_another_accounts_fee_context_is_still_never_borrowed"
+   ]
+  },
+  {
+   "id": "IDS-D03-3",
+   "engine": "claim-identity",
+   "dimension": "identity_scope",
+   "case": "Second filing whose account or agreement differs only by case or spacing",
+   "status": "REFUSED_AT_FILING",
+   "result": "Refused before dispatch; exact retries and distinct obligations proceed. No override path exists; override authority is not approved.",
+   "enforced_by": [
+    "uptime/claim_identity.py::_near_duplicate"
+   ],
+   "tests": [
+    "tests/test_identity_domain_89.py::test_case_or_spacing_variant_cannot_file_the_same_obligation_twice",
+    "tests/test_identity_domain_89.py::test_distinct_obligations_and_exact_retries_are_not_blocked"
    ]
   },
   {
