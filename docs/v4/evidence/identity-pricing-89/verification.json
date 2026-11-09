@@ -32,12 +32,85 @@
  "repository_scan": "scripts/check_repo.py: Secret check passed for 2070 versioned text objects.",
  "opus": {
   "status": "NOT_CONSULTED",
-  "reason": "This increment publishes existing behaviour and makes no new impactful decision. The single D03/D04 critique is decision 94, run by the integration workstream (model claude-opus-5-5, session 83b1b59b-7fbe-42e5-84fe-f67986752dfc)."
+  "reason": "This increment publishes existing behaviour and makes no new impactful decision. The single D03/D04 critique is decision 94, run by the integration workstream (model claude-opus-5-5, session 83b1b59b-7fbe-42e5-84fe-f67986752dfc).",
+  "later_increments": "No new consultation: D03/D04 use the single decision-94 critique run by the integration workstream; D14 (2026-11-09) makes further critique optional, and no implementation departed from the critiqued design."
  },
  "model_calls": 0,
  "ramp_calls": 0,
  "vendor_or_external_actions": 0,
  "reviewer_actions": 0,
  "financial_actions": 0,
- "credentials_or_private_material_read": false
+ "credentials_or_private_material_read": false,
+ "later_increments": [
+  {
+   "increment": "D03-A bounded exact source identity and near-duplicate guard",
+   "commit": "6ebaffe82d508eee719da02885efb0e2d6c57715",
+   "full_suite": {
+    "result_line": "4089 passed, 1 warning in 326.89s (0:05:26)",
+    "exit_code": 0,
+    "basetemp_deleted": true
+   },
+   "focused": [
+    {
+     "scope": "identity-related suites",
+     "result_line": "3325 passed, 1 warning in 357.84s"
+    }
+   ],
+   "integration": "merged by the integration owner at 1f6238e"
+  },
+  {
+   "increment": "D03 extension to vendor and service names",
+   "commit": "045b878",
+   "focused": [
+    {
+     "scope": "decision-89 files",
+     "result_line": "146 passed in 3.81s"
+    },
+    {
+     "scope": "identity-related suites",
+     "result_line": "3529 passed, 1 warning in 387.23s"
+    }
+   ]
+  },
+  {
+   "increment": "F5 reviewed agreement binding",
+   "commit": "448fe38",
+   "focused": [
+    {
+     "scope": "tests/test_agreement_binding_f5.py",
+     "result_line": "12 passed in 0.89s"
+    },
+    {
+     "scope": "wide onboarding/claim set after fixture binding",
+     "result_line": "3082 passed, 1 warning, 67 errors in 356.44s; the 67 then passed after the filing fixture binding (67 passed, 1 warning in 21.83s)"
+    }
+   ],
+   "integration": "merged by the integration owner with 045b878"
+  },
+  {
+   "increment": "D04-C server-side claim scope family table, monthly keeps incident",
+   "commit": "c3f6bfe5e8be680094023ec7d68c01b134c19ee4",
+   "includes_integration": "038ce42",
+   "focused": [
+    {
+     "scope": "141 identity, claim, correspondence, dispute, onboarding, Ramp, Northwind, evidence, blind and release-probe files",
+     "result_line": "4186 passed, 1 warning in 322.21s (0:05:22)",
+     "exit_code": 0
+    },
+    {
+     "scope": "tests/test_blind_acceptance.py",
+     "result_line": "37 passed, 1 warning in 4.14s"
+    }
+   ],
+   "full_suite": {
+    "status": "DELEGATED",
+    "note": "The integration owner runs the full locked suite for round 5 on a fresh clone of this SHA; that result is recorded by the integration owner."
+   },
+   "repository_scan": "Secret check passed for 2747 versioned text objects."
+  }
+ ],
+ "inventories": [
+  "docs/v4/evidence/identity-pricing-89/source-identity-inventory.json",
+  "docs/v4/evidence/identity-pricing-89/source-name-inventory.json"
+ ]
 }
