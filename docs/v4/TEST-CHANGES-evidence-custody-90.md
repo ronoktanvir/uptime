@@ -29,3 +29,9 @@ If W4 applies the same rule at the embedded desk (finding F1/F2), its existing t
 Preserved failure: the first version of the enrollment-path test expected a contradiction after a public edit while impact and billing records were still absent. The evaluator reports missing kinds before duplicates, so it returned "Awaiting an authenticated impact record". The test now adds authored impact and billing records from separately enrolled sources, and asserts the contradiction once all three kinds are present. Result before the correction: 1 failed, 14 passed.
 
 W5 evidence suites (`test_evidence_status_source_91a`, `test_evidence_applicability_91`, `test_evidence`, `test_evidence_refresh`, `test_source_config_v4`): **75 passed, 1 warning in 5.01s** at `6d3536f`. Live rehearsal receipt: [public-status-live-91a.json](evidence/evidence-custody-90/public-status-live-91a.json).
+
+## Document custody audit
+
+**No existing test function or assertion changed.** `tests/test_evidence_custody_91.py` adds 9 cases. It reuses the existing `api` fixture and `install` helper from `tests/test_vendor_catalog.py` without changing them.
+
+`test_installed_adapter_citations_re_slice_from_the_stored_source`, `test_tampered_or_detached_citations_are_reported` (5: changed text, shifted offsets, out-of-bounds offsets, altered quote, missing source text), `test_quote_digest_and_absent_citations_are_reported`, `test_audit_never_writes_and_an_empty_catalog_is_not_traceable`, `test_rows_still_in_the_write_ahead_log_are_disclosed`. Result at `7799f2e`: 9 passed, 1 warning in 2.90s. Read-only audit of the two demo workspaces: 77/77 citations traceable ([receipt](evidence/evidence-custody-90/document-custody-91.json)).
