@@ -1,6 +1,6 @@
 # Release assessment, November 9, 2026
 
-**Verdict: not releasable under the existing gate. The default installation stays read-only.** No signed release attestation or release-trust registry exists. The unseen-vendor and dispute gates cannot be assessed for two reasons: the team has not set a release bar (D13), and no corpus84 first attempt has run. This assessment invents no accuracy threshold. A passing test count is regression evidence, not production readiness.
+**Verdict: not releasable under the existing gate. The default installation stays read-only.** No signed release attestation or release-trust registry exists. The unseen-vendor and dispute gates cannot be assessed against a bar, because the team has not set one (D13). The corpus84 onboarding first attempts ran on November 9 with **0/4 supported extractions accepted**. Under ADR-0084's pre-registered rule, that leaves useful support for both tested families unestablished. The dispute first attempts have not run. This assessment invents no accuracy threshold. A passing test count is regression evidence, not production readiness.
 
 | | |
 |---|---|
@@ -14,7 +14,7 @@
 |---|---|---|---|
 | `regression` (INDEPENDENT_QA) | A precommitted collection count and hash. One `release_regression.py` run. An independent witness signature within 24 h. | Full `uv run --locked pytest` on this branch: see [Regression](#regression). Unsigned, and no precommitted collection. | **Not satisfied** (unsigned) |
 | `security_financial` (INDEPENDENT_QA) | Audit gate before/after against a pinned V3 baseline, and a witness signature. | `v4_audit_gate` release phase: **118/118 PASS** on `c1fa513`, including both browser probes. Fresh V3 baseline `18afaa6`: 73 PASS / 45 FAIL. [release](../evidence/release-evaluation-gent8/audit-release-c1fa513.json) · [baseline](../evidence/release-evaluation-gent8/audit-baseline-v3-18afaa6.json). The committed `docs/v4/audit/baseline-v2.json` no longer passes provenance, because a probe file changed. | **Not satisfied** (unsigned). The evidence is supportive. |
-| `unseen_vendor` (INDEPENDENT_QA) | A frozen blind cohort, a first-attempt receipt and an agreed bar. | No corpus84 inference yet; 6/6 inputs validated. Historical results: 0/4 supported onboarding extractions in eval76; blind witness not certified. | **Not assessable:** D13 absent and no first attempt |
+| `unseen_vendor` (INDEPENDENT_QA) | A frozen blind cohort, a first-attempt receipt and an agreed bar. | corpus84 onboarding first attempts on `89fe25c`: 6 genuine `claude-opus-5-5` calls; **0/4 supported extractions accepted**; both refusal controls refused before their unsupported terms were assessed ([receipt](../evidence/release-evaluation-gent8/onboarding84-first-attempts.json)). Historical results: 0/4 in eval76; blind witness not certified. | **Not assessable against a bar (D13 absent).** Under ADR-0084, useful support is unestablished: no supported case reached shadow. |
 | `unanticipated_dispute` (INDEPENDENT_QA) | Same. | 12/12 corpus84 replies blocked at claim intake (D03, D04). Historical results: 0/50 supported replies; eval76 3/6 complete. | **Not assessable:** D13 absent. D03-A/D04-C were decided November 9 but are not yet implemented. |
 | `human_review` (ACTUAL_HUMAN) | A separately registered person signs the four report digests. | No release-trust registry and no attestation. The CalyxQuay review is not this gate (see below). | **Not satisfied** |
 | `native_install` (ACTUAL_NATIVE_OPERATOR, optional) | A signed installation grant for `bill.comment.create`. | The agent-run native posting retest was rejected by automatic approval review ("possible cybersecurity risk"). It is not retried or rerouted. | **Not satisfied**, blocked by execution policy |
@@ -41,7 +41,7 @@ ADR-0084 rules apply: no pooled percentage. Supported-case success, correct nega
 | Independent replies (historical, preserved) | **0/50** supported replies recognized | 50/50 mandatory-review cases refused | Not separable in the original receipt |
 | eval76 onboarding (historical) | **0/4** supported extractions accepted | 2/2 refusal controls produced no money, but refused at coverage validation, so correct recognition is unproved | 0 transport failures |
 | eval76 replies (historical) | **3/6** complete supported meanings (4/6 by reason family) | 6/6 review controls UNKNOWN; 0 false supported mappings | 0 transport failures |
-| corpus84 onboarding (6) | Not run | Not run | Preflight: 0 setup blockers |
+| corpus84 onboarding (6), first attempts November 9 | **0/4** supported extractions accepted (all 6 responses were bare strict JSON; eval76 had 0/6) | 2/2 refusal controls produced no candidate or money, but were refused by an early validation rule; correct recognition is **unproved** | 0 transport failures, 0 setup failures; all 6 refused at post-model deterministic proposal validation |
 | corpus84 disputes (12) | Not run | Not run | Preflight: **12/12 blocked at claim `Scope`**, by D03 and D04 |
 
 | Stage | Known failures and gaps |
@@ -82,7 +82,7 @@ This is unsigned regression evidence. The `regression` gate additionally require
 ## What would change this verdict
 
 1. The team records D13: which outcomes satisfy the unseen-vendor and dispute gates.
-2. The user explicitly resumes evaluation, and the onboarding sub-cohort runs under [the pre-registered procedure](HARNESS-VALIDATION.md).
+2. ~~The user explicitly resumes evaluation and the onboarding sub-cohort runs.~~ Done November 9: 0/4. Under ADR-0084, useful support for both tested families remains unestablished. Any repair of the refusing validation rules is a separately named remediation on examined cases, never a replacement score. A new independent cohort is needed to measure improvement.
 3. The decided D03-A/D04-C are implemented through the normal route (`work/identity-pricing-89`). The preflight then shows which replies are admissible without invented scope, and the dispute sub-cohort runs.
 4. Independent witnesses and a registered human reviewer sign fresh reports for one tested commit.
 

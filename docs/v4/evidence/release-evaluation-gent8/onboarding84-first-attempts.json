@@ -1,0 +1,162 @@
+{
+  "schema": "evaluation84-onboarding-first-attempts/1",
+  "sub_cohort": "84-onboarding (6 contracts); never pooled with 84-disputes",
+  "authorization": "User explicit go-ahead in chat, 2026-11-09 (\"Yes, run onboarding\"); exact requests inspected by agent gent8; approvals model-invocation-only, 6 h",
+  "tested_commit": "89fe25c950d27195e3581ad650f70a25763428f2",
+  "core_tree_sha256": "161dc377629235028d0f4e291b5302f9498850f6b865db34c514e37952250e1d",
+  "core_equals": "v4/integration 03b372e (uptime/ and web/ byte-identical)",
+  "cli": {
+    "version": "2.1.318 (Claude Code)",
+    "executable": "pinned versioned binary, not the auto-updating symlink"
+  },
+  "execution": "sequential, one attempt per case, create-only attempt directories, no retry; 2026-11-09T11:48:35Z-11:50:30Z",
+  "model_calls": 6,
+  "client_reported_cost_usd_total": 0.388312,
+  "stage_counts": {
+    "transport_returned": "6/6",
+    "bare_strict_json_responses": "6/6 (no fence; eval76 was 0/6)",
+    "accepted_extraction_supported_cases": "0/4",
+    "candidate_produced_refusal_controls": "0/2",
+    "refusal_stage": "6/6 post-model deterministic proposal validation (job reason proposal_validation_failed; transport errors excluded by retained provider responses)",
+    "shadow_reached": "0/6",
+    "deterministic_evaluation_reached": "0/6",
+    "money_produced": "none"
+  },
+  "adr_0084_views": {
+    "supported_extraction": "0/4 - useful support for both tested families (monthly-propositions, resource-month) remains unestablished",
+    "appropriate_refusal_review": "refusal controls produced no candidate or money, but were refused at an early validation rule before their unsupported terms were assessed; correct negative recognition is unproved (0/2 demonstrated)",
+    "stages_reached": "extraction refused in all six; no shadow, evaluation or authority stage reached",
+    "downstream_scripted_checks": "not performed (nothing to check)"
+  },
+  "failure_categories_aggregate": "deterministic grounding/grammar rules refused model proposals in 5 cases; the model declared a clause unsupported in 1; per-case mapping withheld under the ADR-0092 firewall until packet 94 is committed",
+  "gold": "not opened; scoring deferred (no case reached a scoreable stage; sealed answers stay closed while the dispute sub-cohort is pending)",
+  "private_records": "owner-only ~/.local/share/uptime-engineering/review/evaluation84-onboarding/ (attempt dirs, queue evidence with raw responses, DIAGNOSIS-PRIVATE.md)",
+  "cases_in_manifest_order": [
+    {
+      "request_sha256": "f0f823f030caef1ab628ca6f38df062bdfc6a91e4e06d4371af863a45ac958f7",
+      "profile": "monthly-propositions",
+      "job_status": "REFUSED",
+      "job_reason_code": "proposal_validation_failed",
+      "terminal_observed": true,
+      "model": "claude-opus-5-5",
+      "session": "33981a55-79b2-4b5f-898d-b86a9b24c102",
+      "tool_inventory": [],
+      "mcp_inventory": [],
+      "tool_events": 0,
+      "started_at": "2026-11-09T11:48:39.839229+00:00",
+      "finished_at": "2026-11-09T11:48:53.974306+00:00",
+      "commitments": {
+        "frozen.json": "ffeea1c17177a20b57ab853087644dd0b561ccba098b2d49203c6c5054578127",
+        "request.json": "f0f823f030caef1ab628ca6f38df062bdfc6a91e4e06d4371af863a45ac958f7",
+        "report.json": "dcfc6608f091b812a99286b0e77f598e024dde77613e4d23d80f478bf410858c",
+        "queue-evidence.json": "d18e48ad2424b6d0b2ed7ec229963e53b607cc5bdfe41bf8a56d2ae5e4a08ce6",
+        "progress.jsonl": "a5e49954ec37f41b51cf577e5fa1d29239f1e6a17b8afd747dd35687e6a5f06f"
+      }
+    },
+    {
+      "request_sha256": "d6a8c1d22ded02fd96d12eda650d1aff41aaad339c1108f1e975446bc4bc46cf",
+      "profile": "monthly-propositions",
+      "job_status": "REFUSED",
+      "job_reason_code": "proposal_validation_failed",
+      "terminal_observed": true,
+      "model": "claude-opus-5-5",
+      "session": "8538fa1c-522c-4105-83c4-48d7b3d0f141",
+      "tool_inventory": [],
+      "mcp_inventory": [],
+      "tool_events": 0,
+      "started_at": "2026-11-09T11:48:57.642799+00:00",
+      "finished_at": "2026-11-09T11:49:18.181634+00:00",
+      "commitments": {
+        "frozen.json": "85227c3806839602471974026d6d0520f50efec9cba63a72d849a543fdc7ed5d",
+        "request.json": "d6a8c1d22ded02fd96d12eda650d1aff41aaad339c1108f1e975446bc4bc46cf",
+        "report.json": "eceaab72cef8438909ce7441c363d0f66240432039d6131444e88b848090a3c6",
+        "queue-evidence.json": "6f66348d5524fcae4fe4f5506793d72d659be567f87a651d99880a88aee94c0b",
+        "progress.jsonl": "69b94f38c3335d58fae9ed361b68a5c656f0f9798c2e17d986a718936615ea76"
+      }
+    },
+    {
+      "request_sha256": "cd21d825e35d100bd5c22656a0e992a5142fd5923e245502619b288525950f17",
+      "profile": "resource-month",
+      "job_status": "REFUSED",
+      "job_reason_code": "proposal_validation_failed",
+      "terminal_observed": true,
+      "model": "claude-opus-5-5",
+      "session": "b2a37d0f-85cd-4be7-a83c-17b66ddea41b",
+      "tool_inventory": [],
+      "mcp_inventory": [],
+      "tool_events": 0,
+      "started_at": "2026-11-09T11:49:22.537185+00:00",
+      "finished_at": "2026-11-09T11:49:38.263453+00:00",
+      "commitments": {
+        "frozen.json": "21518469a7bc7eff0aa31c20a74e2d29f0f2bc4fc06da692654aba0c768412cf",
+        "request.json": "cd21d825e35d100bd5c22656a0e992a5142fd5923e245502619b288525950f17",
+        "report.json": "f942f1b62418e4cbad26cce22a4de0f6e2e7f2d5150e1846421f1db58390ed4d",
+        "queue-evidence.json": "e76c193630d600bdcec43591c211fc504acfb73c05d45c3d591e783f9670735f",
+        "progress.jsonl": "33e63071a95c090f3d60e8588afc19449129f0ab9ee5d881c41920bba449b331"
+      }
+    },
+    {
+      "request_sha256": "a5296157a086dc0224b48936b3838192d3174a2bfeb41836dde9fde5891350dc",
+      "profile": "resource-month",
+      "job_status": "REFUSED",
+      "job_reason_code": "proposal_validation_failed",
+      "terminal_observed": true,
+      "model": "claude-opus-5-5",
+      "session": "fb3abc10-c217-4ae9-b44f-bfb528351c75",
+      "tool_inventory": [],
+      "mcp_inventory": [],
+      "tool_events": 0,
+      "started_at": "2026-11-09T11:49:43.396940+00:00",
+      "finished_at": "2026-11-09T11:49:56.106385+00:00",
+      "commitments": {
+        "frozen.json": "20e0954d7efc2ccadc956fa1614681f3b4fcbe9583050a91cbba8718202239ed",
+        "request.json": "a5296157a086dc0224b48936b3838192d3174a2bfeb41836dde9fde5891350dc",
+        "report.json": "844ac62b660bf88831b26a64e24ae7e83caed5d1765ba4d29e49c205e6a98003",
+        "queue-evidence.json": "09a47e4dfdecbfd7957818dfcc383297bb9afc9fc870f1f291c3fa21b53d8a9b",
+        "progress.jsonl": "90e6fbdb2e60ea498b96b38fc8573adb8d3a5c61f23442f5c31d109d87a9a1f6"
+      }
+    },
+    {
+      "request_sha256": "0ceed7b3d243eed2769531d3185b7d211a39fb734f17c27f9f2e7c09ed9eaddb",
+      "profile": "monthly-propositions",
+      "job_status": "REFUSED",
+      "job_reason_code": "proposal_validation_failed",
+      "terminal_observed": true,
+      "model": "claude-opus-5-5",
+      "session": "ad6e101d-849a-4942-9e79-b85a3d851baa",
+      "tool_inventory": [],
+      "mcp_inventory": [],
+      "tool_events": 0,
+      "started_at": "2026-11-09T11:50:02.485652+00:00",
+      "finished_at": "2026-11-09T11:50:15.038068+00:00",
+      "commitments": {
+        "frozen.json": "195040a0517629c752af92e32fbd09caadd5d77d002bf86f6732b20ddf571de5",
+        "request.json": "0ceed7b3d243eed2769531d3185b7d211a39fb734f17c27f9f2e7c09ed9eaddb",
+        "report.json": "a437d4e81e642e348add879c50feabc9ce3dba206ade999a09e697728e10370c",
+        "queue-evidence.json": "54c26722ab9353ac7286b37793ae7f1729f2d0b79bfa53b25cd40a4c2a6c0157",
+        "progress.jsonl": "31a9c45848644e0a00bdcac32be931d9f1cb9278f3d9a39dde85b38b6e495a36"
+      }
+    },
+    {
+      "request_sha256": "09b026a2c65bc7d1f954bf9f23f998613ebdb7995472b28b4a89a6203f159fff",
+      "profile": "monthly-propositions",
+      "job_status": "REFUSED",
+      "job_reason_code": "proposal_validation_failed",
+      "terminal_observed": true,
+      "model": "claude-opus-5-5",
+      "session": "0e2ddff4-445a-40a4-ab5f-fa1bcbfe974e",
+      "tool_inventory": [],
+      "mcp_inventory": [],
+      "tool_events": 0,
+      "started_at": "2026-11-09T11:50:17.724282+00:00",
+      "finished_at": "2026-11-09T11:50:30.526699+00:00",
+      "commitments": {
+        "frozen.json": "807a705c601a85225ad891bc20b7eedf5004209ee49a7cf87a360ffda2d16d80",
+        "request.json": "09b026a2c65bc7d1f954bf9f23f998613ebdb7995472b28b4a89a6203f159fff",
+        "report.json": "cd64d0c71c302682a4bf31d95be44956fc69adb7ed9ef12f0d0b8442c1caeb73",
+        "queue-evidence.json": "45a891a43fb1b6db1fafada3c3618d2162b0836b4a0bf3dea79ae2483589f723",
+        "progress.jsonl": "e85d1c488267fefd7a699835cecb02b88403945527b7e882ff99679e82d096ef"
+      }
+    }
+  ]
+}
