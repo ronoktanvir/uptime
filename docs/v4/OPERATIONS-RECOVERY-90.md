@@ -1,6 +1,6 @@
 # Installation, recovery and operations — workstream 90
 
-**Status, November 9, 2026:** local controls are implemented and tested on branch `work/operations-90`. Hosted customer installation is **designed, not implemented**: D11 was decided as **stay local for now** (Ronok's decision on November 9, 2026, relayed by the progress-review session; the integration owner is recording it), so it is deferred to a later hosted milestone, not blocked. Nothing here publishes, tunnels or hosts the current local app. [Decision 96](decisions/ADR-0096-operations-recovery.md) · [Customer installation design](CUSTOMER-INSTALLATION-DESIGN.md) · [Test ledger](TEST-CHANGES-90-OPERATIONS.md)
+**Status, November 9, 2026:** local controls are implemented and tested on branch `work/operations-90`. Hosted customer installation is **designed, not implemented**: D11 was decided as **stay local for now** (Ronok's decision on November 9, 2026, relayed by the progress-review session; the integration owner is recording it), so it is deferred to a later hosted milestone, not blocked. Nothing here publishes, tunnels or hosts the current local app. [Decision 96](decisions/ADR-0096-operations-recovery.md) · [Customer installation design](CUSTOMER-INSTALLATION-DESIGN.md) · [Test ledger](TEST-CHANGES-90-OPERATIONS.md) · [Demo machine readiness and recovery](DEMO-MACHINE-90.md)
 
 ## Actual trust boundary
 
@@ -45,6 +45,8 @@ uv run --locked python scripts/serve.py --mode sandbox --db "$db" --open
 The refresh only reads. It requests no scope beyond the already approved grant set, and it never asks an administrator to grant a scope again. Keep the same tenant, mode and database for every launch.
 
 ## Daily operation and failure classes
+
+Before a demo or presentation, run `scripts/operations_preflight.py` across every workspace and port in use. It is read-only and covers disk space, the sandbox-only Ramp environment, tunnels, loopback-only listeners, workspace health and verified recent backups. See [the demo-machine guide](DEMO-MACHINE-90.md).
 
 `scripts/operations_check.py` is read-only. It makes no provider request, sends nothing, retries nothing and changes no database. Exit `0` means OK. Exit `2` means at least one `ATTENTION` finding. Exit `1` means the database could not be read; treat that as a failure, never as healthy. Schedule it with the operator's own `launchd` or cron job. This workstream installs no scheduler, and the report only prints. Delivering an alert to a person is a remaining deployment requirement.
 
