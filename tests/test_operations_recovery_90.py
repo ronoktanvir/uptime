@@ -975,3 +975,58 @@ def test_outbox_restore_carries_quarantine_forward_and_refuses_mismatches(tmp_pa
     with pytest.raises(RecoveryError, match="outbox"):
         verify(folder)
     assert not plain.exists() and not plain.with_name("o.sqlite3").exists()
+
+
+def test_reads_of_an_idle_wal_workspace_create_no_sidecars_and_still_see_wal_data(tmp_path):
+    """Live-workspace reads (health, preflight, revocation, carry-forward) never create -wal/-shm sidecars."""
+    from uptime import operations_preflight
+    db, _, _ = live_workspace(tmp_path)
+    sidecars = [Path(str(db) + "-wal"), Path(str(db) + "-shm")]
+    assert db.read_bytes()[18:20] == b"\x02\x02" and not any(p.exists() for p in sidecars)  # idle WAL database
+    before = db.read_bytes()
+    check(db)
+    operations_preflight.check([db], **_preflight_probes())
+    installation_revocation.require_workspace_active(db, TENANT)
+    folder = private_dir(tmp_path / "backups") / "copy"
+    backup(db, folder)
+    restore(folder, private_dir(tmp_path / "restored") / "work.sqlite", tenant=TENANT, mode="sandbox", previous=db)
+    assert not any(p.exists() for p in sidecars), "a read created SQLite sidecars beside the live workspace"
+    assert db.read_bytes() == before
+
+    # With a connection open, committed pages live in the WAL; reads must see them (not the stale main file).
+    held = sqlite3.connect(db)
+    held.execute("SELECT count(*) FROM sqlite_master").fetchone()
+    try:
+        soon = (datetime.now(UTC) + timedelta(days=2)).isoformat()
+        save_cases(db, TENANT, [{"id": "wal-only", "outcome": "ELIGIBLE", "stage": "EVALUATED", "claim_cutoff": soon}])
+        assert sidecars[0].stat().st_size > 0
+        due = {f["code"]: f for f in check(db)["findings"]}["CLAIM_DEADLINE_APPROACHING"]
+        assert [c["case_id"] for c in due["cases"]] == ["wal-only"]
+    finally:
+        held.close()
+
+
+def test_reading_a_crashed_wal_workspace_never_checkpoints_it(tmp_path):
+    """A WAL left with committed pages and no open connection must not be folded into the main file by a read."""
+    import shutil
+    from uptime import operations_preflight
+    db, _, _ = live_workspace(tmp_path)
+    record = installation_revocation.revoke(TENANT, BUSINESS, reason="Customer uninstalled Uptime")
+    held = sqlite3.connect(db)
+    held.execute("SELECT count(*) FROM sqlite_master").fetchone()
+    try:
+        installation_revocation.record_workspace_event(db, TENANT, BUSINESS, record)  # committed into the WAL
+        crashed = private_dir(tmp_path / "crashed") / "work.sqlite"
+        for suffix in ("", "-wal", "-shm"):  # the files a crashed process leaves behind
+            shutil.copy2(str(db) + suffix, str(crashed) + suffix)
+    finally:
+        held.close()
+    wal = Path(str(crashed) + "-wal")
+    main_before, wal_before = crashed.read_bytes(), wal.read_bytes()
+    assert len(wal_before) > 0
+    assert installation_revocation.installed_business(crashed, TENANT) == BUSINESS
+    assert installation_revocation.workspace_revoked(crashed, TENANT, BUSINESS) == record["revoked_at"]  # WAL data seen
+    assert check(crashed)["installation"]["state"] == "REVOKED"
+    operations_preflight.check([crashed], **_preflight_probes())
+    assert crashed.read_bytes() == main_before, "a read checkpointed the WAL into the main file"
+    assert wal.exists() and wal.read_bytes() == wal_before

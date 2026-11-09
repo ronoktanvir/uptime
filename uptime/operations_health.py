@@ -22,7 +22,7 @@ import stat
 from . import installation_revocation
 from .claim_identity import TABLE as CLAIM_DISPATCH_TABLE
 from .storage import _read_versions
-from .workspace_recovery import pending_reconciliation
+from .workspace_recovery import pending_reconciliation, read_only
 
 SCHEMA = "uptime-operations-health/1"
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,9 +46,8 @@ def _instant(value):
 
 
 def _readonly(path):
-    db = sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=10)
-    db.row_factory = sqlite3.Row
-    return db
+    # Never create -wal/-shm sidecars beside a live workspace or outbox.
+    return read_only(path)
 
 
 def _tables(db):

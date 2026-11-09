@@ -22,7 +22,7 @@ import sys
 
 from .operations_health import check as health_check, config_custody
 from .ramp import ORIGIN as RAMP_SANDBOX_ORIGIN
-from .workspace_recovery import MANIFEST, RecoveryError, verify
+from .workspace_recovery import MANIFEST, RecoveryError, read_only, verify
 
 SCHEMA = "uptime-operations-preflight/1"
 MIN_FREE_BYTES = 2 * 1024 ** 3
@@ -72,7 +72,7 @@ def _backups(folder):
 
 def _binding(path):
     try:
-        db = sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=10)
+        db = read_only(path)
         try:
             row = db.execute("SELECT mode,rehearsal,tenant FROM authority_workspace WHERE id=1").fetchone()
             realm = db.execute("SELECT realm FROM mandate_workspace WHERE id=1").fetchone() if db.execute(

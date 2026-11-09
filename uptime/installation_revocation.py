@@ -9,6 +9,7 @@ Revocation stops new provider imports and native actions for that business.
 Recorded history stays readable. Disabling the Ramp developer app or rotating
 its client secret is a separate action the Ramp administrator performs in Ramp.
 """
+from contextlib import closing
 from datetime import UTC, datetime
 from hashlib import sha256
 import json
@@ -18,6 +19,7 @@ import re
 import stat
 
 from .storage import database
+from .workspace_recovery import read_only
 
 REVOCATION_ROOT = Path.home() / ".config/uptime/installation-revocations"
 SCHEMA = "uptime-installation-revocation/1"
@@ -90,7 +92,7 @@ def workspace_revoked(path, tenant, business_id):
     """The workspace's own immutable REVOKED event, read independently of the host store."""
     if path is None or not Path(path).is_file():
         return None
-    with database(path) as db:
+    with closing(read_only(path)) as db:
         if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='native_installation_event'").fetchone():
             return None
         row = db.execute("SELECT at FROM native_installation_event WHERE tenant=? AND business_id=? AND event='REVOKED'",
@@ -131,7 +133,7 @@ def installed_business(path, tenant):
     """The business already bound to this workspace tenant, without contacting Ramp."""
     if not Path(path).is_file():
         return None
-    with database(path) as db:
+    with closing(read_only(path)) as db:
         tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if "native_installation" not in tables:
             return None

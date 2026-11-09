@@ -48,7 +48,7 @@ The refresh only reads. It requests no scope beyond the already approved grant s
 
 Before a demo or presentation, run `scripts/operations_preflight.py` across every workspace and port in use. It is read-only and covers disk space, the sandbox-only Ramp environment, tunnels, loopback-only listeners, workspace health and verified recent backups. See [the demo-machine guide](DEMO-MACHINE-90.md).
 
-`scripts/operations_check.py` is read-only. It makes no provider request, sends nothing, retries nothing and changes no database. Exit `0` means OK. Exit `2` means at least one `ATTENTION` finding. Exit `1` means the database could not be read; treat that as a failure, never as healthy. Schedule it with the operator's own `launchd` or cron job. This workstream installs no scheduler, and the report only prints. Delivering an alert to a person is a remaining deployment requirement.
+`scripts/operations_check.py` is read-only. Like the preflight and the revocation checks, it opens live databases so that SQLite creates no `-wal`/`-shm` files and never checkpoints a leftover WAL. It makes no provider request, sends nothing, retries nothing and changes no database. Exit `0` means OK. Exit `2` means at least one `ATTENTION` finding. Exit `1` means the database could not be read; treat that as a failure, never as healthy. Schedule it with the operator's own `launchd` or cron job. This workstream installs no scheduler, and the report only prints. Delivering an alert to a person is a remaining deployment requirement.
 
 | Operation | Class | What happens on failure or restart | Retry policy |
 | --- | --- | --- | --- |
