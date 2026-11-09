@@ -53,6 +53,8 @@
 | W9 operations | `gen6` | `work/operations-90` |
 | Verification and unseen evaluation (evaluation runners stay unmerged until resumed) | `gent8` | `work/release-evaluation-gent8` |
 
+**GitHub branch cleanup, November 9:** at Ronok's request, the 33 GitHub branches already fully merged into `main` were deleted; all their commits are in `main`, and each branch's final SHA was recorded so it can be restored. Still on GitHub: `main`, `v4/integration`, `work/integration-90`, and the unmerged `work/release-evaluation-gent8`, `work/dispute-evaluation-86-run`, `work/d05-run-gent8`, `work/independent-corpus-84`, `work/finance-guide-90` and `work/ramp-identity-d03a-prep`. Branch names in these records identify history; cite the commit SHAs given beside them. **Start any new work on a fresh branch from `main`.**
+
 Transferred for the D03/D04 implementation (`agent1`): `Scope` and the identity types in `correspondence_types.py`, `claim_identity.py`, `allocations.canonical`, the scope/identity join in `v4_routes.py`, identity fields in `ramp_terms_store.py`, overlay identity validation in `vendor_terms.py`/`governing_fees.py` (coordinated with W3), and the shape selection at `correspondence.py:193` (coordinated with W4).
 
 Blind-acceptance harness (`scripts/blind_acceptance.py`, `tests/test_blind_acceptance.py`, owned by W0/W8): one writer at a time on 2026-11-09. W4 (`agent3`) first, with the 89e late-denial fix; then `agent1`, with the D04-C scope changes (no invented placeholders; `SCOPE_FAMILY_REFUSED`). Published blind results stay as they are.
