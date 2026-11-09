@@ -4,9 +4,10 @@ A small Chrome extension that shows your local Uptime workspace in the browser's
 
 ## What it does and does not do
 
-- **Does:** frames the real Uptime page and tells it which Ramp bill is open, using Ramp's own bill ID from the tab's address.
+- **Does:** frames the real Uptime page and moves it to Uptime's page for the Ramp bill in the active tab (`#ramp-bill/<bill ID>`), using Ramp's own bill ID from the tab's address. That page is part of the interface; on a build without it, the panel shows the workspace's default page whatever bill is open.
 - **Reads:** only the address of the active tab, and Chrome shows it that address only for `https://demo.ramp.com/`. Tabs on any other site read as "No Ramp bill open".
 - **Does not:** read or change Ramp's page, hold a credential, store anything, or make a request of its own. Sign-in happens inside the framed Uptime page with the same account and credential file as in an ordinary tab.
+- **When you leave the bill:** switching to a tab that is not a Ramp bill returns the panel to the workspace's records page. You stay signed in, but anything half-typed in the panel is lost.
 
 ## Use it
 

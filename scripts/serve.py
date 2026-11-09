@@ -40,7 +40,14 @@ def main():
                         help="Enable local actions only with a verified V4 release receipt")
     args = parser.parse_args()
     os.umask(0o077)
+    try:
+        # Checked before anything is written or bound, whichever branch follows.
+        side_panel = panel_origin(args.side_panel_origin)
+    except ValueError as exc:
+        parser.exit(1, str(exc) + "\n")
     if args.enroll:
+        if side_panel is not None:
+            parser.exit(1, "The side panel option applies only to a served app and is never stored. Remove it to enroll.\n")
         if not (args.credential_file or args.public_key):
             parser.exit(1, "Enrollment needs --credential-file or --public-key.\n")
         created = None
@@ -63,10 +70,6 @@ def main():
         return
     if args.credential_file or args.public_key:
         parser.exit(1, "Key enrollment options require --enroll ACCOUNT.\n")
-    try:
-        side_panel = panel_origin(args.side_panel_origin)
-    except ValueError as exc:
-        parser.exit(1, str(exc) + "\n")
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
         try:

@@ -1,6 +1,7 @@
 /* Uptime side panel.
 
-   The panel is a thin shell. It frames the real Uptime page and tells it which Ramp bill is open.
+   The panel is a thin shell. It frames the real Uptime page and moves it to Uptime's page for the
+   Ramp bill in the active tab.
    It reads only the address of the active tab, and Chrome shows it that address only for the Ramp
    hosts named in the manifest. It does not read or change Ramp's page, holds no credential, stores
    nothing, and makes no request of its own. Sign-in happens inside the framed Uptime page, from
@@ -22,8 +23,14 @@
   }
   function frameUrl(bill, config) { return config.origin + '/#' + routeFor(bill, config); }
   function labelFor(bill) { return bill ? 'Ramp bill ' + bill.slice(0, 8) + '…' : 'No Ramp bill open'; }
+  // Wraps an asynchronous lookup so that only the answer to the most recent call is delivered. Tab
+  // events can arrive faster than their lookups finish; an older answer must not overwrite a newer one.
+  function latestOnly(lookup, deliver) {
+    let asked = 0;
+    return async () => { const mine = ++asked; const value = await lookup(); if (mine === asked) deliver(value); };
+  }
 
-  if (typeof module !== 'undefined' && module.exports) module.exports = {billFromUrl, routeFor, frameUrl, labelFor};
+  if (typeof module !== 'undefined' && module.exports) module.exports = {billFromUrl, routeFor, frameUrl, labelFor, latestOnly};
   if (typeof document === 'undefined') return;
 
   const config = globalThis.UPTIME_PANEL_CONFIG;
@@ -44,11 +51,11 @@
   }
 
   if (globalThis.chrome && chrome.tabs) {
-    const refresh = async () => {
+    const refresh = latestOnly(async () => {
       const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
       // A tab on any other site has no address visible to this extension; that reads as "no bill".
-      follow(tab ? tab.url : null);
-    };
+      return tab ? tab.url : null;
+    }, follow);
     chrome.tabs.onActivated.addListener(refresh);
     chrome.tabs.onUpdated.addListener((id, change, tab) => {
       if (tab.active && (change.url !== undefined || change.status === 'loading')) refresh();

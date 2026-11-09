@@ -56,8 +56,22 @@ def test_anything_but_one_exact_extension_origin_is_refused(tmp_path, value):
         create_app(tmp_path / "refused.sqlite", mode="replay", side_panel_origin=value)
 
 
-def test_the_framing_extension_cannot_act(tmp_path):
-    app = create_app(tmp_path / "act.sqlite", mode="replay", side_panel_origin=EXTENSION)
+@pytest.mark.parametrize("path", ["/", "/health", "/static/style.css", "/static/app.js", "/static/favicon.svg",
+                                  "/no-such-page", "/api/policy", "/api/workspace/workflow"])
+def test_pages_assets_and_ordinary_refusals_all_carry_the_policy(tmp_path, path):
+    """Pages, static files, a missing page and an unauthenticated read: each names who may frame it."""
+    for option, expected in ((None, "'none'"), (EXTENSION, EXTENSION)):
+        app = create_app(tmp_path / (("panel" if option else "default") + ".sqlite"), mode="replay", side_panel_origin=option)
+        with TestClient(app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 12345)) as client:
+            response = client.get(path)
+        assert response.status_code in (200, 401, 404)
+        directives = [part.strip() for part in response.headers["content-security-policy"].split(";")]
+        assert [part for part in directives if part.startswith("frame-ancestors")] == ["frame-ancestors " + expected]
+
+
+@pytest.mark.parametrize("option", [EXTENSION, None])
+def test_the_framing_extension_cannot_act(tmp_path, option):
+    app = create_app(tmp_path / "act.sqlite", mode="replay", side_panel_origin=option)
     with TestClient(app, base_url=DEFAULT_ORIGIN, client=("127.0.0.1", 12345)) as client:
         action = {"X-Uptime-Action": "1", "Sec-Fetch-Site": "cross-site"}
         refused = client.post("/api/policy", json={"mode": "OBSERVE", "cap": "0.00"},
@@ -80,6 +94,29 @@ def test_the_packaged_extension_is_the_one_origin_the_option_is_documented_with(
     assert manifest["permissions"] == ["sidePanel"]
     assert manifest["host_permissions"] == ["https://demo.ramp.com/*"]
     assert EXTENSION in (ROOT / "extension/README.md").read_text()
+
+
+def test_the_extension_javascript_checks_pass():
+    """CI runs these through node directly; this keeps them inside the project's required pytest command too."""
+    result = subprocess.run(["node", "--test", "tests/helpers/side_panel_extension.test.cjs"], cwd=ROOT,
+                            capture_output=True, text=True, timeout=60)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("value, message", [
+    ("https://app.ramp.com", "exactly one chrome-extension origin"),
+    (EXTENSION, "applies only to a served app"),
+])
+def test_enrollment_does_not_silently_accept_the_serving_option(tmp_path, value, message):
+    """The option is never stored, so an enrollment that carries it is refused before anything is written."""
+    credential = tmp_path / "keys" / "reviewer.jwk"
+    result = subprocess.run([sys.executable, str(ROOT / "scripts/serve.py"), "--mode", "replay",
+                             "--db", str(tmp_path / "enroll.sqlite"), "--enroll", "someone",
+                             "--credential-file", str(credential), "--side-panel-origin", value],
+                            cwd=ROOT, capture_output=True, text=True, timeout=60)
+    assert result.returncode == 1
+    assert message in result.stderr and "Traceback" not in result.stderr
+    assert not (tmp_path / "enroll.sqlite").exists() and not credential.exists()
 
 
 def test_serve_command_refuses_a_bad_origin_before_it_listens(tmp_path):

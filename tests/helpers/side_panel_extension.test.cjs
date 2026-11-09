@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const DIR = path.join(__dirname, '..', '..', 'extension');
-const {billFromUrl, routeFor, frameUrl, labelFor} = require(path.join(DIR, 'panel.js'));
+const {billFromUrl, routeFor, frameUrl, labelFor, latestOnly} = require(path.join(DIR, 'panel.js'));
 const config = require(path.join(DIR, 'config.js'));
 const manifest = JSON.parse(fs.readFileSync(path.join(DIR, 'manifest.json'), 'utf8'));
 const BILL = 'f74ba12c-95d0-582d-9f62-26d8057d1d37';
@@ -44,6 +44,18 @@ test('the panel opens the bill page for a bill and the home page otherwise, only
   assert.equal(origin.protocol, 'http:');
   assert.equal(origin.hostname, '127.0.0.1');
   assert.deepEqual(config.rampHosts, HOSTS);
+});
+
+test('when tab lookups finish out of order, only the most recent one moves the panel', async () => {
+  const delivered = [];
+  const waits = [40, 5, 20];
+  let call = 0;
+  const refresh = latestOnly(() => { const mine = call++; return new Promise(done => setTimeout(() => done('tab ' + mine), waits[mine])); },
+    value => delivered.push(value));
+  await Promise.all([refresh(), refresh(), refresh()]);
+  assert.deepEqual(delivered, ['tab 2']);
+  await refresh();
+  assert.deepEqual(delivered, ['tab 2', 'tab 3']);
 });
 
 test('the manifest asks for the side panel and Ramp tab addresses only, and its key pins one ID', () => {
