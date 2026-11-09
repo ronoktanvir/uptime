@@ -1,17 +1,40 @@
 # Release assessment, November 9, 2026
 
-**Verdict: not releasable under the existing gate. The default installation stays read-only.** No signed release attestation or release-trust registry exists.
+**Status on the round-6 integration head `3f60647`: not releasable under the existing gate. The default installation stays read-only.**
 
-Ronok's D13 bar is reported as decided but was not yet recorded when this was written. Under it, neither coverage gate is met:
-- **New vendor:** the corpus84 onboarding first attempts had **no ordinary application-path success** (0/4 supported extractions accepted), and correct refusal of the two controls is unproven. Under D05, a cohort that supplies the contract family could not prove autonomous family selection in any case.
-- **New dispute:** no first attempt has run. All 12 replies remain blocked at claim intake by D04 scope.
+- **Regression:** round 6 passed: 4,664 passed, 1 warning, on a fresh clone of `3f60647` (integration owner's receipt `def33b0`).
+- **Signed gates:** `scripts/release_evidence.py status` reports `ready: false`, `scope: read-only` and no gates ([output](../evidence/release-evaluation-gent8/release-evidence-status.txt)). No signed release attestation or release-trust registry exists.
+- **Bar:** the two coverage gates are judged against D13 "Bar without native proof": ordinary app-path success on independently authored supported cases, separate correct-refusal controls, zero unsafe acceptances, first-attempt receipts, and outcomes reported separately. D13 sets no numeric threshold, and none is added here.
 
-D13 sets no numeric threshold, and none is added here. A passing test count is regression evidence, not production readiness.
+### Satisfied
+
+- **No unsafe acceptance in any evaluated attempt.** Onboarding84 produced no candidate, money or action from 6 genuine model calls. Socket probes refused every injected, forged, replayed, cross-tenant or stale-authority request with no state change.
+- **First-attempt receipts and separately reported outcomes** for the onboarding84 sub-cohort ([receipt](../evidence/release-evaluation-gent8/onboarding84-first-attempts.json)).
+- **Security and financial probes, unsigned:** audit gate 118/118 on `c1fa513`. My probe file (6 tests) is integrated on `3f60647`.
+- **The D03-A identity invariant holds** through the signed routes: spaced exact names accepted, malformed names refused.
+
+### Not met
+
+- **New-vendor gate: no ordinary app-path success.** 0/4 supported onboarding84 extractions were accepted, and correct refusal of the 2 controls is unproven. The 0/4 is permanent. agent2's grammar repair `e8f58ff` is a named remediation, not a rescore.
+- **New-dispute gate: no first-attempt receipts.** No dispute case has run.
+- **Signed regression, security/financial and human-review gates:** nothing is signed.
+- **Native Ramp proof:** blocked by execution policy. Under D13 this is an external dependency, not a coverage-gate condition.
+
+### Blocked on a decision from Ronok
+
+1. **D05 run go-ahead.** The vendor is selected and sealed (`474440a`, `211e2f6`). Pre-call checks pass on integration with phase 2, and the driver is dry-run on both paths (`cbec995`). The run makes at most 2 model calls and needs your go-ahead.
+2. **D05 promotion path.** The only local review exception is hard-coded to CalyxQuay, so a new vendor version cannot be approved under the unchanged release gate. Options: (a) authorize agent0 to add a version-scoped exception, which you then approve and sign yourself; (b) stop the proof at SHADOW; (c) a full signed release.
+3. **Whole-month evidence sufficiency** (open under D04-C). Can a complete-month measurement stand in for an incident in a whole-service monthly claim? The 12 corpus84 replies state no incident, and under the current D04-C family table the monthly family requires one.
+4. **Evaluation86.** On `3f60647` the claim schema now accepts every reply's derived scope ([receipt](../evidence/release-evaluation-gent8/preflight-evaluation84-round6-3f60647.json); schema-level only, route-level family requirements are not exercised). But:
+   - both claim-basis contracts remain QUARANTINED on the deterministic route even with `e8f58ff`;
+   - the monthly family requires an incident.
+
+   The runner is frozen and verified (`e1b6657`). Choices: run and record 12 setup gaps; commission a new independently authored dispute cohort that states the scope its families require; or defer.
 
 | | |
 |---|---|
-| Assessed source | `work/release-evaluation-gent8`. Application core is unchanged from `v4/integration` `03b372e`; probes and receipts are at `c1fa513` and `52bea97`. |
-| Bar | The implemented signed release gate ([RELEASE-EVIDENCE](../RELEASE-EVIDENCE.md), `uptime/gates.py`, `scripts/release_evidence.py`) plus ADR-0084's pre-registered interpretation rules. For the two coverage gates: D13 "Bar without native proof", as reported (see [team decisions](#team-decisions-november-9)). |
+| Assessed source | Integration round-6 head `3f60647`, for regression and probes. Evaluation evidence is on `work/release-evaluation-gent8`: onboarding first attempts on frozen `89fe25c`, with core identical to `03b372e`. |
+| Bar | The implemented signed release gate ([RELEASE-EVIDENCE](../RELEASE-EVIDENCE.md), `uptime/gates.py`, `scripts/release_evidence.py`), ADR-0084's pre-registered interpretation rules, and D13 for the coverage gates. |
 | Decision | [ADR-0092](../decisions/ADR-0092-evaluation-release-assessment.md) |
 
 ## Gate by gate
