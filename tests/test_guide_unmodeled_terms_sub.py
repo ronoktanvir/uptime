@@ -18,7 +18,8 @@ UNMODELED = ['What is the renewal date and notice period?',
              'When does the agreement renew?',
              'What is the notice period for termination under the contract?',
              'Does the contract auto-renew?',
-             'How much notice do we need to give to cancel the agreement?']
+             'How much notice do we need to give to cancel the agreement?',
+             'What is the renewal date and notice period for this contract?']
 
 
 @pytest.fixture(scope='module')
@@ -74,3 +75,27 @@ def test_case_inspector_guide_abstains_on_terms_the_case_does_not_record(questio
 def test_supported_case_questions_still_answer(question, phrase):
     result = explain(CASE, question)
     assert result['abstained'] is False and phrase in result['answer']
+
+
+SAVINGS = ['How much money has Uptime saved us in total?', 'How much have we recovered so far?',
+           'What are our total savings?']
+
+
+@pytest.mark.parametrize('question', SAVINGS)
+def test_savings_questions_report_stages_without_summing_or_claiming_ramp_recovery(run, question):
+    for state in run['states']:
+        result = answer(question, state)
+        text = result['answer']
+        assert not text.startswith('January'), text  # judge reproduction: month decision records are not an answer
+        if result['abstained']:
+            continue
+        ids = [c for s in result['sentences'] for c in s['citations']]
+        assert result['sentences'][0]['citations'] == [] and "doesn't total savings" in result['sentences'][0]['text']
+        assert 'ledger.stages' in ids and 'These are stages of one credit, not amounts to add.' in text
+        assert not any(i.startswith('month.') for i in ids)
+        stated = {n for f in facts(state) if f['id'] in ids for n in re.findall(r'\$[\d,]+\.\d\d', f['text'])}
+        assert set(re.findall(r'\$[\d,]+\.\d\d', text)) <= stated  # no new number, so no sum
+        assert not re.search(r'\brecovered (?:in|from|through) Ramp\b', text, re.I)
+        if any(f['id'] == 'price' for f in facts(state)):
+            assert 'is not an awarded credit' in text
+

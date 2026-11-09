@@ -63,6 +63,17 @@ UNMODELED_TERMS = {
     'termination right': r'terminat\w*|cancell?ation|cancel(?:l?ing)?\s+(?:the\s+|our\s+|this\s+)?(?:agreement|contract|subscription|service)',
     'contract term': r'(?:initial|renewal|contract|minimum|committed)\s+term|term\s+length',
 }
+# "How much have we saved / recovered in total?" has no single number in these records. Answer with the server's own
+# stage values and their caveats; never add stages together or call a local amount money recovered in Ramp.
+SAVINGS = re.compile(r'\b(?:sav(?:e|ed|es|ing|ings)|recover(?:ed|y|ies)?|money back)\b', re.I)
+TOTALS = re.compile(r'\b(?:in total|total|altogether|overall|so far)\b', re.I)
+MONEY = re.compile(r'\b(?:money|how much|dollars?|credits?)\b|\$', re.I)
+
+
+def savings_question(text):
+    return bool(SAVINGS.search(text) or (TOTALS.search(text) and MONEY.search(text)))
+SAVINGS_LEAD = ("This case doesn't total savings. It records each credit by stage, and the stages are never added together.")
+SAVINGS_FACTS = ('ledger.stages', 'price', 'ramp')
 # A clause quotation is a fact only when it states something: a number, a percentage or an operative term.
 OPERATIVE = re.compile(r'[0-9%]|\b(?:must|shall|will|credits?|claims?|receiv\w*|measur\w*|applies|apply|earns?|fees?)\b', re.I)
 # Recorded workflow events that mark the claim's course, quoted verbatim with their timestamps.
@@ -277,7 +288,12 @@ def answer(question, projection):
     if JUDGMENT.search(text):
         return _response(text, projection, [], abstained=True, reason='requires_judgment', lead=ABSTAIN_JUDGMENT,
                          related=ranked[:3])
-    unmodeled = [name for name, pattern in UNMODELED_TERMS.items() if re.search(rf'\b(?:{pattern})\b', text, re.I)]
+    if savings_question(text) and not unmodeled_terms(text):
+        selected = [f for key in SAVINGS_FACTS for f in grounded if f['id'] == key]
+        if not any(f['id'] == 'ledger.stages' for f in selected):
+            return _response(text, projection, [], abstained=True, reason='unsupported', lead=ABSTAIN_SCOPE)
+        return _response(text, projection, selected, lead=SAVINGS_LEAD)
+    unmodeled = unmodeled_terms(text)
     if unmodeled and not any(re.search(rf'\b(?:{UNMODELED_TERMS[name]})\b', f['text'], re.I)
                              for name in unmodeled for f in grounded):
         return _response(text, projection, [], abstained=True, reason='not_in_records',
@@ -291,6 +307,10 @@ def answer(question, projection):
     if not ranked:
         return _response(text, projection, [], abstained=True, reason='unsupported', lead=ABSTAIN_SCOPE)
     return _response(text, projection, ranked[:MAX_FACTS])
+
+
+def unmodeled_terms(text):
+    return [name for name, pattern in UNMODELED_TERMS.items() if re.search(rf'\b(?:{pattern})\b', text, re.I)]
 
 
 def _rank(grounded, topics, months, clauses=frozenset()):
