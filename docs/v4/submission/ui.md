@@ -36,41 +36,76 @@ These move to a secondary **More** group, still one click away: Ramp records, Ca
 
 One workspace name: "Harborline Analytics" (the company from the projection) in the topbar on every route, with "Uptime" as the product brand. "Finance workbench" and "Contract operations" are removed.
 
-## (c) Sign-in setup needed from `scripts/setup_northwind.py` (agent3)
+## (c) Sign-in
 
-Hidden-folder trap (task 10). Requested behavior:
+**Coordinator decision, which replaces my original request.** Setup takes an explicit `--reviewer-credential PATH`. There is no automatic copy under a new home folder. Setup ends by printing the credential path, the account name and the URL, one per line, and the README's first command uses a visible workspace directory. Verified on the merged code: setup into a visible directory took 1.6 s and printed those three lines last.
 
-1. Setup writes a copy of the scripted reviewer's credential to a visible, owner-only location, `~/Uptime credentials/<workspace-directory-name>/scripted-reviewer.jwk`, with the directory at mode 0700 and the file at 0600. Setup refuses to overwrite an existing file. The file stays outside the repository and the workspace database. The copy covers only the scripted walkthrough reviewer, never a person's key.
-2. Setup prints that exact path, the account name `scripted-test-reviewer` and the URL as its last lines, one per line.
-3. No new route, no one-time login URL and no change to `auth*.py`.
+Browser side (`web/auth.js`):
 
-On the browser side I will:
+- The form says which file to choose and that setup printed its location.
+- The file can be dropped on the form as well as picked.
+- Errors name the file.
+- The signing key stays in memory only.
+- After a reload the read session remains, every action control is disabled, and one "Sign in again to take actions" control is shown in their place. No key material goes to `localStorage`, `sessionStorage`, a URL or a log. A browser test checks storage and the URL.
 
-- say on the sign-in form which file to choose and that setup printed its location;
-- accept the file by drag and drop as well as the picker;
-- name the key file in errors.
+## (d) Projection fields used
 
-Sessions (task 11): the signing key stays in memory only. A reload keeps the read session, so the pages still read. In that state every action control is disabled, with one "Sign in again to take actions" control in place of buttons that fail on click. No key goes to `localStorage`, IndexedDB, a URL or a log.
-
-## (d) Projection fields
-
-No new field is needed for tasks 1–7 and 9. All of these already exist in `GET /api/workspace/workflow` and are rendered as given:
-
-- `ledger.bill.original_amount` and `outstanding_amount`
-- `ledger.applied` (shown only with `record_ids.application`)
-- `ledger.destination`
-- `price_finding.amount`, `state` and `invoice_id`
-- `ledger.claimed`, `awarded` and `posted`
+- **Lifecycle:** `workflow.finance.stages[]`, as the single server projection (coordinator ruling). The ledger drops its estimate while the claim is in flight, so `uptime/finance_view.py` now falls back to the claim month's own evaluated amount from the same projection. It is copied, never computed, and unknown stays null.
+- **Headline:**
+  - `workflow.finance.bill.{id, original, applied, outstanding, application_ref}`;
+  - `workflow.ledger.bill.month` and `workflow.price_finding.month` when present;
+  - `price_finding.{amount, state, invoice_id}`.
+- **Rates:** the calculation lines and inputs come from `months[].inputs.credit_percent`, which the server derives from the integer `rate_units`. The power-of-ten conversion applies only to leftover evaluator trace text.
+- **Automation:** `workflow.automation.{enabled, state, pause{reason, detail, operation, since}, steps[], counts}`.
+  - Each step's `at` is on the case timeline, the clock that "As of" shows. `recorded_at` (wall time) appears only in the step's details.
+  - No durations are derived from either clock.
+- **Model jobs:**
+  - Denial job: `model_job.job.{state, provider.model, submitted_at, started_at, finished_at}` and `candidates[].provenance.{model, elapsed_seconds}`.
+  - Contract proposal job: `provider.model`, or `proposal.model` for a succeeded job, plus the three times.
+  - Absent fields are omitted, never shown as placeholders.
 
 The browser computes no money.
 
-Two notes:
+## (e) Ports
 
-- `ledger.estimated` becomes null while the claim is filed and awaiting the vendor (states 2–7). The lifecycle will show Estimated from the claim month's evaluated amount (`months[i].amount` for `claim.month`), which the server already supplies, so it does not look undetermined mid-flow. If agent3 prefers a stable `ledger.estimated`, I'll switch to it.
-- Rates (task 7): the human calculation lines (`months[i].calculation`) are already the main display. The raw evaluator trace moves into the inspector, and any `N/1000000%` text left in view is shown as an exact percent at the rendering boundary. Only power-of-ten denominators are converted, by shifting the decimal point; nothing else changes. A structured rate field from agent2 would replace this.
+The coordinator accepted ephemeral loopback ports (`bind(0)`) in automated tests. Manual probes used 8841–8845 only.
 
-Task 8 waits on the field notes from roles 1–3 (`disputes.md`, `onboarding.md`, `ramp.md`).
+## (f) Before and after
 
-## (e) Question for the coordinator
+Both measurements were taken with headless Chrome on a fresh authored Northwind workspace.
 
-Automated browser tests start a throwaway uvicorn listener on an ephemeral loopback port (`bind(0)`) and stop it at the end of the test. My manual probes use 8841–8849 only. Please confirm the ephemeral ports in tests are acceptable, or I'll pin the fixtures to 8843–8849.
+- **Before:** at `55ea607`, the judged web build, with the step-by-step workflow.
+- **After:** at `3f011de`, on this branch with role 2 merged. The workspace was created with `routine_automation=True`, the new setup default. The measurement script is in the role 4 session scratchpad and is not committed.
+
+| Measure | Before | After |
+|---|---|---|
+| Primary navigation items visible | 13 in one rail, with three duplicate pairs | **4** (Overview, Cases, Agreements, Activity). Seven advanced tools sit under a collapsed "More tools". |
+| Workspace names on screen | 3 ("Finance workbench", "Harborline Analytics", "Contract operations") | **1**: "Harborline Analytics" in the topbar and "Harborline Analytics · Uptime" as the title on every route, whichever page opens first |
+| Overview height, 1440×900, before any action | 8,016 px | **4,226 px** |
+| Overview height, 1440×900, after the flow | 8,547 px | **3,880 px** |
+| Overview height, 390 px, after the flow | 12,710 px | **6,360 px** |
+| First viewport after the flow | Four "$2,400.00" tiles | "April invoice NW-2026-04: Invoice $11,000.00, Credit applied $2,400.00, Remaining balance $8,600.00"; "March price exception $1,000.00, Separate from the service credit and not included in it"; then the five-step credit lifecycle |
+| Raw hashes / ISO timestamps / `N/1000000%` in the overview after the flow | 5 / 27 / yes | **0 / 0 / no** (the same on Activity) |
+| Clicks from sign-in to applied credit | 11 | **4** person decisions: Approve January claim, Approve response, Post to Local ledger, Apply credit to eligible invoice. The server runs the other seven steps under recorded authority (role 2). |
+| Held or repeated Enter | Advanced all eleven steps | Records one step. Focus moves to the recovery heading, and repeated key events are ignored. |
+| Setup steps for a fresh operator | 6, plus revealing a hidden folder in the file picker | 6, with no hidden folder. Setup prints the credential path, account and URL as its last lines, and the file can be dropped on the form. |
+| After a reload | Actions looked enabled; a click returned to sign-in and recorded nothing | Pages still read; actions are disabled, with one "Sign in again to take actions" control |
+| Client-side renaming of server states | `presentationLabel` rewrote "Simulated award" → "Awarded credit" and others | Removed. Server stage labels are shown as sent. |
+| Page errors | 0 | 0 |
+
+Screenshots, taken from this branch's build:
+
+- [Overview at 1440, before any action](../evidence/submission-ui/after-overview-1440-initial.png)
+- [Overview at 1440, after the flow](../evidence/submission-ui/after-overview-1440-final.png)
+- [Overview at 390, after the flow](../evidence/submission-ui/after-overview-390-final.png)
+- [Activity at 1440](../evidence/submission-ui/after-activity-1440.png)
+
+The before screenshots are listed in (a).
+
+## (g) Limits and open items
+
+- **Ramp records link.** The Overview's Ramp card links to `#records` ("Open Ramp records"); the card still says no Ramp bill is linked to this agreement. Ramp records is also under More tools. Agent4's "Verified Ramp record" panel can be confirmed there only after role 3 is merged; I will check it on a workflow workspace then.
+- **Model-job screens for the film** (Corvid Ledger contract job and the unclear-denial reading) are coded against the published fields. They are not yet checked at 1440×900 against real recorded jobs: role 1's provider fields are not merged into this branch.
+- **Uncertain denial jobs.** The denial reading loads server candidates after an `UNCERTAIN` job, as the existing decision 60/75 flow does: a validated proposal may already exist. A refused job never shows a candidate. Whether an uncertain job's validated candidate should be hidden is a domain question for agents 2 and 3, and I have not changed it.
+- **Advanced tools.** The seeded comparison portfolio under More tools now shows its server labels verbatim, including "simulated" where the destination is the vendor simulator. The presenter guide already says not to open those screens in the recording.
+- **Cooldown display.** The cooldown line reads "Not sent before …, the end of the response cooldown" whenever `timing.not_before` is present. The 24-hour duration is not computed in the browser.
