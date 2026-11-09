@@ -99,14 +99,28 @@
     }
     return data;
   }
-  let workspaceName = null;
+  // One workspace name on every route, whatever page is opened first: the company from the workflow projection,
+  // read once per sign-in, or the product name when the workspace has no configured workflow.
+  let workspaceName = null, workspaceNameRead = null;
   function showWorkspaceName() {
     const name = workspaceName || 'Uptime';
     $('#workspace-name').textContent = name;
     document.title = workspaceName ? workspaceName + ' · Uptime' : 'Uptime';
   }
+  function companyOf(workflow) {
+    const company = workflow && typeof workflow === 'object' ? (workflow.company?.name || workflow.company) : null;
+    return typeof company === 'string' && company ? company : null;
+  }
+  function readWorkspaceName() {
+    if (!workspaceNameRead) {
+      workspaceNameRead = api('/api/workspace/workflow')
+        .then(projection => { const company = companyOf(projection && projection.workflow); if (company) workspaceName = company; })
+        .catch(() => { workspaceNameRead = null; });
+    }
+    return workspaceNameRead;
+  }
   function account() {
-    generation++; signedPage = false; companionAccess = {};
+    generation++; signedPage = false; companionAccess = {}; workspaceName = null; workspaceNameRead = null;
     content.setAttribute('aria-busy', 'false');
     ramp?.unmount(); workspaceWorkflow?.unmount(); companion?.unmount(content);
     if (dialog.open) dialog.close();
@@ -343,13 +357,18 @@
   advanced().catch(() => {});
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
+    // Overview and Activity read the workflow themselves; any other page reads the name once, after its own content.
+    const readsWorkflow = route === 'activity' || (route === 'ramp' && !rampCase);
+    try { await renderRoute(); } finally {
+      if (!readsWorkflow && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
+    }
+    async function renderRoute() {
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
     if (route === 'activity') {
       const projection = await api('/api/workspace/workflow');
       if (token !== generation) return;
       if (projection && projection.workflow && typeof projection.workflow === 'object' && workspaceWorkflow) {
-        const company = projection.workflow.company?.name || projection.workflow.company;
-        if (typeof company === 'string' && company) workspaceName = company;
+        workspaceName = companyOf(projection.workflow) || workspaceName; workspaceNameRead = Promise.resolve();
         await workspaceWorkflow.activity(content, projection.workflow);
       } else content.replaceChildren(heading('Activity', 'What happened in this workspace, in order.'), empty('No workflow activity is recorded in this workspace.'));
       showWorkspaceName();
@@ -360,11 +379,11 @@
         const projection = await api('/api/workspace/workflow');
         if (token !== generation) return;
         if (!Object.prototype.hasOwnProperty.call(projection, 'workflow')) throw new Error('Workspace workflow response unavailable.');
+        workspaceNameRead = Promise.resolve();
         if (projection.workflow !== null) {
           if (!workspaceWorkflow || !projection.workflow || typeof projection.workflow !== 'object') throw new Error('Workspace workflow unavailable.');
           await workspaceWorkflow.render(content, projection.workflow);
-          const company = projection.workflow.company?.name || projection.workflow.company;
-          if (typeof company === 'string' && company) workspaceName = company;
+          workspaceName = companyOf(projection.workflow) || workspaceName;
           showWorkspaceName();
           const current = window.uptimeAuth.session();
           if (current) $('#account').textContent = 'Sign out · ' + current.subject;
@@ -384,6 +403,7 @@
     const data = await api(`/api/${route === 'lab' ? 'onboarding' : route}`); if (token !== generation) return; if (route === 'dashboard') renderDashboard(data); else if ((route === 'onboarding' || route === 'lab')) renderOnboarding(data); else if (route === 'policy') renderPolicy(data); else renderIntegrations(data); }
     catch (error) { if (token === generation) { if (error.status === 401) account(); else showError(content,error,load); } }
     finally { if (token === generation) content.setAttribute('aria-busy', 'false'); }
+    }
   }
   function navigate() {
     const requested = location.hash.slice(1);
