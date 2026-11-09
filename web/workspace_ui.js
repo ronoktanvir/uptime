@@ -39,6 +39,8 @@
       button.addEventListener('click', () => jump(sectionId)); return button;
     }
     const OWNERS = {reviewer:'Reviewer action', evidence:'Evidence needed', finance:'Finance check'};
+    const SUGGESTED_QUESTIONS = ['What needs my attention?', 'How was the January credit calculated?',
+      'Why is March undetermined?', 'Did the credit reach Ramp?'];
     const field = (label,value) => add(el('div',null,'northwind-field'),el('dt',label),el('dd',value));
     const fields = pairs => add(el('dl',null,'northwind-fields'),...pairs.map(([k,v])=>field(k,v)));
     function citations(items) {
@@ -96,12 +98,10 @@
           ...related.map(c => add(el('span', null, 'guide-citation'), jumpButton('Show ' + text(c.label), c.section))))] : []),
           ...(result.scope_note ? [note(result.scope_note)] : []), note('As of ' + text(result.as_of) + '. Read only; nothing was changed.'));
       }
-      form.addEventListener('submit', async event => {
-        event.preventDefault();
-        const question = String(input.value || '').trim();
+      async function ask(question) {
         if (asking || token !== epoch) return;
         if (!question) { output.replaceChildren(note('Enter a question about this case.')); return; }
-        asking = true; submit.disabled = true; output.replaceChildren(note('Reading this case’s records…'));
+        asking = true; submit.disabled = true; suggestions.forEach(b => { b.disabled = true; }); output.replaceChildren(note('Reading this case’s records…'));
         try {
           const result = await api('/api/workspace/guide', {question});
           if (token !== epoch) return;
@@ -110,10 +110,20 @@
           if (token !== epoch) return;
           if (error.status === 401 && typeof onUnauthorized === 'function') { epoch++; onUnauthorized(); return; }
           output.replaceChildren(note('The guide could not answer just now. Nothing was changed. Try again.'));
-        } finally { asking = false; submit.disabled = false; }
+        } finally { asking = false; submit.disabled = false; suggestions.forEach(b => { b.disabled = false; }); }
+      }
+      form.addEventListener('submit', event => { event.preventDefault(); return ask(String(input.value || '').trim()); });
+      // One-click questions for common reviews; each is asked through the same read-only route as a typed question.
+      const suggestions = SUGGESTED_QUESTIONS.map(question => {
+        const b = el('button', question, 'quiet suggestion'); b.type = 'button';
+        b.addEventListener('click', () => { if (asking || token !== epoch) return; input.value = question; return ask(question); });
+        return b;
       });
+      const tries = add(el('div', null, 'guide-suggestions'), el('span', 'Try:', 'help'), ...suggestions);
+      tries.setAttribute('role', 'group'); tries.setAttribute('aria-label', 'Suggested questions');
       add(form, label, submit);
-      return add(node, form, output);
+      // Suggestions sit above the question so Tab from the question still reaches Ask, then the answer's sources.
+      return add(node, tries, form, output);
     }
     function renderData(root,data,token) {
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
