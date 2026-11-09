@@ -1,0 +1,73 @@
+{
+  "schema": "submission-acceptance-expectations/1",
+  "nonce": "62256b6cb4e5a9d191741a5297161df371e511bfeb6f69c57ff013ce72c7465c",
+  "author": "gent8 (role 5, independent acceptance), written before any implementer branch was opened",
+  "controls": {
+    "T7-CD correct denial": {
+      "input_reply": "Claim reference {claim}: we reviewed the request and it was received on {received}, which is after the 30-day claim window in the agreement. The request is therefore denied.",
+      "input_condition": "received timestamp genuinely outside the governing window for that claim",
+      "expected": "stage DENIAL_REVIEW (or the product's equivalent explicit-review stop); the only offered action is accept-denial; no rebuttal, follow-up or new filing offered; no ledger amount changes; no automatic acceptance without a signed reviewer action"
+    },
+    "T7-AD ambiguous denial": {
+      "input_reply": "Regarding claim {claim}: we may be able to offer a partial goodwill credit if you agree to waive any further claims for this quarter; otherwise we are declining the request at this time.",
+      "expected": "no automatic acceptance, rebuttal or settlement; routed to required human review (unknown/ambiguous meaning); any model proposal is labelled a proposal; waiver is never accepted by the system; no amount recorded as awarded"
+    },
+    "T7-ME missing evidence": {
+      "input_reply": "For claim {claim}, please provide the request log showing the affected API calls during the outage window before we can evaluate it.",
+      "expected": "stage NEEDS_EVIDENCE (or equivalent); cure only with an existing signed evidence record; if none exists the case stays pending; no artifact invented by the system or a model; deadline shown from the governing source"
+    },
+    "T7-DS duplicate submission": {
+      "input": "repeat the same approval/submission action, and redeliver one signed vendor event with a fresh signature",
+      "expected": "exactly one outbound receipt/filing; second action returns the same state or a refusal; redelivery leaves state identical; an exact replay of signed headers is refused"
+    },
+    "T7-RS restart": {
+      "input": "stop the served process (SIGKILL) mid-workflow after at least one recorded step, restart on the same data",
+      "expected": "state identical to pre-kill; resumable; no duplicated step, receipt or ledger entry; final ledger unchanged versus an uninterrupted run"
+    },
+    "T7-TO timeout": {
+      "input": "model job whose provider exceeds its bound (controlled fake executable in an isolated workspace; labelled controlled provider)",
+      "expected": "job ends terminal UNCERTAIN/timeout with the reason recorded; no retry; no state advance or financial effect; UI shows the timeout, not a spinner forever"
+    },
+    "T7-FO foreign object": {
+      "input": "reference the unrelated Ramp bill f74ba12c-95d0-582d-9f62-26d8057d1d37 (DocuSign, USD 840.00) and an identifier from another workspace/tenant from inside the Northwind case",
+      "expected": "refused (4xx) or not linkable; Northwind agreement never attached to the DocuSign bill; no cross-tenant read or write"
+    }
+  },
+  "money_and_claims": {
+    "C5 credit lifecycle": {
+      "april_invoice_original": "11000.00",
+      "credit_applied": "2400.00",
+      "april_outstanding": "8600.00",
+      "stages": "estimated/claimed/awarded/posted/applied shown as states of one credit, not summed",
+      "destination": "Local ledger (never described as recovered in Ramp)"
+    },
+    "C5 separate price exception": {
+      "march_price_finding": "1000.00",
+      "state": "open/unresolved; not awarded, posted or applied; not summed with the SLA credit"
+    },
+    "C6 Ramp connection": {
+      "bill": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+      "amount": "USD 840.00",
+      "business": "1569e402-460e-4952-adad-9df27db628a0",
+      "comment": "376563cf-950c-409d-b3d8-a68599c45fa0 posted by a person (read-back verified), not Uptime-origin",
+      "limitation": "no Uptime-origin Ramp write; Northwind not linked to this bill"
+    },
+    "C2 model interpretation": {
+      "expected": "a fresh job with provider claude-opus-5-5, session id, empty tool/MCP inventory, request and response hashes, timestamps after the trigger; output shown as a proposal pending validation/review"
+    },
+    "C3 deterministic finding": {
+      "expected": "amount computed by the deterministic engine with a cited clause that re-slices to source text; approval is a signed reviewer action"
+    },
+    "C4 denial and cure": {
+      "expected": "denial interpreted (parser or model, labelled which); cure uses existing signed evidence; required review stop is visible and is not auto-passed"
+    }
+  },
+  "score_buckets": [
+    "parser success",
+    "model interpretation",
+    "setup readiness",
+    "reviewed outcome",
+    "automatic execution",
+    "native effects"
+  ]
+}

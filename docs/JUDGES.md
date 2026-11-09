@@ -55,5 +55,5 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 
 ## Evidence index
 
-- [Capability matrix](v4/CAPABILITIES.md) · [Independent evaluation results](v4/evaluation-finish-20261109/RESULTS.md) · [Latest full test receipt](v4/evidence/finish-20261109/final-805dd1c.json)
+- [Capability matrix](v4/CAPABILITIES.md) · [Independent evaluation results](v4/evaluation-finish-20261109/RESULTS.md) · [Full test receipt for the frozen build](v4/evidence/submission-20261109/suite-52f1a2f.json)
 - [Presentation storyboard and script](v4/submission/presentation.md) · [Engineering map](ENGINEERING-MAP.md) · [Decision records](v4/decisions/INDEX.md)

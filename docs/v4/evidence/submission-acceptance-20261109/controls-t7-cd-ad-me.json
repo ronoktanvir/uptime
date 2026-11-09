@@ -1,0 +1,117 @@
+{
+ "CD_substitute": {
+  "transport": "REAL_HTTP",
+  "text_source": "product test fixture FAMILIAR",
+  "delivery_status": 200,
+  "before": {
+   "stage": "AWAITING_VENDOR",
+   "actions": [],
+   "awarded": "0.00",
+   "claimed": "41.736",
+   "disputed_remainder": "0.00",
+   "submissions": 1,
+   "requested_artifact": null,
+   "outcome": "INSUFFICIENT_EVIDENCE"
+  },
+  "after": {
+   "stage": "DENIAL_REVIEW",
+   "actions": [
+    "accept-denial"
+   ],
+   "awarded": "0.00",
+   "claimed": "41.736",
+   "disputed_remainder": "41.736",
+   "submissions": 1,
+   "requested_artifact": null,
+   "outcome": "INSUFFICIENT_EVIDENCE"
+  },
+  "accept": {
+   "http_status": 200,
+   "after": {
+    "stage": "DENIAL_ACCEPTED",
+    "actions": [],
+    "awarded": "0.00",
+    "claimed": "41.736",
+    "disputed_remainder": "0.00",
+    "submissions": 1,
+    "requested_artifact": null,
+    "outcome": "INELIGIBLE"
+   }
+  }
+ },
+ "CD_wrong_ground": {
+  "transport": "REAL_HTTP",
+  "text_source": "sealed",
+  "delivery_status": 200,
+  "before": {
+   "stage": "AWAITING_VENDOR",
+   "actions": [],
+   "awarded": "0.00",
+   "claimed": "41.736",
+   "disputed_remainder": "0.00",
+   "submissions": 1,
+   "requested_artifact": null,
+   "outcome": "INSUFFICIENT_EVIDENCE"
+  },
+  "after": {
+   "stage": "HUMAN_REVIEW",
+   "actions": [],
+   "awarded": "0.00",
+   "claimed": "41.736",
+   "disputed_remainder": "41.736",
+   "submissions": 1,
+   "requested_artifact": null,
+   "outcome": "INSUFFICIENT_EVIDENCE"
+  }
+ },
+ "AD": {
+  "transport": "REAL_HTTP",
+  "text_source": "sealed",
+  "delivery_status": 200,
+  "before": {
+   "stage": "AWAITING_VENDOR",
+   "actions": [],
+   "awarded": "0.00",
+   "claimed": "41.736",
+   "disputed_remainder": "0.00",
+   "submissions": 1,
+   "requested_artifact": null,
+   "outcome": "INSUFFICIENT_EVIDENCE"
+  },
+  "after": {
+   "stage": "HUMAN_REVIEW",
+   "actions": [],
+   "awarded": "0.00",
+   "claimed": "41.736",
+   "disputed_remainder": "41.736",
+   "submissions": 1,
+   "requested_artifact": null,
+   "outcome": "INSUFFICIENT_EVIDENCE"
+  }
+ },
+ "ME": {
+  "transport": "REAL_HTTP",
+  "text_source": "sealed",
+  "delivery_status": 200,
+  "before": {
+   "stage": "AWAITING_VENDOR",
+   "actions": [],
+   "awarded": "0.00",
+   "claimed": "41.736",
+   "disputed_remainder": "0.00",
+   "submissions": 1,
+   "requested_artifact": null,
+   "outcome": "INSUFFICIENT_EVIDENCE"
+  },
+  "after": {
+   "stage": "HUMAN_REVIEW",
+   "actions": [],
+   "awarded": "0.00",
+   "claimed": "41.736",
+   "disputed_remainder": "41.736",
+   "submissions": 1,
+   "requested_artifact": null,
+   "outcome": "INSUFFICIENT_EVIDENCE"
+  }
+ }
+}

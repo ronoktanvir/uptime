@@ -1,0 +1,153 @@
+{
+ "schema": "submission-presentation-timing/1",
+ "build": {
+  "commit": "52f1a2f478f414d258dc89e122c243f7f5573e0b",
+  "ref": "frozen/submission-fallback-20261109",
+  "checkout": "detached, clean (0 changed files)"
+ },
+ "measured_at": "2026-11-09 (PST afternoon)",
+ "browser": "Google Chrome 157.0.8103.40 , headless, 1440x900 viewport at 2x, driven through the ordinary sign-in form and offered controls only",
+ "method": "Seconds from the click (or navigation) to the rendered result named in each event. Local loopback servers. Speech time is not measured here; see presentation.md.",
+ "walkthrough_take_1": {
+  "events": {
+   "sign-in form shown": 0.16,
+   "signed in, first view rendered": 0.19,
+   "activity rendered": 0.01,
+   "Ramp records with verified record rendered (from Open Ramp records)": 0.06
+  },
+  "decisions": [
+   {
+    "clicked": "Approve January claim",
+    "seconds_to_settled": 0.53,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve. 1 person decision and 4 automatic steps recorded. See every step in Activity"
+   },
+   {
+    "clicked": "Approve response",
+    "seconds_to_settled": 0.45,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve a ledger change. 2 person decisions and 6 automatic steps recorded. See every step in Activity"
+   },
+   {
+    "clicked": "Post to Local ledger",
+    "seconds_to_settled": 0.39,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve a ledger change. 3 person decisions and 7 automatic steps recorded. See every step in Activity"
+   },
+   {
+    "clicked": "Apply credit to eligible invoice",
+    "seconds_to_settled": 0.3,
+    "routine_line": "Routine steps: Complete. 4 person decisions and 7 automatic steps recorded. See every step in Activity"
+   }
+  ],
+  "attention_before": [
+   "File the January 2026 claim before the deadline",
+   "Approve the claim packet before it is filed",
+   "Review invoice NW-2026-03 before payment",
+   "Complete March 2026 usage evidence",
+   "Next step: Approve January claim"
+  ],
+  "page_errors": []
+ },
+ "walkthrough_take_2": {
+  "events": {
+   "sign-in form shown": 0.17,
+   "signed in, first view rendered": 0.21,
+   "activity rendered": 0.01,
+   "Ramp records with verified record rendered (from Open Ramp records)": 0.06
+  },
+  "decisions": [
+   {
+    "clicked": "Approve January claim",
+    "seconds_to_settled": 0.59,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve. 1 person decision and 4 automatic steps recorded. See every step in Activity"
+   },
+   {
+    "clicked": "Approve response",
+    "seconds_to_settled": 0.45,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve a ledger change. 2 person decisions and 6 automatic steps recorded. See every step in Activity"
+   },
+   {
+    "clicked": "Post to Local ledger",
+    "seconds_to_settled": 0.39,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve a ledger change. 3 person decisions and 7 automatic steps recorded. See every step in Activity"
+   },
+   {
+    "clicked": "Apply credit to eligible invoice",
+    "seconds_to_settled": 0.3,
+    "routine_line": "Routine steps: Complete. 4 person decisions and 7 automatic steps recorded. See every step in Activity"
+   }
+  ],
+  "page_errors": []
+ },
+ "recorded_contract_copy": {
+  "served": "copy of role 1's preserved workspace, port 8862, tenant submission-onboarding, account role1-operator",
+  "events": {
+   "sign-in form shown": 0.08,
+   "signed in, first view rendered": 0.12,
+   "agreements rendered": 0.02,
+   "job card rendered after read-only access check": 0.11
+  },
+  "status": [
+   "Proposal job 26ee4e3f-e5e2-47c7-aebe-e1f4dc7c7402 is SUCCEEDED. Status is read-only from here."
+  ],
+  "access_check": "read-only 'Check generation access' with the exact recorded fields (attempt 'initial'); no Generate pressed, no model call",
+  "import_file_check": "Import UTF-8 source file reproduced the exact text and reopened the same job in 0.11 s"
+ },
+ "recorded_denial_copy": {
+  "served": "copy of role 2's preserved workspace at its recorded origin 8823",
+  "events": {
+   "sign-in form shown": 0.09,
+   "signed in, first view rendered": 0.18,
+   "case rendered": 0.02,
+   "dispute record shown": 0.07,
+   "interpretation page signed in, recorded model reading rendered": 0.08
+  },
+  "page_errors": [],
+  "interpretation_page": "separate page; needs its own sign-in"
+ },
+ "twilio_public_page": {
+  "load_to_claim_text_s": 1.04,
+  "note": "public page, network-dependent; not captured into Git"
+ },
+ "deterministic_fallback": {
+  "command": "uv run --locked python scripts/rehearse_northwind.py --directory <throwaway> --receipt <receipt.json>",
+  "wall_seconds": 2.44,
+  "transport": "REAL_LOOPBACK_HTTP",
+  "authority_kind": "SCRIPTED_REVIEWER",
+  "steps": [
+   "Approve January claim",
+   "Approve response",
+   "Post to Local ledger",
+   "Apply credit to eligible invoice"
+  ],
+  "available_actions_remaining": 0,
+  "ledger": {
+   "destination": "Local ledger",
+   "claimed": "2400.00",
+   "awarded": "2400.00",
+   "posted": "2400.00",
+   "applied": "2400.00"
+  },
+  "bill": {
+   "id": "NW-2026-04",
+   "original": "11000.00",
+   "applied": "2400.00",
+   "outstanding": "8600.00",
+   "application_ref": "local-ledger:e7c3d3ec-5ed4-5caa-b1cd-7f95e43e4f5e"
+  },
+  "automation": {
+   "state": "COMPLETE",
+   "counts": {
+    "person_decisions": 4,
+    "automatic_steps": 7
+   }
+  }
+ },
+ "preserved_folders_after": {
+  "onboarding workspace.sqlite sha256": "41fecca2f491a181331bf1ce2dafe806fad9dc3c64b93eadf16e8d315b63d07f (differs from the runbook's 9043eaaf…; unchanged by these runs)",
+  "disputes workspace.db sha256": "1a035ab27ab5cb01aec266066b9a7a0870fa41e1a909e1bfe7025eb8d7135c4d (matches its handoff)"
+ },
+ "screenshots_fallback_set": [
+  "docs/assets/submission/fallback-52f1a2f/overview.png (take 2, after the four decisions)",
+  "docs/assets/submission/fallback-52f1a2f/contract-reading.png (recorded job 26ee4e3f)",
+  "docs/assets/submission/fallback-52f1a2f/ramp-record.png (take 2, More tools -> Ramp records)"
+ ]
+}

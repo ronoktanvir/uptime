@@ -140,3 +140,109 @@ The report covers:
 2. **C6.** Recorded artifacts only. A fresh read-only Ramp read is Ronok's to start and is not part of this plan. The "Verified Ramp record" panel for bill f74ba12c is checked against the committed November 9 capture and association receipt.
 3. **Task 5.** Covered by Ronok's brief, per the coordinator. First, dispatch is established from the implementers' job rows, provider receipts and timestamps. Only where those cannot establish it: one fresh `claude-opus-5-5` call per claimed model path, at most 3 in all, authored or public text only, no retry. Each exact request is approved through the existing operator CLI with `approved_by` naming gent8 as the engineering operator. It never names Ronok and never reads as a human review.
 4. **D05 run 2.** Not part of this push. It runs only on Ronok's go-ahead in the evaluation session.
+
+---
+
+# Phase B: acceptance report (frozen commit `52f1a2f`)
+
+**Tested:** `52f1a2f478f414d258dc89e122c243f7f5573e0b` (`origin/frozen/submission-fallback-20261109`). Fresh SSH clone from GitHub, started 2026-11-09 23:25:29Z.
+- Tracked-file digest `d519dc1a…` over 342 files.
+- Claude CLI 2.1.318, SHA-256 `677a2ea7…`. Node v25.9.0.
+- [freeze record](../evidence/submission-acceptance-20261109/freeze-52f1a2f.json)
+
+All results below are terminal. The sealed expectations are revealed in [this file](../evidence/submission-acceptance-20261109/sealed-expectations-revealed.json). Its SHA-256 equals the Phase A commitment `6b1c4057…19481`.
+
+## Headline
+
+The frozen build does what the film plan says for the authored walkthrough:
+- From a fresh clone, the published instructions lead to sign-in and four reviewer decisions, with seven automatic steps between them.
+- The money, citations and authority records match the sealed expectations exactly.
+- Every refusal and control behaved safely: **no unsafe acceptance, invented evidence or unauthorized money movement was observed.**
+
+The limits that must be stated:
+- **The model work is recorded, not live.** It is genuine and verified, on authored inputs.
+- **Generalization is not shown:** the Codex lane's independent cohort is 0/4.
+- **Correct denial cannot be exercised through the HTTP routes with a genuinely late filing.**
+- **Missing-evidence recognition is narrow.**
+- **Nothing reaches Ramp from Uptime.**
+
+## Task 4: fresh clone, published instructions only — PASS, with recorded deviations
+
+| Step | Observed |
+|---|---|
+| Commands | The README's two commands. The setup command printed the credential path, account `scripted-test-reviewer` and URL, as documented ([output](../evidence/submission-acceptance-20261109/setup-output.json)). |
+| Deviations forced by this machine | SSH clone (the repository is private); workspace under scratch instead of `$HOME/uptime-demo`; `--origin http://127.0.0.1:8851`, because 8776 is the occupied presentation port. `--origin` is documented in the linked `NORTHWIND-WORKFLOW.md`. |
+| Person path (`BROWSER`, headless system Chrome) | Type the account, choose the credential file, Sign in, then click four decisions: "Approve January claim", "Approve response", "Post to Local ledger", "Apply credit to eligible invoice". 13.9 s of interaction. No undocumented step. [log](../evidence/submission-acceptance-20261109/person-path-log.json) |
+| Setup time | About 1 s, with the uv cache already warm. A judge's first run includes the dependency download, which this machine did not measure. |
+
+## Task 5: actual model dispatch — PASS from recorded artifacts. No fresh calls were made.
+
+| Path | Evidence | Result |
+|---|---|---|
+| Contract interpretation (role 1) | Receipts in `docs/v4/evidence/submission-onboarding-20261109/`, cross-checked against the preserved workspace's own `public_proposal_jobs` rows (read on a copy) | 6 jobs, 6 distinct sessions, `claude-opus-5-5` reported by provider and response, empty tool and MCP inventories, 0 tool events, request and output SHA-256, 11.0–14.3 s each, one job per family, no retry. Approvals name the engineering agent, never Ronok. Corvid Ledger: SHADOW with 11 quotations, all 11 re-sliced from the recorded source. Halden Relay and the control: `NO_SUPPORTED_FAMILY`. |
+| Denial reading (role 2) | `denial-model-job.json` plus the preserved workspace row | Session `ce56dc6e…`, `claude-opus-5-5`, empty tool and MCP inventories, request hash matches, 5.4 s. Reading `AMBIGUOUS_GROUNDS` led to `HUMAN_REVIEW`, awarded 0.00, ledger unchanged. Approval names agent3 as engineering operator. |
+
+Qualifications:
+- The onboarding calls ran on `611efdf`, plus a later uncommitted refusal-explanation change, not on `52f1a2f`. The extraction, validation, selection, job and transport modules are **byte-identical** between `611efdf` and `52f1a2f`, so the runs represent this build's model path.
+- The committed denial evidence omits the transport receipt and the source commit; only the preserved database row carries the transport fields.
+- The recorded workspaces' interface was not rendered by acceptance.
+
+## Task 6: money, citations, authority — PASS
+
+| Check | Result |
+|---|---|
+| Money | Before the decisions: estimated $2,400.00, separate open March exception $1,000.00. After: April invoice $11,000.00, credit applied $2,400.00, remaining $8,600.00. Stages estimated, claimed, awarded, posted and applied are each $2,400.00, shown as one credit and never summed. Price finding `PREPAYMENT_REVIEW` $1,000.00 with $0.00 applied. Destination Local ledger; `finance.ramp.linked_record` null. All match the sealed values. ([before](../evidence/submission-acceptance-20261109/overview-before.txt) · [after](../evidence/submission-acceptance-20261109/overview-after.txt)) |
+| Citations | **58/58** citations in the workflow view re-slice exactly, with matching quote hashes, from `order-form.txt`, `amendment-2026-03.txt` and the SLA document |
+| Authority per step | 4 approvals or financial changes are `PERSON` (`scripted-test-reviewer`). 2 dispatches are `APPROVED_OPERATION` with an approval digest. 5 intakes are `EVENT_INTAKE` with event IDs. No automatic step makes a judgment or moves money. The reviewer is displayed as "Dana Reyes · Scripted reviewer". |
+| Ramp wording | No screen says money was recovered in Ramp. The Ramp card reads "No Ramp bill is linked to this agreement". |
+
+## Task 7: controls
+
+| ID | Transport | Input | Result | Against the sealed expectation |
+|---|---|---|---|---|
+| T7-CD | — | Sealed late-filing denial with a genuinely late filing | **Not exercisable.** The signed HTTP routes refuse to file after the cutoff; the historical late-original path exists only in service-level tests. | Not run as specified |
+| T7-CD substitute | `REAL_HTTP` | The product's recognized correct-denial class: announced maintenance corroborated by the customer's notice | `DENIAL_REVIEW` offering only `accept-denial`; no money. After a signed acceptance: `DENIAL_ACCEPTED`, no actions, awarded 0.00, one submission. | Matches the expected outcome, using a substituted input |
+| T7-CD wrong ground | `REAL_HTTP` | Sealed late-filing text against an **on-time** claim | `HUMAN_REVIEW`, no actions, no money. Not accepted as substantiated. | Safe |
+| T7-AD | `REAL_HTTP` | Sealed conditional and waiver reply | `HUMAN_REVIEW`, no actions, awarded 0.00; nothing settled or waived | **Met** |
+| T7-ME | `REAL_HTTP` | Sealed "please provide the request log…" reply | `HUMAN_REVIEW`, `requested_artifact` null. **Not recognized as an evidence request.** Safe: nothing invented, no money. | **Not met as specified** (expected an evidence wait) |
+| T7-DS | `REAL_HTTP` | Duplicate decision, exact signed replay, re-signed redelivery | Single effect; replay refused; redelivery leaves state identical | **Met** |
+| T7-RS | `REAL_HTTP`, two OS processes | SIGKILL mid-flow, step-by-step and automated | Identical state; replay unchanged; 11 steps, each once; exact ledger | **Met** |
+| T7-TO | `CONTROLLED_PROVIDER` (fake executable hanging 75 s) | Authored harness control through the model-job route | Both family jobs `UNCERTAIN` / `provider_timeout`; outcome `INCOMPLETE`; no candidate; one invocation per family, no retry; review requirement names the inconclusive state. Visibility in the browser not checked. | **Met** at the API level |
+| T7-FO | `REAL_HTTP` | DocuSign bill as a Northwind claim invoice; an unknown claim; tenant crossing | 403 "bind an inbound source"; 404; workflow unchanged; no link. Tenant crossing refused (probe). | **Met** |
+
+Probe suite on the fresh clone: `uv run --locked pytest -q tests/test_release_probes_gent8.py` gave **7 passed, 1 warning in 17.76 s** ([log](../evidence/submission-acceptance-20261109/probes-52f1a2f.log)). Control outputs: [CD/AD/ME](../evidence/submission-acceptance-20261109/controls-t7-cd-ad-me.json) · [timeout](../evidence/submission-acceptance-20261109/timeout-control-report.json) · [foreign object](../evidence/submission-acceptance-20261109/foreign-object-control.json)
+
+## Task 8: presentation claims
+
+| Claim | Grade | Basis and required wording |
+|---|---|---|
+| C1 (0–15 s): manual workflow | **Supported** (narration) | README "The old way" section; no product screen claims automation it lacks |
+| C2 (15–40 s): model-assisted contract interpretation | **Supported with stated limits** | Genuine `claude-opus-5-5` on authored contracts. **Recorded on November 9, not live.** 1 of 2 authored positives reached SHADOW. The Northwind contract itself uses fixed rules. Do not imply that unseen contracts work: the Codex lane's independent result is 0/4. |
+| C3 (40–65 s): deterministic finding and approval | **Supported** | $2,400.00 from the engine with cited clauses that re-slice; the approval is a signed `PERSON` step by the scripted test account, labelled as scripted on screen |
+| C4 (65–95 s): denial, evidence cure, required review | **Supported with stated limits** | In the walkthrough, the request-log denial is read by fixed rules, not a model. The cure arrives as signed authored evidence through intake. The response approval is a person decision. The model's denial reading exists only in the separate recorded unclear-reply workspace. Correct-denial acceptance is shown only through tests and this report. |
+| C5 (95–115 s): credit lifecycle and balance | **Supported** | Exact sealed values: $11,000.00, $2,400.00, $8,600.00, the open $1,000.00 March exception, Local ledger |
+| C6 (115–120 s): Ramp connection and limitation | **Supported with stated limits** | Panel: business `1569e402…`, DocuSign, bill `f74ba12c…`, DD-PREAPPROVAL, USD 840, comment `376563cf…` "Posted by a person in Ramp; Uptime read it back", read at 22:00 UTC started by a person, "Not a live read". No Uptime-origin write. Northwind not linked. ([panel text](../evidence/submission-acceptance-20261109/ramp-records.txt)) |
+
+## Task 10: separate scores
+
+| Bucket | Result |
+|---|---|
+| Parser success | Northwind's contract and its request-log reply are parsed deterministically. A differently worded evidence request (T7-ME) is not recognized. |
+| Model interpretation | Recorded genuine runs: 1/2 authored positives reached SHADOW; the control was refused; the unclear reply was read as ambiguous. **Independent unseen result, by the Codex evaluation lane on `805dd1c`: 0/4 positives; dispute accuracy unmeasured.** Historical results (0/50, 0/4, 3/6, Backblaze refusal) are unchanged. |
+| Setup readiness | Fresh clone to walkthrough with the documented steps only. The held-out dispute cohorts are setup-blocked (see the register). |
+| Reviewed outcome | 4 person decisions complete the walkthrough. Correct-denial acceptance works through signed routes. |
+| Automatic execution | 7 automatic steps, each under approved-operation or event-intake authority; none makes a judgment or moves money |
+| Native effects | **None by Uptime.** One person-posted note, read back. |
+
+## Bugs and risks, ranked by consequence (reproductions in the evidence files; none fixed here)
+
+1. **P2: evidence-request recognition is narrow.** A plain request for a request log, worded differently from the product's own phrasing, goes to human review instead of an evidence wait (T7-ME). It is safe, but the README phrase "A recognised request is answered with verified evidence" must not be presented as general recognition.
+2. **P2: a constructed scenario sits beside the real Ramp bill.** The Ramp records page lists bill `ae98c421…` (USD 840, earlier capture) with "Invoice cap review · Contract finding ELIGIBLE · USD 40.00 · Scenario only, not a finding". It is labelled, but it shows a constructed $40 eligibility figure in a findings column next to the verified bill. Earlier demo guidance (DEMO-PATH-87) warned against constructed $40/$800 figures. ([panel text](../evidence/submission-acceptance-20261109/ramp-records.txt))
+3. **P3: February's credit shows "Not determined" for an ineligible month.** The service-credit evaluation row reads "Ineligible" with credit "Not determined". The credit is known to be zero, so this blurs the ineligible-versus-unknown distinction the product depends on ([after](../evidence/submission-acceptance-20261109/overview-after.txt)).
+4. **P3: a README wording error.** "One call per case" is inaccurate: each authored contract made two calls, one per family (11–14 s each). The denial reading took 5.4 s.
+5. **P3: evidence completeness.** `denial-model-job.json` lacks the transport receipt and source commit. The onboarding receipts pin `611efdf` plus an uncommitted change rather than the frozen commit; the code path is byte-identical.
+6. **Limitation, not a bug: correct denial with a genuinely late filing** cannot be driven through the HTTP routes, and no demo workspace shows correct-denial acceptance. This is already disclosed in `docs/JUDGES.md`.
+
+**Not assessed:** the interface redesign on `work/submission-design-20261109` and the side-panel option. Browser visibility of a timed-out job. The recorded workspaces' interface.
+
+**Do not claim:** production readiness, unseen-contract reliability, dispute accuracy, any money in Ramp, or a person's approval. The walkthrough reviewer is a scripted account.
