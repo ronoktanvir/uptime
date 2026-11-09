@@ -10,7 +10,7 @@
 | Customer overlays | Supported, with binding gaps F4–F6 accepted by W3 for one batched semantics revision. |
 | One currency, calendar months | Evidence intake checks the granted `YYYY-MM` month (decision 91); currency equality is checked at the grant. |
 | No PDF intake | Confirmed: no general PDF path; the legacy Atlassian extractor stays a separate legacy lab (F9 out of scope). |
-| One real evidence source | Twilio's public status page through the ordinary enrollment tools and signed intake (decision 91a, section 7). **Intake path verified with a live public capture; launch path unverified**, because the ordinary launcher's release gate is unsatisfied and the rehearsal workspace was harness-hosted. |
+| One real evidence source | Twilio's public status page through the ordinary enrollment tools and signed intake (decision 91a, section 7). **Intake verified with a live public capture; release gate pending**, because the ordinary launcher's release gate is unsatisfied and the rehearsal workspace was harness-hosted. |
 
 ## 1. Contract documents
 
@@ -45,6 +45,8 @@ Each source is enrolled offline with an Ed25519 key, one role (`status`, `custom
 **Rejected, not quarantined.** Every refusal raises inside the intake transaction, so nothing is stored and no refusal is logged. A refusal audit stream (F7a, W0) and a supersede path for an already-stored mistaken record (F7b, W4) are accepted as open items, not yet implemented.
 
 ## 3. Acceptance conditions
+
+Signed-path acceptance on the merged integration head `23805c9`: 219 passed, 1 warning, including seven dedicated controls in `tests/test_evidence_acceptance_91.py` ([receipt](evidence/evidence-custody-90/acceptance-merged-91.json)).
 
 | Condition | Current behavior |
 |:---|:---|
