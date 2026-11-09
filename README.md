@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/uptime-banner.svg" alt="Uptime. Make every clause count. SLA enforcement and financial recovery automation. First edition: Ramp-native." width="100%">
+  <img src="docs/assets/uptime-banner.svg" alt="Uptime. Make every clause count. SLA enforcement and financial recovery automation. First edition: for Ramp." width="100%">
 </p>
 
 # Uptime
@@ -8,7 +8,7 @@
 
 Built for the **Berkeley BBS × Ramp Hackathon: Automate the Old Way**.
 
-[![Verification](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml) [![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.14-243D32?style=flat-square)](pyproject.toml) [![Edition](https://img.shields.io/badge/First_edition-Ramp_native-DDEF80?style=flat-square&labelColor=243D32)](#where-ramp-fits)
+[![Verification](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml) [![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.14-243D32?style=flat-square)](pyproject.toml) [![Edition](https://img.shields.io/badge/First_edition-for_Ramp-DDEF80?style=flat-square&labelColor=243D32)](#where-ramp-fits)
 
 [Run it](#run-it) · [Judge guide](docs/JUDGES.md) · [What works today](#what-works-today) · [Unfamiliar contracts](docs/v4/evaluation-finish-20261109/RESULTS.md) · [Architecture](docs/v4/ARCHITECTURE.md)
 
@@ -99,7 +99,7 @@ Claude Opus 5.5 does two things. It proposes contract terms for wording the fixe
 
 <!-- SCREENSHOT 3 (phase 2, from the frozen build): docs/assets/submission/ramp-record.png — the verified Ramp record for sandbox bill f74ba12c: business, read time, the person-posted note and its API read-back. -->
 
-The first edition is a **Ramp-focused integration that runs beside Ramp**, as a separate local application; it is not embedded in Ramp's interface. Ramp stays the system of record. Uptime reads bills, vendors, transactions, purchase orders and approvals through Ramp's developer API in the demo sandbox, and shows when each record was read and whether the list was complete.
+The first edition is a **Ramp-focused integration that runs beside Ramp**, as a separate local application; it is not embedded in Ramp's interface. Ramp stays the system of record. It is integrated with Ramp's developer API, read-only: when a person starts a read, Uptime reads bills, vendors, transactions, purchase orders and approvals from the demo sandbox. It shows when each record was read and whether the list was complete.
 
 What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-582d-9f62-26d8057d1d37`. **A person typed it; Uptime read it back through the API.** Nothing has been written to Ramp by Uptime: an agent-run posting was refused by an automatic approval review of the agent's action and is not retried, so only a person may run that route. Ramp's published developer API has no operation to create or apply a vendor credit (checked November 9), so a credit would be recorded by a person in Ramp and read back by Uptime; that path is not demonstrated yet. Payment holds and approval-chain steps are not built. The Northwind walkthrough is deliberately kept apart from Ramp, and its agreement is never attached to an unrelated Ramp bill. [Read-back receipt](docs/v4/evidence/demo-path-87/human-ramp-note.json) · [Supported Ramp surfaces](docs/v4/RAMP-FEASIBILITY.md)
 
@@ -111,7 +111,7 @@ What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-58
 | **Contract reading** | Deterministic parser for known wording; Claude Opus 5.5 proposals for other wording, validated by code and staged in shadow | Not reliable yet: 1 of 2 authored contracts reached shadow in the demo's recorded runs, and 0 of 4 intended positives in the latest independent pass |
 | **Disputes** | Denial → evidence cure → reviewed response → award, with routine steps run automatically and a reviewer deciding each judgment; for a reply the rules do not recognize, the model proposes a reading with the cited text, for a reviewer to check | Held-out dispute accuracy unmeasured. Replies come from a local counterparty; no real vendor is contacted |
 | **Approvals** | A reviewer approves the claim, the response, posting and application; each approval is bound to the exact content approved | In the walkthrough the presenter acts as a scripted test reviewer account; that is not a record of an enrolled person's approval |
-| **Ramp reads** | Bills, vendors, transactions, purchase orders and approvals from the Ramp sandbox, with read time and completeness | Read-only; the demo uses the sandbox, not a customer business |
+| **Ramp reads** | Bills, vendors, transactions, purchase orders and approvals from the Ramp sandbox, with read time and completeness | Read-only, and a person starts each read; the demo uses the sandbox, not a customer business |
 | **Ramp write-back** | One person-posted note, read back by Uptime through the API | No Uptime-originated Ramp write; vendor credits, payment holds and approval steps in Ramp are not built |
 | **Where credits land** | A local ledger, with exact bill and remaining balance | Not money recovered in Ramp |
 | **Hosting** | Local, loopback-only application | No hosted installation or Ramp OAuth sign-in yet |

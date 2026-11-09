@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="570" viewBox="0 0 1600 570" role="img" aria-labelledby="title desc">
   <title id="title">Uptime — Make every clause count</title>
-  <desc id="desc">SLA enforcement and financial recovery automation. First edition: Ramp-native. A contract passes through evidence and rules to a financial outcome.</desc>
+  <desc id="desc">SLA enforcement and financial recovery automation. First edition: for Ramp. A contract passes through evidence and rules to a financial outcome.</desc>
   <defs>
     <pattern id="ledger" width="80" height="54" patternUnits="userSpaceOnUse">
       <path d="M0 53.5H80" fill="none" stroke="#D9E1D6" stroke-width="1"/>
@@ -16,7 +16,7 @@
       <path d="M0 0H12V31L25 44L38 31V0H50V36L25 61L0 36Z"/>
       <text x="73" y="48" font-size="52" font-weight="750" letter-spacing="2">UPTIME</text>
     </g>
-    <text x="1530" y="103" font-size="23" fill="#486554" text-anchor="end">First edition / Ramp-native</text>
+    <text x="1530" y="103" font-size="23" fill="#486554" text-anchor="end">First edition / for Ramp</text>
     <line x1="70" y1="154" x2="1530" y2="154" stroke="#C8D3C6"/>
     <text x="70" y="265" font-size="77" font-weight="700" letter-spacing="-3" fill="#18312C">Make every</text>
     <text x="70" y="350" font-size="77" font-weight="700" letter-spacing="-3" fill="#18312C">clause count.</text>
