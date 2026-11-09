@@ -18,7 +18,7 @@
   "finished_at": "2026-11-09T23:02:02Z",
   "wall_clock_note": "The run began at 22:40 UTC and ended about 23:01 UTC. The test time above is 370 seconds; the machine appears to have been asleep for part of the interval, and the run resumed without an abort.",
   "other_checks": {
-    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "see log; exit 0",
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "118 passed, 0 failed",
     "node scripts/test_progress_graph.cjs": "exit 0",
     "uv run --locked python scripts/rehearse.py": "exit 0",
     "uv run --locked python scripts/check_repo.py": "exit 0"
