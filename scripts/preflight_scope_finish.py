@@ -14,7 +14,8 @@ table are the server's own code, not a reimplementation.
 
 Nothing is filled, slugged, defaulted, coerced or normalized. The record copies the caller's
 input. If the schema adds or drops an obligation field, that is reported, not trusted. The current
-family behavior stays as it is, including "monthly keeps incident", until a whole-month policy exists.
+family behavior is evaluated as implemented. An explicit whole-month basis needs its exact source
+text as the optional source_text keyword; neither text nor effective dates are inferred.
 
 Outcomes. The first failing stage is reported:
   setup     SETUP_INPUT_INVALID, SETUP_ENVIRONMENT_UNAVAILABLE
@@ -55,10 +56,10 @@ NOT_CHECKED = ('adapter_install_state', 'manifest_is_server_installed_artifact',
 _ADAPTER_FAILURES = (AttributeError, KeyError, TypeError, ValueError)
 
 
-def check_schema_and_family(claim_payload, manifest, overlay):
+def check_schema_and_family(claim_payload, manifest, overlay, *, source_text=None):
     """Classify one claim request body against the real schema and family table (see module doc)."""
     record = _record(claim_payload, manifest is not None or overlay is not None)
-    problem, artifact = _adapter_artifact(manifest, overlay)
+    problem, artifact = _adapter_artifact(manifest, overlay, source_text)
     if problem:
         return _finish(record, 'setup', 'SETUP_INPUT_INVALID', problem)
     try:
@@ -79,6 +80,9 @@ def check_schema_and_family(claim_payload, manifest, overlay):
         route = _route(scope, artifact)
     except sqlite3.Error as error:
         return _finish(record, 'setup', 'SETUP_ENVIRONMENT_UNAVAILABLE', f'{type(error).__name__}: {error}')
+    if route.get('selection_refusal') is not None:
+        record['route_message'] = str(route['selection_refusal'])
+        return _finish(record, 'adapter', 'ADAPTER_SCOPE_PREREQUISITE_REFUSED', 'INVALID_EFFECTIVE_PERIOD')
     builtin = claim_scope.builtin_twilio(scope)
     record.update(adapter_matched=route['matched'], builtin_profile_applies=builtin)
     if route['adapter_failure'] is not None:
@@ -88,7 +92,7 @@ def check_schema_and_family(claim_payload, manifest, overlay):
     if route['refusal'] is not None:
         record['route_message'] = str(route['refusal'])
         if route['adapter_refusal'] is not None:
-            reason = 'UNSUPPORTED_FAMILY'
+            reason = ('GOVERNING_SOURCE_BASIS_REFUSED' if manifest and manifest.get('evidence_basis') else 'UNSUPPORTED_FAMILY')
         elif route['matched'] and builtin:
             reason = 'AMBIGUOUS_FAMILY'
         elif not route['matched'] and not builtin:
@@ -136,16 +140,23 @@ def _finish(record, stage, outcome, reason=None):
     return record
 
 
-def _adapter_artifact(manifest, overlay):
+def _adapter_artifact(manifest, overlay, source_text=None):
     """(problem, stored JSON) for the single adapter. Returns (None, None) when no adapter is supplied."""
     if manifest is None and overlay is None:
-        return None, None
+        return ('SOURCE_WITHOUT_ADAPTER', None) if source_text is not None else (None, None)
     if manifest is None or overlay is None:
         return 'MANIFEST_AND_OVERLAY_MUST_BE_SUPPLIED_TOGETHER', None
     if not isinstance(manifest, dict) or not isinstance(overlay, dict):
         return 'MANIFEST_AND_OVERLAY_MUST_BE_OBJECTS', None
+    if source_text is not None and not isinstance(source_text, str):
+        return 'SOURCE_TEXT_MUST_BE_A_STRING', None
+    if manifest.get('evidence_basis') is not None and source_text is None:
+        return 'OPT_IN_SOURCE_TEXT_REQUIRED', None
+    artifact = {'manifest': manifest, 'overlay': overlay}
+    if source_text is not None:
+        artifact['source_text'] = source_text
     try:
-        return None, json.dumps({'manifest': manifest, 'overlay': overlay}, ensure_ascii=False, allow_nan=False)
+        return None, json.dumps(artifact, ensure_ascii=False, allow_nan=False)
     except (TypeError, ValueError):
         return 'ADAPTER_NOT_JSON', None
 
@@ -184,11 +195,14 @@ def _route(scope, artifact):
     try:
         if artifact is not None:
             _install(db, artifact)
-        matched = claim_scope._installed(db, TENANT, scope)
+        try:
+            matched = claim_scope._installed(db, TENANT, scope)
+        except claim_scope.InvalidClaimScope as error:
+            return dict(selection_refusal=error)
         result = dict(matched=bool(matched), adapter_refusal=None, adapter_failure=None, variant=None, refusal=None)
         for stored in matched:  # The route reads only adapters whose identity equals the claim's identity.
             try:
-                claim_scope.variant_for(stored['manifest'], stored['overlay'])
+                claim_scope.variant_for(stored['manifest'], stored['overlay'], source_text=stored.get('source_text', ''))
             except claim_scope.InvalidClaimScope as error:
                 result['adapter_refusal'] = error
             except _ADAPTER_FAILURES as error:

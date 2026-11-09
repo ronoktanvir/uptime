@@ -73,3 +73,34 @@ Committed the standalone `docs/v4/evidence/evaluation-finish-20261109/public-mon
 - `test_body_identity_conflict_is_retained_as_refusal_without_claim_money`.
 
 The initial fourth test assumed403; the actual409 is the correct authenticated-content conflict response. The assertion was corrected to409 without changing any financial or authority expectation. Initial run:3passed/1failed. Corrected controls: **4passed,1warning in1.12s**. Verification of the published relative fixture path: **4passed,1warning in1.80s**. These probes create only ephemeral scripted local workspaces; they file no claim, award no money and invoke no model/Ramp/vendor API.
+
+
+## Effective-period integration correction
+
+The final87b3464 merge suite reported **20 failed, 5,273 passed, 1 warning in474.28s**. All20 failures were in the new preflight tests: their authored minimal manifests/overlays omitted effective dates, which the corrected real scope resolver now requires. The preflight did not catch that resolver refusal. No financial or application acceptance rule was changed.
+
+Changed the new test-only `manifest()` and `overlay()` builders to state their authored2031 effective interval explicitly. The `test_unsupported_or_absent_family_is_unresolvable` absent-family parameter also states its authored interval so it continues to isolate family absence. All existing assertions are retained. The previously failing cases restored by these fixture corrections are:
+- `tests/test_preflight_scope_finish.py::test_schema_valid_monthly_claim_without_incident_is_refused_by_the_family`
+- `tests/test_preflight_scope_finish.py::test_monthly_claim_with_incident_is_admissible_but_not_called_ready`
+- `tests/test_preflight_scope_finish.py::test_invoice_is_an_optional_reference_not_an_obligation_field`
+- `tests/test_preflight_scope_finish.py::test_field_the_family_does_not_use_is_not_applicable_rather_than_missing`
+- `tests/test_preflight_scope_finish.py::test_missing_sets_the_outcome_and_not_applicable_is_still_listed`
+- `tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[plain]`
+- `tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[regional subscription]`
+- `tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[incident filing field]`
+- `tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[bound label phrase]`
+- `tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[aggregate monitor]`
+- `tests/test_preflight_scope_finish.py::test_resource_family_requirements_follow_the_real_table[aggregate monitor with overlay resource label]`
+- `tests/test_preflight_scope_finish.py::test_service_month_without_filing_fields_refuses_a_component`
+- `tests/test_preflight_scope_finish.py::test_unsupported_or_absent_family_is_unresolvable[unknown]`
+- `tests/test_preflight_scope_finish.py::test_unsupported_or_absent_family_is_unresolvable[absent]`
+- `tests/test_preflight_scope_finish.py::test_builtin_profile_plus_a_matching_adapter_is_refused[monthly-availability/1-AMBIGUOUS_FAMILY]`
+- `tests/test_preflight_scope_finish.py::test_builtin_profile_plus_a_matching_adapter_is_refused[authored-unknown-family/9-UNSUPPORTED_FAMILY]`
+- `tests/test_preflight_scope_finish.py::test_unreadable_adapter_is_an_adapter_failure_not_a_scope_refusal`
+- `tests/test_preflight_scope_finish.py::test_disagreement_with_the_real_check_is_reported_not_resolved`
+- `tests/test_preflight_scope_finish.py::test_inputs_are_untouched_and_source_values_are_reported_exactly`
+- `tests/test_preflight_scope_finish.py::test_result_is_deterministic`
+
+The preflight now reports an actual installed-period refusal instead of crashing, preserves all supplied dates without defaults, and accepts optional explicit `source_text` so the real resolver can verify an opted-in monthly basis against its original bytes. Omitted opt-in source is a setup refusal; modified bytes remain a grounding refusal.
+
+Added `test_effective_dates_are_never_invented_to_make_preflight_admissible` (source/overlay date omissions), `test_out_of_period_governing_terms_cannot_make_a_past_claim_admissible`, and `test_explicit_monthly_basis_requires_original_source_bytes_in_preflight`. These are new authored inputs; no held-out source or outcome informed them. Combined focused result: **67 passed, 1 warning in2.93s**. Integrator retains the required full merge-suite rerun; scored inference remains unstarted.
