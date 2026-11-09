@@ -1,0 +1,43 @@
+{
+ "decision": 89,
+ "branch": "work/identity-pricing-89",
+ "base": "03b372e64e4eb69aa0de991e3654db41bd1be915",
+ "tested_commit": "4ad45067cc2aea4c60066a486b5aa68baa4ff9f2",
+ "scope": "Tests and documentation only; no source, fixture, receipt or existing test changed.",
+ "full_suite": {
+  "command": "uv run --locked pytest -p no:cacheprovider -o tmp_path_retention_policy=failed --basetemp=<session scratchpad>/full89 -q",
+  "result_line": "4014 passed, 1 warning in 879.42s (0:14:39)",
+  "exit_code": 0,
+  "passed": 4014,
+  "failed": 0,
+  "warnings": 1,
+  "warning": "StarletteDeprecationWarning from fastapi/testclient.py (pre-existing)",
+  "conditions": "Run on 2026-11-09 under heavy shared-machine load (load average about 31) while another session's full suite ran concurrently; elapsed time is not a performance measurement.",
+  "basetemp_deleted": true
+ },
+ "focused": [
+  {
+   "command": "pytest tests/test_identity_domain_89.py",
+   "result_line": "23 passed in 4.17s"
+  },
+  {
+   "command": "pytest tests/test_financial_coverage_89.py tests/test_identity_domain_89.py",
+   "result_line": "47 passed in 7.85s"
+  },
+  {
+   "command": "pytest <14 files cited by docs/v4/coverage/financial-coverage-89.json>",
+   "result_line": "618 passed, 1 warning in 12.71s"
+  }
+ ],
+ "repository_scan": "scripts/check_repo.py: Secret check passed for 2070 versioned text objects.",
+ "opus": {
+  "status": "NOT_CONSULTED",
+  "reason": "This increment publishes existing behaviour and makes no new impactful decision. The single D03/D04 critique is decision 94, run by the integration workstream (model claude-opus-5-5, session 83b1b59b-7fbe-42e5-84fe-f67986752dfc)."
+ },
+ "model_calls": 0,
+ "ramp_calls": 0,
+ "vendor_or_external_actions": 0,
+ "reviewer_actions": 0,
+ "financial_actions": 0,
+ "credentials_or_private_material_read": false
+}
