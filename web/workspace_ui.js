@@ -266,7 +266,9 @@
           note(linked ? 'Open the linked bill in Ramp to continue its native workflow.' : rampInfo.note));
         const records = el('a', 'Open Ramp records', 'case-link'); records.href = '#records'; ramp.append(records);
       }
-      add(recovery,fields([['Current stage',state(claim.state)],['Destination',ledger.destination],['Claim reference',claim.id]]),note(claim.summary));
+      // The claim's own stage is shown as the server reports it, beside the credit's latest recorded lifecycle stage.
+      const reachedStage = serverStages(data).filter(row => row.status === 'recorded').pop();
+      add(recovery,fields([['Claim stage',state(claim.state)],['Credit stage',reachedStage ? reachedStage.label : null],['Destination',ledger.destination],['Claim reference',claim.id]].filter(([, value]) => value != null)),note(claim.summary));
       const status=el('p',null,'help');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
       const controls=el('div',null,'actions');
       // After a reload the read session remains but the signing key does not; actions are shown disabled with one way back.

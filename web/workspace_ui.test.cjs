@@ -117,3 +117,13 @@ test('activity shows the server automation record: state, pause, counts, authori
  await off.ui.activity(off.root);assert.ok(off.root.textContent.includes('Each step runs when a person presses it in this workspace.'));
  const none=setup();await none.ui.activity(none.root);assert.ok(none.root.textContent.includes('This workspace does not report automation runs.'));
 });
+test('the recovery card labels the claim’s own stage and shows the credit’s latest recorded stage beside it',async()=>{
+ const done=JSON.parse(JSON.stringify(projection));done.claim.state='AWARDED';
+ done.finance.stages=done.finance.stages.map(r=>({...r,amount:'2400.00',status:'recorded'}));
+ const s=setup(()=>({workflow:done}));await s.ui.render(s.root);
+ const recovery=s.root.all('section').find(n=>n.id==='finance-recovery');
+ assert.match(recovery.textContent,/Claim stageawarded/);assert.match(recovery.textContent,/Credit stageApplied to bill/);
+ assert.doesNotMatch(recovery.textContent,/Current stage/);
+ const early=setup();await early.ui.render(early.root);
+ assert.match(early.root.all('section').find(n=>n.id==='finance-recovery').textContent,/Claim stagedraft.*Credit stageEstimated/);
+});
