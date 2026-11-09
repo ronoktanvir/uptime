@@ -1,0 +1,31 @@
+{
+  "command": [
+    "/Users/ronoktanvir/.local/bin/uv",
+    "run",
+    "--locked",
+    "pytest",
+    "-p",
+    "no:cacheprovider",
+    "-o",
+    "tmp_path_retention_policy=failed",
+    "--basetemp",
+    "/Users/ronoktanvir/.local/share/uptime-engineering/tasks/finish-root-20261109/pytest-baseline-dashboard"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 423.11,
+  "log": "baseline-dashboard-pytest.log",
+  "source_base": "579997f1adb17b1ce5ea5c50b366cf1fe562b170",
+  "working_changes": [
+    "docs/v4/FINISH-20261109.md",
+    "progress/data.json",
+    "progress/app.js"
+  ],
+  "pytest_result": "4684 passed, 1 warning in 421.05s (0:07:01)",
+  "javascript": {
+    "tests": 104,
+    "passed": 104,
+    "failed": 0
+  },
+  "progress_graph": "passed",
+  "limits": "Baseline regression with progress dashboard changes. No new onboarding/dispute completion, independent success, actual human review or Ramp write established."
+}

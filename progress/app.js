@@ -430,5 +430,8 @@
       $("detail").close();
   });
   setInterval(updateSnapshotAge, 60000);
+  setInterval(() => {
+    if (!document.hidden && !$("refresh").disabled) refresh();
+  }, 30000);
   refresh();
 })();

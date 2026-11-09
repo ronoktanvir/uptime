@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-11-09T13:39:59.410583+00:00",
+  "updated_at": "2026-11-09T19:50:44.931030+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "The financial walkthrough and the human-posted Ramp note are verified. The bounded CalyxQuay review is recorded under the enrolled ronok-tanvir account and ended REVOKED at revision 9. Integration 90 merges the W1, W3, W5 and W9 increments; D03-A/D04-C are decided and being implemented. Native Ramp writes, real credits and the general release gate remain open.",
+  "summary": "Onboarding and dispute remediation is running in parallel with actual Claude Code Opus 5.5 workers. The team approved a strict complete-month evidence path; implementation is in progress. Independent runners and held-out evaluations are separate. Ramp posting stays restricted.",
   "evidence": [
     {
-      "label": "Latest local verification",
-      "value": "4,663 passed",
-      "detail": "6f43a91 (round 5, includes D04-C) fresh clone: 4,663 passed, 1 warning in 322.05s; 101 JavaScript checks. The demo build fde492c (round 3: 4,523 passed) still serves on 8776.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-90/docs/v4/evidence/integration-90/verification-6f43a91.json"
+      "label": "Latest verified baseline",
+      "value": "4,684 passed",
+      "detail": "a8c4c22 post-merge fresh clone: 4,684 passed, 1 warning; 104 JavaScript checks. Regression does not establish unseen-vendor success.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/579997f/docs/v4/evidence/integration-90/verification-a8c4c22.json"
     },
     {
       "label": "Prior regression checkpoint",
@@ -19,9 +19,9 @@
     },
     {
       "label": "Hosted verification",
-      "value": "CI passed 98de9b6",
-      "detail": "GitHub Actions completed successfully for the published local-review checkpoint. Source-specific local suite: 3,967 passed, 1 warning. This does not enable the pending review permission.",
-      "url": "https://github.com/ronoktanvir/uptime/actions/runs/42437918366"
+      "value": "Main promotion verified",
+      "detail": "Source-specific verification and the current CI are tracked separately. The current completion branch has not merged application changes yet.",
+      "url": "https://github.com/ronoktanvir/uptime/actions"
     },
     {
       "label": "Northwind workflow",
@@ -55,9 +55,9 @@
     },
     {
       "label": "Fresh public evaluation",
-      "value": "0/4 contracts; 3/6 replies",
-      "detail": "All 18 requests ran once. Four supported contracts failed extraction; 3/6 replies met complete semantics and6/6 review controls stayed UNKNOWN. No expected answers changed.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evaluation76/BASELINE.md"
+      "value": "0/4 accepted; unseen vendor refused",
+      "detail": "Corpus84 supported extraction first attempts: 0/4. Backblaze automatic family selection returned NO_SUPPORTED_FAMILY. Neither is rescored after remediation.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/671edc5/docs/v4/evaluation-gent8/D05-RESULT.md"
     }
   ],
   "nodes": [
@@ -83,13 +83,13 @@
       "title": "GitHub repository and engineering history",
       "stream": "Foundation",
       "status": "done",
-      "summary": "Focused implementation and verification commits",
-      "detail": "The repository is currently public. Focused implementation and verification commits preserve the work and its evidence. The latest published application checkpoint has 3,967 local passing tests and successful hosted CI; native authority and independent scores remain separate.",
+      "summary": "Published baseline 579997f preserved",
+      "detail": "Completion work uses separate branches and focused commits. New implementation results are published only with their actual verification.",
       "owner": "Orchestrator",
       "depends_on": [
         "audit"
       ],
-      "next_action": "Push focused, verified workstream commits.",
+      "next_action": "Push incremental branch records and tested changes.",
       "links": [
         {
           "label": "Repository",
@@ -210,19 +210,19 @@
       "id": "adapter",
       "title": "Declarative vendor onboarding",
       "stream": "Onboarding",
-      "status": "todo",
-      "summary": "New public contracts expose extraction gaps",
-      "detail": "Paused at the team\u2019s request. Actual public Opus jobs and explicit customer overlays are connected in the application. The studied Aster browser job reached SHADOW; controlled expired-session recovery keeps one generation. The original independent 0/4 baseline remains unchanged.",
+      "status": "active",
+      "summary": "Strict contract templates under remediation",
+      "detail": "Actual Opus 5.5 coding worker, xhigh requested; generic authored controls, exact citations and refusal semantics. No held-out answers supplied.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
         "security"
       ],
-      "next_action": "Review the consolidated team decisions and explicitly resume this workstream.",
+      "next_action": "Finish nine clause classes and diagnostic parity, then independent preflight.",
       "links": [
         {
-          "label": "Onboarding design",
-          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/vendor-onboarding.md"
+          "label": "Current work and ownership",
+          "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/FINISH-20261109.md"
         }
       ]
     },
@@ -384,9 +384,9 @@
       "id": "holdout",
       "title": "Independent onboarding & denial acceptance",
       "stream": "Independent QA",
-      "status": "todo",
-      "summary": "Fresh current-application evaluation in preparation",
-      "detail": "Paused at the team\u2019s request. Original private and public scores remain unchanged. A different-family independent author prepares new public sources and sealed expectations; no new attempts have run.",
+      "status": "active",
+      "summary": "Independent evaluation preparation",
+      "detail": "Independent review found the old dispute CLI has NOT READY entry points despite passing helper tests. A supplementary runnable harness and preregistered holdout are being prepared; original results and bytes stay preserved.",
       "owner": "Independent witness",
       "depends_on": [
         "adapter",
@@ -394,15 +394,11 @@
         "response_coverage",
         "source_meaning"
       ],
-      "next_action": "Review the consolidated team decisions and explicitly resume this workstream.",
+      "next_action": "Run only after prerequisites pass, preserving first attempts and separate outcome classes.",
       "links": [
         {
-          "label": "Independent socket diagnosis",
-          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/INDEPENDENT-SOCKET-DIAGNOSIS-03.md"
-        },
-        {
-          "label": "Witness methodology",
-          "url": "https://github.com/ronoktanvir/uptime/blob/main/scripts/adequate_holdout/README.md"
+          "label": "Current work and ownership",
+          "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/FINISH-20261109.md"
         }
       ]
     },
@@ -410,15 +406,20 @@
       "id": "grammar",
       "title": "Additional contract families",
       "stream": "Onboarding",
-      "status": "todo",
-      "summary": "Period and filing repairs verified; broader coverage open",
-      "detail": "Paused at the team\u2019s request. Decisions 77 and 80 implement source-bound periods and filing cutoffs. The reproduced no-deadline clause is rejected, and three valid manifests remain byte-identical. More independent source coverage remains necessary.",
+      "status": "active",
+      "summary": "Generic parser and citation preservation",
+      "detail": "Source interpretation is being repaired without vendor-name branches or invented facts. Original failed evaluations remain preserved.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "holdout"
       ],
-      "next_action": "Review the consolidated team decisions and explicitly resume this workstream.",
-      "links": []
+      "next_action": "Focused positive, contradictory and financial-boundary checks.",
+      "links": [
+        {
+          "label": "Current work and ownership",
+          "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/FINISH-20261109.md"
+        }
+      ]
     },
     {
       "id": "promotion",
@@ -465,14 +466,14 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "4,663 passed at 6f43a91 (round 5)",
-      "detail": "Frozen 50e041c passes the full suite. The initial disk-full result remains recorded; no source or assertions changed before retry.",
+      "summary": "4,684 Python and 104 JavaScript checks",
+      "detail": "Latest verified baseline remains the regression evidence until new changes pass. Full suites run serially to avoid disk exhaustion.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
         "companion"
       ],
-      "next_action": "Run the suite after the next code merge.",
+      "next_action": "Run the locked suite after each merge; retain failures.",
       "links": [
         {
           "label": "Current frozen verification",
@@ -575,11 +576,11 @@
     },
     {
       "id": "contextual_guide",
-      "title": "Interactive contextual AI guide",
+      "title": "Read-only case explanations",
       "stream": "Application",
-      "status": "todo",
-      "summary": "Current explanations are deterministic and evidence-linked",
-      "detail": "The existing guide assembles local explanations from a reviewed investigation plan. Ongoing private-contract LLM conversation and unrestricted evidence investigation require implementation, authorized data handling and independent evaluation. This is a separate remaining product capability.",
+      "status": "done",
+      "summary": "Read-only deterministic case guide",
+      "detail": "Cited fact templates explain current case records. Model-generated guide answers and customer model consent are not implemented.",
       "owner": "Application and security engineering",
       "depends_on": [
         "security",
@@ -592,15 +593,15 @@
           "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/CAPABILITIES.md"
         }
       ],
-      "next_action": "Define a bounded contextual conversation using existing evidence and permission gates, then obtain the required architecture review and test it."
+      "next_action": "Retain read-only behavior and explicit unsupported answers."
     },
     {
       "id": "response_coverage",
       "title": "New vendor response coverage",
       "stream": "Disputes",
-      "status": "todo",
-      "summary": "Reviewed denial bundles preserve both assertions",
-      "detail": "Paused at the team\u2019s request. Unchanged public annotations now map5/6 complete meanings versus original3/6;6/6 mandatory-review controls remain UNKNOWN. This is remediation on known cases, not a fresh independent score. Every proposition has separate review and audit alignment.",
+      "status": "active",
+      "summary": "Dispute blockers and independent runner preparation",
+      "detail": "The team approved a separate explicit-contract whole-month path with complete signed coverage, resolved exclusions and independent eligible fees. Legacy incident contracts remain unchanged. Opus workers implement the join and refusal journal.",
       "owner": "Dispute engineering and independent QA",
       "depends_on": [
         "disputes",
@@ -608,15 +609,11 @@
       ],
       "links": [
         {
-          "label": "Independent unseen-reply result",
-          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/independent-replies-532c8d8.txt"
-        },
-        {
-          "label": "Public harness parity",
-          "url": "https://github.com/ronoktanvir/uptime/blob/main/docs/v4/evidence/public-reply-harness-532c8d8.txt"
+          "label": "Current work and ownership",
+          "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/FINISH-20261109.md"
         }
       ],
-      "next_action": "Review the consolidated team decisions and explicitly resume this workstream."
+      "next_action": "Verify the new evidence join and authenticated refusal audit, then freeze source for independent evaluation."
     },
     {
       "id": "source_meaning",
@@ -681,6 +678,18 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T19:50:44.931030+00:00",
+      "title": "Strict month evidence approved; first validator slice pushed",
+      "detail": "Team approved explicit month-report contracts only. Source-basis validator dee9698: 24 focused checks passed. Evidence join not yet enabled. Evaluation review also found unfinished CLI entry points.",
+      "url": "https://github.com/ronoktanvir/uptime/commit/dee9698"
+    },
+    {
+      "at": "2026-11-09T19:42:56.709588+00:00",
+      "title": "Parallel onboarding and dispute remediation resumed",
+      "detail": "Separate Claude Code Opus 5.5 coding workers; independent evaluation custodian. Parser repair and refusal auditing proceed while whole-month policy is prepared. No Ramp write attempted.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/FINISH-20261109.md"
+    },
     {
       "at": "2026-11-09T13:39:59.410583+00:00",
       "title": "Round 5 verified: D03 and D04-C integrated",
