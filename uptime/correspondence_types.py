@@ -2,7 +2,7 @@
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_serializer, model_validator
 
 from .source_identity import SourceIdentity
 
@@ -16,17 +16,35 @@ class Strict(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid", frozen=True)
 
 
+OPTIONAL_SCOPE = ("component", "invoice", "incident", "region")
+
+
 class Scope(Strict):
+    """Claim scope. Decision D04-C (2026-11-09): component, incident and region are required only when the
+    governing family needs them (uptime.claim_scope); invoice is an optional evidence reference. An absent
+    field is omitted from every serialization, and an explicit null is refused, so absent never becomes null
+    and stored ten-field scopes keep their exact bytes."""
     account: SourceIdentity
     vendor: SourceIdentity
     contract: SourceIdentity
     service: SourceIdentity
-    component: Id
-    invoice: Id
-    incident: Id
+    component: Id | None = None
+    invoice: Id | None = None
+    incident: Id | None = None
     currency: Annotated[str, StringConstraints(pattern="^[A-Z]{3}$")]
     month: Annotated[str, StringConstraints(pattern=r"^20[0-9]{2}-(0[1-9]|1[0-2])$")]
-    region: Id
+    region: Id | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _absent_is_not_null(cls, data):
+        if isinstance(data, dict) and any(name in data and data[name] is None for name in OPTIONAL_SCOPE):
+            raise ValueError("Omit a scope field that does not apply; null is not accepted.")
+        return data
+
+    @model_serializer(mode="wrap")
+    def _omit_absent(self, handler):
+        return {k: v for k, v in handler(self).items() if not (k in OPTIONAL_SCOPE and v is None)}
 
 
 class Claim(Strict):

@@ -166,6 +166,24 @@ def export_vendor(document_path, config_path, output_path, *, tenant, subject, t
     return dict(output_path=str(output), request_sha256=digest, permission=EXPORT_NOTICE)
 
 
+def export_vendor_auto(document_path, config_path, output_path, *, tenant, subject, target, attempt_nonce='initial'):
+    """Automatic family selection (D05): one exact export per supported family, written beside output_path.
+
+    The application evaluates every supported family for one source, so the operator reviews and approves
+    each family's exact request separately. Every output must be new before any is written. Nothing is
+    approved, queued or sent to a model.
+    """
+    from uptime.vendor_family_selection import FAMILIES
+    output_path = Path(output_path)
+    if output_path.suffix != '.json':
+        raise ValueError('Use a .json output path; one file per family is written beside it.')
+    targets = [(profile, output_path.with_name(f'{output_path.stem}.{profile}.json')) for _, profile, _ in FAMILIES]
+    if any(path.exists() or path.is_symlink() for _, path in targets):
+        raise ValueError('Every family export path must be new.')
+    return [dict(export_vendor(document_path, config_path, path, tenant=tenant, subject=subject, target=target,
+                               profile=profile, attempt_nonce=attempt_nonce), profile=profile) for profile, path in targets]
+
+
 def approve(export_path, approvals_path, *, approved_by, expected_digest, public_confirmed, hours=24):
     if not public_confirmed:
         raise PermissionError('Only deliberately authorized authored-public source requests may be approved.')
@@ -224,7 +242,8 @@ def main():
     export.add_argument('--tenant', required=True)
     export.add_argument('--subject', required=True)
     export.add_argument('--target', required=True)
-    export.add_argument('--profile', required=True, choices=PROFILES)
+    export.add_argument('--profile', required=True, choices=PROFILES + ('auto',),
+                        help='"auto" writes one export per supported family for automatic family selection')
     export.add_argument('--attempt-nonce', default='initial')
     args = parser.parse_args()
     try:
@@ -232,6 +251,13 @@ def main():
             value, digest = read_export(args.request_file)
             print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
             print('Complete request SHA256:', digest)
+        elif args.command == 'export-vendor' and args.profile == 'auto':
+            for result in export_vendor_auto(args.document, args.config, args.output, tenant=args.tenant,
+                                             subject=args.subject, target=args.target, attempt_nonce=args.attempt_nonce):
+                print('Family profile:', result['profile'])
+                print('Request export:', result['output_path'])
+                print('Complete request SHA256:', result['request_sha256'])
+            print(EXPORT_NOTICE, 'Approve each family request separately; automatic selection needs all of them.')
         elif args.command == 'export-vendor':
             result = export_vendor(args.document, args.config, args.output, tenant=args.tenant, subject=args.subject,
                                    target=args.target, profile=args.profile, attempt_nonce=args.attempt_nonce)

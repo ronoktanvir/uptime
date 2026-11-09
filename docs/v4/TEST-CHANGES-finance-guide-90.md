@@ -178,12 +178,15 @@ Results on this branch:
 | Run | Tested commit | Result | Covers |
 | --- | --- | --- | --- |
 | Integration round 3 (integration owner, fresh clone) | `fde492c` | **4523 passed, 1 warning in 523.01s (0:08:43)** | Every W7 commit through `3f13db8`, including `679133c`, `0b6523e`, `a47fb5a`, `d3ac7d7` and `e7d9726` |
-| Integration round 5 | Pending | Result line to be recorded when the integration owner reports it | The D05 follow-up `0848d59`, merged as `1eac5ed`, which is not in `fde492c` |
+| Integration round 4b (integration owner, fresh clone) | `5d8af56` | **4636 passed, 1 warning in 417.24s (0:06:57)**; JS 97/97 | The D05 follow-up `0848d59` (merged as `1eac5ed`) and everything earlier |
+| Integration round 5 (integration owner, fresh clone) | `6f43a91` | **4663 passed, 1 warning in 322.05s (0:05:22)**; JS 101/101 | Later W7 commits `e527f8f`, `9b9092f`, `d580292` and `90da094`: every W7 commit to date |
 
 Receipts on `work/integration-90`:
 
 - `docs/v4/evidence/integration-90/full-suite-fde492c.log`
 - `docs/v4/evidence/integration-90/verification-fde492c.json`
+- `docs/v4/evidence/integration-90/verification-5d8af56.json` (round 4b)
+- `docs/v4/evidence/integration-90/verification-6f43a91.json` (round 5)
 
 I did not run a separate full suite on this branch. The integration owner coordinates full runs one at a time on the shared disk. My queued run was cancelled before it started, and no temporary data was created.
 

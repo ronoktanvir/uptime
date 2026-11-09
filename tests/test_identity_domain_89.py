@@ -172,10 +172,10 @@ def test_recorded_requests_no_longer_refuse_their_exact_source_identities():
 def _northwind_with_account(account):
     package = deepcopy(load_package())
     package["overlay"]["account"] = account
-    for row in package["months"]:
-        row["facts"]["account"] = account
+    for row in [*package["months"], package["settlement"]]:
+        row.get("facts", {})["account"] = account
         row["scope"]["account"] = account
-    package["settlement"]["scope"]["account"] = account
+        row["legacy_scope"]["account"] = account
     return package
 
 
@@ -254,30 +254,45 @@ def test_distinct_obligations_and_exact_retries_are_not_blocked(changes):
     assert other["created"] and other["obligation"] != first["obligation"]
 
 
-SCOPE_FIELDS = {"account", "vendor", "contract", "service", "component", "invoice", "incident", "currency", "month", "region"}
+# D04 option C (2026-11-09) invariants --------------------------------------------------
+
+def test_claim_scope_requires_identity_currency_and_month_only():
+    from uptime.correspondence_types import OPTIONAL_SCOPE
+    required = {name for name, field in Scope.model_fields.items() if field.is_required()}
+    assert required == {"account", "vendor", "contract", "service", "currency", "month"}
+    assert set(OPTIONAL_SCOPE) == {"component", "incident", "region", "invoice"}
 
 
-def test_claim_scope_requires_every_field_for_every_obligation_family():
-    assert set(Scope.model_fields) == SCOPE_FIELDS
-    assert all(field.is_required() for field in Scope.model_fields.values())
-
-
-@pytest.mark.parametrize("receipt,missing", [
-    ("e86-01", {"component", "incident", "region"}),  # whole-service monthly claim
-    ("e86-04", {"invoice", "incident", "region"}),  # resource-month claim
+@pytest.mark.parametrize("receipt,family,refusal", [
+    ("e86-01", {"family": "monthly-availability/1"}, "requires incident"),
+    ("e86-04", {"family": "resource-month/1", "subscription": {"record": "signed subscription"}}, "requires region"),
 ])
-def test_recorded_scopes_lack_fields_their_obligation_may_not_need(receipt, missing):
+def test_recorded_requests_parse_and_are_judged_by_their_governing_family(receipt, family, refusal):
+    """The preserved bodies now parse; admission is decided by the family table, never by a fixed schema."""
+    from uptime.claim_scope import InvalidClaimScope, variant_for
     request = json.loads((RECEIPTS / f"{receipt}.json").read_text())["request"]
-    with pytest.raises(ValidationError) as caught:
-        Scope(**request["scope"])
-    assert {e["loc"][0] for e in caught.value.errors() if e["type"] == "missing"} == missing
+    claim = Claim.model_validate(request)
+    with pytest.raises(InvalidClaimScope, match=refusal):
+        variant_for(family, {}).check(claim.scope)
 
 
-def test_northwind_whole_service_scope_carries_authored_values_the_evaluator_never_reads():
+def test_northwind_intake_omits_placeholders_and_keeps_its_authored_scope_as_a_legacy_alias():
     package = load_package()
     assert package["manifest"]["family"] == "monthly-availability/1"
     assert not {"component", "incident", "region"} & FACT_FIELDS
-    for row in package["months"]:
-        # Authored placeholders satisfy the universal Scope; they are not inputs to the monthly obligation.
-        assert all(row["scope"][field] for field in ("component", "incident", "region"))
-        assert not {"component", "incident", "region"} & set(row["facts"])
+    registry = build_fee_registry(package)
+    for row in [*package["months"], package["settlement"]]:
+        assert not {"component", "region"} & set(row["scope"]) and row["scope"]["incident"]
+        assert {"component", "region"} <= set(row["legacy_scope"])
+        assert {k: v for k, v in row["legacy_scope"].items() if k in row["scope"]} == row["scope"]
+    january = package["months"][0]
+    body = {"kind": "invoice", "lines": [{"id": line.id, "kind": "affected_api", "amount": str(line.net)} for line in january["invoice"].lines]}
+    event = dict(source="billing", kind="invoice", body=body, digest=fingerprint(body), subject="scripted-financial-source",
+                 source_key_id="unit-test-key", source_grant_id="unit-test-grant", received_at=january["facts"]["received_at"])
+    at = datetime.fromisoformat(january["facts"]["received_at"])
+    current = registry.resolve(authenticated_invoice_snapshot(package["tenant"], Scope(**january["scope"]), event), as_of=at)
+    stored = registry.resolve(authenticated_invoice_snapshot(package["tenant"], Scope(**january["legacy_scope"]), event), as_of=at)
+    assert (current.fee_minor, current.entry_digest) == (stored.fee_minor, stored.entry_digest) == (1200000, current.entry_digest)
+    invented = Scope(**january["legacy_scope"] | {"region": "invented-region"})
+    with pytest.raises(ValueError):
+        registry.resolve(authenticated_invoice_snapshot(package["tenant"], invented, event), as_of=at)

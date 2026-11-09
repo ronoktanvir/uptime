@@ -124,7 +124,7 @@ def test_signed_procedural_response_survives_backfill_for_an_independent_reserva
         assert reserve_claim(db,**BASE)["created"]
         assert [tuple(r) for r in db.execute(f"SELECT * FROM {TABLE} WHERE route='historical-receipt' ORDER BY step")] == old
     assert [r[1] for r in old] == ["initial","supplement"]
-    assert old[0][6] == "HIST-"+fingerprint([BASE["tenant"],env.scope,original["receipt_id"]])
+    assert old[0][6] == "HIST-"+fingerprint([BASE["tenant"],env.applicable_scope(),original["receipt_id"]])  # D04-C: the stored claim scope
     assert old[1][6] == response["id"]
     assert env.read()["submissions"] == submitted["submissions"]
     assert env.read()["ledger"]["claimed"] == env.read()["ledger"]["awarded"] == "0.00"

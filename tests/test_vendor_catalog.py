@@ -211,7 +211,7 @@ def test_principal_tenant_reviewer_and_subject_bound_actions(api):
 def test_private_filing_amendment_changes_only_bound_account_scope(api):
     c, _, _, _ = api
     amended = OVERLAY | {'override': {'filing_days': 19, 'quote': 'Claims must be received within 19 calendar days after month end.',
-                                      'source_ref': 'private-addendum-section-2'}}
+                                      'source_ref': 'private-addendum-section-2', 'effective_from': OVERLAY['effective_from']}}
     state = run_suite(c, install(c, overlay=amended))
     transition(c, transition(c, state, 'approve'), 'activate')
     receipt = FACTS | {'received_at': '2026-07-19T23:59:59Z'}

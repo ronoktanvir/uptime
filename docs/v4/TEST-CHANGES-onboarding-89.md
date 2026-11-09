@@ -96,3 +96,30 @@ Results: the JS helpers (`vendor_auth83`, `vendor_monthly_profile79`, `vendor_mo
 
 After merging integration head `c55f2fd`, the broad focused set reported **1 failed, 1182 passed, 1 warning in 58.84s**. The failure was a race in the new browser tests: with an instant provider double, both family jobs can finish before the submit response is computed, so the page goes straight to `SELECTED` and never shows the "finished" message. Both browser tests now accept either path through `await_selected_proposal`. `test_vendor_model_jobs_browser.py` and `test_vendor_auth83.py` then gave **7 passed** on two consecutive runs.
 
+## D05 operator support (`work/onboarding-d05-runbook-89`)
+
+`scripts/public_proposals.py export-vendor --profile auto` writes one exact export per supported family. Every path must be new before any is written, and the provider is never invoked. Added `tests/onboarding79/test_public_proposal_export_auto_89.py` (2 tests). With `tests/onboarding79/` and `test_public_proposal_config.py`: **35 passed, 1 warning**. Existing tests changed: none. Runbook: [D05-UNSEEN-VENDOR-RUNBOOK.md](D05-UNSEEN-VENDOR-RUNBOOK.md).
+
+## Generated draft categories, ONB-4 (`work/onboarding-drafts-89`, on top of the F4/F6 batch)
+
+`vendor_requirements` drafts (outside the reviewed-semantics hash) add:
+- **Timezone:** the last timely second stated in UTC−07:00 (`ELIGIBLE`), the window close stated in UTC+05:30 (`INELIGIBLE`), and a receipt time without an offset (`INSUFFICIENT_EVIDENCE`).
+- **Private filing amendment:** when a private amendment takes effect in a later governed month, two boundary cases in that month under its own window (F4).
+
+Added `tests/test_vendor_drafts_categories_89.py` (3 tests, hand-computed). Every draft is checked against the real evaluator. With `test_vendor_requirements_89.py` (its shadow and property checks now include the timezone drafts) and `test_vendor_filing_override_f4.py`: **28 passed, 1 warning**. Existing tests changed: none.
+
+**ONB-3 visibility (same branch).** The requirement card gains a sixth, informational element, `submission_channel`:
+- resource-month: `PRESENT` with the cited block when the source states a channel and request fields;
+- otherwise `NONE_STATED`;
+- monthly: always `NONE_STATED` (the family has no such field).
+
+It never opens a requirement, because delivery stays with a configured, authorized channel (D08). Test: `test_submission_channel_is_shown_from_cited_source_blocks_and_never_blocks_review`. With the requirements and selection tests: **45 passed, 1 warning**. Existing tests changed: none.
+
+**Correct-reason refusal through automatic selection (same branch).** Added `tests/test_vendor_selection_refusals_89.py` (2 tests). It uses an authored public-style SLA with unlabeled parties and a scheduled-maintenance exclusion, read by provider doubles.
+
+| Source | Expected and observed |
+|---|---|
+| With the exclusion | `NO_SUPPORTED_FAMILY`. Monthly is refused structurally at the exact exclusion passage (`UNSUPPORTED_SOURCE_MATERIAL`). Resource-month names the missing symptom, provider-cause and evidence terms. |
+| Same source without the exclusion | `SELECTED` monthly. |
+
+Result: **2 passed**. Existing tests changed: none.

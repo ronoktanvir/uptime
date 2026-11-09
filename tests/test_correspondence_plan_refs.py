@@ -164,11 +164,17 @@ def test_valid_source_in_another_claim_is_not_a_plan_reference_for_this_join(fil
     filing.scope = scope | {"account":"another-account"}
     filing.id = "inbox-another-plan-source"
     filing.url = "/api/correspondence/claims/" + filing.id
-    filing.provision()
-    filing.create()
-    source, body = reports()[1]
-    body["source_ref"] = "other-account-source"
-    assert filing.source(source, body).status_code == 200
+    # D04-C (2026-11-09): no terms are installed for the other account, so this test double declares the same
+    # whole-service family for it; the assertion under test (no cross-claim plan reference) is unchanged.
+    from unittest.mock import patch
+    from uptime import claim_scope
+    with patch.object(claim_scope, "_installed", lambda db, t, s: [{"manifest": {"family": "resource-month/1",
+                                                                              "aggregate_monitor": True}, "overlay": {}}]):
+        filing.provision()
+        filing.create()
+        source, body = reports()[1]
+        body["source_ref"] = "other-account-source"
+        assert filing.source(source, body).status_code == 200
     filing.scope, filing.id, filing.url = scope, claim_id, url
     deliver(filing, reports())
     deliver(filing, [("customer-fixture", material(REFERENCES | {"plan":["other-account-source"]}))])

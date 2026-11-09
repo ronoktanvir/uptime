@@ -77,7 +77,10 @@ def event_in_scope(event, source, scope):
     if event.body.kind == "component":
         return event.body.component_id == scope.component
     # Independently scoped records must corroborate the envelope, including resource-scoped report rows.
-    fields = {**scope.model_dump(), "resource_id":scope.component, "agreement":scope.contract, "product":scope.service}
+    # W5 hunk for decision D04-C (approved by gen5): a component-less scope has no resource to compare.
+    fields = {**scope.model_dump(), "agreement":scope.contract, "product":scope.service}
+    if scope.component is not None:
+        fields["resource_id"] = scope.component
     for field, value in event.body.model_dump(exclude_none=True).items():
         if field in fields and value != fields[field]:
             return False

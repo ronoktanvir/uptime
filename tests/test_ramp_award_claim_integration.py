@@ -191,8 +191,9 @@ FIXTURE_ECONOMIC_VERSION = fingerprint({"synthetic_economic_rules":"fixture-one"
 
 def historical(h, *, claim="inbox-external", sc=None, receipt="external-original", supplement=False, pin_version=True, pin_source=True):
     sc = sc or scope() | {"remedy": "resource-month/station-1"}
+    # D04-C (2026-11-09): this non-regional resource-month claim names its resource; incident and region do not apply.
     local = Scope(account=sc["account_id"], vendor=sc["vendor_name"], contract="local-contract", service=sc["service_name"],
-                  component="station-1", region="west", invoice="invoice-1", incident="incident-1", currency="USD", month=sc["month"])
+                  component="station-1", invoice="invoice-1", currency="USD", month=sc["month"])
     # A bounded resolver fixture supplies a reviewed lineage to the REAL intake;
     # it grants no award/filing authority. The separate office signatures do.
     def resolver(tenant, requested, events, at):
@@ -203,7 +204,11 @@ def historical(h, *, claim="inbox-external", sc=None, receipt="external-original
     tenant = h.config["tenant"]
     desk.provision(tenant, *(getattr(local,k) for k in ("account","vendor","contract","service","component","region")))
     desk.bind_sender(tenant, local.account, "vendor", "fixture-inbound-vendor", scope=local)
-    desk.create(Principal(tenant, "fixture-claimant", "reviewer"), Claim(claim_id=claim, scope=local))
+    # The resolver above stands in for installed reviewed terms, so their family is declared the same way.
+    from unittest.mock import patch
+    from uptime import claim_scope
+    with patch.object(claim_scope, "_installed", lambda db, t, s: [{"manifest": {"family": "resource-month/1"}, "overlay": {}}]):
+        desk.create(Principal(tenant, "fixture-claimant", "reviewer"), Claim(claim_id=claim, scope=local))
     original = dict(kind="original_filing_receipt", source_ref="test-custody-document", receipt_id=receipt,
                     received_at=later(-30), observed_at=later(-20), submitted_to="https://fixture.invalid/claims", fields=[])
     if pin_version and not supplement:

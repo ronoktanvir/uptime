@@ -1,0 +1,89 @@
+{
+ "schema": "uptime-integration-verification/1",
+ "branch": "work/integration-90",
+ "tested_commit": "5d8af56eb58e22b76f97f7e20b4f9b2a6606ac07",
+ "fresh_clone": true,
+ "clone_status_lines": 0,
+ "started_at": "2026-11-09T13:24:23Z",
+ "ended_at": "2026-11-09T13:31:52Z",
+ "commands": {
+  "uv_sync": "uv sync --locked",
+  "pytest": "uv run --locked pytest -p no:cacheprovider -o tmp_path_retention_policy=failed --basetemp=<scratch>/bt",
+  "node": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+  "progress_graph": "node scripts/test_progress_graph.cjs",
+  "rehearse": "uv run --locked python scripts/rehearse.py",
+  "check_repo": "uv run --locked python scripts/check_repo.py",
+  "render_check": "uv run --locked python scripts/render_requirements.py --check"
+ },
+ "steps": {
+  "uv_sync": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "pytest": {
+   "exit": 0,
+   "seconds": 420
+  },
+  "node": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "progress_graph": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "rehearse": {
+   "exit": 0,
+   "seconds": 2
+  },
+  "check_repo": {
+   "exit": 0,
+   "seconds": 27
+  },
+  "render_check": {
+   "exit": 0,
+   "seconds": 0
+  }
+ },
+ "pytest_result": "================= 4636 passed, 1 warning in 417.24s (0:06:57) ==================",
+ "node_counts": {
+  "tests": 97,
+  "pass": 97,
+  "fail": 0
+ },
+ "progress_graph": "Progress graph: dependency ordering, invalid graphs, and link safety passed.",
+ "check_repo": "Secret check passed for 2745 versioned text objects.",
+ "merged_increments_round1": {
+  "W1 Ramp case lineage (agent4)": "1c8bc86",
+  "W3 requirement card and refusal diagnostics (agent2)": "f9153b2, edf0c05",
+  "W5 evidence period applicability (gen5)": "5b02d61, dcec513",
+  "W9 operations recovery (gen6)": "27e4926",
+  "Browser sign-in fix (from $HOME/uptime working tree)": "2205f0a",
+  "Hard-kill restart probe (gent8, from 52bea97)": "37d73f2"
+ },
+ "not_merged_round1": [
+  "D03/D04 implementation (work/identity-pricing-89)",
+  "W4 dispute disposition (work/dispute-disposition-89)",
+  "W7 finance view and guide (work/finance-guide-90)",
+  "Evaluation 84-86 runners (work/release-evaluation-gent8; paused by AGENTS.md)"
+ ],
+ "limits": "Regression coverage only. No Ramp, model, vendor or human action occurred. Not recovery, release or generalization evidence.",
+ "round": "4b",
+ "covers": [
+  "round-4 failure fixed (W4 f3bb0cc, merge 9b2097c)",
+  "W0 F4 claim-route fix ac03026",
+  "W0 webhook hardening c69d2ca",
+  "Ronok 2a mandate b36827f + W4 wiring 7579fdd",
+  "D03 name extension and F5 448fe38",
+  "W3 F4/F6 batch 3e24d01, drafts 8ef6542/2deb6ea/75bf846, D05 phase 2 f1a37a1, runbook d5038b8",
+  "W1 D09 read-back bbcb528",
+  "W5 acceptance ab3f9e3, b073f68",
+  "W9 read-only fix dd32596",
+  "W4 89e/89f/89h",
+  "W7 0848d59, 310c918"
+ ],
+ "not_covered": [
+  "D04-C (agent1, in progress)",
+  "W7 e527f8f, 9b9092f, d580292 (merged after 5d8af56)"
+ ]
+}

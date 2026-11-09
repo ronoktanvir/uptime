@@ -19,7 +19,7 @@ unchanged as the independent reviewer suite: a reviewer must re-author each
 expectation from the cited clauses. Reuse of draft facts is reported, not blocked.
 """
 from calendar import monthrange
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta, timezone
 from decimal import Decimal, localcontext
 from fractions import Fraction
 
@@ -29,7 +29,7 @@ from .vendor_terms import PERCENT_SCALE, semantics_revision
 SCHEMA = 'adapter-requirements/1'
 MONTHLY = 'monthly-availability/1'
 RESOURCE = 'resource-month/1'
-ELEMENTS = ('source_clauses', 'eligible_fee', 'evidence', 'exclusions', 'deadline')
+ELEMENTS = ('source_clauses', 'eligible_fee', 'evidence', 'exclusions', 'deadline', 'submission_channel')
 # Status vocabulary. Only REVIEW_REQUIRED leaves an open requirement.
 PRESENT, FAMILY_DEFINED, NONE_STATED, REVIEW_REQUIRED = 'PRESENT', 'FAMILY_DEFINED', 'NONE_STATED', 'REVIEW_REQUIRED'
 # Placeholder affected fee for draft observations. Drafts are shadow material, never a customer amount.
@@ -48,6 +48,7 @@ _RESOURCE_KEYS = {
     'evidence': ('evidence', 'symptoms', 'provider_causes', 'aggregate_monitor', 'record_integrity', 'telemetry'),
     'exclusions': ('exclusions', 'maintenance'),
     'deadline': ('filing', 'fixed_filing', 'cure_clock', 'supplement'),
+    'submission_channel': ('submission_channel', 'request_fields'),
 }
 
 
@@ -117,10 +118,15 @@ def _monthly_card(manifest, overlay):
         detail = {'filing_days': manifest['filing_days'], 'measured_from': 'end of the UTC calendar month'}
         override = overlay.get('override')
         if isinstance(override, dict):
-            detail['private_override'] = {'filing_days': override.get('filing_days'), 'source_ref': override.get('source_ref')}
+            detail['private_override'] = {'filing_days': override.get('filing_days'), 'source_ref': override.get('source_ref'),
+                                          'effective_from': override.get('effective_from'),
+                                          'governs': 'months starting on or after effective_from; earlier months keep the source rule'}
         elements.append(_element('deadline', PRESENT, cites['filing_days'], detail))
     else:
         elements.append(_missing('deadline', 'the claim filing deadline'))
+    elements.append(_element('submission_channel', NONE_STATED, detail={
+        'basis': 'The monthly family records no claim submission channel or request fields. Claims are delivered '
+                 'only through a separately configured and authorized channel (D08).'}))
     requirements = ['Author independent expectations, including at least one eligible case with an exact amount '
                     'and one refusal, from the cited clauses rather than from generated drafts.']
     if manifest.get('interpretation'):
@@ -145,6 +151,10 @@ def _resource_card(manifest, overlay):
         elif name == 'exclusions':
             elements.append(_element(name, NONE_STATED, detail={
                 'basis': 'Every source block was accounted for and none states an exclusion.'}))
+        elif name == 'submission_channel':
+            # Informational: delivery uses a separately configured and authorized channel (D08); never sent from here.
+            elements.append(_element(name, NONE_STATED, detail={
+                'basis': 'No source block states a claim submission channel or required request fields.'}))
         else:
             elements.append(_missing(name, ' / '.join(keys)))
     requirements = ['Accept or reject the model-proposed interpretation of every cited block.',
@@ -236,12 +246,14 @@ def _drafts(manifest, overlay):
         return _no_drafts('The overlay product and plan have no cited tier.')
     if governed is None:
         return _no_drafts('No complete calendar month lies inside both the source and overlay intervals.')
-    filing_days = (overlay.get('override') or {}).get('filing_days', manifest['filing_days'])
-    if type(filing_days) is not int:
-        return _no_drafts('The filing window is not a whole number of days.')
+    from .vendor_terms import private_filing_days
     start, end = governed
     minutes = ((end - start).days + 1) * 1440
     month = start.strftime('%Y-%m')
+    # The draft month's own filing window: a private amendment governs only from its stated month (F4).
+    filing_days = private_filing_days(overlay, month, manifest['filing_days'])
+    if type(filing_days) is not int:
+        return _no_drafts('The filing window is not a whole number of days.')
     window_open = datetime(end.year, end.month, end.day, tzinfo=UTC) + timedelta(days=1)
     cutoff = window_open + timedelta(days=filing_days)
     cite = _monthly_cites(manifest)
@@ -293,6 +305,38 @@ def _drafts(manifest, overlay):
         cited + deadline)
     add('Received when the filing window closes', facts | {'received_at': _utc(cutoff)}, Outcome.INELIGIBLE.value, None,
         f'{filing_days}-day window has closed.', deadline)
+    # Timezone: receipt offsets are converted to UTC before the exclusive comparison; a time without an offset is unknown.
+    west, east = timezone(timedelta(hours=-7)), timezone(timedelta(hours=5, minutes=30))
+    add('Last timely second stated in UTC-07:00', facts | {'received_at': (cutoff - timedelta(seconds=1)).astimezone(west).isoformat()},
+        Outcome.ELIGIBLE.value, amount, 'The stated offset is converted to UTC before comparing with the window close.',
+        cited + deadline)
+    add('Window close stated in UTC+05:30', facts | {'received_at': cutoff.astimezone(east).isoformat()},
+        Outcome.INELIGIBLE.value, None, 'The same instant as the window close, in another offset, is not timely.', deadline)
+    add('Receipt time without a UTC offset', facts | {'received_at': _utc(cutoff - timedelta(days=1)).removesuffix('Z')},
+        missing, None, 'A receipt time must state its offset.', deadline)
+    # Private filing amendment (F4): its own window governs from its stated month onward.
+    override = overlay.get('override')
+    if isinstance(override, dict) and isinstance(override.get('effective_from'), str):
+        amended = date.fromisoformat(override['effective_from'])
+        amended_end = date(amended.year, amended.month, monthrange(amended.year, amended.month)[1])
+        if start < amended and amended_end <= governed_end:
+            amended_month, amended_minutes = amended.strftime('%Y-%m'), ((amended_end - amended).days + 1) * 1440
+            top = max(tiers, key=lambda t: t['below_units'])
+            down = int(amended_minutes * (1 - Fraction(top['below_units'], PERCENT_SCALE) / 100)) + 1
+            reached = _credit_at(tiers, amended_minutes, down)
+            days = private_filing_days(overlay, amended_month, manifest['filing_days'])
+            close = datetime(amended_end.year, amended_end.month, amended_end.day, tzinfo=UTC) + timedelta(days=1 + days)
+            if reached and 0 < down <= amended_minutes:
+                monthly = base | {'month': amended_month, 'monitor_ref': 'draft-monitor-' + amended_month,
+                                  'fee_ref': 'draft-fee-' + amended_month, 'eligible_downtime_minutes': down}
+                late_amount = _money(DRAFT_FEE_CENTS, reached['credit_units'])
+                add(f'Amendment month {amended_month}: last timely second of the private {days}-day window',
+                    monthly | {'received_at': _utc(close - timedelta(seconds=1))}, Outcome.ELIGIBLE.value, late_amount,
+                    f'The private amendment governs from {override["effective_from"]}; {days} days after month end.',
+                    [reached['citation']] + deadline)
+                add(f'Amendment month {amended_month}: private window closes',
+                    monthly | {'received_at': _utc(close)}, Outcome.INELIGIBLE.value, None,
+                    f'The private {days}-day window has closed.', deadline)
     # The month containing the first ungoverned day is never wholly governed.
     add('Month outside the governed interval', facts | {'month': (governed_end + timedelta(days=1)).strftime('%Y-%m')},
         Outcome.UNSUPPORTED.value, None, 'The complete month must be governed by both the source and the overlay.',

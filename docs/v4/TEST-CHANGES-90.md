@@ -38,3 +38,9 @@ Updated from `2056856` with two more listener-level probes. A source revised aft
 | File | Change | Reason |
 |:---|:---|:---|
 | `tests/test_ramp_workflow_webhooks.py` | **Added** three new tests at the end of the file: `test_malformed_event_type_is_a_400_not_an_unhandled_exception` (4 cases) and `test_duplicate_webhook_headers_rejected`, both from W1's source commit `c61c384`, plus `test_verification_receipt_must_be_exactly_success_true` (4 cases, new here). No existing test or assertion changed. | A non-string event type such as `[]` or `{}` raised `TypeError` instead of a 400. A verification receipt of `{"success": 1}` activated the deployment because `1 == True`. Before the fix, 6 of the new cases failed: 2 type cases, plus the receipt cases, which also need the new read-only `status()`. After it, the file passed 28, and all `tests/test_ramp*.py` passed 1,007 with 1 warning. |
+
+## W3 interface request: F4 on the signed claim route (W0 `v4_routes.py`)
+
+| File | Change | Reason |
+|:---|:---|:---|
+| `tests/test_claim_route_filing_override_f4.py` | **New file**, 4 tests | After F4, `vendor_eval` applies a private filing amendment only from its `effective_from` month, but the claim route used the override for every month. The route now computes its monthly cutoff with `vendor_terms.private_filing_days`. An undated stored amendment is `UNSUPPORTED_RULE` (a contract-terms limit, never INSUFFICIENT_EVIDENCE). The economic fingerprint binds `{filing_days, effective_from}` only when an override exists, so adapters without one keep exactly the same fingerprint bytes; that is what the test confirms. 3 of 4 failed before the change; the bytes-unchanged test passed before and after. Route, vendor, Northwind, claim-identity, correspondence, blind-acceptance, portfolio and probe suites: 291 passed, 1 warning. No existing test changed. |

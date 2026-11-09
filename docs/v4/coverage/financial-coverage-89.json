@@ -1,6 +1,6 @@
 {
  "schema": "financial-coverage/1",
- "audited_source": "03b372e; identity rows updated for D03-A",
+ "audited_source": "03b372e; identity rows updated for D03-A, its name extension and D04-C",
  "authority": "Descriptive only. The engines and their refusals are the authority; never consult this file instead of evaluating.",
  "engines": {
   "negotiated-pricing": "uptime.pricing.evaluate_price",
@@ -1004,16 +1004,21 @@
    "id": "IDS-D04-1",
    "engine": "claim-identity",
    "dimension": "identity_scope",
-   "case": "Whole-service and resource claims without component, incident, invoice or region",
-   "status": "DEFECT_DECISION_PENDING",
-   "result": "Every claim requires all ten scope fields; Northwind supplies authored values the monthly evaluator never reads. Repair depends on D04.",
+   "case": "Claim scope fields component, incident, region and invoice",
+   "status": "SUPPORTED",
+   "result": "claim-scope/1: the server resolves the governing family from installed terms; required fields must be present, not-applicable fields absent (no placeholders), invoice is an optional evidence reference, and an unknown or ambiguous family refuses at intake with a distinct InvalidClaimScope. Monthly keeps incident. Stored ten-field claims serialize byte-identically and keep their governing fee via an explicit legacy alias.",
    "enforced_by": [
-    "uptime/correspondence_types.py::Scope"
+    "uptime/claim_scope.py::resolve",
+    "uptime/claim_scope.py::ScopeVariant.check",
+    "uptime/correspondence_types.py::Scope",
+    "uptime/governing_fees.py::FeeRegistry.__init__"
    ],
    "tests": [
-    "tests/test_identity_domain_89.py::test_claim_scope_requires_every_field_for_every_obligation_family",
-    "tests/test_identity_domain_89.py::test_recorded_scopes_lack_fields_their_obligation_may_not_need",
-    "tests/test_identity_domain_89.py::test_northwind_whole_service_scope_carries_authored_values_the_evaluator_never_reads"
+    "tests/test_claim_scope_89.py::test_variant_check_refuses_missing_required_and_present_not_applicable",
+    "tests/test_claim_scope_89.py::test_unknown_and_ambiguous_families_are_refused",
+    "tests/test_claim_scope_89.py::test_absent_fields_are_not_serialized_and_ten_field_scopes_are_byte_identical",
+    "tests/test_identity_domain_89.py::test_recorded_requests_parse_and_are_judged_by_their_governing_family",
+    "tests/test_identity_domain_89.py::test_northwind_intake_omits_placeholders_and_keeps_its_authored_scope_as_a_legacy_alias"
    ]
   }
  ]

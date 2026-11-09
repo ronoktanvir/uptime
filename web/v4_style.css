@@ -59,3 +59,5 @@
 .uptime-v4 .v4-selection,.uptime-v4 .v4-family,.uptime-v4 .v4-requirements li,.uptime-v4 .v4-progress li{min-width:0;overflow-wrap:anywhere}
 .uptime-v4 .v4-family{margin-top:12px;padding-top:10px;border-top:1px solid var(--line,#dce1ed)}
 .uptime-v4 .v4-outcome{font-weight:600}
+.uptime-v4 .v4-requirements-card .v4-scroll{overflow-x:auto;max-width:100%}
+.uptime-v4 .v4-elements li,.uptime-v4 .v4-requirement,.uptime-v4 .v4-requirements-card blockquote{overflow-wrap:anywhere;min-width:0}

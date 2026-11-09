@@ -332,6 +332,107 @@
       }
       return n;
     }
+    // A rule family's refusal summary (codes, fixed explanations, exact passages, missing terms). It is not the job
+    // projection's public-refusal-diagnostic/1 record; every value renders as text. Shared by the proposal
+    // generator and the review requirements.
+    function familyRefusal(value) {
+      if (!value || typeof value !== 'object') return null;
+      const box = add(el('div', undefined, 'v4-review v4-refusal'), el('h4', 'Why this family was refused'));
+      list(value.explanations).filter(t => typeof t === 'string' && t).forEach(t => box.append(el('p', t)));
+      list(value.passages).filter(t => typeof t === 'string' && t).forEach(t => box.append(el('blockquote', t), note('Public source passage')));
+      const missing = list(value.missing_terms).filter(t => typeof t === 'string' && t);
+      if (missing.length) box.append(note('Required terms not established by the source: ' + missing.join(', ') + '.'));
+      return box;
+    }
+    // Read-only review requirements for an adapter version (decisions 90 and 97). Loaded on request; no action control.
+    const ELEMENT_NAMES = {source_clauses:'Source clauses', eligible_fee:'Eligible fee', evidence:'Evidence',
+      exclusions:'Exclusions', deadline:'Claim deadline', submission_channel:'Submission channel'};
+    const ELEMENT_STATUS = {PRESENT:'stated in the source', FAMILY_DEFINED:'defined by the adapter family',
+      NONE_STATED:'none stated in the source', REVIEW_REQUIRED:'review required'};
+    const SELECTION_METHOD = {deterministic_document_parser:'deterministic document parser', public_proposal_job:'public proposal job'};
+    const lower = value => value == null ? 'Not provided' : String(value).replaceAll('_', ' ').toLowerCase();
+    const cents = value => Number.isSafeInteger(value) ? (value < 0 ? '-' : '') + 'USD ' + Math.trunc(Math.abs(value) / 100) + '.'
+      + String(Math.abs(value) % 100).padStart(2, '0') : 'Not provided';
+    function requirementsView(r, citations) {
+      const card = r.card && typeof r.card === 'object' ? r.card : {};
+      const quotes = new Map(list(citations).filter(c => c && typeof c === 'object').map(c => [c.id, c.quote]));
+      const out = el('div', undefined, 'v4-requirements-card');
+      out.append(record({family:card.family, supported:card.supported === true ? 'yes' : 'no',
+        open_requirements:card.no_open_requirements === true ? 'none' : 'see below', source_sha256:card.source_sha256}));
+      const elements = el('ul', undefined, 'v4-elements');
+      list(card.elements).filter(e => e && typeof e === 'object').forEach(e => {
+        const fallback = label(String(e.element)), name = ELEMENT_NAMES[e.element] || fallback.charAt(0).toUpperCase() + fallback.slice(1);
+        const row = add(el('li'), el('strong', name + ': ' + (ELEMENT_STATUS[e.status] || lower(e.status))));
+        if (typeof e.requirement === 'string' && e.requirement) row.append(el('p', e.requirement, 'v4-requirement'));
+        const ids = list(e.citations).filter(id => id !== null && id !== undefined);
+        if (ids.length) {
+          const cited = add(el('details', undefined, 'v4-detail'), el('summary', 'Cited clauses ' + ids.map(String).join(', ')));
+          ids.forEach(id => { const q = quotes.get(id); cited.append(typeof q === 'string' && q ? el('blockquote', q) : note('Clause ' + shown(id) + ' text not returned.')); });
+          row.append(cited);
+        }
+        if (e.detail && typeof e.detail === 'object' && Object.keys(e.detail).length) row.append(record(e.detail));
+        elements.append(row);
+      });
+      out.append(el('h4', 'Elements'), elements.children.length ? elements : note('No elements returned.'));
+      const todo = list(card.review_requirements).filter(t => typeof t === 'string' && t);
+      if (todo.length) { const items = el('ul', undefined, 'v4-requirements'); todo.forEach(t => items.append(el('li', t))); out.append(el('h4', 'What a reviewer must still do'), items); }
+      const selection = r.family_selection && typeof r.family_selection === 'object' ? r.family_selection : null;
+      if (selection) {
+        const box = add(el('div', undefined, 'v4-review'), el('h4', 'How the rule family was chosen'));
+        if (selection.outcome === 'NOT_AUTOMATIC') box.append(note('This version was not chosen by automatic family selection.'));
+        else {
+          const chosen = selection.selected && typeof selection.selected === 'object' ? selection.selected : null;
+          box.append(note('Outcome: ' + lower(selection.outcome) + (chosen ? '. Selected ' + shown(chosen.family) + ' by '
+            + (SELECTION_METHOD[chosen.method] || lower(chosen.method)) + '.' : '.')));
+          list(selection.families).filter(f => f && typeof f === 'object').forEach(f => {
+            box.append(add(el('div', undefined, 'v4-family'), el('strong', shown(f.label ?? f.family) + ': ' + lower(f.state)), familyRefusal(f.refusal)));
+          });
+        }
+        const why = list(selection.review_requirements).filter(t => typeof t === 'string' && t);
+        if (why.length) { const items = el('ul', undefined, 'v4-requirements'); why.forEach(t => items.append(el('li', t))); box.append(items); }
+        out.append(box);
+      }
+      const drafts = r.drafts && typeof r.drafts === 'object' ? r.drafts : null;
+      if (drafts) {
+        const box = add(el('details', undefined, 'v4-detail v4-drafts'), el('summary', 'Generated drafts (not independent tests; placeholder fee)'));
+        if (typeof drafts.notice === 'string' && drafts.notice) box.append(note(drafts.notice));
+        if (drafts.generated !== true) box.append(note('No drafts were generated: ' + shown(drafts.reason) + '.'));
+        else {
+          const table = el('table'), body = el('tbody');
+          add(table, add(el('thead'), add(el('tr'), ...['Scenario', 'Derived outcome', 'Derived amount', 'Placeholder fee', 'Clauses'].map(t => { const th = el('th', t); th.scope = 'col'; return th; }))), body);
+          list(drafts.scenarios).filter(d => d && typeof d === 'object').forEach(d => body.append(add(el('tr'),
+            add(el('td'), el('span', shown(d.name)), typeof d.derivation === 'string' ? note(d.derivation) : null),
+            el('td', lower(d.derived?.outcome)), el('td', d.derived?.amount == null ? 'Not determined' : 'USD ' + shown(d.derived.amount)),
+            el('td', cents(d.placeholder_fee_cents)), el('td', list(d.citations).map(String).join(', ') || 'None'))));
+          box.append(add(el('div', undefined, 'v4-scroll'), table));
+        }
+        out.append(box);
+      }
+      const overlap = r.draft_overlap && typeof r.draft_overlap === 'object' ? r.draft_overlap : null;
+      if (overlap && typeof overlap.warning === 'string' && overlap.warning) {
+        const reused = list(overlap.tests_reusing_draft_facts).filter(t => typeof t === 'string' && t);
+        out.append(add(el('div', undefined, 'v4-review v4-overlap'), el('h4', 'Draft overlap'), note(overlap.warning),
+          reused.length ? note('Tests reusing draft facts: ' + reused.join(', ') + '.') : null));
+      }
+      out.append(note('Read only. These requirements grant no approval, activation or dispatch.'));
+      return out;
+    }
+    function requirementsPanel(m, base, citations) {
+      const n = add(el('div', undefined, 'v4-review'), el('h3', 'Review requirements'),
+        note('What the source establishes for this adapter version, what a reviewer must still do, and how its rule family was chosen.'));
+      const out = el('div'); out.setAttribute('aria-live', 'polite');
+      const load = button('Show review requirements', async () => {
+        if (!active(m)) return;
+        load.disabled = true; out.replaceChildren(note('Loading review requirements…'));
+        try {
+          const r = await request(m, base + '/requirements');
+          if (active(m)) out.replaceChildren(r && typeof r === 'object' ? requirementsView(r, citations) : note('Review requirements unavailable. Nothing was changed.'));
+        } catch (error) {
+          if (active(m)) out.replaceChildren(note(error?.status === 401 ? 'Sign in again to read the review requirements.' : 'Review requirements unavailable. Nothing was changed.'));
+        } finally { load.disabled = false; }
+      });
+      return add(n, load, out);
+    }
     // Who recorded each lifecycle revision. Preparation scripts are never presented as a person's decision.
     function reviewHistory(data) {
       const rows = list(data.audit).filter(row => row && typeof row === 'object');
@@ -349,7 +450,9 @@
     function vendor(m, data) {
       const id = data.vendor_id ?? data.id;
       const n = section(shown(data.name ?? data.vendor ?? id));
-      add(n, provenance(data.sources), record({vendor_id:id, revision:data.revision, state:data.state, active_version:data.active_version, reviewer:data.reviewer}), reviewHistory(data), details('Rules, overlay, tests and reviewer versions', data));
+      add(n, provenance(data.sources), record({vendor_id:id, revision:data.revision, state:data.state, active_version:data.active_version, reviewer:data.reviewer}), reviewHistory(data),
+        typeof id === 'string' && id && !data.detail_unavailable && data.revision != null ? requirementsPanel(m, '/api/vendors/' + encodeURIComponent(id), data.manifest?.citations) : null,
+        details('Rules, overlay, tests and reviewer versions', data));
       if (typeof id !== 'string' || !id) { n.append(note('Vendor ID missing; actions unavailable.')); return n; }
       const base = '/api/vendors/' + encodeURIComponent(id);
       if (data.detail_unavailable) { n.append(note('Vendor details unavailable. Refresh before reviewing or changing this version.')); return n; }
@@ -492,15 +595,6 @@
       });
       // The selection view's per-family refusal summary (codes, fixed explanations, exact passages, missing terms).
       // It is not the job projection's public-refusal-diagnostic/1 record; every value renders as text.
-      function familyRefusal(value) {
-        if (!value || typeof value !== 'object') return null;
-        const box = add(el('div', undefined, 'v4-review v4-refusal'), el('h4', 'Why this family was refused'));
-        list(value.explanations).filter(t => typeof t === 'string' && t).forEach(t => box.append(el('p', t)));
-        list(value.passages).filter(t => typeof t === 'string' && t).forEach(t => box.append(el('blockquote', t), note('Public source passage')));
-        const missing = list(value.missing_terms).filter(t => typeof t === 'string' && t);
-        if (missing.length) box.append(note('Required terms not established by the source: ' + missing.join(', ') + '.'));
-        return box;
-      }
       function renderProgress() {
         if (!state.progress) return;
         const items = Object.entries(state.running);
@@ -807,7 +901,8 @@
     }
     function disputes(m, data) {
       m.body.append(form(m, 'Set up a correspondence case', [ ['claim_id','Claim identifier (inbox- prefix)'], ...['account','vendor','contract','service','component','invoice','incident','currency','month','region'].map(k => [k,label(k)]) ], 'Create scoped case', v => {
-        const {claim_id, ...scope} = v; return {claim_id,scope};
+        // Decision D04-C: leave fields that do not apply blank; they are omitted, never sent as empty or null.
+        const {claim_id, ...scope} = v; return {claim_id,scope:Object.fromEntries(Object.entries(scope).filter(([, x]) => x !== ''))};
       }, '/api/correspondence/claims'));
       m.body.append(note('Provisioned services deliver messages and evidence through CLI ingestion. Refresh to inspect receipts and available reviewer actions. Service credentials never belong in this browser.'));
       const items = Array.isArray(data) ? data : list(data.claims);

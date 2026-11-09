@@ -28,9 +28,8 @@ def source_inputs(package):
     overlay=package['overlay'];scopes={};events={}
     for row in package['months']:
         month=row['month'];u=row['usage'];invoice=row['invoice']
-        scope=Scope(account=overlay['account'],vendor=package['manifest']['vendor'],contract=overlay['agreement'],
-            service=overlay['product'],component=u['component_id'],invoice=invoice.id,incident=u['incident_id'],
-            currency=invoice.currency,month=month,region=u['region'])
+        # Decision D04-C: the loader's intake scope omits obligation fields the monthly family does not need.
+        scope=Scope(**row['scope'])
         scopes[month]=scope
         bodies=[('northwind-invoice-'+month,dict(kind='invoice',lines=[
             dict(id=line.id,kind='affected_api',amount=str(line.net)) for line in invoice.lines]))]

@@ -47,10 +47,14 @@ def test_published_scope_version_is_explicit_and_cannot_be_replaced(env, tmp_pat
     assert len(env.read()["evidence"]) == 1
 
 
-def test_signed_public_source_proof_covers_original_pin_and_new_terms_cannot_repin_it(tmp_path):
+def test_signed_public_source_proof_covers_original_pin_and_new_terms_cannot_repin_it(tmp_path, monkeypatch):
+    # D04-C (2026-11-09): the injected resolver stands in for installed resource-month terms, so their family is
+    # declared the same way; this non-regional family needs the resource, and incident and region do not apply.
+    from uptime import claim_scope
+    monkeypatch.setattr(claim_scope, "_installed", lambda db, t, s: [{"manifest": {"family": "resource-month/1"}, "overlay": {}}])
     scope = Scope(account="version-fixture-account", vendor="Version Fixture Provider", contract="fixture-agreement",
-                  service="Fixture Service", component="cell-1", invoice="fixture-invoice", incident="fixture-observation",
-                  currency="USD", month="2026-06", region="west")
+                  service="Fixture Service", component="cell-1", invoice="fixture-invoice",
+                  currency="USD", month="2026-06")
     config_path, sender_path, db_path = tmp_path / "source.json", tmp_path / "vendor.json", tmp_path / "workspace.db"
     init_config(config_path, "replay", DEFAULT_ORIGIN, "bears")
     update_source(config_path, "add", "version-fixture-vendor", source="vendor", scope=scope, sender_path=sender_path)

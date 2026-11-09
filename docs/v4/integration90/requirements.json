@@ -398,7 +398,7 @@
     "docs/v4/STATUS.md",
     "tests/test_identity_domain_89.py"
    ],
-   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91` and verified by round 5 (4,663 passed).",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -529,7 +529,7 @@
     "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked",
     "tests/test_identity_domain_89.py"
    ],
-   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04). D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91` and verified by round 5 (4,663 passed).",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -776,7 +776,7 @@
     "docs/v4/CAPABILITIES.md",
     "tests/test_vendor_family_selection_89.py"
    ],
-   "gap": "No automatic discovery from Ramp records into onboarding; operators start intake. D05 decided 2026-11-09 (auto-select plus human approval); family selection merged, but discovery from Ramp records is not.",
+   "gap": "No discovery from Ramp records. Stored Ramp vendor records keep only IDs, status and timestamps, so discovery can only match by exact Ramp vendor ID, which needs a reviewed adapter-slot ↔ Ramp-vendor binding (an identity/authority record under D03; W1 owns ramp_records). Post-demo proposal from W3: a read-only discovery listing by exact ID, plus that reviewed binding. D05 decided 2026-11-09 (auto-select plus human approval); family selection merged, but discovery from Ramp records is not.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D05"
@@ -835,9 +835,10 @@
     "uptime/onboarding.py"
    ],
    "evidence": [
-    "tests/test_onboarding_rules.py::test_held_out_contract_scenarios"
+    "tests/test_onboarding_rules.py::test_held_out_contract_scenarios",
+    "tests/test_vendor_requirements_89.py"
    ],
-   "gap": "Shadow cases are authored by reviewers, not generated per vendor across every category. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap": "Generated drafts cover timezone receipts and private-amendment month boundaries, each equal to the evaluator. Shadow cases are still authored per vendor, not generated across every category.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D05"
@@ -1038,7 +1039,7 @@
     "docs/v4/integration90/INTERFACES.md",
     "tests/test_identity_domain_89.py"
    ],
-   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91` and verified by round 5 (4,663 passed).",
    "gap_class": "bug",
    "decisions": [
     "D03",
@@ -3323,7 +3324,7 @@
    "evidence": [
     "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
    ],
-   "gap": "Identity and scope domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap": "Identity and scope domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); account/agreement implementation merged at `1f6238e` (with reconciliation `3dbe8ab` and Ramp association `a8bc96e`); the vendor/service-name extension is not merged yet. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); D04-C merged at `6f43a91` and verified by round 5 (4,663 passed).",
    "gap_class": "bug",
    "decisions": [
     "D03",

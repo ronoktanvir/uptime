@@ -342,7 +342,7 @@ def test_relative_filing_paths_are_unchanged_by_the_scoped_dispatch():
 
 def test_private_relative_override_cannot_replace_a_scoped_deadline():
     manifest = compile_rows(scoped_rows((NOV_QUOTE, NOV)))
-    override = {'filing_days':30, 'source_ref':'signed-order-page-4',
+    override = {'filing_days':30, 'source_ref':'signed-order-page-4', 'effective_from':'2026-03-01',
                 'quote':'Claims must be received within 30 calendar days after month end.'}
     with pytest.raises(ValueError, match='calendar-day override'):
         bind_overlay(manifest, Overlay(**(resource.OVERLAY | {'override':override})))
