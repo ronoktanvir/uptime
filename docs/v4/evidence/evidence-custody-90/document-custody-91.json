@@ -1,0 +1,84 @@
+{
+  "recorded_by": "W5 evidence-custody-90",
+  "source_commit": "7799f2ed18c83c7fdc4a4ede007ac9ed7e9252f3",
+  "command": "uv run --locked python scripts/audit_document_custody.py --db $HOME/.local/share/uptime-engineering/runtime/northwind-presentation-87/workspace.db --db $HOME/.local/share/uptime-engineering/runtime/ronok-review-87/workspace.db",
+  "mode": "SQLite immutable read-only; no write; no key file read",
+  "summary": {
+    "workspaces": 2,
+    "artifacts": 5,
+    "citations": 77,
+    "all_traceable": true
+  },
+  "limit": "Re-slicing proves the cited words are present at the stated offsets of the stored authored or public source. It does not certify interpretation, customer execution or reviewer authority.",
+  "reports": {
+    "$HOME/.local/share/uptime-engineering/runtime/northwind-presentation-87/workspace.db": {
+      "database_sha256": "d9021b56a8efecf68fa4c7949070539e5220785cef16adb34fbedc33642045b3",
+      "artifacts": [
+        {
+          "tenant": "bears",
+          "vendor": "calyxquay",
+          "version": "137601abdab81ddb4895852fe1ed462d9c21ddf3bc77d156f772ed61c7dca74c",
+          "document": "CalyxQuay Beacon Cache Service Agreement",
+          "uri": "urn:synthetic:public:calyxquay:2031-04",
+          "sha256": "697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1",
+          "citations": 17,
+          "traceable": true,
+          "problems": []
+        },
+        {
+          "tenant": "bears",
+          "vendor": "calyxquay",
+          "version": "f3f38f47a36b9d1f8b092eff065bd6ce18a3d399990d2bde0afd85ca59c7b279",
+          "document": "CalyxQuay Beacon Cache Service Agreement",
+          "uri": "urn:synthetic:public:calyxquay:2031-04",
+          "sha256": "697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1",
+          "citations": 17,
+          "traceable": true,
+          "problems": []
+        },
+        {
+          "tenant": "bears",
+          "vendor": "northwind-cloud",
+          "version": "3b0d7f558a3f2f4cbf96e22224abc157597d0b091b5ecdda305c4b9bc3408096",
+          "document": "Northwind Cloud Service Level Agreement",
+          "uri": "urn:northwind:NW-2026-001:sla",
+          "sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+          "citations": 9,
+          "traceable": true,
+          "problems": []
+        }
+      ],
+      "traceable": true,
+      "uncheckpointed_log": false
+    },
+    "$HOME/.local/share/uptime-engineering/runtime/ronok-review-87/workspace.db": {
+      "database_sha256": "880d33cbabcb47c017dbe641cef16e3d145114fecf0fed389047ef769b3983d4",
+      "artifacts": [
+        {
+          "tenant": "bears",
+          "vendor": "calyxquay",
+          "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+          "document": "CalyxQuay Beacon Cache Service Agreement",
+          "uri": "urn:synthetic:public:calyxquay:2031-04",
+          "sha256": "697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1",
+          "citations": 17,
+          "traceable": true,
+          "problems": []
+        },
+        {
+          "tenant": "bears",
+          "vendor": "calyxquay",
+          "version": "f3f38f47a36b9d1f8b092eff065bd6ce18a3d399990d2bde0afd85ca59c7b279",
+          "document": "CalyxQuay Beacon Cache Service Agreement",
+          "uri": "urn:synthetic:public:calyxquay:2031-04",
+          "sha256": "697b2b662246f6f08672cb23d59ca03cadfa506f117947ff12debd063e258cc1",
+          "citations": 17,
+          "traceable": true,
+          "problems": []
+        }
+      ],
+      "traceable": true,
+      "uncheckpointed_log": false
+    }
+  }
+}
