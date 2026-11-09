@@ -1,0 +1,94 @@
+{
+  "schema": "uptime-ramp-platform-verification/1",
+  "fetched_at": "2026-11-09T11:01:01Z",
+  "openapi": {
+    "url": "https://docs.ramp.com/openapi/developer-api.json",
+    "bytes": 2615908,
+    "sha256": "29571a47002f5d08d5c7686a31551bb9b66a6c40f06b66597b3f1f5b26d35808",
+    "previous_pin_sha256": "2f7d60ff0a94859bd8ae94ac7a688c1a8df60ea281e3ef8f5d061b04b9ae849a",
+    "operations_previous_current": [
+      277,
+      277
+    ],
+    "operations_added": 0,
+    "operations_removed": 0,
+    "changed_paths": 28,
+    "changed_areas": [
+      "AssignedUserSource",
+      "AuditLogUserDetailsResource",
+      "AuditLogEventResource event types",
+      "purchase-order denial-reason descriptions",
+      "QuestionFieldMappingReference",
+      "SpendIntent question descriptions",
+      "IssuanceParameters"
+    ],
+    "unchanged_for_this_work": "bills, drafts, vendor credits, comments, agreements, approvals, business, blank canvas, custom records"
+  },
+  "operations": [
+    {
+      "operation": "GET /developer/v1/vendors/credits",
+      "scope": "vendors:read",
+      "note": "Active credits by default; include_fully_used and is_archived filters; archived credits cannot be applied."
+    },
+    {
+      "operation": "GET /developer/v1/vendors/credits/{vendor_credit_id}",
+      "scope": "vendors:read"
+    },
+    {
+      "operation": "GET /developer/v1/vendors/{vendor_id}/credits",
+      "scope": "vendors:read"
+    },
+    {
+      "operation": "vendor-credit create/apply",
+      "scope": null,
+      "note": "No published operation."
+    },
+    {
+      "operation": "GET /developer/v1/bills/{bill_id}",
+      "scope": "bills:read",
+      "note": "applied_vendor_credits; status OPEN|PAID; status_summary includes ON_HOLD."
+    },
+    {
+      "operation": "POST /developer/v1/bills/{bill_id}/hold",
+      "scope": "bills:write",
+      "note": "Blocks all payment rails and deschedules payments. Not executed."
+    },
+    {
+      "operation": "POST /developer/v1/bills/{bill_id}/release",
+      "scope": "bills:write",
+      "note": "Not executed."
+    },
+    {
+      "operation": "GET|POST /developer/v1/comments/{object_type}/{object_id}",
+      "scope": "{resource}:read|write",
+      "note": "bills, draft-bills, transactions, spend-requests (procurement access)."
+    },
+    {
+      "operation": "POST /developer/v1/approvals/{entity_type}/{entity_id}/add-step",
+      "scope": "approval_chains:write",
+      "note": "Published as in development; scope not granted to the demo app."
+    },
+    {
+      "operation": "POST /developer/v1/blank-canvas-approvals/{approval_trigger_instance_id}",
+      "scope": "blank_canvas:write",
+      "note": "Configured trigger instance, not a bill."
+    },
+    {
+      "operation": "POST /developer/v1/vendors/agreements",
+      "scope": "vendors:read",
+      "note": "Read-only list query."
+    }
+  ],
+  "help_article": {
+    "url": "https://support.ramp.com/vendor-credits-credit-memos-on-ramp-bill-pay",
+    "html_sha256": "6ac21805fe00b077bf1699837e4c70a8ed0d156e720f74511586d9fec1490d9b",
+    "facts": [
+      "Create a vendor credit from a paid bill (three-dot menu, New Vendor Credit) or from the vendor profile (New > Vendor credit).",
+      "No CSV or spreadsheet import; a forwarded memo becomes a draft bill to convert.",
+      "Apply available vendor credits > Split payment lets a person choose the credit and amount.",
+      "Legacy Apply vendor credits toggle applies credits by ascending accounting date, then largest remaining balance.",
+      "Credit and bill must share invoice currency, vendor and entity; not after payment starts or is batched.",
+      "An applied credit cannot be edited or deleted unless removed from its bills; fully applied credits are no longer available."
+    ]
+  }
+}

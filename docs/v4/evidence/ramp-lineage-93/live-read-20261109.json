@@ -1,0 +1,107 @@
+{
+  "schema": "uptime-ramp-lineage-live-read/1",
+  "purpose": "Permitted read-only inspection for decision93; no write, comment, hold or credit action.",
+  "commands": [
+    "scripts/ramp_verify_browser.py --bill-url <observed demo bill URL> --output <owner-only file>",
+    "scripts/ramp_sync.py --page-size 10 --max-pages 1 --detail-limit 10 --output <owner-only file>"
+  ],
+  "code_commit": "03b372e",
+  "origin": "https://demo-api.ramp.com",
+  "environment": "Ramp demo sandbox (demo-api.ramp.com)",
+  "credential": "Existing protected demo-app client-credentials profile; not read into Git or any model prompt.",
+  "association": {
+    "status": "ONE_BILL_READ_VERIFIED",
+    "business_id": "1569e402-460e-4952-adad-9df27db628a0",
+    "bill_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+    "observed_at": "2026-11-09T11:02:36.099029+00:00",
+    "verified_read_scopes": [
+      "business:read",
+      "bills:read"
+    ],
+    "write_attempted": false
+  },
+  "capture": {
+    "observed_at": "2026-11-09T11:02:40.072813+00:00",
+    "completed_at": "2026-11-09T11:03:14.697073+00:00",
+    "checksum": "ad6a48ad9e39e7e80366ac55a8ddef4596d2bc9d21f3e9fd5269cc6d40fd099b",
+    "private_file_sha256": "4901393a60be6fdb63507a31b8dd7acf01aaf457ec9731d6f4927d31ea196bcb",
+    "association_file_sha256": "43a9d5eb0ac6b31171ff596fb9a78a31835d2b4b8651d4b4b71ee612f4c91e2d",
+    "raw_records_committed": false,
+    "resources": {
+      "bills": {
+        "status": "COMPLETE",
+        "complete": true,
+        "count": 6
+      },
+      "vendors": {
+        "status": "TRUNCATED",
+        "complete": false,
+        "count": 10
+      },
+      "transactions": {
+        "status": "TRUNCATED",
+        "complete": false,
+        "count": 10
+      },
+      "agreements": {
+        "status": "EMPTY",
+        "complete": true,
+        "count": 0
+      },
+      "purchase_orders": {
+        "status": "NOT_REQUESTED",
+        "complete": false,
+        "count": 0
+      },
+      "credits": {
+        "status": "EMPTY",
+        "complete": true,
+        "count": 0
+      },
+      "approvals": {
+        "status": "TRUNCATED",
+        "complete": false,
+        "count": 9
+      },
+      "comments": {
+        "status": "COMPLETE",
+        "complete": true,
+        "count": 1
+      }
+    }
+  },
+  "demo_bill": {
+    "id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+    "vendor_id": "8bde54ed-22d7-4801-82b1-e32c0ddb1b49",
+    "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+    "status": "OPEN",
+    "status_summary": "APPROVAL_PENDING",
+    "approval_status": "PENDING",
+    "amount": {
+      "currency": "USD",
+      "amount": "840",
+      "amount_minor": 84000,
+      "minor_unit_conversion_rate": 100
+    },
+    "applied_credits": [],
+    "line_count": 1,
+    "lines_with_quantity_or_unit_price": 0
+  },
+  "comments_observed": [
+    {
+      "id": "376563cf-950c-409d-b3d8-a68599c45fa0",
+      "object_type": "bills",
+      "object_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+      "created_at": "2026-11-08T01:46:45+00:00"
+    }
+  ],
+  "credits": {
+    "status": "EMPTY",
+    "complete": true,
+    "count": 0,
+    "note": "include_fully_used=true; archived credits are excluded by the default list (is_archived not requested)."
+  },
+  "write_attempted": false,
+  "native_recovery": "UNVERIFIED",
+  "actual_money_recovered": null
+}
