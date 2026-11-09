@@ -1,0 +1,22 @@
+{
+  "schema": "uptime-test-flake-receipt/1",
+  "test": "tests/test_workspace_ui_v4.py::test_configured_workflow_keeps_evidence_money_and_original_navigation_reachable",
+  "test_changed": false,
+  "source": "work/finance-guide-90 working tree before commits (base 03b372e), including the W7 UI and W8 projection changes later committed",
+  "failing_run": {
+    "recorded_at": "2026-11-09 (America/Los_Angeles), during a concurrent multi-agent load period",
+    "command": "uv run --locked pytest -q -p no:cacheprovider --basetemp=<unique> -o tmp_path_retention_policy=failed tests/test_finance_browser_90.py tests/test_workspace_ui_v4.py tests/test_ramp_ui_v4.py tests/test_advanced_companion.py tests/test_v4_authority_browser.py tests/test_v4_audit_browser.py tests/test_vendor_auth83.py tests/test_vendor_model_jobs_browser.py tests/test_finance_guide_90.py tests/test_finance_view_90.py",
+    "verbatim_summary": [
+      "FAILED tests/test_workspace_ui_v4.py::test_configured_workflow_keeps_evidence_money_and_original_navigation_reachable",
+      "1 failed, 75 passed, 1 warning in 263.91s (0:04:23)"
+    ],
+    "process_time": "52.81s user 21.67s system 28% cpu 4:25.60 total",
+    "traceback_preserved": false,
+    "why_not_preserved": "The run's output was filtered to its last lines before display; the assertion text and traceback were not captured. This omission is recorded rather than reconstructed."
+  },
+  "subsequent_runs_same_source": [
+    {"command": "uv run --locked pytest -q tests/test_workspace_ui_v4.py", "result": "3 passed in 8.11s"},
+    {"command": "same ten-file group as the failing run, with -rf --tb=short", "result": "76 passed, 1 warning in 93.80s (0:01:33)"}
+  ],
+  "assessment": "Not reproduced. The failing run took 2.8x longer than the passing rerun and used 28% CPU, consistent with a Playwright expect() timeout under machine load. That remains a hypothesis, not a demonstrated cause. The test uses an authored projection without the new finance summary, so the new panels do not render in it."
+}

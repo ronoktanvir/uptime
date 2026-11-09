@@ -264,6 +264,23 @@ class WorkspaceWorkflow:
                 result.append(f'USD {Decimal(fee)/100:.2f} × {percent}% = USD {current["amount"]} after final-cent rounding.')
             return result
 
+    @staticmethod
+    def _credit_inputs(current,usage):
+        """Copy the evaluator's own inputs for display; derive nothing new."""
+        from .credit_steps import UNITS_PER_PERCENT
+        if not current or current['outcome'] not in {'ELIGIBLE','INELIGIBLE'}:
+            return {}
+        units,steps,fee=current.get('rate_units'),current.get('completed_steps'),current.get('governing_fee_cents')
+        if type(units) is not int or type(steps) is not int:
+            return {}
+        with localcontext() as context:
+            context.prec=60
+            return dict(governing_fee=f'{Decimal(fee)/100:.2f}' if type(fee) is int else None,currency=current.get('currency'),
+                        fee_version=current.get('fee_ref'),
+                        eligible_downtime_minutes=str(usage['eligible_downtime_minutes']) if usage.get('eligible_downtime_minutes') is not None else None,
+                        completed_steps=str(steps),credit_percent=format(Decimal(units)/UNITS_PER_PERCENT,'f'),
+                        claim_cutoff=current.get('claim_cutoff_exclusive'),monitor_ref=current.get('monitor_ref'))
+
     def _document_citations(self,version):
         source=next(row for row in self.package['pricing_agreement_input']['versions'] if row['id']==version.id)
         return [dict(label=version.citation.document+' · '+row['id'],ref=version.citation.uri,
@@ -286,6 +303,7 @@ class WorkspaceWorkflow:
                 reason='; '.join(current.get('trace',[])) if current and known else 'A current source-bound evaluation is not yet available.',
                 trace=current.get('trace',[]) if current and known else [],
                 calculation=self._credit_calculation(current) if known else [],
+                inputs=self._credit_inputs(current,usage) if known else {},
                 citations=self._citations(current.get('clauses',[]) if current else row.get('citations',[])),
                 invoice=dict(id=invoice.id,issued_at=invoice.issued_at.isoformat(),service_start=line.start.isoformat(),service_end=line.end.isoformat()),
                 evidence=[dict(label='Monthly coverage',ref=usage['monitor_ref'],value=usage['coverage_note'] if known else None),
@@ -339,8 +357,14 @@ class WorkspaceWorkflow:
             price_finding=dict(id='pricing-'+fingerprint([invoice.id,self.package_digest]),
                 state=price.stage if price_amount is not None else price.evaluation.outcome.value,
                 amount=price_amount,currency=invoice.currency,reason='; '.join(price.evaluation.trace) if invoice_known else 'The invoice is not yet known.',
-                invoice_id=invoice.id,citations=price_citations,credit_applied='0.00'),
-            claim=dict(id=self.claim_id,state=claim['stage'] if claim else 'NOT_OPENED',amount=claim['amount'] if claim else None,
+                invoice_id=invoice.id,citations=price_citations,credit_applied='0.00',
+                lines=[dict(line_id=l.line_id,product=l.product,version=l.version,billed=str(l.billed),
+                            expected=None if l.expected is None else str(l.expected),delta=None if l.delta is None else str(l.delta),
+                            direction=l.direction) for l in price.lines] if price_amount is not None else []),
+            claim=dict(id=self.claim_id,month=self.claim_month,state=claim['stage'] if claim else 'NOT_OPENED',amount=claim['amount'] if claim else None,
+                       filing_cutoff=claim.get('filing_cutoff') if claim else None,
+                       pending_approvals=sorted(a['id'] for a in claim['actions'] if a['id'].startswith('approve-')) if claim else [],
+                       requested_artifact=claim.get('requested_artifact') if claim else None,
                        currency=invoice.currency,receipt_id=claim['submissions'][-1]['id'] if claim and claim['submissions'] else None,
                        eligibility_version=claim['contract_version'] if claim else None,
                        sla_source_sha256=claim['contract_source_sha256'] if claim else None,
@@ -353,8 +377,10 @@ class WorkspaceWorkflow:
                         unapplied_credit=reconciliations[0]['unapplied_posted'] if len(reconciliations)==1 else '0.00',bill=bill_view),
             audit=audit,onboarding=dict(vendor='CalyxQuay',state=onboarding['state'] if onboarding else 'NOT_INSTALLED',
                 version=onboarding.get('active_version') if onboarding else None,reviewer=reviewer,
-                history=[dict(at=r['at'],event=r['kind'],ref=str(r['revision'])) for r in (onboarding or {}).get('audit',[])],actions=[]),
+                history=[dict(at=r['at'],event=r['kind'],ref=str(r['revision']),actor=r.get('actor')) for r in (onboarding or {}).get('audit',[])],actions=[]),
             next_actions=self._offers(p,claim))
+        from .finance_view import summarize
+        projection['finance']=summarize(projection)
         return {'workflow':projection}
 
     def _domain_pin(self,p,claim):
@@ -649,6 +675,19 @@ def register_workspace_workflow(app,bench,auth,config=None):
     @app.get('/api/workspace/workflow')
     def workspace(p=Depends(auth.actor)):
         return workflow.view(p) if workflow is not None else {'workflow':None}
+
+    from pydantic import BaseModel,ConfigDict,Field
+
+    class GuideQuestion(BaseModel):
+        model_config=ConfigDict(extra='forbid')
+        question:str=Field(min_length=1,max_length=1000)
+
+    @app.post('/api/workspace/guide')
+    def workspace_guide(query:GuideQuestion,p=Depends(auth.actor)):
+        # Read-only: answers from the current projection; no intent, audit or domain row is written.
+        from .finance_guide import answer
+        if workflow is None:raise ValueError('No workflow is configured for this workspace.')
+        return answer(query.question,workflow.view(p)['workflow'])
 
     @app.post('/api/workspace/workflow/actions/{identity}')
     async def action(identity:str,body:Empty,p=Depends(auth.reviewer)):

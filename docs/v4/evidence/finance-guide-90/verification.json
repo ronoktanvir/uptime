@@ -1,0 +1,48 @@
+{
+  "schema": "uptime-workstream-verification/1",
+  "workstream": "W7 finance views and guide",
+  "branch": "work/finance-guide-90",
+  "base": "work/integration-90 (rebased; includes 2beb1d3 and sign-in fix 2205f0a)",
+  "commits": {
+    "1b2391e": "feat(finance): next actions and grounded read-only answers",
+    "221a909": "fix(guide): exact adapter version as citation",
+    "00dffde": "feat(W8 request): projection fields and read-only guide route",
+    "100abf5": "test(finance)",
+    "8cf8f0c": "feat(web): finance view and guide",
+    "5312938": "feat(web): refused proposal public diagnostic (W3 request)"
+  },
+  "focused_python": {
+    "source": "8cf8f0c (clean tree, docs untracked)",
+    "command": "uv run --locked pytest -q -p no:cacheprovider --basetemp=<unique> -o tmp_path_retention_policy=failed -rf --tb=short <20 files listed in TEST-CHANGES-finance-guide-90.md>",
+    "result": "349 passed, 1 warning in 276.90s (0:04:36)",
+    "exit": 0
+  },
+  "javascript": {
+    "source": "working tree equal to 5312938 (run after that commit)",
+    "command": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+    "result": "84 tests, 84 pass, 0 fail",
+    "exit": 0
+  },
+  "earlier_focused": {
+    "source": "uncommitted tree on 03b372e before the Opus critique changes",
+    "result": "338 passed, 1 warning in 587.64s"
+  },
+  "flake": "evidence/finance-guide-90/flake-workspace-ui-v4.json",
+  "screen_walkthrough": "evidence/finance-guide-90/screen-walkthrough-timing.json (source 5312938; docs untracked at record time)",
+  "opus_critique": {
+    "file": "decisions/reviews/95-grounded-finance-guide.json",
+    "model": "claude-opus-5-5",
+    "session": "4d9dc03f-9377-4504-8dfe-700c039d148c",
+    "status": "REVIEWED"
+  },
+  "full_suite": {
+    "status": "NOT_RUN",
+    "reason": "Full suites run one at a time on this nearly full disk; slot requested from the integration owner, who merges this branch and runs the integration suite."
+  },
+  "not_claimed": [
+    "no model call in the guide",
+    "no Ramp write or native action",
+    "no change to the recorded CalyxQuay review",
+    "no production-readiness claim"
+  ]
+}

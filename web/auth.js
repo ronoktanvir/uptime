@@ -50,7 +50,8 @@
       const error = new Error('Sign in to this local workspace.'); error.status = 401; throw error;
     }
     const headers = {};
-    if (payload !== undefined && path !== '/api/guide') {
+    // Read-only guide questions use the read session; they cannot change workspace state.
+    if (payload !== undefined && path !== '/api/guide' && path !== '/api/workspace/guide') {
       if (!signingKey) {
         const e = new Error('Sign in again to authorize changes from this page.'); e.status = 401; throw e;
       }
