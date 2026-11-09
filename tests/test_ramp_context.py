@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from test_ramp_case_lineage import (APRIL, BUSINESS, CREDIT, JANUARY, OTHER_BUSINESS, T0, FakeRamp, base_bills,
+from test_ramp_case_lineage import (APRIL, BUSINESS, CREDIT, JANUARY, OTHER_BUSINESS, OTHER_VENDOR, T0, FakeRamp, base_bills,
                                     capture, raw_bill, raw_credit, uid)
 from uptime import installation_revocation, ramp_context
 from uptime.ramp_context import capture_summary, ramp_link, record_context
@@ -185,28 +185,48 @@ def test_local_ledger_activity_never_appears_as_ramp_confirmation(tmp_path, monk
     assert overview["capture"]["business_id"] == DEMO_BUSINESS and overview["capture"]["custody"] == "operator_import"
 
 
-# --- Saved verified record of the demo bill (coordinator option A) ------------------------
+# --- Saved verified excerpt of the demo bill (coordinator option A, rebuilt with names) ------
 
-from uptime.ramp_context import VERIFIED_RECORD, verified_record  # noqa: E402
+import hashlib  # noqa: E402
+import importlib.util  # noqa: E402
+
+from uptime.contracts import fingerprint  # noqa: E402
+from uptime.ramp_context import (VERIFIED_RECORD, package_verified_excerpt, verified_record,  # noqa: E402
+                                 verified_record_from)
 
 FORBIDDEN = ("client_id", "token", "secret", "password", "cookie", "authorization", "bearer")
+
+
+def reseal(body):
+    """Recompute the excerpt checksum so only the specific check under test can refuse."""
+    payload = {k: v for k, v in body.items() if k != "excerpt_checksum"}
+    body["excerpt_checksum"] = hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"),
+                                                         allow_nan=False).encode()).hexdigest()
+    return body
 
 
 def test_verified_record_is_the_exact_demo_bill_with_the_person_attributed_note():
     record = verified_record()
     assert record["kind"] == "SAVED_VERIFIED_RECORD" and record["live_read"] is False
+    assert record["started_by"] == "PERSON" and record["excerpt"] is True
     context = record["ramp_context"]
     assert (context["business_id"], context["object_id"]) == (DEMO_BUSINESS, DEMO_BILL)
     assert context["ramp_link"] == {"url": DEMO_URL, "basis": "OPERATOR_OBSERVED_URL"}
-    assert context["vendor_name"] is None  # Only a captured vendor record may supply it
+    assert context["amount"] == {"currency": "USD", "amount": "840"}
+    # The name comes only from captured Ramp records: the bill and its vendor record agree.
+    body = json.loads(VERIFIED_RECORD.read_text())
+    assert context["vendor_name"] == body["records"]["bill"]["vendor_name"] == body["records"]["vendor"]["name"]
+    assert context["invoice_number"] == body["records"]["bill"]["invoice_number"]
     assert context["agreement_binding"]["status"] == "NONE" and context["finding_attachable"] is False
-    assert [d["attribution"] for d in context["discussion"]] == ["PERSON_POSTED_VERIFIED_READBACK"]
+    assert context["discussion"] == [{"comment_id": DEMO_COMMENT, "created_at": NOTE["created_at"],
+                                      "attribution": "PERSON_POSTED_VERIFIED_READBACK"}]
     assert context["credit_links"]["status"] == "NO_APPLIED_CREDITS"
     assert record["finding"]["outcome"] == "INSUFFICIENT_EVIDENCE" and record["finding"]["amount"] is None
-    assert record["capture"]["observed_at"] == "2026-11-09T12:35:33.038627+00:00"
+    assert record["capture"]["observed_at"] == "2026-11-09T22:00:38.031951+00:00"
+    assert record["capture"]["account_complete"] is False and record["capture"]["incomplete_lists"] == ["transactions"]
 
 
-def test_verified_record_file_holds_no_credentials_hashes_or_query_strings():
+def test_verified_excerpt_holds_only_the_panel_records_and_no_private_fields():
     raw = VERIFIED_RECORD.read_text().lower()
     assert not any(word in raw for word in FORBIDDEN)
     body = json.loads(VERIFIED_RECORD.read_text())
@@ -214,21 +234,36 @@ def test_verified_record_file_holds_no_credentials_hashes_or_query_strings():
                                         "browser_url_source", "observed_at", "bill_record_sha256",
                                         "verified_read_scopes", "write_attempted"}
     assert "?" not in body["association"]["browser_url"] and body["association"]["write_attempted"] is False
+    records = body["records"]
+    assert set(records) == {"bill", "vendor", "comments", "credits"}
+    assert records["vendor"]["id"] == records["bill"]["vendor_id"] and records["credits"] == []
+    assert [c["object_id"] for c in records["comments"]] == [DEMO_BILL]
+    assert not any(word in json.dumps(records).lower() for word in ("email", "memo", "contact", "message", "http"))
+    assert body["source_capture"]["records_committed"] is False and "resources" not in body["source_capture"]
+    vendors = next(r for r in body["coverage"]["resources"] if r["name"] == "vendors")
+    assert vendors["retained"] > 1 and json.dumps(records).count('"name"') == 1  # One vendor name committed
 
 
-@pytest.mark.parametrize("change", ["schema", "url", "digest", "bill", "status", "checksum", "late"])
+@pytest.mark.parametrize("change", ["schema", "url", "digest", "bill", "status", "checksum", "late", "vendor",
+                                    "comment", "finding", "started", "committed"])
 def test_verified_record_refuses_anything_that_does_not_verify(tmp_path, change):
     body = json.loads(VERIFIED_RECORD.read_text())
-    association, capture = body["association"], body["capture"]
-    if change == "schema": body["schema"] = "other/1"
+    association, records = body["association"], body["records"]
+    if change == "schema": body["schema"] = "uptime-ramp-verified-record/1"
     elif change == "url": association["browser_url"] = DEMO_URL + "?x=1"
     elif change == "digest": association["bill_record_sha256"] = "0" * 64
     elif change == "bill": association["bill_id"] = uid(5)
     elif change == "status": association["write_attempted"] = True
-    elif change == "checksum":  # Another bill changes; only the capture checksum can catch it
-        other = next(r for r in capture["resources"]["bills"]["records"] if r["id"] != DEMO_BILL)
-        other["status"] = "OPEN" if other["status"] == "PAID" else "PAID"
-    elif change == "late": association["observed_at"] = "2026-11-09T15:00:00+00:00"
+    elif change == "late": association["observed_at"] = "2026-11-10T02:00:00+00:00"
+    elif change == "vendor": records["vendor"]["id"] = uid(6)
+    elif change == "comment": records["comments"][0]["object_id"] = uid(7)
+    elif change == "finding": body["finding"]["record_digest"] = "0" * 64
+    elif change == "started": body["started_by"] = "UPTIME"
+    elif change == "committed": body["source_capture"]["records_committed"] = True
+    if change == "checksum":
+        records["bill"]["status"] = "PAID"  # Left unsealed: only the excerpt checksum can catch it
+    else:
+        reseal(body)
     path = tmp_path / "verified.json"
     path.write_text(json.dumps(body))
     assert verified_record(path) is None
@@ -236,15 +271,70 @@ def test_verified_record_refuses_anything_that_does_not_verify(tmp_path, change)
 
 def test_northwind_terms_cannot_attach_to_the_verified_demo_bill():
     body = json.loads(VERIFIED_RECORD.read_text())
-    capture = body["capture"]
-    northwind = case_for(capture, DEMO_BILL, outcome="ELIGIBLE", amount="1000.00",
+    records, source = body["records"], body["source_capture"]
+    view = {"observed_at": source["observed_at"], "checksum": source["checksum"],
+            "resources": {"bills": {"records": [records["bill"]]}, "transactions": {"records": []},
+                          "purchase_orders": {"records": []}, "vendors": {"records": [records["vendor"]]},
+                          "comments": {"records": records["comments"]}}}
+    report = verified_record()["ramp_context"]["credit_links"]
+    northwind = case_for(view, DEMO_BILL, outcome="ELIGIBLE", amount="1000.00",
                          data_provenance={"binding_digest": "d" * 64, "terms_mode": "OPERATOR_ATTESTED"})
     # Even a reviewed-looking binding attaches only if the workspace holds it for this capture.
-    context = record_context(capture, northwind, business_id=DEMO_BUSINESS, association=body["association"])
+    context = record_context(view, northwind, business_id=DEMO_BUSINESS, association=body["association"],
+                             credit_report=report)
     assert context["finding_attachable"] is False and context["agreement_binding"]["status"] == "CONFLICT"
     synthetic = dict(northwind, sources=["SYNTHETIC_CUSTOMER"])
-    context = record_context(capture, synthetic, business_id=DEMO_BUSINESS, agreements={"d" * 64: "Northwind MSA"})
+    context = record_context(view, synthetic, business_id=DEMO_BUSINESS, agreements={"d" * 64: "Northwind MSA"},
+                             credit_report=report)
     assert context["finding_attachable"] is False and context["agreement_binding"]["contract_id"] is None
+
+
+def synthetic_capture_and_association():
+    snapshot = capture(T0, [{**raw_bill(DEMO_BILL, total=84000, status="OPEN", issued="2026-10-29T00:00:00+00:00"),
+                             "invoice_number": "INV-7"},
+                            raw_bill(uid(15), vendor=OTHER_VENDOR, status="OPEN")],
+                       comments={DEMO_BILL: [{"id": DEMO_COMMENT, "created_at": NOTE["created_at"],
+                                              "message": "PRIVATE", "user_id": uid(77)}]})
+    bill = next(r for r in snapshot["resources"]["bills"]["records"] if r["id"] == DEMO_BILL)
+    association = {"schema": "uptime-ramp-browser-association/1", "status": "ONE_BILL_READ_VERIFIED",
+                   "origin": "https://demo-api.ramp.com", "business_id": DEMO_BUSINESS, "bill_id": DEMO_BILL,
+                   "browser_url": DEMO_URL, "browser_url_source": "OPERATOR_SUPPLIED_OBSERVED_URL",
+                   "observed_at": snapshot["observed_at"],
+                   "bill_record_sha256": hashlib.sha256(json.dumps(bill, sort_keys=True, separators=(",", ":"),
+                                                                   allow_nan=False).encode()).hexdigest(),
+                   "verified_read_scopes": ["business:read", "bills:read"], "write_attempted": False,
+                   "client_id_sha256": "a" * 64, "note": "not packaged"}
+    return snapshot, association
+
+
+def test_packaging_keeps_only_the_bill_its_vendor_and_its_comment():
+    snapshot, association = synthetic_capture_and_association()
+    body = package_verified_excerpt(snapshot, association)
+    assert "client_id_sha256" not in body["association"] and "note" not in body["association"]
+    assert body["records"]["bill"]["id"] == DEMO_BILL and body["records"]["vendor"]["id"] == body["records"]["bill"]["vendor_id"]
+    assert uid(15) not in json.dumps(body["records"]) and OTHER_VENDOR not in json.dumps(body["records"])
+    # Comment text never leaves the private capture; only identity and time are packaged.
+    assert all(set(c) == {"id", "object_id", "object_type", "created_at", "sources"} for c in body["records"]["comments"])
+    assert "message" not in json.dumps(body["records"])
+    assert body["source_capture"]["checksum"] == snapshot["checksum"]
+    assert body["finding"]["record_digest"] == fingerprint(body["records"]["bill"])
+    assert verified_record_from(body)["ramp_context"]["invoice_number"] == "INV-7"
+
+
+def test_packaging_refuses_an_association_that_does_not_verify(tmp_path):
+    snapshot, association = synthetic_capture_and_association()
+    with pytest.raises(ValueError, match="EXCERPT_DOES_NOT_VERIFY"):
+        package_verified_excerpt(snapshot, dict(association, bill_record_sha256="0" * 64))
+    spec = importlib.util.spec_from_file_location("ramp_package_verified_record",
+                                                  ROOT / "scripts/ramp_package_verified_record.py")
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    records, assoc, out = tmp_path / "r.json", tmp_path / "a.json", tmp_path / "out.json"
+    records.write_text(json.dumps(snapshot))
+    assoc.write_text(json.dumps(association))
+    assert cli.main(["--records", str(records), "--association", str(assoc), "--output", str(out)]) == 0
+    assert verified_record(out)["ramp_context"]["object_id"] == DEMO_BILL
+    assert cli.main(["--records", str(records), "--association", str(assoc), "--output", str(out)]) == 1
 
 
 def test_panel_appears_only_beside_the_packaged_presentation_worklist(tmp_path, monkeypatch):

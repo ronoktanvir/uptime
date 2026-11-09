@@ -96,7 +96,7 @@ test('record page shows exact Ramp identity, freshness, link basis and person at
   assert.equal(s.root.all('a').filter(a=>a.textContent==='Open record in Ramp')[0].href,'https://demo.ramp.com/bill-pay/bills/list/native-id');
   assert.equal(s.root.children[1].className,'page-head');
 });
-const verified={kind:'SAVED_VERIFIED_RECORD',live_read:false,capture:{observed_at:'2026-11-09T12:35:33.038627+00:00'},
+const verified={kind:'SAVED_VERIFIED_RECORD',live_read:false,started_by:'PERSON',excerpt:true,capture:{observed_at:'2026-11-09T22:00:38.031951+00:00'},
   ramp_context:{...ctx,vendor_name:null,invoice_number:null,object_id:'f74ba12c-95d0-582d-9f62-26d8057d1d37',
     ramp_link:{url:'https://demo.ramp.com/bill-pay/bills/list/f74ba12c-95d0-582d-9f62-26d8057d1d37',basis:'OPERATOR_OBSERVED_URL'}},
   finding:{outcome:'INSUFFICIENT_EVIDENCE',amount:null},contract_terms:'NONE_BOUND',actual_recovery:null};
@@ -104,7 +104,8 @@ test('the verified Ramp record panel is a dated saved record with its own busine
   const s=setup(()=>({records:[row],capture:{...partial,custody:'packaged_receipt',business_id:null},verified_record:verified,resources:[]}));
   await s.ui.render(s.root);const text=s.root.textContent;
   for(const expected of ['Saved worklist from an earlier Ramp demo installation; its Ramp business is not recorded in this capture.',
-    'Verified Ramp record','read from Ramp 2026-11-09 12:35 UTC. Not a live read.','1569e402-460e-4952-adad-9df27db628a0',
+    'Verified Ramp record','Saved record read from Ramp 2026-11-09 22:00 UTC, started by a person. Not a live read.',
+    'Only this bill’s records are kept here','1569e402-460e-4952-adad-9df27db628a0',
     'f74ba12c-95d0-582d-9f62-26d8057d1d37','Name not captured','USD 840','Evidence gap: the governing agreement or usage evidence is missing',
     'No contract terms are attached to this bill','Posted by a person in Ramp; Uptime read it back on this bill','Uptime has made no write to Ramp'])
     assert.ok(text.includes(expected),expected);

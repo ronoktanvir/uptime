@@ -147,7 +147,9 @@
     function verifiedPanel(v) {
       if (!v || !v.ramp_context) return null;
       const ctx = v.ramp_context, panel = section('Verified Ramp record');
-      add(panel, note(`Saved verified record of one Ramp demo bill, read from Ramp ${when(v.capture?.observed_at)}. Not a live read.`));
+      const started = v.started_by === 'PERSON' ? ', started by a person' : '';
+      add(panel, note(`Saved record read from Ramp ${when(v.capture?.observed_at)}${started}. Not a live read.`));
+      if (v.excerpt === true) add(panel, note('Only this bill’s records are kept here; the full read stays private and is referenced by its checksum.'));
       const url = providerURL(ctx.ramp_link?.url);
       if (url) { const open = el('a', 'Open this bill in Ramp', 'ramp-native-link'); open.href = url; open.target = '_blank'; open.rel = 'noopener noreferrer'; add(panel, open, note(LINK_BASIS[ctx.ramp_link.basis] || 'Link basis not recorded')); }
       const evidenceGap = v.finding?.outcome === 'INSUFFICIENT_EVIDENCE';
