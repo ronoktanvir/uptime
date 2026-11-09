@@ -648,3 +648,20 @@ def test_never_restored_workspace_mandate_install_is_byte_identical(tmp_path, mo
     assert gated.read_bytes() == ungated.read_bytes()
     with sqlite3.connect(gated) as conn:
         assert conn.execute("SELECT 1 FROM sqlite_master WHERE name='operations_restore'").fetchone() is None
+
+
+def test_revocation_tenant_domain_is_pinned_to_the_workspace_id_domain():
+    """Revocation keys use the exact workspace tenant domain. A D03 change to Id must update both deliberately."""
+    from typing import get_args
+    from uptime.correspondence_types import Id
+    constraint = next(m for m in get_args(Id)[1:] if getattr(m, "pattern", None))
+    assert constraint.pattern == "^" + installation_revocation.TENANT.pattern + "$"
+    for accepted in ("bears", "tenant-a", "Tenant.B:01/x", "a" * 96):
+        assert installation_revocation._identity(accepted, BUSINESS)
+    for refused in ("", " bears", "bears ", "-bears", "a" * 97, "b\u00e9ars", "bears\n"):
+        with pytest.raises(ValueError):
+            installation_revocation._identity(refused, BUSINESS)
+    lettered = "a0000000-0000-4000-8000-00000000000b"
+    assert installation_revocation._identity("bears", lettered)
+    with pytest.raises(ValueError):
+        installation_revocation._identity("bears", lettered.upper())  # provider IDs are never case-folded

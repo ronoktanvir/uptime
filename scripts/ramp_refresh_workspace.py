@@ -69,7 +69,9 @@ def main():
     parser.add_argument("--detail-limit", type=int, default=12)
     parser.add_argument("--all-purchase-orders", action="store_true")
     parser.add_argument("--attempts", type=int, default=1, choices=range(1, MAX_ATTEMPTS + 1), metavar="1..3",
-                        help="Bounded reruns after a network failure or HTTP 429/5xx; never after a refusal")
+                        help="Bounded reruns of the whole read after a raised network failure or HTTP 429/5xx, "
+                             "mainly token and business reads; per-resource 429/5xx are recorded as PARTIAL or "
+                             "UNAVAILABLE in the capture and are not retried. Never after a refusal.")
     parser.add_argument("--export", type=Path, help="Optional sanitized replay snapshot; contains sandbox UUIDs and amounts.")
     args = parser.parse_args()
     os.umask(0o077)

@@ -37,7 +37,11 @@ class RampError(RuntimeError):
 
 
 class RampNetworkError(RampError):
-    """Transport or unreadable response. The request may be retried only when it is a read."""
+    """Transport or unreadable response. The request may be retried only when it is a read.
+
+    Write paths (outbox and native binding) never retry on it: an unreadable
+    reply to a write stays UNCERTAIN and is settled by provider read-back.
+    """
 
 
 class RampHTTPError(RampError):

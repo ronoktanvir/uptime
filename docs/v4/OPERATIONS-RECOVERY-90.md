@@ -1,6 +1,6 @@
 # Installation, recovery and operations — workstream 90
 
-**Status, November 9, 2026:** local controls are implemented and tested on branch `work/operations-90`. Hosted customer installation is **designed, not implemented**: it depends on the pending team decision D11 (hosting, identity owner and signing-key custody). Nothing here publishes, tunnels or hosts the current local app. [Decision 90](decisions/ADR-0090-operations-recovery.md) · [Customer installation design](CUSTOMER-INSTALLATION-DESIGN.md) · [Test ledger](TEST-CHANGES-90-OPERATIONS.md)
+**Status, November 9, 2026:** local controls are implemented and tested on branch `work/operations-90`. Hosted customer installation is **designed, not implemented**: it depends on the pending team decision D11 (hosting, identity owner and signing-key custody). Nothing here publishes, tunnels or hosts the current local app. [Decision 96](decisions/ADR-0096-operations-recovery.md) · [Customer installation design](CUSTOMER-INSTALLATION-DESIGN.md) · [Test ledger](TEST-CHANGES-90-OPERATIONS.md)
 
 ## Actual trust boundary
 
@@ -50,7 +50,7 @@ The refresh only reads. It requests no scope beyond the already approved grant s
 
 | Operation | Class | What happens on failure or restart | Retry policy |
 | --- | --- | --- | --- |
-| Ramp refresh (token exchange plus reads) | Retryable read | The existing capture stays. An interrupted import stays `pending` and resumes when the same refresh runs again. | `--attempts 1..3`; reruns only after a transport failure or HTTP 429/500/502/503/504, waiting 5s then 30s. Never after a refusal, scope or binding error, or revocation. Each attempt exchanges a new token. |
+| Ramp refresh (token exchange plus reads) | Retryable read | The existing capture stays. An interrupted import stays `pending` and resumes when the same refresh runs again. | `--attempts 1..3`; reruns the whole read only after a *raised* transport failure or HTTP 429/500/502/503/504, waiting 5s then 30s. In practice that means token and business-read failures. A 429/5xx on an individual resource is recorded as `PARTIAL` or `UNAVAILABLE` in the capture and is **not** retried; rerun the refresh later to fill it. Never after a refusal, scope or binding error, or revocation. Each attempt exchanges a new token. `RampNetworkError` is never retried on a write path. |
 | Capture freshness | Monitoring | `RAMP_CAPTURE_STALE` after 24h (`--stale-hours`). Native preparation already refuses captures older than 24h. | Rerun the refresh. |
 | Model proposal job | Uncertain external effect (cost) | On restart, RUNNING becomes `UNCERTAIN` and QUEUED becomes `CANCELLED`. No provider call is repeated (`test_recovery_distinguishes_reserved_and_dispatched_work_without_running_either`). | Never automatic. A new attempt needs a new exact approval. |
 | Native bill comment (outbox) | Uncertain external effect | A crash after dispatch leaves `UNCERTAIN`, and the delivery is never resent. Agent posting remains blocked by the execution-policy rejection. | Reconcile against the same Ramp thread; never resend. |
