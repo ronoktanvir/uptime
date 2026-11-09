@@ -6,6 +6,8 @@ Uptime's first edition joins Ramp records to a contract enforcement engine. This
 
 [Implementation history](https://github.com/ronoktanvir/uptime/commits/main/) · [Continuous integration](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml) · [Interactive dependency map](../progress/README.md) · [Detailed status](v4/STATUS.md)
 
+**Judging the submission?** Start with the [judge guide](JUDGES.md). The two-minute storyboard, script and fallback are in [the presentation record](v4/submission/presentation.md); independent results on unfamiliar contracts are in [the evaluation results](v4/evaluation-finish-20261109/RESULTS.md).
+
 ## The delivery graph
 
 Each node names its evidence state. Solid borders mean the stated slice is demonstrated, not that the entire product area is finished. Dashed borders identify incomplete work or an approval dependency. Onboarding and dispute generalization remain parallel priorities.
