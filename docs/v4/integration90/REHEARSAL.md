@@ -1,50 +1,77 @@
 # Final two-minute rehearsal
 
-**Owner:** W8 (integration owner). **State on November 9, 2026:** the script is rehearsed against the verified services but **not filmed**, and a person has not yet run it against a stopwatch. Offline replay receipt: [rehearsal-offline.json](../evidence/integration-90/rehearsal-offline.json). Served-flow restart probe: `tests/test_release_probes_gent8.py`.
+**Owner:** integration owner (W8). **Purpose:** the continuous script Ronok records for the November 10 deadline. It folds in the W7 screen timeline ([PRESENTER-REHEARSAL-90.md](../PRESENTER-REHEARSAL-90.md)) and the freshest Ramp evidence. The state of each check is in the [rehearsal record](#rehearsal-record) at the end. Nothing has been filmed yet, and no person has run this against a stopwatch.
 
-This supersedes the 101–120 second row in [DEMO.md](../DEMO.md). The CalyxQuay review cannot be performed live again: its grant is COMPLETED and the adapter is REVOKED at revision 9. The presenter shows the recorded history instead.
+The CalyxQuay review **cannot be performed live again**: its grant is COMPLETED and the adapter is REVOKED at revision 9. The presenter shows the recorded history instead.
 
-## Before the clock starts (5 minutes)
+## Pre-filming checklist (about 5 minutes)
 
-1. Fresh Northwind workspace (new directory each time; key stays in that directory):
+1. **Serve the tested build from a frozen checkout**, never from a worktree other agents are editing. The presentation listener and its directory are listed in [Local sessions](#local-sessions) once prepared. To prepare a new one:
    ```sh
    uv sync --locked
    uv run --locked python scripts/setup_northwind.py \
-     --directory "$HOME/.local/share/uptime/northwind-session-002" \
+     --directory "$HOME/.local/share/uptime-engineering/runtime/northwind-presentation-$(date +%m%d%H%M)" \
      --origin http://127.0.0.1:8776 --serve
    ```
-   Open http://127.0.0.1:8776, sign in as `scripted-test-reviewer` with `scripted-reviewer.jwk` from that directory.
-2. Ramp tab: the verified demo bill `f74ba12c-95d0-582d-9f62-26d8057d1d37` in demo.ramp.com, showing the person-posted note (comment `376563cf…`, 2026-11-08 01:46:45 UTC). Optional read-only confirmation: `scripts/verify_ramp_comment.py` as in [DEMO-PATH-87](../DEMO-PATH-87.md). No write is made.
-3. Review tab: http://127.0.0.1:8777/#vendors (Ronok's workspace) showing CalyxQuay history revisions 1–9. If that listener is down, open [the recorded-review receipt](../evidence/local-review-88/recorded-review-20261109.json) instead. Do not restart it with a new exception.
-4. Fallback ready: `scripts/rehearse_northwind.py` against the fresh workspace, plus the saved complete screen `docs/v4/validation/northwind/browser-applied.png`.
+   Open http://127.0.0.1:8776 and sign in as `scripted-test-reviewer` with that directory's `scripted-reviewer.jwk`. This account is the scripted walkthrough reviewer, not a person. Keep the key out of chat and Git.
+2. **Check the opening screen.** **Needs attention** must list, in order:
+   - File the January 2026 claim before the deadline
+   - Approve the claim packet before it is filed
+   - Review invoice NW-2026-03 before payment
+   - Complete March 2026 usage evidence
+   - Next step: Approve January claim
+3. **Ramp tab:** demo bill `f74ba12c-95d0-582d-9f62-26d8057d1d37` in demo.ramp.com, showing the person-posted note (comment `376563cf…`). Do not post, edit or approve anything. Optional: the W1 read-only pre-filming check (no write) confirms the note is still there and the bill is unchanged.
+4. **Review tab:** the recorded CalyxQuay review, either the 8777 listener's read-only vendor history or [the receipt](../evidence/local-review-88/recorded-review-20261109.json). Do not sign in to act there, and never read or use the reviewer key.
+5. **Fallback open in a background tab:** the saved screens in `docs/v4/evidence/finance-guide-90/` and the receipts listed under [Fallback](#fallback).
 
-## Script (about 260 spoken words)
+## Script
+
+About 260 spoken words. Measured interaction time for all eleven steps plus two guide questions is 8.2 s ([timing receipt](../evidence/finance-guide-90/screen-walkthrough-timing.json)), so most of the two minutes is speech.
 
 | Time | Screen and action | Say |
 |:---|:---|:---|
-| 0:00–0:10 | Northwind contract review | "Uptime checks contract terms against financial records. This contract and its usage records are authored for the demo." |
-| 0:10–0:28 | Expand the March amendment, the price finding and the three monthly results | "March was billed 12,000 against 11,000, so a 1,000 price finding stays open. January's outage earns 20 percent of 12,000: 2,400. February is ineligible. March is missing required evidence, so Uptime says unknown instead of guessing." |
-| 0:28–0:43 | Ramp tab: the person-posted note on the real bill | "This is a real Ramp demo bill. A teammate posted this evidence request, and the API read it back with the same ID. It asks for the agreement; it does not stop payment, and this authored contract is not evidence against this bill." |
-| 0:43–1:18 | Approve/file January → receive response → attach log → verify log → approve and send response | "Filing is signed and idempotent. The vendor's reply asks for proof; the log is verified separately before the follow-up goes out." |
-| 1:18–1:41 | Receive award → post to Local ledger → receive April invoice → apply credit | "The 2,400 award is recorded and applied: April's 11,000 invoice now shows 8,600. This is the Local ledger, not money recovered in Ramp, and the March 1,000 stays separate. We never add the stages together." |
-| 1:41–2:00 | Review tab: CalyxQuay history | "New vendors arrive as declarative rules that run in shadow first. Here, Ronok's enrolled account accepted the interpretation, approved, activated and rolled back one version under a 48-hour local permission. The earlier entries are scripted setup. Promotion beyond this local review is still release-gated." |
+| 0:00–0:15 | Northwind view; point to **Needs attention** | "Uptime checks contract terms against financial records. **This contract and its usage records are authored for the demo.** Uptime reads the case and says what needs a person: a filing deadline, an approval, a price review and missing March usage." |
+| 0:15–0:35 | January row → **Calculation inputs**, then **Read clause**; glance at February and March | "$12,000 fee, 135 eligible minutes, 20 percent: $2,400. Each number comes from the clause shown. February is below the threshold. March isn't ineligible: its usage evidence is incomplete, so no amount exists yet." |
+| 0:35–1:05 | Run the eleven steps: approve, file, receive response, attach log, verify log, approve response, send response, receive decision, **Post to Local ledger**, receive next invoice, apply credit | "The vendor asks for a log. We attach it, verify it separately and approve a response, and the credit is awarded. Each step runs once; repeating it changes nothing." |
+| 1:05–1:20 | Stage figures → **Bill reconciliation** → **March price review** | "These are stages of one credit, not amounts to add. Applied to April, $11,000 becomes $8,600. **This application is in Local ledger, not money recovered in Ramp.** The March $1,000 price finding stays open and separate." |
+| 1:20–1:35 | **Ask about this case**: "Did the credit reach Ramp?", then "Should we dispute the March invoice?" | "The guide answers only from this case's records and cites them. It says the credit is in Local ledger, and it declines to make the dispute decision for us." |
+| 1:35–1:50 | Ramp tab: the note on bill `f74ba12c…` | "This is a real Ramp demo bill. A teammate posted this note and we confirmed it through Ramp's API; Uptime did not post it. **The bill needs its own agreement; this authored contract is not evidence against it.**" |
+| 1:50–2:00 | Review tab: CalyxQuay history | "New vendors arrive as rules that run in shadow first. In a separate local workspace, Ronok's enrolled reviewer account accepted the interpretation, approved, activated and rolled back one version, so nothing is active. The steps before that were scripted. Wider promotion is still release-gated." |
 
-Say "Ronok's enrolled account" rather than "Ronok clicked" unless Ronok is presenting and confirms he performed the steps; the record authenticates the account, not the person at the keyboard.
+If someone other than Ronok presents, say "Ronok's enrolled account" rather than "Ronok clicked": the record authenticates the account, not the person at the keyboard.
 
-## Do not say
+## Never say
 
-- That Uptime wrote to Ramp, stopped a payment, or recovered money in Ramp.
-- That the Northwind contract governs the Ramp bill shown.
-- That the revisions 1–5 entries are Ronok's decisions, or that the local review is release certification.
-- Any accuracy or ROI number. Independent unseen-vendor and reply evaluations are paused (D13).
+- "Recovered" or "saved" for the $2,400, or that anything reached Ramp, stopped a payment or held a bill.
+- "Post to Ramp": the destination is Local ledger.
+- That the $1,000 is a credit, or that the stages add up.
+- That the Northwind contract governs the Ramp bill. The W1 lineage explicitly refuses that link (`NO_GOVERNING_AGREEMENT`, all money null).
+- That CalyxQuay is active, that revisions 1–5 are Ronok's decisions, or that the local review is release certification.
+- That the guide uses a model. It answers from fixed, cited case facts; D10 and D12 keep it read-only, with no case data sent to a model.
+- Any accuracy or ROI number. The onboarding evaluation's first attempts accepted 0 of 4 supported extractions, and the D13 bar is not met.
+
+## Fallback
+
+Each fallback is offline and repeatable, and none performs a native or model action.
+
+1. **Full action path over loopback HTTP**, every step read back and duplicates checked: `uv run --locked python scripts/rehearse_northwind.py --directory <fresh directory> --receipt <receipt.json>`
+2. **The same screens in real Chrome:** `uv run --locked pytest -q tests/test_finance_browser_90.py`
+3. **Saved screens and receipts:** `docs/v4/evidence/finance-guide-90/finance-view-final-1360.png` (and `-390.png` for narrow screens), the [timing receipt](../evidence/finance-guide-90/screen-walkthrough-timing.json), [Northwind socket proof](../evidence/demo-path-87/northwind-socket.json), [Ramp note read-back](../evidence/demo-path-87/human-ramp-note.json) with the [November 9 re-read](../evidence/ramp-lineage-93/live-read-20261109.json) and [bill lineage](../evidence/ramp-lineage-93/lineage-f74ba12c.json), and [CalyxQuay review](../evidence/local-review-88/recorded-review-20261109.json).
+4. **If the Ramp tab fails**, show the read-back receipts. Never repost, retry native posting, or use another credential, model or browser to act in Ramp.
+
+## Local sessions
+
+Filled in when the presentation listener is prepared from the frozen tested build; see the rehearsal record.
 
 ## Rehearsal record
 
 | Check | Result | Evidence |
 |:---|:---|:---|
-| Offline deterministic replay | Passed in 2.43 s: price exposure 7,500.00 hypothetical; simulated award 100.00; recorded 100.00; applied 50.00; disputed 20.00; onboarding SHADOW→APPROVED→ACTIVE→REVOKED; actual customer recovery null | [receipt](../evidence/integration-90/rehearsal-offline.json) |
-| Served Northwind 11 actions across a hard kill and restart | Passed: state equal after restart, duplicate replay unchanged, April 11,000.00 → 8,600.00 | `tests/test_release_probes_gent8.py` (integrated from the verification lane) |
-| Human-posted Ramp note | Verified November 7 by two read-only API reads | [read-back](../evidence/demo-path-87/human-ramp-note.json) |
+| Offline deterministic replay | Passed in 2.43 s on `37d73f2`: simulated award 100.00, recorded 100.00, applied 50.00, disputed 20.00; onboarding SHADOW→APPROVED→ACTIVE→REVOKED; actual customer recovery null | [receipt](../evidence/integration-90/rehearsal-offline.json) |
+| Served Northwind flow across a hard kill and restart | Passed: state equal after restart, duplicate replay unchanged, April 11,000.00 → 8,600.00 | `tests/test_release_probes_gent8.py` |
+| W7 screens in headless Chrome, all 11 steps plus 2 guide questions | 8.2 s of interaction on `5312938`; initial attention list as above | [timing receipt](../evidence/finance-guide-90/screen-walkthrough-timing.json) |
+| Human-posted Ramp note | Verified November 7 by two read-only API reads; re-observed in a complete thread read at 2026-11-09 11:02 UTC; bill unchanged (USD 840, OPEN, approval PENDING, no applied credit) | [read-back](../evidence/demo-path-87/human-ramp-note.json), [re-read](../evidence/ramp-lineage-93/live-read-20261109.json) |
 | CalyxQuay recorded review | REVOKED at revision 9; grant COMPLETED | [receipt](../evidence/local-review-88/recorded-review-20261109.json) |
-| Timed run by a person | **Not done** | Needs the presenter's machine and a stopwatch |
-| Film | **Not done** for Northwind; the historical 120-second film shows an older replay | [DEMO.md](../DEMO.md) |
+| Rehearsal on the round-2 integration build | Pending the round-2 suite | — |
+| Timed run by a person | **Not done** | Needs the presenter and a stopwatch |
+| Film | **Not done**; Ronok decides when to record | — |

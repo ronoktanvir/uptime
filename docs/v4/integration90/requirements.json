@@ -690,7 +690,7 @@
    "evidence": [
     "tests/test_release_boundaries.py::test_partial_application_preserves_disputed_remainder"
    ],
-   "gap": "Implemented with different stage names split across disputes, correspondence and allocation; WITHDRAWN and CLOSED_UNRECOVERABLE have no equivalent. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "Implemented with different stage names split across disputes, correspondence and allocation; WITHDRAWN and CLOSED_UNRECOVERABLE have no equivalent. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -711,7 +711,7 @@
     "tests/test_disputes.py::test_corroboration_required_before_accepting_exclusion",
     "docs/v4/PHASE78-REVIEWED-DENIAL-BUNDLE.md"
    ],
-   "gap": "Finite reply grammar; 0/50 unseen supported replies recognized. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap": "Finite reply grammar; 0/50 unseen supported replies recognized. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D06",
@@ -730,9 +730,10 @@
    ],
    "evidence": [
     "tests/test_disputes.py::test_exact_cooldown_allows_followup",
-    "tests/test_disputes.py::test_no_appeal_without_new_scoped_document"
+    "tests/test_disputes.py::test_no_appeal_without_new_scoped_document",
+    "docs/v4/integration90/D06-ACTION-MATRIX.md"
    ],
-   "gap": "One evidence follow-up after the original filing (stricter than two) with a 24-hour cooldown; standing autonomy policy undecided. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "One evidence follow-up after the original filing (stricter than two) with a 24-hour cooldown; standing autonomy policy undecided. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D06"
@@ -749,9 +750,10 @@
     "uptime/policy.py"
    ],
    "evidence": [
-    "docs/v4/integration90/INTERFACES.md"
+    "docs/v4/integration90/INTERFACES.md",
+    "docs/v4/integration90/D06-ACTION-MATRIX.md"
    ],
-   "gap": "Modes exist (ASSISTED default, cap 0.00); no dedicated shutoff control beyond OBSERVE; the action matrix is a pending team decision. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "Modes exist (ASSISTED default, cap 0.00); no dedicated shutoff control beyond OBSERVE; the action matrix is a pending team decision. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -1504,7 +1506,7 @@
     "tests/test_release_boundaries.py::test_partial_application_preserves_disputed_remainder",
     "tests/test_correspondence.py::test_receipt_correction_and_independent_partial_award"
    ],
-   "gap": "Remainder is preserved and sent to review; no separate remainder filing path. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "Remainder is preserved and sent to review; no separate remainder filing path. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -1992,7 +1994,7 @@
    "evidence": [
     "docs/v4/PHASE75-DISPUTE-RUNTIME.md"
    ],
-   "gap": "Human semantic review required; unseen replies 0/50. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap": "Human semantic review required; unseen replies 0/50. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
    "gap_class": "unverified_behavior",
    "decisions": [
     "D06",
@@ -2590,9 +2592,10 @@
     "web/app.js"
    ],
    "evidence": [
-    "docs/v4/CAPABILITIES.md"
+    "docs/v4/CAPABILITIES.md",
+    "docs/v4/integration90/D06-ACTION-MATRIX.md"
    ],
-   "gap": "Modes and cap exist; no explicit shutdown control or follow-up policy editor. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "Modes and cap exist; no explicit shutdown control or follow-up policy editor. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -2800,7 +2803,7 @@
    "evidence": [
     "docs/v4/CAPABILITIES.md"
    ],
-   "gap": "Stages are separate; no value/effort ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "Stages are separate; no value/effort ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D01",
@@ -3160,7 +3163,7 @@
    "evidence": [
     "docs/v4/CAPABILITIES.md"
    ],
-   "gap": "No value ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "No value ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
@@ -3336,7 +3339,7 @@
    "evidence": [
     "uptime/policy.py"
    ],
-   "gap": "Action matrix undecided. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap": "Action matrix undecided. D06 decided 2026-11-09 (humans gate judgment); action matrix written (docs/v4/integration90/D06-ACTION-MATRIX.md); no standing policy implemented.",
    "gap_class": "missing_functionality",
    "decisions": [
     "D06"
