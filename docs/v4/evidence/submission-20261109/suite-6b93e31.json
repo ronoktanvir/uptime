@@ -1,0 +1,36 @@
+{
+  "tested_commit": "6b93e31d4d6b57bece160603e2aa06c8d8aea844",
+  "branch": "work/submission-integration-20261109",
+  "contents": "0fe20b4 plus role 4 at 7ca68b2: request details behind a closed disclosure on the contract job card and the dispute candidate. All application changes of roles 1-4 are in this commit.",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-6b93e31",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5390 passed, 1 warning in 370.01s (0:06:10)",
+  "log": "suite-6b93e31-pytest.log",
+  "started_at": "2026-11-09T22:40:19Z",
+  "finished_at": "2026-11-09T23:02:02Z",
+  "wall_clock_note": "The run began at 22:40 UTC and ended about 23:01 UTC. The test time above is 370 seconds; the machine appears to have been asleep for part of the interval, and the run resumed without an abort.",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "see log; exit 0",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "prior_runs_preserved": [
+    "suite-02d86f7.json",
+    "suite-c756853.json",
+    "suite-6c83947.json",
+    "suite-96615d8-aborted.json",
+    "suite-96615d8-run2.json",
+    "suite-ff7977c.json",
+    "suite-0fe20b4.json"
+  ],
+  "limits": "Regression verification of the application commit. The frozen commit adds the README and judge guide on top and has its own run. Not an independent acceptance result, and not evidence of contract generalization, human release or any Ramp effect."
+}
