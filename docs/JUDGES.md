@@ -27,7 +27,7 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 | The settlement | **Overview** after the fourth decision | April's $11,000.00 bill becomes $8,600.00 in a local ledger: one credit, applied once | [Workflow read-back receipt](v4/evidence/demo-path-87/northwind-socket.json) |
 | The model | A separate recorded workspace (its own sign-in; see the runbook) | Corvid Ledger: a recorded Claude Opus 5.5 reading, 11 exact quotations, validated and staged in shadow; Halden Relay refused. Northwind itself uses fixed rules | [Runbook](v4/submission/onboarding-runbook.md) · [Call receipts](v4/evidence/submission-onboarding-20261109/genuine-calls-summary.json) |
 | An unfamiliar reply | A second Northwind workspace made with `--counterparty-reply unclear` | The model read the reply as unsupported; the case stays with a reviewer and nothing is awarded | [Recorded reply reading](v4/evidence/submission-disputes-20261109/denial-model-job.json) |
-| Ramp | The Ramp record panel | The sandbox bill, when it was read, and the note a person posted, read back by API | [Ramp notes](v4/submission/ramp.md) · [Read-back receipt](v4/evidence/demo-path-87/human-ramp-note.json) |
+| Ramp | More tools → Ramp records (from the Overview's Ramp card, **Open Ramp records**) | The sandbox bill, when it was read, and the note a person posted, read back by API | [Ramp notes](v4/submission/ramp.md) · [Read-back receipt](v4/evidence/demo-path-87/human-ramp-note.json) |
 
 ## What is authored, local or recorded
 
@@ -45,7 +45,7 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 
 **What happens on an unfamiliar contract?** Today it usually refuses, and says where. In the latest independent first pass, 12 actual Opus calls returned and all 12 proposals failed validation: 0 of 4 intended positive contracts reached shadow and all 6 were refused. All 8 dispute cases stopped at setup, so held-out dispute accuracy is unmeasured. Earlier first attempts (0 of 4, 3 of 6, 0 of 50) and a refused public SLA (Backblaze) stand. A refusal never produces a number. [Results](v4/evaluation-finish-20261109/RESULTS.md)
 
-**Who authorizes follow-up?** A reviewer: in the product, an enrolled person; in the walkthrough, whoever is driving it, signed in as the scripted test account. The reviewer approves the claim packet and the response, then posts and applies the credit. Uptime runs only intake and the dispatch of steps a reviewer already approved. Correctly accepting a vendor's denial is demonstrated on other dispute cases through the same signed routes, not in the Northwind walkthrough. No standing policy lets it act alone, and it stops on anything unexpected: a new legal ground, contradictory evidence, or uncertain delivery.
+**Who authorizes follow-up?** A reviewer: in the product, an enrolled person; in the walkthrough, whoever is driving it, signed in as the scripted test account. The reviewer approves the claim packet and the response, then posts and applies the credit. Uptime runs only intake and the dispatch of steps a reviewer already approved. Correctly accepting a vendor's denial is covered only by automated tests through the same signed routes; no demo workspace shows it. No standing policy lets it act alone, and it stops on anything unexpected: a new legal ground, contradictory evidence, or uncertain delivery.
 
 **What remains unimplemented?**
 - Any write to Ramp by Uptime, payment holds, and recording vendor credits in Ramp.
