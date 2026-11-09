@@ -1,0 +1,486 @@
+{
+  "recorded_at": "2026-11-09T21:17:26.884149+00:00",
+  "origin": "http://127.0.0.1:8811",
+  "account": "role1-operator",
+  "vendor_id": "halden-relay",
+  "document": {
+    "name": "Halden Relay Service Level Agreement (authored)",
+    "uri": "urn:synthetic:submission:halden-relay-sla",
+    "classification": "synthetic_public"
+  },
+  "source_text": "Halden Relay Service Level Agreement\nHalden Systems provides Halden Relay on the Harbor plan.\nThis service level agreement is effective from 2026-01-01 through 2026-12-31.\nWe calculate availability for full calendar months using UTC.\n| Monthly availability below | Service credit |\n| --- | --- |\n| 99.95% | 10% |\n| 99.5% | 25% |\n| 98% | 50% |\nA claim must be submitted within 30 calendar days following month end.\nThe credit is calculated from the affected monthly service fees and credited to your next invoice.",
+  "selection": {
+    "schema": "automatic-family-selection/1",
+    "mode": "automatic",
+    "vendor_id": "halden-relay",
+    "source_sha256": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782",
+    "attempt_nonce": "initial",
+    "offline": {
+      "accepted": false,
+      "method": "deterministic_document_parser",
+      "reason": "NOT_CANONICAL"
+    },
+    "families": [
+      {
+        "family": "monthly-availability/1",
+        "label": "Monthly availability",
+        "profile": "monthly-propositions",
+        "enabled": true,
+        "approval_reason": null,
+        "context_sha256": "77960ac1265ba3f253213a7242b5eda301da5b64583f50122bdfdf2831585e9a",
+        "request_sha256": "0bf17bf343c5b831dd9f92b4c3a2540c86ef177e9375fc426be6ed8fa1d9856e",
+        "disclosure": {
+          "model": "claude-opus-5-5",
+          "tools": [],
+          "profile": "monthly-propositions",
+          "attempt_nonce": "initial",
+          "source_sha256": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782",
+          "source_characters": 512,
+          "request_bytes": 6138,
+          "transmitted_fields": [
+            "attempt_nonce",
+            "extraction_instructions",
+            "input",
+            "limits",
+            "model",
+            "profile",
+            "protocol",
+            "system",
+            "tools",
+            "transport"
+          ]
+        },
+        "job": {
+          "job_id": "d98bbf92-e88f-4c4e-9f9a-30484a279a8c",
+          "status": "REFUSED",
+          "vendor_id": "halden-relay",
+          "request_sha256": "0bf17bf343c5b831dd9f92b4c3a2540c86ef177e9375fc426be6ed8fa1d9856e",
+          "context_sha256": "77960ac1265ba3f253213a7242b5eda301da5b64583f50122bdfdf2831585e9a",
+          "candidate_available": false,
+          "completed_after_expiry": false,
+          "reason": "proposal_validation_failed",
+          "kind": "vendor",
+          "submitted_at": "2026-11-09T21:15:16.466830+00:00",
+          "started_at": "2026-11-09T21:15:16.469691+00:00",
+          "finished_at": "2026-11-09T21:15:29.243027+00:00",
+          "provider": {
+            "model": "claude-opus-5-5",
+            "session": "75c9b80a-1e0a-4869-b09f-bd321d3d9f4a",
+            "client_reported_cost_usd": 0.050975999999999994,
+            "usage": {
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 3126,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "cache_creation_input_tokens": 3126,
+              "cache_read_input_tokens": 0,
+              "fallback_credit": null,
+              "inference_geo": "global",
+              "input_tokens": 2,
+              "iterations": [],
+              "output_tokens": 1298,
+              "output_tokens_details": {
+                "thinking_tokens": 713
+              },
+              "server_tool_use": {
+                "web_fetch_requests": 0,
+                "web_search_requests": 0
+              },
+              "service_tier": "standard",
+              "speed": "standard"
+            },
+            "returncode": 0,
+            "tool_events": 0,
+            "tool_inventory": [],
+            "mcp_inventory": [],
+            "output_sha256": "ffdc7fa9404423428cee0cf43e1115be87e827e01e73f84500275946238bac8e",
+            "result_sha256": "bbb325843224a8d5b4eb8d24c569413f5d4f633619b6a61a7fad45643c353f98",
+            "transport": {
+              "name": "safe-public-experimental-v2",
+              "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+            }
+          }
+        },
+        "state": "REFUSED_READING",
+        "refusal": {
+          "codes": [
+            "PUBLIC_PROPOSITION_UNESTABLISHED"
+          ],
+          "explanations": [
+            "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction."
+          ],
+          "passages": [],
+          "missing_terms": []
+        },
+        "public_diagnostic": {
+          "schema": "public-refusal-diagnostic/1",
+          "profile": "monthly-propositions",
+          "source_sha256": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782",
+          "document": {
+            "name": "Halden Relay Service Level Agreement (authored)",
+            "uri": "urn:synthetic:submission:halden-relay-sla",
+            "classification": "synthetic_public"
+          },
+          "issues": [
+            {
+              "block": null,
+              "block_sha256": null,
+              "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+              "end": null,
+              "start": null,
+              "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+              "quote": null
+            }
+          ],
+          "missing_terms": []
+        },
+        "attempts": {
+          "total": 1,
+          "validated": 0,
+          "structural_refusals": 0
+        }
+      },
+      {
+        "family": "resource-month/1",
+        "label": "Resource month",
+        "profile": "resource-month",
+        "enabled": true,
+        "approval_reason": null,
+        "context_sha256": "c9edc5a7e20a7e640ab44c6e2f8aaaf5d55a61ec3bf62141661245aa951278f9",
+        "request_sha256": "5cd70a953ae0b58d0ec233b9d57e7f47aeb67080b227307da009209dc645910b",
+        "disclosure": {
+          "model": "claude-opus-5-5",
+          "tools": [],
+          "profile": "resource-month",
+          "attempt_nonce": "initial",
+          "source_sha256": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782",
+          "source_characters": 512,
+          "request_bytes": 18558,
+          "transmitted_fields": [
+            "attempt_nonce",
+            "extraction_instructions",
+            "input",
+            "limits",
+            "model",
+            "profile",
+            "protocol",
+            "system",
+            "tools",
+            "transport"
+          ]
+        },
+        "job": {
+          "job_id": "d7490489-c709-49c1-af55-9de583b3cb46",
+          "status": "REFUSED",
+          "vendor_id": "halden-relay",
+          "request_sha256": "5cd70a953ae0b58d0ec233b9d57e7f47aeb67080b227307da009209dc645910b",
+          "context_sha256": "c9edc5a7e20a7e640ab44c6e2f8aaaf5d55a61ec3bf62141661245aa951278f9",
+          "candidate_available": false,
+          "completed_after_expiry": false,
+          "reason": "proposal_validation_failed",
+          "kind": "vendor",
+          "submitted_at": "2026-11-09T21:15:16.472256+00:00",
+          "started_at": "2026-11-09T21:15:29.244858+00:00",
+          "finished_at": "2026-11-09T21:15:41.148243+00:00",
+          "provider": {
+            "model": "claude-opus-5-5",
+            "session": "dc0005bd-6af5-4a7f-8ff3-1481aedc72b2",
+            "client_reported_cost_usd": 0.086724,
+            "usage": {
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 7727,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "cache_creation_input_tokens": 7727,
+              "cache_read_input_tokens": 0,
+              "fallback_credit": null,
+              "inference_geo": "global",
+              "input_tokens": 2,
+              "iterations": [],
+              "output_tokens": 1245,
+              "output_tokens_details": {
+                "thinking_tokens": 763
+              },
+              "server_tool_use": {
+                "web_fetch_requests": 0,
+                "web_search_requests": 0
+              },
+              "service_tier": "standard",
+              "speed": "standard"
+            },
+            "returncode": 0,
+            "tool_events": 0,
+            "tool_inventory": [],
+            "mcp_inventory": [],
+            "output_sha256": "a8de350458786e2f5121233d802898062defdcff69035246a18e18a091c102a1",
+            "result_sha256": "92cfb41943aaf505eab74c1e6fe4beed5158083136c89f5caf5b71c67aaef2ab",
+            "transport": {
+              "name": "safe-public-experimental-v2",
+              "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+            }
+          }
+        },
+        "state": "REFUSED_READING",
+        "refusal": {
+          "codes": [
+            "UNSUPPORTED_BLOCK_PROPOSITION",
+            "UNSUPPORTED_BLOCK_PROPOSITION",
+            "REQUIRED_TERMS_MISSING"
+          ],
+          "explanations": [
+            "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "No passage establishes the listed required terms. Without them this family cannot produce an adapter."
+          ],
+          "passages": [
+            "We calculate availability for full calendar months using UTC.",
+            "A claim must be submitted within 30 calendar days following month end."
+          ],
+          "missing_terms": [
+            "claim filing deadline",
+            "evidence requirements",
+            "measurement period",
+            "provider-caused conditions",
+            "qualifying symptoms"
+          ]
+        },
+        "public_diagnostic": {
+          "schema": "public-refusal-diagnostic/1",
+          "profile": "resource-month",
+          "source_sha256": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782",
+          "document": {
+            "name": "Halden Relay Service Level Agreement (authored)",
+            "uri": "urn:synthetic:submission:halden-relay-sla",
+            "classification": "synthetic_public"
+          },
+          "issues": [
+            {
+              "block": 4,
+              "block_sha256": "fcf7573651387dcd0b8dcaa4d3fb0f3312e34051933751ec2ceb13ede24d9b0c",
+              "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+              "end": 233,
+              "start": 172,
+              "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+              "quote": "We calculate availability for full calendar months using UTC."
+            },
+            {
+              "block": 10,
+              "block_sha256": "5d4b1e28b22f865d156705cbc3bd34aa07f8080eece76b43b37dc04198657860",
+              "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+              "end": 413,
+              "start": 343,
+              "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+              "quote": "A claim must be submitted within 30 calendar days following month end."
+            },
+            {
+              "block": null,
+              "block_sha256": null,
+              "code": "REQUIRED_TERMS_MISSING",
+              "end": null,
+              "start": null,
+              "explanation": "No passage establishes the listed required terms. Without them this family cannot produce an adapter.",
+              "quote": null
+            }
+          ],
+          "missing_terms": [
+            "claim filing deadline",
+            "evidence requirements",
+            "measurement period",
+            "provider-caused conditions",
+            "qualifying symptoms"
+          ]
+        },
+        "attempts": {
+          "total": 1,
+          "validated": 0,
+          "structural_refusals": 0
+        }
+      }
+    ],
+    "outcome": "NO_SUPPORTED_FAMILY",
+    "selected": null,
+    "review_requirements": [
+      "Monthly availability: The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction. This refused the extraction’s reading, not a deterministic finding about the source text.",
+      "Resource month: This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction. No passage establishes the listed required terms. Without them this family cannot produce an adapter. Missing: claim filing deadline, evidence requirements, measurement period, provider-caused conditions, qualifying symptoms. Passage: “We calculate availability for full calendar months using UTC.”. This refused the extraction’s reading, not a deterministic finding about the source text.",
+      "No supported rule family represents this complete source. It cannot become an adapter without a new reviewed family, a corrected source, or manual handling."
+    ],
+    "selection_sha256": "955c4a662c683fb5b646fe7b8a543401f51f0312e557506cd0966cf021d97397",
+    "authority": {
+      "approval_gate": false,
+      "dispatch_authorized": false
+    }
+  },
+  "jobs": {
+    "monthly-availability/1": {
+      "job_id": "d98bbf92-e88f-4c4e-9f9a-30484a279a8c",
+      "status": "REFUSED",
+      "vendor_id": "halden-relay",
+      "request_sha256": "0bf17bf343c5b831dd9f92b4c3a2540c86ef177e9375fc426be6ed8fa1d9856e",
+      "context_sha256": "77960ac1265ba3f253213a7242b5eda301da5b64583f50122bdfdf2831585e9a",
+      "candidate_available": false,
+      "completed_after_expiry": false,
+      "reason": "proposal_validation_failed",
+      "kind": "vendor",
+      "submitted_at": "2026-11-09T21:15:16.466830+00:00",
+      "started_at": "2026-11-09T21:15:16.469691+00:00",
+      "finished_at": "2026-11-09T21:15:29.243027+00:00",
+      "provider": {
+        "model": "claude-opus-5-5",
+        "session": "75c9b80a-1e0a-4869-b09f-bd321d3d9f4a",
+        "client_reported_cost_usd": 0.050975999999999994,
+        "usage": {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 3126,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 3126,
+          "cache_read_input_tokens": 0,
+          "fallback_credit": null,
+          "inference_geo": "global",
+          "input_tokens": 2,
+          "iterations": [],
+          "output_tokens": 1298,
+          "output_tokens_details": {
+            "thinking_tokens": 713
+          },
+          "server_tool_use": {
+            "web_fetch_requests": 0,
+            "web_search_requests": 0
+          },
+          "service_tier": "standard",
+          "speed": "standard"
+        },
+        "returncode": 0,
+        "tool_events": 0,
+        "tool_inventory": [],
+        "mcp_inventory": [],
+        "output_sha256": "ffdc7fa9404423428cee0cf43e1115be87e827e01e73f84500275946238bac8e",
+        "result_sha256": "bbb325843224a8d5b4eb8d24c569413f5d4f633619b6a61a7fad45643c353f98",
+        "transport": {
+          "name": "safe-public-experimental-v2",
+          "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+        }
+      },
+      "public_diagnostic": {
+        "schema": "public-refusal-diagnostic/1",
+        "profile": "monthly-propositions",
+        "source_sha256": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782",
+        "document": {
+          "name": "Halden Relay Service Level Agreement (authored)",
+          "uri": "urn:synthetic:submission:halden-relay-sla",
+          "classification": "synthetic_public"
+        },
+        "issues": [
+          {
+            "block": null,
+            "block_sha256": null,
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": null,
+            "start": null,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": null
+          }
+        ],
+        "missing_terms": []
+      }
+    },
+    "resource-month/1": {
+      "job_id": "d7490489-c709-49c1-af55-9de583b3cb46",
+      "status": "REFUSED",
+      "vendor_id": "halden-relay",
+      "request_sha256": "5cd70a953ae0b58d0ec233b9d57e7f47aeb67080b227307da009209dc645910b",
+      "context_sha256": "c9edc5a7e20a7e640ab44c6e2f8aaaf5d55a61ec3bf62141661245aa951278f9",
+      "candidate_available": false,
+      "completed_after_expiry": false,
+      "reason": "proposal_validation_failed",
+      "kind": "vendor",
+      "submitted_at": "2026-11-09T21:15:16.472256+00:00",
+      "started_at": "2026-11-09T21:15:29.244858+00:00",
+      "finished_at": "2026-11-09T21:15:41.148243+00:00",
+      "provider": {
+        "model": "claude-opus-5-5",
+        "session": "dc0005bd-6af5-4a7f-8ff3-1481aedc72b2",
+        "client_reported_cost_usd": 0.086724,
+        "usage": {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 7727,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 7727,
+          "cache_read_input_tokens": 0,
+          "fallback_credit": null,
+          "inference_geo": "global",
+          "input_tokens": 2,
+          "iterations": [],
+          "output_tokens": 1245,
+          "output_tokens_details": {
+            "thinking_tokens": 763
+          },
+          "server_tool_use": {
+            "web_fetch_requests": 0,
+            "web_search_requests": 0
+          },
+          "service_tier": "standard",
+          "speed": "standard"
+        },
+        "returncode": 0,
+        "tool_events": 0,
+        "tool_inventory": [],
+        "mcp_inventory": [],
+        "output_sha256": "a8de350458786e2f5121233d802898062defdcff69035246a18e18a091c102a1",
+        "result_sha256": "92cfb41943aaf505eab74c1e6fe4beed5158083136c89f5caf5b71c67aaef2ab",
+        "transport": {
+          "name": "safe-public-experimental-v2",
+          "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+        }
+      },
+      "public_diagnostic": {
+        "schema": "public-refusal-diagnostic/1",
+        "profile": "resource-month",
+        "source_sha256": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782",
+        "document": {
+          "name": "Halden Relay Service Level Agreement (authored)",
+          "uri": "urn:synthetic:submission:halden-relay-sla",
+          "classification": "synthetic_public"
+        },
+        "issues": [
+          {
+            "block": 4,
+            "block_sha256": "fcf7573651387dcd0b8dcaa4d3fb0f3312e34051933751ec2ceb13ede24d9b0c",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 233,
+            "start": 172,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "We calculate availability for full calendar months using UTC."
+          },
+          {
+            "block": 10,
+            "block_sha256": "5d4b1e28b22f865d156705cbc3bd34aa07f8080eece76b43b37dc04198657860",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 413,
+            "start": 343,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "A claim must be submitted within 30 calendar days following month end."
+          },
+          {
+            "block": null,
+            "block_sha256": null,
+            "code": "REQUIRED_TERMS_MISSING",
+            "end": null,
+            "start": null,
+            "explanation": "No passage establishes the listed required terms. Without them this family cannot produce an adapter.",
+            "quote": null
+          }
+        ],
+        "missing_terms": [
+          "claim filing deadline",
+          "evidence requirements",
+          "measurement period",
+          "provider-caused conditions",
+          "qualifying symptoms"
+        ]
+      }
+    }
+  },
+  "adapter": null,
+  "requirements": null
+}

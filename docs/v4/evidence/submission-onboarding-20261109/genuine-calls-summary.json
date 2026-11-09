@@ -1,0 +1,182 @@
+{
+  "purpose": "Role 1 genuine model-assisted onboarding through the ordinary application routes (authored contracts only).",
+  "application": {
+    "commit": "611efdf plus uncommitted diagnostics change at 21:16Z (see note)",
+    "server": "http://127.0.0.1:8811 (throwaway replay workspace, tenant submission-onboarding)",
+    "account": "role1-operator (disposable enrolled reviewer created for this run; not a human review)"
+  },
+  "source_sha256": {
+    "halden_relay": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782",
+    "corvid_ledger": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+    "halden_relay_control": "7e7c36fe160d1860c736514690778aa317f58751efc93cf597de68b48ecbad12"
+  },
+  "approvals": [
+    {
+      "target": "halden-relay",
+      "context_sha256": "77960ac1265ba3f253213a7242b5eda301da5b64583f50122bdfdf2831585e9a",
+      "approved_by": "agent2-role1-claude-code-agent (model invocation only; not a human review)",
+      "approved_at": "2026-11-09T21:15:10.634082+00:00",
+      "expires_at": "2026-11-10T03:15:10.634082+00:00",
+      "request_sha256": "0bf17bf343c5b831dd9f92b4c3a2540c86ef177e9375fc426be6ed8fa1d9856e",
+      "profile": "monthly-propositions",
+      "source_sha256": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782"
+    },
+    {
+      "target": "halden-relay",
+      "context_sha256": "c9edc5a7e20a7e640ab44c6e2f8aaaf5d55a61ec3bf62141661245aa951278f9",
+      "approved_by": "agent2-role1-claude-code-agent (model invocation only; not a human review)",
+      "approved_at": "2026-11-09T21:15:10.788448+00:00",
+      "expires_at": "2026-11-10T03:15:10.788448+00:00",
+      "request_sha256": "5cd70a953ae0b58d0ec233b9d57e7f47aeb67080b227307da009209dc645910b",
+      "profile": "resource-month",
+      "source_sha256": "6bcbda6e13b1265092873b9a62831add22c1b8dfd35d205f60fed327cc720782"
+    },
+    {
+      "target": "corvid-ledger",
+      "context_sha256": "a6b0169b3293ba42a5a9263088ec8524862df77f2d5f54d46eeddb5b7817e88d",
+      "approved_by": "agent2-role1-claude-code-agent (model invocation only; not a human review)",
+      "approved_at": "2026-11-09T21:15:41.187921+00:00",
+      "expires_at": "2026-11-10T03:15:41.187921+00:00",
+      "request_sha256": "ca2fabb3bb9b4e2b09b16577c623ba238f886b1b804320e81df6fd0aa7c57bd5",
+      "profile": "monthly-propositions",
+      "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e"
+    },
+    {
+      "target": "corvid-ledger",
+      "context_sha256": "d2079f3983a78f88bcae2ae1ab2d0609a592b92adc92ce42d318bfc81bb0df70",
+      "approved_by": "agent2-role1-claude-code-agent (model invocation only; not a human review)",
+      "approved_at": "2026-11-09T21:15:41.523421+00:00",
+      "expires_at": "2026-11-10T03:15:41.523421+00:00",
+      "request_sha256": "6669b245cd56b033a0d057258e31d7b001d01885782d7fe1e55f06ecf8185972",
+      "profile": "resource-month",
+      "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e"
+    },
+    {
+      "target": "halden-relay-control",
+      "context_sha256": "e758c1e16f1334f6a42b8109b4979845504c9e23d77749632cf71dc0ac67a889",
+      "approved_by": "agent2-role1-claude-code-agent (model invocation only; not a human review)",
+      "approved_at": "2026-11-09T21:15:41.710032+00:00",
+      "expires_at": "2026-11-10T03:15:41.710032+00:00",
+      "request_sha256": "63e11576761e13e700ca7f2b340f14e168be851394ef90d08c2d6939a87a20cc",
+      "profile": "monthly-propositions",
+      "source_sha256": "7e7c36fe160d1860c736514690778aa317f58751efc93cf597de68b48ecbad12"
+    },
+    {
+      "target": "halden-relay-control",
+      "context_sha256": "0348909d818903dce3657f3eb785cf6c1f8397d1d90bf2969f823599ecb3fa88",
+      "approved_by": "agent2-role1-claude-code-agent (model invocation only; not a human review)",
+      "approved_at": "2026-11-09T21:15:41.891578+00:00",
+      "expires_at": "2026-11-10T03:15:41.891578+00:00",
+      "request_sha256": "744f0e95d6c3f00347cbd4de32b03e4370a9f7ffedc591071641ac3a5da3fef6",
+      "profile": "resource-month",
+      "source_sha256": "7e7c36fe160d1860c736514690778aa317f58751efc93cf597de68b48ecbad12"
+    }
+  ],
+  "jobs": [
+    {
+      "job_id": "d98bbf92-e88f-4c4e-9f9a-30484a279a8c",
+      "vendor": "halden-relay",
+      "status": "REFUSED",
+      "reason": "proposal_validation_failed",
+      "submitted_at": "2026-11-09T21:15:16.466830+00:00",
+      "started_at": "2026-11-09T21:15:16.469691+00:00",
+      "finished_at": "2026-11-09T21:15:29.243027+00:00",
+      "request_sha256": "0bf17bf343c5b831dd9f92b4c3a2540c86ef177e9375fc426be6ed8fa1d9856e",
+      "model": "claude-opus-5-5",
+      "session": "75c9b80a-1e0a-4869-b09f-bd321d3d9f4a",
+      "client_reported_cost_usd": 0.050975999999999994,
+      "returncode": 0,
+      "tool_events": 0,
+      "mcp_inventory": []
+    },
+    {
+      "job_id": "d7490489-c709-49c1-af55-9de583b3cb46",
+      "vendor": "halden-relay",
+      "status": "REFUSED",
+      "reason": "proposal_validation_failed",
+      "submitted_at": "2026-11-09T21:15:16.472256+00:00",
+      "started_at": "2026-11-09T21:15:29.244858+00:00",
+      "finished_at": "2026-11-09T21:15:41.148243+00:00",
+      "request_sha256": "5cd70a953ae0b58d0ec233b9d57e7f47aeb67080b227307da009209dc645910b",
+      "model": "claude-opus-5-5",
+      "session": "dc0005bd-6af5-4a7f-8ff3-1481aedc72b2",
+      "client_reported_cost_usd": 0.086724,
+      "returncode": 0,
+      "tool_events": 0,
+      "mcp_inventory": []
+    },
+    {
+      "job_id": "26ee4e3f-e5e2-47c7-aebe-e1f4dc7c7402",
+      "vendor": "corvid-ledger",
+      "status": "SUCCEEDED",
+      "reason": null,
+      "submitted_at": "2026-11-09T21:17:27.352191+00:00",
+      "started_at": "2026-11-09T21:17:27.356705+00:00",
+      "finished_at": "2026-11-09T21:17:38.820385+00:00",
+      "request_sha256": "ca2fabb3bb9b4e2b09b16577c623ba238f886b1b804320e81df6fd0aa7c57bd5",
+      "model": "claude-opus-5-5",
+      "session": "41f4dcb6-ca5e-4c43-ac01-95d222de9737",
+      "client_reported_cost_usd": 0.050276,
+      "returncode": 0,
+      "tool_events": 0,
+      "mcp_inventory": []
+    },
+    {
+      "job_id": "d3f1a3ca-5a87-44e1-a56b-2319a27ef5b6",
+      "vendor": "corvid-ledger",
+      "status": "REFUSED",
+      "reason": "proposal_validation_failed",
+      "submitted_at": "2026-11-09T21:17:27.366284+00:00",
+      "started_at": "2026-11-09T21:17:38.822748+00:00",
+      "finished_at": "2026-11-09T21:17:53.097501+00:00",
+      "request_sha256": "6669b245cd56b033a0d057258e31d7b001d01885782d7fe1e55f06ecf8185972",
+      "model": "claude-opus-5-5",
+      "session": "b1418b20-d8b7-476e-bfd0-8357c88593be",
+      "client_reported_cost_usd": 0.083516,
+      "returncode": 0,
+      "tool_events": 0,
+      "mcp_inventory": []
+    },
+    {
+      "job_id": "708056a1-4a07-4a5c-ab36-b7f9e097b1e8",
+      "vendor": "halden-relay-control",
+      "status": "REFUSED",
+      "reason": "proposal_validation_failed",
+      "submitted_at": "2026-11-09T21:18:31.943928+00:00",
+      "started_at": "2026-11-09T21:18:31.946758+00:00",
+      "finished_at": "2026-11-09T21:18:43.934378+00:00",
+      "request_sha256": "63e11576761e13e700ca7f2b340f14e168be851394ef90d08c2d6939a87a20cc",
+      "model": "claude-opus-5-5",
+      "session": "2095764e-e0db-4f8d-9ac8-dd8efc12e6a3",
+      "client_reported_cost_usd": 0.051744,
+      "returncode": 0,
+      "tool_events": 0,
+      "mcp_inventory": []
+    },
+    {
+      "job_id": "4cad579b-c954-4838-9936-3e4639b0ef10",
+      "vendor": "halden-relay-control",
+      "status": "REFUSED",
+      "reason": "proposal_validation_failed",
+      "submitted_at": "2026-11-09T21:18:31.949029+00:00",
+      "started_at": "2026-11-09T21:18:43.936235+00:00",
+      "finished_at": "2026-11-09T21:18:54.936848+00:00",
+      "request_sha256": "744f0e95d6c3f00347cbd4de32b03e4370a9f7ffedc591071641ac3a5da3fef6",
+      "model": "claude-opus-5-5",
+      "session": "5f6482d8-8299-42de-8786-8095cd72684d",
+      "client_reported_cost_usd": 0.08657200000000001,
+      "returncode": 0,
+      "tool_events": 0,
+      "mcp_inventory": []
+    }
+  ],
+  "total_genuine_calls": 6,
+  "outcomes": {
+    "halden-relay": "NO_SUPPORTED_FAMILY",
+    "corvid-ledger": "SELECTED monthly-availability/1, staged SHADOW (no activation, no approval)",
+    "halden-relay-control": "NO_SUPPORTED_FAMILY"
+  },
+  "provenance_note": "The coordinator asked for the contract texts to be committed before the first call; that request arrived after the calls. The texts were fixed before any call: each exact-request approval above embeds the complete source text and was recorded before its first job was submitted, and the fixture files were not changed afterwards (their SHA-256 values equal the approved request sources).",
+  "server_restart_note": "The halden-relay jobs ran on the server started at 21:13Z (611efdf code). The server was restarted at 21:17Z with the passage-locating refusal diagnostics before corvid-ledger and halden-relay-control ran. Code changes affect only the explanation stored for a refusal; request bytes, validation and selection are unchanged.",
+  "no_retry": "Each contract ran once per family. Failed attempts are kept. No call was repeated to obtain a pass."
+}

@@ -1,0 +1,10 @@
+{
+  "account": "acct-halden-demo",
+  "agreement": "Halden Relay Service Level Agreement",
+  "product": "Halden Relay",
+  "plan": "Harbor",
+  "currency": "USD",
+  "effective_from": "2026-01-01",
+  "effective_until": "2026-12-31",
+  "fee_line_ref": "halden-relay-harbor-line"
+}

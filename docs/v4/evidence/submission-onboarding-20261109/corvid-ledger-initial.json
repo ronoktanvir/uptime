@@ -1,0 +1,1349 @@
+{
+  "recorded_at": "2026-11-09T21:18:24.325923+00:00",
+  "origin": "http://127.0.0.1:8811",
+  "account": "role1-operator",
+  "vendor_id": "corvid-ledger",
+  "document": {
+    "name": "Corvid Ledger availability commitment (authored)",
+    "uri": "urn:synthetic:submission:corvid-ledger-sla",
+    "classification": "synthetic_public"
+  },
+  "source_text": "The service provider under this agreement is Corvid Data Cooperative.\nThis contract is identified as CDC-SLA-07.\nThis service level agreement is valid from 2026-03-01 through 2027-02-28.\nAvailability is measured over each full calendar month in UTC.\nThe availability commitment covers the Corvid Ledger product on the Archive plan.\n| Monthly availability below | Service credit |\n| --- | --- |\n| 99.9% | 5% |\n| 99% | 20% |\nCredit requests must be received within 45 calendar days after the end of each calendar month.\nCredits are calculated as a percentage of the affected monthly fees and are applied to a future invoice.",
+  "selection": {
+    "schema": "automatic-family-selection/1",
+    "mode": "automatic",
+    "vendor_id": "corvid-ledger",
+    "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+    "attempt_nonce": "initial",
+    "offline": {
+      "accepted": false,
+      "method": "deterministic_document_parser",
+      "reason": "RESOURCE_LANGUAGE_PRESENT"
+    },
+    "families": [
+      {
+        "family": "monthly-availability/1",
+        "label": "Monthly availability",
+        "profile": "monthly-propositions",
+        "enabled": true,
+        "approval_reason": null,
+        "context_sha256": "a6b0169b3293ba42a5a9263088ec8524862df77f2d5f54d46eeddb5b7817e88d",
+        "request_sha256": "ca2fabb3bb9b4e2b09b16577c623ba238f886b1b804320e81df6fd0aa7c57bd5",
+        "disclosure": {
+          "model": "claude-opus-5-5",
+          "tools": [],
+          "profile": "monthly-propositions",
+          "attempt_nonce": "initial",
+          "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+          "source_characters": 622,
+          "request_bytes": 6248,
+          "transmitted_fields": [
+            "attempt_nonce",
+            "extraction_instructions",
+            "input",
+            "limits",
+            "model",
+            "profile",
+            "protocol",
+            "system",
+            "tools",
+            "transport"
+          ]
+        },
+        "job": {
+          "job_id": "26ee4e3f-e5e2-47c7-aebe-e1f4dc7c7402",
+          "status": "SUCCEEDED",
+          "vendor_id": "corvid-ledger",
+          "request_sha256": "ca2fabb3bb9b4e2b09b16577c623ba238f886b1b804320e81df6fd0aa7c57bd5",
+          "context_sha256": "a6b0169b3293ba42a5a9263088ec8524862df77f2d5f54d46eeddb5b7817e88d",
+          "candidate_available": true,
+          "completed_after_expiry": false,
+          "proposal": {
+            "profile": "monthly-propositions",
+            "attempt_nonce": "initial",
+            "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+            "proposal_sha256": "9670b57b067267c93b7def90bae6df43a6f03e5e5096fa5d8af95f6fae53753b",
+            "session": "41f4dcb6-ca5e-4c43-ac01-95d222de9737",
+            "model": "claude-opus-5-5",
+            "document": {
+              "name": "Corvid Ledger availability commitment (authored)",
+              "uri": "urn:synthetic:submission:corvid-ledger-sla",
+              "classification": "synthetic_public"
+            },
+            "clauses": [
+              {
+                "quote": "The service provider under this agreement is Corvid Data Cooperative.",
+                "field": "vendor",
+                "value": "Corvid Data Cooperative"
+              },
+              {
+                "quote": "This contract is identified as CDC-SLA-07.",
+                "field": "agreement",
+                "value": "CDC-SLA-07"
+              },
+              {
+                "quote": "This service level agreement is valid from 2026-03-01 through 2027-02-28.",
+                "field": "effective",
+                "value": [
+                  "2026-03-01",
+                  "2027-02-28"
+                ]
+              },
+              {
+                "quote": "Availability is measured over each full calendar month in UTC.",
+                "field": "period",
+                "value": "utc_calendar_month"
+              },
+              {
+                "quote": "The availability commitment covers the Corvid Ledger product on the Archive plan.",
+                "field": "scope",
+                "value": {
+                  "plan": "Archive",
+                  "product": "Corvid Ledger"
+                }
+              },
+              {
+                "quote": "| Monthly availability below | Service credit |",
+                "field": "table_header",
+                "value": null
+              },
+              {
+                "quote": "| --- | --- |",
+                "field": "table_separator",
+                "value": null
+              },
+              {
+                "quote": "| 99.9% | 5% |",
+                "field": "tier",
+                "value": {
+                  "below": "99.9",
+                  "credit": "5",
+                  "plan": "Archive",
+                  "product": "Corvid Ledger"
+                }
+              },
+              {
+                "quote": "| 99% | 20% |",
+                "field": "tier",
+                "value": {
+                  "below": "99",
+                  "credit": "20",
+                  "plan": "Archive",
+                  "product": "Corvid Ledger"
+                }
+              },
+              {
+                "quote": "Credit requests must be received within 45 calendar days after the end of each calendar month.",
+                "field": "filing_days",
+                "value": 45
+              },
+              {
+                "quote": "Credits are calculated as a percentage of the affected monthly fees and are applied to a future invoice.",
+                "field": "remedy",
+                "value": "affected_monthly_fees_future_invoice"
+              }
+            ]
+          },
+          "kind": "vendor",
+          "submitted_at": "2026-11-09T21:17:27.352191+00:00",
+          "started_at": "2026-11-09T21:17:27.356705+00:00",
+          "finished_at": "2026-11-09T21:17:38.820385+00:00",
+          "provider": {
+            "model": "claude-opus-5-5",
+            "session": "41f4dcb6-ca5e-4c43-ac01-95d222de9737",
+            "client_reported_cost_usd": 0.050276,
+            "usage": {
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 3161,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "cache_creation_input_tokens": 3161,
+              "cache_read_input_tokens": 0,
+              "fallback_credit": null,
+              "inference_geo": "global",
+              "input_tokens": 2,
+              "iterations": [],
+              "output_tokens": 1249,
+              "output_tokens_details": {
+                "thinking_tokens": 683
+              },
+              "server_tool_use": {
+                "web_fetch_requests": 0,
+                "web_search_requests": 0
+              },
+              "service_tier": "standard",
+              "speed": "standard"
+            },
+            "returncode": 0,
+            "tool_events": 0,
+            "tool_inventory": [],
+            "mcp_inventory": [],
+            "output_sha256": "69e753e7685528150f0bf4ec88965a1ca0dc4b03ed654aac92b7c3ce5e677970",
+            "result_sha256": "2e78ff71f5d23b300b0494a00ca380d3b73e3a09b7858447a21782785b3f4a07",
+            "transport": {
+              "name": "safe-public-experimental-v2",
+              "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+            }
+          }
+        },
+        "state": "VALIDATED",
+        "refusal": null,
+        "public_diagnostic": null,
+        "attempts": {
+          "total": 1,
+          "validated": 1,
+          "structural_refusals": 0
+        }
+      },
+      {
+        "family": "resource-month/1",
+        "label": "Resource month",
+        "profile": "resource-month",
+        "enabled": true,
+        "approval_reason": null,
+        "context_sha256": "d2079f3983a78f88bcae2ae1ab2d0609a592b92adc92ce42d318bfc81bb0df70",
+        "request_sha256": "6669b245cd56b033a0d057258e31d7b001d01885782d7fe1e55f06ecf8185972",
+        "disclosure": {
+          "model": "claude-opus-5-5",
+          "tools": [],
+          "profile": "resource-month",
+          "attempt_nonce": "initial",
+          "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+          "source_characters": 622,
+          "request_bytes": 18668,
+          "transmitted_fields": [
+            "attempt_nonce",
+            "extraction_instructions",
+            "input",
+            "limits",
+            "model",
+            "profile",
+            "protocol",
+            "system",
+            "tools",
+            "transport"
+          ]
+        },
+        "job": {
+          "job_id": "d3f1a3ca-5a87-44e1-a56b-2319a27ef5b6",
+          "status": "REFUSED",
+          "vendor_id": "corvid-ledger",
+          "request_sha256": "6669b245cd56b033a0d057258e31d7b001d01885782d7fe1e55f06ecf8185972",
+          "context_sha256": "d2079f3983a78f88bcae2ae1ab2d0609a592b92adc92ce42d318bfc81bb0df70",
+          "candidate_available": false,
+          "completed_after_expiry": false,
+          "reason": "proposal_validation_failed",
+          "kind": "vendor",
+          "submitted_at": "2026-11-09T21:17:27.366284+00:00",
+          "started_at": "2026-11-09T21:17:38.822748+00:00",
+          "finished_at": "2026-11-09T21:17:53.097501+00:00",
+          "provider": {
+            "model": "claude-opus-5-5",
+            "session": "b1418b20-d8b7-476e-bfd0-8357c88593be",
+            "client_reported_cost_usd": 0.083516,
+            "usage": {
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 7756,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "cache_creation_input_tokens": 7756,
+              "cache_read_input_tokens": 0,
+              "fallback_credit": null,
+              "inference_geo": "global",
+              "input_tokens": 2,
+              "iterations": [],
+              "output_tokens": 1073,
+              "output_tokens_details": {
+                "thinking_tokens": 648
+              },
+              "server_tool_use": {
+                "web_fetch_requests": 0,
+                "web_search_requests": 0
+              },
+              "service_tier": "standard",
+              "speed": "standard"
+            },
+            "returncode": 0,
+            "tool_events": 0,
+            "tool_inventory": [],
+            "mcp_inventory": [],
+            "output_sha256": "d4a9d000177c66dd616fde815d39324823c6cf61d89192085e9ee54238f5fa49",
+            "result_sha256": "0bbf526698f2a1d7050910603f85d74f5395951126cde71bbca6c498ce5f6e5e",
+            "transport": {
+              "name": "safe-public-experimental-v2",
+              "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+            }
+          }
+        },
+        "state": "REFUSED_READING",
+        "refusal": {
+          "codes": [
+            "UNSUPPORTED_BLOCK_PROPOSITION",
+            "REQUIRED_TERMS_MISSING"
+          ],
+          "explanations": [
+            "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "No passage establishes the listed required terms. Without them this family cannot produce an adapter."
+          ],
+          "passages": [
+            "Availability is measured over each full calendar month in UTC."
+          ],
+          "missing_terms": [
+            "evidence requirements",
+            "measurement period",
+            "provider-caused conditions",
+            "qualifying symptoms"
+          ]
+        },
+        "public_diagnostic": {
+          "schema": "public-refusal-diagnostic/1",
+          "profile": "resource-month",
+          "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+          "document": {
+            "name": "Corvid Ledger availability commitment (authored)",
+            "uri": "urn:synthetic:submission:corvid-ledger-sla",
+            "classification": "synthetic_public"
+          },
+          "issues": [
+            {
+              "block": 4,
+              "block_sha256": "792bf855e6c3ad873c0f34a91a21a13bbb1998563a85051404646a1e6f3e7c8d",
+              "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+              "end": 249,
+              "start": 187,
+              "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+              "quote": "Availability is measured over each full calendar month in UTC."
+            },
+            {
+              "block": null,
+              "block_sha256": null,
+              "code": "REQUIRED_TERMS_MISSING",
+              "end": null,
+              "start": null,
+              "explanation": "No passage establishes the listed required terms. Without them this family cannot produce an adapter.",
+              "quote": null
+            }
+          ],
+          "missing_terms": [
+            "evidence requirements",
+            "measurement period",
+            "provider-caused conditions",
+            "qualifying symptoms"
+          ]
+        },
+        "attempts": {
+          "total": 1,
+          "validated": 0,
+          "structural_refusals": 0
+        }
+      }
+    ],
+    "outcome": "SELECTED",
+    "selected": {
+      "family": "monthly-availability/1",
+      "method": "public_proposal_job",
+      "job_id": "26ee4e3f-e5e2-47c7-aebe-e1f4dc7c7402",
+      "profile": "monthly-propositions"
+    },
+    "review_requirements": [
+      "Uptime selected the monthly availability family: it alone validated the complete source. Stage the candidate from the selected proposal job, review why the other families were refused, accept or reject the source interpretation, author independent shadow tests, and have a person approve before activation.",
+      "Resource month: This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction. No passage establishes the listed required terms. Without them this family cannot produce an adapter. Missing: evidence requirements, measurement period, provider-caused conditions, qualifying symptoms. Passage: “Availability is measured over each full calendar month in UTC.”. This refused the extraction’s reading, not a deterministic finding about the source text."
+    ],
+    "selection_sha256": "08eee27ac625914592bef32d2dbde74e63ff5ce3a20a9e31306f0ecc74cabd68",
+    "authority": {
+      "approval_gate": false,
+      "dispatch_authorized": false
+    }
+  },
+  "jobs": {
+    "monthly-availability/1": {
+      "job_id": "26ee4e3f-e5e2-47c7-aebe-e1f4dc7c7402",
+      "status": "SUCCEEDED",
+      "vendor_id": "corvid-ledger",
+      "request_sha256": "ca2fabb3bb9b4e2b09b16577c623ba238f886b1b804320e81df6fd0aa7c57bd5",
+      "context_sha256": "a6b0169b3293ba42a5a9263088ec8524862df77f2d5f54d46eeddb5b7817e88d",
+      "candidate_available": true,
+      "completed_after_expiry": false,
+      "proposal": {
+        "profile": "monthly-propositions",
+        "attempt_nonce": "initial",
+        "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+        "proposal_sha256": "9670b57b067267c93b7def90bae6df43a6f03e5e5096fa5d8af95f6fae53753b",
+        "session": "41f4dcb6-ca5e-4c43-ac01-95d222de9737",
+        "model": "claude-opus-5-5",
+        "document": {
+          "name": "Corvid Ledger availability commitment (authored)",
+          "uri": "urn:synthetic:submission:corvid-ledger-sla",
+          "classification": "synthetic_public"
+        },
+        "clauses": [
+          {
+            "quote": "The service provider under this agreement is Corvid Data Cooperative.",
+            "field": "vendor",
+            "value": "Corvid Data Cooperative"
+          },
+          {
+            "quote": "This contract is identified as CDC-SLA-07.",
+            "field": "agreement",
+            "value": "CDC-SLA-07"
+          },
+          {
+            "quote": "This service level agreement is valid from 2026-03-01 through 2027-02-28.",
+            "field": "effective",
+            "value": [
+              "2026-03-01",
+              "2027-02-28"
+            ]
+          },
+          {
+            "quote": "Availability is measured over each full calendar month in UTC.",
+            "field": "period",
+            "value": "utc_calendar_month"
+          },
+          {
+            "quote": "The availability commitment covers the Corvid Ledger product on the Archive plan.",
+            "field": "scope",
+            "value": {
+              "plan": "Archive",
+              "product": "Corvid Ledger"
+            }
+          },
+          {
+            "quote": "| Monthly availability below | Service credit |",
+            "field": "table_header",
+            "value": null
+          },
+          {
+            "quote": "| --- | --- |",
+            "field": "table_separator",
+            "value": null
+          },
+          {
+            "quote": "| 99.9% | 5% |",
+            "field": "tier",
+            "value": {
+              "below": "99.9",
+              "credit": "5",
+              "plan": "Archive",
+              "product": "Corvid Ledger"
+            }
+          },
+          {
+            "quote": "| 99% | 20% |",
+            "field": "tier",
+            "value": {
+              "below": "99",
+              "credit": "20",
+              "plan": "Archive",
+              "product": "Corvid Ledger"
+            }
+          },
+          {
+            "quote": "Credit requests must be received within 45 calendar days after the end of each calendar month.",
+            "field": "filing_days",
+            "value": 45
+          },
+          {
+            "quote": "Credits are calculated as a percentage of the affected monthly fees and are applied to a future invoice.",
+            "field": "remedy",
+            "value": "affected_monthly_fees_future_invoice"
+          }
+        ]
+      },
+      "kind": "vendor",
+      "submitted_at": "2026-11-09T21:17:27.352191+00:00",
+      "started_at": "2026-11-09T21:17:27.356705+00:00",
+      "finished_at": "2026-11-09T21:17:38.820385+00:00",
+      "provider": {
+        "model": "claude-opus-5-5",
+        "session": "41f4dcb6-ca5e-4c43-ac01-95d222de9737",
+        "client_reported_cost_usd": 0.050276,
+        "usage": {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 3161,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 3161,
+          "cache_read_input_tokens": 0,
+          "fallback_credit": null,
+          "inference_geo": "global",
+          "input_tokens": 2,
+          "iterations": [],
+          "output_tokens": 1249,
+          "output_tokens_details": {
+            "thinking_tokens": 683
+          },
+          "server_tool_use": {
+            "web_fetch_requests": 0,
+            "web_search_requests": 0
+          },
+          "service_tier": "standard",
+          "speed": "standard"
+        },
+        "returncode": 0,
+        "tool_events": 0,
+        "tool_inventory": [],
+        "mcp_inventory": [],
+        "output_sha256": "69e753e7685528150f0bf4ec88965a1ca0dc4b03ed654aac92b7c3ce5e677970",
+        "result_sha256": "2e78ff71f5d23b300b0494a00ca380d3b73e3a09b7858447a21782785b3f4a07",
+        "transport": {
+          "name": "safe-public-experimental-v2",
+          "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+        }
+      }
+    },
+    "resource-month/1": {
+      "job_id": "d3f1a3ca-5a87-44e1-a56b-2319a27ef5b6",
+      "status": "REFUSED",
+      "vendor_id": "corvid-ledger",
+      "request_sha256": "6669b245cd56b033a0d057258e31d7b001d01885782d7fe1e55f06ecf8185972",
+      "context_sha256": "d2079f3983a78f88bcae2ae1ab2d0609a592b92adc92ce42d318bfc81bb0df70",
+      "candidate_available": false,
+      "completed_after_expiry": false,
+      "reason": "proposal_validation_failed",
+      "kind": "vendor",
+      "submitted_at": "2026-11-09T21:17:27.366284+00:00",
+      "started_at": "2026-11-09T21:17:38.822748+00:00",
+      "finished_at": "2026-11-09T21:17:53.097501+00:00",
+      "provider": {
+        "model": "claude-opus-5-5",
+        "session": "b1418b20-d8b7-476e-bfd0-8357c88593be",
+        "client_reported_cost_usd": 0.083516,
+        "usage": {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 7756,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 7756,
+          "cache_read_input_tokens": 0,
+          "fallback_credit": null,
+          "inference_geo": "global",
+          "input_tokens": 2,
+          "iterations": [],
+          "output_tokens": 1073,
+          "output_tokens_details": {
+            "thinking_tokens": 648
+          },
+          "server_tool_use": {
+            "web_fetch_requests": 0,
+            "web_search_requests": 0
+          },
+          "service_tier": "standard",
+          "speed": "standard"
+        },
+        "returncode": 0,
+        "tool_events": 0,
+        "tool_inventory": [],
+        "mcp_inventory": [],
+        "output_sha256": "d4a9d000177c66dd616fde815d39324823c6cf61d89192085e9ee54238f5fa49",
+        "result_sha256": "0bbf526698f2a1d7050910603f85d74f5395951126cde71bbca6c498ce5f6e5e",
+        "transport": {
+          "name": "safe-public-experimental-v2",
+          "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+        }
+      },
+      "public_diagnostic": {
+        "schema": "public-refusal-diagnostic/1",
+        "profile": "resource-month",
+        "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+        "document": {
+          "name": "Corvid Ledger availability commitment (authored)",
+          "uri": "urn:synthetic:submission:corvid-ledger-sla",
+          "classification": "synthetic_public"
+        },
+        "issues": [
+          {
+            "block": 4,
+            "block_sha256": "792bf855e6c3ad873c0f34a91a21a13bbb1998563a85051404646a1e6f3e7c8d",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 249,
+            "start": 187,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "Availability is measured over each full calendar month in UTC."
+          },
+          {
+            "block": null,
+            "block_sha256": null,
+            "code": "REQUIRED_TERMS_MISSING",
+            "end": null,
+            "start": null,
+            "explanation": "No passage establishes the listed required terms. Without them this family cannot produce an adapter.",
+            "quote": null
+          }
+        ],
+        "missing_terms": [
+          "evidence requirements",
+          "measurement period",
+          "provider-caused conditions",
+          "qualifying symptoms"
+        ]
+      }
+    }
+  },
+  "adapter": {
+    "state": "SHADOW",
+    "version": "ff76ed6764e895d9396fc0ee6af89ecba01cc1f236db359852aed4183415a050",
+    "revision": 3,
+    "active_version": null,
+    "reviewer": null,
+    "actions": [],
+    "extraction": {
+      "at": "2026-11-09T21:17:38.818484+00:00",
+      "method": "tool_free_model_propositions",
+      "model": "claude-opus-5-5",
+      "proposal_job": {
+        "attempt_nonce": "initial",
+        "context_sha256": "a6b0169b3293ba42a5a9263088ec8524862df77f2d5f54d46eeddb5b7817e88d",
+        "job_id": "26ee4e3f-e5e2-47c7-aebe-e1f4dc7c7402",
+        "origin": "public_proposal_job",
+        "profile": "monthly-propositions",
+        "request_sha256": "ca2fabb3bb9b4e2b09b16577c623ba238f886b1b804320e81df6fd0aa7c57bd5"
+      },
+      "proposal_sha256": "9670b57b067267c93b7def90bae6df43a6f03e5e5096fa5d8af95f6fae53753b",
+      "session": "41f4dcb6-ca5e-4c43-ac01-95d222de9737",
+      "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e"
+    },
+    "manifest": {
+      "agreement": "CDC-SLA-07",
+      "citations": [
+        {
+          "end": 69,
+          "field": "vendor",
+          "id": 1,
+          "quote": "The service provider under this agreement is Corvid Data Cooperative.",
+          "start": 0
+        },
+        {
+          "end": 112,
+          "field": "agreement",
+          "id": 2,
+          "quote": "This contract is identified as CDC-SLA-07.",
+          "start": 70
+        },
+        {
+          "end": 186,
+          "field": "effective",
+          "id": 3,
+          "quote": "This service level agreement is valid from 2026-03-01 through 2027-02-28.",
+          "start": 113
+        },
+        {
+          "end": 249,
+          "field": "period",
+          "id": 4,
+          "quote": "Availability is measured over each full calendar month in UTC.",
+          "start": 187
+        },
+        {
+          "end": 331,
+          "field": "scope",
+          "id": 5,
+          "quote": "The availability commitment covers the Corvid Ledger product on the Archive plan.",
+          "start": 250
+        },
+        {
+          "end": 379,
+          "field": "table_header",
+          "id": 6,
+          "quote": "| Monthly availability below | Service credit |",
+          "start": 332
+        },
+        {
+          "end": 393,
+          "field": "table_separator",
+          "id": 7,
+          "quote": "| --- | --- |",
+          "start": 380
+        },
+        {
+          "end": 408,
+          "field": "tier",
+          "id": 8,
+          "quote": "| 99.9% | 5% |",
+          "start": 394
+        },
+        {
+          "end": 422,
+          "field": "tier",
+          "id": 9,
+          "quote": "| 99% | 20% |",
+          "start": 409
+        },
+        {
+          "end": 517,
+          "field": "filing_days",
+          "id": 10,
+          "quote": "Credit requests must be received within 45 calendar days after the end of each calendar month.",
+          "start": 423
+        },
+        {
+          "end": 622,
+          "field": "remedy",
+          "id": 11,
+          "quote": "Credits are calculated as a percentage of the affected monthly fees and are applied to a future invoice.",
+          "start": 518
+        }
+      ],
+      "document": {
+        "classification": "synthetic_public",
+        "name": "Corvid Ledger availability commitment (authored)",
+        "sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+        "uri": "urn:synthetic:submission:corvid-ledger-sla"
+      },
+      "effective": [
+        "2026-03-01",
+        "2027-02-28"
+      ],
+      "family": "monthly-availability/1",
+      "filing_days": 45,
+      "interpretation": "model_proposition_human_review_required",
+      "period": "utc_calendar_month",
+      "remedy": "affected_monthly_fees_future_invoice",
+      "tiers": [
+        {
+          "below_units": 99000000,
+          "citation": 9,
+          "credit_units": 20000000,
+          "header_citation": 6,
+          "plan": "Archive",
+          "product": "Corvid Ledger",
+          "scope_citation": 5
+        },
+        {
+          "below_units": 99900000,
+          "citation": 8,
+          "credit_units": 5000000,
+          "header_citation": 6,
+          "plan": "Archive",
+          "product": "Corvid Ledger",
+          "scope_citation": 5
+        }
+      ],
+      "vendor": "Corvid Data Cooperative"
+    },
+    "overlay": {
+      "account": "acct-corvid-demo",
+      "agreement": "CDC-SLA-07",
+      "currency": "USD",
+      "effective_from": "2026-03-01",
+      "effective_until": "2027-02-28",
+      "fee_line_ref": "corvid-ledger-archive-line",
+      "plan": "Archive",
+      "product": "Corvid Ledger"
+    }
+  },
+  "requirements": {
+    "vendor_id": "corvid-ledger",
+    "version": "ff76ed6764e895d9396fc0ee6af89ecba01cc1f236db359852aed4183415a050",
+    "revision": 3,
+    "state": "SHADOW",
+    "card": {
+      "schema": "adapter-requirements/1",
+      "family": "monthly-availability/1",
+      "supported": true,
+      "no_open_requirements": true,
+      "evaluator_semantics": "1b53500d662220505d125983684ec1753a937ad172fe12472acca712456dbf4a",
+      "source_sha256": "7a43e383a7439934cfd2319042bc4f4b71a5d6e74301694967ec3738f0c4ba9e",
+      "elements": [
+        {
+          "element": "source_clauses",
+          "status": "PRESENT",
+          "citations": [
+            1,
+            2,
+            3,
+            4,
+            8,
+            9
+          ],
+          "detail": {
+            "fields": {
+              "vendor": [
+                1
+              ],
+              "agreement": [
+                2
+              ],
+              "effective": [
+                3
+              ],
+              "period": [
+                4
+              ],
+              "tier": [
+                8,
+                9
+              ]
+            }
+          },
+          "requirement": null
+        },
+        {
+          "element": "eligible_fee",
+          "status": "PRESENT",
+          "citations": [
+            11
+          ],
+          "detail": {
+            "remedy": "affected_monthly_fees_future_invoice",
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "currency": "USD"
+          },
+          "requirement": null
+        },
+        {
+          "element": "evidence",
+          "status": "FAMILY_DEFINED",
+          "citations": [
+            4,
+            11
+          ],
+          "detail": {
+            "observation": [
+              "scoped vendor measurement covering the complete UTC month",
+              "exclusion-adjusted eligible downtime minutes",
+              "verified affected fee line amount for the same month",
+              "offset-aware filing receipt time"
+            ],
+            "basis": "Fixed by the supported monthly family evaluator; the source cites the measurement period and fee basis these items prove."
+          },
+          "requirement": null
+        },
+        {
+          "element": "exclusions",
+          "status": "NONE_STATED",
+          "citations": [],
+          "detail": {
+            "basis": "Every cited clause in this adapter is a recognized vendor, date, period, tier, fee or filing field; none states an exclusion. Observations must still attest exclusion-adjusted downtime."
+          },
+          "requirement": null
+        },
+        {
+          "element": "deadline",
+          "status": "PRESENT",
+          "citations": [
+            10
+          ],
+          "detail": {
+            "filing_days": 45,
+            "measured_from": "end of the UTC calendar month"
+          },
+          "requirement": null
+        },
+        {
+          "element": "submission_channel",
+          "status": "NONE_STATED",
+          "citations": [],
+          "detail": {
+            "basis": "The monthly family records no claim submission channel or request fields. Claims are delivered only through a separately configured and authorized channel (D08)."
+          },
+          "requirement": null
+        }
+      ],
+      "review_requirements": [
+        "Author independent expectations, including at least one eligible case with an exact amount and one refusal, from the cited clauses rather than from generated drafts.",
+        "Accept or reject the model-proposed interpretation of each cited clause."
+      ]
+    },
+    "drafts": {
+      "generated": true,
+      "reason": null,
+      "month": "2026-03",
+      "draft_fee_cents": 100000,
+      "notice": "Generated from this adapter’s own reading of the source, with a placeholder fee. Use them to inspect behavior; they are not independent expectations and cannot be submitted unchanged.",
+      "scenarios": [
+        {
+          "name": "Availability one minute past the 99.9% threshold (45 of 44640 minutes down)",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "ELIGIBLE",
+            "amount": "50.00"
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "44595/44640 available in 2026-03; exclusive comparison against 99.9%; placeholder fee USD 1,000.00.",
+          "citations": [
+            8
+          ]
+        },
+        {
+          "name": "Availability exactly at or above the 99.9% threshold (44 of 44640 minutes down)",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 44
+          },
+          "derived": {
+            "outcome": "INELIGIBLE",
+            "amount": null
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "44596/44640 available in 2026-03; exclusive comparison against 99.9%; placeholder fee USD 1,000.00.",
+          "citations": [
+            8,
+            9
+          ]
+        },
+        {
+          "name": "Availability one minute past the 99% threshold (447 of 44640 minutes down)",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 447
+          },
+          "derived": {
+            "outcome": "ELIGIBLE",
+            "amount": "200.00"
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "44193/44640 available in 2026-03; exclusive comparison against 99%; placeholder fee USD 1,000.00.",
+          "citations": [
+            9
+          ]
+        },
+        {
+          "name": "Availability exactly at or above the 99% threshold (446 of 44640 minutes down)",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 446
+          },
+          "derived": {
+            "outcome": "ELIGIBLE",
+            "amount": "50.00"
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "44194/44640 available in 2026-03; exclusive comparison against 99%; placeholder fee USD 1,000.00.",
+          "citations": [
+            8
+          ]
+        },
+        {
+          "name": "Public status page only",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "public_status",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "Required evidence or scope is not established.",
+          "citations": [
+            8
+          ]
+        },
+        {
+          "name": "Measurement month not complete",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": false,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "Required evidence or scope is not established.",
+          "citations": [
+            8
+          ]
+        },
+        {
+          "name": "Exclusions not yet removed from downtime",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": false,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "Required evidence or scope is not established.",
+          "citations": [
+            8
+          ]
+        },
+        {
+          "name": "Different account",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo-other",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "Required evidence or scope is not established.",
+          "citations": [
+            8
+          ]
+        },
+        {
+          "name": "Affected fee unknown",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "placeholder_fee_cents": null,
+          "derivation": "An unknown fee leaves the amount unknown.",
+          "citations": [
+            11
+          ]
+        },
+        {
+          "name": "Received at the last timely second",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-05-15T23:59:59Z",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "ELIGIBLE",
+            "amount": "50.00"
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "Filing window closes 45 days after month end (exclusive).",
+          "citations": [
+            8,
+            10
+          ]
+        },
+        {
+          "name": "Received when the filing window closes",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-05-16T00:00:00Z",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "INELIGIBLE",
+            "amount": null
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "45-day window has closed.",
+          "citations": [
+            10
+          ]
+        },
+        {
+          "name": "Last timely second stated in UTC-07:00",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-05-15T16:59:59-07:00",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "ELIGIBLE",
+            "amount": "50.00"
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "The stated offset is converted to UTC before comparing with the window close.",
+          "citations": [
+            8,
+            10
+          ]
+        },
+        {
+          "name": "Window close stated in UTC+05:30",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-05-16T05:30:00+05:30",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "INELIGIBLE",
+            "amount": null
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "The same instant as the window close, in another offset, is not timely.",
+          "citations": [
+            10
+          ]
+        },
+        {
+          "name": "Receipt time without a UTC offset",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2026-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-05-15T00:00:00",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "INSUFFICIENT_EVIDENCE",
+            "amount": null
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "A receipt time must state its offset.",
+          "citations": [
+            10
+          ]
+        },
+        {
+          "name": "Month outside the governed interval",
+          "facts": {
+            "agreement": "CDC-SLA-07",
+            "account": "acct-corvid-demo",
+            "product": "Corvid Ledger",
+            "plan": "Archive",
+            "month": "2027-03",
+            "monitor_source": "simulated_vendor",
+            "monitor_ref": "draft-monitor-2026-03",
+            "month_complete": true,
+            "exclusions_removed": true,
+            "monthly_fee_cents": 100000,
+            "fee_line_ref": "corvid-ledger-archive-line",
+            "fee_ref": "draft-fee-2026-03",
+            "received_at": "2026-04-01T00:00:00Z",
+            "eligible_downtime_minutes": 45
+          },
+          "derived": {
+            "outcome": "UNSUPPORTED_RULE",
+            "amount": null
+          },
+          "placeholder_fee_cents": 100000,
+          "derivation": "The complete month must be governed by both the source and the overlay.",
+          "citations": [
+            3
+          ]
+        }
+      ]
+    },
+    "family_selection": {
+      "outcome": "SELECTED",
+      "selected": {
+        "family": "monthly-availability/1",
+        "method": "public_proposal_job",
+        "job_id": "26ee4e3f-e5e2-47c7-aebe-e1f4dc7c7402",
+        "profile": "monthly-propositions"
+      },
+      "selection_sha256": "08eee27ac625914592bef32d2dbde74e63ff5ce3a20a9e31306f0ecc74cabd68",
+      "offline": {
+        "accepted": false,
+        "method": "deterministic_document_parser",
+        "reason": "RESOURCE_LANGUAGE_PRESENT"
+      },
+      "review_requirements": [
+        "Uptime selected the monthly availability family: it alone validated the complete source. Stage the candidate from the selected proposal job, review why the other families were refused, accept or reject the source interpretation, author independent shadow tests, and have a person approve before activation.",
+        "Resource month: This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction. No passage establishes the listed required terms. Without them this family cannot produce an adapter. Missing: evidence requirements, measurement period, provider-caused conditions, qualifying symptoms. Passage: “Availability is measured over each full calendar month in UTC.”. This refused the extraction’s reading, not a deterministic finding about the source text."
+      ],
+      "families": [
+        {
+          "family": "monthly-availability/1",
+          "label": "Monthly availability",
+          "state": "VALIDATED",
+          "refusal": null,
+          "attempts": {
+            "total": 1,
+            "validated": 1,
+            "structural_refusals": 0
+          }
+        },
+        {
+          "family": "resource-month/1",
+          "label": "Resource month",
+          "state": "REFUSED_READING",
+          "refusal": {
+            "codes": [
+              "UNSUPPORTED_BLOCK_PROPOSITION",
+              "REQUIRED_TERMS_MISSING"
+            ],
+            "explanations": [
+              "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+              "No passage establishes the listed required terms. Without them this family cannot produce an adapter."
+            ],
+            "passages": [
+              "Availability is measured over each full calendar month in UTC."
+            ],
+            "missing_terms": [
+              "evidence requirements",
+              "measurement period",
+              "provider-caused conditions",
+              "qualifying symptoms"
+            ]
+          },
+          "attempts": {
+            "total": 1,
+            "validated": 0,
+            "structural_refusals": 0
+          }
+        }
+      ]
+    },
+    "draft_overlap": {
+      "tests_reusing_draft_facts": [],
+      "warning": null
+    },
+    "authority": {
+      "approval_gate": false,
+      "dispatch_authorized": false
+    }
+  }
+}

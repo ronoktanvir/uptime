@@ -35,3 +35,16 @@ New tests, added to `tests/test_workflow_coordinator_r2.py` (12 tests now):
 - `test_setup_prints_a_plain_sign_in_block_and_writes_a_visible_protected_copy`
 
 First run of the 12: **1 failed, 11 passed.** The sign-in test expected the test-module origin (`:8765`), but the CLI default is `:8776`. The test now compares against the origin the CLI prints. No application code changed for this fix. Second run, with the workflow, finance and model-job tests: **156 passed, 1 warning**.
+
+## Coordinator review fixes
+
+Bug found by the coordinator on `02d86f7`: `--resume --reviewer-credential <existing file>` ended in a raw `FileExistsError` traceback. It is fixed in `scripts/setup_northwind.py`.
+
+New tests (`tests/test_workflow_coordinator_r2.py`, 17 tests now):
+- `test_resume_reuses_an_identical_credential_and_refuses_a_different_one_without_overwriting`
+- `test_a_refused_credential_path_leaves_no_half_created_workspace[existing, repository, missing-folder]`
+- `test_a_stale_approval_binding_is_never_dispatched`: the coordinator-level pin requested by the coordinator.
+
+First run: **1 failed, 16 passed.** My stale-binding test assumed `_approval_binding` returns a dict; it returns a fingerprint string, so the test now substitutes a different value. No application code changed for that.
+
+Focused set (same command as section 7 of the handoff): **161 passed, 1 warning**. The correct-denial node id cited for the runbook: **2 passed**. No existing test changed.

@@ -13,6 +13,28 @@
   const CODES = {HISTORICAL_REPLAY:'Saved capture (not live)', SIMULATION_ONLY:'Scenario only, not a finding',
     SIMULATED_VENDOR:'Local counterparty, not a vendor', SYNTHETIC_INVOICE_CAP:'Hypothetical invoice cap'};
   const TITLES = {'Synthetic gross invoice cap rehearsal':'Invoice cap review'};
+  // Ramp context wording. Identity and money come from the server unchanged; these only label them.
+  const LINK_BASIS = {PROVIDER_DEEP_LINK:'Link supplied by Ramp for this record',
+    OPERATOR_OBSERVED_URL:'Exact URL observed in Ramp by a person and confirmed against this bill by API read'};
+  const ATTRIBUTION = {PERSON_POSTED_VERIFIED_READBACK:'Posted by a person in Ramp; Uptime read it back on this bill',
+    UNATTRIBUTED:'Comment in Ramp; author not verified'};
+  const RESOURCE = {bills:'Bills', transactions:'Card transactions', purchase_orders:'Purchase orders', vendors:'Vendors',
+    credits:'Vendor credits', comments:'Bill comments', agreements:'Agreements', approvals:'Approvals'};
+  const when = iso => typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(iso) ? iso.slice(0,16).replace('T',' ') + ' UTC' : 'time not recorded';
+  function coverageText(capture) {
+    if (!capture) return null;
+    const partial = list(capture.resources).filter(r => list(capture.incomplete_lists).includes(r.name));
+    const source = capture.custody === 'packaged_receipt' ? 'Saved worklist from an earlier Ramp demo installation; its Ramp business is not recorded in this capture. '
+      : capture.business_id ? `Ramp business ${capture.business_id}. ` : '';
+    const read = `${source}Read from Ramp ${when(capture.observed_at)}.`;
+    if (capture.account_complete === true) return `${read} Every bill, transaction and purchase-order list in this capture was read to the end.`;
+    const parts = partial.map(r => `${RESOURCE[r.name] || r.name}: ${r.retained} kept of ${r.listed == null ? 'an unknown number' : r.listed} listed${r.has_next ? ', more remain in Ramp' : ''}`);
+    return `${read} Partial capture. ${parts.join('; ')}. This is not the complete account.`;
+  }
+  function withheld(row) {
+    const ctx = row.ramp_context;
+    return !!ctx && row.amount != null && ctx.finding_attachable !== true && ctx.agreement_binding?.status !== 'HYPOTHETICAL';
+  }
   const shown = value => value == null ? 'Not provided' : typeof value === 'object' ? JSON.stringify(clean(value)) : CODES[value] || String(value);
   function providerURL(value) {
     if (typeof value !== 'string' || !(value === 'https://demo.ramp.com' || value.startsWith('https://demo.ramp.com/'))) return null;
@@ -69,6 +91,8 @@
     function worklist(root, data) {
       const head = add(el('div', null, 'page-head'), add(el('div'), el('h1', 'Ramp worklist'), note('Review bills, contract findings and supporting evidence.')),
         el('div', `Updated ${shown(data.as_of)} · ${shown(data.snapshot_status?.freshness)}`, 'as-of'));
+      const captured = coverageText(data.capture);
+      if (captured) add(head, el('p', captured, 'help ramp-capture'));
       const coverage = add(el('details', null, 'panel ramp-details'), el('summary', 'Record coverage'));
       add(coverage, record(data.snapshot_status));
       const resources = el('div', null, 'ramp-resources');
@@ -89,15 +113,18 @@
         const pages = Math.max(1,Math.ceil(selected.length / 25)); filters.page=Math.max(0,Math.min(filters.page,pages-1));
         body.replaceChildren();
         selected.slice(filters.page*25,filters.page*25+25).forEach(r => {
-          const link=button(r.vendor || r.title || r.id, () => onNavigate('ramp/'+encodeURIComponent(r.id)), 'case-link');
-          const native = providerURL(r.provider_uri);
+          const ctx = r.ramp_context;
+          const name = ctx ? (ctx.vendor_name || 'Vendor name not captured') : (r.vendor || r.title || r.id);
+          const link=button(name, () => onNavigate('ramp/'+encodeURIComponent(r.id)), 'case-link');
+          const native = providerURL(ctx?.ramp_link?.url) || providerURL(r.provider_uri);
           let open = null;
-          if (native) { open = el('a', 'Open in Ramp', 'ramp-row-link'); open.href = native; open.target = '_blank'; open.rel = 'noopener noreferrer'; open.setAttribute('aria-label', `Open ${shown(r.vendor || r.title || r.provider_id)} in Ramp`); }
-          body.append(add(el('tr'), add(el('td'), link, el('div',TITLES[r.title] || r.title,'case-subtitle'), note(`${shown(r.provider_object_type)} · Native ID: ${shown(r.provider_id)}`), open),
-            add(el('td'), el('span',shown(r.native_status),'pill'), note(`Approval: ${shown(r.native_approval_status)}`)),
+          if (native) { open = el('a', 'Open in Ramp', 'ramp-row-link'); open.href = native; open.target = '_blank'; open.rel = 'noopener noreferrer'; open.setAttribute('aria-label', `Open ${shown(ctx?.vendor_name || r.vendor || r.title || r.provider_id)} in Ramp`); }
+          const identity = ctx ? `Invoice: ${shown(ctx.invoice_number || 'not captured')} · Vendor ID: ${shown(ctx.vendor_id)} · Native ID: ${shown(r.provider_id)}` : `${shown(r.provider_object_type)} · Native ID: ${shown(r.provider_id)}`;
+          body.append(add(el('tr'), add(el('td'), link, el('div',TITLES[r.title] || r.title,'case-subtitle'), note(identity), open),
+            add(el('td'), el('span',shown(r.native_status),'pill'), note(`Approval: ${shown(r.native_approval_status)}`), ctx?.status_summary ? note(`Ramp status: ${shown(ctx.status_summary)}`) : null),
             add(el('td'), el('strong',r.native_amount?.amount != null ? `${shown(r.native_amount.currency)} ${shown(r.native_amount.amount)}` : 'Amount unavailable')),
             add(el('td'), el('strong',shown(r.outcome)), note(shown(r.stage)), sources(r.sources)),
-            add(el('td'), el('span',r.amount == null ? 'Not determined' : `${shown(r.currency)} ${shown(r.amount)}`))));
+            add(el('td'), el('span',withheld(r) ? 'Withheld: no agreement is bound to this Ramp record' : r.amount == null ? 'Not determined' : `${shown(r.currency)} ${shown(r.amount)}`))));
         });
         if (!selected.length) { const td=el('td','No matching records. Choose All records to inspect other types or unknown statuses.','empty'); td.colSpan=5; body.append(add(el('tr'),td)); }
         count.textContent=`${selected.length} of ${list(data.records).length} records · Page ${filters.page+1} of ${pages} · Up to 25 rows per page`;
@@ -112,17 +139,54 @@
         note('Delivery receipts apply only to their exact object, operation and authoritative readback. Accepted delivery does not prove approval execution or cash recovery.'));
       const gaps = list(data.resources).filter(r => r.complete !== true);
       const warning = gaps.length ? note('Incomplete resource coverage: ' + gaps.map(r => `${shown(r.name)} (${shown(r.status)})`).join(', ') + '. Listed records are not a complete portfolio.') : null;
-      root.replaceChildren(head, ...(warning ? [warning] : []), ledger, coverage, authority,
+      const verified = verifiedPanel(data.verified_record);
+      root.replaceChildren(head, ...(warning ? [warning] : []), ...(verified ? [verified] : []), ledger, coverage, authority,
         details('Credit reconciliation',data.credit_sync),
         details('Writeback evidence',data.writeback),note(data.portfolio_note || 'No portfolio note returned.'));
+    }
+    function verifiedPanel(v) {
+      if (!v || !v.ramp_context) return null;
+      const ctx = v.ramp_context, panel = section('Verified Ramp record');
+      add(panel, note(`Saved verified record of one Ramp demo bill, read from Ramp ${when(v.capture?.observed_at)}. Not a live read.`));
+      const url = providerURL(ctx.ramp_link?.url);
+      if (url) { const open = el('a', 'Open this bill in Ramp', 'ramp-native-link'); open.href = url; open.target = '_blank'; open.rel = 'noopener noreferrer'; add(panel, open, note(LINK_BASIS[ctx.ramp_link.basis] || 'Link basis not recorded')); }
+      const evidenceGap = v.finding?.outcome === 'INSUFFICIENT_EVIDENCE';
+      add(panel, record({business:ctx.business_id, vendor:ctx.vendor_name || 'Name not captured', vendor_id:ctx.vendor_id, bill:ctx.object_id,
+        invoice:ctx.invoice_number || 'Not captured', amount:ctx.amount ? `${ctx.amount.currency} ${ctx.amount.amount}` : 'Amount unavailable',
+        status:ctx.status, ramp_status:ctx.status_summary, approval:ctx.approval_status,
+        finding:evidenceGap ? 'Evidence gap: the governing agreement or usage evidence is missing' : shown(v.finding?.outcome),
+        contract_terms:'No contract terms are attached to this bill', vendor_credits:ctx.credit_links ? ctx.credit_links.status : 'Not read'}));
+      const notes = list(ctx.discussion).map(d => note(`${ATTRIBUTION[d.attribution] || 'Comment in Ramp'} · ${when(d.created_at)} · Comment ID: ${shown(d.comment_id)}`));
+      add(panel, el('h3','Ramp discussion'), ...(notes.length ? notes : [note('No comments read on this bill.')]),
+        note('Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
+      return panel;
+    }
+    function rampRecord(ctx) {
+      const panel=section('Ramp record');
+      const basis=ctx.ramp_link ? LINK_BASIS[ctx.ramp_link.basis] || 'Link basis not recorded' : 'No verified Ramp link for this record';
+      add(panel, record({business:ctx.business_id || 'Not verified for this capture', vendor:ctx.vendor_name || 'Name not captured',
+        vendor_id:ctx.vendor_id, entity_id:ctx.entity_id, bill:ctx.object_id, invoice:ctx.invoice_number || 'Not captured',
+        amount:ctx.amount ? `${ctx.amount.currency} ${ctx.amount.amount}` : 'Amount unavailable',
+        status:ctx.status, ramp_status:ctx.status_summary, approval:ctx.approval_status,
+        read_from_ramp:when(ctx.observed_at), ramp_link:basis,
+        agreement:ctx.agreement_binding?.status === 'BOUND' ? ctx.agreement_binding.contract_id : ctx.agreement_binding?.status === 'HYPOTHETICAL' ? 'Hypothetical terms only' : 'No agreement bound to this record',
+        vendor_credits:ctx.credit_links ? ctx.credit_links.status : 'Not read for this record'}));
+      const notes=list(ctx.discussion).map(d => note(`${ATTRIBUTION[d.attribution] || 'Comment in Ramp'} · ${when(d.created_at)} · Comment ID: ${shown(d.comment_id)}`));
+      add(panel, el('h3','Ramp discussion'), ...(notes.length ? notes : [note('No comments read on this record.')]),
+        note('Uptime reads this record from Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
+      return panel;
     }
     function detail(root, response, id, token) {
       const c=response.case || response;
       const back=button('Back to Ramp worklist', () => onNavigate('ramp'));
       // The native route back to Ramp leads the record so its workflow stays in Ramp.
-      const header=add(el('div',null,'page-head'),add(el('div'),el('h1',TITLES[c.title] || c.title || c.vendor || 'Ramp record'),note(`${shown(c.vendor)} · Native ID: ${shown(c.provider_id)} · ${shown(c.provider_object_type)}`)),nativeLink(response.provider_uri || c.provider_uri));
+      const ctx=response.ramp_context || c.ramp_context;
+      const header=add(el('div',null,'page-head'),add(el('div'),el('h1',TITLES[c.title] || c.title || ctx?.vendor_name || c.vendor || 'Ramp record'),note(`${shown(ctx?.vendor_name || c.vendor)} · Native ID: ${shown(c.provider_id)} · ${shown(c.provider_object_type)}`)),nativeLink(ctx?.ramp_link?.url || response.provider_uri || c.provider_uri));
+      const context=ctx ? rampRecord(ctx) : null;
       const finding=section('Contract finding');
-      add(finding,sources(c.sources),record({outcome:c.outcome,stage:c.stage,amount:c.amount,currency:c.currency,finding_type:c.finding_kind === 'SYNTHETIC_INVOICE_CAP' ? 'Price cap review' : c.finding_type || 'Contract review',finding_digest:c.finding_digest}));
+      const hide=withheld({...c,ramp_context:ctx});
+      if (ctx && ctx.finding_attachable !== true && ctx.agreement_binding?.status === 'NONE') add(finding, note('No agreement is bound to this Ramp record, so no contract amount is shown on it.'));
+      add(finding,sources(c.sources),record({outcome:c.outcome,stage:c.stage,amount:hide ? 'Withheld: no agreement is bound to this Ramp record' : c.amount,currency:hide ? null : c.currency,finding_type:c.finding_kind === 'SYNTHETIC_INVOICE_CAP' ? 'Price cap review' : c.finding_type || 'Contract review',finding_digest:c.finding_digest}));
       const native=section('Native Ramp status');
       add(native,record({native_status:c.native_status,native_approval_status:c.native_approval_status,native_amount:c.native_amount}));
       const workflow=section('Finding workflow');
@@ -138,7 +202,7 @@
       });
       add(workflow,inspect,plan);
       const evidence=response.evidence ?? c.evidence;
-      root.replaceChildren(back,header,finding,native,workflow,
+      root.replaceChildren(back,header,...(context ? [context] : []),finding,native,workflow,
         details('Evidence & governing agreements',evidence ?? {status:'No evidence returned; agreement and entitlement are unverified.'}),
         details('Deterministic trace',c.trace),
         details('Governing terms & scenario', {clauses:c.clauses,agreement:c.agreement,agreements:c.agreements,scenario:c.scenario,cap:c.cap,evaluation:c.evaluation,limitations:c.limitations}),

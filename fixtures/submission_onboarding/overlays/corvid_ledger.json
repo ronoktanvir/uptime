@@ -1,0 +1,10 @@
+{
+  "account": "acct-corvid-demo",
+  "agreement": "CDC-SLA-07",
+  "product": "Corvid Ledger",
+  "plan": "Archive",
+  "currency": "USD",
+  "effective_from": "2026-03-01",
+  "effective_until": "2027-02-28",
+  "fee_line_ref": "corvid-ledger-archive-line"
+}

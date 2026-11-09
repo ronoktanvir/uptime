@@ -7,6 +7,7 @@ import hashlib
 import hmac
 import json
 import re
+import unicodedata
 from datetime import date, datetime, timezone
 from decimal import Decimal, localcontext
 from pathlib import Path
@@ -131,6 +132,23 @@ def _lines(row, groups):
     return result
 
 
+DISPLAY_MAX = 160
+
+
+def _display(value):
+    """Exact display text for the worklist (vendor name, invoice number), or None.
+
+    Kept byte-for-byte when present: never trimmed, normalized or case-folded. Values
+    with control characters, URL schemes or more than DISPLAY_MAX characters are
+    not retained. Display text identifies nothing: native UUIDs remain the only
+    identities, and these fields are never compared or sent to a model.
+    """
+    if (not isinstance(value, str) or not value or len(value) > DISPLAY_MAX or "://" in value
+            or any(unicodedata.category(c).startswith("C") for c in value)):
+        return None
+    return value
+
+
 def sanitize_bill(row, kind="bill"):
     status = _enum(row.get("status"))
     if status not in ({"OPEN", "PAID"} if kind == "bill" else {"DRAFT"}):
@@ -147,13 +165,15 @@ def sanitize_bill(row, kind="bill"):
             "item_receipt_ids": _ids(row.get("item_receipt_ids")),
             "amount": _money(row.get("amount")), "lines": _lines(row, ("line_items", "inventory_line_items")),
             "applied_credits": _links(row, "applied_vendor_credits", "id", "credit_id"),
-            "deep_link_url": native_ui_url(row.get("deep_link_url"), row["id"], "bill") if kind == "bill" else None}
+            "deep_link_url": native_ui_url(row.get("deep_link_url"), row["id"], "bill") if kind == "bill" else None,
+            "vendor_name": _display((row.get("vendor") or {}).get("name")),
+            "invoice_number": _display(row.get("invoice_number"))}
 
 
 def sanitize_vendor(row):
     return {**_base(row), **_fields(row, "parent_vendor_id default_entity_id merchant_id", _optional_id),
             "status": _enum(row.get("approval_status")), "is_active": _bool(row.get("is_active")),
-            **_fields(row, "created_at updated_at", _timestamp)}
+            **_fields(row, "created_at updated_at", _timestamp), "name": _display(row.get("name"))}
 
 
 def _signed_money(value, scale):
@@ -554,8 +574,8 @@ def seal_snapshot(snapshot):
 # Explicit saved-record schema: no permissive blobs can reintroduce private text/URLs.
 _COMMON = {"id", "sources"}
 _RECORD_KEYS = {
-    "bills": set("kind vendor_id entity_id account_id account_identity status approval_status status_summary sync_status created_at issued_at due_at paid_at archived_at accounting_date posting_date draft_bill_id purchase_order_id item_receipt_ids amount lines applied_credits deep_link_url".split()),
-    "vendors": set("parent_vendor_id default_entity_id merchant_id status is_active created_at updated_at".split()),
+    "bills": set("kind vendor_id entity_id account_id account_identity status approval_status status_summary sync_status created_at issued_at due_at paid_at archived_at accounting_date posting_date draft_bill_id purchase_order_id item_receipt_ids amount lines applied_credits deep_link_url vendor_name invoice_number".split()),
+    "vendors": set("parent_vendor_id default_entity_id merchant_id status is_active created_at updated_at name".split()),
     "transactions": set("vendor_id entity_id merchant_id card_id spend_program_id original_transaction_id amount merchant_amount original_amount status sync_status all_requirements_met_and_approved user_transaction_time settlement_date accounting_date updated_at lines".split()),
     "agreements": set("vendor_id currency amount renewal_status is_active auto_renewal created_at updated_at archived_at deleted_at start_date end_date last_date_to_terminate purchase_order_ids lines".split()),
     "purchase_orders": set("vendor_id entity_id spend_program_id spend_request_id status receipt_status creation_source amount spend_total_amount created_at archived_at promise_date spend_start_date spend_end_date bill_ids transaction_ids item_receipt_ids three_way_match_enabled lines reciprocal_bill_ids discovery ramp_url".split()),
@@ -582,7 +602,9 @@ def _validate_money(value):
 
 
 def _validate_record(name, row):
-    optional = {"bills": {"deep_link_url"}, "purchase_orders": {"ramp_url", "discovery", "reciprocal_bill_ids"}}.get(name, set())
+    # Display fields were added on 2026-11-09; earlier saved captures remain valid without them.
+    optional = {"bills": {"deep_link_url", "vendor_name", "invoice_number"}, "vendors": {"name"},
+                "purchase_orders": {"ramp_url", "discovery", "reciprocal_bill_ids"}}.get(name, set())
     allowed = _COMMON | _RECORD_KEYS[name]
     if (not isinstance(row, dict) or set(row) - allowed or (allowed - optional) - set(row)
             or row["sources"] != SOURCE):
@@ -609,6 +631,9 @@ def _validate_record(name, row):
             _bool(value)
         elif key in {"status", "approval_status", "status_summary", "sync_status", "renewal_status", "receipt_status", "creation_source"}:
             _enum(value)
+        elif key in {"vendor_name", "invoice_number", "name"}:
+            if value is not None and _display(value) != value:
+                raise RampError("Invalid saved display text")
     if "lines" in row:
         if name == "agreements":
             if row["lines"] is not None:
