@@ -84,7 +84,10 @@
         body.replaceChildren();
         selected.slice(filters.page*25,filters.page*25+25).forEach(r => {
           const link=button(r.vendor || r.title || r.id, () => onNavigate('ramp/'+encodeURIComponent(r.id)), 'case-link');
-          body.append(add(el('tr'), add(el('td'), link, el('div',r.title,'case-subtitle'), note(`${shown(r.provider_object_type)} · Native ID: ${shown(r.provider_id)}`)),
+          const native = providerURL(r.provider_uri);
+          let open = null;
+          if (native) { open = el('a', 'Open in Ramp', 'ramp-row-link'); open.href = native; open.target = '_blank'; open.rel = 'noopener noreferrer'; open.setAttribute('aria-label', `Open ${shown(r.vendor || r.title || r.provider_id)} in Ramp`); }
+          body.append(add(el('tr'), add(el('td'), link, el('div',r.title,'case-subtitle'), note(`${shown(r.provider_object_type)} · Native ID: ${shown(r.provider_id)}`), open),
             add(el('td'), el('span',shown(r.native_status),'pill'), note(`Approval: ${shown(r.native_approval_status)}`)),
             add(el('td'), el('strong',r.native_amount?.amount != null ? `${shown(r.native_amount.currency)} ${shown(r.native_amount.amount)}` : 'Amount unavailable')),
             add(el('td'), el('strong',shown(r.outcome)), note(shown(r.stage)), sources(r.sources)),
@@ -110,11 +113,12 @@
     function detail(root, response, id, token) {
       const c=response.case || response;
       const back=button('Back to Ramp worklist', () => onNavigate('ramp'));
-      const header=add(el('div',null,'page-head'),add(el('div'),el('h1',(c.title === 'Synthetic gross invoice cap rehearsal' ? 'Invoice cap review' : c.title) || c.vendor || 'Ramp record'),note(`${shown(c.vendor)} · Native ID: ${shown(c.provider_id)} · ${shown(c.provider_object_type)}`)));
+      // The native route back to Ramp leads the record so its workflow stays in Ramp.
+      const header=add(el('div',null,'page-head'),add(el('div'),el('h1',(c.title === 'Synthetic gross invoice cap rehearsal' ? 'Invoice cap review' : c.title) || c.vendor || 'Ramp record'),note(`${shown(c.vendor)} · Native ID: ${shown(c.provider_id)} · ${shown(c.provider_object_type)}`)),nativeLink(response.provider_uri || c.provider_uri));
       const finding=section('Contract finding');
       add(finding,sources(c.sources),record({outcome:c.outcome,stage:c.stage,amount:c.amount,currency:c.currency,finding_type:c.finding_kind === 'SYNTHETIC_INVOICE_CAP' ? 'Price cap review' : c.finding_type || 'Contract review',finding_digest:c.finding_digest}));
       const native=section('Native Ramp status');
-      add(native,record({native_status:c.native_status,native_approval_status:c.native_approval_status,native_amount:c.native_amount}),nativeLink(response.provider_uri || c.provider_uri));
+      add(native,record({native_status:c.native_status,native_approval_status:c.native_approval_status,native_amount:c.native_amount}));
       const workflow=section('Finding workflow');
       add(workflow,note('Inspect the current plan and its permission requirements.'),
         note('An accepted receipt is authoritative only for its scoped provider readback. It is not proof of a payment, entitlement or recovered cash.'));

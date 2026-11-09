@@ -221,10 +221,24 @@
       }
       return n;
     }
+    // Who recorded each lifecycle revision. Preparation scripts are never presented as a person's decision.
+    function reviewHistory(data) {
+      const rows = list(data.audit).filter(row => row && typeof row === 'object');
+      if (!rows.length) return null;
+      const box = add(el('div', undefined, 'v4-review'), el('h3', 'Review history'));
+      const current = data.state === 'REVOKED' && !data.active_version ? 'Rolled back. No version is active.'
+        : data.state === 'ACTIVE' && data.active_version ? 'Active version ' + shown(data.active_version) + '.'
+        : 'Current state: ' + shown(data.state) + (data.active_version ? '; active version ' + shown(data.active_version) : '') + '.';
+      box.append(note(current));
+      const items = el('ol', undefined, 'v4-history');
+      rows.forEach(row => items.append(add(el('li'), el('strong', 'Revision ' + shown(row.revision) + ' · ' + shown(row.kind)),
+        note(shown(row.at) + ' · ' + (/^scripted-/.test(String(row.actor)) ? 'Scripted preparation (' + row.actor + ')' : 'Recorded under account ' + shown(row.actor))))));
+      return add(box, items);
+    }
     function vendor(m, data) {
       const id = data.vendor_id ?? data.id;
       const n = section(shown(data.name ?? data.vendor ?? id));
-      add(n, provenance(data.sources), record({vendor_id:id, revision:data.revision, state:data.state, active_version:data.active_version, reviewer:data.reviewer}), details('Rules, overlay, tests and reviewer versions', data));
+      add(n, provenance(data.sources), record({vendor_id:id, revision:data.revision, state:data.state, active_version:data.active_version, reviewer:data.reviewer}), reviewHistory(data), details('Rules, overlay, tests and reviewer versions', data));
       if (typeof id !== 'string' || !id) { n.append(note('Vendor ID missing; actions unavailable.')); return n; }
       const base = '/api/vendors/' + encodeURIComponent(id);
       if (data.detail_unavailable) { n.append(note('Vendor details unavailable. Refresh before reviewing or changing this version.')); return n; }
