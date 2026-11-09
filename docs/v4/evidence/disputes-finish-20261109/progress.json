@@ -1,9 +1,9 @@
 {
   "schema": "uptime-workstream-progress/1",
   "workstream": "disputes-finish-20261109",
-  "updated_at": "2026-11-09T20:28:53.697873+00:00",
-  "phase": "cross-period scope regression fixed; ready for corrected integration",
-  "state": "ready_for_integration",
+  "updated_at": "2026-11-09T20:49:30.112445+00:00",
+  "phase": "integrated and full regression verified; independent evaluation running",
+  "state": "integrated",
   "branch": "work/disputes-finish-20261109",
   "commits": [
     "97bb8bb",
@@ -75,5 +75,16 @@
   "changed_existing_test": {
     "name": "tests/test_v4_routes_integration.py::test_active_effective_dates_must_cover_entire_measurement_month",
     "reason": "Entirely out-of-period claim now refuses at intake with409 and no stored row; partial-month test unchanged."
-  }
+  },
+  "full_results": [
+    {
+      "tested_commit": "805dd1cfe3eb08d4adf3810913cb5d53eb4e3c9f",
+      "passed": 5298,
+      "warnings": 1,
+      "seconds": 357.07
+    }
+  ],
+  "in_progress": [
+    "Independent frozen-cohort execution and separately reported scoring."
+  ]
 }

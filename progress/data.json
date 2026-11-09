@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-11-09T20:39:14.690353+00:00",
+  "updated_at": "2026-11-09T20:49:30.112445+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
-  "summary": "Final regression exposed20 evaluation-preflight integration failures;5,273 other checks passed. The helper must carry explicit effective dates and source bytes for the stricter application selector. That repair is in progress before any unseen-case inference. Ramp posting stays restricted.",
+  "summary": "Onboarding and dispute remediation is integrated and verified:5,298 tests passed. The frozen independent cohort of six contracts and eight replies is now authorized to run once; results are pending. Native Ramp posting stays restricted, and the recorded demo workspaces remain intact.",
   "evidence": [
     {
-      "label": "Latest merged regression",
-      "value": "5,270 passed",
-      "detail": "1ced955: 5,270 passed, 1 warning in363.11s. This does not establish unseen generalization. A later cross-version review finding is being corrected.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/evidence/finish-20261109/merge-1ced955.json"
+      "label": "Latest combined regression",
+      "value": "5,298 passed",
+      "detail": "805dd1c:5,298 passed,1 warning in357.07s. Includes strict wording, complete-month evidence, refusal auditing, period selection and corrected evaluation setup. This is not an unseen-case score.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/evidence/finish-20261109/final-805dd1c.json"
     },
     {
       "label": "Prior regression checkpoint",
@@ -19,8 +19,8 @@
     },
     {
       "label": "Hosted verification",
-      "value": "Main promotion verified",
-      "detail": "Prior main promotion verified. Current completion-branch integration passed locally; hosted status is recorded separately.",
+      "value": "Prior combined checkpoint passed",
+      "detail": "Hosted checks passed fordd8a04c and9a7bada. The final corrected source passed locally; its hosted result is recorded separately.",
       "url": "https://github.com/ronoktanvir/uptime/actions"
     },
     {
@@ -211,14 +211,14 @@
       "title": "Declarative vendor onboarding",
       "stream": "Onboarding",
       "status": "active",
-      "summary": "Nine strict wording classes implemented; 433 focused checks passed",
+      "summary": "Generic compiler remediation verified; new-case evaluation running",
       "detail": "Generic exact-source templates and public model compilation support explicit complete-month report contracts. Unsupported conditions, contradictory clauses and ambiguous end dates refuse. Actual Opus worker completed; no held-out answers supplied.",
       "owner": "Onboarding engineering",
       "depends_on": [
         "rules",
         "security"
       ],
-      "next_action": "Verify combined source and run the frozen independent cohort; new ordinary review is required for changed semantics.",
+      "next_action": "Publish separately scored unseen-case results; ordinary version-specific human review is still required before activation.",
       "links": [
         {
           "label": "Current work and ownership",
@@ -385,8 +385,8 @@
       "title": "Independent onboarding & denial acceptance",
       "stream": "Independent QA",
       "status": "active",
-      "summary": "Six new contracts and eight replies frozen; no score yet",
-      "detail": "One-shot runners retain setup refusals and dispatch results separately. Corpus and sealed expectation hashes were committed before any scored inference. Public controls remain separate from independent generalization.",
+      "summary": "Frozen14-case evaluation cleared on verified source",
+      "detail": "Six new authored contracts and eight replies, with sealed expectations. Public controls and source-preparation failures are separate from actual application/model outcomes. Original scores remain unchanged.",
       "owner": "Independent witness",
       "depends_on": [
         "adapter",
@@ -395,7 +395,7 @@
         "source_meaning",
         "monthly_evidence"
       ],
-      "next_action": "Run against the verified source freeze after the full suite, without rewriting prior first attempts.",
+      "next_action": "Run once, retain all14 cases and score only after every attempt is terminal.",
       "links": [
         {
           "label": "Current work and ownership",
@@ -681,16 +681,16 @@
       "id": "monthly_evidence",
       "title": "Strict complete-month evidence path",
       "stream": "Financial correctness",
-      "status": "active",
-      "summary": "Two-source complete-month join implemented; ordinary route checks passed",
-      "detail": "An explicit reviewed source clause selects exact complete-month status plus independently authenticated fees. Optional customer attribution must agree. Legacy incident contracts stay unchanged. Signed out-of-scope deliveries remain denied and gain a metadata-only audit.",
+      "status": "done",
+      "summary": "Strict whole-month path implemented and regression verified",
+      "detail": "Explicit source opt-in, complete authenticated status plus independent fees, optional corroboration, exact dates and source-version pinning are integrated. Non-overlapping future terms cannot block prior claims; partial conflicting terms still refuse. Historical monthly filing receipts remain unsupported.",
       "owner": "Disputes + onboarding owners",
       "depends_on": [
         "rules",
         "identity",
         "bindings"
       ],
-      "next_action": "Complete final regression on the period-selection fix and run independent evaluation.",
+      "next_action": "Measure new-case behavior independently; preserve all incident-specific contracts and missing-evidence refusals.",
       "links": [
         {
           "label": "Approved decision",
@@ -700,6 +700,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T20:49:30.112445+00:00",
+      "title": "Final combined suite passes5,298 tests; independent run cleared",
+      "detail": "805dd1c:5,298 passed,1 existing warning in357.07s. Earlier failed runs remain committed. Four independent public route controls also passed. Frozen14-case results remain pending; no native write or human action performed.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-finish-20261109/docs/v4/evidence/finish-20261109/final-805dd1c.json"
+    },
     {
       "at": "2026-11-09T20:39:14.690353+00:00",
       "title": "Final regression exposes preflight fixture boundary",

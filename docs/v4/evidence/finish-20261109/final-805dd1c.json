@@ -1,0 +1,22 @@
+{
+  "tested_commit": "805dd1cfe3eb08d4adf3810913cb5d53eb4e3c9f",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=/tmp/uptime-finish-805dd1c",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5298 passed, 1 warning in 357.07s (0:05:57)",
+  "log": "final-805dd1c-pytest.log",
+  "verified_at": "2026-11-09T20:49:30.112445+00:00",
+  "prior_failures_preserved": [
+    "merge-b1e0680-pytest.log",
+    "final-87b3464-pytest.log"
+  ],
+  "independent_public_controls": "4 passed, 1 warning in1.12s; recorded separately by evaluation owner",
+  "limits": "Regression verification, not arbitrary contract generalization, human release or production readiness. Frozen14-case independent evaluation is beginning; no Ramp write or external financial action."
+}

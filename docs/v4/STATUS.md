@@ -1,6 +1,12 @@
 # Uptime V4 engineering status
 
-## November 9 integration
+## Current November 9 completion pass
+
+The resumed onboarding and dispute work is integrated on verified source `805dd1c`: **5,298 passed, 1 warning in357.07s**. It adds generic strict-source wording, an explicitly grounded whole-month evidence path, authenticated refusal auditing and effective-period scope selection. The earlier failed runs and their corrections remain in history. [Current execution record](FINISH-20261109.md) · [Full regression receipt](evidence/finish-20261109/final-805dd1c.json).
+
+The independent six-contract/eight-reply cohort is frozen and cleared to run once; results are pending. Four additional public route probes passed separately. Historical scores are not rescored. Historical monthly filing receipts remain unsupported, human release gates remain unsatisfied, and agent-run Ramp posting remains prohibited. The presentation workspace and Ronok's recorded review are unchanged.
+
+## Earlier November 9 integration history
 
 **`main` now carries the integration work.** At Ronok's request, `origin/main` was fast-forwarded from `03b372e` to `a8c4c22` (no force), after the required fresh-clone suite on `a6e5931`: **4,684 passed, 1 warning in 370.51 s**; 104 JavaScript checks. The post-merge suite on `main` (`a8c4c22`): **4,684 passed, 1 warning in 380.38 s**; 104 JavaScript checks; offline rehearsal, progress graph, secret scan and checklist render passed. [Post-merge receipt](evidence/integration-90/verification-a8c4c22.json) · [Pre-push receipt](evidence/integration-90/verification-a6e5931.json)
 

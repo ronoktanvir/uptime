@@ -1,9 +1,9 @@
 {
   "schema": "uptime-workstream-progress/1",
   "workstream": "onboarding-finish-20261109",
-  "updated_at": "2026-11-09T20:24:29.245767+00:00",
-  "phase": "combined implementation passed full regression; final cross-version bug fix pending",
-  "state": "integrating",
+  "updated_at": "2026-11-09T20:49:30.112445+00:00",
+  "phase": "integrated and full regression verified; independent evaluation running",
+  "state": "integrated",
   "branch": "work/onboarding-finish-20261109",
   "commits": [
     "5a4af21",
@@ -64,7 +64,7 @@
     "Separate contradictory incident clauses, scope ambiguity and decimal boundary controls pass."
   ],
   "in_progress": [
-    "Integrate final effective-period scope correction and timeout evidence spool, then freeze for independent evaluation."
+    "Independent frozen-cohort execution and separately reported scoring."
   ],
   "remaining_blocker": "Combined monthly claim core and its complete reviewed-semantics dependency pins must be integrated before independent evaluation.",
   "ledger": "docs/v4/TEST-CHANGES-onboarding-finish-20261109.md",
@@ -79,10 +79,10 @@
   ],
   "full_results": [
     {
-      "tested_commit": "1ced95575e14cdca0f229921458ba83473d141eb",
-      "passed": 5270,
+      "tested_commit": "805dd1cfe3eb08d4adf3810913cb5d53eb4e3c9f",
+      "passed": 5298,
       "warnings": 1,
-      "seconds": 363.11
+      "seconds": 357.07
     }
   ]
 }
