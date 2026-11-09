@@ -1,0 +1,21 @@
+{
+  "recorded_by": "W5 evidence-custody-90",
+  "merged_head": "23805c9 (work/integration-90, local)",
+  "tested_with": "tests/test_evidence_acceptance_91.py from 7373318 copied into a detached checkout of the merged head",
+  "source_sha256": {
+    "tests/test_evidence_acceptance_91.py": "4aff0eb7fb518d09a36f9a8809dfd99245bc1e3c82a3c9dbdb08694e5c13f80c",
+    "tests/test_evidence_applicability_91.py": "e5c219b7969c75e4f727566d4c0dca426795b41f65d610748055b3c5fdbde625",
+    "tests/test_evidence_status_source_91a.py": "25ee3dd309f6892b308a2762facc9380acaee0a4c4210c251f040f171fba9a4f",
+    "tests/test_evidence_custody_91.py": "7e8967564981af8e3627bfa64ee5e5c0f5c658c526faa0a9ef482274d2cc2b92"
+  },
+  "command": "uv run --locked pytest -q -p no:cacheprovider tests/test_evidence_acceptance_91.py tests/test_evidence_applicability_91.py tests/test_evidence_status_source_91a.py tests/test_evidence_custody_91.py tests/test_evidence.py tests/test_evidence_refresh.py tests/test_source_config_v4.py tests/test_correspondence.py tests/test_correspondence_resource.py tests/test_northwind_workflow.py --basetemp=<scratchpad> -o tmp_path_retention_policy=failed",
+  "result": "219 passed, 1 warning in 183.94s (0:03:03)",
+  "acceptance": {
+    "wrong_customer": "403 before storage (envelope account, nested row account, nested resource)",
+    "wrong_period": "403 before storage (status, adjacent-month report, stray nested row); correct record then admitted",
+    "stale": "public snapshot older than 24h refused before signing; complete report observed before its end refused (403)",
+    "tampered": "403 for bytes changed after signing; 409 for mismatched content or artifact digest, with a positive control admitted; edited public snapshot fails integrity",
+    "reused_identity": "409 for different content under a used event ID; identical retry returns the original receipt"
+  },
+  "not_full_suite": "the full uv run --locked pytest belongs to the integration owner's round 3"
+}
