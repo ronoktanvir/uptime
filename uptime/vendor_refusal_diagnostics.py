@@ -44,7 +44,13 @@ CODES = {
     'PROPOSAL_NOT_SOURCE_GROUNDED': 'The extraction did not quote the source exactly and completely, so no passage '
                                     'can be cited. Prepare a fresh extraction.',
     'OUTPUT_NOT_STRUCTURED': 'The extraction output was not in the required structured form.',
+    'UNGROUNDED_PARTY_IDENTIFIER': 'The reading names a vendor or agreement in this passage, but the passage does not '
+                                   'establish it: it needs a party label or the complete supply sentence or title line.',
+    'CONFLICTING_SOURCE_TERMS': 'The reading finds the same term in more than one passage. Uptime does not choose between '
+                                'them; a reviewer must establish which passage governs.',
 }
+# Single-valued monthly terms whose second occurrence the validator refuses as a duplicate.
+_SINGLE_TERMS = ('vendor', 'agreement', 'effective', 'period', 'filing_days', 'remedy')
 TERM_LABELS = {
     'vendor': 'vendor', 'agreement': 'agreement identifier', 'effective': 'effective dates',
     'period': 'measurement period', 'tier': 'credit tiers', 'tiers': 'credit tiers',
@@ -115,7 +121,34 @@ def _monthly(document, profile, proposal):
         return ([_issue('REQUIRED_TERMS_MISSING')], sorted(missing)) if missing else ([_issue('SOURCE_COVERAGE_INCOMPLETE')], [])
     if message == 'Document lacks complete, unambiguous source coverage.':
         return [_issue('SOURCE_COVERAGE_INCOMPLETE')], []
-    return [], []
+    located = _locate(document, clauses, spans, message)
+    if located is None:
+        return [], []
+    index = located
+    start, end, _ = spans[index - 1]
+    if message == 'Ungrounded vendor or agreement identifier.':
+        return [_issue('UNGROUNDED_PARTY_IDENTIFIER', document.text, index, start, end)], []
+    if message == 'Duplicate or ambiguous proposed field.':
+        field = clauses[index - 1].get('field')
+        earlier = next((i for i, c in enumerate(clauses[:index - 1], 1) if c.get('field') == field), None)
+        cited = [i for i in (earlier, index) if i is not None]
+        return [_issue('CONFLICTING_SOURCE_TERMS', document.text, i, spans[i - 1][0], spans[i - 1][1]) for i in cited], []
+    return [_issue('PUBLIC_PROPOSITION_UNESTABLISHED', document.text, index, start, end)], []
+
+
+def _locate(document, clauses, spans, message):
+    """Clause number at which the propositions validator first raises `message`, by replaying growing prefixes of the
+    same reading over the same source prefix. Deterministic; None when the message is not clause-local."""
+    from .vendor_terms import Document, compile_propositions
+    for index in range(1, len(clauses) + 1):
+        prefix = Document(name=document.name, uri=document.uri, classification=document.classification,
+                          text=document.text[:spans[index - 1][1]])
+        try:
+            compile_propositions(prefix, clauses[:index])
+        except (ValueError, TypeError, KeyError) as exc:
+            if str(exc) == message:
+                return index
+    return None
 
 
 def _resource(document, proposal):
@@ -237,6 +270,14 @@ class DiagnosingVendorModelJobs(VendorModelJobs):
 
         job = self.service.submit(**self._pins(p, vendor, context, request), validate=validate)
         return self._project(job, vendor, request_sha)
+
+    def _project(self, job, vendor, expected_request=None):
+        """Adds the job kind, timestamps and the bounded provider receipt; the base projection is unchanged."""
+        view = super()._project(job, vendor, expected_request)
+        view.update(kind=job.get('kind'), submitted_at=job.get('submitted_at'), started_at=job.get('started_at'),
+                    finished_at=job.get('finished_at'),
+                    provider=job.get('provider') if isinstance(job.get('provider'), dict) else None)
+        return view
 
     def status(self, p, vendor, job_id):
         view = super().status(p, vendor, job_id)

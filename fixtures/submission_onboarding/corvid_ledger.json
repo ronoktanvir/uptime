@@ -1,0 +1,6 @@
+{
+  "name": "Corvid Ledger availability commitment (authored)",
+  "uri": "urn:synthetic:submission:corvid-ledger-sla",
+  "classification": "synthetic_public",
+  "text": "The service provider under this agreement is Corvid Data Cooperative.\nThis contract is identified as CDC-SLA-07.\nThis service level agreement is valid from 2026-03-01 through 2027-02-28.\nAvailability is measured over each full calendar month in UTC.\nThe availability commitment covers the Corvid Ledger product on the Archive plan.\n| Monthly availability below | Service credit |\n| --- | --- |\n| 99.9% | 5% |\n| 99% | 20% |\nCredit requests must be received within 45 calendar days after the end of each calendar month.\nCredits are calculated as a percentage of the affected monthly fees and are applied to a future invoice."
+}

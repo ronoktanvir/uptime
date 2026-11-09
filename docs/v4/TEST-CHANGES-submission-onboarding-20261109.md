@@ -1,0 +1,9 @@
+# Test changes: role 1, contract intelligence (`work/submission-onboarding-20261109`)
+
+| Commit | Changed existing tests | Added tests | Result |
+|---|---|---|---|
+| `72b65f6` guide abstention | None | `tests/test_guide_unmodeled_terms_sub.py` (15; 10 failed before the fix) | With `test_finance_guide_90`, `test_intelligence_abstain_95`, `test_intelligence`, `test_guide_suggestions_browser_95` and `test_finance_browser_90`: **80 passed, 1 warning in 23.33s** |
+| Job-service failure codes and provider receipt | `tests/test_public_proposal_jobs.py::test_provider_failures_are_terminal_redacted_and_never_retried[error2-REFUSED-proposal_validation_failed]` now expects `provider_failed`. **Reason:** a `ValueError` raised by the provider itself (non-zero exit, unverifiable identity, blocked transport) means no proposal exists, so it is not a refusal of the source. The test's terminal, redacted and never-retried assertions are unchanged. | `tests/test_submission_onboarding_jobs.py` (4): a provider failure is `provider_failed` and recovers through a new attempt identifier; a timeout is `UNCERTAIN`; an unverifiable identity is `provider_identity_unverified` with no diagnostic; the job view carries kind, timestamps and only the public receipt subset | Broad focused set (proposal jobs and config, v4 routes, correspondence model jobs and public queue, advanced companion, all `test_vendor_*`, `test_onboarding*`, `onboarding79/`, `onboarding_finish20261109/`, plus the new files): **1432 passed, 1 warning in 49.20s** |
+| `c4b64dd` refusal passage location | None | `tests/test_submission_refusal_location.py` (4) | With refusal-diagnostics, family-selection and job tests: **45 passed, 1 warning in 2.07s** |
+| `57dc7e3` savings answer | None | 5 more in `tests/test_guide_unmodeled_terms_sub.py` (now 20; the 2 savings reproductions failed before the fix) | With existing guide tests and browser suites: **85 passed, 1 warning in 23.97s** |
+

@@ -1,0 +1,1475 @@
+{
+ "association": {
+  "bill_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+  "bill_record_sha256": "00b2e3c301af216bca2150ab5ac738efb774201243b461ad61f1e17b1f4799b2",
+  "browser_url": "https://demo.ramp.com/bill-pay/bills/list/f74ba12c-95d0-582d-9f62-26d8057d1d37",
+  "browser_url_source": "OPERATOR_SUPPLIED_OBSERVED_URL",
+  "business_id": "1569e402-460e-4952-adad-9df27db628a0",
+  "observed_at": "2026-11-09T12:35:33.038595+00:00",
+  "origin": "https://demo-api.ramp.com",
+  "schema": "uptime-ramp-browser-association/1",
+  "status": "ONE_BILL_READ_VERIFIED",
+  "verified_read_scopes": [
+   "business:read",
+   "bills:read"
+  ],
+  "write_attempted": false
+ },
+ "capture": {
+  "checksum": "8d42567fdf7ee3e27edd5979d3097db72cf948ec8a8bf931e3b9ed5df0d3e8bd",
+  "completed_at": "2026-11-09T12:36:06.508532+00:00",
+  "observed_at": "2026-11-09T12:35:33.038627+00:00",
+  "origin": "https://demo-api.ramp.com",
+  "resources": {
+   "agreements": {
+    "complete": true,
+    "coverage": {
+     "vendors/agreements": {
+      "detail_complete": true,
+      "details_attempted": 0,
+      "details_read": 0,
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 0,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     }
+    },
+    "grant": {
+     "diagnosis": "EXACT_GRANT",
+     "granted": [
+      "vendors:read"
+     ],
+     "missing": [],
+     "requested": [
+      "vendors:read"
+     ],
+     "scope_reported": true,
+     "sources": [
+      "LIVE_RAMP_SANDBOX"
+     ],
+     "state": "GRANTED",
+     "unexpected": []
+    },
+    "issues": [],
+    "records": [],
+    "status": "EMPTY"
+   },
+   "approvals": {
+    "complete": false,
+    "coverage": {
+     "bill:19c2b88e-794d-54ae-9cee-92a50415d636": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:1c95f2b5-85c1-4fad-a141-df5e20518f38": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:24fa9edc-d7f5-5e81-a910-36633958518a": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:36a793e0-7db5-502c-8ec4-681fa10b1c06": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:6f667b10-86cc-5900-aa34-d0ad2bdf2640": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:f74ba12c-95d0-582d-9f62-26d8057d1d37": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "parents": {
+      "detail_complete": false,
+      "list_complete": false,
+      "listed": 16,
+      "parent_scope": "captured_native_records"
+     },
+     "transaction:554fab79-194e-4412-831f-21dec87e64d9": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "transaction:71989c1b-320b-4a54-ac9d-4d1c2edf8729": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "transaction:ad32dc78-9982-4eb9-a4e6-db00ff547e28": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 0,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "transaction:fa2d7bb4-89cc-49fa-a773-75a9b9f898ef": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     }
+    },
+    "grant": {
+     "diagnosis": "EXACT_GRANT",
+     "granted": [
+      "approvals:read"
+     ],
+     "missing": [],
+     "requested": [
+      "approvals:read"
+     ],
+     "scope_reported": true,
+     "sources": [
+      "LIVE_RAMP_SANDBOX"
+     ],
+     "state": "GRANTED",
+     "unexpected": []
+    },
+    "issues": [],
+    "records": [
+     {
+      "approval_history": [
+       {
+        "action_at": "2026-11-05T04:50:54.766331+00:00",
+        "step_status": null
+       }
+      ],
+      "entity_id": "1c95f2b5-85c1-4fad-a141-df5e20518f38",
+      "entity_type": "bill",
+      "id": "1c95f2b5-85c1-4fad-a141-df5e20518f38",
+      "id_kind": "parent_resource",
+      "next_approver_count": 0,
+      "object_id": "1c95f2b5-85c1-4fad-a141-df5e20518f38",
+      "object_type": "bill",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED"
+     },
+     {
+      "approval_history": [
+       {
+        "action_at": "2026-11-05T04:50:00.415830+00:00",
+        "step_status": null
+       }
+      ],
+      "entity_id": "6f667b10-86cc-5900-aa34-d0ad2bdf2640",
+      "entity_type": "bill",
+      "id": "6f667b10-86cc-5900-aa34-d0ad2bdf2640",
+      "id_kind": "parent_resource",
+      "next_approver_count": 0,
+      "object_id": "6f667b10-86cc-5900-aa34-d0ad2bdf2640",
+      "object_type": "bill",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED"
+     },
+     {
+      "approval_history": [
+       {
+        "action_at": "2026-11-05T04:50:00.415830+00:00",
+        "step_status": null
+       }
+      ],
+      "entity_id": "24fa9edc-d7f5-5e81-a910-36633958518a",
+      "entity_type": "bill",
+      "id": "24fa9edc-d7f5-5e81-a910-36633958518a",
+      "id_kind": "parent_resource",
+      "next_approver_count": 0,
+      "object_id": "24fa9edc-d7f5-5e81-a910-36633958518a",
+      "object_type": "bill",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED"
+     },
+     {
+      "approval_history": [
+       {
+        "action_at": "2026-11-05T04:50:00.415830+00:00",
+        "step_status": null
+       }
+      ],
+      "entity_id": "19c2b88e-794d-54ae-9cee-92a50415d636",
+      "entity_type": "bill",
+      "id": "19c2b88e-794d-54ae-9cee-92a50415d636",
+      "id_kind": "parent_resource",
+      "next_approver_count": 0,
+      "object_id": "19c2b88e-794d-54ae-9cee-92a50415d636",
+      "object_type": "bill",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED"
+     },
+     {
+      "approval_history": [
+       {
+        "action_at": "2026-11-05T04:50:00.415830+00:00",
+        "step_status": null
+       }
+      ],
+      "entity_id": "36a793e0-7db5-502c-8ec4-681fa10b1c06",
+      "entity_type": "bill",
+      "id": "36a793e0-7db5-502c-8ec4-681fa10b1c06",
+      "id_kind": "parent_resource",
+      "next_approver_count": 0,
+      "object_id": "36a793e0-7db5-502c-8ec4-681fa10b1c06",
+      "object_type": "bill",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED"
+     },
+     {
+      "approval_history": [],
+      "entity_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+      "entity_type": "bill",
+      "id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+      "id_kind": "parent_resource",
+      "next_approver_count": 1,
+      "object_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+      "object_type": "bill",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "PENDING"
+     },
+     {
+      "approval_history": [],
+      "entity_id": "554fab79-194e-4412-831f-21dec87e64d9",
+      "entity_type": "transaction",
+      "id": "554fab79-194e-4412-831f-21dec87e64d9",
+      "id_kind": "parent_resource",
+      "next_approver_count": 1,
+      "object_id": "554fab79-194e-4412-831f-21dec87e64d9",
+      "object_type": "transaction",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "PENDING"
+     },
+     {
+      "approval_history": [],
+      "entity_id": "fa2d7bb4-89cc-49fa-a773-75a9b9f898ef",
+      "entity_type": "transaction",
+      "id": "fa2d7bb4-89cc-49fa-a773-75a9b9f898ef",
+      "id_kind": "parent_resource",
+      "next_approver_count": 1,
+      "object_id": "fa2d7bb4-89cc-49fa-a773-75a9b9f898ef",
+      "object_type": "transaction",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "PENDING"
+     },
+     {
+      "approval_history": [],
+      "entity_id": "71989c1b-320b-4a54-ac9d-4d1c2edf8729",
+      "entity_type": "transaction",
+      "id": "71989c1b-320b-4a54-ac9d-4d1c2edf8729",
+      "id_kind": "parent_resource",
+      "next_approver_count": 1,
+      "object_id": "71989c1b-320b-4a54-ac9d-4d1c2edf8729",
+      "object_type": "transaction",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "PENDING"
+     }
+    ],
+    "status": "TRUNCATED"
+   },
+   "bills": {
+    "complete": true,
+    "coverage": {
+     "bills": {
+      "detail_complete": true,
+      "details_attempted": 6,
+      "details_read": 6,
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 6,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bills/drafts": {
+      "detail_complete": true,
+      "details_attempted": 0,
+      "details_read": 0,
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 0,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     }
+    },
+    "grant": {
+     "diagnosis": "EXACT_GRANT",
+     "granted": [
+      "bills:read"
+     ],
+     "missing": [],
+     "requested": [
+      "bills:read"
+     ],
+     "scope_reported": true,
+     "sources": [
+      "LIVE_RAMP_SANDBOX"
+     ],
+     "state": "GRANTED",
+     "unexpected": []
+    },
+    "issues": [],
+    "records": [
+     {
+      "account_id": null,
+      "account_identity": "UNAVAILABLE_IN_BILL_API",
+      "accounting_date": "2026-11-05T00:00:00+00:00",
+      "amount": {
+       "amount": "763.82",
+       "amount_minor": 76382,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "applied_credits": [],
+      "approval_status": "APPROVED",
+      "archived_at": null,
+      "created_at": "2026-11-05T04:50:47+00:00",
+      "deep_link_url": null,
+      "draft_bill_id": null,
+      "due_at": "2026-12-05T00:00:00+00:00",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "1c95f2b5-85c1-4fad-a141-df5e20518f38",
+      "issued_at": "2026-11-05T00:00:00+00:00",
+      "item_receipt_ids": [],
+      "kind": "bill",
+      "lines": [
+       {
+        "amount": {
+         "amount": "763.82",
+         "amount_minor": 76382,
+         "currency": "USD",
+         "minor_unit_conversion_rate": 100
+        },
+        "end_date": null,
+        "id": "01a1aa0b-a57c-7606-abb4-f89cef15846e",
+        "item_receipt_line_item_ids": [],
+        "kind": "line_items",
+        "purchase_order_line_item_id": null,
+        "quantity": null,
+        "quantity_rate_check": "UNAVAILABLE",
+        "service_date": null,
+        "sku": null,
+        "start_date": null,
+        "unit": null,
+        "unit_price": null
+       }
+      ],
+      "paid_at": "2026-11-05T04:51:02+00:00",
+      "posting_date": "2026-11-05T00:00:00+00:00",
+      "purchase_order_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "PAID",
+      "status_summary": "PAYMENT_COMPLETED",
+      "sync_status": "NOT_SYNCED",
+      "vendor_id": "459b21c0-4d46-4aa6-9f8f-a94f32cee4fc"
+     },
+     {
+      "account_id": null,
+      "account_identity": "UNAVAILABLE_IN_BILL_API",
+      "accounting_date": "2026-10-29T00:00:00+00:00",
+      "amount": {
+       "amount": "480",
+       "amount_minor": 48000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "applied_credits": [],
+      "approval_status": "APPROVED",
+      "archived_at": null,
+      "created_at": "2026-11-05T04:50:00+00:00",
+      "deep_link_url": null,
+      "draft_bill_id": null,
+      "due_at": "2026-11-06T00:00:00+00:00",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "6f667b10-86cc-5900-aa34-d0ad2bdf2640",
+      "issued_at": "2026-10-29T00:00:00+00:00",
+      "item_receipt_ids": [],
+      "kind": "bill",
+      "lines": [
+       {
+        "amount": {
+         "amount": "480",
+         "amount_minor": 48000,
+         "currency": "USD",
+         "minor_unit_conversion_rate": 100
+        },
+        "end_date": null,
+        "id": "01a1aa0a-de29-704b-b0b4-a133e69cf307",
+        "item_receipt_line_item_ids": [],
+        "kind": "line_items",
+        "purchase_order_line_item_id": null,
+        "quantity": null,
+        "quantity_rate_check": "UNAVAILABLE",
+        "service_date": null,
+        "sku": null,
+        "start_date": null,
+        "unit": null,
+        "unit_price": null
+       }
+      ],
+      "paid_at": "2026-11-04T04:50:11+00:00",
+      "posting_date": null,
+      "purchase_order_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "PAID",
+      "status_summary": "PAYMENT_COMPLETED",
+      "sync_status": "NOT_SYNCED",
+      "vendor_id": "233cc70c-4a87-476f-ba8a-8ab9ed781ce7"
+     },
+     {
+      "account_id": null,
+      "account_identity": "UNAVAILABLE_IN_BILL_API",
+      "accounting_date": "2026-10-29T00:00:00+00:00",
+      "amount": {
+       "amount": "1250",
+       "amount_minor": 125000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "applied_credits": [],
+      "approval_status": "APPROVED",
+      "archived_at": null,
+      "created_at": "2026-11-05T04:50:00+00:00",
+      "deep_link_url": null,
+      "draft_bill_id": null,
+      "due_at": "2026-11-06T00:00:00+00:00",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "24fa9edc-d7f5-5e81-a910-36633958518a",
+      "issued_at": "2026-10-29T00:00:00+00:00",
+      "item_receipt_ids": [],
+      "kind": "bill",
+      "lines": [
+       {
+        "amount": {
+         "amount": "1250",
+         "amount_minor": 125000,
+         "currency": "USD",
+         "minor_unit_conversion_rate": 100
+        },
+        "end_date": null,
+        "id": "01a1aa0a-ea32-77c6-bfd5-978d7abd1252",
+        "item_receipt_line_item_ids": [],
+        "kind": "line_items",
+        "purchase_order_line_item_id": null,
+        "quantity": null,
+        "quantity_rate_check": "UNAVAILABLE",
+        "service_date": null,
+        "sku": null,
+        "start_date": null,
+        "unit": null,
+        "unit_price": null
+       }
+      ],
+      "paid_at": null,
+      "posting_date": null,
+      "purchase_order_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "OPEN",
+      "status_summary": "WAITING_FOR_TRANSFER_MATCH",
+      "sync_status": "NOT_SYNCED",
+      "vendor_id": "55ecbe41-dbc1-4f76-9026-861a7332d8b7"
+     },
+     {
+      "account_id": null,
+      "account_identity": "UNAVAILABLE_IN_BILL_API",
+      "accounting_date": "2026-10-29T00:00:00+00:00",
+      "amount": {
+       "amount": "650",
+       "amount_minor": 65000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "applied_credits": [],
+      "approval_status": "APPROVED",
+      "archived_at": null,
+      "created_at": "2026-11-05T04:50:00+00:00",
+      "deep_link_url": null,
+      "draft_bill_id": null,
+      "due_at": "2026-11-06T00:00:00+00:00",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "19c2b88e-794d-54ae-9cee-92a50415d636",
+      "issued_at": "2026-10-29T00:00:00+00:00",
+      "item_receipt_ids": [],
+      "kind": "bill",
+      "lines": [
+       {
+        "amount": {
+         "amount": "650",
+         "amount_minor": 65000,
+         "currency": "USD",
+         "minor_unit_conversion_rate": 100
+        },
+        "end_date": null,
+        "id": "01a1aa0a-f1e3-76e5-a047-cd27f27421e6",
+        "item_receipt_line_item_ids": [],
+        "kind": "line_items",
+        "purchase_order_line_item_id": null,
+        "quantity": null,
+        "quantity_rate_check": "UNAVAILABLE",
+        "service_date": null,
+        "sku": null,
+        "start_date": null,
+        "unit": null,
+        "unit_price": null
+       }
+      ],
+      "paid_at": null,
+      "posting_date": null,
+      "purchase_order_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "OPEN",
+      "status_summary": "WAITING_FOR_TRANSFER_MATCH",
+      "sync_status": "NOT_SYNCED",
+      "vendor_id": "70a0db5e-360f-4d44-b566-74808c2126c0"
+     },
+     {
+      "account_id": null,
+      "account_identity": "UNAVAILABLE_IN_BILL_API",
+      "accounting_date": "2026-10-29T00:00:00+00:00",
+      "amount": {
+       "amount": "350",
+       "amount_minor": 35000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "applied_credits": [],
+      "approval_status": "APPROVED",
+      "archived_at": null,
+      "created_at": "2026-11-05T04:50:00+00:00",
+      "deep_link_url": null,
+      "draft_bill_id": null,
+      "due_at": "2026-11-06T00:00:00+00:00",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "36a793e0-7db5-502c-8ec4-681fa10b1c06",
+      "issued_at": "2026-10-29T00:00:00+00:00",
+      "item_receipt_ids": [],
+      "kind": "bill",
+      "lines": [
+       {
+        "amount": {
+         "amount": "350",
+         "amount_minor": 35000,
+         "currency": "USD",
+         "minor_unit_conversion_rate": 100
+        },
+        "end_date": null,
+        "id": "01a1aa0a-f8e8-7751-96e7-4a1819e8e6e0",
+        "item_receipt_line_item_ids": [],
+        "kind": "line_items",
+        "purchase_order_line_item_id": null,
+        "quantity": null,
+        "quantity_rate_check": "UNAVAILABLE",
+        "service_date": null,
+        "sku": null,
+        "start_date": null,
+        "unit": null,
+        "unit_price": null
+       }
+      ],
+      "paid_at": null,
+      "posting_date": null,
+      "purchase_order_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "OPEN",
+      "status_summary": "WAITING_FOR_TRANSFER_MATCH",
+      "sync_status": "NOT_SYNCED",
+      "vendor_id": "70a0db5e-360f-4d44-b566-74808c2126c0"
+     },
+     {
+      "account_id": null,
+      "account_identity": "UNAVAILABLE_IN_BILL_API",
+      "accounting_date": "2026-10-29T00:00:00+00:00",
+      "amount": {
+       "amount": "840",
+       "amount_minor": 84000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "applied_credits": [],
+      "approval_status": "PENDING",
+      "archived_at": null,
+      "created_at": "2026-11-05T04:50:00+00:00",
+      "deep_link_url": null,
+      "draft_bill_id": null,
+      "due_at": "2026-11-06T00:00:00+00:00",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+      "issued_at": "2026-10-29T00:00:00+00:00",
+      "item_receipt_ids": [],
+      "kind": "bill",
+      "lines": [
+       {
+        "amount": {
+         "amount": "840",
+         "amount_minor": 84000,
+         "currency": "USD",
+         "minor_unit_conversion_rate": 100
+        },
+        "end_date": null,
+        "id": "01a1aa0b-001c-7082-b929-5ca9968618e4",
+        "item_receipt_line_item_ids": [],
+        "kind": "line_items",
+        "purchase_order_line_item_id": null,
+        "quantity": null,
+        "quantity_rate_check": "UNAVAILABLE",
+        "service_date": null,
+        "sku": null,
+        "start_date": null,
+        "unit": null,
+        "unit_price": null
+       }
+      ],
+      "paid_at": null,
+      "posting_date": null,
+      "purchase_order_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "OPEN",
+      "status_summary": "APPROVAL_PENDING",
+      "sync_status": "NOT_SYNCED",
+      "vendor_id": "8bde54ed-22d7-4801-82b1-e32c0ddb1b49"
+     }
+    ],
+    "status": "COMPLETE"
+   },
+   "comments": {
+    "complete": true,
+    "coverage": {
+     "bill:19c2b88e-794d-54ae-9cee-92a50415d636": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 0,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:1c95f2b5-85c1-4fad-a141-df5e20518f38": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 0,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:24fa9edc-d7f5-5e81-a910-36633958518a": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 0,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:36a793e0-7db5-502c-8ec4-681fa10b1c06": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 0,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:6f667b10-86cc-5900-aa34-d0ad2bdf2640": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 0,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "bill:f74ba12c-95d0-582d-9f62-26d8057d1d37": {
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 1,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     },
+     "parents": {
+      "detail_complete": true,
+      "list_complete": true,
+      "listed": 6,
+      "parent_scope": "captured_native_records"
+     }
+    },
+    "grant": {
+     "diagnosis": "EXACT_GRANT",
+     "granted": [
+      "bills:read"
+     ],
+     "missing": [],
+     "requested": [
+      "bills:read"
+     ],
+     "scope_reported": true,
+     "sources": [
+      "LIVE_RAMP_SANDBOX"
+     ],
+     "state": "GRANTED",
+     "unexpected": []
+    },
+    "issues": [],
+    "records": [
+     {
+      "created_at": "2026-11-08T01:46:45+00:00",
+      "id": "376563cf-950c-409d-b3d8-a68599c45fa0",
+      "object_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+      "object_type": "bills",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ]
+     }
+    ],
+    "status": "COMPLETE"
+   },
+   "credits": {
+    "complete": true,
+    "coverage": {
+     "vendors/credits": {
+      "detail_complete": true,
+      "details_attempted": 0,
+      "details_read": 0,
+      "has_next": false,
+      "issues": [],
+      "list_complete": true,
+      "listed": 0,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     }
+    },
+    "grant": {
+     "diagnosis": "EXACT_GRANT",
+     "granted": [
+      "vendors:read"
+     ],
+     "missing": [],
+     "requested": [
+      "vendors:read"
+     ],
+     "scope_reported": true,
+     "sources": [
+      "LIVE_RAMP_SANDBOX"
+     ],
+     "state": "GRANTED",
+     "unexpected": []
+    },
+    "issues": [],
+    "records": [],
+    "status": "EMPTY"
+   },
+   "purchase_orders": {
+    "complete": false,
+    "coverage": {
+     "INDEPENDENT_POs": {
+      "status": "NOT_REQUESTED"
+     },
+     "LINKED": {
+      "detail_complete": true,
+      "details_attempted": 0,
+      "details_read": 0,
+      "list_complete": true,
+      "listed": 0,
+      "parent_scope": "captured_bills_and_agreements"
+     }
+    },
+    "grant": {
+     "diagnosis": "EXACT_GRANT",
+     "granted": [
+      "purchase_orders:read"
+     ],
+     "missing": [],
+     "requested": [
+      "purchase_orders:read"
+     ],
+     "scope_reported": true,
+     "sources": [
+      "LIVE_RAMP_SANDBOX"
+     ],
+     "state": "GRANTED",
+     "unexpected": []
+    },
+    "issues": [],
+    "records": [],
+    "status": "NOT_REQUESTED"
+   },
+   "transactions": {
+    "complete": false,
+    "coverage": {
+     "transactions": {
+      "detail_complete": true,
+      "details_attempted": 10,
+      "details_read": 10,
+      "has_next": true,
+      "issues": [],
+      "list_complete": false,
+      "listed": 10,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     }
+    },
+    "grant": {
+     "diagnosis": "EXACT_GRANT",
+     "granted": [
+      "transactions:read"
+     ],
+     "missing": [],
+     "requested": [
+      "transactions:read"
+     ],
+     "scope_reported": true,
+     "sources": [
+      "LIVE_RAMP_SANDBOX"
+     ],
+     "state": "GRANTED",
+     "unexpected": []
+    },
+    "issues": [],
+    "records": [
+     {
+      "accounting_date": "2026-11-25T04:42:18+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "436.5",
+       "amount_minor": 43650,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "620095eb-bd0c-41d4-9dd8-42eaf95b0082",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "ad32dc78-9982-4eb9-a4e6-db00ff547e28",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": 60898,
+       "currency": "CAD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "0d000cde-cfff-4eb0-ae50-e73a6a3e65bb",
+      "original_amount": {
+       "amount": "608.98",
+       "amount_minor": 60898,
+       "currency": "CAD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-25T04:42:18+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": null,
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-25T04:42:18+00:00",
+      "user_transaction_time": "2026-11-24T04:42:18+00:00",
+      "vendor_id": null
+     },
+     {
+      "accounting_date": "2026-11-11T04:43:11+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "276.76",
+       "amount_minor": 27676,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "d57bd3ae-a012-4a06-bd70-606b6e8459ab",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "554fab79-194e-4412-831f-21dec87e64d9",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": 27676,
+       "currency": "USD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "6b2e72af-4ba5-4d10-abf7-1c3e0e65afc7",
+      "original_amount": {
+       "amount": "276.76",
+       "amount_minor": 27676,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-11T04:43:11+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": "28da2344-37fc-48aa-a8f5-2ef6701eae86",
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-11T04:43:11+00:00",
+      "user_transaction_time": "2026-11-10T04:43:11+00:00",
+      "vendor_id": null
+     },
+     {
+      "accounting_date": "2026-11-10T04:43:11+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "14.05",
+       "amount_minor": 1405,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "a093d4ce-4665-4c1f-9c3e-9755d5b2c6c2",
+      "entity_id": "287a5363-aba8-402f-8521-38fa4c7f7f55",
+      "id": "fa2d7bb4-89cc-49fa-a773-75a9b9f898ef",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": 1405,
+       "currency": "USD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "bd5a09c6-28a7-455c-ad46-71416c9cb6b9",
+      "original_amount": {
+       "amount": "14.05",
+       "amount_minor": 1405,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-10T04:43:11+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": "28da2344-37fc-48aa-a8f5-2ef6701eae86",
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-10T04:43:11+00:00",
+      "user_transaction_time": "2026-11-09T04:43:11+00:00",
+      "vendor_id": null
+     },
+     {
+      "accounting_date": "2026-11-09T04:43:11+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "88.81",
+       "amount_minor": 8881,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "d57bd3ae-a012-4a06-bd70-606b6e8459ab",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "71989c1b-320b-4a54-ac9d-4d1c2edf8729",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": 8881,
+       "currency": "USD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "8db83b46-b529-4f7d-821e-646133173da3",
+      "original_amount": {
+       "amount": "88.81",
+       "amount_minor": 8881,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-09T04:43:11+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": "28da2344-37fc-48aa-a8f5-2ef6701eae86",
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-09T04:43:11+00:00",
+      "user_transaction_time": "2026-11-08T04:43:11+00:00",
+      "vendor_id": null
+     },
+     {
+      "accounting_date": "2026-11-08T04:43:11+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "336.02",
+       "amount_minor": 33602,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "d5e54c39-13da-4d7a-a721-c1860ea5e63d",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "eb7177a0-c845-419b-9eba-9533cc7d13d7",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": 33602,
+       "currency": "USD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "e8e163ac-af63-4ae7-826d-b2ac5d015903",
+      "original_amount": {
+       "amount": "336.02",
+       "amount_minor": 33602,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-08T04:43:11+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": "28da2344-37fc-48aa-a8f5-2ef6701eae86",
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-08T04:43:11+00:00",
+      "user_transaction_time": "2026-11-07T04:43:11+00:00",
+      "vendor_id": null
+     },
+     {
+      "accounting_date": "2026-11-07T04:43:11+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "1446.13",
+       "amount_minor": 144613,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "d57bd3ae-a012-4a06-bd70-606b6e8459ab",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "bc40281e-18e2-40a2-9bc1-e05987d66159",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": 144613,
+       "currency": "USD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "85a4b576-af04-46e5-9e52-6f04f1345fb7",
+      "original_amount": {
+       "amount": "1446.13",
+       "amount_minor": 144613,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-07T04:43:11+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": "28da2344-37fc-48aa-a8f5-2ef6701eae86",
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-07T04:43:11+00:00",
+      "user_transaction_time": "2026-11-06T04:43:11+00:00",
+      "vendor_id": null
+     },
+     {
+      "accounting_date": "2026-11-06T04:42:57+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "842.67",
+       "amount_minor": 84267,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "620095eb-bd0c-41d4-9dd8-42eaf95b0082",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "90c19a56-0762-48ce-8295-d722d4c8a24e",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": 84267,
+       "currency": "USD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "97bbe640-0a72-47a6-965e-59acf76f8943",
+      "original_amount": {
+       "amount": "842.67",
+       "amount_minor": 84267,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-06T04:42:57+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": null,
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-06T04:42:57+00:00",
+      "user_transaction_time": "2026-11-05T04:42:57+00:00",
+      "vendor_id": null
+     },
+     {
+      "accounting_date": "2026-11-06T04:42:57+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "350",
+       "amount_minor": 35000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "620095eb-bd0c-41d4-9dd8-42eaf95b0082",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "05fd3c91-ae0f-41ae-9089-6167619437f6",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": 35000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "5461f1c8-daee-4883-9b6d-fbd0a1891b38",
+      "original_amount": {
+       "amount": "350",
+       "amount_minor": 35000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-06T04:42:57+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": null,
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-06T04:42:57+00:00",
+      "user_transaction_time": "2026-11-05T04:42:57+00:00",
+      "vendor_id": null
+     },
+     {
+      "accounting_date": "2026-11-06T04:42:57+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "750",
+       "amount_minor": 75000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "d5e54c39-13da-4d7a-a721-c1860ea5e63d",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "bfb289b6-1089-4585-b84e-de425b04ba24",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": 75000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "2c2b8050-15c0-484d-a6a8-00143652d1d1",
+      "original_amount": {
+       "amount": "750",
+       "amount_minor": 75000,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-06T04:42:57+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": "28da2344-37fc-48aa-a8f5-2ef6701eae86",
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-06T04:42:57+00:00",
+      "user_transaction_time": "2026-11-05T04:42:57+00:00",
+      "vendor_id": null
+     },
+     {
+      "accounting_date": "2026-11-06T04:42:11+00:00",
+      "all_requirements_met_and_approved": false,
+      "amount": {
+       "amount": "-259.49",
+       "amount_minor": -25949,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "card_id": "3e5b78e0-415e-4738-ab77-bc0f43e0e4d3",
+      "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+      "id": "006b625f-de52-4601-a5b1-1d08f02580b6",
+      "lines": [],
+      "merchant_amount": {
+       "amount": null,
+       "amount_minor": -25949,
+       "currency": "USD",
+       "minor_unit_conversion_rate": null
+      },
+      "merchant_id": "a02796ff-9996-4463-b95e-7339c60cd16e",
+      "original_amount": {
+       "amount": "-259.49",
+       "amount_minor": -25949,
+       "currency": "USD",
+       "minor_unit_conversion_rate": 100
+      },
+      "original_transaction_id": null,
+      "settlement_date": "2026-11-06T04:42:11+00:00",
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "spend_program_id": "28da2344-37fc-48aa-a8f5-2ef6701eae86",
+      "status": "CLEARED",
+      "sync_status": "NOT_SYNC_READY",
+      "updated_at": "2026-11-06T04:42:11+00:00",
+      "user_transaction_time": "2026-11-05T04:42:11+00:00",
+      "vendor_id": null
+     }
+    ],
+    "status": "TRUNCATED"
+   },
+   "vendors": {
+    "complete": false,
+    "coverage": {
+     "LINKED_VENDORS": {
+      "detail_complete": true,
+      "details_attempted": 5,
+      "details_read": 5,
+      "issues": [],
+      "list_complete": true,
+      "listed": 5,
+      "parent_scope": "captured_native_records",
+      "status": "COMPLETE"
+     },
+     "vendors": {
+      "detail_complete": false,
+      "details_attempted": 5,
+      "details_read": 5,
+      "has_next": true,
+      "issues": [],
+      "list_complete": false,
+      "listed": 10,
+      "max_pages": 1,
+      "page_size": 10,
+      "pages_read": 1
+     }
+    },
+    "grant": {
+     "diagnosis": "EXACT_GRANT",
+     "granted": [
+      "vendors:read"
+     ],
+     "missing": [],
+     "requested": [
+      "vendors:read"
+     ],
+     "scope_reported": true,
+     "sources": [
+      "LIVE_RAMP_SANDBOX"
+     ],
+     "state": "GRANTED",
+     "unexpected": []
+    },
+    "issues": [],
+    "records": [
+     {
+      "created_at": "2026-11-05T04:41:01+00:00",
+      "default_entity_id": null,
+      "id": "233cc70c-4a87-476f-ba8a-8ab9ed781ce7",
+      "is_active": true,
+      "merchant_id": "f238954e-e41e-4c44-a116-a647557c2d1c",
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:41:01+00:00"
+     },
+     {
+      "created_at": "2026-11-05T04:50:47+00:00",
+      "default_entity_id": null,
+      "id": "459b21c0-4d46-4aa6-9f8f-a94f32cee4fc",
+      "is_active": true,
+      "merchant_id": "be0c3cd3-7b52-4dbd-8371-dc0364745651",
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:52:31+00:00"
+     },
+     {
+      "created_at": "2026-11-05T04:40:58+00:00",
+      "default_entity_id": null,
+      "id": "55ecbe41-dbc1-4f76-9026-861a7332d8b7",
+      "is_active": true,
+      "merchant_id": null,
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:40:58+00:00"
+     },
+     {
+      "created_at": "2026-11-05T04:40:36+00:00",
+      "default_entity_id": null,
+      "id": "70a0db5e-360f-4d44-b566-74808c2126c0",
+      "is_active": true,
+      "merchant_id": "de28a319-eaf0-4e3f-b936-02c5fdc5cc47",
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:40:36+00:00"
+     },
+     {
+      "created_at": "2026-11-05T04:40:43+00:00",
+      "default_entity_id": null,
+      "id": "8bde54ed-22d7-4801-82b1-e32c0ddb1b49",
+      "is_active": true,
+      "merchant_id": null,
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:40:43+00:00"
+     },
+     {
+      "created_at": "2026-11-05T04:52:35+00:00",
+      "default_entity_id": null,
+      "id": "c8c9953c-1ff1-4e3e-a3ff-ac059a25d31c",
+      "is_active": true,
+      "merchant_id": "e9e37bab-1fd0-4018-b2a0-8fbd813678b1",
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:52:35+00:00"
+     },
+     {
+      "created_at": "2026-11-05T04:52:35+00:00",
+      "default_entity_id": null,
+      "id": "54cd1d29-1d88-44c2-8de0-2318e08dcb78",
+      "is_active": true,
+      "merchant_id": "42b807e2-cf9c-44d2-ad50-0c1b129efc1e",
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:52:35+00:00"
+     },
+     {
+      "created_at": "2026-11-05T04:52:35+00:00",
+      "default_entity_id": null,
+      "id": "1ee87a4c-2dec-4580-bff7-d8d8e51917f1",
+      "is_active": true,
+      "merchant_id": "59adffe3-8c1e-4b76-907b-d7bdd610e0e6",
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:52:35+00:00"
+     },
+     {
+      "created_at": "2026-11-05T04:52:34+00:00",
+      "default_entity_id": null,
+      "id": "20306427-37ba-43bc-8eda-a7653a3ae39b",
+      "is_active": true,
+      "merchant_id": "99cbedf2-af8e-4094-9de6-c0f4ee823395",
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:52:34+00:00"
+     },
+     {
+      "created_at": "2026-11-05T04:52:34+00:00",
+      "default_entity_id": null,
+      "id": "add086fc-7658-45ef-ad25-e311080813ec",
+      "is_active": true,
+      "merchant_id": "63979cfe-1c7a-4b07-b6d2-7260420cf8bc",
+      "parent_vendor_id": null,
+      "sources": [
+       "LIVE_RAMP_SANDBOX"
+      ],
+      "status": "APPROVED",
+      "updated_at": "2026-11-05T04:52:34+00:00"
+     }
+    ],
+    "status": "TRUNCATED"
+   }
+  },
+  "schema": "uptime-ramp-records/1"
+ },
+ "schema": "uptime-ramp-verified-record/1",
+ "statement": "Saved verified record of one Ramp demo bill, read at the capture time below. Not a live read."
+}
