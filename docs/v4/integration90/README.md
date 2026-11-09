@@ -2,6 +2,8 @@
 
 Integration owner: session `agent0`, branch `work/integration-90`, baseline `03b372e` (hosted CI: 3,967 passed, 1 warning in 417.83 s; 75 JavaScript checks).
 
+**Merged into `main` on November 9, 2026:** `origin/main` was fast-forwarded from `03b372e` to `a8c4c22` (no force) after a fresh-clone suite on `a6e5931`; the post-merge suite on `main` gave 4,684 passed, 1 warning ([receipt](../evidence/integration-90/verification-a8c4c22.json)). The presentation on 8776 was rebuilt from `a6e5931`; `fde492c` is the stopped fallback ([local sessions](REHEARSAL.md#local-sessions)). Evaluation branches stay separate.
+
 | Record | Purpose |
 |:---|:---|
 | [REQUIREMENTS.md](REQUIREMENTS.md) ([JSON source](requirements.json)) | Every original V3 requirement with disposition, evidence, gap class and owner (189 items) |

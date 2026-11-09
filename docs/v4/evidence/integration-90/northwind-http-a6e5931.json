@@ -1,0 +1,2739 @@
+{
+ "schema": "workspace-socket-receipt/1",
+ "started_at": "2026-11-09T19:31:31.223810+00:00",
+ "transport": "REAL_LOOPBACK_HTTP",
+ "reviewer": "scripted-test-reviewer",
+ "authority_kind": "SCRIPTED_REVIEWER",
+ "origin": "http://127.0.0.1:8786",
+ "client_source_sha256": "234482e18e33b5d5dc180cd45cc637f21a340de78e10a81d19f6951c76f679ae",
+ "steps": [
+  {
+   "action": {
+    "id": "action-fb65a6b13ec2082c258fa6e30ce158a153c9c1601e6cef5b5430f90769159bea",
+    "label": "Approve January claim",
+    "group": "claim"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "DRAFTED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [
+     "approve-claim"
+    ],
+    "requested_artifact": null,
+    "currency": "USD",
+    "receipt_id": null,
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "CLAIM_APPROVED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": null,
+    "currency": "USD",
+    "receipt_id": null,
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": "2400.00",
+    "claimed": "0.00",
+    "awarded": "0.00",
+    "posted": "0.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": null,
+     "credit": null,
+     "application": null
+    },
+    "unapplied_credit": "0.00",
+    "bill": {
+     "id": null,
+     "original_amount": null,
+     "outstanding_amount": null
+    }
+   },
+   "event_at": "2026-03-01T12:00:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-a908a0a1185e8a5b59ca350527a733e0d7afcc10526374c4e5615a5d8974b24c",
+    "label": "File January claim",
+    "group": "claim"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "CLAIM_APPROVED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": null,
+    "currency": "USD",
+    "receipt_id": null,
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWAITING_VENDOR",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": null,
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": null,
+    "claimed": "2400.00",
+    "awarded": "0.00",
+    "posted": "0.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": null,
+     "credit": null,
+     "application": null
+    },
+    "unapplied_credit": "0.00",
+    "bill": {
+     "id": null,
+     "original_amount": null,
+     "outstanding_amount": null
+    }
+   },
+   "event_at": "2026-03-01T12:00:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-348b4c9ccbf8f17bbde1c85e217a2e999938562b941994517315e6df04e198df",
+    "label": "Receive vendor response",
+    "group": "evidence"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWAITING_VENDOR",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": null,
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "NEEDS_EVIDENCE",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": null,
+    "claimed": "2400.00",
+    "awarded": "0.00",
+    "posted": "0.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": null,
+     "credit": null,
+     "application": null
+    },
+    "unapplied_credit": "0.00",
+    "bill": {
+     "id": null,
+     "original_amount": null,
+     "outstanding_amount": null
+    }
+   },
+   "event_at": "2026-03-01T12:10:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-593de79fba859a6e93871b9778ec5a02b4a7ef5ffd133a5c20539151ad51425c",
+    "label": "Attach requested log",
+    "group": "evidence"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "NEEDS_EVIDENCE",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "NEEDS_EVIDENCE",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": null,
+    "claimed": "2400.00",
+    "awarded": "0.00",
+    "posted": "0.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": null,
+     "credit": null,
+     "application": null
+    },
+    "unapplied_credit": "0.00",
+    "bill": {
+     "id": null,
+     "original_amount": null,
+     "outstanding_amount": null
+    }
+   },
+   "event_at": "2026-03-02T09:00:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-dde3fa39e1bbf2ed73adfd471786bb3c014a93dbd8cda296011b11ec39b07304",
+    "label": "Verify supplied log",
+    "group": "evidence"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "NEEDS_EVIDENCE",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "RESPONSE_DRAFTED",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [
+     "approve-response"
+    ],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": null,
+    "claimed": "2400.00",
+    "awarded": "0.00",
+    "posted": "0.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": null,
+     "credit": null,
+     "application": null
+    },
+    "unapplied_credit": "0.00",
+    "bill": {
+     "id": null,
+     "original_amount": null,
+     "outstanding_amount": null
+    }
+   },
+   "event_at": "2026-03-02T09:05:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-13521d8cbdf5264e98d4fc6885addc415e8ebc4702d179a290532fb57e8748ef",
+    "label": "Approve response",
+    "group": "claim"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "RESPONSE_DRAFTED",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [
+     "approve-response"
+    ],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "RESPONSE_APPROVED",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": null,
+    "claimed": "2400.00",
+    "awarded": "0.00",
+    "posted": "0.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": null,
+     "credit": null,
+     "application": null
+    },
+    "unapplied_credit": "0.00",
+    "bill": {
+     "id": null,
+     "original_amount": null,
+     "outstanding_amount": null
+    }
+   },
+   "event_at": "2026-03-02T09:05:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-e399d407a9f52468a9680ebed6c52bd497934ce725db841738a6ecc1ae2a5630",
+    "label": "Send response",
+    "group": "claim"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "RESPONSE_APPROVED",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-0118cde456c6e7b23fef0b65",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWAITING_VENDOR",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": null,
+    "claimed": "2400.00",
+    "awarded": "0.00",
+    "posted": "0.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": null,
+     "credit": null,
+     "application": null
+    },
+    "unapplied_credit": "0.00",
+    "bill": {
+     "id": null,
+     "original_amount": null,
+     "outstanding_amount": null
+    }
+   },
+   "event_at": "2026-03-02T12:10:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-344ce8f62504d750dba83148e816a7a92c25f8f33295eb17f92b1ae4e5152e53",
+    "label": "Receive credit decision",
+    "group": "evidence"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWAITING_VENDOR",
+    "amount": null,
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWARDED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": "2400.00",
+    "claimed": "2400.00",
+    "awarded": "2400.00",
+    "posted": "0.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": null,
+     "credit": null,
+     "application": null
+    },
+    "unapplied_credit": "0.00",
+    "bill": {
+     "id": null,
+     "original_amount": null,
+     "outstanding_amount": null
+    }
+   },
+   "event_at": "2026-03-02T13:00:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-82e27bd8bcc452ecd09b2389bc464b0f3099dabfa7642afcba77a737fd31038b",
+    "label": "Post to Local ledger",
+    "group": "ledger"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWARDED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWARDED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": "2400.00",
+    "claimed": "2400.00",
+    "awarded": "2400.00",
+    "posted": "2400.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": "inbox-award:e1bf6bf5098a1aa966905aa0837c14825b46b2c0076ab9914033241832b3e50c",
+     "credit": "local-ledger:01864b57-042f-55a5-bad2-11a30faf2d0c",
+     "application": null
+    },
+    "unapplied_credit": "2400.00",
+    "bill": {
+     "id": null,
+     "original_amount": null,
+     "outstanding_amount": null
+    }
+   },
+   "event_at": "2026-03-02T13:00:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-0634b436fd22acb01be838c06578d2c3e935f5fbe74ad8c59d0f2c5ca8d96693",
+    "label": "Receive next invoice",
+    "group": "ledger"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWARDED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWARDED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": "2400.00",
+    "claimed": "2400.00",
+    "awarded": "2400.00",
+    "posted": "2400.00",
+    "applied": "0.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": "inbox-award:e1bf6bf5098a1aa966905aa0837c14825b46b2c0076ab9914033241832b3e50c",
+     "credit": "local-ledger:01864b57-042f-55a5-bad2-11a30faf2d0c",
+     "application": null
+    },
+    "unapplied_credit": "2400.00",
+    "bill": {
+     "id": "NW-2026-04",
+     "original_amount": "11000.00",
+     "outstanding_amount": "11000.00",
+     "issued_at": "2026-04-01T00:00:00+00:00",
+     "service_start": "2026-04-01T00:00:00+00:00",
+     "service_end": "2026-05-01T00:00:00+00:00",
+     "known_at": "2026-04-01T09:00:00Z",
+     "source_sha256": "ba3a23e99bb642a94c206460071804678c771f46eb0a06ba55b76d7e14c6a9e2",
+     "governing_pricing_version": "amendment-v2",
+     "award_eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+     "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+     "source_ref": "local-invoice:e2d367651b55e53cb8b7fc2a454636a6382f2cd3009e37edd739b1128a8eb07a",
+     "unchanged_sla": {
+      "citation": {
+       "end": 979,
+       "id": "amendment-2026-03.txt:4",
+       "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+       "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+       "source_file": "amendment-2026-03.txt",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "start": 700
+      },
+      "citation_id": "amendment-2026-03.txt:4",
+      "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5"
+     }
+    }
+   },
+   "event_at": "2026-04-01T09:00:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  },
+  {
+   "action": {
+    "id": "action-e7e56f76b5228cfea846555baa8917d0a03db3b264497594d7bfa4c34fc49d71",
+    "label": "Apply credit to eligible invoice",
+    "group": "ledger"
+   },
+   "before": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWARDED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "after": {
+    "id": "inbox-northwind-2026-01",
+    "month": "2026-01",
+    "state": "AWARDED",
+    "amount": "2400.00",
+    "filing_cutoff": "2026-03-03T00:00:00+00:00",
+    "pending_approvals": [],
+    "requested_artifact": {
+     "type": "resource_log",
+     "ref": "NW-JAN-LOG-001"
+    },
+    "currency": "USD",
+    "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+    "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "governing_pricing_version": "order-v1",
+    "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+   },
+   "ledger": {
+    "destination": "Local ledger",
+    "estimated": "2400.00",
+    "claimed": "2400.00",
+    "awarded": "2400.00",
+    "posted": "2400.00",
+    "applied": "2400.00",
+    "currency": "USD",
+    "record_ids": {
+     "award": "inbox-award:e1bf6bf5098a1aa966905aa0837c14825b46b2c0076ab9914033241832b3e50c",
+     "credit": "local-ledger:01864b57-042f-55a5-bad2-11a30faf2d0c",
+     "application": "local-ledger:3a7c99f8-0954-505d-9090-0d8a3285c5bc"
+    },
+    "unapplied_credit": "0.00",
+    "bill": {
+     "id": "NW-2026-04",
+     "original_amount": "11000.00",
+     "outstanding_amount": "8600.00",
+     "issued_at": "2026-04-01T00:00:00+00:00",
+     "service_start": "2026-04-01T00:00:00+00:00",
+     "service_end": "2026-05-01T00:00:00+00:00",
+     "known_at": "2026-04-01T09:00:00Z",
+     "source_sha256": "ba3a23e99bb642a94c206460071804678c771f46eb0a06ba55b76d7e14c6a9e2",
+     "governing_pricing_version": "amendment-v2",
+     "award_eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+     "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+     "source_ref": "local-invoice:e2d367651b55e53cb8b7fc2a454636a6382f2cd3009e37edd739b1128a8eb07a",
+     "unchanged_sla": {
+      "citation": {
+       "end": 979,
+       "id": "amendment-2026-03.txt:4",
+       "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+       "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+       "source_file": "amendment-2026-03.txt",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "start": 700
+      },
+      "citation_id": "amendment-2026-03.txt:4",
+      "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5"
+     }
+    }
+   },
+   "event_at": "2026-04-01T09:00:00+00:00",
+   "duplicate_unchanged": true,
+   "readback_equal": true
+  }
+ ],
+ "initial": {
+  "workspace_instance": "1a564039-d9bf-4b37-823f-e9ec3a693e59",
+  "source_package_sha256": "6859744d8052c19e09fbfa2ddef02e13c5616568db43fbae805af85f41289892",
+  "company": {
+   "name": "Harborline Analytics"
+  },
+  "vendor": "Northwind Cloud",
+  "as_of": "2026-03-01T12:00:00+00:00",
+  "contract": {
+   "title": "Northwind Cloud Service Level Agreement",
+   "version": "c5a109c1e243427121ecfa0fa49d8c58e71c35cf119e28f6ecd715b360658049",
+   "ref": "urn:northwind:NW-2026-001:sla",
+   "summary": "Service Level Agreement\nVendor: Northwind Cloud\nAgreement: NW-2026-001\nEffective: 2026-01-01 through 2026-12-31\nAvailability is measured over each UTC calendar month.\nFor Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.\nRound the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.\nClaims must be received within 30 calendar days after month end.\nService credits apply to affected monthly fees on a future invoice.",
+   "documents": [
+    {
+     "title": "Order Form NW-2026-001",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "version": "order-v1",
+     "effective_at": "2026-01-01T00:00:00+00:00",
+     "description": "2 Covered subscription; 3 Eligible fees; 6 Governing date",
+     "citations": [
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:1",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "Northwind Cloud — Order Form NW-2026-001",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "830b1d0363a9825364f41823abbdc66cc2e9210052c9f53bffea9afe3592e748",
+       "start": 0,
+       "end": 40
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:2",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "1. Parties and term. Provider: Northwind Cloud. Customer: Harborline Analytics. Account: harborline-001. The term covers complete UTC service months from January 1 through December 31, 2026.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "2e628f0b450b0f49514f6c0fb2bc6dc1893fe68eaa11367088c68e8e239c4a52",
+       "start": 41,
+       "end": 231
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:3",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "2. Covered subscription. Cloud Hosting on the Business plan is one complete service-month unit. The governing service fee is USD 12,000.00 per complete UTC service month; the maximum payable covered service fee is also USD 12,000.00. There are no usage overage charges or partial-month allocations in this order.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "047584ae18b634621e72ffb2edbf726e42306be68f48c903697c63a4941a3d9b",
+       "start": 232,
+       "end": 544
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:4",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "3. Eligible fees. The SLA credit base is the governing covered monthly service fee after any amendment effective for that service month. An overbilled invoice does not increase that base. Taxes, Premium Support and One-time Setup charges are separate and excluded from the SLA credit base and covered-service price discrepancy.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "b746423eba5e59c20d62d4c7b19597dd5a967a4f03f2f7b8f3b5b13887ef51ea",
+       "start": 545,
+       "end": 872
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:5",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "4. Service measurement. Availability uses every elapsed minute in the complete UTC month. Only recorded service unavailability counts as eligible downtime; no maintenance or other exclusions apply under this order. A complete monthly coverage report is required; absent coverage means eligibility is unknown.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "ade6497dc46265a1d6b36772e3bf3b6dd3e207ba3ef3e76ff4ee26d0853c547a",
+       "start": 873,
+       "end": 1181
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:6",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "5. SLA and filing. The attached Service Level Agreement defines completed shortfall increments and final-cent rounding. Claims must be received during the 30 full calendar days following the final day of the service month, inclusive through the last instant of day 30. A draft timestamp is not a filing receipt.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "3b219536283c97a9302c53b644facfaf7d48030bab250f67443dd0e8b8f6cbc7",
+       "start": 1182,
+       "end": 1493
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:7",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "6. Governing date. The fee is chosen by the service period, not the invoice issue date. An unsplit line crossing an amendment-effective boundary requires complete allocation before pricing.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "bbaa6047457aaf4250f6892795c29ac5746ac20b8123d9ca59e53fa0b7a5d31f",
+       "start": 1494,
+       "end": 1683
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:8",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "7. Signature record. The scenario signature date is December 15, 2025 at 15:00 UTC. The accompanying local signature specimen binds these bytes and the typed pricing input; it is not an external certificate or evidence of real-party execution.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "7681551075370ce16624faeecb4a452084427dd6839a85f8175117007efacff8",
+       "start": 1684,
+       "end": 1927
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:9",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "8. Rate schedule. The complete fixed monthly schedule in order-monthly-rate.txt forms part of this order, including its explicit billing timing.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "56ddc6bfca6a3b2190c8e58df39cd5a32dff9e38f7addb3fc79a4a4bb572d155",
+       "start": 1928,
+       "end": 2072
+      }
+     ],
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7"
+    },
+    {
+     "title": "Amendment 1 to NW-2026-001",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "version": "amendment-v2",
+     "effective_at": "2026-03-01T00:00:00+00:00",
+     "description": "1 Execution and effect; 2 Governing fee and ceiling",
+     "citations": [
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:1",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "Northwind Cloud — Amendment 1 to NW-2026-001",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "04dbdea8066ebfe3148278300e8a10a19f0207d131d186c0965f57c6da6f6026",
+       "start": 0,
+       "end": 44
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:2",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "1. Execution and effect. The scenario signatories execute this amendment on February 20, 2026 at 15:00 UTC. It becomes effective for service beginning March 1, 2026 at 00:00 UTC and supersedes the order form monthly service-fee provision from that instant.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "81fe56dfa01d095abb7c6cd2da263e6e621995cf4cf2119e2f8ae0bfc43946b8",
+       "start": 45,
+       "end": 301
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:3",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "2. Governing fee and ceiling. For Cloud Hosting on the Business plan, the governing service fee becomes USD 11,000.00 per complete UTC service month. The maximum payable covered service fee is also USD 11,000.00. This replaces both the USD 12,000.00 monthly fee and its USD 12,000.00 ceiling for March and later service months; it does not replace the fee for February service invoiced on March 1.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "8fb48882919c541ee3d5eb5e03378d8314c3fec314a0f51f9d7f7ea78fe5c51d",
+       "start": 302,
+       "end": 699
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:4",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+       "start": 700,
+       "end": 979
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:5",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "4. Signature record. The accompanying local signature specimen identifies its local issuer and actual creation time separately from the scenario execution date. It establishes no real-party execution or external certificate.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "7d2443ce6ce8c6e9ae82a2185191f9dd582a15fd6665cc17f0bbb3a5156003e3",
+       "start": 980,
+       "end": 1204
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:6",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "5. Restated rate schedule. The complete fixed monthly schedule in amendment-monthly-rate.txt forms part of this amendment and expressly restates the billing timing for its governing service months.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "d1cb5d3ae5bb175a2898a5000ea1362536082e181b37c964a78793eb43251fe1",
+       "start": 1205,
+       "end": 1402
+      }
+     ],
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6"
+    }
+   ]
+  },
+  "reviewer": {
+   "name": "Dana Reyes",
+   "role": "Contract reviewer",
+   "authority_kind": "SCRIPTED_REVIEWER",
+   "principal": "scripted-test-reviewer"
+  },
+  "months": [
+   {
+    "month": "2026-01",
+    "outcome": "ELIGIBLE",
+    "amount": "2400.00",
+    "currency": "USD",
+    "reason": "44505/44640 UTC minutes available; 2 completed shortfall increments; 20000000/1000000% credit after cap.; Affected fee 1200000 USD cents; source-clause future invoice credit only.",
+    "trace": [
+     "44505/44640 UTC minutes available; 2 completed shortfall increments; 20000000/1000000% credit after cap.",
+     "Affected fee 1200000 USD cents; source-clause future invoice credit only."
+    ],
+    "calculation": [
+     "2 completed shortfall increments; 20% credit after the contractual cap.",
+     "USD 12000.00 × 20% = USD 2400.00 after final-cent rounding."
+    ],
+    "inputs": {
+     "governing_fee": "12000.00",
+     "currency": "USD",
+     "fee_version": "588064cf1e5acf36c919b7300d9ff70eceb9361f72a56c2a5f84dfbf7280f459",
+     "eligible_downtime_minutes": "135",
+     "completed_steps": "2",
+     "credit_percent": "20",
+     "claim_cutoff": "2026-03-03T00:00:00+00:00",
+     "monitor_ref": "northwind-monthly-coverage-2026-01"
+    },
+    "citations": [
+     {
+      "label": "Clause 1",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service Level Agreement",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 0,
+      "end": 23
+     },
+     {
+      "label": "Clause 2",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Vendor: Northwind Cloud",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 24,
+      "end": 47
+     },
+     {
+      "label": "Clause 3",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Agreement: NW-2026-001",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 48,
+      "end": 70
+     },
+     {
+      "label": "Clause 4",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Effective: 2026-01-01 through 2026-12-31",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 71,
+      "end": 111
+     },
+     {
+      "label": "Clause 5",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Availability is measured over each UTC calendar month.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 112,
+      "end": 166
+     },
+     {
+      "label": "Clause 6",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 167,
+      "end": 352
+     },
+     {
+      "label": "Clause 7",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 353,
+      "end": 518
+     },
+     {
+      "label": "Clause 8",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Claims must be received within 30 calendar days after month end.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 519,
+      "end": 583
+     },
+     {
+      "label": "Clause 9",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service credits apply to affected monthly fees on a future invoice.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 584,
+      "end": 651
+     }
+    ],
+    "invoice": {
+     "id": "NW-2026-01",
+     "issued_at": "2026-02-01T09:00:00+00:00",
+     "service_start": "2026-01-01T00:00:00+00:00",
+     "service_end": "2026-02-01T00:00:00+00:00"
+    },
+    "evidence": [
+     {
+      "label": "Monthly coverage",
+      "ref": "northwind-monthly-coverage-2026-01",
+      "value": "Complete month, no excluded intervals."
+     },
+     {
+      "label": "Eligible downtime minutes",
+      "ref": "northwind-monthly-coverage-2026-01",
+      "value": "135"
+     }
+    ]
+   },
+   {
+    "month": "2026-02",
+    "outcome": "INELIGIBLE",
+    "amount": null,
+    "currency": "USD",
+    "reason": "40315/40320 UTC minutes available; 0 completed shortfall increments; 0/1000000% credit after cap.",
+    "trace": [
+     "40315/40320 UTC minutes available; 0 completed shortfall increments; 0/1000000% credit after cap."
+    ],
+    "calculation": [
+     "0 completed shortfall increments; 0% credit after the contractual cap."
+    ],
+    "inputs": {
+     "governing_fee": null,
+     "currency": "USD",
+     "fee_version": "NW-2026-02:order-v1",
+     "eligible_downtime_minutes": "5",
+     "completed_steps": "0",
+     "credit_percent": "0",
+     "claim_cutoff": "2026-03-31T00:00:00+00:00",
+     "monitor_ref": "northwind-monthly-coverage-2026-02"
+    },
+    "citations": [
+     {
+      "label": "Clause 1",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service Level Agreement",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 0,
+      "end": 23
+     },
+     {
+      "label": "Clause 2",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Vendor: Northwind Cloud",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 24,
+      "end": 47
+     },
+     {
+      "label": "Clause 3",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Agreement: NW-2026-001",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 48,
+      "end": 70
+     },
+     {
+      "label": "Clause 4",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Effective: 2026-01-01 through 2026-12-31",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 71,
+      "end": 111
+     },
+     {
+      "label": "Clause 5",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Availability is measured over each UTC calendar month.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 112,
+      "end": 166
+     },
+     {
+      "label": "Clause 6",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 167,
+      "end": 352
+     },
+     {
+      "label": "Clause 7",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 353,
+      "end": 518
+     },
+     {
+      "label": "Clause 8",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Claims must be received within 30 calendar days after month end.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 519,
+      "end": 583
+     },
+     {
+      "label": "Clause 9",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service credits apply to affected monthly fees on a future invoice.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 584,
+      "end": 651
+     }
+    ],
+    "invoice": {
+     "id": "NW-2026-02",
+     "issued_at": "2026-03-01T09:00:00+00:00",
+     "service_start": "2026-02-01T00:00:00+00:00",
+     "service_end": "2026-03-01T00:00:00+00:00"
+    },
+    "evidence": [
+     {
+      "label": "Monthly coverage",
+      "ref": "northwind-monthly-coverage-2026-02",
+      "value": "Complete month, no excluded intervals."
+     },
+     {
+      "label": "Eligible downtime minutes",
+      "ref": "northwind-monthly-coverage-2026-02",
+      "value": "5"
+     }
+    ]
+   },
+   {
+    "month": "2026-03",
+    "outcome": "INSUFFICIENT_EVIDENCE",
+    "amount": null,
+    "currency": "USD",
+    "reason": "Simulated scoped, exclusion-adjusted, full-month vendor measurement is required.",
+    "trace": [
+     "Simulated scoped, exclusion-adjusted, full-month vendor measurement is required."
+    ],
+    "calculation": [],
+    "inputs": {},
+    "citations": [
+     {
+      "label": "Clause 1",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service Level Agreement",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 0,
+      "end": 23
+     },
+     {
+      "label": "Clause 2",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Vendor: Northwind Cloud",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 24,
+      "end": 47
+     },
+     {
+      "label": "Clause 3",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Agreement: NW-2026-001",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 48,
+      "end": 70
+     },
+     {
+      "label": "Clause 4",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Effective: 2026-01-01 through 2026-12-31",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 71,
+      "end": 111
+     },
+     {
+      "label": "Clause 5",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Availability is measured over each UTC calendar month.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 112,
+      "end": 166
+     },
+     {
+      "label": "Clause 6",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 167,
+      "end": 352
+     },
+     {
+      "label": "Clause 7",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 353,
+      "end": 518
+     },
+     {
+      "label": "Clause 8",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Claims must be received within 30 calendar days after month end.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 519,
+      "end": 583
+     },
+     {
+      "label": "Clause 9",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service credits apply to affected monthly fees on a future invoice.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 584,
+      "end": 651
+     }
+    ],
+    "invoice": {
+     "id": "NW-2026-03",
+     "issued_at": "2026-03-01T00:00:00+00:00",
+     "service_start": "2026-03-01T00:00:00+00:00",
+     "service_end": "2026-04-01T00:00:00+00:00"
+    },
+    "evidence": [
+     {
+      "label": "Monthly coverage",
+      "ref": "northwind-monthly-coverage-2026-03",
+      "value": "Service month has begun; complete March coverage is unavailable and no downtime total is asserted."
+     },
+     {
+      "label": "Eligible downtime minutes",
+      "ref": "northwind-monthly-coverage-2026-03",
+      "value": null
+     }
+    ]
+   }
+  ],
+  "price_finding": {
+   "id": "pricing-2eb6896584f68dba4a95ee01090fea5d0418a8c99b1ffa837a9984e3d979b9a4",
+   "state": "PREPAYMENT_REVIEW",
+   "amount": "1000.00",
+   "currency": "USD",
+   "reason": "Synthetic invoice only; no live Ramp bill bound.; [urn:northwind:NW-2026-001:amendment-2026-03.txt #1 Execution and effect; 2 Governing fee and ceiling] Line cloud-hosting-monthly: performance [2026-03-01T00:00:00+00:00, 2026-04-01T00:00:00+00:00); effective version amendment-v2, signed 2026-02-20T15:00:00+00:00, effective 2026-03-01T00:00:00+00:00, supersedes order-v1; invoice date does not choose rate.; Line cloud-hosting-monthly: fixed calendar-month advance fee, provisional as of 2026-03-01T12:00:00+00:00; no usage or future telemetry inferred.; Line cloud-hosting-monthly: allocation subscription-ledger-2026-03; complete quantity 1 service-month; graduated tiers reset for this complete performance slice; thresholds upper-inclusive.; Line cloud-hosting-monthly: tier (0.00, unbounded] 1.00 × 11000.00 USD = 11000.0000 USD.; Line cloud-hosting-monthly: billed net 12000.00 - expected 11000.00 = 1000.00 USD (OVERCHARGE); line HALF_UP to cents; tax 0.00 separately excluded and not adjudicated.; Provisional overcharge 1000.00 USD; undercharge 0.00 USD; no automatic netting. Payment status remains pending; prevented, claimed, awarded and recovered amounts are 0.00.",
+   "invoice_id": "NW-2026-03",
+   "citations": [
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:1",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "Northwind Cloud — Order Form NW-2026-001",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "830b1d0363a9825364f41823abbdc66cc2e9210052c9f53bffea9afe3592e748",
+     "start": 0,
+     "end": 40
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:2",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "1. Parties and term. Provider: Northwind Cloud. Customer: Harborline Analytics. Account: harborline-001. The term covers complete UTC service months from January 1 through December 31, 2026.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "2e628f0b450b0f49514f6c0fb2bc6dc1893fe68eaa11367088c68e8e239c4a52",
+     "start": 41,
+     "end": 231
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:3",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "2. Covered subscription. Cloud Hosting on the Business plan is one complete service-month unit. The governing service fee is USD 12,000.00 per complete UTC service month; the maximum payable covered service fee is also USD 12,000.00. There are no usage overage charges or partial-month allocations in this order.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "047584ae18b634621e72ffb2edbf726e42306be68f48c903697c63a4941a3d9b",
+     "start": 232,
+     "end": 544
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:4",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "3. Eligible fees. The SLA credit base is the governing covered monthly service fee after any amendment effective for that service month. An overbilled invoice does not increase that base. Taxes, Premium Support and One-time Setup charges are separate and excluded from the SLA credit base and covered-service price discrepancy.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "b746423eba5e59c20d62d4c7b19597dd5a967a4f03f2f7b8f3b5b13887ef51ea",
+     "start": 545,
+     "end": 872
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:5",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "4. Service measurement. Availability uses every elapsed minute in the complete UTC month. Only recorded service unavailability counts as eligible downtime; no maintenance or other exclusions apply under this order. A complete monthly coverage report is required; absent coverage means eligibility is unknown.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "ade6497dc46265a1d6b36772e3bf3b6dd3e207ba3ef3e76ff4ee26d0853c547a",
+     "start": 873,
+     "end": 1181
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:6",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "5. SLA and filing. The attached Service Level Agreement defines completed shortfall increments and final-cent rounding. Claims must be received during the 30 full calendar days following the final day of the service month, inclusive through the last instant of day 30. A draft timestamp is not a filing receipt.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "3b219536283c97a9302c53b644facfaf7d48030bab250f67443dd0e8b8f6cbc7",
+     "start": 1182,
+     "end": 1493
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:7",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "6. Governing date. The fee is chosen by the service period, not the invoice issue date. An unsplit line crossing an amendment-effective boundary requires complete allocation before pricing.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "bbaa6047457aaf4250f6892795c29ac5746ac20b8123d9ca59e53fa0b7a5d31f",
+     "start": 1494,
+     "end": 1683
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:8",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "7. Signature record. The scenario signature date is December 15, 2025 at 15:00 UTC. The accompanying local signature specimen binds these bytes and the typed pricing input; it is not an external certificate or evidence of real-party execution.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "7681551075370ce16624faeecb4a452084427dd6839a85f8175117007efacff8",
+     "start": 1684,
+     "end": 1927
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:9",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "8. Rate schedule. The complete fixed monthly schedule in order-monthly-rate.txt forms part of this order, including its explicit billing timing.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "56ddc6bfca6a3b2190c8e58df39cd5a32dff9e38f7addb3fc79a4a4bb572d155",
+     "start": 1928,
+     "end": 2072
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:1",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "Northwind Cloud — Amendment 1 to NW-2026-001",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "04dbdea8066ebfe3148278300e8a10a19f0207d131d186c0965f57c6da6f6026",
+     "start": 0,
+     "end": 44
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:2",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "1. Execution and effect. The scenario signatories execute this amendment on February 20, 2026 at 15:00 UTC. It becomes effective for service beginning March 1, 2026 at 00:00 UTC and supersedes the order form monthly service-fee provision from that instant.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "81fe56dfa01d095abb7c6cd2da263e6e621995cf4cf2119e2f8ae0bfc43946b8",
+     "start": 45,
+     "end": 301
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:3",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "2. Governing fee and ceiling. For Cloud Hosting on the Business plan, the governing service fee becomes USD 11,000.00 per complete UTC service month. The maximum payable covered service fee is also USD 11,000.00. This replaces both the USD 12,000.00 monthly fee and its USD 12,000.00 ceiling for March and later service months; it does not replace the fee for February service invoiced on March 1.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "8fb48882919c541ee3d5eb5e03378d8314c3fec314a0f51f9d7f7ea78fe5c51d",
+     "start": 302,
+     "end": 699
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:4",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+     "start": 700,
+     "end": 979
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:5",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "4. Signature record. The accompanying local signature specimen identifies its local issuer and actual creation time separately from the scenario execution date. It establishes no real-party execution or external certificate.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "7d2443ce6ce8c6e9ae82a2185191f9dd582a15fd6665cc17f0bbb3a5156003e3",
+     "start": 980,
+     "end": 1204
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:6",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "5. Restated rate schedule. The complete fixed monthly schedule in amendment-monthly-rate.txt forms part of this amendment and expressly restates the billing timing for its governing service months.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "d1cb5d3ae5bb175a2898a5000ea1362536082e181b37c964a78793eb43251fe1",
+     "start": 1205,
+     "end": 1402
+    }
+   ],
+   "credit_applied": "0.00",
+   "lines": [
+    {
+     "line_id": "cloud-hosting-monthly",
+     "product": "Cloud Hosting",
+     "version": "amendment-v2",
+     "billed": "12000.00",
+     "expected": "11000.00",
+     "delta": "1000.00",
+     "direction": "OVERCHARGE"
+    }
+   ]
+  },
+  "claim": {
+   "id": "inbox-northwind-2026-01",
+   "month": "2026-01",
+   "state": "DRAFTED",
+   "amount": "2400.00",
+   "filing_cutoff": "2026-03-03T00:00:00+00:00",
+   "pending_approvals": [
+    "approve-claim"
+   ],
+   "requested_artifact": null,
+   "currency": "USD",
+   "receipt_id": null,
+   "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+   "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+   "governing_pricing_version": "order-v1",
+   "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+  },
+  "connection": {
+   "destination": "Local ledger",
+   "status": "CONNECTED",
+   "receipt_status": "NOT_POSTED"
+  },
+  "ledger": {
+   "destination": "Local ledger",
+   "estimated": "2400.00",
+   "claimed": "0.00",
+   "awarded": "0.00",
+   "posted": "0.00",
+   "applied": "0.00",
+   "currency": "USD",
+   "record_ids": {
+    "award": null,
+    "credit": null,
+    "application": null
+   },
+   "unapplied_credit": "0.00",
+   "bill": {
+    "id": null,
+    "original_amount": null,
+    "outstanding_amount": null
+   }
+  },
+  "audit": [
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Opened an assisted local claim intake.",
+    "ref": ""
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Received authenticated invoice record.",
+    "ref": "northwind-invoice-2026-01"
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Received authenticated status record.",
+    "ref": "northwind-status-2026-01"
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Received authenticated impact record.",
+    "ref": "northwind-impact-2026-01"
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Received authenticated coverage record.",
+    "ref": "northwind-monthly-coverage-2026-01"
+   }
+  ],
+  "onboarding": {
+   "vendor": "CalyxQuay",
+   "state": "ACTIVE",
+   "version": "dd4acae0d2c17b93f2eee899b60cd72a75bd08dde02761eca3f49c4823bba305",
+   "reviewer": {
+    "name": "Dana Reyes",
+    "role": "Contract reviewer",
+    "authority_kind": "SCRIPTED_REVIEWER",
+    "principal": "scripted-test-reviewer"
+   },
+   "history": [
+    {
+     "at": "2026-11-09T19:31:22.001463+00:00",
+     "event": "Imported public document and separate tenant overlay",
+     "ref": "1",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.001484+00:00",
+     "event": "Validated source coverage, typed thresholds and governing dates",
+     "ref": "2",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.001492+00:00",
+     "event": "Shadow only; waiting for independent reviewer cases",
+     "ref": "3",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.012331+00:00",
+     "event": "Named pre-pricing source and literal evidence binding review",
+     "ref": "4",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.042107+00:00",
+     "event": "Executed reviewer-authored scenarios in shadow",
+     "ref": "5",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.052994+00:00",
+     "event": "Accept source interpretation for this review",
+     "ref": "6",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.072459+00:00",
+     "event": "Approve reviewed tests",
+     "ref": "7",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.083807+00:00",
+     "event": "Activate for local evaluation",
+     "ref": "8",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.094792+00:00",
+     "event": "Roll back activation",
+     "ref": "9",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.108177+00:00",
+     "event": "Begin fresh review",
+     "ref": "10",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.134057+00:00",
+     "event": "Executed reviewer-authored scenarios in shadow",
+     "ref": "11",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.148002+00:00",
+     "event": "Accept source interpretation for this review",
+     "ref": "12",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.162254+00:00",
+     "event": "Approve reviewed tests",
+     "ref": "13",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.172543+00:00",
+     "event": "Activate for local evaluation",
+     "ref": "14",
+     "actor": "scripted-test-reviewer"
+    }
+   ],
+   "actions": []
+  },
+  "next_actions": [
+   {
+    "id": "action-fb65a6b13ec2082c258fa6e30ce158a153c9c1601e6cef5b5430f90769159bea",
+    "label": "Approve January claim",
+    "group": "claim"
+   }
+  ],
+  "finance": {
+   "attention": [
+    {
+     "kind": "CLAIM_DEADLINE",
+     "title": "File the January 2026 claim before the deadline",
+     "detail": "Claims must be received before 2026-03-03T00:00:00+00:00; 1 day 12 hours remain on the workspace clock.",
+     "owner": "reviewer",
+     "section": "finance-recovery",
+     "refs": [
+      "inbox-northwind-2026-01"
+     ]
+    },
+    {
+     "kind": "REVIEW_REQUIRED",
+     "title": "Approve the claim packet before it is filed",
+     "detail": "The claim is at stage DRAFTED; a signed-in reviewer must approve before anything is sent.",
+     "owner": "reviewer",
+     "section": "finance-recovery",
+     "refs": [
+      "inbox-northwind-2026-01"
+     ]
+    },
+    {
+     "kind": "REVIEW_REQUIRED",
+     "title": "Review invoice NW-2026-03 before payment",
+     "detail": "line cloud-hosting-monthly billed $12,000.00 against $11,000.00 under amendment-v2. The $1,000.00 difference is an open finding, not an awarded credit.",
+     "owner": "reviewer",
+     "section": "finance-price",
+     "refs": [
+      "NW-2026-03"
+     ]
+    },
+    {
+     "kind": "MISSING_USAGE",
+     "title": "Complete March 2026 usage evidence",
+     "detail": "Eligible downtime minutes not provided by northwind-monthly-coverage-2026-03. This month is not ineligible; its credit is undetermined until the evidence is complete.",
+     "owner": "evidence",
+     "section": "finance-months",
+     "refs": [
+      "northwind-monthly-coverage-2026-03"
+     ]
+    },
+    {
+     "kind": "NEXT_STEP",
+     "title": "Next step: Approve January claim",
+     "detail": "Run it from the recovery panel. It records one exact step; repeating it does not repeat the effect.",
+     "owner": "reviewer",
+     "section": "finance-recovery",
+     "refs": [
+      "inbox-northwind-2026-01"
+     ]
+    }
+   ],
+   "stages": [
+    {
+     "stage": "estimated",
+     "label": "Estimated",
+     "amount": "2400.00",
+     "status": "recorded"
+    },
+    {
+     "stage": "claimed",
+     "label": "Claimed",
+     "amount": "0.00",
+     "status": "not yet"
+    },
+    {
+     "stage": "awarded",
+     "label": "Awarded",
+     "amount": "0.00",
+     "status": "not yet"
+    },
+    {
+     "stage": "posted",
+     "label": "Posted to Local ledger",
+     "amount": "0.00",
+     "status": "not yet"
+    },
+    {
+     "stage": "applied",
+     "label": "Applied to bill",
+     "amount": "0.00",
+     "status": "not yet"
+    }
+   ],
+   "bill": {
+    "id": null,
+    "original": null,
+    "applied": null,
+    "outstanding": null,
+    "application_ref": null
+   },
+   "ramp": {
+    "destination": "Local ledger",
+    "linked_record": null,
+    "note": "No Ramp bill is linked to this agreement. Credits in this workspace are recorded in Local ledger."
+   },
+   "sections": {
+    "agreement": "finance-agreement",
+    "recovery": "finance-recovery",
+    "months": "finance-months",
+    "price": "finance-price",
+    "bill": "finance-bill",
+    "coverage": "finance-coverage",
+    "ramp": "finance-ramp"
+   }
+  }
+ },
+ "final": {
+  "workspace_instance": "1a564039-d9bf-4b37-823f-e9ec3a693e59",
+  "source_package_sha256": "6859744d8052c19e09fbfa2ddef02e13c5616568db43fbae805af85f41289892",
+  "company": {
+   "name": "Harborline Analytics"
+  },
+  "vendor": "Northwind Cloud",
+  "as_of": "2026-04-01T09:00:00+00:00",
+  "contract": {
+   "title": "Northwind Cloud Service Level Agreement",
+   "version": "c5a109c1e243427121ecfa0fa49d8c58e71c35cf119e28f6ecd715b360658049",
+   "ref": "urn:northwind:NW-2026-001:sla",
+   "summary": "Service Level Agreement\nVendor: Northwind Cloud\nAgreement: NW-2026-001\nEffective: 2026-01-01 through 2026-12-31\nAvailability is measured over each UTC calendar month.\nFor Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.\nRound the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.\nClaims must be received within 30 calendar days after month end.\nService credits apply to affected monthly fees on a future invoice.",
+   "documents": [
+    {
+     "title": "Order Form NW-2026-001",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "version": "order-v1",
+     "effective_at": "2026-01-01T00:00:00+00:00",
+     "description": "2 Covered subscription; 3 Eligible fees; 6 Governing date",
+     "citations": [
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:1",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "Northwind Cloud — Order Form NW-2026-001",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "830b1d0363a9825364f41823abbdc66cc2e9210052c9f53bffea9afe3592e748",
+       "start": 0,
+       "end": 40
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:2",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "1. Parties and term. Provider: Northwind Cloud. Customer: Harborline Analytics. Account: harborline-001. The term covers complete UTC service months from January 1 through December 31, 2026.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "2e628f0b450b0f49514f6c0fb2bc6dc1893fe68eaa11367088c68e8e239c4a52",
+       "start": 41,
+       "end": 231
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:3",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "2. Covered subscription. Cloud Hosting on the Business plan is one complete service-month unit. The governing service fee is USD 12,000.00 per complete UTC service month; the maximum payable covered service fee is also USD 12,000.00. There are no usage overage charges or partial-month allocations in this order.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "047584ae18b634621e72ffb2edbf726e42306be68f48c903697c63a4941a3d9b",
+       "start": 232,
+       "end": 544
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:4",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "3. Eligible fees. The SLA credit base is the governing covered monthly service fee after any amendment effective for that service month. An overbilled invoice does not increase that base. Taxes, Premium Support and One-time Setup charges are separate and excluded from the SLA credit base and covered-service price discrepancy.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "b746423eba5e59c20d62d4c7b19597dd5a967a4f03f2f7b8f3b5b13887ef51ea",
+       "start": 545,
+       "end": 872
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:5",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "4. Service measurement. Availability uses every elapsed minute in the complete UTC month. Only recorded service unavailability counts as eligible downtime; no maintenance or other exclusions apply under this order. A complete monthly coverage report is required; absent coverage means eligibility is unknown.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "ade6497dc46265a1d6b36772e3bf3b6dd3e207ba3ef3e76ff4ee26d0853c547a",
+       "start": 873,
+       "end": 1181
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:6",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "5. SLA and filing. The attached Service Level Agreement defines completed shortfall increments and final-cent rounding. Claims must be received during the 30 full calendar days following the final day of the service month, inclusive through the last instant of day 30. A draft timestamp is not a filing receipt.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "3b219536283c97a9302c53b644facfaf7d48030bab250f67443dd0e8b8f6cbc7",
+       "start": 1182,
+       "end": 1493
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:7",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "6. Governing date. The fee is chosen by the service period, not the invoice issue date. An unsplit line crossing an amendment-effective boundary requires complete allocation before pricing.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "bbaa6047457aaf4250f6892795c29ac5746ac20b8123d9ca59e53fa0b7a5d31f",
+       "start": 1494,
+       "end": 1683
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:8",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "7. Signature record. The scenario signature date is December 15, 2025 at 15:00 UTC. The accompanying local signature specimen binds these bytes and the typed pricing input; it is not an external certificate or evidence of real-party execution.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "7681551075370ce16624faeecb4a452084427dd6839a85f8175117007efacff8",
+       "start": 1684,
+       "end": 1927
+      },
+      {
+       "label": "Order Form NW-2026-001 · order-form.txt:9",
+       "ref": "urn:northwind:NW-2026-001:order-form.txt",
+       "quote": "8. Rate schedule. The complete fixed monthly schedule in order-monthly-rate.txt forms part of this order, including its explicit billing timing.",
+       "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+       "quote_sha256": "56ddc6bfca6a3b2190c8e58df39cd5a32dff9e38f7addb3fc79a4a4bb572d155",
+       "start": 1928,
+       "end": 2072
+      }
+     ],
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7"
+    },
+    {
+     "title": "Amendment 1 to NW-2026-001",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "version": "amendment-v2",
+     "effective_at": "2026-03-01T00:00:00+00:00",
+     "description": "1 Execution and effect; 2 Governing fee and ceiling",
+     "citations": [
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:1",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "Northwind Cloud — Amendment 1 to NW-2026-001",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "04dbdea8066ebfe3148278300e8a10a19f0207d131d186c0965f57c6da6f6026",
+       "start": 0,
+       "end": 44
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:2",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "1. Execution and effect. The scenario signatories execute this amendment on February 20, 2026 at 15:00 UTC. It becomes effective for service beginning March 1, 2026 at 00:00 UTC and supersedes the order form monthly service-fee provision from that instant.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "81fe56dfa01d095abb7c6cd2da263e6e621995cf4cf2119e2f8ae0bfc43946b8",
+       "start": 45,
+       "end": 301
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:3",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "2. Governing fee and ceiling. For Cloud Hosting on the Business plan, the governing service fee becomes USD 11,000.00 per complete UTC service month. The maximum payable covered service fee is also USD 11,000.00. This replaces both the USD 12,000.00 monthly fee and its USD 12,000.00 ceiling for March and later service months; it does not replace the fee for February service invoiced on March 1.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "8fb48882919c541ee3d5eb5e03378d8314c3fec314a0f51f9d7f7ea78fe5c51d",
+       "start": 302,
+       "end": 699
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:4",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+       "start": 700,
+       "end": 979
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:5",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "4. Signature record. The accompanying local signature specimen identifies its local issuer and actual creation time separately from the scenario execution date. It establishes no real-party execution or external certificate.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "7d2443ce6ce8c6e9ae82a2185191f9dd582a15fd6665cc17f0bbb3a5156003e3",
+       "start": 980,
+       "end": 1204
+      },
+      {
+       "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:6",
+       "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+       "quote": "5. Restated rate schedule. The complete fixed monthly schedule in amendment-monthly-rate.txt forms part of this amendment and expressly restates the billing timing for its governing service months.",
+       "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+       "quote_sha256": "d1cb5d3ae5bb175a2898a5000ea1362536082e181b37c964a78793eb43251fe1",
+       "start": 1205,
+       "end": 1402
+      }
+     ],
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6"
+    }
+   ]
+  },
+  "reviewer": {
+   "name": "Dana Reyes",
+   "role": "Contract reviewer",
+   "authority_kind": "SCRIPTED_REVIEWER",
+   "principal": "scripted-test-reviewer"
+  },
+  "months": [
+   {
+    "month": "2026-01",
+    "outcome": "ELIGIBLE",
+    "amount": "2400.00",
+    "currency": "USD",
+    "reason": "44505/44640 UTC minutes available; 2 completed shortfall increments; 20000000/1000000% credit after cap.; Affected fee 1200000 USD cents; source-clause future invoice credit only.",
+    "trace": [
+     "44505/44640 UTC minutes available; 2 completed shortfall increments; 20000000/1000000% credit after cap.",
+     "Affected fee 1200000 USD cents; source-clause future invoice credit only."
+    ],
+    "calculation": [
+     "2 completed shortfall increments; 20% credit after the contractual cap.",
+     "USD 12000.00 × 20% = USD 2400.00 after final-cent rounding."
+    ],
+    "inputs": {
+     "governing_fee": "12000.00",
+     "currency": "USD",
+     "fee_version": "588064cf1e5acf36c919b7300d9ff70eceb9361f72a56c2a5f84dfbf7280f459",
+     "eligible_downtime_minutes": "135",
+     "completed_steps": "2",
+     "credit_percent": "20",
+     "claim_cutoff": "2026-03-03T00:00:00+00:00",
+     "monitor_ref": "northwind-monthly-coverage-2026-01"
+    },
+    "citations": [
+     {
+      "label": "Clause 1",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service Level Agreement",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 0,
+      "end": 23
+     },
+     {
+      "label": "Clause 2",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Vendor: Northwind Cloud",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 24,
+      "end": 47
+     },
+     {
+      "label": "Clause 3",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Agreement: NW-2026-001",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 48,
+      "end": 70
+     },
+     {
+      "label": "Clause 4",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Effective: 2026-01-01 through 2026-12-31",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 71,
+      "end": 111
+     },
+     {
+      "label": "Clause 5",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Availability is measured over each UTC calendar month.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 112,
+      "end": 166
+     },
+     {
+      "label": "Clause 6",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 167,
+      "end": 352
+     },
+     {
+      "label": "Clause 7",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 353,
+      "end": 518
+     },
+     {
+      "label": "Clause 8",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Claims must be received within 30 calendar days after month end.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 519,
+      "end": 583
+     },
+     {
+      "label": "Clause 9",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service credits apply to affected monthly fees on a future invoice.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 584,
+      "end": 651
+     }
+    ],
+    "invoice": {
+     "id": "NW-2026-01",
+     "issued_at": "2026-02-01T09:00:00+00:00",
+     "service_start": "2026-01-01T00:00:00+00:00",
+     "service_end": "2026-02-01T00:00:00+00:00"
+    },
+    "evidence": [
+     {
+      "label": "Monthly coverage",
+      "ref": "northwind-monthly-coverage-2026-01",
+      "value": "Complete month, no excluded intervals."
+     },
+     {
+      "label": "Eligible downtime minutes",
+      "ref": "northwind-monthly-coverage-2026-01",
+      "value": "135"
+     }
+    ]
+   },
+   {
+    "month": "2026-02",
+    "outcome": "INELIGIBLE",
+    "amount": null,
+    "currency": "USD",
+    "reason": "40315/40320 UTC minutes available; 0 completed shortfall increments; 0/1000000% credit after cap.",
+    "trace": [
+     "40315/40320 UTC minutes available; 0 completed shortfall increments; 0/1000000% credit after cap."
+    ],
+    "calculation": [
+     "0 completed shortfall increments; 0% credit after the contractual cap."
+    ],
+    "inputs": {
+     "governing_fee": null,
+     "currency": "USD",
+     "fee_version": "NW-2026-02:order-v1",
+     "eligible_downtime_minutes": "5",
+     "completed_steps": "0",
+     "credit_percent": "0",
+     "claim_cutoff": "2026-03-31T00:00:00+00:00",
+     "monitor_ref": "northwind-monthly-coverage-2026-02"
+    },
+    "citations": [
+     {
+      "label": "Clause 1",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service Level Agreement",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 0,
+      "end": 23
+     },
+     {
+      "label": "Clause 2",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Vendor: Northwind Cloud",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 24,
+      "end": 47
+     },
+     {
+      "label": "Clause 3",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Agreement: NW-2026-001",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 48,
+      "end": 70
+     },
+     {
+      "label": "Clause 4",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Effective: 2026-01-01 through 2026-12-31",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 71,
+      "end": 111
+     },
+     {
+      "label": "Clause 5",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Availability is measured over each UTC calendar month.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 112,
+      "end": 166
+     },
+     {
+      "label": "Clause 6",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 167,
+      "end": 352
+     },
+     {
+      "label": "Clause 7",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 353,
+      "end": 518
+     },
+     {
+      "label": "Clause 8",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Claims must be received within 30 calendar days after month end.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 519,
+      "end": 583
+     },
+     {
+      "label": "Clause 9",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service credits apply to affected monthly fees on a future invoice.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 584,
+      "end": 651
+     }
+    ],
+    "invoice": {
+     "id": "NW-2026-02",
+     "issued_at": "2026-03-01T09:00:00+00:00",
+     "service_start": "2026-02-01T00:00:00+00:00",
+     "service_end": "2026-03-01T00:00:00+00:00"
+    },
+    "evidence": [
+     {
+      "label": "Monthly coverage",
+      "ref": "northwind-monthly-coverage-2026-02",
+      "value": "Complete month, no excluded intervals."
+     },
+     {
+      "label": "Eligible downtime minutes",
+      "ref": "northwind-monthly-coverage-2026-02",
+      "value": "5"
+     }
+    ]
+   },
+   {
+    "month": "2026-03",
+    "outcome": "INSUFFICIENT_EVIDENCE",
+    "amount": null,
+    "currency": "USD",
+    "reason": "Simulated scoped, exclusion-adjusted, full-month vendor measurement is required.",
+    "trace": [
+     "Simulated scoped, exclusion-adjusted, full-month vendor measurement is required."
+    ],
+    "calculation": [],
+    "inputs": {},
+    "citations": [
+     {
+      "label": "Clause 1",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service Level Agreement",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 0,
+      "end": 23
+     },
+     {
+      "label": "Clause 2",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Vendor: Northwind Cloud",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 24,
+      "end": 47
+     },
+     {
+      "label": "Clause 3",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Agreement: NW-2026-001",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 48,
+      "end": 70
+     },
+     {
+      "label": "Clause 4",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Effective: 2026-01-01 through 2026-12-31",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 71,
+      "end": 111
+     },
+     {
+      "label": "Clause 5",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Availability is measured over each UTC calendar month.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 112,
+      "end": 166
+     },
+     {
+      "label": "Clause 6",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 167,
+      "end": 352
+     },
+     {
+      "label": "Clause 7",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Round the resulting service credit once to the nearest cent, with half cents rounded up; do not round availability or shortfall before counting completed increments.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 353,
+      "end": 518
+     },
+     {
+      "label": "Clause 8",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Claims must be received within 30 calendar days after month end.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 519,
+      "end": 583
+     },
+     {
+      "label": "Clause 9",
+      "ref": "urn:northwind:NW-2026-001:sla",
+      "quote": "Service credits apply to affected monthly fees on a future invoice.",
+      "source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+      "start": 584,
+      "end": 651
+     }
+    ],
+    "invoice": {
+     "id": "NW-2026-03",
+     "issued_at": "2026-03-01T00:00:00+00:00",
+     "service_start": "2026-03-01T00:00:00+00:00",
+     "service_end": "2026-04-01T00:00:00+00:00"
+    },
+    "evidence": [
+     {
+      "label": "Monthly coverage",
+      "ref": "northwind-monthly-coverage-2026-03",
+      "value": "Service month has begun; complete March coverage is unavailable and no downtime total is asserted."
+     },
+     {
+      "label": "Eligible downtime minutes",
+      "ref": "northwind-monthly-coverage-2026-03",
+      "value": null
+     }
+    ]
+   }
+  ],
+  "price_finding": {
+   "id": "pricing-2eb6896584f68dba4a95ee01090fea5d0418a8c99b1ffa837a9984e3d979b9a4",
+   "state": "PREPAYMENT_REVIEW",
+   "amount": "1000.00",
+   "currency": "USD",
+   "reason": "Synthetic invoice only; no live Ramp bill bound.; [urn:northwind:NW-2026-001:amendment-2026-03.txt #1 Execution and effect; 2 Governing fee and ceiling] Line cloud-hosting-monthly: performance [2026-03-01T00:00:00+00:00, 2026-04-01T00:00:00+00:00); effective version amendment-v2, signed 2026-02-20T15:00:00+00:00, effective 2026-03-01T00:00:00+00:00, supersedes order-v1; invoice date does not choose rate.; Line cloud-hosting-monthly: fixed calendar-month advance fee, provisional as of 2026-03-01T12:00:00+00:00; no usage or future telemetry inferred.; Line cloud-hosting-monthly: allocation subscription-ledger-2026-03; complete quantity 1 service-month; graduated tiers reset for this complete performance slice; thresholds upper-inclusive.; Line cloud-hosting-monthly: tier (0.00, unbounded] 1.00 × 11000.00 USD = 11000.0000 USD.; Line cloud-hosting-monthly: billed net 12000.00 - expected 11000.00 = 1000.00 USD (OVERCHARGE); line HALF_UP to cents; tax 0.00 separately excluded and not adjudicated.; Provisional overcharge 1000.00 USD; undercharge 0.00 USD; no automatic netting. Payment status remains pending; prevented, claimed, awarded and recovered amounts are 0.00.",
+   "invoice_id": "NW-2026-03",
+   "citations": [
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:1",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "Northwind Cloud — Order Form NW-2026-001",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "830b1d0363a9825364f41823abbdc66cc2e9210052c9f53bffea9afe3592e748",
+     "start": 0,
+     "end": 40
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:2",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "1. Parties and term. Provider: Northwind Cloud. Customer: Harborline Analytics. Account: harborline-001. The term covers complete UTC service months from January 1 through December 31, 2026.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "2e628f0b450b0f49514f6c0fb2bc6dc1893fe68eaa11367088c68e8e239c4a52",
+     "start": 41,
+     "end": 231
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:3",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "2. Covered subscription. Cloud Hosting on the Business plan is one complete service-month unit. The governing service fee is USD 12,000.00 per complete UTC service month; the maximum payable covered service fee is also USD 12,000.00. There are no usage overage charges or partial-month allocations in this order.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "047584ae18b634621e72ffb2edbf726e42306be68f48c903697c63a4941a3d9b",
+     "start": 232,
+     "end": 544
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:4",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "3. Eligible fees. The SLA credit base is the governing covered monthly service fee after any amendment effective for that service month. An overbilled invoice does not increase that base. Taxes, Premium Support and One-time Setup charges are separate and excluded from the SLA credit base and covered-service price discrepancy.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "b746423eba5e59c20d62d4c7b19597dd5a967a4f03f2f7b8f3b5b13887ef51ea",
+     "start": 545,
+     "end": 872
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:5",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "4. Service measurement. Availability uses every elapsed minute in the complete UTC month. Only recorded service unavailability counts as eligible downtime; no maintenance or other exclusions apply under this order. A complete monthly coverage report is required; absent coverage means eligibility is unknown.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "ade6497dc46265a1d6b36772e3bf3b6dd3e207ba3ef3e76ff4ee26d0853c547a",
+     "start": 873,
+     "end": 1181
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:6",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "5. SLA and filing. The attached Service Level Agreement defines completed shortfall increments and final-cent rounding. Claims must be received during the 30 full calendar days following the final day of the service month, inclusive through the last instant of day 30. A draft timestamp is not a filing receipt.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "3b219536283c97a9302c53b644facfaf7d48030bab250f67443dd0e8b8f6cbc7",
+     "start": 1182,
+     "end": 1493
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:7",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "6. Governing date. The fee is chosen by the service period, not the invoice issue date. An unsplit line crossing an amendment-effective boundary requires complete allocation before pricing.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "bbaa6047457aaf4250f6892795c29ac5746ac20b8123d9ca59e53fa0b7a5d31f",
+     "start": 1494,
+     "end": 1683
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:8",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "7. Signature record. The scenario signature date is December 15, 2025 at 15:00 UTC. The accompanying local signature specimen binds these bytes and the typed pricing input; it is not an external certificate or evidence of real-party execution.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "7681551075370ce16624faeecb4a452084427dd6839a85f8175117007efacff8",
+     "start": 1684,
+     "end": 1927
+    },
+    {
+     "label": "Order Form NW-2026-001 · order-form.txt:9",
+     "ref": "urn:northwind:NW-2026-001:order-form.txt",
+     "quote": "8. Rate schedule. The complete fixed monthly schedule in order-monthly-rate.txt forms part of this order, including its explicit billing timing.",
+     "source_sha256": "703c9cabfa25a82cb85af052df68c6960bde87ff490315721800c1c6b49b60c7",
+     "quote_sha256": "56ddc6bfca6a3b2190c8e58df39cd5a32dff9e38f7addb3fc79a4a4bb572d155",
+     "start": 1928,
+     "end": 2072
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:1",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "Northwind Cloud — Amendment 1 to NW-2026-001",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "04dbdea8066ebfe3148278300e8a10a19f0207d131d186c0965f57c6da6f6026",
+     "start": 0,
+     "end": 44
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:2",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "1. Execution and effect. The scenario signatories execute this amendment on February 20, 2026 at 15:00 UTC. It becomes effective for service beginning March 1, 2026 at 00:00 UTC and supersedes the order form monthly service-fee provision from that instant.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "81fe56dfa01d095abb7c6cd2da263e6e621995cf4cf2119e2f8ae0bfc43946b8",
+     "start": 45,
+     "end": 301
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:3",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "2. Governing fee and ceiling. For Cloud Hosting on the Business plan, the governing service fee becomes USD 11,000.00 per complete UTC service month. The maximum payable covered service fee is also USD 11,000.00. This replaces both the USD 12,000.00 monthly fee and its USD 12,000.00 ceiling for March and later service months; it does not replace the fee for February service invoiced on March 1.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "8fb48882919c541ee3d5eb5e03378d8314c3fec314a0f51f9d7f7ea78fe5c51d",
+     "start": 302,
+     "end": 699
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:4",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+     "start": 700,
+     "end": 979
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:5",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "4. Signature record. The accompanying local signature specimen identifies its local issuer and actual creation time separately from the scenario execution date. It establishes no real-party execution or external certificate.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "7d2443ce6ce8c6e9ae82a2185191f9dd582a15fd6665cc17f0bbb3a5156003e3",
+     "start": 980,
+     "end": 1204
+    },
+    {
+     "label": "Amendment 1 to NW-2026-001 · amendment-2026-03.txt:6",
+     "ref": "urn:northwind:NW-2026-001:amendment-2026-03.txt",
+     "quote": "5. Restated rate schedule. The complete fixed monthly schedule in amendment-monthly-rate.txt forms part of this amendment and expressly restates the billing timing for its governing service months.",
+     "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+     "quote_sha256": "d1cb5d3ae5bb175a2898a5000ea1362536082e181b37c964a78793eb43251fe1",
+     "start": 1205,
+     "end": 1402
+    }
+   ],
+   "credit_applied": "0.00",
+   "lines": [
+    {
+     "line_id": "cloud-hosting-monthly",
+     "product": "Cloud Hosting",
+     "version": "amendment-v2",
+     "billed": "12000.00",
+     "expected": "11000.00",
+     "delta": "1000.00",
+     "direction": "OVERCHARGE"
+    }
+   ]
+  },
+  "claim": {
+   "id": "inbox-northwind-2026-01",
+   "month": "2026-01",
+   "state": "AWARDED",
+   "amount": "2400.00",
+   "filing_cutoff": "2026-03-03T00:00:00+00:00",
+   "pending_approvals": [],
+   "requested_artifact": {
+    "type": "resource_log",
+    "ref": "NW-JAN-LOG-001"
+   },
+   "currency": "USD",
+   "receipt_id": "LOCAL-32ab4d733f8409a3e0f560f0",
+   "eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+   "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+   "governing_pricing_version": "order-v1",
+   "governing_fee_digest": "4f3e7325ed5de4b5aeeb2533858487ce114f9531880dd3c913e5214d9a6b3b63"
+  },
+  "connection": {
+   "destination": "Local ledger",
+   "status": "CONNECTED",
+   "receipt_status": "VERIFIED_LOCAL_READBACK"
+  },
+  "ledger": {
+   "destination": "Local ledger",
+   "estimated": "2400.00",
+   "claimed": "2400.00",
+   "awarded": "2400.00",
+   "posted": "2400.00",
+   "applied": "2400.00",
+   "currency": "USD",
+   "record_ids": {
+    "award": "inbox-award:e1bf6bf5098a1aa966905aa0837c14825b46b2c0076ab9914033241832b3e50c",
+    "credit": "local-ledger:01864b57-042f-55a5-bad2-11a30faf2d0c",
+    "application": "local-ledger:3a7c99f8-0954-505d-9090-0d8a3285c5bc"
+   },
+   "unapplied_credit": "0.00",
+   "bill": {
+    "id": "NW-2026-04",
+    "original_amount": "11000.00",
+    "outstanding_amount": "8600.00",
+    "issued_at": "2026-04-01T00:00:00+00:00",
+    "service_start": "2026-04-01T00:00:00+00:00",
+    "service_end": "2026-05-01T00:00:00+00:00",
+    "known_at": "2026-04-01T09:00:00Z",
+    "source_sha256": "ba3a23e99bb642a94c206460071804678c771f46eb0a06ba55b76d7e14c6a9e2",
+    "governing_pricing_version": "amendment-v2",
+    "award_eligibility_version": "5efb2e2462008fdb7d58a3c39e487150043632b9908767f854a91de3c41f2d67",
+    "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+    "source_ref": "local-invoice:e2d367651b55e53cb8b7fc2a454636a6382f2cd3009e37edd739b1128a8eb07a",
+    "unchanged_sla": {
+     "citation": {
+      "end": 979,
+      "id": "amendment-2026-03.txt:4",
+      "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+      "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+      "source_file": "amendment-2026-03.txt",
+      "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+      "start": 700
+     },
+     "citation_id": "amendment-2026-03.txt:4",
+     "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5"
+    }
+   }
+  },
+  "audit": [
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Opened an assisted local claim intake.",
+    "ref": ""
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Received authenticated invoice record.",
+    "ref": "northwind-invoice-2026-01"
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Received authenticated status record.",
+    "ref": "northwind-status-2026-01"
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Received authenticated impact record.",
+    "ref": "northwind-impact-2026-01"
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Received authenticated coverage record.",
+    "ref": "northwind-monthly-coverage-2026-01"
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Approved exact local packet.",
+    "ref": "0118cde456c6e7b23fef0b65244e141d41fa60436d04d8335d4fdb858bbf8455"
+   },
+   {
+    "at": "2026-03-01T12:00:00+00:00",
+    "event": "Filed approved packet in the isolated local outbox.",
+    "ref": ""
+   },
+   {
+    "at": "2026-03-01T12:10:00+00:00",
+    "event": "Received authenticated message record.",
+    "ref": "northwind-denial-jan"
+   },
+   {
+    "at": "2026-03-01T12:10:00+00:00",
+    "event": "Evaluated vendor correspondence: NEEDS_EVIDENCE.",
+    "ref": ""
+   },
+   {
+    "at": "2026-03-02T09:00:00+00:00",
+    "event": "Received authenticated artifact record.",
+    "ref": "northwind-jan-resource-log"
+   },
+   {
+    "at": "2026-03-02T09:05:00+00:00",
+    "event": "Received authenticated status_verification record.",
+    "ref": "northwind-jan-status-verification"
+   },
+   {
+    "at": "2026-03-02T09:05:00+00:00",
+    "event": "A newly acquired artifact matches the requested proof and independent verification.",
+    "ref": ""
+   },
+   {
+    "at": "2026-03-02T09:05:00+00:00",
+    "event": "Approved exact local packet.",
+    "ref": "32ab4d733f8409a3e0f560f0c9809ef37a3e18f4fdfdfa4b4e45300ffa675565"
+   },
+   {
+    "at": "2026-03-02T12:10:00+00:00",
+    "event": "Filed approved packet in the isolated local outbox.",
+    "ref": ""
+   },
+   {
+    "at": "2026-03-02T13:00:00+00:00",
+    "event": "Received authenticated message record.",
+    "ref": "NW-CM-2026-01"
+   },
+   {
+    "at": "2026-03-02T13:00:00+00:00",
+    "event": "Evaluated vendor correspondence: AWARDED.",
+    "ref": ""
+   }
+  ],
+  "onboarding": {
+   "vendor": "CalyxQuay",
+   "state": "ACTIVE",
+   "version": "dd4acae0d2c17b93f2eee899b60cd72a75bd08dde02761eca3f49c4823bba305",
+   "reviewer": {
+    "name": "Dana Reyes",
+    "role": "Contract reviewer",
+    "authority_kind": "SCRIPTED_REVIEWER",
+    "principal": "scripted-test-reviewer"
+   },
+   "history": [
+    {
+     "at": "2026-11-09T19:31:22.001463+00:00",
+     "event": "Imported public document and separate tenant overlay",
+     "ref": "1",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.001484+00:00",
+     "event": "Validated source coverage, typed thresholds and governing dates",
+     "ref": "2",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.001492+00:00",
+     "event": "Shadow only; waiting for independent reviewer cases",
+     "ref": "3",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.012331+00:00",
+     "event": "Named pre-pricing source and literal evidence binding review",
+     "ref": "4",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.042107+00:00",
+     "event": "Executed reviewer-authored scenarios in shadow",
+     "ref": "5",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.052994+00:00",
+     "event": "Accept source interpretation for this review",
+     "ref": "6",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.072459+00:00",
+     "event": "Approve reviewed tests",
+     "ref": "7",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.083807+00:00",
+     "event": "Activate for local evaluation",
+     "ref": "8",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.094792+00:00",
+     "event": "Roll back activation",
+     "ref": "9",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.108177+00:00",
+     "event": "Begin fresh review",
+     "ref": "10",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.134057+00:00",
+     "event": "Executed reviewer-authored scenarios in shadow",
+     "ref": "11",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.148002+00:00",
+     "event": "Accept source interpretation for this review",
+     "ref": "12",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.162254+00:00",
+     "event": "Approve reviewed tests",
+     "ref": "13",
+     "actor": "scripted-test-reviewer"
+    },
+    {
+     "at": "2026-11-09T19:31:22.172543+00:00",
+     "event": "Activate for local evaluation",
+     "ref": "14",
+     "actor": "scripted-test-reviewer"
+    }
+   ],
+   "actions": []
+  },
+  "next_actions": [],
+  "finance": {
+   "attention": [
+    {
+     "kind": "REVIEW_REQUIRED",
+     "title": "Review invoice NW-2026-03 before payment",
+     "detail": "line cloud-hosting-monthly billed $12,000.00 against $11,000.00 under amendment-v2. The $1,000.00 difference is an open finding, not an awarded credit.",
+     "owner": "reviewer",
+     "section": "finance-price",
+     "refs": [
+      "NW-2026-03"
+     ]
+    },
+    {
+     "kind": "MISSING_USAGE",
+     "title": "Complete March 2026 usage evidence",
+     "detail": "Eligible downtime minutes not provided by northwind-monthly-coverage-2026-03. This month is not ineligible; its credit is undetermined until the evidence is complete.",
+     "owner": "evidence",
+     "section": "finance-months",
+     "refs": [
+      "northwind-monthly-coverage-2026-03"
+     ]
+    }
+   ],
+   "stages": [
+    {
+     "stage": "estimated",
+     "label": "Estimated",
+     "amount": "2400.00",
+     "status": "recorded"
+    },
+    {
+     "stage": "claimed",
+     "label": "Claimed",
+     "amount": "2400.00",
+     "status": "recorded"
+    },
+    {
+     "stage": "awarded",
+     "label": "Awarded",
+     "amount": "2400.00",
+     "status": "recorded"
+    },
+    {
+     "stage": "posted",
+     "label": "Posted to Local ledger",
+     "amount": "2400.00",
+     "status": "recorded"
+    },
+    {
+     "stage": "applied",
+     "label": "Applied to bill",
+     "amount": "2400.00",
+     "status": "recorded"
+    }
+   ],
+   "bill": {
+    "id": "NW-2026-04",
+    "original": "11000.00",
+    "applied": "2400.00",
+    "outstanding": "8600.00",
+    "application_ref": "local-ledger:3a7c99f8-0954-505d-9090-0d8a3285c5bc"
+   },
+   "ramp": {
+    "destination": "Local ledger",
+    "linked_record": null,
+    "note": "No Ramp bill is linked to this agreement. Credits in this workspace are recorded in Local ledger."
+   },
+   "sections": {
+    "agreement": "finance-agreement",
+    "recovery": "finance-recovery",
+    "months": "finance-months",
+    "price": "finance-price",
+    "bill": "finance-bill",
+    "coverage": "finance-coverage",
+    "ramp": "finance-ramp"
+   }
+  }
+ },
+ "finished_at": "2026-11-09T19:31:34.345587+00:00",
+ "available_actions_remaining": 0,
+ "build": {
+  "commit": "a6e593186a555aa8292110e1102039ba4d72d08c (frozen detached checkout presentation-a6e5931)",
+  "adapters_after_fresh_setup": {
+   "northwind-cloud": "ACTIVE r6 scripted-test-reviewer",
+   "calyxquay (workspace's own scripted copy)": "ACTIVE r14 scripted-test-reviewer"
+  },
+  "opening_attention": [
+   "File the January 2026 claim before the deadline",
+   "Approve the claim packet before it is filed",
+   "Review invoice NW-2026-03 before payment",
+   "Complete March 2026 usage evidence",
+   "Next step: Approve January claim"
+  ]
+ },
+ "note": "Throwaway workspace on 127.0.0.1:8786 served from the frozen presentation checkout; deleted after this run. The presentation workspace on 8776 (northwind-presentation-a6e5931) was not used and stays unfiled. 8777 untouched."
+}

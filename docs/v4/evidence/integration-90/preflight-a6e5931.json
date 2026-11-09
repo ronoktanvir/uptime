@@ -1,0 +1,66 @@
+{
+ "checked_at": "2026-11-09T19:32:32.305353+00:00",
+ "findings": [],
+ "free_bytes": {
+  "/Users/ronoktanvir/.local/share/uptime-engineering/runtime/northwind-presentation-a6e5931": 7157374976,
+  "/Users/ronoktanvir/.local/share/uptime-engineering/runtime/ronok-review-87": 7157374976
+ },
+ "ports": {
+  "8776": {
+   "addresses": [
+    "127.0.0.1"
+   ],
+   "listening": true
+  },
+  "8777": {
+   "addresses": [
+    "127.0.0.1"
+   ],
+   "listening": true
+  },
+  "8780": {
+   "addresses": [
+    "127.0.0.1"
+   ],
+   "listening": true
+  }
+ },
+ "provider_requests": 0,
+ "python": "3.13.12",
+ "ramp_environment": {
+  "RAMP_BASE_URL": null,
+  "RAMP_ENV": null
+ },
+ "schema": "uptime-operations-preflight/1",
+ "status": "READY",
+ "uv": true,
+ "workspaces": [
+  {
+   "attention": [],
+   "binding": {
+    "mode": "replay",
+    "rehearsal": true,
+    "tenant": "bears"
+   },
+   "path": "/Users/ronoktanvir/.local/share/uptime-engineering/runtime/northwind-presentation-a6e5931/workspace.db",
+   "status": "OK"
+  },
+  {
+   "attention": [],
+   "binding": {
+    "mode": "replay",
+    "rehearsal": false,
+    "tenant": "bears"
+   },
+   "path": "/Users/ronoktanvir/.local/share/uptime-engineering/runtime/ronok-review-87/workspace.db",
+   "status": "OK"
+  }
+ ],
+ "writes": 0,
+ "context": {
+  "run_from": "frozen checkout presentation-a6e5931 (a6e5931)",
+  "command": "uv run --locked python scripts/operations_preflight.py --workspace <northwind-presentation-a6e5931>/workspace.db --workspace <ronok-review-87>/workspace.db --port 8776 --port 8777 --port 8780",
+  "backup_dir": "not given: no workspace backup folder exists on this Mac",
+  "review_directory_listing": "unchanged before and after (no -wal/-shm sidecars created)"
+ }
+}

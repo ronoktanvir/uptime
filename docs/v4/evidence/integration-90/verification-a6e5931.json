@@ -1,0 +1,64 @@
+{
+ "schema": "uptime-integration-verification/1",
+ "branch": "work/integration-90",
+ "tested_commit": "a6e593186a555aa8292110e1102039ba4d72d08c",
+ "fresh_clone": true,
+ "clone_status_lines": 0,
+ "started_at": "2026-11-09T19:23:38Z",
+ "ended_at": "2026-11-09T19:30:17Z",
+ "commands": {
+  "uv_sync": "uv sync --locked",
+  "pytest": "uv run --locked pytest -p no:cacheprovider -o tmp_path_retention_policy=failed --basetemp=<scratch>/bt",
+  "node": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+  "progress_graph": "node scripts/test_progress_graph.cjs",
+  "rehearse": "uv run --locked python scripts/rehearse.py",
+  "check_repo": "uv run --locked python scripts/check_repo.py",
+  "render_check": "uv run --locked python scripts/render_requirements.py --check"
+ },
+ "steps": {
+  "uv_sync": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "pytest": {
+   "exit": 0,
+   "seconds": 372
+  },
+  "node": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "progress_graph": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "rehearse": {
+   "exit": 0,
+   "seconds": 2
+  },
+  "check_repo": {
+   "exit": 0,
+   "seconds": 25
+  },
+  "render_check": {
+   "exit": 0,
+   "seconds": 0
+  }
+ },
+ "pytest_result": "================= 4684 passed, 1 warning in 370.51s (0:06:10) ==================",
+ "node_counts": {
+  "tests": 104,
+  "pass": 104,
+  "fail": 0
+ },
+ "progress_graph": "Progress graph: dependency ordering, invalid graphs, and link safety passed.",
+ "check_repo": "Secret check passed for 2847 versioned text objects.",
+ "limits": "Regression coverage only. No Ramp, model, vendor or human action occurred. Not recovery, release or generalization evidence.",
+ "round": "8 (main promotion check)",
+ "covers": [
+  "everything in round 7 (54e0033)",
+  "round-7 receipt and deliverable dates (docs only, a6e5931)"
+ ],
+ "purpose": "Required fresh-clone suite before fast-forwarding main; Ronok asked to merge everything into main (overview session, 2026-11-09 11:2x PST).",
+ "after": "origin/main fast-forwarded 03b372e..a8c4c22 (no force) after this run passed; a6e5931..a8c4c22 is AGENTS.md (D14) and docs only."
+}

@@ -1,0 +1,63 @@
+{
+ "schema": "uptime-integration-verification/1",
+ "branch": "main (fast-forwarded from 03b372e; identical to work/integration-90 at a8c4c22)",
+ "tested_commit": "a8c4c2275fb541133623dfd51c5c47459a3f05c7",
+ "fresh_clone": true,
+ "clone_status_lines": 0,
+ "started_at": "2026-11-09T19:30:39Z",
+ "ended_at": "2026-11-09T19:37:29Z",
+ "commands": {
+  "uv_sync": "uv sync --locked",
+  "pytest": "uv run --locked pytest -p no:cacheprovider -o tmp_path_retention_policy=failed --basetemp=<scratch>/bt",
+  "node": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+  "progress_graph": "node scripts/test_progress_graph.cjs",
+  "rehearse": "uv run --locked python scripts/rehearse.py",
+  "check_repo": "uv run --locked python scripts/check_repo.py",
+  "render_check": "uv run --locked python scripts/render_requirements.py --check"
+ },
+ "steps": {
+  "uv_sync": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "pytest": {
+   "exit": 0,
+   "seconds": 382
+  },
+  "node": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "progress_graph": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "rehearse": {
+   "exit": 0,
+   "seconds": 2
+  },
+  "check_repo": {
+   "exit": 0,
+   "seconds": 26
+  },
+  "render_check": {
+   "exit": 0,
+   "seconds": 0
+  }
+ },
+ "pytest_result": "================= 4684 passed, 1 warning in 380.38s (0:06:20) ==================",
+ "node_counts": {
+  "tests": 104,
+  "pass": 104,
+  "fail": 0
+ },
+ "progress_graph": "Progress graph: dependency ordering, invalid graphs, and link safety passed.",
+ "check_repo": "Secret check passed for 2868 versioned text objects.",
+ "limits": "Regression coverage only. No Ramp, model, vendor or human action occurred. Not recovery, release or generalization evidence.",
+ "round": "8 post-merge (main)",
+ "covers": [
+  "everything in round 8 (a6e5931)",
+  "D14 AGENTS.md wording 20ae6e0 and its status docs a8c4c22 (docs only)"
+ ],
+ "purpose": "Required post-merge suite after origin/main was fast-forwarded 03b372e..a8c4c22 at Ronok's request to merge everything into main."
+}

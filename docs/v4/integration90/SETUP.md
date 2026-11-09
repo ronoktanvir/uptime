@@ -1,6 +1,6 @@
 # Reproduce Uptime from a fresh checkout
 
-Verified on November 9, 2026: every integration round cloned `work/integration-90` into an empty directory and ran exactly the commands under "Build and verify". The latest code round, 7 (`54e0033`), gave 4,684 passed with 1 warning, and 104 JavaScript checks; the other checks passed. Receipts: `docs/v4/evidence/integration-90/verification-<commit>.json`, with the full pytest logs beside them. The local clones came from the same pushed commits as GitHub.
+Verified on November 9, 2026: every integration round cloned the branch into an empty directory and ran exactly the commands under "Build and verify". `main` was fast-forwarded to the integration head `a8c4c22`; its post-merge run gave 4,684 passed with 1 warning, and 104 JavaScript checks; the other checks passed. Receipts: `docs/v4/evidence/integration-90/verification-<commit>.json`, with the full pytest logs beside them. The local clones came from the same pushed commits as GitHub.
 
 ## Requirements
 
@@ -15,7 +15,7 @@ Verified on November 9, 2026: every integration round cloned `work/integration-9
 ```sh
 git clone https://github.com/ronoktanvir/uptime.git
 cd uptime
-git checkout work/integration-90          # or main after this branch merges
+git checkout main                         # carries the integration work since November 9
 uv sync --locked
 uv run --locked pytest -p no:cacheprovider -o tmp_path_retention_policy=failed --basetemp="$(mktemp -d)/uptime-tests"
 node --test web/*.test.cjs tests/helpers/*.test.cjs

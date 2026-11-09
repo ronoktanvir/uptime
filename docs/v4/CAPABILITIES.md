@@ -1,6 +1,6 @@
 # Capability matrix
 
-**Current as of November 9, 2026, integration round 7 (`54e0033`: 4,684 passed, 1 warning, fresh clone).** Requirement-by-requirement dispositions are in the [completion checklist](integration90/REQUIREMENTS.md).
+**Current as of November 9, 2026, `main` at `a8c4c22` (post-merge, fresh clone: 4,684 passed, 1 warning; same code as round 7).** Requirement-by-requirement dispositions are in the [completion checklist](integration90/REQUIREMENTS.md).
 
 The data origin, implementation depth and execution receipt determine each claim below. Local protocol tests exercise real code with controlled providers. A successful controlled call cannot establish permission on a live Ramp object. V3 remains preserved at `18afaa6`.
 
