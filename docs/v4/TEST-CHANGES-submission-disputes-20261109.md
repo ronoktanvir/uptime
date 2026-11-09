@@ -6,7 +6,10 @@ Started from `origin/main` at `55ea607`.
 
 None changed so far. Routine automation is a persisted workspace setting:
 - `scripts/setup_northwind.py` creates served workspaces with it **on** by default (`--step-by-step` turns it off).
-- The Python `prepare()` default is **off**, so every existing step-by-step test and probe walks the eleven operations exactly as before. That includes `tests/test_northwind_workflow.py`, `tests/test_northwind_local_ledger.py`, gent8's restart and socket probes and gent7's browser tests.
+- The Python `prepare()` default is **off**, so existing tests that build their workspace with `prepare()` walk the eleven operations exactly as before. That includes `tests/test_northwind_workflow.py` and `tests/test_northwind_local_ledger.py`.
+- **Correction (coordinator's full suite on `02d86f7`):** an earlier version of this ledger said gent8's restart and socket probes were unaffected. That was wrong. Both create their workspace through the setup command (`scripts/probe_restart_gent8.py:37,75` and `scripts/probe_socket_authority_gent8.py:37`), where automation is now on by default.
+  - The full suite failed `tests/test_release_probes_gent8.py::test_hard_kill_mid_flow_preserves_state_idempotency_and_final_ledger` with `assert (0 + 4) == 11`. The product behaved correctly: the probe's four person actions finish the flow.
+  - The coordinator asked gent8, the owner, to keep that probe on the eleven-step path with `--step-by-step` and to add a real-process kill for the automated default. I did not edit gent8's probe or test.
 - The setting joins the workspace package digest only when it is on. Existing workspaces keep their digest.
 
 ## New tests
@@ -48,3 +51,9 @@ New tests (`tests/test_workflow_coordinator_r2.py`, 17 tests now):
 First run: **1 failed, 16 passed.** My stale-binding test assumed `_approval_binding` returns a dict; it returns a fingerprint string, so the test now substitutes a different value. No application code changed for that.
 
 Focused set (same command as section 7 of the handoff): **161 passed, 1 warning**. The correct-denial node id cited for the runbook: **2 passed**. No existing test changed.
+
+## Receipt pass-through fix (coordinator review of the merged tree)
+
+`uptime/correspondence_model_jobs.py` filtered the shared job's `provider` block with its own key list (`cost_usd`, `elapsed_seconds`, …). That list did not match the shared service's `PUBLIC_RECEIPT_KEYS` (`client_reported_cost_usd`, `tool_events`, `tool_inventory`, `mcp_inventory`, `output_sha256`, `result_sha256`, plus `transport`), so the dispute view silently dropped the cost and the empty tool and MCP inventories. The block is already the shared service's bounded public subset, so it now passes through unchanged.
+
+New tests, `tests/test_correspondence_model_job_view_r2.py` (2): the view and `get` show `client_reported_cost_usd` and the two empty inventories, and a refused job still shows its receipt. **2 passed.** Mutation check: with the old filter, the first test fails.
