@@ -14,7 +14,7 @@ class Element {
   all(t){return this.children.flatMap(c=>[...(c.tagName===t.toUpperCase()?[c]:[]),...c.all(t)]);}
 }
 const base={vendor:'Northwind Cloud',contract:{title:'SLA',version:'v1',ref:'urn:sla',documents:[]},reviewer:{},months:[],price_finding:{},
-  claim:{id:'claim-1',state:'DRAFTED'},connection:{destination:'Local ledger'},ledger:{destination:'Local ledger',currency:'USD',bill:{},record_ids:{}},audit:[]};
+  claim:{id:'claim-1',month:'2026-01',state:'DRAFTED'},connection:{destination:'Local ledger'},ledger:{destination:'Local ledger',currency:'USD',bill:{},record_ids:{}},audit:[]};
 const step=(label,id)=>({...base,next_actions:[{id,label,group:'claim'}]});
 function mount(responses){const root=new Element('main'),calls=[];const queue=[...responses];
   const ui=create({document,api:async(path,body)=>{calls.push([path,body]);const r=queue.shift();if(r instanceof Error)throw r;return r;}});return {root,calls,ui};}

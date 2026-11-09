@@ -19,7 +19,10 @@ test('Northwind renders separate exact stages, uncertainty and cited source reco
  for(const expected of ['Northwind Cloud','$2,400.00','$0.00','Not determined','$1,000.00','Local ledger','NW-CSA-2026#4','NW-AM1#2','Dana Reyes','Scripted reviewer']) assert.ok(view.includes(expected),expected);
  assert.doesNotMatch(view,/synthetic|simulat|replay|demo/i);
  assert.equal(s.root.all('tbody')[0].all('tr').length,3);
- assert.equal(s.root.all('article').length,4);
+ // The stage tiles became one five-step credit lifecycle; the outcome headline holds the credit and the price exception.
+ const steps=s.root.all('li').filter(n=>String(n.className).startsWith('lifecycle-step'));
+ assert.deepEqual(steps.map(n=>n.children[0].textContent),['Estimated','Claimed','Awarded','Posted to Local ledger','Applied to NW-MAR-2026']);
+ assert.equal(s.root.all('article').filter(n=>String(n.className).startsWith('outcome-card')).length,2);
 });
 test('actions use signed injected transport, encoded server IDs and suppress duplicate dispatch',async()=>{
  let release;const s=setup((path,body)=>body ? new Promise(r=>{release=r;}) : {workflow:projection});await s.ui.render(s.root);

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-  <title>Uptime for Ramp · Finance workbench</title>
+  <title>Uptime</title>
   <link rel="stylesheet" href="/static/style.css">
   <script defer src="/static/auth.js"></script>
   <script defer src="/static/ramp_ui.js"></script>
@@ -13,23 +13,30 @@
   <script defer src="/static/app.js"></script>
 </head>
 <body>
-  <a class="skip" href="#workspace">Skip to workbench</a>
+  <a class="skip" href="#workspace">Skip to content</a>
   <aside class="rail">
-    <a class="brand" href="#ramp" aria-label="Uptime for Ramp, worklist"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 9v15a10 10 0 0 0 20 0V9M20 15l7-7 7 7"/></svg><span>Uptime<small>for Ramp</small></span></a>
-    <p class="rail-caption">Finance workbench</p>
-    <nav aria-label="Main navigation">
-      <a href="#ramp" data-view="ramp"><span aria-hidden="true">▤</span> Contract worklist</a>
-      <a href="#records" data-view="records">Ramp records</a>
-      <a href="#dashboard" data-view="dashboard" title="Evidence ledger · advanced"><span aria-hidden="true">▤</span> Case ledger <small>Advanced</small></a>
-      <a href="#vendors" data-view="vendors">Vendor contracts</a>
-      <a href="#disputes" data-view="disputes">Correspondence</a>
-      <a href="#onboarding" data-view="onboarding"><span aria-hidden="true">◇</span> Onboarding lab</a>
-      <a href="#policy" data-view="policy"><span aria-hidden="true">⊞</span> Policies</a>
-      <a href="#integrations" data-view="integrations"><span aria-hidden="true">↔</span> Integrations</a>
+    <a class="brand" href="#overview" aria-label="Uptime, overview"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 9v15a10 10 0 0 0 20 0V9M20 15l7-7 7 7"/></svg><span>Uptime<small>for Ramp</small></span></a>
+    <nav aria-label="Main navigation" class="rail-primary">
+      <a href="#overview" data-view="ramp"><span aria-hidden="true">◎</span> Overview</a>
+      <a href="#cases" data-view="disputes"><span aria-hidden="true">▤</span> Cases</a>
+      <a href="#agreements" data-view="vendors"><span aria-hidden="true">§</span> Agreements</a>
+      <a href="#activity" data-view="activity"><span aria-hidden="true">↻</span> Activity</a>
     </nav>
+    <details class="rail-more">
+      <summary>More tools</summary>
+      <nav aria-label="More tools">
+        <a href="#records" data-view="records">Ramp records</a>
+        <a href="#dashboard" data-view="dashboard">Case ledger</a>
+        <a href="#onboarding" data-view="onboarding">Onboarding lab</a>
+        <a href="#policy" data-view="policy">Policies</a>
+        <a href="#integrations" data-view="integrations">Integrations</a>
+        <a href="#advanced" data-view="advanced">Advanced workflows</a>
+        <a href="#regression" data-view="regression">Regression comparison</a>
+      </nav>
+    </details>
   </aside>
   <main id="workspace" tabindex="-1">
-    <header class="topbar"><span id="workspace-name">Contract operations</span><button id="account" class="quiet">Account</button><button id="refresh" class="quiet">Refresh data</button></header>
+    <header class="topbar"><span id="workspace-name">Uptime</span><button id="account" class="quiet">Account</button><button id="refresh" class="quiet">Refresh data</button></header>
     <div id="notice" role="status" aria-live="polite"></div>
     <div id="content" aria-busy="true"><p class="empty">Loading the workbench…</p></div>
   </main>

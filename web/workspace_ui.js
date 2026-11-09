@@ -14,7 +14,40 @@
     const [whole, fraction] = raw.split('.');
     return `${currency === 'USD' ? '$' : text(currency) + ' '}${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${fraction == null ? '' : '.' + fraction}`;
   }
-  function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized}) {
+  // Presentation-only formatting. Values keep their exact server form in the inspectors.
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function parseInstant(value) {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}/.test(value)) return null;
+    const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? value + 'T00:00:00Z' : value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  function day(value) {
+    const date = parseInstant(value);
+    return date ? `${MONTHS[date.getUTCMonth()].slice(0, 3)} ${date.getUTCDate()}, ${date.getUTCFullYear()}` : text(value);
+  }
+  function when(value) {
+    const date = parseInstant(value);
+    if (!date) return text(value);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return day(value);
+    return `${day(value)}, ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')} UTC`;
+  }
+  function monthLabel(value) {
+    const m = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(value));
+    return m ? `${MONTHS[Number(m[2]) - 1]} ${m[1]}` : text(value);
+  }
+  const monthOnly = value => { const date = parseInstant(value) || parseInstant(String(value) + '-01'); return date ? MONTHS[date.getUTCMonth()] : null; };
+  // An evaluator fraction such as 20000000/1000000% is shown as an exact percent. Only power-of-ten
+  // denominators are converted, by moving the decimal point; no arithmetic changes.
+  function rates(value) {
+    return text(value).replace(/(-?)(\d+)\/1(0+)%/g, (_, sign, digits, zeros) => {
+      const k = zeros.length, padded = digits.padStart(k + 1, '0');
+      const whole = padded.slice(0, -k).replace(/^0+(?=\d)/, ''), fraction = padded.slice(-k).replace(/0+$/, '');
+      return sign + whole + (fraction ? '.' + fraction : '') + '%';
+    });
+  }
+  const shortRef = value => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value) ? value.slice(0, 10) + '…' : text(value);
+  const isZero = value => /^-?0*(\.0*)?$/.test(String(value));
+  function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true}) {
     // After a recorded action the page re-renders; focus moves to the next offered step so keyboard use continues there.
     let epoch = 0, busy = false, uncertain = false, focusNextStep = false;
     const el = (tag, value, cls) => { const n = doc.createElement(tag); if (value != null) n.textContent = text(value); if (cls) n.className = cls; return n; };
@@ -53,19 +86,24 @@
       });
       return refs.children.length ? refs : note('Source references not provided.');
     }
+    // Long source lists and exact technical values stay one click away.
+    function inspector(summary, ...children) { return add(el('details', null, 'workflow-evidence inspector'), el('summary', summary), ...children); }
+    const clauseList = items => list(items).length ? inspector('Cited clauses (' + list(items).length + ')', citations(items)) : note('Source references not provided.');
     function monthEvidence(month) {
-      const cell=el('td');add(cell,note(reason(month.reason)),citations(month.citations));
-      if(list(month.calculation).length) cell.append(add(el('ol',null,'trace'),...month.calculation.map(line=>el('li',line))));
+      const cell = el('td'), lines = list(month.calculation);
+      if (lines.length) cell.append(add(el('ol', null, 'trace'), ...lines.map(line => el('li', rates(line)))));
+      else cell.append(note(rates(reason(month.reason))));
       const inputs = month.inputs || {};
       if (Object.keys(inputs).length) {
         const rows = [['Governing fee', inputs.governing_fee == null ? null : money(inputs.governing_fee, inputs.currency || month.currency || 'USD')],
           ['Fee reference', inputs.fee_version], ['Eligible downtime (minutes)', inputs.eligible_downtime_minutes],
           ['Completed increments', inputs.completed_steps], ['Credit rate', inputs.credit_percent == null ? null : inputs.credit_percent + '%'],
-          ['Claim deadline', inputs.claim_cutoff], ['Usage record', inputs.monitor_ref]].filter(([, value]) => value != null);
-        if (rows.length) cell.append(add(el('details', null, 'workflow-evidence'), el('summary', 'Calculation inputs'), fields(rows)));
+          ['Claim deadline', inputs.claim_cutoff == null ? null : when(inputs.claim_cutoff)], ['Usage record', inputs.monitor_ref]].filter(([, value]) => value != null);
+        if (rows.length) cell.append(inspector('Calculation inputs', fields(rows)));
       }
+      if (list(month.citations).length) cell.append(clauseList(month.citations));
       if (month.invoice || list(month.evidence).length || list(month.trace).length) {
-        const detail=add(el('details',null,'workflow-evidence'),el('summary','Inspect invoice & usage'));
+        const detail=add(el('details',null,'workflow-evidence inspector'),el('summary','Inspect invoice & usage'));
         const invoice=month.invoice || {};
         if (month.invoice) detail.append(fields([['Invoice',invoice.id],['Issued',invoice.issued_at],['Service starts',invoice.service_start],['Service ends',invoice.service_end]]));
         list(month.evidence).forEach(item=>detail.append(add(el('article',null,'workflow-document'),el('h3',item.label),note(item.value == null ? 'Not provided' : item.value),item.ref ? el('code',item.ref) : null)));
@@ -73,6 +111,69 @@
         cell.append(detail);
       }
       return cell;
+    }
+    const PRICE_STATUS = {PREPAYMENT_REVIEW:'Open · review before payment', RETROSPECTIVE_REVIEW:'Open · paid invoice, review for recovery',
+      NEEDS_REVIEW:'Open · needs review', REVIEW_REQUIRED:'Open · review required'};
+    function amountRow(label, value, cls) { return add(el('div', null, 'outcome-row' + (cls ? ' ' + cls : '')), el('dt', label), el('dd', value)); }
+    // The headline: the bill outcome once a credit is applied, otherwise the credit's current stage, and the
+    // separate price exception. Every amount is a server value; nothing is computed here.
+    function outcome(data, months) {
+      const ledger = data.ledger || {}, bill = ledger.bill || {}, claim = data.claim || {}, price = data.price_finding || {};
+      const records = ledger.record_ids || {}, currency = ledger.currency || 'USD', destination = ledger.destination;
+      const node = el('section', null, 'outcome'); node.id = 'finance-outcome'; node.setAttribute('aria-label', 'Outcome');
+      const credit = el('article', null, 'outcome-card outcome-credit');
+      if (bill.id && records.application) {
+        const billMonth = monthOnly(bill.service_start);
+        add(credit, el('h2', (billMonth ? billMonth + ' invoice ' : 'Invoice ') + bill.id), add(el('dl', null, 'outcome-rows'),
+          amountRow('Invoice', money(bill.original_amount, currency)), amountRow('Credit applied', money(ledger.applied, currency)),
+          amountRow('Remaining balance', money(bill.outstanding_amount, currency), 'outcome-total')),
+          note('Credit recorded in ' + text(destination) + ' and applied to this invoice.'));
+      } else {
+        const stages = [['applied', 'applied'], ['posted', 'posted to ' + text(destination)], ['awarded', 'awarded'], ['claimed', 'claimed']];
+        const reached = stages.find(([key]) => ledger[key] != null && !isZero(ledger[key]));
+        const estimate = estimateFor(data, months);
+        const claimMonth = claim.month ? monthOnly(claim.month) : null;
+        add(credit, el('h2', (claimMonth ? claimMonth + ' service credit' : 'Service credit')),
+          el('div', reached ? money(ledger[reached[0]], currency) : money(estimate, currency), 'outcome-value'),
+          note(reached ? 'Current stage: ' + reached[1] + '. Not yet applied to an invoice.' : 'Estimated from the governing agreement. Not yet claimed.'));
+      }
+      node.append(credit);
+      if (price.invoice_id || price.amount != null || price.state) {
+        const priceMonth = monthFor(price.invoice_id, months);
+        node.append(add(el('article', null, 'outcome-card outcome-exception'), el('h2', (priceMonth ? priceMonth + ' price exception' : 'Price exception')),
+          el('div', money(price.amount, price.currency || currency), 'outcome-value'),
+          note((PRICE_STATUS[price.state] || state(price.state)) + (price.invoice_id ? ' · invoice ' + price.invoice_id : '')),
+          note('Separate from the service credit and not included in it.')));
+      }
+      return node;
+    }
+    function monthFor(invoiceId, months) {
+      const match = list(months).find(m => m && m.invoice && m.invoice.id === invoiceId);
+      return match ? monthOnly(match.month) : null;
+    }
+    function estimateFor(data, months) {
+      const claim = data.claim || {}, ledger = data.ledger || {};
+      const match = claim.month ? list(months).find(m => m && m.month === claim.month) : null;
+      return match && match.amount != null ? match.amount : ledger.estimated;
+    }
+    // One credit at each stage of its life. The amounts are the same credit, never added together.
+    function lifecycle(data, months) {
+      const ledger = data.ledger || {}, bill = ledger.bill || {}, currency = ledger.currency || 'USD';
+      const steps = [['estimated', 'Estimated', estimateFor(data, months)], ['claimed', 'Claimed', ledger.claimed], ['awarded', 'Awarded', ledger.awarded],
+        ['posted', 'Posted to ' + text(ledger.destination), ledger.posted], ['applied', bill.id ? 'Applied to ' + bill.id : 'Applied to an invoice', ledger.applied]];
+      const node = el('section', null, 'lifecycle'); node.setAttribute('aria-label', 'Credit lifecycle');
+      const items = el('ol', null, 'lifecycle-steps');
+      let current = null;
+      steps.forEach(([key, label, value]) => {
+        const done = value != null && !isZero(value);
+        const item = add(el('li', null, 'lifecycle-step ' + (done ? 'done' : 'pending')), el('span', label, 'step-label'),
+          el('strong', value == null ? 'Not determined' : money(value, currency), 'step-amount'),
+          el('span', done ? 'Recorded' : value == null ? 'Not determined' : 'Not yet', 'step-state'));
+        if (done) current = item;
+        items.append(item);
+      });
+      if (current) current.setAttribute('aria-current', 'step');
+      return add(node, el('h2', 'Credit lifecycle'), note('One credit, shown at each stage. The amounts are not added together.'), items);
     }
     function guidePanel(token) {
       const node = panel('Ask about this case', 'guide');
@@ -97,7 +198,7 @@
         const related = list(result.citations).filter(c => !list(result.sentences).some(s => list(s.citations).includes(c.id)));
         output.replaceChildren(answer, ...(related.length ? [add(el('div', null, 'guide-related'), note('Related records'),
           ...related.map(c => add(el('span', null, 'guide-citation'), jumpButton('Show ' + text(c.label), c.section))))] : []),
-          ...(result.scope_note ? [note(result.scope_note)] : []), note('As of ' + text(result.as_of) + '. Read only; nothing was changed.'));
+          ...(result.scope_note ? [note(result.scope_note)] : []), note('As of ' + when(result.as_of) + '. Read only; nothing was changed.'));
       }
       async function ask(question) {
         if (asking || token !== epoch) return;
@@ -128,17 +229,20 @@
     }
     function renderData(root,data,token) {
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
-      const header=add(el('div',null,'page-head'),add(el('div'),el('h1',vendor || 'Contract operations'),note('Contract review & recovery')),note(data.as_of ? 'Updated '+data.as_of : ''));
+      const months = list(data.months);
+      const header=add(el('div',null,'page-head'),add(el('div'),el('h1',vendor || 'Contract review'),note('Contract review & recovery')),note(data.as_of ? 'As of '+when(data.as_of) : ''));
       const ledger=data.ledger || {}, currency=ledger.currency || 'USD';
-      const metrics=el('section',null,'metrics');metrics.setAttribute('aria-label','Financial stages');
-      for (const [key,title] of [['claimed','Claimed'],['awarded','Awarded'],['posted','Posted to '+text(ledger.destination)],['applied','Applied to bill']]) metrics.append(add(el('article',null,'metric'),el('h2',title),el('div',money(ledger[key],currency),'metric-value')));
       const finance = data.finance && typeof data.finance === 'object' ? data.finance : null;
-      const stageNote = finance ? note('Stages of the same credit. Each amount shows how far that credit has progressed; the amounts are not added together.') : null;
-      const recovery=panel('January recovery','recovery'), claim=data.claim || {}, connection=data.connection || {};
+      const claim=data.claim || {}, connection=data.connection || {};
+      const claimMonth = claim.month ? monthOnly(claim.month) : null;
+      const recovery=panel(claimMonth ? claimMonth + ' recovery' : 'Claim recovery','recovery');
       const agreement=data.contract || {}, reviewer=data.reviewer || {};
       const contract=panel('Governing agreement','agreement');
-      add(contract,note(agreement.summary),fields([['Agreement',agreement.title],['Version',agreement.version],['Document reference',agreement.ref]]));
-      list(agreement.documents).forEach(document=>contract.append(add(el('article',null,'workflow-document'),el('h3',document.title),fields([['Reference',document.ref],['Version',document.version],['Effective date',document.effective_at]]),note(document.description))));
+      add(contract,fields([['Agreement',agreement.title],['Document reference',agreement.ref],['Version',shortRef(agreement.version)]]));
+      list(agreement.documents).forEach(document=>contract.append(add(el('article',null,'workflow-document'),el('h3',document.title),
+        note(document.effective_at ? 'Effective ' + day(document.effective_at) : 'Effective date not provided'),
+        inspector('Document details', fields([['Reference',document.ref],['Version',document.version],['Effective date',document.effective_at]]), note(document.description)))));
+      if (agreement.summary) contract.append(inspector('Agreement text', note(agreement.summary)));
       let attention = null, ramp = null;
       if (finance) {
         attention = panel('Needs attention', 'attention');
@@ -157,15 +261,16 @@
           note(linked ? 'Open the linked bill in Ramp to continue its native workflow.' : rampInfo.note));
         const records = el('a', 'Open Ramp records', 'case-link'); records.href = '#records'; ramp.append(records);
       }
-      add(recovery,fields([['Connection destination',connection.destination],['Connection status',state(connection.status)],['Receipt status',state(connection.receipt_status)]]));
-      add(recovery,fields([['Current stage',state(claim.state)],['Claim reference',claim.id],['Destination',ledger.destination]]),note(claim.summary));
+      add(recovery,fields([['Current stage',state(claim.state)],['Destination',ledger.destination],['Claim reference',claim.id]]),note(claim.summary));
       const status=el('p',null,'help');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
       const controls=el('div',null,'actions');
+      // After a reload the read session remains but the signing key does not; actions are shown disabled with one way back.
+      const signedIn = canAct() !== false;
       list(data.next_actions).forEach(action=>{
         if (!action.id) return;
-        const button=el('button',action.label || state(action.id));button.type='button';button.disabled=busy || uncertain || action.enabled === false;
+        const button=el('button',action.label || state(action.id));button.type='button';button.disabled=busy || uncertain || action.enabled === false || !signedIn;
         button.addEventListener('click', async()=>{
-          if (busy || uncertain || token !== epoch || action.enabled === false) return;
+          if (busy || uncertain || token !== epoch || action.enabled === false || canAct() === false) return;
           busy=true;Array.from(controls.children).forEach(c=>{c.disabled=true;});status.textContent='Recording action…';
           try {
             await api('/api/workspace/workflow/actions/'+encodeURIComponent(action.id),{});
@@ -181,13 +286,20 @@
         });controls.append(button);
       });
       if(!controls.children.length) controls.append(note('No actions available in the current state.'));
-      add(recovery,controls,status);
+      else if (!signedIn) {
+        const again = el('button', 'Sign in again to take actions', 'quiet'); again.type = 'button';
+        again.addEventListener('click', () => { if (typeof onUnauthorized === 'function') { epoch++; onUnauthorized(); } });
+        controls.append(again);
+        status.textContent = 'Reading only: reloading the page cleared the signing key. Sign in again to take actions.';
+      }
+      add(recovery,controls,status,inspector('Connection details', fields([['Connection destination',connection.destination],['Connection status',state(connection.status)],['Receipt status',state(connection.receipt_status)]])));
       const monthly=panel('Service credit evaluations','months'), table=el('table'), body=el('tbody');
-      add(table,add(el('thead'),add(el('tr'),...['Service month','Decision','Service credit','Evidence'].map(t=>{const th=el('th',t);th.scope='col';return th;}))),body);
-      list(data.months).forEach(month=>body.append(add(el('tr'),el('td',month.month),el('td',state(month.outcome)),el('td',money(month.amount,month.currency || currency)),monthEvidence(month))));
+      add(table,add(el('thead'),add(el('tr'),...['Service month','Decision','Service credit','Basis'].map(t=>{const th=el('th',t);th.scope='col';return th;}))),body);
+      months.forEach(month=>body.append(add(el('tr'),el('td',monthLabel(month.month)),el('td',state(month.outcome)),el('td',money(month.amount,month.currency || currency)),monthEvidence(month))));
       add(monthly,add(el('div',null,'table-scroll'),table));
-      const price=data.price_finding || {}, pricing=panel('March price review','price');
-      add(pricing,fields([['Finding','Price cap review'],['Exposure',money(price.amount,price.currency || currency)],['Status',state(price.state)]]));
+      const price=data.price_finding || {}, priceMonth = monthFor(price.invoice_id, months);
+      const pricing=panel(priceMonth ? priceMonth + ' price review' : 'Price review','price');
+      add(pricing,fields([['Finding','Price cap review'],['Status',PRICE_STATUS[price.state] || state(price.state)],['Invoice',price.invoice_id]].filter(([,value]) => value != null)));
       if (list(price.lines).length) {
         const lineTable = el('table'), lineBody = el('tbody');
         add(lineTable, add(el('thead'), add(el('tr'), ...['Invoice line','Governing version','Billed','Contract amount','Difference'].map(t => { const th = el('th', t); th.scope = 'col'; return th; }))), lineBody);
@@ -197,31 +309,54 @@
         pricing.append(add(el('div', null, 'table-scroll'), lineTable));
         if (finance) pricing.append(note('An open price finding. It is not a credit and is not included in the credit stages.'));
       }
-      add(pricing,note(reason(price.reason)),citations(price.citations));
+      add(pricing,inspector('Evaluator trace', note(reason(price.reason))),clauseList(price.citations));
       const bill=ledger.bill || {}, billing=panel('Bill reconciliation','bill');
-      add(billing,fields([['Destination',ledger.destination],['Bill reference',bill.id],['Invoice issued',bill.issued_at],['Service starts',bill.service_start],['Service ends',bill.service_end],['Original bill',money(bill.original_amount,currency)],['Applied credit',ledger.record_ids?.application ? money(ledger.applied,currency) : 'None applied'],['Outstanding balance',money(bill.outstanding_amount,currency)],['Receipt reference',claim.receipt_id],['Award reference',ledger.record_ids?.award],['Credit reference',ledger.record_ids?.credit],['Application reference',ledger.record_ids?.application]]));
+      add(billing,fields([['Destination',ledger.destination],['Bill reference',bill.id],
+        ['Service period',bill.service_start ? day(bill.service_start) + ' – ' + day(bill.service_end) : null],
+        ['Original bill',money(bill.original_amount,currency)],['Applied credit',ledger.record_ids?.application ? money(ledger.applied,currency) : 'None applied'],
+        ['Outstanding balance',money(bill.outstanding_amount,currency)]].filter(([,value]) => value != null)),
+        inspector('References', fields([['Invoice issued',bill.issued_at],['Service starts',bill.service_start],['Service ends',bill.service_end],
+          ['Receipt reference',claim.receipt_id],['Award reference',ledger.record_ids?.award],['Credit reference',ledger.record_ids?.credit],['Application reference',ledger.record_ids?.application]])));
       const detail=add(el('details',null,'panel ramp-details'),el('summary','Agreement & review record'));
       add(detail,fields([['Agreement',agreement.title],['Version',agreement.version],['Document reference',agreement.ref],['Reviewer',reviewer.name],['Principal',reviewer.principal],['Role',reviewer.role],['Authority kind',state(reviewer.authority_kind)]]),citations(agreement.citations));
       const onboarding=data.onboarding || {}, expansion=panel(onboarding.vendor ? onboarding.vendor+' coverage in this workspace' : 'Vendor coverage','coverage');
       const coverageReviewer=onboarding.reviewer || {};
-      add(expansion,fields([['State in this workspace',state(onboarding.state)],['Adapter version',onboarding.version],
+      add(expansion,fields([['State in this workspace',state(onboarding.state)],['Adapter version',shortRef(onboarding.version)],
         ['Reviewer',coverageReviewer.name ? coverageReviewer.name + (coverageReviewer.authority_kind ? ' · ' + state(coverageReviewer.authority_kind) : '') : null]].filter(([,value]) => value != null)));
-      const coverage=el('ol',null,'activity'), actors=[...new Set(list(onboarding.history).map(event=>event.actor).filter(Boolean))];
-      list(onboarding.history).forEach(event=>coverage.append(add(el('li'),el('time',event.at),el('span',event.event),actors.length>1 && event.actor ? note('Recorded by '+event.actor) : null,event.ref ? el('code',event.ref) : null)));
+      const coverage=coverageHistory(onboarding), actors=[...new Set(list(onboarding.history).map(event=>event.actor).filter(Boolean))];
       if (!coverage.children.length) expansion.append(note('Coverage history not provided.'));
       else if (finance) expansion.append(add(el('details',null,'workflow-evidence'),el('summary','History in this workspace ('+coverage.children.length+' entries)'),actors.length===1 ? note('Every entry is recorded by '+actors[0]+'.') : null,coverage));
       else expansion.append(coverage);
       const vendorLink=el('a','Inspect vendor contracts','case-link');vendorLink.href='#vendors';expansion.append(vendorLink);
-      const history=panel('Workflow history'), timeline=el('ol',null,'activity');
       const guide=finance ? guidePanel(token) : null;
-      list(data.audit).forEach(event=>timeline.append(add(el('li'),el('time',event.at),el('span',event.event),event.ref ? el('code',event.ref) : null)));
-      history.append(timeline.children.length ? timeline : note('No workflow actions recorded.'));
-      root.replaceChildren(header,...(attention ? [attention] : []),metrics,...(stageNote ? [stageNote] : []),...(ramp ? [ramp] : []),contract,recovery,monthly,add(el('div',null,'section-grid'),pricing,billing),...(guide ? [guide] : []),...(data.onboarding ? [expansion] : []),detail,history);
+      const activityLink = add(el('p', null, 'help'), (() => { const a = el('a', 'See the full activity history', 'case-link'); a.href = '#activity'; return a; })());
+      root.replaceChildren(header,outcome(data, months),lifecycle(data, months),recovery,...(attention ? [attention] : []),...(guide ? [guide] : []),...(ramp ? [ramp] : []),
+        monthly,add(el('div',null,'section-grid'),pricing,billing),contract,...(data.onboarding ? [expansion] : []),detail,activityLink);
       if (focusNextStep) {
         focusNextStep=false;
         const next=Array.from(controls.children).find(c=>c.tagName==='BUTTON' && !c.disabled), target=next || recovery.children[0];
         if (target && typeof target.focus==='function') target.focus();
       }
+    }
+    function coverageHistory(onboarding) {
+      const coverage=el('ol',null,'activity'), actors=[...new Set(list(onboarding.history).map(event=>event.actor).filter(Boolean))];
+      list(onboarding.history).forEach(event=>coverage.append(add(el('li'),el('time',when(event.at)),el('span',event.event),actors.length>1 && event.actor ? note('Recorded by '+event.actor) : null,event.ref ? el('code',event.ref) : null)));
+      return coverage;
+    }
+    // Activity: what happened, in order, from the same projection. Absent data renders as absent.
+    function renderActivity(root, data) {
+      const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
+      const header = add(el('div', null, 'page-head'), add(el('div'), el('h1', 'Activity'), note(vendor ? vendor + ' · contract review & recovery' : 'Contract review & recovery')),
+        note(data.as_of ? 'As of ' + when(data.as_of) : ''));
+      const history = panel('Workflow history'), timeline = el('ol', null, 'activity');
+      list(data.audit).forEach(event => timeline.append(add(el('li'), el('time', when(event.at)), el('span', event.event), event.ref ? el('code', shortRef(event.ref)) : null)));
+      history.append(timeline.children.length ? timeline : note('No workflow actions recorded.'));
+      const onboarding = data.onboarding || {};
+      const coverage = panel(onboarding.vendor ? onboarding.vendor + ' coverage history in this workspace' : 'Vendor coverage history'), entries = coverageHistory(onboarding);
+      coverage.append(entries.children.length ? entries : note('Coverage history not provided.'));
+      const automation = panel('Automation and model jobs');
+      automation.append(note('This workspace does not report automation runs or model jobs.'));
+      root.replaceChildren(header, history, coverage, automation);
     }
     async function render(root, supplied) {
       const token=++epoch;
@@ -231,9 +366,15 @@
         uncertain=false;busy=false;renderData(root,data,token);
       } catch(error) { if(token !== epoch) return;throw error; }
     }
-    return {render,unmount:()=>{epoch++;}};
+    async function activity(root, supplied) {
+      const token=++epoch;
+      const data=supplied || (await api('/api/workspace/workflow')).workflow;
+      if (token !== epoch) return;
+      renderActivity(root, data);
+    }
+    return {render,activity,unmount:()=>{epoch++;}};
   }
-  const exports={create,money};
+  const exports={create,money,when,day,rates,monthLabel};
   if(typeof module !== 'undefined' && module.exports) module.exports=exports;
   global.UptimeWorkspace=exports;
 })(typeof window === 'undefined' ? globalThis : window);

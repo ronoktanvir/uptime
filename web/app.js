@@ -53,7 +53,11 @@
       return {...rest, server_status:value.status, status:value.object_type === 'bills' ? 'READ_ONLY_PROPOSAL' : 'UNSUPPORTED_ENTITY',
         delivery:value.delivery, note:'Plan inspection only. No browser dispatch is offered. The installed native binding supports bill comments only; exact independent permission and current provider grants are required.'};
   }
+  // Primary destinations map onto existing views; every older route hash still works.
+  const DESTINATIONS = {overview:'ramp', cases:'disputes', agreements:'vendors', activity:'activity'};
   function companionRoute(requested) {
+    if (Object.prototype.hasOwnProperty.call(DESTINATIONS, requested)) return DESTINATIONS[requested];
+    if (requested.startsWith('cases/')) return 'disputes/' + requested.slice(6);
     if (requested === 'rehearsal') return 'dashboard';
     if (requested === 'records') return 'records';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
@@ -67,7 +71,8 @@
   let rampCase = null, rampScroll = 0;
   let companion, companionAssets, signedPage = false, companionAccess = {};
   const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
-  const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account});
+  // The finance view disables actions when this page holds no signing key (for example after a reload).
+  const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account,canAct:() => window.uptimeAuth?.canSign?.() !== false});
   const filters = {query: '', status: '', sort: 'value-desc'};
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
@@ -93,6 +98,12 @@
       if (data.native_workflow) return {...data, native_workflow:companionPlan(data.native_workflow)};
     }
     return data;
+  }
+  let workspaceName = null;
+  function showWorkspaceName() {
+    const name = workspaceName || 'Uptime';
+    $('#workspace-name').textContent = name;
+    document.title = workspaceName ? workspaceName + ' · Uptime' : 'Uptime';
   }
   function account() {
     generation++; signedPage = false; companionAccess = {};
@@ -148,7 +159,7 @@
     const current = window.uptimeAuth.session();
     if (current) $('#account').textContent = 'Sign out · ' + current.subject;
     content.replaceChildren(head, metrics, ledger, add(el('div', 'section-grid'), audit, ramp));
-    $('#workspace-name').textContent = typeof data.workspace === 'string' ? data.workspace : 'Contract operations';
+    showWorkspaceName();
   }
   function actions(items, path, reload) {
     const node = el('div', 'actions');
@@ -326,16 +337,24 @@
     const data = await api('/api/ramp/workspace');
     if (token === generation) return ui.render(content,'catalog',data);
   }
-  // Add companion entry points without replacing the primary Ramp navigation.
-  const nav = document.querySelector('.rail nav');
-  if (nav) for (const [route, name] of [['advanced','Advanced workflows'],['vendors','Vendor intake & versions'],['disputes','Correspondence & disputes'],['lab','Onboarding lab'],['regression','Regression comparison']]) {
-    const link = el('a','',name); link.href = '#' + route; link.dataset.view = route; nav.append(link);
-  }
+  // Navigation is declared in index.html: four primary destinations and a secondary group.
+
   // Load responsive companion navigation styles on the primary worklist too.
   advanced().catch(() => {});
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
+    if (route === 'activity') {
+      const projection = await api('/api/workspace/workflow');
+      if (token !== generation) return;
+      if (projection && projection.workflow && typeof projection.workflow === 'object' && workspaceWorkflow) {
+        const company = projection.workflow.company?.name || projection.workflow.company;
+        if (typeof company === 'string' && company) workspaceName = company;
+        await workspaceWorkflow.activity(content, projection.workflow);
+      } else content.replaceChildren(heading('Activity', 'What happened in this workspace, in order.'), empty('No workflow activity is recorded in this workspace.'));
+      showWorkspaceName();
+      return;
+    }
     if (route === 'ramp' || route === 'records') {
       if (route === 'ramp' && !rampCase) {
         const projection = await api('/api/workspace/workflow');
@@ -344,7 +363,9 @@
         if (projection.workflow !== null) {
           if (!workspaceWorkflow || !projection.workflow || typeof projection.workflow !== 'object') throw new Error('Workspace workflow unavailable.');
           await workspaceWorkflow.render(content, projection.workflow);
-          $('#workspace-name').textContent = projection.workflow.company?.name || projection.workflow.company || 'Contract operations';
+          const company = projection.workflow.company?.name || projection.workflow.company;
+          if (typeof company === 'string' && company) workspaceName = company;
+          showWorkspaceName();
           const current = window.uptimeAuth.session();
           if (current) $('#account').textContent = 'Sign out · ' + current.subject;
           return;
@@ -354,7 +375,7 @@
       await ramp.render(content, rampCase);
       if (token === generation) {
         window.scrollTo?.({top:rampCase ? 0 : rampScroll, behavior:'instant'});
-        $('#workspace-name').textContent = 'Contract operations';
+        showWorkspaceName();
         const current = window.uptimeAuth.session();
         if (current) $('#account').textContent = 'Sign out · ' + current.subject;
       }
@@ -378,6 +399,8 @@
     }
     view = companionRoute(requested);
     document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
+    const more = document.querySelector?.('.rail-more');
+    if (more && more.querySelector?.('[aria-current]')) more.open = true;
     if (!content.children.length) content.append(empty('Loading server state…')); announce(''); load();
   }
   // Updating route history explicitly prevents fragment scrolling during normal navigation.
