@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import uvicorn
 from uptime.auth import enroll
 from uptime.auth_keys import generate_reviewer_key, write_credential
-from uptime.server import create_app
+from uptime.server import create_app, panel_origin
 
 
 def main():
@@ -27,6 +27,8 @@ def main():
     parser.add_argument("--award-office", type=Path, help="Protected verification office for provider-confirmed awards and credit attribution")
     parser.add_argument("--source-config", type=Path, help="Protected offline LOCAL_SYNTHETIC source grants")
     parser.add_argument("--public-proposal-config", type=Path, help="Optional protected configuration for exact operator-approved public model requests")
+    parser.add_argument("--side-panel-origin", metavar="chrome-extension://ID",
+                        help="Let exactly this browser-extension origin frame the app in a side panel; framing stays refused otherwise")
     parser.add_argument("--open", action="store_true", help="Open the local sign-in page")
     parser.add_argument("--enroll", metavar="ACCOUNT", help="Provision a named account offline and exit")
     keys = parser.add_mutually_exclusive_group()
@@ -61,6 +63,10 @@ def main():
         return
     if args.credential_file or args.public_key:
         parser.exit(1, "Key enrollment options require --enroll ACCOUNT.\n")
+    try:
+        side_panel = panel_origin(args.side_panel_origin)
+    except ValueError as exc:
+        parser.exit(1, str(exc) + "\n")
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
         try:
@@ -82,7 +88,7 @@ def main():
         sources = SourceRegistry(args.source_config, args.mode, base, args.tenant) if args.source_config else None
         app = create_app(args.db, mode=args.mode, origin=base, tenant=args.tenant, approvals_enabled=args.enable_local_approvals,
                          service_credentials=sources, native_config=args.native_config, award_office=args.award_office,
-                         proposal_config=args.public_proposal_config)
+                         proposal_config=args.public_proposal_config, side_panel_origin=side_panel)
         if args.enable_local_approvals:
             app.state.auth.local_gate = local_release_ready
         if sources:

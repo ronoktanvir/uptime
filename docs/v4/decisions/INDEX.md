@@ -107,3 +107,4 @@ Current implementation and test boundaries appear in [engineering status](../STA
 - [91a — Twilio public status page as the first real evidence source](ADR-0091a-public-status-source.md)
 - [97 — Automatic rule-family selection (D05 phase 1)](ADR-0097-automatic-family-selection.md)
 - [Ronok's 2a — closure-bound accept-denial mandate](../integration90/D06-ACTION-MATRIX.md)
+- [Side panel framing: one named browser extension may frame the app (2026-11-09, follow-on to the submission build)](ADR-20261109-side-panel-framing.md)
