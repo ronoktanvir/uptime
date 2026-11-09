@@ -1,7 +1,7 @@
 {
   "schema": "uptime-evaluation-progress/1",
-  "updated_at": "2026-11-09T20:26:43.883918+00:00",
-  "state": "READY_FOR_VERIFIED_APP_FREEZE",
+  "updated_at": "2026-11-09T20:52:01.445932+00:00",
+  "state": "INDEPENDENT_COHORT_RUNNING",
   "lane": "independent-evaluation",
   "implementation_base": "579997f1adb17b1ce5ea5c50b366cf1fe562b170",
   "commits": [
@@ -18,7 +18,7 @@
     "replies": 8,
     "source_authoring": "FROZEN",
     "expected_commitment": "a7671b7d5beff9df6214f6681d24fa8937bbf87ff25c8fcaf53cd9c45233dd2a",
-    "scored_attempts_started": 0,
+    "scored_attempts_started": true,
     "source_sha256": "c044e03cf81c8eead8dd65c7c715a933463aeec61d04903c52169cb27ecd682a",
     "execution_manifest_sha256": "4540d4dcf158aa9c9b53f31a65434fe3ed087d664f554d0ddfa626eb3ac5cc89",
     "source_reading_preparation_valid": 6,
@@ -31,12 +31,12 @@
     "superseded": false
   },
   "runner_checks": {
-    "passed": 61,
+    "passed": 67,
     "warnings": 1,
-    "seconds": "3.16",
+    "seconds": "2.93",
     "provider": "explicit controlled double; not inference evidence"
   },
-  "blocked_stage": "Integrator is correcting a publicly found effective-period scope ambiguity, then finishing the full locked suite. No scored jobs started.",
+  "blocked_stage": null,
   "ready_components": [
     "create-only onboarding attempts",
     "source and implementation pin checks",
@@ -92,6 +92,20 @@
     "classification": "separate public authored ordinary-path control; not independent held-out score",
     "source_preflight": "VALID_V3_WITH_V1_V2_HEADER_REFUSALS_PRESERVED",
     "max_provider_invocations": 1,
-    "started": false
+    "started": true,
+    "outcome": "CANDIDATE_RECORDED_AND_SEPARATE_LOCAL_REBUTTAL",
+    "actual_model": "claude-opus-5-5",
+    "actual_provider_calls": 1,
+    "awarded": "0.00",
+    "posted": "0.00",
+    "applied": "0.00",
+    "held_out_score": false
+  },
+  "verified_application_commit": "805dd1cfe3eb08d4adf3810913cb5d53eb4e3c9f",
+  "full_regression": {
+    "passed": 5298,
+    "warnings": 1,
+    "seconds": "357.07",
+    "exit_code": 0
   }
 }
