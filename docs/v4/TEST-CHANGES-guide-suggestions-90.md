@@ -24,3 +24,5 @@ Results:
 - New browser test, existing finance browser, workspace UI, guide and view tests: **72 passed, 1 warning in 31.45s**
 
 The prepared presentation listener runs the frozen demo build `fde492c`, which has no suggested questions, so the walkthrough says to type both questions there. Only a listener rebuilt from `9b9092f` or later offers the one-click suggestion.
+
+Full suite: not yet run. `9b9092f` and `d580292` were merged after `5d8af56` (round 4b), so the next integration round covers them.
