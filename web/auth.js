@@ -38,7 +38,8 @@
     if (!file || file.size > 16384) throw new Error('Choose your enrolled reviewer credential file.');
     const credential = JSON.parse(await file.text());
     const key = await crypto.subtle.importKey('jwk', credential, {name:'ECDSA', namedCurve:'P-256'}, false, ['sign']);
-    const challenge = await send('/api/auth/challenge', {subject});
+    // Name the login path and empty body hash explicitly; the local review guard rejects omitted fields.
+    const challenge = await send('/api/auth/challenge', {subject, path:'/api/auth/login', body_sha256:''});
     const data = await send('/api/auth/login', {challenge:challenge.challenge, proof:await sign(key, challenge)});
     signingKey = key;
     sessionStorage.setItem(storageKey, JSON.stringify(data));
@@ -74,7 +75,7 @@
     }
     form.append(heading, note);
     const subject = field('Account name', 'text', 'username'), credential = field('Credential file', 'file', 'off');
-    credential.accept = '.json,application/json';
+    credential.accept = '.json,.jwk,application/json,application/jwk+json';
     const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = 'Sign in';
     form.append(submit, feedback);
     form.addEventListener('submit', async event => {

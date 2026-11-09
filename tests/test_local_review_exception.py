@@ -1,6 +1,8 @@
 """Disposable fixture permissions only; these tests never authorize an actual reviewer."""
 import json
+from pathlib import Path
 import shutil
+import subprocess
 
 from fastapi.testclient import TestClient
 import pytest
@@ -48,6 +50,27 @@ def connect(item, app):
     key = json.loads((item["folder"] / "reviewer.jwk").read_text())
     actor = ReviewerClient(client, item["metadata"]["origin"], "reviewer.fixture", key)
     return client, actor
+
+
+def browser_sign_in_request(subject):
+    """The first request the real sign-in page sends, captured by running web/auth.js in node."""
+    result = subprocess.run(["node", "tests/helpers/browser_sign_in_challenge.cjs", subject],
+                            cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True, check=True)
+    return json.loads(result.stdout)
+
+
+def test_browser_sign_in_request_passes_the_review_guard(installation):
+    item = installation
+    app = sign_fixture(item)
+    sent = browser_sign_in_request("reviewer.fixture")
+    # The enrolled credential is reviewer.jwk; the picker must let the person select it.
+    assert ".jwk" in sent["credential_accept"].split(",")
+    origin = item["metadata"]["origin"]
+    with TestClient(app, base_url=origin, client=("127.0.0.1", 4531)) as client:
+        response = client.request(sent["method"], sent["url"], content=sent["body"],
+                                  headers={**sent["headers"], "Origin": origin})
+    assert response.status_code == 200, response.text
+    assert response.json()["challenge"]
 
 
 def current(client, actor):
