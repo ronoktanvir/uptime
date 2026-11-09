@@ -1,0 +1,515 @@
+{
+  "schema": "automatic-family-selection/1",
+  "mode": "automatic",
+  "vendor_id": "v-134729d1d8d09e83a0245044",
+  "source_sha256": "ba57905a4ee9957c67f494cae80c284bc2402a2475a7b8ef78ee97cfb6053c5f",
+  "attempt_nonce": "initial",
+  "offline": {
+    "accepted": false,
+    "method": "deterministic_document_parser",
+    "reason": "RESOURCE_LANGUAGE_PRESENT"
+  },
+  "families": [
+    {
+      "family": "monthly-availability/1",
+      "label": "Monthly availability",
+      "profile": "monthly-propositions",
+      "enabled": true,
+      "approval_reason": null,
+      "context_sha256": "8f9e8ef0b26753308a79463b91b05ffc2e4fb20551f6cace7b653bfcdae59306",
+      "request_sha256": "9caa3195a7660eeed65d249f271e21b19639ffc799a0dc662b706992c05a1425",
+      "disclosure": {
+        "model": "claude-opus-5-5",
+        "tools": [],
+        "profile": "monthly-propositions",
+        "attempt_nonce": "initial",
+        "source_sha256": "ba57905a4ee9957c67f494cae80c284bc2402a2475a7b8ef78ee97cfb6053c5f",
+        "source_characters": 5788,
+        "request_bytes": 10617,
+        "transmitted_fields": [
+          "attempt_nonce",
+          "extraction_instructions",
+          "input",
+          "limits",
+          "model",
+          "profile",
+          "protocol",
+          "system",
+          "tools",
+          "transport"
+        ]
+      },
+      "job": {
+        "job_id": "6ac9576d-3a14-4688-b788-f29795f84a0b",
+        "status": "REFUSED",
+        "vendor_id": "v-134729d1d8d09e83a0245044",
+        "request_sha256": "9caa3195a7660eeed65d249f271e21b19639ffc799a0dc662b706992c05a1425",
+        "context_sha256": "8f9e8ef0b26753308a79463b91b05ffc2e4fb20551f6cace7b653bfcdae59306",
+        "candidate_available": false,
+        "completed_after_expiry": false,
+        "reason": "proposal_validation_failed"
+      },
+      "state": "REFUSED_READING",
+      "refusal": {
+        "codes": [
+          "EXTRACTION_FLAGGED_UNSUPPORTED"
+        ],
+        "explanations": [
+          "The extraction marked this passage as outside the supported terms, and the validator refused on that basis. Review the passage before preparing a fresh extraction."
+        ],
+        "passages": [
+          "Service Level Agreement\nBackblaze announces multi-exabyte storage agreement with CoreWeave.\nRead the announcement\nPartners\nSupport\nSign In\nB2 Cloud Storage\nB2 Overdrive\nB2 for Neoclouds\nArtificial Intelligence\nCloud Application Data\nPowered by Backblaze\nContent Delivery\nBackup & Archive\nRansomware & DR\nPricing\nIntegration Partners\nAI Integrations\nDocs\nResource Hub\nCustomer Stories\nTrust Center\nWhy Backblaze\nDrive Stats\nBlog\nStartup Program\nBusiness\nPersonal\nPricing\nPartners\nSupport\nSign In\nStart Free\nContact Sales\nEnglish\nBackblaze Policies\nTerms of Service\nAcceptable Use Policy\nPrivacy Policy\nDPA Module 1\nDPA Module 2\nDPA Module 3\nCookie Policy\nCopyright\nPayments & Refunds\nService Level Agreement\nUsing B2 Code\nPeering Policy\nLaw Enforcement Requests"
+        ],
+        "missing_terms": []
+      },
+      "public_diagnostic": {
+        "schema": "public-refusal-diagnostic/1",
+        "profile": "monthly-propositions",
+        "source_sha256": "ba57905a4ee9957c67f494cae80c284bc2402a2475a7b8ef78ee97cfb6053c5f",
+        "document": {
+          "name": "Backblaze Service Level Agreement",
+          "uri": "https://www.backblaze.com/company/policy/sla",
+          "classification": "public"
+        },
+        "issues": [
+          {
+            "block": 1,
+            "block_sha256": "04b11de06454bc2d027f9aae6ca8dab5a0bf1b5add3a1d8a4374b1d4d7a76847",
+            "code": "EXTRACTION_FLAGGED_UNSUPPORTED",
+            "end": 760,
+            "start": 0,
+            "explanation": "The extraction marked this passage as outside the supported terms, and the validator refused on that basis. Review the passage before preparing a fresh extraction.",
+            "quote": "Service Level Agreement\nBackblaze announces multi-exabyte storage agreement with CoreWeave.\nRead the announcement\nPartners\nSupport\nSign In\nB2 Cloud Storage\nB2 Overdrive\nB2 for Neoclouds\nArtificial Intelligence\nCloud Application Data\nPowered by Backblaze\nContent Delivery\nBackup & Archive\nRansomware & DR\nPricing\nIntegration Partners\nAI Integrations\nDocs\nResource Hub\nCustomer Stories\nTrust Center\nWhy Backblaze\nDrive Stats\nBlog\nStartup Program\nBusiness\nPersonal\nPricing\nPartners\nSupport\nSign In\nStart Free\nContact Sales\nEnglish\nBackblaze Policies\nTerms of Service\nAcceptable Use Policy\nPrivacy Policy\nDPA Module 1\nDPA Module 2\nDPA Module 3\nCookie Policy\nCopyright\nPayments & Refunds\nService Level Agreement\nUsing B2 Code\nPeering Policy\nLaw Enforcement Requests"
+          }
+        ],
+        "missing_terms": []
+      },
+      "attempts": {
+        "total": 1,
+        "validated": 0,
+        "structural_refusals": 0
+      }
+    },
+    {
+      "family": "resource-month/1",
+      "label": "Resource month",
+      "profile": "resource-month",
+      "enabled": true,
+      "approval_reason": null,
+      "context_sha256": "881305deaa2244839ff2a4b3cebc52516672428eb142ac877fe4c9e5189a5400",
+      "request_sha256": "6c5a1b79a101cf26ec175243456d7d54bd768953a0d86856970a08866f9a5571",
+      "disclosure": {
+        "model": "claude-opus-5-5",
+        "tools": [],
+        "profile": "resource-month",
+        "attempt_nonce": "initial",
+        "source_sha256": "ba57905a4ee9957c67f494cae80c284bc2402a2475a7b8ef78ee97cfb6053c5f",
+        "source_characters": 5788,
+        "request_bytes": 28517,
+        "transmitted_fields": [
+          "attempt_nonce",
+          "extraction_instructions",
+          "input",
+          "limits",
+          "model",
+          "profile",
+          "protocol",
+          "system",
+          "tools",
+          "transport"
+        ]
+      },
+      "job": {
+        "job_id": "33443b2f-69ec-4e64-aa22-07910ab495ff",
+        "status": "REFUSED",
+        "vendor_id": "v-134729d1d8d09e83a0245044",
+        "request_sha256": "6c5a1b79a101cf26ec175243456d7d54bd768953a0d86856970a08866f9a5571",
+        "context_sha256": "881305deaa2244839ff2a4b3cebc52516672428eb142ac877fe4c9e5189a5400",
+        "candidate_available": false,
+        "completed_after_expiry": false,
+        "reason": "proposal_validation_failed"
+      },
+      "state": "REFUSED_READING",
+      "refusal": {
+        "codes": [
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "UNSUPPORTED_BLOCK_PROPOSITION",
+          "UNSUPPORTED_BLOCK_PROPOSITION",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "UNSUPPORTED_BLOCK_PROPOSITION",
+          "UNSUPPORTED_BLOCK_PROPOSITION",
+          "UNSUPPORTED_BLOCK_PROPOSITION",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "UNSUPPORTED_BLOCK_PROPOSITION",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "UNSUPPORTED_BLOCK_PROPOSITION",
+          "UNSUPPORTED_BLOCK_PROPOSITION",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "PUBLIC_PROPOSITION_UNESTABLISHED",
+          "REQUIRED_TERMS_MISSING"
+        ],
+        "explanations": [
+          "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+          "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+          "No passage establishes the listed required terms. Without them this family cannot produce an adapter."
+        ],
+        "passages": [
+          "B2 Cloud Storage",
+          "B2 Overdrive",
+          "B2 for Neoclouds",
+          "DPA Module 1",
+          "DPA Module 2",
+          "DPA Module 3",
+          "Using B2 Code",
+          "Last updated: March 27, 2019",
+          "This Service Level Agreement (\"SLA\") is between Backblaze, Inc. (\"Backblaze\") and users of our services (“Customer”). It governs access to, and use of, the Backblaze B2 Cloud Storage and the Backblaze Computer Backup services (collectively, “Covered Services”). This agreement applies to all Backblaze B2 Cloud Storage Customers and to Backblaze Computer Backup Customers who have purchased a Backblaze Tera or Peta customer support plan detailed at https://www.backblaze.com/help/customer-support.",
+          "“User Account” is an individual user of one or more Covered Services paid for by Customer. Each User Account has a unique email address.",
+          "“User Downtime” means a User Account is not able to access a Covered Service to log in, upload data, select files, or download completed data restores/snapshots unless excluded by the SLA Exclusions below.",
+          "“User Downtime Period” means a period of one or more consecutive minutes of User Downtime. Partial or intermittent minutes of User Downtime will not be counted.",
+          "“Monthly User Downtime” is the total of all User Downtime Periods in a given month.",
+          "“Monthly User Uptime Percentage” is computed as the total number of minutes in a given month, minus the Monthly User Downtime for that month, divided by the total number of minutes in that month.",
+          ">= 99.9%",
+          "0%",
+          "< 99.9% and>= 99.0%",
+          "5%",
+          "< 99.0%",
+          "10%",
+          "“Service Credit” is the User Credit Percentage times the monthly amount charged for a User Account. For license terms greater than one month (e.g. yearly and two year licenses), the monthly amount is the amount charged for the license divided by the number of months in the license term.",
+          "During the term of this SLA, Backblaze agrees to meet or exceed a Service Level Objective (“SLO”) of 99.9% for the Monthly User Uptime Percentage. If Backblaze does not meet or exceed the SLO, and if Customer meets its obligations under this SLA detailed below, the Customer will be eligible to receive a Service Credit as described above. This SLA states Customer’s sole and exclusive remedy for any failure by Backblaze to meet the SLO.",
+          "To receive a Service Credit, Customer must submit a claim via a support ticket at Backblaze Support. Claims are filed monthly, and must be submitted within 30 days from the last day of the month in which Customer is asserting the SLO violation and must include:",
+          "Submission of a Service Credit claim does not preclude Customer from contacting Backblaze Support to report an issue or seek assistance as permitted based on their selected Backblaze Support Plan (https://www.backblaze.com/help/customer-support).",
+          "Upon submission of the required information, Backblaze will review Customer’s claim to determine if an SLO violation has occurred. Regardless of the outcome, Backblaze will contact Customer within 30 days with the results, and if applicable, will issue Customer a Service Credit. Service Credit(s) can accrue and will be applied by Backblaze against the Customer’s next payment for the Covered Services. Service Credit(s) that exceed the next payment amount do not rollover and are lost. A Service Credit does not entitle the Customer to a refund or any other payment from Backblaze. A Service Credit cannot be transferred or applied toward any other Backblaze accounts or Backblaze services.",
+          "This SLA does not apply to any unavailability or performance issues of the Covered Services from (i) factors outside of our reasonable control, such as a force majeure event or internet disruption unrelated to Backblaze; (ii) acts or omissions by you or a third party; (iii) service disruptions which occur inside the Backblaze scheduled maintenance window defined at https://www.backblaze.com/scheduled-maintenance.html; (iv) hardware or software that is not under our control; (v) your application's failure to follow our B2 Cloud Storage integration requirements found at https://www.backblaze.com/b2/docs/integration_checklist.html; or (vi) a suspension or termination of your account due to violations of our terms of service, policies, or other agreements.",
+          "June 28, 2016",
+          "Backblaze © 2024"
+        ],
+        "missing_terms": [
+          "claim filing deadline",
+          "covered service scope",
+          "credit remedy",
+          "effective dates",
+          "eligible fee basis",
+          "measurement period",
+          "provider-caused conditions",
+          "qualifying symptoms",
+          "vendor"
+        ]
+      },
+      "public_diagnostic": {
+        "schema": "public-refusal-diagnostic/1",
+        "profile": "resource-month",
+        "source_sha256": "ba57905a4ee9957c67f494cae80c284bc2402a2475a7b8ef78ee97cfb6053c5f",
+        "document": {
+          "name": "Backblaze Service Level Agreement",
+          "uri": "https://www.backblaze.com/company/policy/sla",
+          "classification": "public"
+        },
+        "issues": [
+          {
+            "block": 7,
+            "block_sha256": "cc412907034495ac1c5bcd443eabac93b21970132ee1c716228a7755395718f0",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 155,
+            "start": 139,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "B2 Cloud Storage"
+          },
+          {
+            "block": 8,
+            "block_sha256": "2b906f1046dcd327c0032afddde467dca5e59a21d8ee3328e35cf9c38e87f996",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 168,
+            "start": 156,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "B2 Overdrive"
+          },
+          {
+            "block": 9,
+            "block_sha256": "6ab871c55f0718a09fcb6efda1052689d474b08ff047451b7e981874db574dc7",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 185,
+            "start": 169,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "B2 for Neoclouds"
+          },
+          {
+            "block": 40,
+            "block_sha256": "e471ec0020a69bd3451b1411e08954ffffd8eef2aca93ec7448e857437a39468",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 613,
+            "start": 601,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "DPA Module 1"
+          },
+          {
+            "block": 41,
+            "block_sha256": "0d67ea0755ba276baa816ec3b98ecb73d8e635be652e33a46b960731eb1b7430",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 626,
+            "start": 614,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "DPA Module 2"
+          },
+          {
+            "block": 42,
+            "block_sha256": "0f47b0483104732465b543c3525500471ca4e417d27c86ad4f4a83d06d08fe3b",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 639,
+            "start": 627,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "DPA Module 3"
+          },
+          {
+            "block": 47,
+            "block_sha256": "c61150f1b60409a9b9e7cb50b2928cd3027a3901700747c2c739aecbe976a956",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 720,
+            "start": 707,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "Using B2 Code"
+          },
+          {
+            "block": 51,
+            "block_sha256": "db4124aff077200b714bb2c787d9b5175087a1214624db5ab17cd5caabb1176c",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 823,
+            "start": 795,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "Last updated: March 27, 2019"
+          },
+          {
+            "block": 53,
+            "block_sha256": "ee5a24446b56d6a4ea280a4859192cc6d21dfbb872a101dfd9269a386ca58e6b",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 1324,
+            "start": 826,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "This Service Level Agreement (\"SLA\") is between Backblaze, Inc. (\"Backblaze\") and users of our services (“Customer”). It governs access to, and use of, the Backblaze B2 Cloud Storage and the Backblaze Computer Backup services (collectively, “Covered Services”). This agreement applies to all Backblaze B2 Cloud Storage Customers and to Backblaze Computer Backup Customers who have purchased a Backblaze Tera or Peta customer support plan detailed at https://www.backblaze.com/help/customer-support."
+          },
+          {
+            "block": 56,
+            "block_sha256": "38dec430c4b11904ade26ac287783cfa2b8b93d48873cefa21bff87c06cead5a",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 1508,
+            "start": 1372,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "“User Account” is an individual user of one or more Covered Services paid for by Customer. Each User Account has a unique email address."
+          },
+          {
+            "block": 57,
+            "block_sha256": "cd2fa97fd66c75a092a728fcf6c62aeeb0085ec317d07db16309261ccc6be31e",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 1714,
+            "start": 1509,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "“User Downtime” means a User Account is not able to access a Covered Service to log in, upload data, select files, or download completed data restores/snapshots unless excluded by the SLA Exclusions below."
+          },
+          {
+            "block": 58,
+            "block_sha256": "b10ef389585e6e4b945f746f49da2250c532720432934ff70b708c73e7ff43be",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 1875,
+            "start": 1715,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "“User Downtime Period” means a period of one or more consecutive minutes of User Downtime. Partial or intermittent minutes of User Downtime will not be counted."
+          },
+          {
+            "block": 59,
+            "block_sha256": "b483b415be069906b3a755410a4d07b9d7f8e579554c2565c9cfce001c731569",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 1959,
+            "start": 1876,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "“Monthly User Downtime” is the total of all User Downtime Periods in a given month."
+          },
+          {
+            "block": 60,
+            "block_sha256": "2e705c568629ba3e26bb85f85e4d6549b18187896a983a4cc20c03330f4c0fc5",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 2155,
+            "start": 1960,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "“Monthly User Uptime Percentage” is computed as the total number of minutes in a given month, minus the Monthly User Downtime for that month, divided by the total number of minutes in that month."
+          },
+          {
+            "block": 63,
+            "block_sha256": "4b2d591e56f39e6b63fd0b5e4eee7a349ba0fbd57f7b368caa728062a38f00ad",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 2283,
+            "start": 2275,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": ">= 99.9%"
+          },
+          {
+            "block": 64,
+            "block_sha256": "d9a847a1a79ab44825bbf8e5720bca771d53d1344d871bf9be1567382a022718",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 2286,
+            "start": 2284,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "0%"
+          },
+          {
+            "block": 65,
+            "block_sha256": "1d00b09b911de9ae57ea6f4e0d40a089b267a66e947ffe0e3809407f161cf598",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 2306,
+            "start": 2287,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "< 99.9% and>= 99.0%"
+          },
+          {
+            "block": 66,
+            "block_sha256": "d1ce334b6a7f364b1e97ebb9e661f6d4cf6e20aa741aba4b8f198417aea18326",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 2309,
+            "start": 2307,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "5%"
+          },
+          {
+            "block": 67,
+            "block_sha256": "3777e4472801b0b43f237615c1264a991bb542ddf8c58f7a05d71c528eb90ff2",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 2317,
+            "start": 2310,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "< 99.0%"
+          },
+          {
+            "block": 68,
+            "block_sha256": "3ccce1f4da948035fd36a399576a50a5248ddc02dd008f3c3668df57c0aa75b5",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 2321,
+            "start": 2318,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "10%"
+          },
+          {
+            "block": 69,
+            "block_sha256": "3e315d6ecffacf691a993b08b88feb3049b65047fe347dec6fd4e47ee07a5e20",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 2609,
+            "start": 2322,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "“Service Credit” is the User Credit Percentage times the monthly amount charged for a User Account. For license terms greater than one month (e.g. yearly and two year licenses), the monthly amount is the amount charged for the license divided by the number of months in the license term."
+          },
+          {
+            "block": 72,
+            "block_sha256": "2a39de8403354cc01fbe64a069b50b11b104ef66de846d744e32247fb16aea00",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 3088,
+            "start": 2650,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "During the term of this SLA, Backblaze agrees to meet or exceed a Service Level Objective (“SLO”) of 99.9% for the Monthly User Uptime Percentage. If Backblaze does not meet or exceed the SLO, and if Customer meets its obligations under this SLA detailed below, the Customer will be eligible to receive a Service Credit as described above. This SLA states Customer’s sole and exclusive remedy for any failure by Backblaze to meet the SLO."
+          },
+          {
+            "block": 76,
+            "block_sha256": "dab54c1ad1af85523470b9bb039fae218c87f0a2071348c8a3f4b1e81c8553ce",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 3396,
+            "start": 3135,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "To receive a Service Credit, Customer must submit a claim via a support ticket at Backblaze Support. Claims are filed monthly, and must be submitted within 30 days from the last day of the month in which Customer is asserting the SLO violation and must include:"
+          },
+          {
+            "block": 81,
+            "block_sha256": "fa4535e067742406ee4bdd66e95abe03344ff9bbc1cb87d38ead27d066301a99",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 3913,
+            "start": 3667,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "Submission of a Service Credit claim does not preclude Customer from contacting Backblaze Support to report an issue or seek assistance as permitted based on their selected Backblaze Support Plan (https://www.backblaze.com/help/customer-support)."
+          },
+          {
+            "block": 85,
+            "block_sha256": "bb72c79a2567099ba55c435666c332c3860b45e4319fb4109e5927d96875d764",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 4653,
+            "start": 3961,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "Upon submission of the required information, Backblaze will review Customer’s claim to determine if an SLO violation has occurred. Regardless of the outcome, Backblaze will contact Customer within 30 days with the results, and if applicable, will issue Customer a Service Credit. Service Credit(s) can accrue and will be applied by Backblaze against the Customer’s next payment for the Covered Services. Service Credit(s) that exceed the next payment amount do not rollover and are lost. A Service Credit does not entitle the Customer to a refund or any other payment from Backblaze. A Service Credit cannot be transferred or applied toward any other Backblaze accounts or Backblaze services."
+          },
+          {
+            "block": 89,
+            "block_sha256": "e729039f290f5adab1534f33e11cc7fa973427f89517383b9a7637f6049a4f7f",
+            "code": "UNSUPPORTED_BLOCK_PROPOSITION",
+            "end": 5435,
+            "start": 4673,
+            "explanation": "This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction.",
+            "quote": "This SLA does not apply to any unavailability or performance issues of the Covered Services from (i) factors outside of our reasonable control, such as a force majeure event or internet disruption unrelated to Backblaze; (ii) acts or omissions by you or a third party; (iii) service disruptions which occur inside the Backblaze scheduled maintenance window defined at https://www.backblaze.com/scheduled-maintenance.html; (iv) hardware or software that is not under our control; (v) your application's failure to follow our B2 Cloud Storage integration requirements found at https://www.backblaze.com/b2/docs/integration_checklist.html; or (vi) a suspension or termination of your account due to violations of our terms of service, policies, or other agreements."
+          },
+          {
+            "block": 92,
+            "block_sha256": "fb085990b7a2165485fe1eeca5a70857695371af0d178a178cf447e3b42512fd",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 5472,
+            "start": 5459,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "June 28, 2016"
+          },
+          {
+            "block": 94,
+            "block_sha256": "410677996e00a77963cc6d54a6daef38c9aee723319506ffe8e7b964d8206009",
+            "code": "PUBLIC_PROPOSITION_UNESTABLISHED",
+            "end": 5522,
+            "start": 5506,
+            "explanation": "The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction.",
+            "quote": "Backblaze © 2024"
+          },
+          {
+            "block": null,
+            "block_sha256": null,
+            "code": "REQUIRED_TERMS_MISSING",
+            "end": null,
+            "start": null,
+            "explanation": "No passage establishes the listed required terms. Without them this family cannot produce an adapter.",
+            "quote": null
+          }
+        ],
+        "missing_terms": [
+          "claim filing deadline",
+          "covered service scope",
+          "credit remedy",
+          "effective dates",
+          "eligible fee basis",
+          "measurement period",
+          "provider-caused conditions",
+          "qualifying symptoms",
+          "vendor"
+        ]
+      },
+      "attempts": {
+        "total": 1,
+        "validated": 0,
+        "structural_refusals": 0
+      }
+    }
+  ],
+  "outcome": "NO_SUPPORTED_FAMILY",
+  "selected": null,
+  "review_requirements": [
+    "Monthly availability: The extraction marked this passage as outside the supported terms, and the validator refused on that basis. Review the passage before preparing a fresh extraction. Passage: “Service Level Agreement\nBackblaze announces multi-exabyte storage agreement with CoreWeave.\nRead the announcement\nPartners\nSupport\nSign In\nB2 Cloud Storage\nB2 Overdrive\nB2 for Neoclouds\nArtificial Intelligence\nCloud Application Data\nPowered by Backblaze\nContent Delivery\nBackup & Archive\nRansomware &”. This refused the extraction’s reading, not a deterministic finding about the source text.",
+    "Resource month: The proposed reading could not be established from the public source. Review the source before preparing a fresh extraction. This block contains an unsupported proposed effect. Review its public terms and supported operators before preparing a fresh extraction. No passage establishes the listed required terms. Without them this family cannot produce an adapter. Missing: claim filing deadline, covered service scope, credit remedy, effective dates, eligible fee basis, measurement period, provider-caused conditions, qualifying symptoms, vendor. Passage: “B2 Cloud Storage”. This refused the extraction’s reading, not a deterministic finding about the source text.",
+    "No supported rule family represents this complete source. It cannot become an adapter without a new reviewed family, a corrected source, or manual handling."
+  ],
+  "selection_sha256": "f7faf3822cb19e5533cfc0537e2bc91a66ff1b0f4aefca0a866304c00cc1c63d",
+  "authority": {
+    "approval_gate": false,
+    "dispatch_authorized": false
+  }
+}

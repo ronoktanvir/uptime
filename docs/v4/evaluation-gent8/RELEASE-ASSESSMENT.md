@@ -15,15 +15,15 @@
 
 ### Not met
 
-- **New-vendor gate: no ordinary app-path success.** 0/4 supported onboarding84 extractions were accepted, and correct refusal of the 2 controls is unproven. The 0/4 is permanent. agent2's grammar repair `e8f58ff` is a named remediation, not a rescore.
+- **New-vendor gate: no ordinary app-path success.** 0/4 supported onboarding84 extractions were accepted, and correct refusal of the 2 controls is unproven. The D05 unseen vendor also ended `NO_SUPPORTED_FAMILY`: no app-path success and no unsafe result. The 0/4 is permanent. agent2's grammar repair `e8f58ff` is a named remediation, not a rescore.
 - **New-dispute gate: no first-attempt receipts.** No dispute case has run.
 - **Signed regression, security/financial and human-review gates:** nothing is signed.
 - **Native Ramp proof:** blocked by execution policy. Under D13 this is an external dependency, not a coverage-gate condition.
 
 ### Blocked on a decision from Ronok
 
-1. **D05 run go-ahead.** The vendor is selected and sealed (`474440a`, `211e2f6`). Pre-call checks pass on integration with phase 2, and the driver is dry-run on both paths (`cbec995`). The run makes at most 2 model calls and needs your go-ahead.
-2. **D05 promotion path.** The only local review exception is hard-coded to CalyxQuay, so a new vendor version cannot be approved under the unchanged release gate. Options: (a) authorize agent0 to add a version-scoped exception, which you then approve and sign yourself; (b) stop the proof at SHADOW; (c) a full signed release.
+1. **D05 unseen-vendor proof: run, not demonstrated.** With Ronok's go-ahead, the sealed vendor (Backblaze) ran through the ordinary path on `cccb5a0`, which is round-6 code. Result: `NO_SUPPORTED_FAMILY`, with 2 genuine model calls, 0 unsafe results and no candidate ([result](D05-RESULT.md)). The commitments were revealed and match. The next attempt needs a new independently selected vendor under a new pre-registration.
+2. **D05 promotion path:** moot for this vendor, since no candidate was staged. The CalyxQuay-only exception remains the constraint for any future candidate.
 3. **Whole-month evidence sufficiency** (open under D04-C). Can a complete-month measurement stand in for an incident in a whole-service monthly claim? The 12 corpus84 replies state no incident, and under the current D04-C family table the monthly family requires one.
 4. **Evaluation86.** On `3f60647` the claim schema now accepts every reply's derived scope ([receipt](../evidence/release-evaluation-gent8/preflight-evaluation84-round6-3f60647.json); schema-level only, route-level family requirements are not exercised). But:
    - both claim-basis contracts remain QUARANTINED on the deterministic route even with `e8f58ff`;

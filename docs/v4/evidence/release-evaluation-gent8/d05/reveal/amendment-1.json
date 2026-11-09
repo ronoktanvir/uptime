@@ -1,0 +1,12 @@
+{
+  "schema": "d05-oracle-amendment/1",
+  "nonce": "2c97adcbc681651219b37e508a30af7f",
+  "made": "before any run, by the selector",
+  "amends_bundle_sha256": "625f93470b222ffd5ac6a1303fa1655eb59f002521fd2d7dc3e223c635b42958",
+  "change": {
+    "scenario": "Claim 31 days after month end",
+    "original_claim_received": "2026-10-31T12:00:00Z",
+    "amended_claim_received": "2026-11-02T12:00:00Z",
+    "reason": "The original instant equals the end of 2026-10-30 in UTC-12, so \"outside in every zone\" was not strictly true. The amended instant is outside the 30-day window under every time-zone reading. The expected outcome (refused: late) is unchanged."
+  }
+}

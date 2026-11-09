@@ -1,0 +1,28 @@
+{
+  "schema": "d05-selection-frame/1",
+  "nonce": "e93e5d226baa53d22a649e5c4195ca59690599c8f122e751e94444d0fcc19cd8",
+  "note": "Fixed by the selector before any vendor page or SLA was opened in this session.",
+  "vendors": [
+    "Algolia",
+    "Backblaze",
+    "Cloudflare",
+    "Datadog",
+    "DigitalOcean",
+    "Dropbox",
+    "Fastly",
+    "Heroku",
+    "Hetzner",
+    "Linode",
+    "Mailgun",
+    "MongoDB",
+    "Netlify",
+    "Okta",
+    "PagerDuty",
+    "Postmark",
+    "Sentry",
+    "Vercel",
+    "Vultr",
+    "Zendesk",
+    "Zoom"
+  ]
+}

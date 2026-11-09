@@ -1,0 +1,107 @@
+[
+  {
+    "name": "Sept 2026 216 min downtime (99.5%)",
+    "facts": {
+      "agreement": "Backblaze Service Level Agreement",
+      "account": "Kestrel Ridge Media",
+      "product": "Backblaze B2 Cloud Storage",
+      "plan": "B2 Cloud Storage",
+      "fee_line_ref": "b2-storage-monthly",
+      "month": "2026-09",
+      "eligible_downtime_minutes": 216,
+      "monitor_source": "simulated_vendor",
+      "month_complete": true,
+      "exclusions_removed": true,
+      "monthly_fee_cents": 20000,
+      "received_at": "2026-10-05T12:00:00Z",
+      "monitor_ref": "monitor-2026-09",
+      "fee_ref": "b2-storage-monthly",
+      "monitor_month": "2026-09",
+      "fee_month": "2026-09"
+    }
+  },
+  {
+    "name": "Sept 2026 exactly 99.0% (432 min)",
+    "facts": {
+      "agreement": "Backblaze Service Level Agreement",
+      "account": "Kestrel Ridge Media",
+      "product": "Backblaze B2 Cloud Storage",
+      "plan": "B2 Cloud Storage",
+      "fee_line_ref": "b2-storage-monthly",
+      "month": "2026-09",
+      "eligible_downtime_minutes": 432,
+      "monitor_source": "simulated_vendor",
+      "month_complete": true,
+      "exclusions_removed": true,
+      "monthly_fee_cents": 20000,
+      "received_at": "2026-10-05T12:00:00Z",
+      "monitor_ref": "monitor-2026-09",
+      "fee_ref": "b2-storage-monthly",
+      "monitor_month": "2026-09",
+      "fee_month": "2026-09"
+    }
+  },
+  {
+    "name": "Sept 2026 433 min (<99.0%)",
+    "facts": {
+      "agreement": "Backblaze Service Level Agreement",
+      "account": "Kestrel Ridge Media",
+      "product": "Backblaze B2 Cloud Storage",
+      "plan": "B2 Cloud Storage",
+      "fee_line_ref": "b2-storage-monthly",
+      "month": "2026-09",
+      "eligible_downtime_minutes": 433,
+      "monitor_source": "simulated_vendor",
+      "month_complete": true,
+      "exclusions_removed": true,
+      "monthly_fee_cents": 20000,
+      "received_at": "2026-10-05T12:00:00Z",
+      "monitor_ref": "monitor-2026-09",
+      "fee_ref": "b2-storage-monthly",
+      "monitor_month": "2026-09",
+      "fee_month": "2026-09"
+    }
+  },
+  {
+    "name": "Sept 2026 43 min (>=99.9%)",
+    "facts": {
+      "agreement": "Backblaze Service Level Agreement",
+      "account": "Kestrel Ridge Media",
+      "product": "Backblaze B2 Cloud Storage",
+      "plan": "B2 Cloud Storage",
+      "fee_line_ref": "b2-storage-monthly",
+      "month": "2026-09",
+      "eligible_downtime_minutes": 43,
+      "monitor_source": "simulated_vendor",
+      "month_complete": true,
+      "exclusions_removed": true,
+      "monthly_fee_cents": 20000,
+      "received_at": "2026-10-05T12:00:00Z",
+      "monitor_ref": "monitor-2026-09",
+      "fee_ref": "b2-storage-monthly",
+      "monitor_month": "2026-09",
+      "fee_month": "2026-09"
+    }
+  },
+  {
+    "name": "Claim after the 30-day window (amended timestamp; 216 min to isolate lateness)",
+    "facts": {
+      "agreement": "Backblaze Service Level Agreement",
+      "account": "Kestrel Ridge Media",
+      "product": "Backblaze B2 Cloud Storage",
+      "plan": "B2 Cloud Storage",
+      "fee_line_ref": "b2-storage-monthly",
+      "month": "2026-09",
+      "eligible_downtime_minutes": 216,
+      "monitor_source": "simulated_vendor",
+      "month_complete": true,
+      "exclusions_removed": true,
+      "monthly_fee_cents": 20000,
+      "received_at": "2026-11-02T12:00:00Z",
+      "monitor_ref": "monitor-2026-09",
+      "fee_ref": "b2-storage-monthly",
+      "monitor_month": "2026-09",
+      "fee_month": "2026-09"
+    }
+  }
+]

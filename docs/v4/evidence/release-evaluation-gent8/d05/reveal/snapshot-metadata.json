@@ -1,0 +1,15 @@
+{
+  "url": "https://www.backblaze.com/company/policy/sla",
+  "final_url": "https://www.backblaze.com/company/policy/sla",
+  "http_status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "raw_sha256": "b546933f7bfc99e1a07a5ff3064022fb2be15a0d6b816dcc76138188b3fbaf21",
+  "raw_bytes": 157468,
+  "text_sha256": "ba57905a4ee9957c67f494cae80c284bc2402a2475a7b8ef78ee97cfb6053c5f",
+  "text_characters": 5788,
+  "document_sha256": "134729d1d8d09e83a0245044f6444925f1c643e8334efbab80878b2e2f40e7a8",
+  "document_bytes": 6108,
+  "within_text_limit": true,
+  "within_document_bytes_limit": true,
+  "extractor_sha256": "86e56f5a0c9696fa99782f72f995ed3259b561d85d77e41be512a764850b17e9"
+}

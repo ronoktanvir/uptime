@@ -1,0 +1,5 @@
+{"at": "2026-11-09T19:27:22.274940+00:00", "stage": "start"}
+{"at": "2026-11-09T19:27:23.508192+00:00", "outcome": "APPROVAL_REQUIRED", "stage": "inspected"}
+{"at": "2026-11-09T19:27:24.420776+00:00", "stage": "started"}
+{"at": "2026-11-09T19:28:45.093476+00:00", "outcome": "NO_SUPPORTED_FAMILY", "stage": "selection"}
+{"at": "2026-11-09T19:28:45.206085+00:00", "final_stage": "selection", "outcome": "NO_SUPPORTED_FAMILY", "stage": "finished"}

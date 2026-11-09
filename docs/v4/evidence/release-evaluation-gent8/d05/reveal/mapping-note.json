@@ -1,0 +1,3 @@
+{
+  "note": "Sealed scenario values mapped to the monthly family fact names without changing values. Fee 200.00 -> 20000 cents. The late-claim scenario uses the pre-run amended timestamp and 216 downtime minutes so only lateness differs. monitor_source \"simulated_vendor\" marks authored evidence."
+}

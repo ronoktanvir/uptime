@@ -1,0 +1,81 @@
+{
+  "schema": "d05-unseen-run/1",
+  "document_sha256": "134729d1d8d09e83a0245044f6444925f1c643e8334efbab80878b2e2f40e7a8",
+  "target": "v-134729d1d8d09e83a0245044",
+  "head": "cccb5a0a1517d8bbf07c2c031908b10ca7d2b85e",
+  "stage": "selection",
+  "outcome": "NO_SUPPORTED_FAMILY",
+  "requests": [
+    {
+      "family": "monthly-availability/1",
+      "profile": "monthly-propositions",
+      "request_sha256": "9caa3195a7660eeed65d249f271e21b19639ffc799a0dc662b706992c05a1425",
+      "matches_server": true,
+      "bytes": 10617,
+      "transmitted_fields": [
+        "attempt_nonce",
+        "extraction_instructions",
+        "input",
+        "limits",
+        "model",
+        "profile",
+        "protocol",
+        "system",
+        "tools",
+        "transport"
+      ],
+      "forbidden_strings_found": 0
+    },
+    {
+      "family": "resource-month/1",
+      "profile": "resource-month",
+      "request_sha256": "6c5a1b79a101cf26ec175243456d7d54bd768953a0d86856970a08866f9a5571",
+      "matches_server": true,
+      "bytes": 28517,
+      "transmitted_fields": [
+        "attempt_nonce",
+        "extraction_instructions",
+        "input",
+        "limits",
+        "model",
+        "profile",
+        "protocol",
+        "system",
+        "tools",
+        "transport"
+      ],
+      "forbidden_strings_found": 0
+    }
+  ],
+  "approvals": [
+    {
+      "family": "monthly-availability/1",
+      "scope": "model invocation only",
+      "expires_at": "2026-11-10T01:27:24.368152+00:00"
+    },
+    {
+      "family": "resource-month/1",
+      "scope": "model invocation only",
+      "expires_at": "2026-11-10T01:27:24.369420+00:00"
+    }
+  ],
+  "started": true,
+  "candidate": null,
+  "previews": [],
+  "authority": {
+    "approvals_enabled": false,
+    "promotion_performed": false,
+    "human_actions_performed": false
+  },
+  "server_stopped": true,
+  "jobs": [
+    {
+      "status": "REFUSED",
+      "reason": "proposal_validation_failed"
+    },
+    {
+      "status": "REFUSED",
+      "reason": "proposal_validation_failed"
+    }
+  ]
+}

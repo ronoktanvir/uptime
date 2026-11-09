@@ -1,0 +1,121 @@
+{
+  "http_status": 200,
+  "body": {
+    "schema": "automatic-family-selection/1",
+    "mode": "automatic",
+    "vendor_id": "v-134729d1d8d09e83a0245044",
+    "source_sha256": "ba57905a4ee9957c67f494cae80c284bc2402a2475a7b8ef78ee97cfb6053c5f",
+    "attempt_nonce": "initial",
+    "offline": {
+      "accepted": false,
+      "method": "deterministic_document_parser",
+      "reason": "RESOURCE_LANGUAGE_PRESENT"
+    },
+    "families": [
+      {
+        "family": "monthly-availability/1",
+        "label": "Monthly availability",
+        "profile": "monthly-propositions",
+        "enabled": true,
+        "approval_reason": null,
+        "context_sha256": "8f9e8ef0b26753308a79463b91b05ffc2e4fb20551f6cace7b653bfcdae59306",
+        "request_sha256": "9caa3195a7660eeed65d249f271e21b19639ffc799a0dc662b706992c05a1425",
+        "disclosure": {
+          "model": "claude-opus-5-5",
+          "tools": [],
+          "profile": "monthly-propositions",
+          "attempt_nonce": "initial",
+          "source_sha256": "ba57905a4ee9957c67f494cae80c284bc2402a2475a7b8ef78ee97cfb6053c5f",
+          "source_characters": 5788,
+          "request_bytes": 10617,
+          "transmitted_fields": [
+            "attempt_nonce",
+            "extraction_instructions",
+            "input",
+            "limits",
+            "model",
+            "profile",
+            "protocol",
+            "system",
+            "tools",
+            "transport"
+          ]
+        },
+        "job": {
+          "job_id": "6ac9576d-3a14-4688-b788-f29795f84a0b",
+          "status": "RUNNING",
+          "vendor_id": "v-134729d1d8d09e83a0245044",
+          "request_sha256": "9caa3195a7660eeed65d249f271e21b19639ffc799a0dc662b706992c05a1425",
+          "context_sha256": "8f9e8ef0b26753308a79463b91b05ffc2e4fb20551f6cace7b653bfcdae59306",
+          "candidate_available": false,
+          "completed_after_expiry": false
+        },
+        "state": "PENDING",
+        "refusal": null,
+        "public_diagnostic": null,
+        "attempts": {
+          "total": 1,
+          "validated": 0,
+          "structural_refusals": 0
+        }
+      },
+      {
+        "family": "resource-month/1",
+        "label": "Resource month",
+        "profile": "resource-month",
+        "enabled": true,
+        "approval_reason": null,
+        "context_sha256": "881305deaa2244839ff2a4b3cebc52516672428eb142ac877fe4c9e5189a5400",
+        "request_sha256": "6c5a1b79a101cf26ec175243456d7d54bd768953a0d86856970a08866f9a5571",
+        "disclosure": {
+          "model": "claude-opus-5-5",
+          "tools": [],
+          "profile": "resource-month",
+          "attempt_nonce": "initial",
+          "source_sha256": "ba57905a4ee9957c67f494cae80c284bc2402a2475a7b8ef78ee97cfb6053c5f",
+          "source_characters": 5788,
+          "request_bytes": 28517,
+          "transmitted_fields": [
+            "attempt_nonce",
+            "extraction_instructions",
+            "input",
+            "limits",
+            "model",
+            "profile",
+            "protocol",
+            "system",
+            "tools",
+            "transport"
+          ]
+        },
+        "job": {
+          "job_id": "33443b2f-69ec-4e64-aa22-07910ab495ff",
+          "status": "QUEUED",
+          "vendor_id": "v-134729d1d8d09e83a0245044",
+          "request_sha256": "6c5a1b79a101cf26ec175243456d7d54bd768953a0d86856970a08866f9a5571",
+          "context_sha256": "881305deaa2244839ff2a4b3cebc52516672428eb142ac877fe4c9e5189a5400",
+          "candidate_available": false,
+          "completed_after_expiry": false
+        },
+        "state": "PENDING",
+        "refusal": null,
+        "public_diagnostic": null,
+        "attempts": {
+          "total": 1,
+          "validated": 0,
+          "structural_refusals": 0
+        }
+      }
+    ],
+    "outcome": "PENDING",
+    "selected": null,
+    "review_requirements": [
+      "Wait for every family evaluation to finish."
+    ],
+    "selection_sha256": "3d364c32696cc86f1ea7ba156b196073d7c343a1528dc8e9a65ca4bb925c81d2",
+    "authority": {
+      "approval_gate": false,
+      "dispatch_authorized": false
+    }
+  }
+}
