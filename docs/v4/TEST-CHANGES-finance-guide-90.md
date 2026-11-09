@@ -1,0 +1,84 @@
+# Test changes — finance next steps and grounded guide (W7, `work/finance-guide-90`)
+
+**No existing test function, assertion, fixture or expected outcome changed.** The following existing tests run unchanged against the new code:
+
+- `tests/test_northwind_workflow.py`
+- `tests/test_workspace_ui_v4.py`
+- `tests/test_ramp_ui_v4.py`
+- `tests/test_intelligence.py`
+- `tests/test_advanced_companion.py`
+- `tests/test_vendor_auth83.py`
+- the other existing files in the focused list below
+- all existing `web/*.test.cjs` and `tests/helpers/*.test.cjs` checks
+
+Decision: [ADR 95](decisions/ADR-0095-grounded-finance-guide.md).
+
+## New tests
+
+| File | Count | Purpose |
+| --- | ---: | --- |
+| `tests/test_finance_view_90.py` | 21 | Attention items across a real 12-state authored run. Ineligible February is never "missing evidence". Projection additions copy domain values. Every summary amount is copied from the projection. Also covers constructed conflicts, missing agreement, closed filing windows, unparseable amounts and server-supplied Ramp records only. |
+| `tests/test_finance_guide_90.py` | 41 | Cited answers whose numbers all appear in the case. Unknown amounts stay unknown. Abstention on outside-case and judgment questions. Read-only answers to action requests. Injected questions and source text. No row change in either database. Determinism and route boundaries. The authored paraphrase corpus (tuning and holdout). Stages never summed. Same-amount disambiguation. Exact deadline instants. Unsigned and signed sessions give identical answers with full database dumps unchanged. A named viewer cannot be enrolled in the authored workspace. A viewer projection gets the same answers except for the server-offered step. |
+| `tests/test_finance_browser_90.py` | 2 | Live uvicorn and real Chrome. Real sign-in with the workspace's scripted credential, signed actions, server-side session expiry during an action and during a guide question, keyboard focus movement, 390 px layout, load and guide failures, and the empty state. Product text excludes demo, fixture and "Post to Ramp" wording. |
+| `tests/data/finance_guide_paraphrases_95.json` | data | Authored paraphrases: 40 tuning cases and 20 holdout cases. |
+| `web/finance_view.test.cjs` | 5 | DOM rendering of attention items, destination, inputs and price lines. The guide posts only the question. Abstention and failure messages. A 401 returns to sign-in once. The older layout is used when no summary is present. |
+| `web/vendor_history.test.cjs` | 2 | The review history separates scripted preparation from account actions, and the final state is stated plainly (rolled back with nothing active, active version, or other). |
+| `tests/helpers/refusal_diagnostic.test.cjs` | 2 | W3 request (commit `5312938`): a refused vendor proposal job shows the server's verified diagnostic — fixed explanations, the exact passage with offsets and SHA-256, missing terms — as inert text. A missing or foreign-schema diagnostic, or a non-refused job, renders nothing extra. |
+
+## New tests corrected during development, before commit
+
+1. **`test_guide_route_boundaries`.** The "missing action header" probe reused headers that already carried `X-Uptime-Action`, so it returned 200. It now strips the header, and a foreign-origin probe was added. Both return 403.
+2. **`test_stage_amounts_are_never_summed_and_never_increase_downstream`.** It first used `ledger.estimated`, which is null in states 2–7 (an unknown estimate stays unknown). It now uses January's evaluated amount.
+3. **`web/finance_view.test.cjs`.** It expected "scripted reviewer"; the existing UI label is "Scripted reviewer".
+4. **`web/vendor_history.test.cjs`.** The stub returned the vendor list for the detail route. It now answers by path, as the real client requests.
+5. **Viewer test replaced.** The first draft enrolled a named viewer in the authored workspace. Authority binding refuses that by design. It was replaced by three tests: unsigned vs signed requests over HTTP, an explicit enrollment-refusal check, and viewer-projection equivalence.
+6. **`test_injected_source_text_is_quoted_as_data_and_grants_nothing`.** The expected response keys gained `scope_note` when the answer footer was added after the Opus critique.
+
+## Defects found by the new tests
+
+| Defect | Found by | Fix |
+| --- | --- | --- |
+| A shortened adapter version hash produced a number absent from the case (2 failed, 39 passed) | Number-grounding assertions | Exact version is now the citation reference (`221a909`) |
+| The new price-lines table widened its grid column, so the page scrolled sideways at 390 px | Browser test | `.section-grid>*{min-width:0}` (UI commit) |
+| Ranking: tuning corpus first run 35/40 (four wrong first facts and a poem request treated as an action). Causes: generic `where` in status, missing-evidence months not primary for evidence, claim status vs stage ranking, and `write` as an action verb. | Authored corpus | Fixed; 40/40 on tuning. Holdout written afterwards and run once: 19/20, zero wrong facts, one safe abstention ("Are there open items?"). |
+
+## Results
+
+| Run | Source | Result |
+| --- | --- | --- |
+| Focused regression before the critique changes | Working tree on `03b372e` | **338 passed, 1 warning in 587.64s** |
+| Same group after rebase | `8cf8f0c` | **349 passed, 1 warning in 276.90s** ([verification](evidence/finance-guide-90/verification.json)) |
+| JavaScript checks | Tree equal to `5312938` | **84/84 pass** (75 existing + 9 new) |
+| Full `uv run --locked pytest` | — | Not yet run. Requested from the integration owner; full suites run one at a time on this disk. |
+
+The focused list covers:
+
+- the new tests
+- `test_advanced_companion`
+- `test_intelligence`
+- `test_journey_api`
+- `test_journey_browser`
+- `test_local_review_exception`
+- `test_local_review_exception_disputes`
+- `test_northwind_financial`
+- `test_northwind_inputs`
+- `test_northwind_local_ledger`
+- `test_northwind_workflow`
+- `test_ramp_workspace_installation`
+- `test_v4_audit_browser`
+- `test_v4_authority_browser`
+- `test_vendor_auth83`
+- `test_vendor_model_jobs_browser`
+- `test_workspace_tenant_v4`
+- `test_workspace_ui_v4`
+- `test_ramp_ui_v4`
+
+## Preserved flake
+
+`tests/test_workspace_ui_v4.py::test_configured_workflow_keeps_evidence_money_and_original_navigation_reachable` failed once:
+
+- **Failing run:** 1 failed, 75 passed, 1 warning in 263.91s, under heavy machine load.
+- **Rerun alone:** 3 passed in 8.11s.
+- **Same group rerun:** 76 passed, 1 warning in 93.80s.
+
+The traceback was not captured; that omission is recorded. The test is unchanged. [Receipt](evidence/finance-guide-90/flake-workspace-ui-v4.json).
