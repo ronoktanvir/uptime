@@ -1,0 +1,24 @@
+{
+  "schema": "uptime-coding-worker/1",
+  "status": "running_not_verified",
+  "base_commit": "579997f1adb17b1ce5ea5c50b366cf1fe562b170",
+  "actual_model": "claude-opus-5-5",
+  "session_id": "afe5029a-1c61-44e7-814c-d113a349494c",
+  "requested_effort": "xhigh",
+  "actual_tools": [
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "mcp_servers": [],
+  "permission_mode": "acceptEdits",
+  "prompt_sha256": "5b81aa3b87bb23a1591dd2594bbb436024c433764583deb7831154947a0327e1",
+  "scope": [
+    "uptime/vendor_terms.py",
+    "uptime/vendor_strict_diagnostics.py",
+    "tests/onboarding_finish20261109/"
+  ],
+  "limits": "Named grammar remediation only. No private gold, customer data, model extraction, financial activity, human approval or Ramp action delegated. Parent verifies and runs tests. Init is not implementation completion."
+}
