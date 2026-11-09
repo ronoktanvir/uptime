@@ -40,3 +40,13 @@ The separately authored six-contract/eight-reply corpus and expected outcomes we
 Added a control for source-stated historical filing instead of fabricating a local original submission. The initial expectation that this monthly-profile setup would succeed was incorrect: the ordinary route refuses historical receipts unless an active reviewed resource-month agreement governs them. The new test now requires that exact setup refusal before model dispatch, with no local initial claim filing. This corrects the test's unsupported premise; no application or existing test was changed. A later monthly late-denial case will retain the setup limitation rather than pass on a forged chronology.
 
 Latest combined focused result: **56 passed, 1 warning in 2.28s.**
+
+
+## Fixed cohort execution
+
+Added `tests/test_supplementary_finish_batch.py`:
+- `test_mapping_refusals_are_terminal_cases_and_cannot_be_repeated`: all fourteen declared cases remain terminal records even if source setup refuses; the run directory cannot be reused.
+- `test_dropping_or_relabeling_a_refused_case_cannot_raise_success_rate`: the executor rejects altered cohort composition before a run begins.
+- `test_unpinned_consumed_input_cannot_start_a_provider`: every consumed source/setup/provider configuration must be committed by hash.
+
+The additive batch executor opens no expected answers, checks source pins between cases, and records raw model, scripted projection, continuation and setup separately. It is infrastructure, not a result claim. Latest focused result: **59 passed, 1 warning in 2.50s.**

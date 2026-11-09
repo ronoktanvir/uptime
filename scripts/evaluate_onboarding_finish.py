@@ -104,8 +104,8 @@ def _forbidden_strings(local):
 
 def verify_freeze(*, source_commit, pinned_inputs):
     """Require committed core and the exact declared input bytes before an attempt."""
-    changed = subprocess.check_output(['git', 'diff', '--name-only', source_commit, '--', 'uptime', 'web', 'scripts/evaluate_onboarding_finish.py', 'scripts/evaluate_disputes_finish.py', 'scripts/dispute_runtime_finish.py'], cwd=ROOT)
-    dirty = subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=all', '--', 'uptime', 'web', 'scripts/evaluate_onboarding_finish.py', 'scripts/evaluate_disputes_finish.py', 'scripts/dispute_runtime_finish.py'], cwd=ROOT)
+    changed = subprocess.check_output(['git', 'diff', '--name-only', source_commit, '--', 'uptime', 'web', 'scripts/evaluate_onboarding_finish.py', 'scripts/evaluate_disputes_finish.py', 'scripts/dispute_runtime_finish.py', 'scripts/run_supplementary_finish.py'], cwd=ROOT)
+    dirty = subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=all', '--', 'uptime', 'web', 'scripts/evaluate_onboarding_finish.py', 'scripts/evaluate_disputes_finish.py', 'scripts/dispute_runtime_finish.py', 'scripts/run_supplementary_finish.py'], cwd=ROOT)
     if changed.strip() or dirty.strip():
         raise ValueError('Frozen implementation or runner differs; do not start an attempt.')
     if not pinned_inputs:
