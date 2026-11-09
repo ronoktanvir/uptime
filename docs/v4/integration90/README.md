@@ -66,11 +66,12 @@ Each specialist's required handoff (commits, files, behavior, actual results, ga
 - [HANDOFF-W3-ONBOARDING-89.md](../HANDOFF-W3-ONBOARDING-89.md)
 - [W7-HANDOFF-90.md](../W7-HANDOFF-90.md)
 - [HANDOFF-W1-93.md](../HANDOFF-W1-93.md)
+- [HANDOFF-W4-DISPUTES-89.md](../HANDOFF-W4-DISPUTES-89.md)
 - [HANDOFF-W5-evidence-custody-90.md](../HANDOFF-W5-evidence-custody-90.md)
 - [HANDOFF-W9-OPERATIONS.md](../HANDOFF-W9-OPERATIONS.md)
 - Verification lane, on its own branch: [HANDOFF.md](https://github.com/ronoktanvir/uptime/blob/e6a5832111a36fa88abccc8e5d9dabdc397a5b79/docs/v4/evaluation-gent8/HANDOFF.md) and [RELEASE-ASSESSMENT.md](https://github.com/ronoktanvir/uptime/blob/e6a5832111a36fa88abccc8e5d9dabdc397a5b79/docs/v4/evaluation-gent8/RELEASE-ASSESSMENT.md) (commit `e6a5832`; not merged here, because that branch carries the evaluation runners)
 
-Reports still to arrive are linked as they merge.
+All workstream handoff reports are merged (W1, W2/identity, W3, W4, W5, W7, W9) or linked (verification lane). The evaluation-86 runner branch (`e1b6657`) is deliberately unmerged until Ronok decides.
 
 ## Rollback
 
