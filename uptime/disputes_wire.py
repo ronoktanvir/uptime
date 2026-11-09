@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 
 from uptime.contracts import EvidenceFact, Source, fingerprint
+from uptime.source_identity import refusal as identity_refusal, source_identity
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "disputes"
 TERMS = "https://www.twilio.com/en-us/legal/service-level-agreement/twilio-apis"
@@ -14,6 +15,11 @@ VERSION = "2026-04-09"
 CENT = Decimal("0.01")
 DOCUMENT_FIELDS = frozenset({"ref", "kind", "account", "month", "product", "region", "source",
                              "start", "end", "origin", "classification", "component_id", "observed_at"})
+
+
+def account_identity(value) -> bool:
+    """D03-A account domain (source-identity/1) for the legacy route."""
+    return identity_refusal(value) is None
 
 
 def canonical(value) -> bool:
@@ -83,6 +89,11 @@ class Ticket:
     vendor: str = "Twilio"
     governing_version: str = VERSION
     obligation: str = "monthly_api_availability"
+
+    def __post_init__(self):
+        # D03-A: the account is a bounded exact source identity, refused and never rewritten.
+        # Stored legacy accounts are restricted IDs, a strict subset, so digests are unchanged.
+        source_identity(self.account)
 
     @property
     def digest(self) -> str:
