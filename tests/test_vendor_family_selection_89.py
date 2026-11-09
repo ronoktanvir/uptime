@@ -349,3 +349,48 @@ def test_signed_app_path_offline_selection_and_explanation(signed):
     record = reviewer.client.get(base + '/requirements', headers=reviewer.headers).json()['family_selection']
     assert record['outcome'] == 'SELECTED' and record['selected']['method'] == 'deterministic_document_parser'
     assert runtime[2].calls == []
+
+
+# ---- Phase 2: only the job automatic selection chose can stage a candidate ----
+
+def _explicit_job(runtime, document, profile, output):
+    _, manifest, provider, service, jobs = runtime
+    provider.outputs[profile] = output
+    body = ProposalRequest(document=document, profile=profile)
+    record = public_approval_request(provider, P, VENDOR, body)
+    records = json.loads(manifest.read_text())['approvals'] + [record | {
+        'approved_by': 'scripted-public-engineering-operator', 'approved_at': '2026-11-01T00:00:00Z',
+        'expires_at': '2026-12-01T00:00:00Z'}]
+    write_manifest(manifest, records)
+    return finished(service, jobs.submit(P, VENDOR, body))
+
+
+def test_operator_chosen_profile_cannot_stage_a_candidate(selecting):
+    from test_vendor_model_jobs_runtime import DOC as ASTER, OVERLAY as ASTER_OVERLAY, PROPOSAL as ASTER_PROPOSAL
+    _, _, _, _, jobs = selecting
+    job = _explicit_job(selecting, ASTER, 'monthly', json.dumps({'clauses': ASTER_PROPOSAL}))
+    assert job['status'] == 'SUCCEEDED'
+    with pytest.raises(SelectionRefused, match='NOT_AUTOMATIC') as refused:
+        jobs.candidate(P, VENDOR, job['job_id'], ASTER_OVERLAY)
+    assert 'profile "auto"' in str(refused.value)
+
+
+def test_a_job_selection_did_not_choose_cannot_stage_a_candidate(selecting):
+    from test_vendor_model_jobs_runtime import DOC as ASTER, OVERLAY as ASTER_OVERLAY, PROPOSAL as ASTER_PROPOSAL
+    _, _, _, _, jobs = selecting
+    # The source is canonical, so selection is offline; a monthly-propositions job for it is not the selected path.
+    job = _explicit_job(selecting, ASTER, 'monthly-propositions', json.dumps({'clauses': ASTER_PROPOSAL}))
+    assert job['status'] == 'SUCCEEDED'
+    with pytest.raises(SelectionRefused, match='NOT_SELECTED') as refused:
+        jobs.candidate(P, VENDOR, job['job_id'], ASTER_OVERLAY)
+    assert '/candidates' in str(refused.value)
+
+
+def test_an_incomplete_selection_cannot_stage_its_validated_job(selecting):
+    _, _, provider, _, jobs = selecting
+    provider.outputs = {'monthly-propositions': json.dumps({'clauses': PROSE_PROPOSAL}), 'resource-month': 'not json'}
+    approve(selecting, PROSE)
+    view = run(selecting, PROSE)
+    monthly_job = by_family(view)[MONTHLY]['job']['job_id']
+    with pytest.raises(SelectionRefused, match='INCOMPLETE'):
+        jobs.candidate(P, VENDOR, monthly_job, PROSE_OVERLAY)

@@ -1,6 +1,8 @@
 # Test changes: workstream onboarding-89
 
-**Changed existing tests: none.** No existing test, expectation, authority assertion or monetary assertion was modified.
+**Changed existing tests:** none on `work/onboarding-generalization-89`. On `work/onboarding-d05-phase2-89` (D05 phase 2), exactly one:
+
+- `tests/test_vendor_model_jobs_browser.py::test_signed_job_routes_require_approval_and_cannot_grant_financial_actions`. **Reason:** under D05 an operator-chosen profile (`monthly`) can no longer stage a candidate. The test now asserts that candidate is refused with HTTP 409, then stages the same source through automatic selection: the canonical source is selected offline and staged via `POST /candidates`, and a repeat is idempotent. Approval, financial-action denial, provider-call count and cross-reviewer 404 assertions are unchanged; no authority or monetary assertion was weakened.
 
 ## Added: `tests/test_vendor_requirements_89.py` (16 tests)
 
@@ -73,3 +75,5 @@ Run from the worktree with the integration virtual environment (`UV_PROJECT_ENVI
 Full `uv run --locked pytest`: not run on this branch, at the integration owner's request (shared nearly full disk). It runs once after merge into `work/integration-90`.
 
 - D05 phase 1: new file **22 passed, 1 warning in 1.78s** (first collection failed on a parametrize name that clashed with an imported module; fixed). Focused set (all `test_vendor_*`, `test_onboarding*`, proposal-job, correspondence model-job, route and authority tests): **1174 passed, 1 warning in 71.27s**.
+- D05 phase 2 (`work/onboarding-d05-phase2-89`): `test_vendor_family_selection_89.py` **25 passed**, including three new phase 2 tests (`test_operator_chosen_profile_cannot_stage_a_candidate`, `test_a_job_selection_did_not_choose_cannot_stage_a_candidate`, `test_an_incomplete_selection_cannot_stage_its_validated_job`). With `test_vendor_model_jobs_browser.py`, `test_vendor_auth83.py` and `test_vendor_monthly_profile_79.py`: **3 failed, 38 passed in 110.19s**. All three failures are browser tests that drive the current "Extraction profile" select, and they pass only with the W7 change in [D05-SELECTION-API.md](D05-SELECTION-API.md): `test_browser_checks_permission_generates_and_stages_separate_overlay[manual]`, `[utf8_file]` and `test_vendor_auth83.py::test_expired_browser_session_recovers_same_job_without_resubmitting`. Phase 2 is therefore not mergeable without that change.
+
