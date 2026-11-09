@@ -40,6 +40,13 @@
   'use strict';
   const list = value => Array.isArray(value) ? value : [];
   const shown = value => value === null || value === undefined || value === '' ? 'Not provided' : String(value);
+  // Server timestamps are shown as dates and times in UTC at the rendering boundary.
+  const at = value => {
+    const d = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value) ? new Date(value) : null;
+    if (!d || Number.isNaN(d.getTime())) return value;
+    const month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()];
+    return `${month} ${d.getUTCDate()}, ${d.getUTCFullYear()}, ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')} UTC`;
+  };
   const label = key => key.replaceAll('_', ' ');
   // Plain wording for server dispute codes; unknown codes are shown as lower-case words, never guessed.
   const CATEGORY = {MISSING_EVIDENCE:'missing evidence', CONTRACTUAL_DENIAL:'contractual denial',
@@ -742,13 +749,23 @@
           note('This refusal created no candidate, test or approval. A new attempt needs its own approval.'));
         return box;
       }
+      // The job as the server reports it: the model actually used and its times appear only when the server supplies them.
+      function jobRecord(job) {
+        const provider = job.provider && typeof job.provider === 'object' ? job.provider : {};
+        const proposal = job.status === 'SUCCEEDED' && job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
+        const fields = {job_id:job.job_id, status:job.status, reason:job.reason, model:provider.model || proposal.model,
+          submitted:at(job.submitted_at), started:at(job.started_at), finished:at(job.finished_at),
+          request_sha256:job.request_sha256, context_sha256:job.context_sha256};
+        Object.keys(fields).forEach(key => { if (fields[key] === undefined || fields[key] === null || fields[key] === '') delete fields[key]; });
+        return fields;
+      }
       function show(vendor, job) {
         const displayed = [job.job_id, job.status, job.candidate_available === true].join(':');
         if (state.shown === displayed) return; // Keep an overlay being typed for an already displayed result.
         state.shown = displayed;
         status(m, 'Proposal job ' + job.job_id + ' is ' + shown(job.status) + '. Status is read-only from here.');
         const n = add(el('div', undefined, 'v4-job'), el('h3', 'Proposal job'),
-          record({job_id:job.job_id, status:job.status, reason:job.reason, request_sha256:job.request_sha256, context_sha256:job.context_sha256}),
+          record(jobRecord(job)),
           note(JOB_MESSAGES[job.status] || 'Unrecognized job status. No action is available.'));
         if (job.status === 'SUCCEEDED') n.append(proposal(vendor, job));
         if (job.status === 'REFUSED') { const d = refusalDiagnostic(job.public_diagnostic); if (d) n.append(d); }

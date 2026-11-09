@@ -7,6 +7,11 @@
     if (!quote || index < 0 || text.indexOf(quote, index + 1) >= 0) throw new Error('Each quotation must occur exactly once in the original reply.');
     return {start:enc.encode(text.slice(0,index)).length,end:enc.encode(text.slice(0,index+quote.length)).length,quote};
   }
+  // A server timestamp shown as a date and time in UTC; anything else is shown as sent.
+  function when(value){const d=typeof value==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(value)?new Date(value):null;if(!d||Number.isNaN(d.getTime()))return value==null?'':String(value);
+    const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()];
+    return `${m} ${d.getUTCDate()}, ${d.getUTCFullYear()}, ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')} UTC`;}
+  function jobTime(job){const model=job.provider&&typeof job.provider==='object'&&typeof job.provider.model==='string'&&job.provider.model?' Model '+job.provider.model+'.':'';return model+(job.finished_at?' Finished '+when(job.finished_at)+'.':job.started_at?' Started '+when(job.started_at)+'.':job.submitted_at?' Submitted '+when(job.submitted_at)+'.':'');}
   const JOB_TEXT={QUEUED:'Request queued. It runs only as the exact approved request; nothing is applied automatically.',
     RUNNING:'Request running. You can keep working; nothing is applied automatically.',
     SUCCEEDED:'Request completed. The proposal is listed below and still needs your review.',
@@ -142,7 +147,7 @@
       model.hidden=!blind;model.disabled=!jobInfo.can_request||!!job;
       requestNote.textContent=job?'A request for this exact source already exists. It is never sent again automatically.':(jobInfo.message||'Permission status unavailable.');
     }
-    function showJob(){refresh.hidden=!job;jobState.textContent=job?`Request ${job.id}: ${JOB_TEXT[job.state]||JOB_TEXT.UNCERTAIN}`:'';updateRequest();}
+    function showJob(){refresh.hidden=!job;jobState.textContent=job?`Request ${job.id}: ${JOB_TEXT[job.state]||JOB_TEXT.UNCERTAIN}${jobTime(job)}`:'';updateRequest();}
     const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
     async function loadCandidates(){
       const latest=await api(base);
@@ -161,6 +166,7 @@
     }
     function showCandidates(list){rows=list;candidates.replaceChildren(el('h2','Untrusted suggestions'));for(const candidate of list){const box=el('details');box.append(el('summary',candidate.origin==='model'?'Requested interpretation — requires your review':'Saved manual suggestion'));
       box.append(el('p',reviewed.has(candidate.id)?'State: reviewed by you; preview only':'State: proposed; not reviewed'));
+      if(candidate.provenance?.model)box.append(el('p','Proposed by model '+candidate.provenance.model+(candidate.provenance.elapsed_seconds!=null?' in '+candidate.provenance.elapsed_seconds+' s':''),'interpretation-meta'));
       if(candidate.provenance?.request_sha256)box.append(el('p','Request reference '+candidate.provenance.request_sha256,'interpretation-meta'));
       const count=candidate.interpretation.propositions.length;
       if(count>1)box.append(el('p',`${count} separate propositions. Each needs its own decision; they are never combined or copied into your reading unless you load them.`));
@@ -223,7 +229,7 @@
     if(blind){load(blind);save.hidden=true;showReview();showCandidates(data.candidates);if(job&&!job.terminal)poll();}
     else{makeEditor();updateAdd();}
   }
-  global.UptimeInterpretation={mount,quoteSpan};
+  global.UptimeInterpretation={mount,quoteSpan,jobTime};
   const root=document.getElementById('interpretation-root');
   if(root){const claim=new URLSearchParams(location.search).get('claim')||'';root.replaceChildren(global.uptimeAuth.signInForm(()=>mount(root,global.uptimeAPI,claim).catch(e=>{root.textContent=e.message;})));}
 })(window);
