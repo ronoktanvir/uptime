@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 from .correspondence_types import Delivery, Id, Scope, SOURCE
+from .evidence_applicability import temporal_refusal
 
 ROOT = Path(__file__).resolve().parents[1]
 Subject = Annotated[str, Field(pattern=r"^[a-z][a-z0-9_.-]{1,63}$")]
@@ -69,6 +70,9 @@ class SourceGrant(Strict):
 
 def event_in_scope(event, source, scope):
     if event.scope != scope or SOURCE[event.body.kind] != source:
+        return False
+    # The grant covers one service month. Measured time wholly outside it is another period.
+    if temporal_refusal(event.body, scope.month) is not None:
         return False
     if event.body.kind == "component":
         return event.body.component_id == scope.component

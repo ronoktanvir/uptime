@@ -12,6 +12,7 @@ from pydantic import ValidationError
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from uptime.auth_client import service_headers
 from uptime.correspondence_types import Delivery
+from uptime.evidence_applicability import temporal_refusal
 from uptime.source_config import CLAIM, SenderCredential, event_in_scope, load_private
 
 
@@ -22,6 +23,9 @@ def deliver(client, credential, claim_id, raw):
         event = Delivery.model_validate_json(raw)
     except ValidationError:
         raise ValueError("Invalid synthetic event schema") from None
+    if event.scope == credential.scope and (reason := temporal_refusal(event.body, credential.scope.month)):
+        # Name the operator's own record before signing; the server returns only HTTP 403.
+        raise ValueError(reason)
     if not event_in_scope(event, credential.source, credential.scope):
         raise ValueError("Synthetic event does not match this sender's source and grant")
     context_response = client.get(credential.origin+"/api/auth/context", follow_redirects=False)
