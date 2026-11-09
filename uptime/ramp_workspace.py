@@ -11,7 +11,8 @@ from .contracts import Source, fingerprint
 from .storage import case_versions, database, persist_case
 from .ramp import ORIGIN, RampError, uuid_text
 from .ramp_records import load_snapshot, _validate_snapshot
-from .ramp_findings import evaluate_snapshot
+from .ramp_findings import binding_digest, evaluate_snapshot
+from .ramp_context import capture_summary, record_context
 from .ramp_credit_sync import RampCreditSync
 from .ramp_terms_store import RampTermsStore
 from . import installation_revocation
@@ -153,7 +154,7 @@ class RampWorkspace:
         as_of=datetime.fromisoformat(snapshot["completed_at"]) if self.mode=="replay" else datetime.now(UTC)
         fresh=timedelta(0)<=as_of-observed<=timedelta(hours=24)
         status={"integrity":"CHECKSUM_VERIFIED","freshness":"HISTORICAL_REPLAY" if self.mode=="replay" else "FRESH" if fresh else "STALE",
-                "custody":custody,"external_writes":False}
+                "custody":custody,"external_writes":False,"business_id":business if custody=="operator_import" else None}
         bindings, omissions = self._bindings(snapshot, custody, business)
         rows=evaluate_snapshot(snapshot,bindings=bindings,as_of=as_of)
         simulated = {b.object_id for b in bindings if b.terms_mode == "SYNTHETIC_NEGOTIATED"}
@@ -161,6 +162,8 @@ class RampWorkspace:
             rows.extend(r for r in evaluate_snapshot(snapshot,as_of=as_of)
                         if r["provider_object_type"] == "bills" and r["provider_id"] in simulated)
         status["price_terms"]={"verified_bindings":len(bindings),"omissions":omissions}
+        # Reviewed bindings for this capture only; used to name the bound agreement, never to create one.
+        self._agreements={binding_digest(b):b.agreement.id for b in bindings}
         for row in rows:
             row.update(workspace_tenant=self.tenant,business_id=business,capture_mode=custody,mode=self.mode,
                        observed_at=snapshot["observed_at"],actual_recovery=None)
@@ -251,6 +254,8 @@ class RampWorkspace:
         if not projection and case.get("finding_kind")=="SYNTHETIC_INVOICE_CAP":
             projection={"id":case["provider_id"],"kind":"bill","amount":case["native_amount"]}
         case["native_projection"]=projection
+        case["ramp_context"]=record_context(snapshot,case,business_id=self._business_of(snapshot),
+                                            agreements=getattr(self,"_agreements",{}))
         case["native_workflow"]=self._plan(case)
         native_case_id=f"ramp-{case['provider_object_type']}-{case['provider_id']}"
         revisions=(case_versions(self.path,self.tenant,native_case_id)
@@ -264,6 +269,11 @@ class RampWorkspace:
             "import_revisions":[{"revision":r["revision"],"digest":r["digest"]} for r in revisions],
         }
         return case
+
+    @staticmethod
+    def _business_of(snapshot):
+        # Only an operator import carries an installation-verified business.
+        return snapshot["status"].get("business_id") if snapshot["status"].get("custody")=="operator_import" else None
 
     def workflow(self,case_id):
         return self._plan(self.detail(case_id))
@@ -297,7 +307,12 @@ class RampWorkspace:
                     as_of=snapshot["observed_at"] if snapshot else None,snapshot_status=snapshot["status"] if snapshot else {"custody":custody},
                     resources=[dict(name=name,status=r["status"],complete=r["complete"],count=len(r["records"]),issues=r["issues"])
                                for name,r in (snapshot or {}).get("resources",{}).items()],
-                    records=[{k:c.get(k) for k in COLUMNS} for c in rows],
+                    records=[{**{k:c.get(k) for k in COLUMNS},
+                              "ramp_context":record_context(snapshot,c,business_id=self._business_of(snapshot),
+                                                            agreements=getattr(self,"_agreements",{}))}
+                             for c in rows] if snapshot else [],
+                    capture=capture_summary(snapshot,business_id=self._business_of(snapshot),custody=custody,
+                                            freshness=snapshot["status"]["freshness"]) if snapshot else None,
                     credit_sync={"journal":state,"captured_credits":len(snapshot["resources"]["credits"]["records"])
                                  if snapshot and snapshot["resources"]["credits"]["status"] in {"COMPLETE","EMPTY","PARTIAL","TRUNCATED"} else None,
                                  "verified_award_attribution":attribution,
