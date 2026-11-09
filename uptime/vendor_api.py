@@ -28,7 +28,8 @@ def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=
         raise TypeError('A fixed server FeeRegistry is required; arbitrary fee callbacks are not supported.')
     clock=trusted_now or (lambda:datetime.now(UTC))
     router = APIRouter(prefix='/api/vendors')
-    jobs = None if proposal_jobs is None else VendorModelJobs(proposal_jobs)
+    from .vendor_refusal_diagnostics import DiagnosingVendorModelJobs
+    jobs = None if proposal_jobs is None else DiagnosingVendorModelJobs(proposal_jobs)
 
     def mutate(p, fn, *args, resolve=None):
         with mutex:

@@ -154,6 +154,9 @@ class PublicProposalJobs:
                     budget_usd TEXT NOT NULL, result_json TEXT, receipt_json TEXT, response_json TEXT,
                     reason TEXT, completed_after_expiry INTEGER NOT NULL DEFAULT 0,
                     UNIQUE(tenant,kind,target,context_sha256,request_sha256))''')
+                # Additive, nullable: a public refusal diagnostic for REFUSED vendor rows only.
+                if 'public_diagnostic_json' not in {r[1] for r in db.execute('PRAGMA table_info(public_proposal_jobs)')}:
+                    db.execute('ALTER TABLE public_proposal_jobs ADD COLUMN public_diagnostic_json TEXT')
                 now = self._now()
                 db.execute("UPDATE public_proposal_jobs SET status='CANCELLED', reason='restart_before_dispatch', finished_at=? WHERE status='QUEUED'", (now,))
                 db.execute("UPDATE public_proposal_jobs SET status='UNCERTAIN', reason='restart_after_dispatch', finished_at=? WHERE status='RUNNING'", (now,))
@@ -314,12 +317,25 @@ class PublicProposalJobs:
             self._finish(job_id, 'SUCCEEDED', result=result, receipt=getattr(provider, 'last_receipt', None))
         except TimeoutError:
             self._finish(job_id, 'UNCERTAIN', reason='provider_timeout', receipt=getattr(provider, 'last_receipt', None))
-        except (ValueError, TypeError, PermissionError, KeyError):
-            self._finish(job_id, 'REFUSED', reason='proposal_validation_failed', receipt=getattr(provider, 'last_receipt', None))
+        except (ValueError, TypeError, PermissionError, KeyError) as exc:
+            self._finish(job_id, 'REFUSED', reason='proposal_validation_failed', receipt=getattr(provider, 'last_receipt', None),
+                         public_diagnostic=self._public_diagnostic(pins, exc))
         except Exception:
             self._finish(job_id, 'UNCERTAIN', reason='provider_outcome_unknown', receipt=getattr(provider, 'last_receipt', None))
 
-    def _finish(self, job_id, status, *, result=None, reason=None, receipt=None):
+    @staticmethod
+    def _public_diagnostic(pins, exc):
+        """Only vendor refusals may carry one; correspondence jobs never do. Bounded canonical JSON or None."""
+        value = getattr(exc, 'public_diagnostic', None)
+        if pins['kind'] != 'vendor' or not isinstance(value, dict):
+            return None
+        try:
+            encoded = canonical(value)
+        except (ValueError, TypeError):
+            return None
+        return encoded if len(encoded) <= 300000 else None
+
+    def _finish(self, job_id, status, *, result=None, reason=None, receipt=None, public_diagnostic=None):
         now = self._now()
         # Provider receipts contain bounded metadata, never raw stdout/stderr.
         try:
@@ -330,11 +346,25 @@ class PublicProposalJobs:
             receipt_bytes = None
         with self._db() as db:
             row = db.execute('SELECT expires_at FROM public_proposal_jobs WHERE id=?', (job_id,)).fetchone()
-            db.execute('''UPDATE public_proposal_jobs SET status=?,result_json=?,receipt_json=?,reason=?,finished_at=?,completed_after_expiry=?
-                WHERE id=? AND status IN ('QUEUED','RUNNING')''',
+            db.execute('''UPDATE public_proposal_jobs SET status=?,result_json=?,receipt_json=?,reason=?,finished_at=?,completed_after_expiry=?,
+                public_diagnostic_json=? WHERE id=? AND status IN ('QUEUED','RUNNING')''',
                 (status, canonical(result).decode() if result is not None else None,
                  receipt_bytes.decode() if receipt_bytes is not None else None, reason, now,
-                 int(_instant(now) >= _instant(row['expires_at'])), job_id))
+                 int(_instant(now) >= _instant(row['expires_at'])),
+                 public_diagnostic.decode() if status == 'REFUSED' and public_diagnostic is not None else None, job_id))
+
+    def refusal_diagnostic(self, tenant, subject, job_id):
+        """Stored public diagnostic of the caller's own REFUSED vendor job, or None.
+
+        Deliberately not part of the shared view: only the vendor adapter reads it, and it
+        re-verifies the record against the job's pinned context before showing anything.
+        """
+        with self._db() as db:
+            row = db.execute('SELECT kind, status, public_diagnostic_json FROM public_proposal_jobs '
+                             'WHERE id=? AND tenant=? AND subject=?', (job_id, tenant, subject)).fetchone()
+        if not row or row['kind'] != 'vendor' or row['status'] != 'REFUSED' or not row['public_diagnostic_json']:
+            return None
+        return strict_json(row['public_diagnostic_json'])
 
     def get(self, tenant, subject, job_id):
         with self._db() as db:

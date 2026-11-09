@@ -1,0 +1,305 @@
+DECISION PACKET (Uptime W3, decision 91: public refusal diagnostics for vendor proposal jobs). Skeptical security/architecture critique in <=300 words: top risks, whether any model-controlled text can reach the stored row or API, 2 falsification tests, and whether you dissent.
+
+Context: A tool-free model proposes a structured reading of PUBLIC contract text. Deterministic validators accept or refuse. Previously a refused job exposed only reason "proposal_validation_failed", because validator exception text can quote model output. Goal: say *why* (e.g. which public passage is unsupported, which required term is missing) without leaking model text.
+
+Design: uptime/vendor_refusal_diagnostics.refusal_diagnostic(document, profile, provider_result, exception_message) builds {schema, profile, source_sha256, issues[], missing_terms[]}. Each issue has code (fixed table), explanation (fixed text), and optionally block index, start/end offsets, block_sha256, and quote = document.text[start:end] (the public source, not the model's quote). Model output and exception text are used only to locate spans (monthly: offsets from the existing verbatim-substring splitter; resource: app-defined public blocks) or to fullmatch fixed message templates that extract an integer clause number or fixed field names intersected with a fixed vocabulary. The builder never raises and returns None on any error. The shared job service (also used by a disputes "correspondence" kind) adds a nullable column public_diagnostic_json, stores it only for kind=='vendor' REFUSED rows, bounded at 160 KB, under a new key name (not reason/status/result). The vendor projection re-checks exact shape, fixed codes and explanations, and sha256(quote)==block_sha256 before exposing it. Additive migration via ALTER TABLE ADD COLUMN. Request/context hashes are unchanged.
+Tests: model-text sentinel in a flagged clause value, an invented quote and unstructured output never appear in the row or the API; tampered stored diagnostics are dropped; correspondence never stores one; migration keeps old rows.
+=== DIFF ===
+diff --git a/uptime/public_proposal_jobs.py b/uptime/public_proposal_jobs.py
+index 75458cb..57d1bf2 100644
+--- a/uptime/public_proposal_jobs.py
++++ b/uptime/public_proposal_jobs.py
+@@ -154,6 +154,9 @@ class PublicProposalJobs:
+                     budget_usd TEXT NOT NULL, result_json TEXT, receipt_json TEXT, response_json TEXT,
+                     reason TEXT, completed_after_expiry INTEGER NOT NULL DEFAULT 0,
+                     UNIQUE(tenant,kind,target,context_sha256,request_sha256))''')
++                # Additive, nullable: a public refusal diagnostic for REFUSED vendor rows only.
++                if 'public_diagnostic_json' not in {r[1] for r in db.execute('PRAGMA table_info(public_proposal_jobs)')}:
++                    db.execute('ALTER TABLE public_proposal_jobs ADD COLUMN public_diagnostic_json TEXT')
+                 now = self._now()
+                 db.execute("UPDATE public_proposal_jobs SET status='CANCELLED', reason='restart_before_dispatch', finished_at=? WHERE status='QUEUED'", (now,))
+                 db.execute("UPDATE public_proposal_jobs SET status='UNCERTAIN', reason='restart_after_dispatch', finished_at=? WHERE status='RUNNING'", (now,))
+@@ -226,6 +229,8 @@ class PublicProposalJobs:
+         value['job_id'] = row['id']
+         value['completed_after_expiry'] = bool(row['completed_after_expiry'])
+         value['result'] = strict_json(row['result_json']) if row['status'] == 'SUCCEEDED' else None
++        if row['status'] == 'REFUSED' and row['kind'] == 'vendor' and row['public_diagnostic_json']:
++            value['public_diagnostic'] = strict_json(row['public_diagnostic_json'])
+         return value
+ 
+     def inspect(self, **kwargs):
+@@ -314,12 +319,25 @@ class PublicProposalJobs:
+             self._finish(job_id, 'SUCCEEDED', result=result, receipt=getattr(provider, 'last_receipt', None))
+         except TimeoutError:
+             self._finish(job_id, 'UNCERTAIN', reason='provider_timeout', receipt=getattr(provider, 'last_receipt', None))
+-        except (ValueError, TypeError, PermissionError, KeyError):
+-            self._finish(job_id, 'REFUSED', reason='proposal_validation_failed', receipt=getattr(provider, 'last_receipt', None))
++        except (ValueError, TypeError, PermissionError, KeyError) as exc:
++            self._finish(job_id, 'REFUSED', reason='proposal_validation_failed', receipt=getattr(provider, 'last_receipt', None),
++                         public_diagnostic=self._public_diagnostic(pins, exc))
+         except Exception:
+             self._finish(job_id, 'UNCERTAIN', reason='provider_outcome_unknown', receipt=getattr(provider, 'last_receipt', None))
+ 
+-    def _finish(self, job_id, status, *, result=None, reason=None, receipt=None):
++    @staticmethod
++    def _public_diagnostic(pins, exc):
++        """Only vendor refusals may carry one; correspondence jobs never do. Bounded canonical JSON or None."""
++        value = getattr(exc, 'public_diagnostic', None)
++        if pins['kind'] != 'vendor' or not isinstance(value, dict):
++            return None
++        try:
++            encoded = canonical(value)
++        except (ValueError, TypeError):
++            return None
++        return encoded if len(encoded) <= 160000 else None
++
++    def _finish(self, job_id, status, *, result=None, reason=None, receipt=None, public_diagnostic=None):
+         now = self._now()
+         # Provider receipts contain bounded metadata, never raw stdout/stderr.
+         try:
+@@ -330,11 +348,12 @@ class PublicProposalJobs:
+             receipt_bytes = None
+         with self._db() as db:
+             row = db.execute('SELECT expires_at FROM public_proposal_jobs WHERE id=?', (job_id,)).fetchone()
+-            db.execute('''UPDATE public_proposal_jobs SET status=?,result_json=?,receipt_json=?,reason=?,finished_at=?,completed_after_expiry=?
+-                WHERE id=? AND status IN ('QUEUED','RUNNING')''',
++            db.execute('''UPDATE public_proposal_jobs SET status=?,result_json=?,receipt_json=?,reason=?,finished_at=?,completed_after_expiry=?,
++                public_diagnostic_json=? WHERE id=? AND status IN ('QUEUED','RUNNING')''',
+                 (status, canonical(result).decode() if result is not None else None,
+                  receipt_bytes.decode() if receipt_bytes is not None else None, reason, now,
+-                 int(_instant(now) >= _instant(row['expires_at'])), job_id))
++                 int(_instant(now) >= _instant(row['expires_at'])),
++                 public_diagnostic.decode() if status == 'REFUSED' and public_diagnostic is not None else None, job_id))
+ 
+     def get(self, tenant, subject, job_id):
+         with self._db() as db:
+diff --git a/uptime/vendor_model_jobs.py b/uptime/vendor_model_jobs.py
+index f26c57b..4012cff 100644
+--- a/uptime/vendor_model_jobs.py
++++ b/uptime/vendor_model_jobs.py
+@@ -65,9 +65,14 @@ class ProposalCandidate(Strict):
+ 
+ 
+ class ProposalRefused(ValueError):
+-    """Raised inside the shared worker's validate step. The message is a fixed public code."""
+-    def __init__(self, code):
++    """Raised inside the shared worker's validate step. The message is a fixed public code.
++
++    `public_diagnostic` is optional and built only from fixed codes, fixed term names and exact
++    public source slices (vendor_refusal_diagnostics); the shared service stores it on REFUSED vendor rows.
++    """
++    def __init__(self, code, *, public_diagnostic=None):
+         self.code = code
++        self.public_diagnostic = public_diagnostic
+         super().__init__(code)
+ 
+ 
+@@ -167,9 +172,12 @@ def _validated_result(vendor, document, profile, nonce, context, request_sha, pr
+         receipt = proposal_receipt(document, profile, provider_result, at=datetime.now(UTC).isoformat())
+     except ProposalEnvelopeError:
+         raise ProposalRefused('PROVIDER_IDENTITY_UNVERIFIED') from None
+-    except (ValueError, TypeError, KeyError, IndexError, OverflowError, RecursionError):
+-        # Exception text may quote provider output; only a fixed code leaves this function.
+-        raise ProposalRefused('PROPOSAL_REFUSED') from None
++    except (ValueError, TypeError, KeyError, IndexError, OverflowError, RecursionError) as exc:
++        # Exception text may quote provider output; only a fixed code and a diagnostic built from
++        # fixed codes and exact public source slices leave this function. The text only selects a template.
++        from .vendor_refusal_diagnostics import refusal_diagnostic
++        diagnostic = refusal_diagnostic(document, profile, provider_result, str(exc))
++        raise ProposalRefused('PROPOSAL_REFUSED', public_diagnostic=diagnostic) from None
+     return {'protocol': RESULT_PROTOCOL, 'kind': KIND, 'target': vendor, 'context_sha256': context,
+             'request_sha256': request_sha, 'profile': profile, 'attempt_nonce': nonce,
+             'document': document.model_dump(), 'receipt': receipt}
+@@ -309,6 +317,10 @@ class VendorModelJobs:
+         reason = job.get(JOB_REASON_FIELD)
+         if status != 'SUCCEEDED' and type(reason) is str and CODE.fullmatch(reason):
+             view['reason'] = reason
++        if status == 'REFUSED' and job.get('public_diagnostic') is not None:
++            from .vendor_refusal_diagnostics import checked
++            if (diagnostic := checked(job['public_diagnostic'])) is not None:
++                view['public_diagnostic'] = diagnostic
+         if status != 'SUCCEEDED':
+             return view
+         try:
+=== NEW MODULE ===
+"""Public diagnostics for refused vendor proposal jobs.
+
+A refused proposal job used to expose only ``proposal_validation_failed``. This
+module explains the refusal with three kinds of content only:
+
+* fixed codes and fixed explanations from the table below;
+* exact slices of the public source document, with offsets and SHA-256;
+* names from a fixed vocabulary of required terms.
+
+The model's output and the validator's exception text are used only to *locate*
+a passage or match a fixed message template. Neither is ever copied out, because
+both may contain arbitrary model text. Nothing here is approval or adapter
+authority, and the module is outside the reviewed-semantics file set.
+"""
+from hashlib import sha256
+import re
+
+SCHEMA = 'public-refusal-diagnostic/1'
+CODES = {
+    'UNSUPPORTED_SOURCE_MATERIAL': 'This passage contains material the selected adapter family cannot represent. '
+                                   'The source needs a different supported family or manual handling.',
+    'UNSUPPORTED_BLOCK_PROPOSITION': 'This block contains an unsupported proposed effect. Review its public terms and '
+                                     'supported operators before preparing a fresh extraction.',
+    'ISSUER_AUTHORITY_UNESTABLISHED': 'This block does not establish the proposed issuer verification authority. '
+                                      'Customer records and custodian statements establish their stated evidence roles.',
+    'PUBLIC_PROPOSITION_UNESTABLISHED': 'The proposed reading could not be established from the public source. '
+                                        'Review the cited passage before preparing a fresh extraction.',
+    'REQUIRED_TERMS_MISSING': 'No passage establishes the listed required terms. Without them this family cannot '
+                              'produce an adapter.',
+    'PROPOSAL_NOT_SOURCE_GROUNDED': 'The extraction did not quote the source exactly and completely, so no passage '
+                                    'can be cited. Prepare a fresh extraction.',
+    'OUTPUT_NOT_STRUCTURED': 'The extraction output was not in the required structured form.',
+}
+TERM_LABELS = {
+    'vendor': 'vendor', 'agreement': 'agreement identifier', 'effective': 'effective dates',
+    'period': 'measurement period', 'tier': 'credit tiers', 'tiers': 'credit tiers',
+    'credit_rule': 'completed-step credit rule', 'credit_rounding': 'credit rounding rule',
+    'filing_days': 'claim filing deadline', 'filing': 'claim filing deadline', 'remedy': 'credit remedy',
+    'fee_basis': 'eligible fee basis', 'evidence': 'evidence requirements', 'scope': 'covered service scope',
+    'symptoms': 'qualifying symptoms', 'provider_causes': 'provider-caused conditions',
+}
+_MONTHLY_BASE = ('vendor', 'agreement', 'effective', 'period', 'filing_days', 'remedy')
+_MONTHLY_AT_CLAUSE = re.compile(r'(?:Unsupported source language|Unsupported percentage table|'
+                                r'Model identified unsupported material|Unsupported material qualification) '
+                                r'at clause ([0-9]{1,3})\.')
+_MONTHLY_INCOMPLETE = {'Document lacks complete, unambiguous source coverage.', 'Incomplete model propositions.'}
+_UNGROUNDED = {'Model proposal dropped or invented source material.', 'Incomplete proposed source coverage.',
+               'Invalid proposed clause span.', 'Invalid proposed clause index.',
+               'Model must return exactly one effect record per source block.'}
+_RESOURCE_INCOMPLETE = re.compile(r'Incomplete resource-month source propositions: ([a-z_]+(?:, [a-z_]+)*)')
+MAX_ISSUES = 32
+MAX_QUOTE_BYTES = 4096
+ISSUE_FIELDS = frozenset({'code', 'explanation', 'block', 'start', 'end', 'block_sha256', 'quote'})
+FIELDS = frozenset({'schema', 'profile', 'source_sha256', 'issues', 'missing_terms'})
+
+
+def _issue(code, text=None, block=None, start=None, end=None):
+    issue = {'code': code, 'explanation': CODES[code], 'block': block, 'start': start, 'end': end,
+             'block_sha256': None, 'quote': None}
+    if text is not None and start is not None:
+        quote = text[start:end]
+        issue['block_sha256'] = sha256(quote.encode()).hexdigest()
+        if len(quote.encode()) <= MAX_QUOTE_BYTES:
+            issue['quote'] = quote
+    return issue
+
+
+def _missing(fields, required):
+    return sorted(TERM_LABELS[f] for f in set(required) - set(fields))
+
+
+def _monthly(text, proposal, message):
+    from .vendor_terms import _clauses
+    if not isinstance(proposal, dict) or not isinstance(proposal.get('clauses'), list):
+        return [_issue('OUTPUT_NOT_STRUCTURED')], []
+    clauses = [c for c in proposal['clauses'] if isinstance(c, dict)]
+    try:
+        spans = _clauses(text, [c.get('quote') for c in clauses])
+    except (ValueError, TypeError):
+        return [_issue('PROPOSAL_NOT_SOURCE_GROUNDED')], []
+    issues = [_issue('UNSUPPORTED_SOURCE_MATERIAL', text, i, start, end)
+              for i, ((start, end, _), clause) in enumerate(zip(spans, clauses), 1) if clause.get('field') == 'unsupported']
+    if (match := _MONTHLY_AT_CLAUSE.fullmatch(message)) and 1 <= int(match[1]) <= len(spans):
+        index = int(match[1])
+        start, end, _ = spans[index - 1]
+        if not any(issue['block'] == index for issue in issues):
+            issues.append(_issue('UNSUPPORTED_SOURCE_MATERIAL', text, index, start, end))
+    missing = []
+    if message in _MONTHLY_INCOMPLETE:
+        fields = {c.get('field') for c in clauses if isinstance(c.get('field'), str)}
+        rule = ('credit_rule', 'credit_rounding') if 'credit_rule' in fields else ('tier',)
+        missing = _missing(fields & set(TERM_LABELS), _MONTHLY_BASE + rule)
+    if message in _UNGROUNDED:
+        issues.append(_issue('PROPOSAL_NOT_SOURCE_GROUNDED'))
+    return issues, missing
+
+
+def _resource(document, proposal):
+    from .vendor_model import _resource_protocol
+    from .vendor_public_diagnostics import _code
+    from .vendor_resource_terms import diagnose_resource, project_blocks, public_blocks
+    blocks, protocol = _resource_protocol(document)
+    try:
+        clauses, _ = project_blocks(document.text, proposal, protocol=protocol)
+    except (ValueError, TypeError, KeyError):
+        return [_issue('PROPOSAL_NOT_SOURCE_GROUNDED')], []
+    blocks = public_blocks(document.text, protocol=protocol)
+    issues, missing = [], []
+    for problem in diagnose_resource(document, clauses):
+        index, reason = problem.get('block'), problem.get('reason')
+        if type(index) is int and 1 <= index <= len(blocks):
+            block = blocks[index - 1]
+            issue = _issue(_code(reason) if isinstance(reason, str) else 'PUBLIC_PROPOSITION_UNESTABLISHED',
+                           document.text, index, block['start'], block['end'])
+            if issue not in issues:
+                issues.append(issue)
+        elif isinstance(reason, str) and (match := _RESOURCE_INCOMPLETE.fullmatch(reason)):
+            missing = sorted({TERM_LABELS[name] for name in match[1].split(', ') if name in TERM_LABELS})
+    return issues, missing
+
+
+def refusal_diagnostic(document, profile, provider_result, message):
+    """Build a bounded public diagnostic for one refused proposal, or None. Never raises."""
+    from .correspondence_model_transport import strict_json
+    try:
+        text = document.text
+        try:
+            proposal = strict_json(provider_result['text'])
+        except (ValueError, TypeError, KeyError):
+            issues, missing = [_issue('OUTPUT_NOT_STRUCTURED')], []
+        else:
+            if profile == 'resource-month':
+                issues, missing = _resource(document, proposal)
+            elif profile in ('monthly', 'monthly-propositions'):
+                issues, missing = _monthly(text, proposal, message if isinstance(message, str) else '')
+            else:
+                return None
+        if missing:
+            issues.append(_issue('REQUIRED_TERMS_MISSING'))
+        if not issues:
+            issues = [_issue('PUBLIC_PROPOSITION_UNESTABLISHED')]
+        return checked({'schema': SCHEMA, 'profile': profile, 'source_sha256': sha256(text.encode()).hexdigest(),
+                        'issues': issues[:MAX_ISSUES], 'missing_terms': missing}, text)
+    except Exception:  # A diagnostic is optional; its absence leaves the generic refusal unchanged.
+        return None
+
+
+def _hex(value):
+    return isinstance(value, str) and re.fullmatch('[a-f0-9]{64}', value) is not None
+
+
+def checked(value, text=None):
+    """Exact-shape check of a stored diagnostic; with ``text``, every quote must be that source slice."""
+    if not isinstance(value, dict) or set(value) != FIELDS or value['schema'] != SCHEMA:
+        return None
+    if value['profile'] not in ('monthly', 'monthly-propositions', 'resource-month') or not _hex(value['source_sha256']):
+        return None
+    issues, missing = value['issues'], value['missing_terms']
+    if (not isinstance(issues, list) or not 1 <= len(issues) <= MAX_ISSUES or not isinstance(missing, list)
+            or len(missing) > len(TERM_LABELS) or not all(m in TERM_LABELS.values() for m in missing)):
+        return None
+    for issue in issues:
+        if not isinstance(issue, dict) or set(issue) != ISSUE_FIELDS or issue['code'] not in CODES:
+            return None
+        if issue['explanation'] != CODES[issue['code']]:
+            return None
+        located = (issue['block'], issue['start'], issue['end'], issue['block_sha256'])
+        if located == (None, None, None, None):
+            if issue['quote'] is not None:
+                return None
+            continue
+        if (type(issue['block']) is not int or type(issue['start']) is not int or type(issue['end']) is not int
+                or not 0 <= issue['start'] < issue['end'] or not _hex(issue['block_sha256'])):
+            return None
+        quote = issue['quote']
+        if quote is not None and (not isinstance(quote, str) or len(quote.encode()) > MAX_QUOTE_BYTES
+                                  or sha256(quote.encode()).hexdigest() != issue['block_sha256']):
+            return None
+        if text is not None and sha256(text[issue['start']:issue['end']].encode()).hexdigest() != issue['block_sha256']:
+            return None
+    return value

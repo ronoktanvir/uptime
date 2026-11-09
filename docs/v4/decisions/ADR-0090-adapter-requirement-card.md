@@ -53,3 +53,31 @@ Revert the commit. Nothing is persisted, no evaluator revision changes, and exis
 - A compiler revision admits exclusions or new fields in the monthly family. Uncategorized content then shows as REVIEW_REQUIRED, and the card should be extended.
 - Overlap reports show reviewers routinely approving with draft facts. Then propose a registry-side provenance requirement as a separate, semantics-changing decision.
 - D05 approval. Automatic family selection would consume the same card to report which family's requirements a source meets.
+
+## Addendum: public refusal diagnostics for vendor proposal jobs
+
+Status: implemented on the same branch after an interface-change request. The integration owner (agent0, W0) accepted it in principle. The disputes owner (agent3, W4) confirmed there is no conflict, on three conditions: the diagnostic does not reuse the field names `reason`/`reason_code`/`error_code`/`state`/`status`/`result`; existing reason codes and request/context hashes are unchanged; correspondence jobs never carry one.
+
+**Problem.** A refused vendor proposal job exposed only `proposal_validation_failed`. An unsupported source therefore could not "refuse for the correct substantive reason" in the application. The offline CLI already produced fixed-code diagnostics, but only for resource-month and only after a manual replay.
+
+**Implementation.**
+- `uptime/vendor_refusal_diagnostics.py` re-runs the deterministic validator on the refused output to obtain the validator's own finding. It records only:
+  - a fixed code (`CODES`);
+  - fixed term names (`TERM_LABELS`), and only where the validator established them;
+  - offsets and SHA-256 values into the submitted public document.
+- Model text and exception text are used only to locate a passage or to match a fixed template; neither is copied out.
+- The stored record keeps the public document. On read, it is shown only if `proposal_context(vendor, document, profile)` equals the job's pinned `context_sha256`, the same check applied to succeeded results. Every quote is re-sliced from that verified document. Stale or forged records are omitted.
+- `public_proposal_jobs.py` gets an additive nullable column, `public_diagnostic_json`, filled only for `kind == 'vendor'` REFUSED rows and bounded at 300 KB. It is read through the owner-scoped `refusal_diagnostic(tenant, subject, job_id)` and is never part of the shared job view.
+- The hook is a subclass, `DiagnosingVendorModelJobs`, wired in `vendor_api.py`. `vendor_model_jobs.py` is byte-identical. Its SHA-256 is part of every vendor proposal context pin, so editing it would have staled every pending vendor job, including recovered ones.
+
+**Opus 5.5 critique of the first draft.** Session `c6135350-f030-4264-9a00-82e243bd4f4d`. [Packet](../evidence/onboarding-89/opus-packet-90-refusal-diagnostics.txt) · [Response](../evidence/onboarding-89/opus-critique-90-refusal-diagnostics.json). Opus registered conditional dissent: the write path was sound, but there were three read-path and attribution weaknesses.
+
+| Opus point | Resolution |
+|---|---|
+| The read-time check was circular: a self-consistent forged quote and hash would be shown | **Accepted.** The record now carries the public document. A read recomputes the job's pinned context from it and re-slices quotes. Test: `test_forged_or_stale_records_are_not_projected`, using a self-consistent forgery with a substituted document and the Opus falsification probe. |
+| The shared service view exposed unchecked content | **Accepted.** The shared view never contains the diagnostic. Only the vendor adapter reads it, through the owner-scoped accessor, and verifies it. |
+| The model steered which passages were cited and which terms were called missing | **Accepted.** Only the passage named by the validator's own finding is cited. A refusal caused by the extraction's own flag uses a distinct code, `EXTRACTION_FLAGGED_UNSUPPORTED`. Missing-term names come only from the propositions validator (after every present field passed its source check) or from the resource validator's own list. The strict path reports `SOURCE_COVERAGE_INCOMPLETE` without naming terms. Test: `test_a_model_label_alone_is_never_cited`. |
+| `ALTER TABLE` check-then-add could race across processes | **Not applicable.** The service takes an exclusive `flock` on its database before any schema statement. |
+| Non-ASCII expansion could exceed the size bound | **Checked.** Canonical encoding uses `ensure_ascii=False`. The 300 KB bound matches succeeded results and covers the 50,000-character source limit. |
+
+**Rollback.** Revert the commit. The nullable column stays harmlessly in existing local databases; no other stored data changes.

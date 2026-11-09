@@ -1,0 +1,74 @@
+{
+  "purpose": "Single concise Opus 5.5 critique of the first refusal-diagnostic implementation (decision 90 addendum).",
+  "invocation": "claude -p --model claude-opus-5-5 --tools '' --strict-mcp-config --setting-sources '' --no-session-persistence --output-format json (empty temporary cwd; packet on stdin)",
+  "cli_version": "2.1.318 (Claude Code)",
+  "packet_sha256": "906a982ea909288fda03bf98a599a7c7a0aed5d456a22207e28c966dd024a60e",
+  "packet_bytes": 19799,
+  "packet_contents": "Decision text, the first-draft diff of public_proposal_jobs.py and vendor_model_jobs.py, and the first-draft vendor_refusal_diagnostics.py. No credentials, customer captures, private overlays or sealed evaluation material.",
+  "note": "The reviewed draft was superseded; see ADR-0090 addendum for dispositions.",
+  "verified_model": [
+    "claude-opus-5-5"
+  ],
+  "envelope": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 36737,
+    "num_turns": 1,
+    "result": "**Verdict: conditional dissent.** The write path looks sound. The read-path integrity check is weaker than the packet claims.\n\n**Top risks**\n\n1. **The read-time check is circular.** `VendorModelJobs` calls `checked(job['public_diagnostic'])` without `text`. `sha256(quote)==block_sha256` is self-consistent, so anyone who can write the row can recompute it. Nothing ties the quote to `source_sha256`, to the pinned document, or even to `end-start`. The \"tampered rows dropped\" test only proves that inconsistent tampering is caught.\n2. **The shared view leaks unchecked content.** `PublicProposalJobs` puts `strict_json(public_diagnostic_json)` into the shared value before the vendor projection runs. Any route returning that value (`get`, `inspect`, admin or debug paths) bypasses `checked`.\n3. **The model steers what gets cited.** No model bytes are copied, but the model chooses which spans are cited (`field=='unsupported'`) and which `missing_terms` appear (claimed fields intersected with the vocabulary). The diagnostic can blame passages the validator never rejected, and it presents model claims as validator findings. This is an integrity and misattribution risk and a small covert channel, not a confidentiality leak.\n4. **Minor issues:**\n   - Non-ASCII quotes can exceed 160 KB after escaping and silently become None.\n   - The ALTER TABLE check-then-add races across concurrent processes.\n   - Whether `_code()` and `diagnose_resource` reasons are closed sets is assumed, not shown.\n\n**Can model text reach the row or API?** Not verbatim, as far as this diff shows. All strings are fixed table entries, vocabulary labels, or `document.text` slices, and the exception text only fullmatches templates. Model-chosen *selection* (offsets, labels, issue count) does reach both.\n\n**Falsification tests**\n\n1. Write a well-shaped row whose quote is `\"SENTINEL\"` and whose `block_sha256` is `sha256(\"SENTINEL\")`. Read it through the vendor API and through every shared-service route. I predict it is exposed.\n2. Property test: fuzz provider output and exception text with sentinels, and mark random clauses `unsupported`. Assert that no sentinel appears in the row bytes, and that every issue satisfies `quote == pinned_doc.text[start:end]` with `sha256(pinned_doc.text) == source_sha256`. Also assert every cited block matches the validator's actual rejection reason. I predict the last assertion fails.\n\n**To withdraw dissent**\n\n- Re-verify at read time against the pinned document, or drop stored quotes and re-slice on read.\n- Strip the field from the shared view.\n- Cite only validator-identified spans.",
+    "session_id": "c6135350-f030-4264-9a00-82e243bd4f4d",
+    "total_cost_usd": 0.1424538,
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 2,
+        "outputTokens": 2971,
+        "cacheReadInputTokens": 649,
+        "cacheCreationInputTokens": 10362,
+        "webSearchRequests": 0,
+        "costUSD": 0.1424538,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 2034,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 10362,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 10362,
+      "cache_read_input_tokens": 649,
+      "output_tokens": 2971,
+      "output_tokens_details": {
+        "thinking_tokens": 2034
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 10362,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 2971,
+          "cache_read_input_tokens": 649,
+          "cache_creation_input_tokens": 10362,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 10362
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    }
+  }
+}
