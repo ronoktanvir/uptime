@@ -8,7 +8,12 @@
     if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).filter(([key]) => !hidden.test(key)).map(([key, val]) => [key, clean(val)]));
     return value;
   }
-  const shown = value => value == null ? 'Not provided' : typeof value === 'object' ? JSON.stringify(clean(value)) : String(value);
+  // Ordinary wording for a few source-classification codes. The meaning is kept: a saved capture is not live,
+  // a scenario is not a finding and a local counterparty is not a vendor. The API values are unchanged.
+  const CODES = {HISTORICAL_REPLAY:'Saved capture (not live)', SIMULATION_ONLY:'Scenario only, not a finding',
+    SIMULATED_VENDOR:'Local counterparty, not a vendor', SYNTHETIC_INVOICE_CAP:'Hypothetical invoice cap'};
+  const TITLES = {'Synthetic gross invoice cap rehearsal':'Invoice cap review'};
+  const shown = value => value == null ? 'Not provided' : typeof value === 'object' ? JSON.stringify(clean(value)) : CODES[value] || String(value);
   function providerURL(value) {
     if (typeof value !== 'string' || !(value === 'https://demo.ramp.com' || value.startsWith('https://demo.ramp.com/'))) return null;
     try {
@@ -40,6 +45,7 @@
     function record(value, depth = 0) {
       if (depth > 10) return note('Further nested evidence omitted.');
       if (value == null || typeof value !== 'object') return el('span', shown(value));
+      if (Array.isArray(value) && value.every(v => typeof v === 'string')) return el('span', value.length ? value.map(v => shown(v)).join(', ') : 'None');
       if (Array.isArray(value)) return value.length ? add(el('div'), ...value.map(v => add(el('div', null, 'record'), record(v, depth + 1)))) : note('No records returned.');
       const node = el('dl', null, 'record');
       Object.entries(value).filter(([k,v]) => !hidden.test(k) && !['sources','source_mode','data_provenance','classification'].includes(k) && !(k === 'mode' && /replay|simulat|demo/i.test(String(v)))).forEach(([k,v]) => add(node, el('dt', k.replaceAll('_',' ')), add(el('dd'), record(v, depth + 1))));
@@ -87,7 +93,7 @@
           const native = providerURL(r.provider_uri);
           let open = null;
           if (native) { open = el('a', 'Open in Ramp', 'ramp-row-link'); open.href = native; open.target = '_blank'; open.rel = 'noopener noreferrer'; open.setAttribute('aria-label', `Open ${shown(r.vendor || r.title || r.provider_id)} in Ramp`); }
-          body.append(add(el('tr'), add(el('td'), link, el('div',r.title,'case-subtitle'), note(`${shown(r.provider_object_type)} · Native ID: ${shown(r.provider_id)}`), open),
+          body.append(add(el('tr'), add(el('td'), link, el('div',TITLES[r.title] || r.title,'case-subtitle'), note(`${shown(r.provider_object_type)} · Native ID: ${shown(r.provider_id)}`), open),
             add(el('td'), el('span',shown(r.native_status),'pill'), note(`Approval: ${shown(r.native_approval_status)}`)),
             add(el('td'), el('strong',r.native_amount?.amount != null ? `${shown(r.native_amount.currency)} ${shown(r.native_amount.amount)}` : 'Amount unavailable')),
             add(el('td'), el('strong',shown(r.outcome)), note(shown(r.stage)), sources(r.sources)),
@@ -114,7 +120,7 @@
       const c=response.case || response;
       const back=button('Back to Ramp worklist', () => onNavigate('ramp'));
       // The native route back to Ramp leads the record so its workflow stays in Ramp.
-      const header=add(el('div',null,'page-head'),add(el('div'),el('h1',(c.title === 'Synthetic gross invoice cap rehearsal' ? 'Invoice cap review' : c.title) || c.vendor || 'Ramp record'),note(`${shown(c.vendor)} · Native ID: ${shown(c.provider_id)} · ${shown(c.provider_object_type)}`)),nativeLink(response.provider_uri || c.provider_uri));
+      const header=add(el('div',null,'page-head'),add(el('div'),el('h1',TITLES[c.title] || c.title || c.vendor || 'Ramp record'),note(`${shown(c.vendor)} · Native ID: ${shown(c.provider_id)} · ${shown(c.provider_object_type)}`)),nativeLink(response.provider_uri || c.provider_uri));
       const finding=section('Contract finding');
       add(finding,sources(c.sources),record({outcome:c.outcome,stage:c.stage,amount:c.amount,currency:c.currency,finding_type:c.finding_kind === 'SYNTHETIC_INVOICE_CAP' ? 'Price cap review' : c.finding_type || 'Contract review',finding_digest:c.finding_digest}));
       const native=section('Native Ramp status');
