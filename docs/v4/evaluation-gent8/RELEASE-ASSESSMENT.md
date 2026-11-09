@@ -2,7 +2,7 @@
 
 **Status on the round-6 integration head `3f60647`: not releasable under the existing gate. The default installation stays read-only.**
 
-- **Regression:** round 6 passed: 4,664 passed, 1 warning, on a fresh clone of `3f60647` (integration owner's receipt `def33b0`).
+- **Regression:** round 6 passed: 4,664 passed, 1 warning, on a fresh clone of `3f60647` (integration owner's receipt `def33b0`). This evaluation branch, including the D03-A merge, passed 4,162 with 1 warning at `e6a5832` ([receipt](../evidence/release-evaluation-gent8/verification-e6a5832.json)).
 - **Signed gates:** `scripts/release_evidence.py status` reports `ready: false`, `scope: read-only` and no gates ([output](../evidence/release-evaluation-gent8/release-evidence-status.txt)). No signed release attestation or release-trust registry exists.
 - **Bar:** the two coverage gates are judged against D13 "Bar without native proof": ordinary app-path success on independently authored supported cases, separate correct-refusal controls, zero unsafe acceptances, first-attempt receipts, and outcomes reported separately. D13 sets no numeric threshold, and none is added here.
 

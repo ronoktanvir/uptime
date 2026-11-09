@@ -1,0 +1,22 @@
+{
+  "schema": "verification/1",
+  "command": "uv run --locked pytest -q -p no:cacheprovider --basetemp=<scratchpad>/fullsuite2/bt -o tmp_path_retention_policy=failed",
+  "branch": "work/release-evaluation-gent8",
+  "tested_commit": "e6a5832111a36fa88abccc8e5d9dabdc397a5b79",
+  "tree_clean_before": true,
+  "tree_clean_after": true,
+  "commit_unchanged_after": true,
+  "started_at": "2026-11-09T13:57:13Z",
+  "finished_at": "2026-11-09T14:02:26Z",
+  "result": "4162 passed, 1 warning in 312.22s (0:05:12)",
+  "exit_code": 0,
+  "failures": 0,
+  "includes": "D03-A merge 757c3a3 (identity-pricing-89 @ 6ebaffe), corpus84/eval85/eval86 harness tests, preflight, probes",
+  "concurrency": "run alone in the full-suite slot coordinated by the integration owner",
+  "log": {
+    "path": "docs/v4/evidence/release-evaluation-gent8/full-suite-e6a5832.log",
+    "sha256": "2ed450f8a0f55811038c9a990bff39a70e4a20a7fc150edc2f787f3c28e56c83",
+    "bytes": 5234
+  },
+  "qualification": "Unsigned regression evidence; not the release gate's independently witnessed regression report."
+}

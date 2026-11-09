@@ -76,7 +76,7 @@ No W0-owned file was edited.
 | Run | Result |
 |---|---|
 | Full suite, `work/release-evaluation-gent8` @ `487a32f` | **4,035 passed, 1 warning in 791.25 s** ([receipt](../evidence/release-evaluation-gent8/verification-487a32f.json)) |
-| Full suite after the D03-A merge on this branch | **Not yet run.** The slot is queued with agent0. Integration round 6 (`3f60647`, which contains D03-A, D04-C and my 6 probe tests) passed 4,664 with 1 warning (`def33b0`). It does not contain my evaluation-only tests. |
+| Full suite after the D03-A merge on this branch, @ `e6a5832` | **4,162 passed, 1 warning in 312.22 s**, exit 0; clean tree before and after ([receipt](../evidence/release-evaluation-gent8/verification-e6a5832.json)). Integration round 6 (`3f60647`) separately passed 4,664 (`def33b0`). |
 | Focused tests | 184 passed after the D03-A merge; `tests/test_release_probes_gent8.py` 6 passed; preflight 6 passed; onboarding runner 41 passed |
 | Audit gate on `c1fa513` | 118/118 PASS against a fresh V3 baseline of 73/45, unsigned |
 | corpus84 onboarding first attempts | 6/6 strict JSON; **0/4 supported extractions accepted**; both controls refused before assessment; 0 unsafe; about $0.39 ([receipt](../evidence/release-evaluation-gent8/onboarding84-first-attempts.json)) |
