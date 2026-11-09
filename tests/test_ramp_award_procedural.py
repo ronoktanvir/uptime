@@ -15,8 +15,8 @@ def exercise(folder, damage):
     from uptime.storage import database
     from test_vendor_semantic_bindings import review_submission
 
-    # D04-C (2026-11-09): incident does not apply to this resource-month family; the probe's helper is unchanged.
-    sc, claim = {k: v for k, v in scope().items() if k != "incident"}, "inbox-native-history"
+    # D04-C (2026-11-09): incident and region do not apply to this non-regional resource family; the probe helper is unchanged.
+    sc, claim = {k: v for k, v in scope().items() if k not in ("incident", "region")}, "inbox-native-history"
     env = SandboxApp(folder/"native.sqlite",sc)
     extension = [("An incomplete claim may supplement its missing fields by the same deadline.",
                   {"supplement":"same_filing_deadline"})]

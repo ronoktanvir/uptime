@@ -29,12 +29,16 @@ def test_table_is_versioned_and_monthly_keeps_incident():
     assert type(monthly) is IncidentScope and monthly.required == {"incident"}
 
 
-@pytest.mark.parametrize("fields,label,required", [
-    ([], None, {"component", "region"}),
-    (["incident_number"], {"incident_number": {"phrase": "the outage ticket number"}}, {"component", "region", "incident"}),
+@pytest.mark.parametrize("fields,label,subscription,required", [
+    ([], None, False, {"component"}),
+    ([], None, True, {"component", "region"}),
+    (["incident_number"], {"incident_number": {"phrase": "the outage ticket number"}}, False, {"component", "incident"}),
+    (["service location"], None, False, {"component", "region"}),
 ])
-def test_resource_period_requires_resource_region_and_any_cited_incident(fields, label, required):
+def test_resource_period_requires_resource_and_only_cited_or_subscribed_fields(fields, label, subscription, required):
     manifest = {"family": "resource-month/1", "request_fields": fields, "label_bindings": {"request_fields": label or {}}}
+    if subscription:
+        manifest["subscription"] = {"record": "signed subscription"}  # a non-empty regional subscription proposition
     variant = variant_for(manifest, {"resource_label": "station"})
     assert type(variant) is ResourcePeriodScope and variant.required == required
 

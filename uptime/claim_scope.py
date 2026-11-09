@@ -60,7 +60,7 @@ class IncidentScope(ScopeVariant):
 
 
 class ResourcePeriodScope(ScopeVariant):
-    """A resource-specific monthly obligation: the resource and its region are needed."""
+    """A resource-specific monthly obligation: the resource is needed; its region only for a regional subscription."""
 
 
 class ServiceMonthScope(ScopeVariant):
@@ -93,7 +93,10 @@ def variant_for(manifest, overlay):
                                              ("component", resource_words)) if words & vocabulary}
     if manifest.get("aggregate_monitor"):
         return ServiceMonthScope(RESOURCE_FAMILY + "/service-month", frozenset(needed))
-    return ResourcePeriodScope(RESOURCE_FAMILY, frozenset({"component", "region"} | needed))
+    # The region belongs to the obligation only when the terms bind a regional subscription
+    # (the same condition claim_identity.resource_remedy uses) or a filing field cites it.
+    regional = {"region"} if manifest.get("subscription") else set()
+    return ResourcePeriodScope(RESOURCE_FAMILY, frozenset({"component"} | regional | needed))
 
 
 def _installed(db, tenant, scope):

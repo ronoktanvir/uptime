@@ -233,7 +233,8 @@ class CorrespondenceDesk:
             if isinstance(variant, ResourcePeriodScope):
                 draft_key.append(scope.component)
                 identity_fields += ("component",)
-                regional = bool(current.version and current.remedy == "resource-month/" + scope.component + "/" + scope.region)
+                regional = bool(scope.region is not None and current.version
+                                and current.remedy == "resource-month/" + scope.component + "/" + scope.region)
                 if regional:
                     draft_key.append(scope.region)
             obligation = fingerprint(draft_key)

@@ -265,7 +265,7 @@ def test_claim_scope_requires_identity_currency_and_month_only():
 
 @pytest.mark.parametrize("receipt,family,refusal", [
     ("e86-01", {"family": "monthly-availability/1"}, "requires incident"),
-    ("e86-04", {"family": "resource-month/1"}, "requires region"),
+    ("e86-04", {"family": "resource-month/1", "subscription": {"record": "signed subscription"}}, "requires region"),
 ])
 def test_recorded_requests_parse_and_are_judged_by_their_governing_family(receipt, family, refusal):
     """The preserved bodies now parse; admission is decided by the family table, never by a fixed schema."""

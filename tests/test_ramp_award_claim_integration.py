@@ -191,9 +191,9 @@ FIXTURE_ECONOMIC_VERSION = fingerprint({"synthetic_economic_rules":"fixture-one"
 
 def historical(h, *, claim="inbox-external", sc=None, receipt="external-original", supplement=False, pin_version=True, pin_source=True):
     sc = sc or scope() | {"remedy": "resource-month/station-1"}
-    # D04-C (2026-11-09): a resource-month claim names its resource and region; incident does not apply.
+    # D04-C (2026-11-09): this non-regional resource-month claim names its resource; incident and region do not apply.
     local = Scope(account=sc["account_id"], vendor=sc["vendor_name"], contract="local-contract", service=sc["service_name"],
-                  component="station-1", region="west", invoice="invoice-1", currency="USD", month=sc["month"])
+                  component="station-1", invoice="invoice-1", currency="USD", month=sc["month"])
     # A bounded resolver fixture supplies a reviewed lineage to the REAL intake;
     # it grants no award/filing authority. The separate office signatures do.
     def resolver(tenant, requested, events, at):
