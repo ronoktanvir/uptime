@@ -25,8 +25,9 @@
  *    POST carries {}. evaluate POST carries facts. Claim creation carries claim_id,scope.
  *    Inbound /events is deliberately NOT called: provisioned services ingest through
  *    CLI. UI refreshes authenticated claim detail to show event/receipt evidence.
- * 6. Public proposal generation uses POST /api/vendors/{id}/proposal-access (permission
- *    check, no model call), POST .../proposal-jobs (explicit reservation), GET
+ * 6. Public proposal generation sends profile "auto" (Uptime selects the rule family) to
+ *    POST /api/vendors/{id}/proposal-access (selection and permission, no model call), POST
+ *    .../proposal-jobs (explicit reservation of every family evaluation), GET
  *    .../proposal-jobs/{job} (read-only status) and POST .../proposal-jobs/{job}/candidate
  *    ({overlay} only). Source text is posted exactly as entered. Optional
  *    options.schedule(callback, ms) replaces setTimeout for read-only status polling.
@@ -40,6 +41,25 @@
   const list = value => Array.isArray(value) ? value : [];
   const shown = value => value === null || value === undefined || value === '' ? 'Not provided' : String(value);
   const label = key => key.replaceAll('_', ' ');
+  // Plain wording for server dispute codes; unknown codes are shown as lower-case words, never guessed.
+  const CATEGORY = {MISSING_EVIDENCE:'missing evidence', CONTRACTUAL_DENIAL:'contractual denial',
+    INCORRECT_FACTUAL_ASSERTION:'incorrect factual assertion', UNRESOLVED_DENIAL:'unresolved denial',
+    PARTIAL_AWARD:'partial award', AWARD_REPORTED:'award reported', CHANGED_SCOPE:'changed scope', AMBIGUOUS_GROUNDS:'ambiguous grounds'};
+  const DISPOSITION = {PREPARE_CLAIM:'prepare the claim', AWAIT_RESPONSE:'awaiting the vendor response',
+    AWAIT_CURE_EVIDENCE:'awaiting the requested evidence', AWAIT_EVIDENCE:'awaiting evidence',
+    DENIAL_SUBSTANTIATED:'denial ground substantiated; accepting it is a separate step', ACCEPT_DENIAL:'denial accepted',
+    AWARD_RECORDED:'award recorded', PARTIAL_AWARD_RECORDED:'partial award recorded', ESCALATE:'needs a reviewer'};
+  const CHECKS = {governing_evaluation:'Governing evaluation', original_filing_within_window:'Original filing within the window',
+    follow_ups_preserve_original_filing:'Follow-ups keep the original filing', month_coverage_basis:'Month coverage basis',
+    timely_independent_maintenance_notice:'Timely independent maintenance notice', verified_measurement:'Verified measurement',
+    denial_ground_substantiated:'Denial ground substantiated', explicit_denial_acceptance:'Explicit denial acceptance',
+    award_not_above_claim:'Award not above the claim', contradicting_deliveries_unresolved:'Unresolved contradicting deliveries',
+    status_origin:'Status record origin'};
+  // Results whose true/false does not mean pass/fail.
+  const RESULTS = {contradicting_deliveries_unresolved:{true:'yes, review needed', false:'none'},
+    status_origin:{ENROLLED_SOURCE_NOT_ORIGIN_VERIFIED:'enrolled source; origin not verified', NO_STATUS_RECORD:'no status record'}};
+  const NEXT = {'accept-denial':'Accept denial', 'interpretation-review':'Review vendor wording'};
+  const plain = (map, value) => value == null ? 'Not determined' : map[value] || String(value).replaceAll('_', ' ').toLowerCase();
   const hidden = /secret|token|password|authorization|cookie|credential|private_key|service_key|signature/i;
   function parseJSON(text, kind) {
     let value;
@@ -196,11 +216,98 @@
       list(data.actions).forEach(action => {
         const id = typeof action === 'string' ? action : action.id;
         if (typeof id !== 'string' || !id) return;
+        if (action && typeof action === 'object' && action.route === 'denial-acceptance') {
+          // The generic action route refuses this; the offer is bound to the exact denial basis the server showed.
+          if (typeof action.basis_digest !== 'string' || !/^[a-f0-9]{64}$/.test(action.basis_digest)) return;
+          const accept = button('Accept denial', () => acceptDenial(m, base, action.basis_digest));
+          m.writes.push(accept);
+          n.append(accept, note('Closes this claim on the substantiated denial ground. No further follow-up is sent and no credit is recorded.'));
+          return;
+        }
         const b = button(typeof action === 'string' ? label(action) : (action.label === 'Replay shadow checks' ? 'Run shadow checks' : action.label) || label(id), () => mutate(m, base + '/actions/' + encodeURIComponent(id), {}));
         m.writes.push(b); n.append(b);
       });
       if (!n.children.length) n.append(note('No approved action is available in the returned server state.'));
       return n;
+    }
+    async function acceptDenial(m, base, digest) {
+      if (!writable() || mounts.get(m.root) !== m) return;
+      busy = true; sync(); status(m, 'Submitting for server authorization…');
+      let reload = false;
+      try {
+        const result = await request(m, base + '/denial-acceptance', {basis_digest:digest});
+        if (!active(m)) return;
+        reload = true;
+        status(m, 'The server recorded the denial acceptance at stage ' + shown(result?.stage) + '.');
+      } catch (error) {
+        if (!active(m)) return;
+        if (error?.status === 409) {
+          reload = true;
+          status(m, 'The denial basis changed since this page loaded. Nothing was accepted. Showing the current offer.');
+        } else {
+          uncertain = true;
+          status(m, 'Request did not complete reliably. Its outcome may be unknown. Refresh server state before another change.');
+        }
+      } finally {
+        busy = false; sync();
+        if (reload && mounts.get(m.root) === m && m.claimId) {
+          const message = m.status?.textContent;
+          await inspect(m.root, m.claimId);
+          const current = mounts.get(m.root);
+          if (current && message) status(current, message);
+        }
+      }
+    }
+    // Records a source sent for another account or resource. A blocking one stops every case action until a person reviews it.
+    function contradictions(items) {
+      const rows = list(items).filter(item => item && typeof item === 'object');
+      if (!rows.length) return null;
+      const blocking = rows.some(item => item.blocking === true);
+      const n = add(el('div', undefined, 'v4-review v4-contradictions'), el('h4', blocking ? 'Review needed: conflicting source record' : 'Conflicting source records'),
+        note(blocking ? 'A source sent a record for another account or resource. A person must review it; this case offers no action until then.'
+          : 'A source sent a record for another account or resource. It is recorded and does not block this case.'));
+      const ul = el('ul');
+      rows.forEach(item => ul.append(el('li', [shown(item.kind), shown(item.subject ?? item.source), shown(item.received_at), shown(item.reason)].join(' · ')
+        + (item.blocking === true ? ' · blocking' : ''))));
+      return add(n, ul);
+    }
+    function disputeRecord(m, url) {
+      const n = add(el('div', undefined, 'v4-review v4-dispute-record'), el('h3', 'Dispute record'));
+      const out = el('div'); out.setAttribute('aria-live', 'polite');
+      const load = button('Show dispute record', async () => {
+        if (!active(m)) return;
+        load.disabled = true; out.replaceChildren(note('Loading the read-only dispute record…'));
+        try {
+          const t = await request(m, url);
+          if (!active(m)) return;
+          const facts = el('dl', undefined, 'v4-record');
+          for (const [k, v] of [['Disposition', plain(DISPOSITION, t.disposition)], ['Category', plain(CATEGORY, t.category)],
+            ['Final', t.final === true ? 'Yes' : 'No'], ['Claimed', t.ledger?.claimed], ['Awarded', t.ledger?.awarded]]) add(facts, el('dt', k), el('dd', v));
+          out.replaceChildren(facts);
+          if (t.stale_denial_review === true) out.append(note('The denial basis changed after review. This claim needs a reviewer again before any acceptance.'));
+          const conflicts = contradictions(t.contradicting_deliveries);
+          if (conflicts) out.append(conflicts);
+          list(t.correspondence).forEach(reply => {
+            const row = add(el('div', undefined, 'v4-dispute-reply'), el('strong', 'Vendor reply · ' + shown(reply.received_at)),
+              note('Ground: ' + shown(reply.ground) + ' · Category: ' + plain(CATEGORY, reply.category)), el('blockquote', reply.text));
+            const quote = reply.interpretation?.source?.quote;
+            if (typeof quote === 'string' && quote) row.append(note('Relied-on passage'), el('blockquote', quote));
+            out.append(row);
+          });
+          const checks = el('ul', undefined, 'v4-checks');
+          list(t.deterministic_checks).forEach(c => {
+            const special = RESULTS[c.check] && RESULTS[c.check][String(c.result)];
+            checks.append(el('li', plain(CHECKS, c.check) + ': '
+              + (special || (c.result === true ? 'pass' : c.result === false ? 'fail' : plain({}, c.result)))));
+          });
+          if (checks.children.length) out.append(el('h4', 'Deterministic checks'), checks);
+          const next = list(t.permitted_next_actions).map(id => NEXT[id] || label(String(id)));
+          out.append(note('Permitted next actions: ' + (next.length ? next.join(', ') : 'none') + '.'), note(shown(t.authority)));
+        } catch (error) {
+          if (active(m)) out.replaceChildren(note(error?.status === 401 ? 'Sign in again to read the dispute record.' : 'Dispute record unavailable. Nothing was changed.'));
+        } finally { load.disabled = false; }
+      });
+      return add(n, note('A read-only summary of the replies, checks and permitted next actions. It grants no approval or closure.'), load, out);
     }
     function inspector(m, data, correspondence = false) {
       const n = section(correspondence ? 'Correspondence case' : 'Case evidence & financial references');
@@ -217,7 +324,11 @@
           n.append(review, note('The review page uses your enrolled identity. Meaning review alone cannot file, close a denial or change money.'));
         }
         const id = data.claim_id ?? data.id;
+        const conflicts = contradictions(data.contradicting_deliveries);
+        if (conflicts) n.append(conflicts);
         if (typeof id === 'string' && id) n.append(actions(m, data, '/api/correspondence/claims/' + encodeURIComponent(id)));
+        if (typeof id === 'string' && id && data.trace_url === '/api/correspondence/claims/' + id + '/trace')
+          n.append(disputeRecord(m, '/api/correspondence/claims/' + encodeURIComponent(id) + '/trace'));
       }
       return n;
     }
@@ -261,9 +372,8 @@
     // Source text is sent exactly as entered: never trimmed or normalized here. Generation permission comes only
     // from the server's access answer for these exact fields, and any edit invalidates it. Job status is read with
     // GET only; a lost reservation response is recovered by an explicit access recheck, never by a second POST.
-    const PROFILES = [['monthly','Monthly availability terms'],
-      ['monthly-propositions','Monthly terms with prose interpretation'],
-      ['resource-month','Resource or service-month terms (interpretation review required)']];
+    // Uptime selects the rule family (decision 97, D05). The client sends profile "auto" with the exact public
+    // source and never names a family. Selection, proposals and candidates are not tests or approvals.
     const REASONS = {PROPOSAL_SERVICE_UNCONFIGURED:'proposal generation is not configured in this deployment',
       PROVIDER_UNCONFIGURED:'no public proposal provider is configured', NOT_SUCCEEDED:'the job has not succeeded',
       exact_request_not_approved:'this exact document request needs operator approval',
@@ -274,8 +384,9 @@
       restart_before_dispatch:'the pending job was cancelled when the service restarted',
       restart_after_dispatch:'the service restarted after the model call began',
       RESULT_INTEGRITY:'the stored result failed its integrity pins',
-      STALE_CONTEXT:'the source, profile or evaluator semantics changed after generation',
-      REQUEST_CHANGED:'the configured transport changed after generation'};
+      STALE_CONTEXT:'the source or evaluator semantics changed after generation',
+      REQUEST_CHANGED:'the configured transport changed after generation',
+      NOT_CANONICAL:'not a canonical monthly source', RESOURCE_LANGUAGE_PRESENT:'contains resource-family language'};
     const reasonText = code => typeof code === 'string' && code ? (REASONS[code] || code) : 'no reason returned';
     const JOB_MESSAGES = {
       QUEUED:'Queued. The server calls the configured model once for this approved request; this page only reads status.',
@@ -284,21 +395,28 @@
       REFUSED:'Source validation refused the model output. No candidate can be created from it. A retry needs a new attempt identifier and its own approval.',
       CANCELLED:'Cancelled before completion. A retry needs a new attempt identifier and its own approval.',
       UNCERTAIN:'The outcome is uncertain, for example after an interrupted run. It is never retried automatically.'};
+    const OUTCOMES = {
+      SELECTED:'Uptime selected one rule family from the source. It can be staged as a SHADOW candidate; independent tests and a person’s approval remain required.',
+      AMBIGUOUS:'More than one supported rule family fits this source. Uptime does not choose between readings, so no candidate can be staged.',
+      NO_SUPPORTED_FAMILY:'No supported rule family represents this source. No candidate can be staged.',
+      INCOMPLETE:'Selection is incomplete, so no candidate can be staged yet.',
+      PENDING:'Family evaluations are running. This page only reads their status.',
+      NOT_SUBMITTED:'Every family request for this exact source is approved and none has run yet.',
+      APPROVAL_REQUIRED:'An operator must approve each family request for these exact bytes before any evaluation starts.',
+      PROVIDER_UNCONFIGURED:'Proposal generation is not configured, and the offline parser cannot select a family for this source.'};
+    const FAMILY_STATES = {VALIDATED:'validated the complete source', REFUSED_STRUCTURAL:'refused by a deterministic finding about the source',
+      REFUSED_READING:'its reading of the source was refused', NOT_EVALUATED:'produced no grounded reading, so it was not evaluated',
+      INCONCLUSIVE:'ended without a conclusive result', PENDING:'still running'};
+    const RUNNING_STATES = ['QUEUED', 'RUNNING'];
     const schedule = typeof options.schedule === 'function' ? options.schedule : (callback, ms) => global.setTimeout(callback, ms);
     function generator(m) {
       const panel = section('Generate a public proposal');
-      panel.append(note('Paste the exact public contract text. The server builds the complete request, requires a separate operator approval for those exact bytes, and calls the configured model at most once per approved request. A proposal is not a candidate, a test result or an approval.'));
+      panel.append(note('Paste the exact public contract text. Uptime selects the rule family from the source itself. A canonical monthly source is recognized by the deterministic parser with no model call. Otherwise every supported family is evaluated by its own server-built request, each needing a separate operator approval of its exact bytes and called at most once. A proposal is not a candidate, a test result or an approval.'));
       const box = el('div', undefined, 'v4-form v4-generator');
       box.setAttribute('role','group'); box.setAttribute('aria-label','Public proposal request');
       const inputs = {vendor_id:field(box, 'vendor_id', 'Proposal vendor identifier'), name:field(box, 'name', 'Public document name'),
         uri:field(box, 'uri', 'Public document URI', 'url'),
         classification:field(box, 'classification', 'Public document origin', ['public','synthetic_public'])};
-      const profile = el('select');
-      const blank = el('option', 'Choose extraction profile'); blank.value = ''; profile.append(blank);
-      PROFILES.forEach(([value, text]) => { const option = el('option', text); option.value = value; profile.append(option); });
-      profile.name = 'profile'; profile.required = true; profile.setAttribute('aria-label', 'Extraction profile');
-      box.append(add(el('label', undefined, 'v4-field'), el('span', 'Extraction profile'), profile));
-      inputs.profile = profile;
       inputs.attempt_nonce = field(box, 'attempt_nonce', 'Attempt identifier (change only for a separately approved retry)');
       inputs.attempt_nonce.value = 'initial';
       inputs.text = field(box, 'text', 'Exact public source text (sent exactly as entered)', 'textarea');
@@ -306,7 +424,8 @@
       const sourceFile = field(box, 'source_file', 'Import UTF-8 source file (optional)', 'file', false);
       sourceFile.accept = '.txt,text/plain';
       let fileText = null, fileDisplay = null;
-      const state = {token:0, read:0, inflight:0, confirmed:null, lost:false, job:null, shown:null, polls:0};
+      const state = {token:0, read:0, inflight:0, confirmed:null, lost:false, job:null, shown:null, polls:0,
+        running:{}, selectedJob:null, offline:false, progress:null, round:0};
       const accessOut = el('div', undefined, 'v4-review'), jobOut = el('div', undefined, 'v4-review');
       const live = () => mounts.get(m.root) === m;
       const values = () => {
@@ -316,25 +435,27 @@
           text:fileText === null ? inputs.text.value : fileText};
       };
       const payload = v => ({document:{name:v.name, uri:v.uri, classification:v.classification, text:v.text},
-        profile:v.profile, attempt_nonce:v.attempt_nonce});
+        profile:'auto', attempt_nonce:v.attempt_nonce});
       const exact = v => JSON.stringify([v.vendor_id, payload(v)]);
       const vendorPath = id => '/api/vendors/' + encodeURIComponent(id);
+      const valid = answer => !!answer && typeof answer === 'object' && typeof answer.outcome === 'string' && Array.isArray(answer.families);
       function problem(v) {
         if (Object.values(v).some(value => typeof value !== 'string' || value === '')) return 'Complete every proposal field. Source text is sent exactly as entered.';
         if (!/^[a-z0-9][a-z0-9_-]{0,79}$/.test(v.vendor_id)) return 'Use a lowercase vendor identifier of letters, digits, hyphens or underscores.';
         return '';
       }
       const check = button('Check generation access', () => checkAccess());
-      const generate = button('Generate proposal', () => submitJob());
-      const refresh = button('Refresh proposal status', () => { state.polls = 0; return loadJob(); });
+      const generate = button('Generate proposals', () => submitJob());
+      const refresh = button('Refresh proposal status', () => checkAccess(true));
       function update() {
         const can = live() && writable(true) && state.inflight === 0, c = state.confirmed;
         check.disabled = !can;
-        generate.disabled = !(can && c && c.enabled === true && !c.existing && !state.lost && !state.job && c.key === exact(values()));
-        refresh.disabled = !(live() && state.job && state.inflight === 0);
+        generate.disabled = !(can && c && c.outcome === 'NOT_SUBMITTED' && !state.lost && c.key === exact(values()));
+        refresh.disabled = !(can && c && c.key === exact(values()));
       }
       function invalidate() {
         state.token++; state.confirmed = null; state.lost = false; state.job = null; state.shown = null; state.polls = 0;
+        state.running = {}; state.selectedJob = null; state.offline = false; state.progress = null; state.round++;
         accessOut.replaceChildren(); disable(jobOut); jobOut.replaceChildren(); update();
       }
       function edited() {
@@ -369,12 +490,92 @@
           if (token === state.token && live()) status(m, 'Choose a valid UTF-8 text file within the source limit. Nothing was sent.');
         } finally { state.inflight--; update(); }
       });
-      function accessView(answer) {
-        const n = add(el('div', undefined, 'v4-access'), el('h3', 'Server generation access'),
-          record({enabled:answer.enabled, reason:answer.reason, request_sha256:answer.request_sha256, context_sha256:answer.context_sha256}));
-        if (answer.disclosure && typeof answer.disclosure === 'object') add(n, el('h3', 'Exact public transmission'), record(answer.disclosure));
-        n.append(note('Only this server-computed request can be transmitted, and only after a separate operator approval of these exact bytes. The private customer overlay is never part of it. Hashes or labels shown here do not authorize transmission.'));
+      // The selection view's per-family refusal summary (codes, fixed explanations, exact passages, missing terms).
+      // It is not the job projection's public-refusal-diagnostic/1 record; every value renders as text.
+      function familyRefusal(value) {
+        if (!value || typeof value !== 'object') return null;
+        const box = add(el('div', undefined, 'v4-review v4-refusal'), el('h4', 'Why this family was refused'));
+        list(value.explanations).filter(t => typeof t === 'string' && t).forEach(t => box.append(el('p', t)));
+        list(value.passages).filter(t => typeof t === 'string' && t).forEach(t => box.append(el('blockquote', t), note('Public source passage')));
+        const missing = list(value.missing_terms).filter(t => typeof t === 'string' && t);
+        if (missing.length) box.append(note('Required terms not established by the source: ' + missing.join(', ') + '.'));
+        return box;
+      }
+      function renderProgress() {
+        if (!state.progress) return;
+        const items = Object.entries(state.running);
+        state.progress.replaceChildren(...items.map(([id, value]) => el('li', 'Proposal job ' + id + ': ' + shown(value))));
+      }
+      function selectionView(answer) {
+        const selected = answer.selected && typeof answer.selected === 'object' ? answer.selected : null;
+        const offline = answer.offline && typeof answer.offline === 'object' ? answer.offline : {};
+        const n = add(el('div', undefined, 'v4-access v4-selection'), el('h3', 'Automatic rule-family selection'),
+          el('p', OUTCOMES[answer.outcome] || 'Unrecognized selection outcome. No action is available.', 'v4-note v4-outcome'),
+          record({outcome:answer.outcome, selected_family:selected ? selected.family : null,
+            selection_method:selected ? selected.method : null,
+            offline_parser:offline.accepted === true ? 'accepted the complete source' : reasonText(offline.reason),
+            source_sha256:answer.source_sha256, selection_sha256:answer.selection_sha256}));
+        const requirements = list(answer.review_requirements).filter(t => typeof t === 'string' && t);
+        if (requirements.length) {
+          const items = el('ul', undefined, 'v4-requirements');
+          requirements.forEach(t => items.append(el('li', t)));
+          add(n, el('h4', 'Review requirements'), items);
+        }
+        list(answer.families).filter(f => f && typeof f === 'object').forEach(f => {
+          const job = f.job && typeof f.job === 'object' ? f.job : null;
+          const row = add(el('div', undefined, 'v4-review v4-family'), el('h4', shown(f.label)),
+            record({family:f.family, evaluation:f.state ? FAMILY_STATES[f.state] || f.state : 'not evaluated',
+              request:f.enabled === true ? 'approved for these exact bytes' : reasonText(f.approval_reason),
+              job_id:job ? job.job_id : null, job_status:job ? job.status : null, attempts:f.attempts}));
+          if (f.disclosure && typeof f.disclosure === 'object') add(row, el('h4', 'Exact public transmission'), record(f.disclosure));
+          // The verified per-family diagnostic carries exact offsets and SHA-256; the summary is the fallback.
+          add(row, refusalDiagnostic(f.public_diagnostic, 'Why this family was refused') || familyRefusal(f.refusal));
+          n.append(row);
+        });
+        state.progress = el('ul', undefined, 'v4-progress');
+        n.append(state.progress, note('Each family request is built by the server and transmitted only after a separate operator approval of its exact bytes. The private customer overlay is never part of it. Selection grants no approval.'));
         return n;
+      }
+      function outcomeStatus(answer) {
+        const first = list(answer.review_requirements).find(t => typeof t === 'string' && t);
+        if (answer.outcome === 'NOT_SUBMITTED') return 'Generation is permitted for this exact request. Every supported rule family will be evaluated; review what will be transmitted, then choose Generate proposals.';
+        if (answer.outcome === 'APPROVAL_REQUIRED' || answer.outcome === 'PROVIDER_UNCONFIGURED') return 'Generation is not available for this exact request: ' + (first || reasonText(answer.outcome));
+        if (answer.outcome === 'PENDING') return 'Family evaluations are running. Status is read-only from here.';
+        if (answer.outcome === 'SELECTED') {
+          const chosen = list(answer.families).find(f => f && answer.selected && f.family === answer.selected.family);
+          return 'Uptime selected the ' + shown(chosen ? chosen.label : answer.selected && answer.selected.family) + ' family. Review it, then stage it as a SHADOW candidate.';
+        }
+        return 'Selection outcome: ' + shown(answer.outcome) + '. No candidate can be staged; see the review requirements.';
+      }
+      function offlineCandidate(vendor, documentValue) {
+        const n = el('div', undefined, 'v4-form v4-candidate');
+        n.setAttribute('role','group'); n.setAttribute('aria-label','Attach private customer overlay');
+        n.append(note('The deterministic parser established the monthly availability family from this exact source with no model call.'));
+        const overlay = field(n, 'overlay', 'Private customer overlay for this proposal (JSON object; never sent for extraction)', 'textarea');
+        const preview = el('div', undefined, 'v4-review');
+        const path = vendorPath(vendor) + '/candidates';
+        let reviewed = null;
+        const token = state.token;
+        const stillLive = () => live() && token === state.token && state.offline === true && state.confirmed?.outcome === 'SELECTED';
+        const attach = button('Review shadow candidate request', async () => {
+          if (!writable(true) || !stillLive()) return;
+          let body;
+          try { body = {document:documentValue, overlay:parseJSON(overlay.value, 'overlay')}; } catch (error) { status(m, error.message); return; }
+          const exactBody = JSON.stringify([path, body]);
+          if (reviewed !== exactBody) {
+            reviewed = exactBody;
+            preview.replaceChildren(el('h3', 'Review exact candidate request'), record({destination:path, overlay:body.overlay,
+              document:{name:documentValue.name, uri:documentValue.uri, source_characters:documentValue.text.length}}),
+              note('The server compiles this exact source with the deterministic parser, attaches the private overlay and stages a normal SHADOW candidate. Nothing is sent to a model. Independent tests and named approval remain required.'));
+            attach.textContent = 'Confirm shadow candidate';
+            status(m, 'Review the candidate request, then confirm. Editing the overlay requires another review.');
+            return;
+          }
+          await mutate(m, path, body, undefined, true);
+        });
+        attach.draftAllowed = true; attach.stillCurrent = stillLive; attach.disabled = !writable(true); m.writes.push(attach);
+        overlay.addEventListener('input', () => { reviewed = null; preview.replaceChildren(); attach.textContent = 'Review shadow candidate request'; });
+        return add(n, preview, attach);
       }
       function candidate(vendor, job) {
         const n = el('div', undefined, 'v4-form v4-candidate');
@@ -384,7 +585,7 @@
         const path = vendorPath(vendor) + '/proposal-jobs/' + encodeURIComponent(job.job_id) + '/candidate';
         let reviewed = null;
         const token = state.token;
-        const candidateLive = () => live() && token === state.token && state.job?.job_id === job.job_id
+        const candidateLive = () => live() && token === state.token && state.job?.job_id === job.job_id && state.selectedJob === job.job_id
           && state.shown === [job.job_id, 'SUCCEEDED', true].join(':');
         const attach = button('Review shadow candidate request', async () => {
           if (!writable(true) || !candidateLive()) return;
@@ -394,7 +595,7 @@
           if (reviewed !== exactBody) {
             reviewed = exactBody;
             preview.replaceChildren(el('h3', 'Review exact candidate request'), record({destination:path, body}),
-              note('The server attaches this private overlay to the immutable public proposal of job ' + job.job_id + ' and stages a normal SHADOW candidate. Nothing is sent to the model. Independent tests, any source-meaning review and named approval remain required.'));
+              note('The server attaches this private overlay to the immutable public proposal of job ' + job.job_id + ', which automatic selection chose, and stages a normal SHADOW candidate. Nothing is sent to the model. Independent tests, any source-meaning review and named approval remain required.'));
             attach.textContent = 'Confirm shadow candidate';
             status(m, 'Review the candidate request, then confirm. Editing the overlay requires another review.');
             return;
@@ -420,15 +621,16 @@
         });
         if (!rows.children.length) rows.append(el('li', 'No validated clauses returned.'));
         n.append(rows, note('Quotes are exact slices of the public source and remain untrusted text. This proposal is unreviewed: it has no tests, approval or customer scope.'));
-        if (job.candidate_available === true) n.append(candidate(vendor, job));
+        if (job.candidate_available === true && job.job_id === state.selectedJob) n.append(candidate(vendor, job));
+        else if (job.candidate_available === true) n.append(note('Automatic selection did not choose this job, so no candidate can be staged from it.'));
         else n.append(note('A candidate cannot be created from this result: ' + reasonText(job.refusal) + '.'));
         return n;
       }
       // A verified diagnostic from the server: fixed explanations, exact public passages and missing terms.
       // Every value is rendered as text. A refusal stays a refusal; nothing here offers a candidate.
-      function refusalDiagnostic(value) {
+      function refusalDiagnostic(value, heading = 'Why this proposal was refused') {
         if (!value || typeof value !== 'object' || value.schema !== 'public-refusal-diagnostic/1') return null;
-        const box = add(el('div', undefined, 'v4-review v4-refusal'), el('h4', 'Why this proposal was refused'));
+        const box = add(el('div', undefined, 'v4-review v4-refusal'), el('h4', heading));
         list(value.issues).filter(issue => issue && typeof issue === 'object').forEach(issue => {
           const row = add(el('div', undefined, 'v4-refusal-issue'), el('p', shown(issue.explanation)));
           if (typeof issue.quote === 'string' && issue.quote) {
@@ -459,14 +661,51 @@
         disable(jobOut); jobOut.replaceChildren(n);
       }
       function poll(job) {
-        if (!['QUEUED','RUNNING'].includes(job.status) || state.polls >= 60) return;
+        if (!RUNNING_STATES.includes(job.status) || state.polls >= 60) return;
         state.polls++;
         const token = state.token, id = job.job_id;
         schedule(() => token === state.token && live() && state.job && state.job.job_id === id ? loadJob() : undefined, 2500);
       }
-      function adopt(vendor, job) {
-        state.job = {vendor, job_id:job.job_id};
-        show(vendor, job); poll(job);
+      // Family evaluations are read with GET only. When all have finished, the person refreshes the selection.
+      function pollFamilies(vendor, round = state.round) {
+        if (round !== state.round) return;
+        renderProgress();
+        const ids = Object.keys(state.running).filter(id => RUNNING_STATES.includes(state.running[id]));
+        if (!ids.length) {
+          if (Object.keys(state.running).length) status(m, 'Every family evaluation has finished. Choose Refresh proposal status to see the selection; nothing is resent.');
+          return;
+        }
+        if (state.polls >= 60) return;
+        state.polls++;
+        const token = state.token;
+        schedule(async () => {
+          if (token !== state.token || round !== state.round || !live()) return;
+          for (const id of ids) {
+            try {
+              const job = await request(m, vendorPath(vendor) + '/proposal-jobs/' + encodeURIComponent(id));
+              if (token !== state.token || round !== state.round || !live()) return;
+              if (job && typeof job === 'object' && job.job_id === id && typeof job.status === 'string') state.running[id] = job.status;
+            } catch (_) {
+              if (token === state.token && live()) status(m, 'Proposal status is unavailable. Use Refresh proposal status; nothing was resent.');
+              return;
+            }
+          }
+          pollFamilies(vendor, round);
+        }, 2500);
+      }
+      function follow(vendor, answer, body) {
+        state.round++; state.running = {};
+        list(answer.families).forEach(f => { if (f && f.job && typeof f.job.job_id === 'string') state.running[f.job.job_id] = f.job.status; });
+        const selected = answer.selected && typeof answer.selected === 'object' ? answer.selected : null;
+        if (answer.outcome === 'SELECTED' && selected?.method === 'deterministic_document_parser') {
+          state.offline = true;
+          jobOut.replaceChildren(offlineCandidate(vendor, body.document));
+        } else if (answer.outcome === 'SELECTED' && selected?.method === 'public_proposal_job' && typeof selected.job_id === 'string') {
+          state.selectedJob = selected.job_id; state.job = {vendor, job_id:selected.job_id};
+          renderProgress();
+          return loadJob();
+        } else if (answer.outcome === 'PENDING') pollFamilies(vendor);
+        else renderProgress();
       }
       async function loadJob() {
         if (!live() || !state.job) return;
@@ -480,52 +719,64 @@
           if (token === state.token && read === state.read && live()) status(m, 'Proposal status is unavailable. Use Refresh proposal status; nothing was resent.');
         }
       }
-      async function checkAccess() {
-        if (check.disabled || !live()) return;
+      // A refresh of the same confirmed request re-reads the selection (read-only) without discarding a displayed
+      // selected result or an overlay under review. Any field edit or a fresh check starts over.
+      async function checkAccess(refreshing = false) {
+        if ((refreshing ? refresh : check).disabled || !live()) return;
         const v = values(), message = problem(v);
         if (message) { status(m, message); return; }
-        invalidate();
-        const token = state.token, key = exact(v), body = payload(v);
+        const key = exact(v), body = payload(v);
+        const keep = refreshing && !!state.confirmed && state.confirmed.key === key;
+        if (!keep) invalidate();
+        const token = state.token;
         state.inflight++; update();
-        status(m, 'Checking server generation access for these exact fields. Nothing is generated by this check.');
+        if (!keep) status(m, 'Checking rule-family selection and generation access for these exact fields. Nothing is generated by this check.');
         try {
           const answer = await request(m, vendorPath(v.vendor_id) + '/proposal-access', body);
           if (token !== state.token || !live()) return;
-          if (!answer || typeof answer !== 'object' || typeof answer.enabled !== 'boolean') throw new Error('Malformed access state.');
-          const existing = !!answer.existing_job && typeof answer.existing_job === 'object' && typeof answer.existing_job.job_id === 'string';
-          state.confirmed = {key, body, vendor:v.vendor_id, enabled:answer.enabled, existing};
-          accessOut.replaceChildren(accessView(answer));
-          if (existing) {
-            adopt(v.vendor_id, answer.existing_job);
-            status(m, 'This exact request already has a proposal job. Current state: ' + shown(answer.existing_job.status) + '. Showing it; no new model call is requested.');
-          } else status(m, answer.enabled ? 'Generation is permitted for this exact request. Review what will be transmitted, then choose Generate proposal.'
-            : 'Generation is not available for this exact request: ' + reasonText(answer.reason) + '.');
+          if (!valid(answer)) throw new Error('Malformed selection state.');
+          const prior = state.confirmed;
+          state.confirmed = {key, body, vendor:v.vendor_id, outcome:answer.outcome};
+          accessOut.replaceChildren(selectionView(answer));
+          const chosen = answer.outcome === 'SELECTED' && answer.selected && typeof answer.selected === 'object' ? answer.selected : null;
+          const unchanged = keep && prior && prior.outcome === 'SELECTED' && chosen
+            && (state.offline ? chosen.method === 'deterministic_document_parser' : state.selectedJob && chosen.job_id === state.selectedJob);
+          if (unchanged) {
+            renderProgress();
+            if (state.selectedJob) await loadJob();
+            return;
+          }
+          if (keep) { state.job = null; state.shown = null; state.selectedJob = null; state.offline = false; disable(jobOut); jobOut.replaceChildren(); }
+          status(m, outcomeStatus(answer));
+          await follow(v.vendor_id, answer, body);
         } catch (_) {
           if (token !== state.token || !live()) return;
-          accessOut.replaceChildren();
-          status(m, 'Generation access could not be confirmed. Nothing was generated. Check the connection, then check access again.');
+          if (!keep) accessOut.replaceChildren();
+          status(m, keep ? 'Proposal status is unavailable. Use Refresh proposal status; nothing was resent.'
+            : 'Generation access could not be confirmed. Nothing was generated. Check the connection, then check access again.');
         } finally { state.inflight--; update(); }
       }
       async function submitJob() {
         if (generate.disabled || !live()) return;
         const c = state.confirmed;
-        if (!c || c.key !== exact(values()) || c.enabled !== true || c.existing || state.lost || state.job) {
+        if (!c || c.key !== exact(values()) || c.outcome !== 'NOT_SUBMITTED' || state.lost) {
           invalidate(); status(m, 'The request changed after its access check. Check generation access again.'); return;
         }
         const token = state.token;
         state.inflight++; update();
-        status(m, 'Reserving one proposal job for this exact approved request…');
+        status(m, 'Reserving one proposal job per supported rule family for this exact approved request…');
         try {
-          const job = await request(m, vendorPath(c.vendor) + '/proposal-jobs', c.body);
+          const answer = await request(m, vendorPath(c.vendor) + '/proposal-jobs', c.body);
           if (token !== state.token || !live()) return;
-          if (!job || typeof job !== 'object' || typeof job.job_id !== 'string' || !job.job_id) throw new Error('Malformed proposal job.');
-          state.confirmed = {...c, existing:true};
-          adopt(c.vendor, job);
-          status(m, 'Proposal job ' + job.job_id + ' is ' + shown(job.status) + '. Status is read-only from here.');
+          if (!valid(answer)) throw new Error('Malformed selection state.');
+          state.confirmed = {...c, outcome:answer.outcome};
+          accessOut.replaceChildren(selectionView(answer));
+          status(m, outcomeStatus(answer));
+          await follow(c.vendor, answer, c.body);
         } catch (_) {
           if (token !== state.token || !live()) return;
           state.lost = true;
-          status(m, 'The generation request did not complete reliably and may have been queued. Choose Check generation access to recover any existing job; nothing is resent automatically.');
+          status(m, 'The generation request did not complete reliably and may have been queued. Choose Check generation access to recover any existing jobs; nothing is resent automatically.');
         } finally { state.inflight--; update(); }
       }
       add(box, add(el('div', undefined, 'v4-actions'), check, generate, refresh), accessOut, jobOut);

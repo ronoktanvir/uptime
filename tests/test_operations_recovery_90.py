@@ -665,3 +665,368 @@ def test_revocation_tenant_domain_is_pinned_to_the_workspace_id_domain():
     assert installation_revocation._identity("bears", lettered)
     with pytest.raises(ValueError):
         installation_revocation._identity("bears", lettered.upper())  # provider IDs are never case-folded
+
+
+def test_deadline_alerts_exclude_filed_and_closed_claims_and_report_missed_cutoffs(tmp_path):
+    from uptime.claim_identity import claim_key, reserve_claim
+    from uptime.storage import database
+    db, _, _ = live_workspace(tmp_path)
+    now = datetime.now(UTC)
+    identity = dict(tenant=TENANT, vendor="Acme Cloud", account="acct-1", agreement_id="agreement-1",
+                    agreement_version="v1", service="Compute", month="2026-10", remedy="availability")
+    soon, past, old = ((now + timedelta(days=d)).isoformat() for d in (2, -3, -60))
+    save_cases(db, TENANT, [
+        {"id": "due-open", "outcome": "ELIGIBLE", "stage": "EVALUATED", "claim_cutoff": soon},
+        {"id": "due-awarded", "outcome": "ELIGIBLE", "stage": "AWARDED", "claim_cutoff": soon},
+        {"id": "due-filed", "outcome": "ELIGIBLE", "stage": "EVALUATED", "claim_cutoff": soon,
+         "obligation_id": claim_key(**identity)},
+        {"id": "missed-open", "outcome": "INSUFFICIENT_EVIDENCE", "stage": "REVIEW_REQUIRED", "claim_cutoff": past},
+        {"id": "missed-long-ago", "outcome": "ELIGIBLE", "stage": "EVALUATED", "claim_cutoff": old},
+    ])
+    with database(db) as conn, conn:
+        conn.execute("BEGIN IMMEDIATE")
+        reserve_claim(conn, **identity, route="vendor", case_id="due-filed", packet_digest="a" * 64,
+                      scope={"account": "acct-1"}, receipt_id="receipt-1", at=now.isoformat())
+    report = check(db, now=now)
+    codes = {f["code"]: f for f in report["findings"]}
+    assert [c["case_id"] for c in codes["CLAIM_DEADLINE_APPROACHING"]["cases"]] == ["due-open"]
+    assert codes["CLAIM_DEADLINE_PASSED_UNFILED"]["level"] == "INFO"
+    assert [c["case_id"] for c in codes["CLAIM_DEADLINE_PASSED_UNFILED"]["cases"]] == ["missed-open"]
+    assert report["deadlines"] == {"status": "EVALUATED", "approaching": 1, "passed_unfiled": 1, "window_days": 7}
+
+
+def test_replay_workspace_does_not_raise_wall_clock_deadline_alerts(tmp_path):
+    db = private_dir(tmp_path / "replay") / "work.sqlite"
+    enroll(db, USER, generate_reviewer_key(), "reviewer", "replay", TENANT)
+    initialize(db)
+    soon = (datetime.now(UTC) + timedelta(days=2)).isoformat()
+    save_cases(db, TENANT, [{"id": "authored", "outcome": "ELIGIBLE", "stage": "EVALUATED", "claim_cutoff": soon}])
+    report = check(db)
+    assert report["deadlines"]["status"] == "NOT_EVALUATED"
+    assert not {f["code"] for f in report["findings"]} & {"CLAIM_DEADLINE_APPROACHING", "CLAIM_DEADLINE_PASSED_UNFILED"}
+
+
+def test_clock_skew_and_capture_near_limit_are_reported(tmp_path):
+    db, _, _ = live_workspace(tmp_path)
+    now = datetime.now(UTC)
+    behind = {f["code"] for f in check(db, now=now - timedelta(hours=1))["findings"]}
+    assert "CLOCK_BEHIND_CAPTURE" in behind and "RAMP_CAPTURE_STALE" not in behind
+    near = check(db, now=now + timedelta(hours=21))
+    finding = {f["code"]: f for f in near["findings"]}["RAMP_CAPTURE_NEAR_LIMIT"]
+    assert finding["level"] == "INFO" and finding["retryable_read"] is True
+    assert datetime.fromisoformat(finding["expires_at"]) - now < timedelta(hours=24)
+    assert near["status"] == "OK"
+    assert "RAMP_CAPTURE_NEAR_LIMIT" not in {f["code"] for f in check(db, now=now)["findings"]}
+
+
+def _preflight_probes(**overrides):
+    from collections import namedtuple
+    usage = namedtuple("usage", "total used free")
+    probes = dict(environ={"RAMP_ENV": "sandbox", "RAMP_BASE_URL": "https://demo-api.ramp.com"},
+                  listeners=lambda: [("Python", "127.0.0.1", 8776), ("python3.1", "[::1]", 8777)],
+                  processes=lambda: ["zsh", "python3.13", "node"],
+                  disk_usage=lambda path: usage(500 * 2 ** 30, 490 * 2 ** 30, 10 * 2 ** 30))
+    probes.update(overrides)
+    return probes
+
+
+def test_preflight_is_ready_for_a_safe_local_demo_machine(tmp_path):
+    from uptime import operations_preflight
+    db, _, _ = live_workspace(tmp_path)
+    backups = private_dir(tmp_path / "backups")
+    backup(db, backups / "before-demo")
+    config = private_dir(tmp_path / "config") / "ramp-sandbox.json"
+    config.write_text('{"client_secret":"never-printed"}')
+    os.chmod(config, 0o600)
+    before = db.read_bytes()
+    report = operations_preflight.check([db], ports=[8776, 8777], backup_dir=backups, config_files=[config],
+                                        **_preflight_probes())
+    assert report["status"] == "READY" and report["findings"] == []
+    assert report["workspaces"][0]["backup"]["verified"] is True
+    assert report["ports"] == {"8776": {"listening": True, "addresses": ["127.0.0.1"]},
+                               "8777": {"listening": True, "addresses": ["[::1]"]}}
+    assert report["provider_requests"] == 0 and report["writes"] == 0 and db.read_bytes() == before
+    assert "never-printed" not in json.dumps(report)
+
+
+def test_preflight_flags_tunnels_exposed_ports_wrong_ramp_environment_and_low_disk(tmp_path):
+    from collections import namedtuple
+    from uptime import operations_preflight
+    db, _, _ = live_workspace(tmp_path)
+    usage = namedtuple("usage", "total used free")
+    report = operations_preflight.check(
+        [db], ports=[8776, 8777, 8780],
+        **_preflight_probes(environ={"RAMP_ENV": "production", "RAMP_BASE_URL": "https://api.ramp.com"},
+                            listeners=lambda: [("Python", "*", 8776), ("Python", "127.0.0.1", 8777)],
+                            processes=lambda: ["zsh", "ngrok", "cloudflared"],
+                            disk_usage=lambda path: usage(500 * 2 ** 30, 499 * 2 ** 30, 2 ** 30)))
+    codes = {f["code"]: f for f in report["findings"]}
+    assert report["status"] == "ATTENTION"
+    assert codes["TUNNEL_PROCESS_RUNNING"]["processes"] == ["cloudflared", "ngrok"]
+    assert codes["LISTENER_NOT_LOOPBACK"]["port"] == 8776 and codes["LISTENER_NOT_LOOPBACK"]["addresses"] == ["*"]
+    assert codes["PORT_NOT_LISTENING"]["level"] == "INFO" and codes["PORT_NOT_LISTENING"]["port"] == 8780
+    assert "RAMP_ENV_NOT_SANDBOX" in codes and codes["DISK_LOW"]["free_bytes"] == 2 ** 30
+    unavailable = operations_preflight.check([db], ports=[8776], **_preflight_probes(
+        listeners=lambda: None, processes=lambda: None))
+    assert {"LISTENERS_UNAVAILABLE", "PROCESS_LIST_UNAVAILABLE"} <= {f["code"] for f in unavailable["findings"]}
+
+
+def test_preflight_requires_a_recent_verified_backup_of_each_exact_workspace(tmp_path):
+    from uptime import operations_preflight
+    fresh, _, _ = live_workspace(tmp_path, folder="fresh")
+    stale, _, _ = live_workspace(tmp_path, folder="stale")
+    broken, _, _ = live_workspace(tmp_path, folder="broken")
+    unbacked, _, _ = live_workspace(tmp_path, folder="unbacked")
+    backups = private_dir(tmp_path / "backups")
+    backup(fresh, backups / "fresh")
+    backup(stale, backups / "stale", now=datetime.now(UTC) - timedelta(days=2))
+    backup(broken, backups / "broken")
+    with sqlite3.connect(backups / "broken" / "workspace.sqlite") as conn:
+        conn.execute("UPDATE settlement_event SET awarded='999.00'")
+    # Every database is named work.sqlite; only the exact binding (tenant, mode, realm) may match.
+    report = operations_preflight.check([fresh, stale, broken, unbacked, tmp_path / "absent.sqlite"],
+                                        backup_dir=backups, **_preflight_probes())
+    by_path = {f.get("path"): f["code"] for f in report["findings"]}
+    assert by_path == {str(stale): "BACKUP_STALE", str(broken): "BACKUP_INVALID", str(unbacked): "BACKUP_MISSING",
+                       str(tmp_path / "absent.sqlite"): "WORKSPACE_MISSING"}
+    assert report["workspaces"][0]["backup"]["verified"] is True
+
+
+def test_preflight_reads_process_names_only_and_parses_listeners(monkeypatch):
+    import subprocess
+    from uptime import operations_preflight
+    calls = []
+
+    class Done:
+        def __init__(self, stdout):
+            self.stdout = stdout
+
+    def run(args, **kwargs):
+        calls.append(args)
+        return Done("/usr/local/bin/ngrok\n/bin/zsh\n")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    assert operations_preflight._process_names() == ["ngrok", "zsh"]
+    assert calls == [["ps", "-axo", "comm="]]  # the command name column only; never arguments
+    sample = "p10\ncPython\nf3\nn127.0.0.1:8776\np11\ncnode\nf4\nn*:3000\nf5\nn[::1]:8777\n"
+    assert operations_preflight.parse_lsof(sample) == [("Python", "127.0.0.1", 8776), ("node", "*", 3000),
+                                                       ("node", "[::1]", 8777)]
+
+
+def test_preflight_command_prints_json_and_signals_attention(tmp_path, capsys):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("operations_preflight_cli", ROOT / "scripts/operations_preflight.py")
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    db, _, _ = live_workspace(tmp_path)
+    code = cli.main(["--workspace", str(db), "--backup-dir", str(private_dir(tmp_path / "empty-backups"))])
+    report = json.loads(capsys.readouterr().out)
+    assert code == 2 and report["schema"] == "uptime-operations-preflight/1"
+    assert "BACKUP_MISSING" in {f["code"] for f in report["findings"]}
+
+
+def _w1_native(tmp_path, folder="native"):
+    """W1's real workflow, inbox and simulated provider on a native outbox file, beside a bound workspace."""
+    from test_ramp_workflow import BILL as W1_BILL, TENANT as W1_TENANT, make_finding
+    from test_ramp_workflow_webhooks import NOW as W1_NOW, BUSINESS as W1_BUSINESS, REQUEST_ID, TRIGGER, activate, \
+        deployment, native_event, signed
+    from uptime.auth_keys import public_bytes
+    from uptime.ramp_workflow import RampWorkflow, SimulatedWorkflowProvider, WorkflowReviewer
+
+    base = private_dir(tmp_path / folder)
+    workspace = base / "work.sqlite"
+    enroll(workspace, USER, generate_reviewer_key(), "reviewer", "sandbox", W1_TENANT)
+    initialize(workspace)
+    outbox = base / "native.outbox.sqlite3"
+    inbox = RampWebhookInbox(outbox, deployment(), clock=lambda: W1_NOW)
+    activate(inbox)
+    inbox.receive(*signed(native_event()))
+    records = {("bills", W1_BILL): {"id": W1_BILL, "status": "OPEN", "approval_status": "PENDING"},
+               ("unified-requests", REQUEST_ID): {"id": REQUEST_ID, "request_status": "SUBMITTED"}}
+    findings = {key: make_finding(*key) for key in records}
+    provider = SimulatedWorkflowProvider(business_id=W1_BUSINESS, records=records, clock=lambda: W1_NOW,
+                                        contexts={TRIGGER: {"node_id": "node-external-review", "service_key": "Uptime-v4"}})
+    key = generate_reviewer_key()
+    reviewers = {"test-reviewer": WorkflowReviewer(public_bytes(key))}
+
+    def open_flow(path):
+        box = RampWebhookInbox(path, deployment(), clock=lambda: W1_NOW)
+        return RampWorkflow(path, tenant=W1_TENANT, business_id=W1_BUSINESS, finding_resolver=lambda t, i: findings[t, i],
+                            reviewers=reviewers, inbox=box, inspector_origins=("https://inspector.example",),
+                            clock=lambda: W1_NOW)
+    open_flow(outbox)  # creates W1's rw_installation and rw_outbox tables
+    return dict(workspace=workspace, outbox=outbox, provider=provider, key=key, open=open_flow, tenant=W1_TENANT,
+                bill=W1_BILL, trigger=TRIGGER)
+
+
+def _restore_native(tmp_path, env, folder, **options):
+    target_dir = private_dir(tmp_path / "restored")
+    receipt = restore(folder, target_dir / "work.sqlite", tenant=env["tenant"], mode="sandbox",
+                      outbox_target=target_dir / "native.outbox.sqlite3", **options)
+    return receipt, target_dir / "native.outbox.sqlite3"
+
+
+def test_restored_reviewed_comment_delivered_after_backup_is_never_reposted(tmp_path):
+    from test_ramp_workflow import review as w1_review
+    from uptime.ramp_workflow import WorkflowError
+    env = _w1_native(tmp_path)
+    flow, provider = env["open"](env["outbox"]), env["provider"]
+    plan = flow.prepare_comment("bills", env["bill"], provider=provider)
+    w1_review(flow, env["key"], plan)
+    folder = private_dir(tmp_path / "backups") / "reviewed"
+    manifest = backup(env["workspace"], folder, outbox=env["outbox"])
+    assert manifest["outbox"]["status_counts"] == {"REVIEWED": 1}
+    assert flow.execute(plan["id"], provider=provider)["status"] == "DELIVERED"  # after the backup
+    assert len(provider.calls) == 1
+
+    receipt, restored = _restore_native(tmp_path, env, folder)
+    assert receipt["outbox"]["comment_reviews_cleared"] == 1 and receipt["outbox"]["marked_uncertain"] == 0
+    again = env["open"](restored)
+    assert again.get(plan["id"])["status"] == "PREPARED"
+    with pytest.raises(WorkflowError, match="review"):
+        again.execute(plan["id"], provider=provider)
+    w1_review(again, env["key"], again.get(plan["id"]))
+    result = again.execute(plan["id"], provider=provider)
+    assert result["status"] == "DELIVERED" and result["remote_state"]["verification"] == "EXACT_DISCUSSION_GET"
+    assert len(provider.calls) == 1  # the marker was already in the thread: zero new POSTs
+    assert os.stat(restored).st_mode & 0o777 == 0o600 and os.stat(restored).st_nlink == 1
+
+
+def test_restored_dispatching_comment_can_only_be_reconciled(tmp_path):
+    from test_ramp_workflow import review as w1_review
+    from uptime.ramp_workflow import WorkflowError
+    env = _w1_native(tmp_path)
+    flow, provider = env["open"](env["outbox"]), env["provider"]
+    plan = flow.prepare_comment("bills", env["bill"], provider=provider)
+    w1_review(flow, env["key"], plan)
+    with sqlite3.connect(env["outbox"]) as conn:
+        conn.execute("UPDATE rw_outbox SET status='DISPATCHING'")
+    folder = private_dir(tmp_path / "backups") / "dispatching"
+    backup(env["workspace"], folder, outbox=env["outbox"])
+    receipt, restored = _restore_native(tmp_path, env, folder)
+    assert receipt["outbox"]["marked_uncertain"] == 1
+    again = env["open"](restored)
+    assert again.get(plan["id"])["status"] == "UNCERTAIN"
+    with pytest.raises(WorkflowError, match="reconcile"):
+        again.execute(plan["id"], provider=provider)
+    assert again.reconcile(plan["id"], provider=provider)["status"] == "UNCERTAIN"  # absence never authorizes resend
+    assert provider.calls == []
+    codes = {f["code"] for f in check(tmp_path / "restored" / "work.sqlite", outbox=restored)["findings"]}
+    assert {"EXTERNAL_EFFECT_UNCERTAIN", "RESTORE_RECONCILIATION_PENDING"} <= codes
+
+
+def test_restored_metadata_is_uncertain_and_unprepared_comments_are_unchanged(tmp_path):
+    from test_ramp_workflow import review as w1_review
+    from uptime.ramp_workflow import WorkflowError
+    env = _w1_native(tmp_path)
+    flow, provider = env["open"](env["outbox"]), env["provider"]
+    metadata = flow.prepare_metadata(env["trigger"], provider=provider, url="https://inspector.example/cases/local-case")
+    w1_review(flow, env["key"], metadata)
+    comment = flow.prepare_comment("bills", env["bill"], provider=provider)
+    with sqlite3.connect(env["outbox"]) as conn:
+        plans = dict(conn.execute("SELECT id,plan FROM rw_outbox").fetchall())
+    folder = private_dir(tmp_path / "backups") / "metadata"
+    backup(env["workspace"], folder, outbox=env["outbox"])
+    receipt, restored = _restore_native(tmp_path, env, folder)
+    assert receipt["outbox"]["marked_uncertain"] == 1 and receipt["outbox"]["comment_reviews_cleared"] == 0
+    again = env["open"](restored)
+    assert again.get(metadata["id"])["status"] == "UNCERTAIN"
+    assert again.get(comment["id"])["status"] == "PREPARED"
+    with pytest.raises(WorkflowError, match="reconcile"):
+        again.execute(metadata["id"], provider=provider)
+    assert provider.calls == []
+    with sqlite3.connect(restored) as conn:
+        assert dict(conn.execute("SELECT id,plan FROM rw_outbox").fetchall()) == plans  # plans never rewritten
+
+
+def test_outbox_restore_carries_quarantine_forward_and_refuses_mismatches(tmp_path):
+    env = _w1_native(tmp_path)
+    folder = private_dir(tmp_path / "backups") / "active"
+    backup(env["workspace"], folder, outbox=env["outbox"])
+    with sqlite3.connect(env["outbox"]) as conn:  # after the backup, a conflicting event quarantined it
+        conn.execute("UPDATE rw_deployment SET status='quarantined'")
+    receipt, restored = _restore_native(tmp_path, env, folder, previous_outbox=env["outbox"])
+    assert receipt["outbox"]["quarantine_carried_forward"] == 1
+    with sqlite3.connect(restored) as conn:
+        assert {r[0] for r in conn.execute("SELECT status FROM rw_deployment")} == {"quarantined"}
+
+    plain = private_dir(tmp_path / "plain") / "work.sqlite"
+    with pytest.raises(RecoveryError, match="previous outbox"):
+        restore(folder, plain, tenant=env["tenant"], mode="sandbox", previous_outbox=env["outbox"])
+    no_outbox = private_dir(tmp_path / "backups-plain") / "copy"
+    backup(env["workspace"], no_outbox)
+    with pytest.raises(RecoveryError, match="does not contain"):
+        restore(no_outbox, plain, tenant=env["tenant"], mode="sandbox", outbox_target=plain.with_name("o.sqlite3"))
+    with pytest.raises(RecoveryError, match="not a native outbox"):
+        backup(env["workspace"], private_dir(tmp_path / "b2") / "x", outbox=live_workspace(tmp_path, folder="other-ws")[0])
+    foreign = _w1_native(tmp_path, folder="foreign")
+    db, _, _ = live_workspace(tmp_path, folder="tenant-a-ws")
+    with pytest.raises(RecoveryError, match="different tenant"):
+        backup(db, private_dir(tmp_path / "b3") / "x", outbox=foreign["outbox"])
+    rewritten = private_dir(tmp_path / "backups-vacuum") / "copy"
+    backup(env["workspace"], rewritten, outbox=env["outbox"])
+    conn = sqlite3.connect(rewritten / "outbox.sqlite")
+    conn.execute("VACUUM")  # same rows, different bytes: only the file checksum can tell
+    conn.close()
+    with pytest.raises(RecoveryError, match="does not match its manifest"):
+        verify(rewritten)
+    with sqlite3.connect(folder / "outbox.sqlite") as conn:
+        assert conn.execute("UPDATE rw_deployment SET status='active-tampered'").rowcount == 1
+    with pytest.raises(RecoveryError, match="outbox"):
+        verify(folder)
+    assert not plain.exists() and not plain.with_name("o.sqlite3").exists()
+
+
+def test_reads_of_an_idle_wal_workspace_create_no_sidecars_and_still_see_wal_data(tmp_path):
+    """Live-workspace reads (health, preflight, revocation, carry-forward) never create -wal/-shm sidecars."""
+    from uptime import operations_preflight
+    db, _, _ = live_workspace(tmp_path)
+    sidecars = [Path(str(db) + "-wal"), Path(str(db) + "-shm")]
+    assert db.read_bytes()[18:20] == b"\x02\x02" and not any(p.exists() for p in sidecars)  # idle WAL database
+    before = db.read_bytes()
+    check(db)
+    operations_preflight.check([db], **_preflight_probes())
+    installation_revocation.require_workspace_active(db, TENANT)
+    folder = private_dir(tmp_path / "backups") / "copy"
+    backup(db, folder)
+    restore(folder, private_dir(tmp_path / "restored") / "work.sqlite", tenant=TENANT, mode="sandbox", previous=db)
+    assert not any(p.exists() for p in sidecars), "a read created SQLite sidecars beside the live workspace"
+    assert db.read_bytes() == before
+
+    # With a connection open, committed pages live in the WAL; reads must see them (not the stale main file).
+    held = sqlite3.connect(db)
+    held.execute("SELECT count(*) FROM sqlite_master").fetchone()
+    try:
+        soon = (datetime.now(UTC) + timedelta(days=2)).isoformat()
+        save_cases(db, TENANT, [{"id": "wal-only", "outcome": "ELIGIBLE", "stage": "EVALUATED", "claim_cutoff": soon}])
+        assert sidecars[0].stat().st_size > 0
+        due = {f["code"]: f for f in check(db)["findings"]}["CLAIM_DEADLINE_APPROACHING"]
+        assert [c["case_id"] for c in due["cases"]] == ["wal-only"]
+    finally:
+        held.close()
+
+
+def test_reading_a_crashed_wal_workspace_never_checkpoints_it(tmp_path):
+    """A WAL left with committed pages and no open connection must not be folded into the main file by a read."""
+    import shutil
+    from uptime import operations_preflight
+    db, _, _ = live_workspace(tmp_path)
+    record = installation_revocation.revoke(TENANT, BUSINESS, reason="Customer uninstalled Uptime")
+    held = sqlite3.connect(db)
+    held.execute("SELECT count(*) FROM sqlite_master").fetchone()
+    try:
+        installation_revocation.record_workspace_event(db, TENANT, BUSINESS, record)  # committed into the WAL
+        crashed = private_dir(tmp_path / "crashed") / "work.sqlite"
+        for suffix in ("", "-wal", "-shm"):  # the files a crashed process leaves behind
+            shutil.copy2(str(db) + suffix, str(crashed) + suffix)
+    finally:
+        held.close()
+    wal = Path(str(crashed) + "-wal")
+    main_before, wal_before = crashed.read_bytes(), wal.read_bytes()
+    assert len(wal_before) > 0
+    assert installation_revocation.installed_business(crashed, TENANT) == BUSINESS
+    assert installation_revocation.workspace_revoked(crashed, TENANT, BUSINESS) == record["revoked_at"]  # WAL data seen
+    assert check(crashed)["installation"]["state"] == "REVOKED"
+    operations_preflight.check([crashed], **_preflight_probes())
+    assert crashed.read_bytes() == main_before, "a read checkpointed the WAL into the main file"
+    assert wal.exists() and wal.read_bytes() == wal_before

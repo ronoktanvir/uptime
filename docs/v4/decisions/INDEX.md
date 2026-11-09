@@ -105,3 +105,5 @@ Current implementation and test boundaries appear in [engineering status](../STA
 - [95 — Grounded read-only finance guide and next steps](ADR-0095-grounded-finance-guide.md)
 - [Team decisions of 2026-11-09 (owner Ronok): D03 bounded exact source IDs, D04 server-selected scope variants, D05 auto-select plus human approval, D06 humans gate judgment, D07 narrow published matrix, D11 stay local](../TEAM-DECISION-HANDOFF.md#team-decision-sheet)
 - [91a — Twilio public status page as the first real evidence source](ADR-0091a-public-status-source.md)
+- [97 — Automatic rule-family selection (D05 phase 1)](ADR-0097-automatic-family-selection.md)
+- [Ronok's 2a — closure-bound accept-denial mandate](../integration90/D06-ACTION-MATRIX.md)

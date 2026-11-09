@@ -9,9 +9,16 @@ const click = (s,name) => button(s.root,name).listeners.click();
 const status = root => root.all('p').find(n=>n.className==='v4-status')?.textContent;
 const deferred = () => {let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 const job = state => ({job_id:'job-kept',status:state,candidate_available:state==='SUCCEEDED',proposal:{clauses:[{quote:'Public source',field:'heading',value:null}]}});
+// Automatic family selection (D05): the server answers with a selection view, never a client-chosen family.
+const family = (j, state) => ({family:'monthly-availability/1',label:'Monthly availability',enabled:true,job:j,state,refusal:null,
+  attempts:{total:0,validated:0,structural_refusals:0}});
+const view = s => s.selected ? {outcome:'SELECTED',selected:{family:'monthly-availability/1',method:'public_proposal_job',job_id:'job-kept'},
+    families:[family(job('SUCCEEDED'),'VALIDATED')],review_requirements:[]}
+  : s.submitted ? {outcome:'PENDING',selected:null,families:[family(job('QUEUED'),'PENDING')],review_requirements:[]}
+  : {outcome:'NOT_SUBMITTED',selected:null,families:[family(null,null)],review_requirements:[]};
 function setup() {
   const root=new Element('main'),calls=[],timers=[];
-  const s={root,calls,timers,fail:null,reads:job('QUEUED'),existing:null,unauthorized:0};
+  const s={root,calls,timers,fail:null,reads:job('QUEUED'),selected:false,submitted:false,unauthorized:0};
   s.ui=create({document,getAccess:()=>({canWrite:true,canDraft:true}),reviewForms:true,
     onUnauthorized:()=>{s.unauthorized++;root.replaceChildren(new Element('sign-in'));},schedule:fn=>timers.push(fn),
     api:async(path,body)=>{
@@ -19,8 +26,8 @@ function setup() {
       if(s.fail?.(path,body)) throw unauthorized();
       if(path==='/api/vendors') return {vendors:[{vendor_id:'test-vendor',revision:3,actions:[{id:'review',label:'Review fixture'}]}]};
       if(path==='/api/correspondence/claims') return {claims:[]};
-      if(path.endsWith('/proposal-access')) return {enabled:true,request_sha256:'a'.repeat(64),existing_job:s.existing};
-      if(path.endsWith('/proposal-jobs')) return job('QUEUED');
+      if(path.endsWith('/proposal-access')) return view(s);
+      if(path.endsWith('/proposal-jobs')) { s.submitted=true; return view(s); }
       if(path.includes('/proposal-jobs/') && body===undefined) return s.reads;
       return {id:'inbox-fixture',state:'SHADOW',actions:[]};
     }});
@@ -31,7 +38,7 @@ async function mount(s) {
   const box=s.root.all('div').find(n=>String(n.className).includes('v4-generator'));
   const fields=Object.fromEntries([...box.all('input'),...box.all('select'),...box.all('textarea')].map(n=>[n.name,n]));
   for(const [k,v] of Object.entries({vendor_id:'fixture',name:'Public document',uri:'urn:authored:83',classification:'synthetic_public',
-    profile:'monthly',attempt_nonce:'initial',text:'Public source'})) fields[k].value=v;
+    attempt_nonce:'initial',text:'Public source'})) fields[k].value=v;
   return fields;
 }
 function signedOut(s) {
@@ -52,14 +59,14 @@ test('vendor detail401 cannot become a partial read-only vendor card',async()=>{
 });
 for(const kind of ['action','access','submit','poll','candidate']) test(kind+'401 revokes detached controls and never retries a POST',async()=>{
   const s=setup();await mount(s);
-  if(kind==='candidate') s.existing=job('SUCCEEDED');
+  if(kind==='candidate') { s.selected=true; s.reads=job('SUCCEEDED'); }
   if(['submit','poll','candidate'].includes(kind)) await click(s,'Check generation access');
-  if(kind==='poll') await click(s,'Generate proposal');
+  if(kind==='poll') await click(s,'Generate proposals');
   let control;
   if(kind==='candidate') {
     const overlay=s.root.all('textarea').find(n=>n.name==='overlay');overlay.value='{"account":"private"}';
     await click(s,'Review shadow candidate request');control=button(s.root,'Confirm shadow candidate');
-  } else control=button(s.root,{action:'Review fixture',access:'Check generation access',submit:'Generate proposal',poll:'Refresh proposal status'}[kind]);
+  } else control=button(s.root,{action:'Review fixture',access:'Check generation access',submit:'Generate proposals',poll:'Refresh proposal status'}[kind]);
   const before=s.calls.length;s.fail=()=>true;
   await control.listeners.click();signedOut(s);assert.equal(control.disabled,true);
   assert.equal(s.calls.length,before+1);
@@ -68,10 +75,12 @@ for(const kind of ['action','access','submit','poll','candidate']) test(kind+'40
   assert.equal(s.calls.length,before+1);assert.equal(s.unauthorized,1);
 });
 test('terminal polling updates live status but preserves later overlay review',async()=>{
-  const s=setup();const fields=await mount(s);await click(s,'Check generation access');await click(s,'Generate proposal');
-  assert.match(status(s.root),/QUEUED/);
+  const s=setup();const fields=await mount(s);await click(s,'Check generation access');await click(s,'Generate proposals');
+  assert.match(status(s.root),/running/);
   s.reads=job('SUCCEEDED');await s.timers.shift()();
-  assert.match(status(s.root),/SUCCEEDED/);assert.doesNotMatch(status(s.root),/QUEUED/);
+  assert.match(status(s.root),/finished/);assert.doesNotMatch(status(s.root),/running/);
+  s.selected=true;await click(s,'Refresh proposal status');
+  assert.match(status(s.root),/SUCCEEDED/);
   const overlay=s.root.all('textarea').find(n=>n.name==='overlay');overlay.value='{"account":"private"}';
   await click(s,'Review shadow candidate request');
   const reviewed=status(s.root),old=button(s.root,'Confirm shadow candidate');
@@ -97,9 +106,9 @@ test('parallel401 requests redirect once and old refresh cannot overwrite sign-i
   assert.equal(redirects,1);await refresh.listeners.click();assert.equal(calls,3);assert.equal(root.children[0].tagName,'sign-in');
 });
 test('an older overlapping status read cannot undo a newer terminal result or overlay review',async()=>{
-  const s=setup();await mount(s);await click(s,'Check generation access');await click(s,'Generate proposal');
-  const old=deferred();s.reads=old.promise;const waiting=click(s,'Refresh proposal status');
-  s.reads=job('SUCCEEDED');await click(s,'Refresh proposal status');
+  const s=setup();await mount(s);await click(s,'Check generation access');await click(s,'Generate proposals');
+  const old=deferred();s.reads=old.promise;const waiting=s.timers.shift()();
+  s.selected=true;s.reads=job('SUCCEEDED');await click(s,'Refresh proposal status');
   const overlay=s.root.all('textarea').find(n=>n.name==='overlay');overlay.value='{"account":"private"}';
   await click(s,'Review shadow candidate request');const reviewed=status(s.root);
   old.resolve(job('RUNNING'));await waiting;

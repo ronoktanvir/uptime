@@ -1,0 +1,86 @@
+{
+ "schema": "uptime-integration-verification/1",
+ "branch": "work/integration-90",
+ "tested_commit": "3758164d8ed6a7d7a2c1c145b3b8e63b6eec4810",
+ "fresh_clone": true,
+ "clone_status_lines": 0,
+ "started_at": "2026-11-09T13:02:59Z",
+ "ended_at": "2026-11-09T13:10:45Z",
+ "commands": {
+  "uv_sync": "uv sync --locked",
+  "pytest": "uv run --locked pytest -p no:cacheprovider -o tmp_path_retention_policy=failed --basetemp=<scratch>/bt",
+  "node": "node --test web/*.test.cjs tests/helpers/*.test.cjs",
+  "progress_graph": "node scripts/test_progress_graph.cjs",
+  "rehearse": "uv run --locked python scripts/rehearse.py",
+  "check_repo": "uv run --locked python scripts/check_repo.py",
+  "render_check": "uv run --locked python scripts/render_requirements.py --check"
+ },
+ "steps": {
+  "uv_sync": {
+   "exit": 0,
+   "seconds": 1
+  },
+  "pytest": {
+   "exit": 1,
+   "seconds": 423
+  },
+  "node": {
+   "exit": 0,
+   "seconds": 0
+  },
+  "progress_graph": {
+   "exit": 0,
+   "seconds": 1
+  },
+  "rehearse": {
+   "exit": 0,
+   "seconds": 2
+  },
+  "check_repo": {
+   "exit": 0,
+   "seconds": 39
+  },
+  "render_check": {
+   "exit": 0,
+   "seconds": 0
+  }
+ },
+ "pytest_result": "============ 1 failed, 4581 passed, 1 warning in 421.07s (0:07:01) =============",
+ "node_counts": {
+  "tests": 92,
+  "pass": 92,
+  "fail": 0
+ },
+ "progress_graph": "Progress graph: dependency ordering, invalid graphs, and link safety passed.",
+ "check_repo": "Secret check passed for 2592 versioned text objects.",
+ "merged_increments_round1": {
+  "W1 Ramp case lineage (agent4)": "1c8bc86",
+  "W3 requirement card and refusal diagnostics (agent2)": "f9153b2, edf0c05",
+  "W5 evidence period applicability (gen5)": "5b02d61, dcec513",
+  "W9 operations recovery (gen6)": "27e4926",
+  "Browser sign-in fix (from $HOME/uptime working tree)": "2205f0a",
+  "Hard-kill restart probe (gent8, from 52bea97)": "37d73f2"
+ },
+ "not_merged_round1": [
+  "D03/D04 implementation (work/identity-pricing-89)",
+  "W4 dispute disposition (work/dispute-disposition-89)",
+  "W7 finance view and guide (work/finance-guide-90)",
+  "Evaluation 84-86 runners (work/release-evaluation-gent8; paused by AGENTS.md)"
+ ],
+ "limits": "Regression coverage only. No Ramp, model, vendor or human action occurred. Not recovery, release or generalization evidence.",
+ "status": "FAILED",
+ "failure": {
+  "test": "tests/test_blind_acceptance.py::test_actual_public_artifact_signed_positive_negative_cure_and_late_routes",
+  "fail_codes": [
+   [],
+   [],
+   [
+    "INDEPENDENT_EXPECTED_STAGE_OR_OUTCOME_MISMATCH"
+   ]
+  ],
+  "bisect": "passes at 4d9bf63 (before merge 4f918a1 of W4 89e/89f); fails after",
+  "cause": "scripts/blind_acceptance.py late_denial control expects automatic DENIAL_ACCEPTED; under 89e (D06 sub-question, delegated) a late-filing denial waits in DENIAL_REVIEW for explicit accept-denial",
+  "owner": "W4 (agent3)",
+  "state": "open; gates round 5"
+ }
+}

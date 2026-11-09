@@ -1,6 +1,8 @@
 # Test changes: workstream onboarding-89
 
-**Changed existing tests: none.** No existing test, expectation, authority assertion or monetary assertion was modified.
+**Changed existing tests:** none on `work/onboarding-generalization-89`. On `work/onboarding-d05-phase2-89` (D05 phase 2), exactly one:
+
+- `tests/test_vendor_model_jobs_browser.py::test_signed_job_routes_require_approval_and_cannot_grant_financial_actions`. **Reason:** under D05 an operator-chosen profile (`monthly`) can no longer stage a candidate. The test now asserts that candidate is refused with HTTP 409, then stages the same source through automatic selection: the canonical source is selected offline and staged via `POST /candidates`, and a repeat is idempotent. Approval, financial-action denial, provider-call count and cross-reviewer 404 assertions are unchanged; no authority or monetary assertion was weakened.
 
 ## Added: `tests/test_vendor_requirements_89.py` (16 tests)
 
@@ -41,6 +43,25 @@ Each test uses provider doubles; no real inference occurs. A model-text sentinel
 | `test_existing_job_table_gains_a_nullable_column_and_keeps_rows` | Additive migration keeps existing rows and reasons. |
 | `test_forged_or_stale_records_are_not_projected` | A self-consistent forgery with a substituted document, wrong offsets, an invented code, a changed profile, or another context is not shown. |
 
+## Added: `tests/test_vendor_family_selection_89.py` (22 tests, D05 phase 1)
+
+Real job service and deterministic validators; the provider double returns a scripted reading per family profile.
+
+| Test | What it establishes |
+|---|---|
+| `test_canonical_monthly_source_is_selected_offline_without_inference` | Offline selection; zero provider calls. |
+| `test_resource_language_keeps_even_a_canonical_source_off_the_offline_shortcut` | Opus falsification probe: dual-fit source refused offline and by the strict parser. |
+| `test_a_resource_symptom_clause_has_no_monthly_reading` | A symptom/cause clause is refused under every monthly field label. |
+| `test_no_job_is_queued_until_every_family_request_is_approved` | No partial spend. |
+| `test_monthly_family_selected_when_the_resource_reading_is_refused` | Monthly selected via jobs; loser reasons shown; SHADOW only; resubmission idempotent. |
+| `test_resource_family_selected_when_the_monthly_reading_meets_a_deterministic_qualifier` | Resource selected; the monthly loser was refused structurally. |
+| `test_both_refused_is_no_supported_family_with_concrete_requirements` | Per-family requirements. |
+| `test_a_family_with_no_grounded_reading_cannot_be_ruled_out` | `INCOMPLETE`, not `SELECTED`. |
+| `test_any_other_validated_family_makes_the_source_ambiguous_and_blocks_its_candidate` | A validated family from another reviewer's attempt gives `AMBIGUOUS`; the candidate is refused; a retry stays ambiguous. |
+| `test_offline_selection_is_also_ambiguous_when_another_family_validated` | The offline path checks attempts too. |
+| `test_outcome_matrix` (8 cases), `test_unsubmitted_and_unconfigured_outcomes`, `test_refusal_classification` | Pure outcome derivation. |
+| `test_signed_app_path_selects_stages_and_explains_the_family`, `test_signed_app_path_offline_selection_and_explanation` | Signed HTTP path on the existing draft routes, with `family_selection` on the requirements view. |
+
 ## Focused results
 
 Run from the worktree with the integration virtual environment (`UV_PROJECT_ENVIRONMENT`), unique `--basetemp` and `-o tmp_path_retention_policy=failed`, base directory deleted afterward.
@@ -52,3 +73,26 @@ Run from the worktree with the integration virtual environment (`UV_PROJECT_ENVI
 - Refusal diagnostics: first implementation **9 passed**. It was revised after the Opus critique, and `vendor_model_jobs.py` was reverted to byte-identical. Revised file: **12 passed, 1 warning in 1.96s**. The same focused set plus `test_public_proposal_jobs.py`, all `test_correspondence_model_jobs*.py` and `test_correspondence_public_queue_75.py`: **1527 passed, 1 warning in 374.43s**.
 
 Full `uv run --locked pytest`: not run on this branch, at the integration owner's request (shared nearly full disk). It runs once after merge into `work/integration-90`.
+
+- D05 phase 1: new file **22 passed, 1 warning in 1.78s** (first collection failed on a parametrize name that clashed with an imported module; fixed). Focused set (all `test_vendor_*`, `test_onboarding*`, proposal-job, correspondence model-job, route and authority tests): **1174 passed, 1 warning in 71.27s**.
+- D05 phase 2 (`work/onboarding-d05-phase2-89`): `test_vendor_family_selection_89.py` **25 passed**, including three new phase 2 tests (`test_operator_chosen_profile_cannot_stage_a_candidate`, `test_a_job_selection_did_not_choose_cannot_stage_a_candidate`, `test_an_incomplete_selection_cannot_stage_its_validated_job`). With `test_vendor_model_jobs_browser.py`, `test_vendor_auth83.py` and `test_vendor_monthly_profile_79.py`: **3 failed, 38 passed in 110.19s**. All three failures are browser tests that drive the current "Extraction profile" select, and they pass only with the W7 change in [D05-SELECTION-API.md](D05-SELECTION-API.md): `test_browser_checks_permission_generates_and_stages_separate_overlay[manual]`, `[utf8_file]` and `test_vendor_auth83.py::test_expired_browser_session_recovers_same_job_without_resubmitting`. Phase 2 is therefore not mergeable without that change.
+
+## D05 phase 2 browser change (`work/onboarding-d05-ui-89`)
+
+`web/v4_ui.js` no longer offers an "Extraction profile" select; it sends `profile: "auto"` and renders the selection view. This was assigned to W3 under Ronok's delegated authority, with gent7 (W7) reviewing. Changed existing tests, each keeping its original safety assertions:
+
+| Test | Reason for change |
+|---|---|
+| `tests/test_vendor_model_jobs_browser.py::test_browser_checks_permission_generates_and_stages_separate_overlay[manual]`, `[utf8_file]` | The profile select is gone. The test now uses a prose source and a per-family provider double, so the model path still runs: two family jobs, GET-only polling, an explicit refresh, then staging only the selected job. The exact-text, CRLF/edit invalidation, overlay-separation, no-approval-control and 390 px assertions are unchanged. Model call count is now 2 (one per family). |
+| `…[offline]` (new parameter) | Canonical source selected offline; staged via `POST /candidates` with zero model calls. |
+| `tests/test_vendor_auth83.py::test_expired_browser_session_recovers_same_job_without_resubmitting` | Same flow change. Every recovery assertion is kept: no candidate POST while expired, the same job recovered, one `proposal-jobs` POST, one candidate POST. Model call count is 2. |
+| `tests/helpers/vendor_model_jobs.test.cjs` | Rewritten for the selection view. The original controls are kept (draft access, exact untrimmed body, invalidation, GET-only polling, safe text, overlay review, lost-reservation recovery, superseded responses, separate local form). New controls: no profile control, review requirements verbatim, staging only on `SELECTED`, offline staging route, non-selected jobs unstaged. 10 tests. |
+| `tests/helpers/vendor_auth83.test.cjs` | The mock server answers with selection views; each 401 path and the overlapping-read guarantee are kept. |
+| `tests/helpers/vendor_monthly_profile79.test.cjs` | The phase 79 contract ("the profile is explicit") is retired by D05. It is replaced by: no profile control exists, `auto` is always sent, and any source edit revokes confirmation. |
+
+Not changed by W3: `tests/helpers/refusal_diagnostic.test.cjs` (gent7's, round 3) still sets the removed profile field. gent7 moves it onto this SHA. No pytest test runs it.
+
+Results: the JS helpers (`vendor_auth83`, `vendor_monthly_profile79`, `vendor_model_jobs`) **24 passed**; `browser-contract`, `v4_ui` and `advanced_companion` **33 passed**. The Python set (`test_vendor_model_jobs_browser`, `test_vendor_auth83`, `test_vendor_monthly_profile_79`, `test_vendor_family_selection_89`, `test_advanced_companion`, `test_vendor_model_jobs_runtime`, `test_vendor_refusal_diagnostics_89`, `test_vendor_requirements_89`) **81 passed, 1 warning in 25.81s**.
+
+After merging integration head `c55f2fd`, the broad focused set reported **1 failed, 1182 passed, 1 warning in 58.84s**. The failure was a race in the new browser tests: with an instant provider double, both family jobs can finish before the submit response is computed, so the page goes straight to `SELECTED` and never shows the "finished" message. Both browser tests now accept either path through `await_selected_proposal`. `test_vendor_model_jobs_browser.py` and `test_vendor_auth83.py` then gave **7 passed** on two consecutive runs.
+

@@ -1,0 +1,75 @@
+{
+  "schema": "uptime-ramp-inventory-read/1",
+  "purpose": "Read-only check of whether the demo business's vendor list can be read completely (REQUIREMENTS RAMP-2 and VAL-1 say the inventory was sampled).",
+  "command": "RAMP_ENV=sandbox UPTIME_RAMP_CREDENTIAL_FILE=<protected demo profile> python scripts/ramp_sync.py --page-size 100 --max-pages 10 --detail-limit 100 --output <private file>",
+  "origin": "https://demo-api.ramp.com",
+  "observed_at": "2026-11-09T12:39:45.234588+00:00",
+  "completed_at": "2026-11-09T12:42:49.737039+00:00",
+  "capture_checksum": "ef7262f59674040ca6826d6c0bb7756761f23be0eafe9e0c3712b23ee08646ec",
+  "private_file_sha256": "3ab94feb58ebe37d62fd8d4ae86573c66a4849a5e408fca3a78971b40d260c12",
+  "raw_records_committed": false,
+  "vendors": {
+    "list_complete": true,
+    "has_next": false,
+    "pages_read": 5,
+    "listed": 411,
+    "detail_records_retained": 100,
+    "detail_budget": 100,
+    "linked_from_bills": {
+      "listed": 5,
+      "details_read": 5,
+      "complete": true
+    },
+    "status_meaning": "TRUNCATED refers to retained vendor detail records (bounded at 100). The vendor ID list itself is complete: 411 listed over 5 pages, no next page."
+  },
+  "transactions": {
+    "list_complete": false,
+    "has_next": true,
+    "pages_read": 10,
+    "listed": 1000,
+    "note": "More than 1,000 card transactions exist; the read bound (10 pages of 100) stops before the end."
+  },
+  "resources": {
+    "bills": {
+      "status": "COMPLETE",
+      "complete": true,
+      "retained": 6
+    },
+    "vendors": {
+      "status": "TRUNCATED",
+      "complete": false,
+      "retained": 100
+    },
+    "transactions": {
+      "status": "TRUNCATED",
+      "complete": false,
+      "retained": 100
+    },
+    "agreements": {
+      "status": "EMPTY",
+      "complete": true,
+      "retained": 0
+    },
+    "purchase_orders": {
+      "status": "NOT_REQUESTED",
+      "complete": false,
+      "retained": 0
+    },
+    "credits": {
+      "status": "EMPTY",
+      "complete": true,
+      "retained": 0
+    },
+    "approvals": {
+      "status": "TRUNCATED",
+      "complete": false,
+      "retained": 48
+    },
+    "comments": {
+      "status": "COMPLETE",
+      "complete": true,
+      "retained": 1
+    }
+  },
+  "write_attempted": false
+}

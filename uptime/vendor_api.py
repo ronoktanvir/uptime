@@ -28,8 +28,13 @@ def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=
         raise TypeError('A fixed server FeeRegistry is required; arbitrary fee callbacks are not supported.')
     clock=trusted_now or (lambda:datetime.now(UTC))
     router = APIRouter(prefix='/api/vendors')
-    from .vendor_refusal_diagnostics import DiagnosingVendorModelJobs
-    jobs = None if proposal_jobs is None else DiagnosingVendorModelJobs(proposal_jobs)
+    from typing import Annotated, Union
+    from pydantic import Field
+    from .vendor_family_selection import (AutoProposalRequest, SelectingVendorModelJobs, review_summary,
+                                          unconfigured_selection)
+    jobs = None if proposal_jobs is None else SelectingVendorModelJobs(proposal_jobs)
+    # An explicit profile "auto" asks Uptime to select the rule family (team decision D05).
+    ProposalBody = Annotated[Union[ProposalRequest, AutoProposalRequest], Field(discriminator='profile')]
 
     def mutate(p, fn, *args, resolve=None):
         with mutex:
@@ -81,10 +86,35 @@ def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=
         reused = draft_overlap(drafts, submitted)
         return {'vendor_id': vendor_id, 'version': view.get('version'), 'revision': view['revision'],
                 'state': view['state'], 'card': card, 'drafts': drafts,
+                'family_selection': installed_selection(p, vendor_id, view),
                 'draft_overlap': {'tests_reusing_draft_facts': reused, 'warning': (
                     'These reviewer tests reuse generated draft facts. Confirm each expectation was calculated '
                     'independently from the cited clauses.') if reused else None},
                 'authority': {'approval_gate': False, 'dispatch_authorized': False}}
+
+    def installed_selection(p, vendor_id, view):
+        """How the installed artifact's family was chosen, rebuilt read-only from its source and provenance."""
+        from .vendor_terms import Document
+        extraction, manifest = view.get('extraction') or {}, view.get('manifest')
+        if manifest is None or view.get('source_text') is None:
+            return None
+        provenance = extraction.get('proposal_job')
+        if extraction.get('method') == 'deterministic_document_parser':
+            nonce = 'initial'
+        elif isinstance(provenance, dict) and provenance.get('profile') in ('monthly-propositions', 'resource-month'):
+            nonce = provenance['attempt_nonce']
+        else:
+            return {'outcome': 'NOT_AUTOMATIC', 'review_requirements': [
+                'This artifact was installed from an operator-chosen extraction profile or staged extraction; '
+                'its rule family was not selected automatically.']}
+        meta = manifest.get('document') or {}
+        try:
+            body = {'document': Document(name=meta['name'], uri=meta['uri'], classification=meta['classification'],
+                                         text=view['source_text']).model_dump(), 'profile': 'auto', 'attempt_nonce': nonce}
+            current = unconfigured_selection(vendor_id, body) if jobs is None else jobs.selection(p, vendor_id, body)
+        except (KeyError, TypeError, ValueError, PermissionError):
+            return None
+        return review_summary(current)
 
     @router.post('/{vendor_id}/candidates')
     def candidate(vendor_id: str, body: dict, p=Depends(reviewer)):
@@ -106,14 +136,18 @@ def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=
         return jobs
 
     @router.post('/{vendor_id}/proposal-access')
-    def proposal_access(vendor_id: str, body: ProposalRequest, p=Depends(reviewer)):
+    def proposal_access(vendor_id: str, body: ProposalBody, p=Depends(reviewer)):
         permit_proposal(p, vendor_id)
+        if isinstance(body, AutoProposalRequest):
+            return unconfigured_selection(vendor_id, body) if jobs is None else jobs.selection(p, vendor_id, body)
         return unconfigured_access(vendor_id, body) if jobs is None else jobs.access(p, vendor_id, body)
 
     @router.post('/{vendor_id}/proposal-jobs')
-    def proposal_job(vendor_id: str, body: ProposalRequest, p=Depends(reviewer)):
+    def proposal_job(vendor_id: str, body: ProposalBody, p=Depends(reviewer)):
         service = configured()
         permit_proposal(p, vendor_id)
+        if isinstance(body, AutoProposalRequest):
+            return service.submit_selection(p, vendor_id, body)
         return service.submit(p, vendor_id, body)
 
     @router.get('/{vendor_id}/proposal-jobs/{job_id}')

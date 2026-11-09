@@ -155,6 +155,7 @@ class AuthorizedReviewer(Principal):
     native_ticket: str | None = field(repr=False, compare=False)
     claim_decision: mandates.ClaimDecision | None = field(repr=False, compare=False)
     credit_decision: mandates.CreditDecision | None = field(repr=False, compare=False)
+    closure_decision: mandates.ClosureDecision | None = field(default=None, repr=False, compare=False)
 
 
 class Authority:
@@ -341,7 +342,8 @@ class Authority:
             raise HTTPException(403, str(exc)) from None
         if claimed:
             return AuthorizedReviewer(principal.tenant, principal.subject, principal.role, claimed.mandate_id,
-                                      claimed.ticket, claimed.claim_decision, claimed.credit_decision)
+                                      claimed.ticket, claimed.claim_decision, claimed.credit_decision,
+                                      claimed.closure_decision)
         return principal
 
     def authorize_native(self, principal, *, business_id, resource_type, resource_id, action, payload_sha256):

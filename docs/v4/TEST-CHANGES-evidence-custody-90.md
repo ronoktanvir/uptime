@@ -29,3 +29,17 @@ If W4 applies the same rule at the embedded desk (finding F1/F2), its existing t
 Preserved failure: the first version of the enrollment-path test expected a contradiction after a public edit while impact and billing records were still absent. The evaluator reports missing kinds before duplicates, so it returned "Awaiting an authenticated impact record". The test now adds authored impact and billing records from separately enrolled sources, and asserts the contradiction once all three kinds are present. Result before the correction: 1 failed, 14 passed.
 
 W5 evidence suites (`test_evidence_status_source_91a`, `test_evidence_applicability_91`, `test_evidence`, `test_evidence_refresh`, `test_source_config_v4`): **75 passed, 1 warning in 5.01s** at `6d3536f`. Live rehearsal receipt: [public-status-live-91a.json](evidence/evidence-custody-90/public-status-live-91a.json).
+
+## Document custody audit
+
+**No existing test function or assertion changed.** `tests/test_evidence_custody_91.py` adds 9 cases. It reuses the existing `api` fixture and `install` helper from `tests/test_vendor_catalog.py` without changing them.
+
+`test_installed_adapter_citations_re_slice_from_the_stored_source`, `test_tampered_or_detached_citations_are_reported` (5: changed text, shifted offsets, out-of-bounds offsets, altered quote, missing source text), `test_quote_digest_and_absent_citations_are_reported`, `test_audit_never_writes_and_an_empty_catalog_is_not_traceable`, `test_rows_still_in_the_write_ahead_log_are_disclosed`. Result at `7799f2e`: 9 passed, 1 warning in 2.90s. Read-only audit of the two demo workspaces: 77/77 citations traceable ([receipt](evidence/evidence-custody-90/document-custody-91.json)).
+
+## Signed-path acceptance controls
+
+**No existing test function or assertion changed.** `tests/test_evidence_acceptance_91.py` adds 7 cases through the mounted HTTP intake with real Ed25519 grants: `test_wrong_customer_evidence_is_refused`, `test_wrong_period_evidence_is_refused_and_cannot_block_the_correct_record`, `test_stale_or_premature_evidence_is_refused`, `test_a_complete_report_observed_before_its_period_ended_is_refused`, `test_tampered_evidence_is_refused` (pins the exact digest refusal reasons and admits a positive control), `test_tampered_public_snapshot_is_refused`, `test_reused_event_identity_with_different_content_is_refused`. Branch result at `7373318`: 7 passed, 1 warning. On a detached checkout of the merged head `23805c9`, together with the W5, correspondence, resource and Northwind workflow suites: **219 passed, 1 warning in 183.94s** ([receipt](evidence/evidence-custody-90/acceptance-merged-91.json)).
+
+## D04-C compatibility of the public status source
+
+`tests/test_evidence_status_source_91a.py` gains `test_grant_without_incident_or_component_is_refused` (2 parameters). Under D04-C a claim scope may omit incident and component, but a public incident record cannot, so the source now refuses such a grant by name. The two earlier cases in that file are unchanged; the file now has 17. Result with the acceptance file: 24 passed, 1 warning. agent1's uncommitted D04-C hunk in `source_config.event_in_scope` was read: it matches the agreed conditions, and the draft `Scope` omits absent optional fields from serialization.
