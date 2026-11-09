@@ -1,0 +1,45 @@
+# Shared-record lines proposed for W0 (decision 93)
+
+Per the integration ownership map, W0 integrates shared status records. These are the exact diffs this branch first applied and then withdrew. Apply or edit them as you see fit.
+
+```diff
+diff --git a/docs/v4/CAPABILITIES.md b/docs/v4/CAPABILITIES.md
+index 23409a8..13b63b8 100644
+--- a/docs/v4/CAPABILITIES.md
++++ b/docs/v4/CAPABILITIES.md
+@@ -12,10 +12,11 @@ The data origin, implementation depth and execution receipt determine each claim
+ | Additional evidence | Role-separated signed sources, immutable event identity, scope joins, aggregate/interval evidence, independent fee and request proof | Local synthetic source transports exercised. Provider account enrollment and production telemetry ingestion remain operator work. A client cannot declare itself an authorized evidence source. |
+ | Disputes | Authenticated asynchronous intake, independently witnessed original receipts, deterministic validation, correct denial/cure/partial/ambiguous handling, scoped source acquisition, appeal limits and a source-locked manual interpretation bridge | General signed inbox exists. Semantic rules remain bounded. The prior independent set recognized 0/50 supported replies and abstained on 50/50 required-review cases; those scores are unchanged. Northwind exercises a known authored denial, separately verified cure, authorized follow-up and award. Four earlier public model experiments produced 0/4 fully grounded compatible candidates. The new revised source-block batch produces 8/8 grounded proposals, 3/3 expected positive mappings and 5/5 negative UNKNOWN mappings on authored controls; its first failed batch is retained. Human semantic review is still required and customer runtime inference remains disabled. |
+ | Adversarial counterparty | Independent contract arithmetic and source-evidence checks, deliberate conflicting and mistaken claims, fixed oracle controls | Entire counterparty is simulated. Its acceptance cannot establish vendor payment, credit issuance or real negotiation success. |
+-| Ramp bill discussion | Fixed redacted reason, exact bill and finding, independently signed body/effect, fresh provider/business check, durable outbox and same-thread reconciliation | Mounted transport exercised with controlled HTTP. The newly registered same-demo app has an exact `bills:write` grant; the complete financial release and exact action approval remain separate. No live comment was posted. A comment supplies review evidence, with no payment stop assertion. |
++| Ramp bill discussion | Fixed redacted reason, exact bill and finding, independently signed body/effect, fresh provider/business check, durable outbox and same-thread reconciliation | Mounted transport exercised with controlled HTTP. The newly registered same-demo app has an exact `bills:write` grant; the complete financial release and exact action approval remain separate. No Uptime-origin comment was posted. A person posted the approved evidence-gap note on November 8; it was verified by API read-back and seen again in a November 9 read. A comment supplies review evidence and has no payment effect. A bill hold (`bills/{id}/hold`, read back as `ON_HOLD`) is a separate intervention that has not been executed. [Case lineage](RAMP-CASE-LINEAGE.md) |
+ | Blank Canvas | Signed event and reset validation, exact active trigger, case-sensitive service, metadata/decision distinctions, controlled provider contracts | Configured procurement workflow and write entitlement absent. Real financial approve/reject remains disabled. It requires an authenticated hosted webhook deployment and an actual registered trigger. |
+ | Custom Records | Official schema and scope feasibility verified | API available for entitled customers, with beta limits. No claimed native table, custom page or deployed custom-record integration. |
+-| Native vendor credit sync | Read vendor credits and applied bills/drafts, preserve an immutable provider business pin, check reciprocal IDs and exact currency/amounts, quarantine conflicts, retain history | Actual sandbox returned zero credits. The reproduced cross-business advancement is repaired; unknown legacy scope cannot be backfilled and unlinked amounts remain null. Public vendor-credit routes inspected expose reads. Creation/application must use a supported Ramp operator workflow. |
++| Native vendor credit sync | Read vendor credits and applied bills/drafts, preserve an immutable provider business pin, check reciprocal IDs and exact currency/amounts, quarantine conflicts, retain history | Actual sandbox returned zero credits; a complete November 9 re-read of the current demo business was also empty. The reproduced cross-business advancement is repaired; unknown legacy scope cannot be backfilled and unlinked amounts remain null. Public vendor-credit routes inspected expose reads. Creation/application must use a supported Ramp operator workflow. |
++| Case lineage and credit read-back | One identity checked from Ramp record through applicability, finding, informational note or hold, award, bound credit and both-sided bill application. Separate money stages, review on decrease, absence, double binding or credit over award. Person-operated credit application is prepared and confirmed by read-back, never executed. | Controlled tests only for contract cases. The real demo bill reaches an evidence-gap finding and a verified human note, with no award, credit or applied money. D02/D09 block a real contract case. [Decision 93](RAMP-CASE-LINEAGE.md) |
+ | Award attribution | Independent filed-claim and vendor-award evidence, signed finance review, native capture provenance, explicit many-to-many allocation, caps and quarantine | Controlled fixtures exercise money/identity constraints. Actual supplied observations establish no affiliated award and no applied recovery. File-only proposals do not mint money. |
+ | Reviewer security | Enrolled P-256 proof of possession, origin/body/nonce binding, tenant and service role separation, independent mandates, capacity and duplicate locks | Independent before/after security checks exercised in a real browser. Deployment still requires authentic human enrollment and custody of private keys. |
+ | Companion interface | Ramp-first worklist, evidence ledger, advanced vendors and dispute catalogs, scoped actions and case audit, normal document references and accurate destination labels | Working local app. The Northwind browser completed 11 actions, including current signing-session enforcement and a verified Local ledger readback. Existing API/audit source identities remain intact; product classification badges are removed under the latest direction. Internet-wide or multi-organization SaaS deployment remains outside the demonstrated runtime. |
+diff --git a/docs/v4/TEST-CHANGES.md b/docs/v4/TEST-CHANGES.md
+index d1b744e..836c781 100644
+--- a/docs/v4/TEST-CHANGES.md
++++ b/docs/v4/TEST-CHANGES.md
+@@ -4,6 +4,7 @@ This ledger records presentation and fixture changes for the Northwind walkthrou
+ 
+ | Workstream | Exact test names and reasons | Integration status |
+ | --- | --- | --- |
++| Ramp case lineage and credit read-back | [93 ledger](TEST-CHANGES-93.md): 55 new controlled cases in one new file. No existing function or assertion changed. Failed first attempts are recorded. | Branch `work/ramp-case-lineage`; full-suite result recorded in the 93 ledger. No native write. |
+ | Limited local adapter permission | [88 ledger](TEST-CHANGES-88.md) records 14 new authority/lifecycle cases and 69 new independent dispute/financial denial cases. No existing function or assertion changed. | Integrated at `6bedefc`; exact full-suite result is recorded with the prepared proposal. |
+ | Person-operated demo path | [87 ledger](TEST-CHANGES-87.md): two new functions in existing files,15new named-reviewer setup cases and104new comment read-back cases. No existing function or assertion changed. Two initially faulty uppercase-UUID fixtures were corrected without weakening checks. | Integrated at `58ac441`; full verification recorded with the current evidence. |
+ | Expired-session recovery | [83 ledger](TEST-CHANGES-83.md) lists thirteen new DOM controls and two new Python controls, including actual browser recovery. No existing test or assertion changed. | `50e041c`: 3,763 passed, one warning in 238.48s; 75 JavaScript checks. Initial storage failure preserved. |
+diff --git a/docs/v4/decisions/INDEX.md b/docs/v4/decisions/INDEX.md
+index 6ea0252..638e3e7 100644
+--- a/docs/v4/decisions/INDEX.md
++++ b/docs/v4/decisions/INDEX.md
+@@ -96,3 +96,4 @@ The earlier table preserves its inspected-source status. The following decisions
+ Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.
+ 
+ - [87 — Person-operated demo and preserved authority](ADR-0087-person-operated-demo-path.md)
++- [93 — One Ramp case identity from financial record to reconciliation](ADR-0093-ramp-case-lineage.md)
+```
