@@ -28,7 +28,7 @@ The November 3 CP1 wire contract in [docs/orchestration/INTERFACES.md](../../orc
 
 ## 2. Claim scope — D04 decided: typed scope variants, selected server-side
 
-**Implemented** in `uptime/claim_scope.py` (`claim-scope/1`), merged at `6f43a91` (round-5 verification pending). Agreed design:
+**Implemented** in `uptime/claim_scope.py` (`claim-scope/1`), merged at `6f43a91` and verified by round 5 (4,663 passed). Agreed design:
 
 - Explicit scope types per obligation: **whole-service month**, **resource period** and **incident-specific**. Each declares its required fields; component, incident and region are required only where the governing obligation needs them. Ronok confirmed this server-selected form on 2026-11-09 ("D04-C now, monthly keeps incident"). The **monthly-availability** family still requires exactly one incident, because its evidence join reconciles coverage to `[scope.incident]`. Proving a whole-service month without an incident is a separate pending decision.
 - The server selects the variant from the governing obligation family resolved from trusted terms, through a versioned table. Signed request bodies keep their current shape; the client sends no `kind`. Unknown or ambiguous families are refused.

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-09T13:02:13.519973+00:00",
+  "updated_at": "2026-11-09T13:39:59.410583+00:00",
   "repository_url": "https://github.com/ronoktanvir/uptime",
   "application_url": "http://127.0.0.1:8776",
   "headline": "Uptime engineering progress",
@@ -7,9 +7,9 @@
   "evidence": [
     {
       "label": "Latest local verification",
-      "value": "4,523 passed",
-      "detail": "fde492c (demo build) fresh clone: 4,523 passed, 1 warning in 523.01s; 92 JavaScript checks. Regression coverage, not recovery or release evidence.",
-      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-90/docs/v4/evidence/integration-90/verification-fde492c.json"
+      "value": "4,663 passed",
+      "detail": "6f43a91 (round 5, includes D04-C) fresh clone: 4,663 passed, 1 warning in 322.05s; 101 JavaScript checks. The demo build fde492c (round 3: 4,523 passed) still serves on 8776.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-90/docs/v4/evidence/integration-90/verification-6f43a91.json"
     },
     {
       "label": "Prior regression checkpoint",
@@ -251,7 +251,7 @@
       "title": "Financial identity & source pins",
       "stream": "Security",
       "status": "done",
-      "summary": "D03 bounded exact identity merged; D04-C in progress",
+      "summary": "D03 and D04-C merged and verified; existing adapters need one renewed review",
       "detail": "Independent verification passes distinct-resource totals, regional intake, compound-denial escalation and attribution after a lawful reply. Legacy delimiter collisions now refuse before financial writes. Ambiguous archive rows remain readable for review.",
       "owner": "Security + financial engineering",
       "depends_on": [
@@ -465,14 +465,14 @@
       "title": "Frozen regression & audit",
       "stream": "Independent QA",
       "status": "done",
-      "summary": "4,523 passed at fde492c (demo build)",
+      "summary": "4,663 passed at 6f43a91 (round 5)",
       "detail": "Frozen 50e041c passes the full suite. The initial disk-full result remains recorded; no source or assertions changed before retry.",
       "owner": "Integration QA",
       "depends_on": [
         "identity",
         "companion"
       ],
-      "next_action": "Round 4 after D04-C merges.",
+      "next_action": "Run the suite after the next code merge.",
       "links": [
         {
           "label": "Current frozen verification",
@@ -681,6 +681,12 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-11-09T13:39:59.410583+00:00",
+      "title": "Round 5 verified: D03 and D04-C integrated",
+      "detail": "Fresh clone of 6f43a91: 4,663 passed, 1 warning. A fresh walkthrough setup on this head needs no renewed human review. Round 4's single failure (a stale blind-acceptance expectation) is fixed and verified.",
+      "url": "https://github.com/ronoktanvir/uptime/blob/work/integration-90/docs/v4/STATUS.md"
+    },
     {
       "at": "2026-11-09T13:02:13.519973+00:00",
       "title": "Demo build fde492c verified",
