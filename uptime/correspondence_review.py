@@ -5,7 +5,8 @@ from datetime import timedelta
 import json
 
 from .contracts import fingerprint
-from .correspondence import authorize, audit
+from .correspondence import DENIAL_REVIEW, authorize, audit
+from .correspondence_disposition import classify_reading
 from .correspondence_history import apply_response_state, historical_reply, receipt_chain
 from .correspondence_interpretation import Interpretation, primary_proposition_index, proposal_for_review, text_digest, validate_grounding, visible_source
 from .correspondence_types import instant
@@ -255,8 +256,12 @@ class InterpretationDesk:
             else:
                 self.desk._reply_proposal(p.tenant,scope,projected,fact,self.desk._now(),proposal)
             stage=projected['stage']
+        if stage=='DENIAL_ACCEPTED':
+            # Decision 89: a reviewed reading can record a substantiated denial
+            # ground; closing the claim is a separate explicit reviewer action.
+            projected['stage']=stage=DENIAL_REVIEW
         projected['interpretation_review']=dict(review_id=review_id,context_digest=context['digest'],event_digest=context['event_digest'],text_sha256=context['text_sha256'],contract_version=context['contract_version'],contract_source_sha256=context['contract_source_sha256'])
-        prepare=stage in {'RESPONSE_DRAFTED','NEEDS_EVIDENCE','AWAITING_NOTICE'}
+        prepare=stage in {'RESPONSE_DRAFTED','NEEDS_EVIDENCE','AWAITING_NOTICE',DENIAL_REVIEW}
         packet=None
         if stage=='RESPONSE_DRAFTED':
             try:
@@ -268,7 +273,8 @@ class InterpretationDesk:
         preview=dict(review_id=review_id,context_digest=context['digest'],interpretation=asdict(proposal),
                      disposition=stage if prepare else 'INFORMATIONAL_REVIEW',prepare_allowed=prepare,packet=packet,
                      reported_award=proposal.amount if proposal.reason=='award' else None,
-                     closure_suggested=stage=='DENIAL_ACCEPTED',ledger_unchanged=True,external_actions=[],
+                     closure_suggested=stage==DENIAL_REVIEW,ledger_unchanged=True,external_actions=[],
+                     assertions=classify_reading(context,interpretation,proposal,stage,primary,[asdict(c) for c in current.evaluation.clauses]),
                      reviewer=row['actor'],expires_at=row['expires_at'],
                      reviewed_interpretation=interpretation.model_dump(),primary_proposition_index=primary,
                      # Every other proposition is retained for display only; never award or action authority.
@@ -297,7 +303,9 @@ class InterpretationDesk:
                 projected['approval']=None
                 projected['replies'][-1]['reviewed_interpretation']=body.review_id
                 projected['replies'][-1]['original_reason']='unknown'
-                audit(projected,self.desk._now(),p.subject,'Prepared a reviewed interpretation using unchanged signed source and independently verified evidence.',review_id=body.review_id,preview=body.preview_digest)
+                audit(projected,self.desk._now(),p.subject,'Prepared a reviewed interpretation using unchanged signed source and independently verified evidence.'
+                      +(' The substantiated denial ground awaits a separate explicit acceptance.' if projected['stage']==DENIAL_REVIEW else ''),
+                      review_id=body.review_id,preview=body.preview_digest)
                 self.desk._save(db,p.tenant,claim_id,projected)
                 db.execute('INSERT INTO inbox_interpretation_effect VALUES(?,?,?,?,?,?)',(body.review_id,p.tenant,claim_id,body.preview_digest,p.subject,self.desk._now().isoformat()))
         return self.desk.case(p,claim_id)

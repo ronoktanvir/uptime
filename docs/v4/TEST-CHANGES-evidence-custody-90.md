@@ -1,0 +1,21 @@
+# Test changes — evidence custody, decision 91
+
+**No existing test function or assertion changed.** One new file adds 23 controls; one new read-only probe script records findings outside W5 ownership.
+
+| File | Cases | Purpose |
+|:---|---:|:---|
+| `tests/test_evidence_applicability_91.py` | 23 | Inside/outside month per measured kind; boundary-spanning incidents; ±14-hour civil-zone margin edges; adjacent-month period reports in UTC, UTC−12 and UTC+14; boundary-crossing partial reports; nested resource, telemetry, exclusion, maintenance and request rows; complete-before-end refusal; timestamp kinds deliberately not checked; signed grant still applying every prior scope check; mounted HTTP delivery refused with no stored row, followed by the correct record without a contradiction; delivery client naming the operator's record before contacting the listener; Opus falsification cases. |
+
+New function names, in file order: `test_measured_interval_inside_the_month_is_admissible_and_entirely_previous_month_is_refused` (4 parameters), `test_month_boundary_overlap_is_left_to_the_evaluator_and_offset_months_keep_a_margin`, `test_coverage_report_for_another_month_is_refused`, `test_nested_resource_rows_must_describe_the_granted_month_and_their_own_report`, `test_monitor_records_outside_the_month_are_refused` (2), `test_customer_exclusion_spans_and_maintenance_windows_must_overlap_the_month`, `test_request_witness_outside_the_month_is_refused`, `test_a_complete_report_cannot_be_observed_before_its_period_ends` (2), `test_records_whose_timestamps_are_not_measured_service_time_are_not_refused_by_this_rule` (4), `test_signed_grant_refuses_wrong_period_but_still_applies_every_existing_scope_check`, `test_boundary_crossing_period_reports_keep_more_than_fourteen_hours_inside_the_month`, `test_decision_91_critique_falsification_cases`, `test_month_must_be_an_exact_granted_month`, `test_delivery_client_names_the_operator_record_before_signing`, `test_wrong_period_signed_delivery_is_refused_before_storage_and_cannot_block_the_correct_record`.
+
+## Failed intermediate runs, preserved
+
+1. First rule (all records against the widened month): `test_coverage_report_for_another_month_is_refused` failed — a whole September report overlapped the 14-hour margin and was admitted. Result: 1 failed, 20 passed. Corrected by checking period reports against the unwidened month.
+2. Opus critique: the unwidened-overlap rule still admitted a UTC−12 September report. Corrected by requiring more than 14 hours inside the month.
+3. That threshold refused the one-hour mid-month report in the **unchanged existing** `tests/test_source_config_v4.py::test_grant_validates_every_nested_resource_and_invoice_line`. Result: 1 failed, 260 passed, 1 warning in 145.67s. The rule was narrowed to boundary-crossing reports; the existing test was not edited.
+
+## Focused results at `a924aae`
+
+`uv run --locked pytest -q -p no:cacheprovider` over the new file plus `test_source_config_v4`, `test_correspondence_receipt_version`, `test_signed_mandates`, `test_blind_acceptance`, all four Northwind suites, `test_live_reviewer_setup`, `test_evidence`, `test_evidence_refresh`, `test_correspondence`, `test_v4_routes_integration`, `test_cross_claims`, `test_portfolio_v4` and `test_correspondence_resource`: **401 passed, 1 warning in 328.72s**. Northwind January/February/March outcomes and the USD 8,600 April balance are asserted by the unchanged workflow tests in that run. The mandatory full `uv run --locked pytest` runs after W0 integration; it is not claimed here. [Receipt](evidence/evidence-custody-90/verification-91.json)
+
+If W4 applies the same rule at the embedded desk (finding F1/F2), its existing tests that deliver foreign nested rows or wrong-period records directly through the desk, including `tests/test_correspondence.py::test_mismatched_fee_and_component_prevent_further_packet`, would need to be listed in W4's own ledger.

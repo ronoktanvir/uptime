@@ -1,0 +1,350 @@
+{
+ "schema": "uptime-recorded-local-review/1",
+ "observed_at": "2026-11-09T11:05:33.835158Z",
+ "observer": "integration owner session agent0, branch work/integration-90; read-only SQLite (mode=ro); no review action, signature or key read",
+ "key_material_read": false,
+ "workspace": {
+  "path": "$HOME/.local/share/uptime-engineering/runtime/ronok-review-87",
+  "origin": "http://127.0.0.1:8777",
+  "workspace_id": "bdc4e72efa9b7b8c0c6bafc22f0fa5d40fc3d41309fe0dccc25457d0f8afdd22",
+  "enrolled_users": [
+   {
+    "subject": "ronok-tanvir",
+    "role": "reviewer"
+   }
+  ]
+ },
+ "grant": {
+  "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+  "scope": "interpret,approve,activate,rollback",
+  "vendor": "calyxquay",
+  "candidate_version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+  "not_before": "2026-11-08T02:15:02Z",
+  "expires_at": "2026-11-10T02:15:02Z",
+  "initial_revision": 5,
+  "tested_source_commit": "6bedefc4550dc5bee3187645f4ead9068b1ebbc3",
+  "proposal_digest": "71de8eddfe7e39b7f11191a7315a3c79e66ca3e07105e2398974e42ad1d48556",
+  "envelope_proposal_digest": "71de8eddfe7e39b7f11191a7315a3c79e66ca3e07105e2398974e42ad1d48556",
+  "proposal_digest_pinned_in_docs": "71de8eddfe7e39b7f11191a7315a3c79e66ca3e07105e2398974e42ad1d48556",
+  "proposal_file_sha256": "d6e425f39ae4934a38308b171e73fb3046c93c9e55c40b3373d4286f8627a8be",
+  "owner_approval_file_sha256": "444b0a8157f2df58f9d3c8bc995a1db71094b58005d99d401bd42a87babff056",
+  "signed_envelope_sha256": "931298dae12a6ac16dfffb4402fe5e6dd89cda61d97ed1c28dbd2b0c26093b3a",
+  "signed_envelope_written_at": "2026-11-09T06:20:05.133764Z"
+ },
+ "host_authority_events": [
+  {
+   "sequence": 1,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "OWNER_APPROVED",
+   "at": "2026-11-09T06:19:59Z",
+   "payload": {
+    "proposal_sha256": "71de8eddfe7e39b7f11191a7315a3c79e66ca3e07105e2398974e42ad1d48556"
+   }
+  },
+  {
+   "sequence": 2,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "ACCEPTED",
+   "at": "2026-11-09T06:20:16Z",
+   "payload": {
+    "history_sha256": "474ab88bd7427d05d7880226b704d0be2326cf124fa8b1b7baea7a67d35bfc23",
+    "proposal_sha256": "71de8eddfe7e39b7f11191a7315a3c79e66ca3e07105e2398974e42ad1d48556",
+    "revision": 5
+   }
+  },
+  {
+   "sequence": 3,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "REQUEST",
+   "at": "2026-11-09T10:07:28Z",
+   "payload": {
+    "body_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "changed": true,
+    "operation": "interpret",
+    "status": 200
+   }
+  },
+  {
+   "sequence": 4,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "ACTION",
+   "at": "2026-11-09T10:07:28Z",
+   "payload": {
+    "history_sha256": "860027c041d9536bccb7aa41020f466c68f06b9a768ccf77a49da0684206ef21",
+    "operation": "interpret",
+    "revision": 6,
+    "status": 200
+   }
+  },
+  {
+   "sequence": 5,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "REQUEST",
+   "at": "2026-11-09T10:07:43Z",
+   "payload": {
+    "body_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "changed": true,
+    "operation": "approve",
+    "status": 200
+   }
+  },
+  {
+   "sequence": 6,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "ACTION",
+   "at": "2026-11-09T10:07:43Z",
+   "payload": {
+    "history_sha256": "71fe5482e5bc1d1484339641fbec6239c21d8e31aa2c891439ed0333ef4fb27d",
+    "operation": "approve",
+    "revision": 7,
+    "status": 200
+   }
+  },
+  {
+   "sequence": 7,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "REQUEST",
+   "at": "2026-11-09T10:07:53Z",
+   "payload": {
+    "body_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "changed": true,
+    "operation": "activate",
+    "status": 200
+   }
+  },
+  {
+   "sequence": 8,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "ACTION",
+   "at": "2026-11-09T10:07:53Z",
+   "payload": {
+    "history_sha256": "2259e6025a2c78a141b8c7f8b725bf783c04fdbf249deaa2a26cdc8c0bcd5a53",
+    "operation": "activate",
+    "revision": 8,
+    "status": 200
+   }
+  },
+  {
+   "sequence": 9,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "REQUEST",
+   "at": "2026-11-09T10:08:51Z",
+   "payload": {
+    "body_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "changed": true,
+    "operation": "rollback",
+    "status": 200
+   }
+  },
+  {
+   "sequence": 10,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "ACTION",
+   "at": "2026-11-09T10:08:51Z",
+   "payload": {
+    "history_sha256": "e1a38ab4d9bec461fa74251d13896ba533815dbc989eca9259572221a47347cb",
+    "operation": "rollback",
+    "revision": 9,
+    "status": 200
+   }
+  },
+  {
+   "sequence": 11,
+   "grant_id": "8c053c1f1a1de5dfbb003a6144aad9cf",
+   "event": "COMPLETED",
+   "at": "2026-11-09T10:08:51Z",
+   "payload": {
+    "reason": "Rollback ends this permission"
+   }
+  }
+ ],
+ "adapter_lifecycle": [
+  {
+   "revision": 1,
+   "at": "2026-11-08T01:50:33.706324+00:00",
+   "actor": "scripted-test-reviewer",
+   "kind": "Imported public document and separate tenant overlay",
+   "state": "DRAFT",
+   "reviewer": null,
+   "reviewer_kind": null,
+   "interpretation_reviewer": null,
+   "version": "f3f38f47a36b9d1f8b092eff065bd6ce18a3d399990d2bde0afd85ca59c7b279",
+   "active_version": null,
+   "payload_sha256": "3973ade8e03dcbab98815b23da69efe8961e1ff4c9f0f8fed5b1b2b8e16555a4"
+  },
+  {
+   "revision": 2,
+   "at": "2026-11-08T01:50:33.706345+00:00",
+   "actor": "scripted-test-reviewer",
+   "kind": "Validated source coverage, typed thresholds and governing dates",
+   "state": "VALIDATED",
+   "reviewer": null,
+   "reviewer_kind": null,
+   "interpretation_reviewer": null,
+   "version": "f3f38f47a36b9d1f8b092eff065bd6ce18a3d399990d2bde0afd85ca59c7b279",
+   "active_version": null,
+   "payload_sha256": "28270628d6421743cc0342f8e7a9c2760d98e0d0e1286c35a657ce432c70081d"
+  },
+  {
+   "revision": 3,
+   "at": "2026-11-08T01:50:33.706355+00:00",
+   "actor": "scripted-test-reviewer",
+   "kind": "Shadow only; waiting for independent reviewer cases",
+   "state": "SHADOW",
+   "reviewer": null,
+   "reviewer_kind": null,
+   "interpretation_reviewer": null,
+   "version": "f3f38f47a36b9d1f8b092eff065bd6ce18a3d399990d2bde0afd85ca59c7b279",
+   "active_version": null,
+   "payload_sha256": "9dfb371d1f7dabc60daa69132cd4dd14374606b8145f17965d915011a231213a"
+  },
+  {
+   "revision": 4,
+   "at": "2026-11-08T01:50:33.712260+00:00",
+   "actor": "scripted-test-reviewer",
+   "kind": "Named pre-pricing source and literal evidence binding review",
+   "state": "SHADOW",
+   "reviewer": null,
+   "reviewer_kind": null,
+   "interpretation_reviewer": null,
+   "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+   "active_version": null,
+   "payload_sha256": "226cf254100ba8eb53084940c0dc94394168f5e517d055073541df7ab65e3674"
+  },
+  {
+   "revision": 5,
+   "at": "2026-11-08T01:50:33.727465+00:00",
+   "actor": "scripted-test-reviewer",
+   "kind": "Executed reviewer-authored scenarios in shadow",
+   "state": "SHADOW",
+   "reviewer": null,
+   "reviewer_kind": null,
+   "interpretation_reviewer": null,
+   "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+   "active_version": null,
+   "payload_sha256": "41b07904df490f0d03c2dabfff38549b78c58111865c2c1be0294980ad4dd3b7"
+  },
+  {
+   "revision": 6,
+   "at": "2026-11-09T10:07:28.452894+00:00",
+   "actor": "ronok-tanvir",
+   "kind": "Accept source interpretation for this review",
+   "state": "SHADOW",
+   "reviewer": null,
+   "reviewer_kind": null,
+   "interpretation_reviewer": "ronok-tanvir",
+   "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+   "active_version": null,
+   "payload_sha256": "6371f71f1941e977fe6ffd725260742058dbd232d7a2f272994a654912895fb1"
+  },
+  {
+   "revision": 7,
+   "at": "2026-11-09T10:07:43.472393+00:00",
+   "actor": "ronok-tanvir",
+   "kind": "Approve reviewed tests",
+   "state": "APPROVED",
+   "reviewer": "ronok-tanvir",
+   "reviewer_kind": "authenticated_reviewer",
+   "interpretation_reviewer": "ronok-tanvir",
+   "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+   "active_version": null,
+   "payload_sha256": "f18055d903ebff70b8fd90deae4163d0cb4e609cebf3d62d978fd92f5699f1f8"
+  },
+  {
+   "revision": 8,
+   "at": "2026-11-09T10:07:53.719300+00:00",
+   "actor": "ronok-tanvir",
+   "kind": "Activate for local evaluation",
+   "state": "ACTIVE",
+   "reviewer": "ronok-tanvir",
+   "reviewer_kind": "authenticated_reviewer",
+   "interpretation_reviewer": "ronok-tanvir",
+   "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+   "active_version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+   "payload_sha256": "96b4a6d8038f5502dbd05f663a848d448fa58e8faf50abb158d45a9ec1d82ae1"
+  },
+  {
+   "revision": 9,
+   "at": "2026-11-09T10:08:51.303092+00:00",
+   "actor": "ronok-tanvir",
+   "kind": "Roll back activation",
+   "state": "REVOKED",
+   "reviewer": null,
+   "reviewer_kind": "authenticated_reviewer",
+   "interpretation_reviewer": "ronok-tanvir",
+   "version": "5616fe29c195e9689a22fae149dac2326f36c570b2759e7f90587d491d174725",
+   "active_version": null,
+   "payload_sha256": "3c462eaf26ba08889d72614408bc8104e1822df50ee774488ca871d0157b23b1"
+  }
+ ],
+ "final_shadow_checks": [
+  {
+   "name": "Source control: 60 minutes; 12 percent of USD 100, coaching excluded",
+   "passed": true,
+   "expected": {
+    "amount": "12.00",
+    "outcome": "ELIGIBLE"
+   },
+   "actual": {
+    "amount": "12.00",
+    "outcome": "ELIGIBLE"
+   }
+  },
+  {
+   "name": "Source control: missing status remains unknown",
+   "passed": true,
+   "expected": {
+    "outcome": "INSUFFICIENT_EVIDENCE"
+   },
+   "actual": {
+    "amount": null,
+    "outcome": "INSUFFICIENT_EVIDENCE"
+   }
+  },
+  {
+   "name": "Source control: one second late refused",
+   "passed": true,
+   "expected": {
+    "outcome": "INELIGIBLE"
+   },
+   "actual": {
+    "amount": null,
+    "outcome": "INELIGIBLE"
+   }
+  },
+  {
+   "name": "Independent positive and refusal coverage",
+   "passed": true,
+   "expected": null,
+   "actual": null
+  },
+  {
+   "name": "Generated exact threshold checks",
+   "passed": true,
+   "expected": null,
+   "actual": null
+  }
+ ],
+ "serving_checkout_at_observation": {
+  "path": "/Users/ronoktanvir/uptime",
+  "branch": "fix/browser-signin-challenge",
+  "head": "03b372e64e4eb69aa0de991e3654db41bd1be915",
+  "uncommitted": [
+   "web/auth.js",
+   "tests/test_local_review_exception.py",
+   "tests/helpers/browser_sign_in_challenge.cjs (untracked)"
+  ],
+  "web_auth_js_modified_at": "2026-11-09T10:33:46.015039Z",
+  "integrated_as": "work/integration-90 (sign-in fix commit)",
+  "listener_8777_started_at": "2026-11-09T06:20:16Z",
+  "note": "web/auth.js in that checkout was last modified after the recorded actions; which sign-in bytes the browser loaded at 10:07Z is not established by this receipt."
+ },
+ "interpretation": [
+  "Revisions 1-5 are scripted preparation (actor scripted-test-reviewer, 2026-11-08T01:50:33Z). They are not Ronok's decisions.",
+  "Revisions 6-9 are recorded under the enrolled account ronok-tanvir with reviewer_kind authenticated_reviewer: interpretation accepted (6), tests approved (7), version activated for local evaluation (8), activation rolled back to REVOKED (9).",
+  "The host authority log shows OWNER_APPROVED and ACCEPTED on 2026-11-09 06:19-06:20Z, one REQUEST/ACTION pair per operation, and COMPLETED with 'Rollback ends this permission' at 10:08:51Z.",
+  "The record proves actions authenticated with the key enrolled for ronok-tanvir under the exact signed grant. It does not by itself identify who operated the browser or who ran owner-approve and authorize; this integration session did neither.",
+  "Scope was interpret/approve/activate/rollback for one local CalyxQuay version. No claim, dispute submission, award, credit, bill/payment action, policy/source change, model job or Ramp mutation was in scope or recorded.",
+  "This is local authored-workspace review evidence, not independent release certification, a real customer's contract approval or native Ramp authority. The standard release gate remains the default."
+ ]
+}

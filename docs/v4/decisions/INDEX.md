@@ -96,3 +96,11 @@ The earlier table preserves its inspected-source status. The following decisions
 Current implementation and test boundaries appear in [engineering status](../STATUS.md). Publishing the private GitHub repository preserves the original source-linked decisions and independent findings.
 
 - [87 — Person-operated demo and preserved authority](ADR-0087-person-operated-demo-path.md)
+- [94 — Account identity and claim scope (D03-A, D04-C), alternatives and one Opus critique](../integration90/D03-D04-ALTERNATIVES.md) · [packet](packets/94-identity-and-claim-scope-alternatives.md) · [review](reviews/94-identity-and-claim-scope-alternatives.json)
+- [90 — Read-only adapter requirement card](ADR-0090-adapter-requirement-card.md)
+- [91 — Refuse out-of-period evidence at the signed source grant](ADR-0091-evidence-temporal-applicability.md)
+- [93 — One Ramp case identity from financial record to reconciliation](ADR-0093-ramp-case-lineage.md)
+- [96 — Workspace recovery, installation revocation and operations health](ADR-0096-operations-recovery.md)
+- [89 — Reviewed denial acceptance and dispute trace](ADR-0089-reviewed-denial-acceptance.md)
+- [95 — Grounded read-only finance guide and next steps](ADR-0095-grounded-finance-guide.md)
+- [Team decisions of 2026-11-09 (owner Ronok): D03 bounded exact source IDs, D04 server-selected scope variants, D05 auto-select plus human approval, D06 humans gate judgment, D07 narrow published matrix, D11 stay local](../TEAM-DECISION-HANDOFF.md#team-decision-sheet)

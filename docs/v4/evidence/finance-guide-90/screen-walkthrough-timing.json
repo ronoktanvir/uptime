@@ -1,0 +1,108 @@
+{
+  "schema": "finance-screen-walkthrough/1",
+  "recorded_at": "2026-11-09T11:55:29.912579+00:00",
+  "source_commit": "53129386eaad662493670612a272458d9d5e398d",
+  "working_tree_dirty": true,
+  "transport": "REAL_LOOPBACK_HTTP + headless Chrome",
+  "workspace": "fresh authored Northwind package (temporary directory)",
+  "reviewer": "scripted-test-reviewer (scripted reviewer; not a person)",
+  "narration": "none; interaction time only",
+  "initial_attention": [
+    "File the January 2026 claim before the deadline",
+    "Approve the claim packet before it is filed",
+    "Review invoice NW-2026-03 before payment",
+    "Complete March 2026 usage evidence",
+    "Next step: Approve January claim"
+  ],
+  "steps": [
+    {
+      "step": "signed in; Needs attention visible",
+      "seconds": 0.45
+    },
+    {
+      "step": "Approve January claim",
+      "seconds": 1.27
+    },
+    {
+      "step": "File January claim",
+      "seconds": 1.57
+    },
+    {
+      "step": "Receive vendor response",
+      "seconds": 2.39
+    },
+    {
+      "step": "Attach requested log",
+      "seconds": 3.18
+    },
+    {
+      "step": "Verify supplied log",
+      "seconds": 3.99
+    },
+    {
+      "step": "Approve response",
+      "seconds": 4.78
+    },
+    {
+      "step": "Send response",
+      "seconds": 5.09
+    },
+    {
+      "step": "Receive credit decision",
+      "seconds": 5.4
+    },
+    {
+      "step": "Post to Local ledger",
+      "seconds": 6.22
+    },
+    {
+      "step": "Receive next invoice",
+      "seconds": 7.03
+    },
+    {
+      "step": "Apply credit to eligible invoice",
+      "seconds": 7.84
+    },
+    {
+      "step": "all actions complete",
+      "seconds": 7.84
+    },
+    {
+      "step": "guide: Did the credit reach Ramp?",
+      "seconds": 8.04
+    },
+    {
+      "step": "guide: Should we dispute the March invoice?",
+      "seconds": 8.23
+    }
+  ],
+  "final_attention": [
+    "Review invoice NW-2026-03 before payment",
+    "Complete March 2026 usage evidence"
+  ],
+  "bill_panel": "Bill reconciliation\nDestination\nLocal ledger\nBill reference\nNW-2026-04\nInvoice issued\n2026-04-01T00:00:00+00:00\nService starts\n2026-04-01T00:00:00+00:00\nService ends\n2026-05-01T00:00:00+00:00\nOriginal bill\n$11,000.00\nApplied credit\n$2,400.00\nOutstanding balance\n$8,600.00\nReceipt reference\nLOCAL-9562f55d475a8ad7d9906554\nAward reference\ninbox-award:4ae23d8098c295edacd8fba76d4492f7d632c6f3333fc9e781e6cf9c9ffe6092\nCredit reference\nlocal-ledger:723919e3-41a5-514f-baa1-fa73d76f89b1\nApplication reference\nlocal-ledger:d5a5343d-b531-5159-8ab3-814b4234fdd8",
+  "guide_answers": {
+    "Did the credit reach Ramp?": "Credits in this workspace are recorded in Local ledger. No Ramp bill is linked, and no Ramp credit or Ramp bill application is recorded for this case.\nSource: Destination\n\nThis answer covers only the cited records. Anything not cited is not established by this case.\n\nAs of 2026-04-01T09:00:00+00:00. Read only; nothing was changed.",
+    "Should we dispute the March invoice?": "That needs a reviewer's judgment. The guide reports what this case records and doesn't recommend decisions.\n\nRelated records\n\nShow Price finding\n\nAs of 2026-04-01T09:00:00+00:00. Read only; nothing was changed."
+  },
+  "post_routes": [
+    "/api/auth/challenge",
+    "/api/auth/login",
+    "/api/workspace/guide",
+    "/api/workspace/workflow/actions/action-132b2dcc81dae367ade70ed1971a65708b5ee2dd6911968662087326932d4e1c",
+    "/api/workspace/workflow/actions/action-51b2f95785a3b6578687a687a6a48ec7ba1bb074789c5c41d0485694d5347aaa",
+    "/api/workspace/workflow/actions/action-6b286a4b6579f6260cf11ca8a998854bdcf97f85231c0acff46c7ecec5ab338e",
+    "/api/workspace/workflow/actions/action-942201d325f8721cbc1306c569f521e121c55f6603f4e0b6c9429a5eae5aa93d",
+    "/api/workspace/workflow/actions/action-988f9d3df93e25eaff15a17995673ad94033fe88f7e1a42749a0bb090b824aca",
+    "/api/workspace/workflow/actions/action-b0f49b1a2227b88b25454e785c45bab784f8167fe38e74c8f155d69a83c365ec",
+    "/api/workspace/workflow/actions/action-da3dc0671ff77e9284e89d6a94a51bdfd59cf37d3aa179046ab56ec8e30084f8",
+    "/api/workspace/workflow/actions/action-db836931362f78868bfc6f83c3ff1a99ad2638d51bd8fd860904d7affe754e54",
+    "/api/workspace/workflow/actions/action-e1951ff5d852cb25a16f815704e8f0a76643cef1e7c5a2bce7d56faba2e96fcd",
+    "/api/workspace/workflow/actions/action-e256cab411cd75e0aa80905d5f8fabe30c1d1cc86342ca380afbe3fb40dd6d1f",
+    "/api/workspace/workflow/actions/action-ebddaa9bba4ed19212feed5a6e8c6827eebf6a65091325a03367b9e02d8be791"
+  ],
+  "post_count": 26,
+  "narrow_overflow": false,
+  "page_errors": [],
+  "native_or_model_calls": "none (no Ramp, no model provider configured)"
+}

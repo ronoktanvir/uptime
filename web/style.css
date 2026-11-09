@@ -24,3 +24,25 @@
 
 .workflow-document{border-top:1px solid var(--line);padding-top:20px;margin-top:20px}.workflow-document h3{color:var(--ink)}
 @media(min-width:701px){.rail{overflow-y:auto}.rail nav,.rail .brand,.rail .rail-caption{flex-shrink:0}}
+
+/* Finance attention, Ramp destination and read-only guide */
+.attention-list{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:12px}
+.attention-item{border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:white;min-width:0}
+.attention-item h3{font-size:15px;margin:6px 0 4px}
+.attention-item .help{margin:0 0 6px}
+.attention-owner{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--muted);text-transform:uppercase}
+.link-button{padding:4px 0;border:0;background:none;color:var(--ink);text-decoration:underline;font-size:13px;cursor:pointer}
+.panel h2[tabindex]:focus{outline:3px solid #6888f2;outline-offset:4px}
+.guide-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:12px 0}
+.guide-form label{display:flex;flex-direction:column;gap:6px;flex:1 1 240px;font-size:13px;min-width:0}
+.guide-form input{width:100%;min-width:0;padding:9px 10px;border:1px solid var(--line);border-radius:6px;font:inherit}
+.guide-answer{min-width:0}
+.guide-sentences{margin:8px 0;padding-left:20px}
+.guide-sentences li+li{margin-top:8px}
+.guide-abstain p{margin:8px 0;font-weight:550}
+.guide-citation{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:baseline;margin-left:8px;font-size:12px;color:var(--muted)}
+.guide-citation code,.workflow-evidence code{overflow-wrap:anywhere;word-break:break-word}
+.guide-related{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.northwind-field dd,.attention-item .help,.guide-sentences span{overflow-wrap:anywhere}
+.ramp-row-link{display:inline-block;margin-top:6px;font-size:12px}
+.section-grid>*{min-width:0}

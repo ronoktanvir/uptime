@@ -54,3 +54,5 @@
 .uptime-v4 .v4-candidate{margin-top:18px;padding-top:16px;border-top:2px dashed #c98b24}
 .uptime-v4 .v4-candidate>.v4-review{grid-column:1/-1;min-width:0}
 .uptime-v4 .v4-candidate>button{grid-column:1/-1;justify-self:start}
+.v4-refusal blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid #c9cfe0;white-space:pre-wrap;overflow-wrap:anywhere}
+.v4-refusal .v4-note{overflow-wrap:anywhere}

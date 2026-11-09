@@ -1,0 +1,33 @@
+{
+ "schema": "uptime-rehearsal-receipt/1",
+ "command": "uv run --locked python scripts/rehearse.py",
+ "ran_at": "2026-11-09T11:16:35.511446Z",
+ "head": "37d73f2a32b990e667bd40563085621b7b8bb1a2",
+ "uncommitted_non_doc_paths": [
+  "scripts/render_requirements.py",
+  "tests/test_requirements_traceability.py"
+ ],
+ "exit_code": 0,
+ "elapsed_seconds": 2.43,
+ "output": {
+  "mode": "DETERMINISTIC_REPLAY",
+  "identity": "scripted-test-reviewer",
+  "price_exposure": "7500.00",
+  "confirmed_simulated_award": "100.00",
+  "recorded": "100.00",
+  "applied": "50.00",
+  "disputed": "20.00",
+  "onboarding": [
+   "SHADOW",
+   "APPROVED",
+   "ACTIVE",
+   "REVOKED"
+  ],
+  "actual_customer_recovery": null
+ },
+ "trailing_output": "real 2.43\nuser 1.68\nsys 0.35",
+ "scope": "Offline deterministic replay in a disposable SQLite workspace with the scripted test reviewer. Simulated award and ledger; no network, Ramp, model or human action.",
+ "related": [
+  "tests/test_release_probes_gent8.py (served Northwind 11-action flow across a hard kill and restart)"
+ ]
+}

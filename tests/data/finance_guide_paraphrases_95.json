@@ -1,0 +1,247 @@
+{
+ "note": "Authored development paraphrases for the final Northwind state. 'cases' was used to tune retrieval (initial 35/40, then 40/40 after fixes). 'holdout' was written after tuning and run once before any further change. Expected value is the first cited fact ID prefix, ABSTAIN, or READ_ONLY. Not an independent evaluation.",
+ "cases": [
+  [
+   "How did you get to $2,400 for January?",
+   "month.2026-01"
+  ],
+  [
+   "Explain the January service credit math",
+   "month.2026-01"
+  ],
+  [
+   "What percentage credit applies for January?",
+   "month.2026-01"
+  ],
+  [
+   "How many minutes of downtime counted in January?",
+   "month.2026-01"
+  ],
+  [
+   "Why didn't February qualify?",
+   "month.2026-02"
+  ],
+  [
+   "Is February eligible for anything?",
+   "month.2026-02"
+  ],
+  [
+   "What's going on with March availability?",
+   "month.2026-03"
+  ],
+  [
+   "Why can't you calculate March?",
+   "month.2026-03"
+  ],
+  [
+   "What usage data is missing?",
+   "month.2026-03"
+  ],
+  [
+   "What's the last day to file the January claim?",
+   "claim.deadline"
+  ],
+  [
+   "Did we file in time?",
+   "claim.deadline"
+  ],
+  [
+   "How long did we have to submit?",
+   "claim.deadline"
+  ],
+  [
+   "What's left to pay on April?",
+   "bill"
+  ],
+  [
+   "What is the April balance after the credit?",
+   "bill"
+  ],
+  [
+   "Was the credit applied to an invoice?",
+   "bill"
+  ],
+  [
+   "Where was the credit recorded?",
+   "ramp"
+  ],
+  [
+   "Is this credit in Ramp?",
+   "ramp"
+  ],
+  [
+   "Was anything posted to Ramp?",
+   "ramp"
+  ],
+  [
+   "Were we overcharged in March?",
+   "price"
+  ],
+  [
+   "What does the amendment cap the fee at?",
+   "price"
+  ],
+  [
+   "Explain the $1,000 finding",
+   "price"
+  ],
+  [
+   "Who reviewed CalyxQuay?",
+   "coverage"
+  ],
+  [
+   "Was CalyxQuay rolled back?",
+   "coverage"
+  ],
+  [
+   "Is the CalyxQuay adapter live?",
+   "coverage"
+  ],
+  [
+   "What still needs to happen?",
+   "attention."
+  ],
+  [
+   "Anything blocked?",
+   "attention."
+  ],
+  [
+   "What stage is the claim in?",
+   "claim.status"
+  ],
+  [
+   "Show me the history of the claim status",
+   "claim.status"
+  ],
+  [
+   "Is it a good idea to contest March?",
+   "ABSTAIN"
+  ],
+  [
+   "Would it be wise to push the vendor for more?",
+   "ABSTAIN"
+  ],
+  [
+   "Are we going to win this dispute?",
+   "ABSTAIN"
+  ],
+  [
+   "Is the vendor's price fair?",
+   "ABSTAIN"
+  ],
+  [
+   "What's the best way to handle the March overcharge?",
+   "ABSTAIN"
+  ],
+  [
+   "Is it safe to pay the March invoice?",
+   "ABSTAIN"
+  ],
+  [
+   "What does Salesforce charge?",
+   "ABSTAIN"
+  ],
+  [
+   "Summarize the news today",
+   "ABSTAIN"
+  ],
+  [
+   "Can you write me a poem?",
+   "ABSTAIN"
+  ],
+  [
+   "How do I reset my password?",
+   "ABSTAIN"
+  ],
+  [
+   "What is 2 plus 2?",
+   "ABSTAIN"
+  ],
+  [
+   "Tell me about Microsoft's agreement",
+   "ABSTAIN"
+  ]
+ ],
+ "holdout": [
+  [
+   "Break down the January calculation for me",
+   "month.2026-01"
+  ],
+  [
+   "How big was the January outage in minutes?",
+   "month.2026-01"
+  ],
+  [
+   "Did February miss the uptime target?",
+   "month.2026-02"
+  ],
+  [
+   "What evidence would settle March?",
+   "month.2026-03"
+  ],
+  [
+   "When did the filing window close?",
+   "claim.deadline"
+  ],
+  [
+   "Was the claim submitted before the cutoff?",
+   "claim.deadline"
+  ],
+  [
+   "How much of April's invoice is still outstanding?",
+   "bill"
+  ],
+  [
+   "Which invoice received the credit?",
+   "bill"
+  ],
+  [
+   "Did Ramp record the credit?",
+   "ramp"
+  ],
+  [
+   "What destination holds the posted credit?",
+   "ramp"
+  ],
+  [
+   "How much was awarded?",
+   "ledger.stages"
+  ],
+  [
+   "What is the governing price for March after the amendment?",
+   "price"
+  ],
+  [
+   "Is the March invoice above the contract rate?",
+   "price"
+  ],
+  [
+   "Which reviewer is on record for CalyxQuay here?",
+   "coverage"
+  ],
+  [
+   "What should I look at first?",
+   "ABSTAIN"
+  ],
+  [
+   "Are there open items?",
+   "attention."
+  ],
+  [
+   "Is the vendor acting in bad faith?",
+   "ABSTAIN"
+  ],
+  [
+   "What does Zendesk's SLA say?",
+   "ABSTAIN"
+  ],
+  [
+   "Translate this page to French",
+   "ABSTAIN"
+  ],
+  [
+   "Mark the March finding as resolved",
+   "READ_ONLY"
+  ]
+ ]
+}

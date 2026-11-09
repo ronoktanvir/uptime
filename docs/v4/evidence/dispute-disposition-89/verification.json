@@ -1,0 +1,47 @@
+{
+ "workstream": "W4 disputes",
+ "branch": "work/dispute-disposition-89",
+ "base": "03b372e",
+ "tested_commit": "8083ab5eaa5a3cb7d6c3d5400352a3bb131447d8",
+ "tested_source_index_sha256": "66da694ff6dcfc7737a9dfffbbb141104754f8e32492e71180b029efa9afaf79",
+ "tested_source_definition": "sha256 of `git ls-files -s uptime tests fixtures` at the tested commit; working tree clean for those paths",
+ "command": "uv run --locked --offline pytest -q -p no:cacheprovider --basetemp=<unique scratch dir> -o tmp_path_retention_policy=failed tests/test_correspondence*.py tests/test_disputes*.py tests/test_local_review_exception_disputes.py tests/test_cross_claims.py tests/test_v4_routes_integration.py",
+ "attempts": [
+  {
+   "attempt": 1,
+   "result": "HUNG_AND_STOPPED",
+   "detail": "Stopped by the parent after more than 11 minutes without progress at test 551/904, tests/test_correspondence_model_jobs_ui_75.py::test_refused_or_uncertain_job_adds_nothing_and_is_not_retried[CANCELLED]. That is an unchanged Playwright browser test against unchanged web/ code, and its automation Chrome sat at 0% CPU. Machine load average was 18-33 from concurrent sessions. 550 tests had passed with no failures before the stop.",
+   "log_sha256": "d5e6d3805dd4efa89de9ecfdd2a5d847be92efe394ddb57e37d64bf123e2e4d3"
+  },
+  {
+   "attempt": 2,
+   "result": "904 passed, 1 warning in 206.14s",
+   "exit_code": 0,
+   "started": "2026-11-09T11:45:22Z",
+   "ended": "2026-11-09T11:48:51Z",
+   "log_sha256": "cb4e4f6d1203f21dcb307781ef5638ef3b47040594456ea10aa85da0d8457fe4"
+  }
+ ],
+ "earlier_results": [
+  {
+   "source": "3454b33",
+   "result": "849 passed, 1 warning in 226.95s",
+   "scope": "existing dispute/correspondence tests only, before new tests"
+  },
+  {
+   "source": "3454b33",
+   "result": "30 new tests: first run 29 passed / 1 failed (test helper), second run 30 passed"
+  },
+  {
+   "source": "uncommitted post-critique source before the month_coverage_basis check",
+   "result": "904 passed, 1 warning in 341.70s"
+  },
+  {
+   "source": "8083ab5 working tree with ground re-derivation and digest comparison disabled",
+   "result": "2 failed (mutation check), source restored"
+  }
+ ],
+ "warning": "Existing Starlette/httpx TestClient deprecation warning.",
+ "not_run": "The full `uv run --locked pytest` suite was not run here. The integration owner (agent0) runs it once after merge, to avoid overlapping full runs on a nearly full shared disk.",
+ "logs_location": "~/.local/share/uptime-engineering/tasks/disputes-89/ (outside Git)"
+}

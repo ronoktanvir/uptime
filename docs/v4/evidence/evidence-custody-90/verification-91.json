@@ -1,0 +1,63 @@
+{
+  "workstream": "W5 evidence and source custody",
+  "branch": "work/evidence-custody-90",
+  "tested_commit": "a924aae13e5f52dfde8372ea6c3ac7fb60a25a01",
+  "base": "03b372e",
+  "source_sha256": {
+    "uptime/evidence_applicability.py": "7f11f3ecb8389af292d03ed0a23592f3ac348616786a836f4a875bcb385c0aec",
+    "uptime/source_config.py": "adc72eb99d69c72011d4b2386c2db058dcfb87906f971ecdb3aad24db459676d",
+    "scripts/deliver_evidence.py": "9f766388392b2cb5718be84eece676ea3bd2e3a1d15d03d3ecdbc655cdc1c2a3",
+    "tests/test_evidence_applicability_91.py": "e5c219b7969c75e4f727566d4c0dca426795b41f65d610748055b3c5fdbde625"
+  },
+  "focused": {
+    "command": "uv run --locked pytest -q -p no:cacheprovider <17 files> --basetemp=<scratchpad unique dir> -o tmp_path_retention_policy=failed",
+    "files": [
+      "tests/test_evidence_applicability_91.py",
+      "tests/test_source_config_v4.py",
+      "tests/test_correspondence_receipt_version.py",
+      "tests/test_signed_mandates.py",
+      "tests/test_blind_acceptance.py",
+      "tests/test_northwind_inputs.py",
+      "tests/test_northwind_financial.py",
+      "tests/test_northwind_local_ledger.py",
+      "tests/test_northwind_workflow.py",
+      "tests/test_live_reviewer_setup.py",
+      "tests/test_evidence.py",
+      "tests/test_evidence_refresh.py",
+      "tests/test_correspondence.py",
+      "tests/test_v4_routes_integration.py",
+      "tests/test_cross_claims.py",
+      "tests/test_portfolio_v4.py",
+      "tests/test_correspondence_resource.py"
+    ],
+    "result": "401 passed, 1 warning in 328.72s (0:05:28)",
+    "warning": "existing StarletteDeprecationWarning from fastapi.testclient",
+    "log_retention": "terminal summary recorded; full log not retained; temporary base directory deleted after the run"
+  },
+  "preserved_failures": [
+    {
+      "rule": "all records against widened month",
+      "command_scope": "tests/test_evidence_applicability_91.py",
+      "result": "1 failed, 20 passed",
+      "failed": "test_coverage_report_for_another_month_is_refused"
+    },
+    {
+      "rule": "period reports need >14h inside month",
+      "command_scope": "12 focused files",
+      "result": "1 failed, 260 passed, 1 warning in 145.67s",
+      "failed": "tests/test_source_config_v4.py::test_grant_validates_every_nested_resource_and_invoice_line (unchanged existing test; rule corrected)"
+    }
+  ],
+  "full_suite": "not run in this lane; W0 runs uv run --locked pytest after integration",
+  "opus": {
+    "model": "claude-opus-5-5",
+    "session": "9a4d8b82-a28d-4b00-9a08-bb01ff014921",
+    "receipt": "docs/v4/decisions/reviews/91-evidence-temporal-applicability.json"
+  },
+  "not_established": [
+    "full-suite regression",
+    "real evidence connector or provider enrollment",
+    "document formats beyond exact text",
+    "fix for findings F1-F9 owned by other workstreams"
+  ]
+}

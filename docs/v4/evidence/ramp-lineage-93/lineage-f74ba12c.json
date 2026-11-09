@@ -1,0 +1,141 @@
+{
+  "capture_checksum": "ad6a48ad9e39e7e80366ac55a8ddef4596d2bc9d21f3e9fd5269cc6d40fd099b",
+  "case_key": "102fe06fc4057b571e8df076899bc7180ec9fa53cc747dd2b945d0bfc1a7de62",
+  "identity": {
+    "account_id": null,
+    "claim_id": null,
+    "contract_id": null,
+    "contract_version": null,
+    "currency": "USD",
+    "entity_id": "e00176b6-d28e-437e-999b-d2ae4ad1b85d",
+    "object_id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+    "object_type": "bills",
+    "provider_business_id": "1569e402-460e-4952-adad-9df27db628a0",
+    "tenant": "ramp-demo-native",
+    "vendor_id": "8bde54ed-22d7-4801-82b1-e32c0ddb1b49"
+  },
+  "lineage_digest": "6b000b14d26c3aa39723905f3e40e530e226a2c0d4613aaffb127c9ebcf6986f",
+  "money": {
+    "actual_recovery": null,
+    "applied_minor": null,
+    "award_provenance": null,
+    "awarded_minor": null,
+    "claimed_minor": null,
+    "currency": "USD",
+    "draft_reserved_minor": null,
+    "finding_estimate": null,
+    "recorded_credit_minor": null,
+    "remaining_credit_minor": null,
+    "stages_are_not_additive": true
+  },
+  "refusals": [],
+  "review_required": [],
+  "schema": "uptime-ramp-case-lineage/1",
+  "stages": [
+    {
+      "capture_checksum": "ad6a48ad9e39e7e80366ac55a8ddef4596d2bc9d21f3e9fd5269cc6d40fd099b",
+      "native_amount": {
+        "amount": "840",
+        "amount_minor": 84000,
+        "currency": "USD",
+        "minor_unit_conversion_rate": 100
+      },
+      "native_approval_status": "PENDING",
+      "native_status": "OPEN",
+      "native_status_summary": "APPROVAL_PENDING",
+      "observed_at": "2026-11-09T11:02:40.072813+00:00",
+      "record_digest": "00b2e3c301af216bca2150ab5ac738efb774201243b461ad61f1e17b1f4799b2",
+      "stage": "FINANCIAL_RECORD",
+      "status": "OBSERVED"
+    },
+    {
+      "reason": "NO_REVIEWED_ASSOCIATION",
+      "stage": "APPLICABILITY",
+      "status": "NO_GOVERNING_AGREEMENT"
+    },
+    {
+      "estimate": null,
+      "estimate_currency": null,
+      "finding_digest": "cc8aa8f345399e2f9a7648b9fcfc2474a077d03b882c854d2155df0c342d8fb7",
+      "finding_kind": "UNBOUND_RECORD",
+      "missing": [
+        "Record-specific governing terms and service/line evidence are not bound."
+      ],
+      "stage": "FINDING",
+      "status": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "absent_from_complete_thread_at": [],
+      "api_write_proven": false,
+      "approval_effect": "NONE",
+      "authorship_proven": false,
+      "comment_id": "376563cf-950c-409d-b3d8-a68599c45fa0",
+      "created_at": "2026-11-08T01:46:45+00:00",
+      "duplicate_post_allowed": false,
+      "kind": "INFORMATIONAL_COMMENT",
+      "origin": "HUMAN_POSTED",
+      "payment_effect": "NONE",
+      "receipt_observed_at": "2026-11-08T01:50:35.733930+00:00",
+      "reobserved_at": [
+        "2026-11-09T11:02:40.072813+00:00"
+      ],
+      "stage": "SURFACE",
+      "status": "VERIFIED_READBACK"
+    },
+    {
+      "amount_minor": null,
+      "stage": "AWARD",
+      "status": "NONE"
+    },
+    {
+      "credit_id": null,
+      "stage": "CREDIT",
+      "status": "NO_BOUND_CREDIT"
+    },
+    {
+      "applied_minor": null,
+      "reason": "NO_AWARD",
+      "record_applied_credits_observed_minor": 0,
+      "stage": "APPLICATION",
+      "status": "NOT_APPLICABLE"
+    }
+  ],
+  "status": "FINDING_SURFACED",
+  "surface_plan": {
+    "action": "NONE",
+    "comment_id": "376563cf-950c-409d-b3d8-a68599c45fa0",
+    "reason": "ALREADY_SURFACED_AND_VERIFIED"
+  },
+  "surfaces_supported": {
+    "APPROVAL_STEP": {
+      "approval_effect": "ADDS_APPROVER",
+      "note": "Published as still in development; scope not granted here.",
+      "operation": "POST /developer/v1/approvals/{entity_type}/{entity_id}/add-step",
+      "payment_effect": "WAITS_FOR_ADDED_APPROVER",
+      "scope": "approval_chains:write"
+    },
+    "BLANK_CANVAS_DECISION": {
+      "approval_effect": "APPROVES_OR_REJECTS_CONFIGURED_STEP",
+      "note": "Applies to a configured procurement trigger instance, not to a bill ID.",
+      "operation": "POST /developer/v1/blank-canvas-approvals/{approval_trigger_instance_id}",
+      "payment_effect": "WORKFLOW_DECISION",
+      "scope": "blank_canvas:write"
+    },
+    "INFORMATIONAL_COMMENT": {
+      "approval_effect": "NONE",
+      "operation": "POST /developer/v1/comments/{object_type}/{object_id}",
+      "payment_effect": "NONE",
+      "readback": "GET /developer/v1/comments/{object_type}/{object_id} ({resource}:read)",
+      "scope": "{resource}:write"
+    },
+    "PAYMENT_HOLD": {
+      "approval_effect": "NONE",
+      "operation": "POST /developer/v1/bills/{bill_id}/hold",
+      "payment_effect": "BLOCKS_ALL_PAYMENT_RAILS",
+      "readback": "GET /developer/v1/bills/{bill_id} status_summary == ON_HOLD (bills:read)",
+      "release": "POST /developer/v1/bills/{bill_id}/release",
+      "scope": "bills:write"
+    }
+  },
+  "writes_attempted": false
+}

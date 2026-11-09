@@ -1,4 +1,7 @@
 # CP1 integration contract
+
+> **Historical November 3 CP1 contract, preserved unchanged below.** Current published interfaces: [docs/v4/integration90/INTERFACES.md](../v4/integration90/INTERFACES.md).
+
 Python package uptime; frozen shared enums and dataclasses in uptime/contracts.py. Each branch owns a separate module, tests and fixtures. Server assembles JSON views; no cases accept a caller-supplied tenant, role or amount. Float-free decimal amounts serialized as strings. Non-USD exposures fail closed. SQLite in runtime/ stores local demonstration state. No live outbound transport for disputes.
 
 W3 owns uptime/onboarding*.py, fixtures/onboarding, tests/test_onboarding*. W4 owns uptime/disputes*.py, fixtures/disputes, tests/test_disputes*. W1 owns uptime/ramp*.py, reconciliation*.py, scripts/ramp*, fixtures/ramp and tests/test_ramp* or test_reconciliation*. W2 owns uptime/twilio*.py and corresponding fixtures/tests. W6 owns uptime/pricing*.py and corresponding fixtures/tests. W5 owns uptime/evidence*.py and corresponding fixtures/tests. W7 owns web/. W8 owns tests/test_journey*.py, scripts/browser*. W0 owns the service, read models and all integration wiring. Agents expose documented Python entry points for the service; no branch edits another branch's files.

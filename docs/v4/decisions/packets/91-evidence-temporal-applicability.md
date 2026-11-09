@@ -1,0 +1,23 @@
+# Decision packet 91 — temporal applicability at the signed evidence grant
+
+Sanitized: authored synthetic records only; no customer data, credentials or sealed evaluation material.
+
+Context. Uptime receives operational evidence (status/outage intervals, customer impact, coverage reports, resource/provider/customer telemetry, maintenance, request witnesses, invoices, vendor messages) through an Ed25519-signed local source channel. An operator enrolls each source with one role and one exact claim scope (account, vendor, contract, service, component, invoice, incident, currency, YYYY-MM month, region). Today the grant checks envelope scope equality, role-to-kind mapping and nested identity fields (account, resource, month strings), but never compares a record's measured timestamps with the granted month. The intake desk stores one record per kind; evaluators later return INSUFFICIENT_EVIDENCE for a wrong-period interval. A reproduced probe: a September status record delivered for an October claim is stored; the correct October status, impact and invoice then yield "Contradictory independent records require review" permanently, because stored evidence is immutable. Acceptance for this workstream: wrong-customer, wrong-period, stale and tampered evidence is rejected or quarantined; missing intervals never become zero downtime; unknown stays distinguishable from ineligible.
+
+Preferred implementation (done, tests passing). A new pure module, called from the grant's scope check and by the delivery client before signing:
+1. Short measured records (status, impact, component, notice window, nested resource/telemetry/exclusion/maintenance rows) must overlap the UTC month widened by 14 hours each side, so a month measured in a named civil zone is not refused at intake.
+2. Whole-period reports (coverage, resource status/attribution, provider/customer telemetry) must overlap the unwidened UTC month. Every civil-zone version of a month overlaps its UTC month for all but at most 14 hours, so this refuses an adjacent-month report without refusing a zone-measured one.
+3. Nested rows must also overlap their own report's interval; request witnesses must fall in the widened month.
+4. A report asserting complete=true cannot be observed before its interval ends.
+5. Partial overlap is admitted; boundary clipping stays the evaluator's contract rule. Issue, announcement, filing, delivery and billing-cycle timestamps are not checked.
+Refusal is HTTP 403 before storage; nothing is stored, the sender can resend a corrected record. The server returns no reason; the client script names the reason locally. No Scope field, identity validation, stored hash or idempotency key changes.
+
+Alternatives. (A) Quarantine: store the refused record in a separate table excluded from evaluation, with audit. Better forensics, but the shared storage/auth owner must add schema; not available to this workstream now. (B) Do nothing at intake; let evaluators return INSUFFICIENT_EVIDENCE. Leaves the reproduced permanent blocking. (C) Strict containment in the UTC month. Refuses legitimate month-spanning incidents and zone-measured months. (D) Chosen overlap rule.
+
+Not in scope (owned elsewhere; to be sent as change requests with the probe receipt): the embedded desk and HMAC fixture channels bypass the grant, so the same wrong-period and foreign-account rows are stored there; the Twilio ordinary profile treats a single signed per-incident status record as complete monthly status coverage and returns INELIGIBLE without the explicit coverage report.
+
+Strongest counterargument: refusing at intake without an audit row loses evidence of attempted wrong deliveries, and a sender could probe what is refused. The 14-hour margin still admits a short record just outside the UTC month that is wrong in every zone the contract actually uses.
+
+Tests: 21 new controls (inside/outside per kind, boundary spans, margin edges, adjacent-month reports, zone-measured months, nested and request rows, complete-before-end, exempt timestamp kinds, signed grant, mounted HTTP 403 with no stored row followed by the correct record without contradiction, client message). Focused existing signed-source, blind acceptance and Northwind suites: 259 passed with no expectation changed. Rollback: remove the one call in the grant and the client; no stored data migrates.
+
+Critique this bounded design in at most 300 words: refusal vs quarantine, the two windows, any legitimate evidence it would wrongly refuse, any new blocking or probing vector, and whether the out-of-scope completeness finding should be raised as a team decision rather than a routine fix. Do not propose a review council.

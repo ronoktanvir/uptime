@@ -1,0 +1,3507 @@
+{
+ "schema": "uptime-v3-requirements/1",
+ "as_of": "2026-11-09",
+ "baseline_commit": "03b372e64e4eb69aa0de991e3654db41bd1be915",
+ "dispositions": {
+  "MET": "Implemented and verified with the kind of evidence the requirement asks for.",
+  "MET_LOCAL": "Implemented and verified in local tests or with authored/controlled data; any live or external part is named in the gap.",
+  "PARTIAL": "Some of the requirement is implemented or verified; the gap names the rest.",
+  "NOT_MET": "Not implemented or not demonstrated.",
+  "SUPERSEDED": "Replaced by a later recorded user or team direction, cited in evidence."
+ },
+ "gap_classes": [
+  "bug",
+  "missing_functionality",
+  "unverified_behavior",
+  "external_dependency"
+ ],
+ "owners": {
+  "W0": "Integration, shared schemas, routes, authority",
+  "W1": "Ramp and financial records",
+  "W2": "Contract terms and deterministic rules",
+  "W3": "Vendor onboarding",
+  "W4": "Disputes",
+  "W5": "Evidence and source custody",
+  "W7": "Companion interface and guide",
+  "W8": "QA, operations and demo",
+  "TEAM": "Team decision owners"
+ },
+ "requirements": [
+  {
+   "id": "O1",
+   "group": "Product outcomes",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#non-negotiable-product-outcomes",
+   "requirement": "PREVENT contract overcharges before approval, focusing on terms PO matching cannot express.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/pricing.py",
+    "uptime/ramp_cap.py"
+   ],
+   "evidence": [
+    "tests/test_pricing.py::test_preapproval_and_retrospective_are_candidates_only",
+    "docs/v4/RAMP-PRICE-EVIDENCE.md"
+   ],
+   "gap": "Only authored agreements are checked; observed Ramp bills have no governing agreement or line-level terms, and no live pre-approval intervention exists. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D02",
+    "D07"
+   ]
+  },
+  {
+   "id": "O2",
+   "group": "Product outcomes",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#non-negotiable-product-outcomes",
+   "requirement": "RECOVER post-payment SLA and pricing credits with contract evidence, deterministic math, authorized filing, follow-up and denial handling.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/disputes.py",
+    "uptime/correspondence.py",
+    "uptime/twilio.py"
+   ],
+   "evidence": [
+    "tests/test_northwind_workflow.py::test_real_services_complete_denial_cure_award_and_idempotent_post",
+    "docs/v4/evidence/demo-path-87/northwind-socket.json"
+   ],
+   "gap": "Recovery runs against an authored contract and a simulated counterparty; no real vendor channel or award.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D08"
+   ]
+  },
+  {
+   "id": "O3",
+   "group": "Product outcomes",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#non-negotiable-product-outcomes",
+   "requirement": "EXPAND vendor coverage through declarative templates, private overlays, deterministic tests, shadow evaluation, human promotion and rollback.",
+   "disposition": "PARTIAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_registry.py",
+    "uptime/vendor_model_jobs.py",
+    "uptime/vendor_terms.py"
+   ],
+   "evidence": [
+    "docs/v4/evidence/browser-public-onboarding-82.json",
+    "docs/v4/evidence/local-review-88/recorded-review-20261109.json"
+   ],
+   "gap": "The family is operator-supplied, independent unseen-vendor success is unmeasured (public baseline 0/4), and only one bounded local human promotion is recorded. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D05",
+    "D13"
+   ]
+  },
+  {
+   "id": "O4",
+   "group": "Product outcomes",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#non-negotiable-product-outcomes",
+   "requirement": "RECONCILE awarded credits against Ramp Bill Pay records, separating estimated, claimed, awarded, posted and applied amounts.",
+   "disposition": "PARTIAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp_credit_sync.py",
+    "uptime/allocations.py",
+    "uptime/reconciliation.py"
+   ],
+   "evidence": [
+    "tests/test_reconciliation.py::test_partial_posting_and_partial_utilization",
+    "docs/v4/RAMP-CREDIT-SYNC.md",
+    "tests/test_ramp_case_lineage.py"
+   ],
+   "gap": "Live Ramp returned zero vendor credits; application is proven only in the authored Local ledger.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D09"
+   ]
+  },
+  {
+   "id": "O5",
+   "group": "Product outcomes",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#non-negotiable-product-outcomes",
+   "requirement": "PROVE the workflow through live Ramp sandbox operations with preserved source and receipt identity.",
+   "disposition": "PARTIAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp_records.py",
+    "uptime/ramp_workflow.py"
+   ],
+   "evidence": [
+    "docs/v4/evidence/native-demo-connection-20261104.json",
+    "docs/v4/evidence/demo-path-87/human-ramp-note.json"
+   ],
+   "gap": "Live reads and a human-posted, API-verified note exist; no Uptime-origin write, credit or same-identity end-to-end case. The agent posting retest is blocked by automatic approval review.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D02",
+    "D09"
+   ]
+  },
+  {
+   "id": "O6",
+   "group": "Product outcomes",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#non-negotiable-product-outcomes",
+   "requirement": "INFORM users through a finance-first dashboard and contextual copilot; approval modes configurable; no UI bypass.",
+   "disposition": "PARTIAL",
+   "owner": "W7",
+   "implementation": [
+    "web/workspace_ui.js",
+    "uptime/intelligence.py",
+    "uptime/policy.py"
+   ],
+   "evidence": [
+    "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions"
+   ],
+   "gap": "The guide is locally assembled, not a grounded LLM conversation. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D10",
+    "D12"
+   ]
+  },
+  {
+   "id": "VAL-1",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Ramp sandbox read: actual vendor and bill IDs visible in Uptime and demo.ramp.com.",
+   "disposition": "MET",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp_records.py",
+    "uptime/ramp_workspace.py"
+   ],
+   "evidence": [
+    "docs/v4/evidence/native-demo-read-20261105.json",
+    "tests/test_ramp_ui_v4.py::test_ramp_browser_navigation_and_read_only_plan"
+   ],
+   "gap": "One bill is browser-matched; vendor inventory is sampled, not complete.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D02"
+   ]
+  },
+  {
+   "id": "VAL-2",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Safe sandbox draft bill created or modified, then read back with the same ID and timestamps.",
+   "disposition": "NOT_MET",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp.py"
+   ],
+   "evidence": [
+    "tests/test_ramp.py::test_verified_draft_replay_and_ambiguous_updates",
+    "docs/v4/evidence/native-demo-grants-20261106.json"
+   ],
+   "gap": "Code is tested against a controlled provider only. No Uptime-origin write has occurred; the agent retest was refused by automatic approval review and must not be rerouted.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D02"
+   ]
+  },
+  {
+   "id": "VAL-3",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Permitted manual credit record or supported read; no invented credit API.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "tests/test_ramp_credit_sync_v4.py::test_no_synthetic_award_or_bill_created_from_provider_observation",
+    "docs/v4/RAMP-CREDIT-SYNC.md"
+   ],
+   "gap": "The supported read returned zero credits; no manual Ramp credit has been recorded.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D09"
+   ]
+  },
+  {
+   "id": "VAL-4",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Twilio SLA valid, invalid and unknown cases with current published terms and affected-fee exclusions.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/twilio.py"
+   ],
+   "evidence": [
+    "tests/test_twilio.py::test_four_independent_golden_outcomes_and_cp1",
+    "tests/test_twilio.py::test_fee_basis_not_vendor_total",
+    "fixtures/twilio/README.md"
+   ],
+   "gap": "Customer usage and fees are synthetic.",
+   "gap_class": "external_dependency",
+   "decisions": []
+  },
+  {
+   "id": "VAL-5",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Synthetic amended price-cap bill flagged before approval, plus a retrospective recovery case.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/pricing.py"
+   ],
+   "evidence": [
+    "tests/test_pricing.py::test_preapproval_and_retrospective_are_candidates_only",
+    "tests/test_pricing.py::test_performance_timestamp_and_timezone_control_amendment"
+   ],
+   "gap": "Synthetic agreement; the real-bill cap is a constructed hypothetical.",
+   "gap_class": "external_dependency",
+   "decisions": []
+  },
+  {
+   "id": "VAL-6",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Vendor simulator: missing proof cured, correct denial accepted, unresolved escalation, with independent expected outcomes.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/disputes.py",
+    "uptime/disputes_vendor.py"
+   ],
+   "evidence": [
+    "tests/test_disputes.py::test_frozen_decision_traces",
+    "tests/test_disputes.py::test_heldout_oracle_kills_seeded_overpayment"
+   ],
+   "gap": "Counterparty is simulated; unseen reply interpretation scored 0/50. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D13"
+   ]
+  },
+  {
+   "id": "VAL-7",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Atlassian generated adapter with tests, shadow, approval and rollback, plus separate customer overlay.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/onboarding.py"
+   ],
+   "evidence": [
+    "tests/test_onboarding_lifecycle.py::test_test_actor_activation_restart_rollback_and_stale_action",
+    "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked"
+   ],
+   "gap": "Promotion in the Atlassian lab is by a scripted reviewer; the lab is vendor-specific. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D05"
+   ]
+  },
+  {
+   "id": "VAL-8",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Case timeline, reconciliation and dashboard persist across restart.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/storage.py",
+    "uptime/workbench.py"
+   ],
+   "evidence": [
+    "tests/test_storage.py::test_restart_and_corruption",
+    "docs/v4/evidence/resume-7882178.json",
+    "tests/test_operations_recovery_90.py::test_backup_restore_restart_preserves_authority_and_financial_state"
+   ],
+   "gap": "Local SQLite only; no hosted durability. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D11"
+   ]
+  },
+  {
+   "id": "VAL-9",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Security, prompt-injection, duplicate-webhook and role-boundary tests.",
+   "disposition": "MET_LOCAL",
+   "owner": "W8",
+   "implementation": [
+    "uptime/auth.py",
+    "uptime/ramp_webhooks.py"
+   ],
+   "evidence": [
+    "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions",
+    "tests/test_ramp_workflow_webhooks.py::test_native_event_duplicate_is_durable_minimized",
+    "docs/v4/OPUS46-SECURITY-TRIAGE.md"
+   ],
+   "gap": "No hosted webhook; local operator remains a trust root. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D11"
+   ]
+  },
+  {
+   "id": "VAL-10",
+   "group": "Required validation proofs (D1–D10)",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#required-validation-and-demo-proof",
+   "requirement": "Recorded two-minute deterministic demo, capability matrix and honest ROI statement.",
+   "disposition": "PARTIAL",
+   "owner": "W8",
+   "implementation": [
+    "scripts/rehearse.py",
+    "scripts/rehearse_northwind.py"
+   ],
+   "evidence": [
+    "docs/demo/filming.md",
+    "docs/v4/integration90/REHEARSAL.md",
+    "docs/v4/CAPABILITIES.md"
+   ],
+   "gap": "The historical film predates Northwind; the current two-minute flow is scripted and rehearsed offline but not filmed. No ROI number is claimed.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "CP0",
+   "group": "Checkpoints",
+   "source": "docs/uptime-v3/Uptime_V3_Work_DAG.md#checkpoints-and-objective-exit-criteria",
+   "requirement": "Repository, environment, model and credential-path audit with no overwritten work.",
+   "disposition": "MET",
+   "owner": "W0",
+   "implementation": [],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md",
+    "docs/v4/STATUS.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CP1",
+   "group": "Checkpoints",
+   "source": "docs/uptime-v3/Uptime_V3_Work_DAG.md#checkpoints-and-objective-exit-criteria",
+   "requirement": "Shared typed interfaces and gold fixtures; W3 and W4 launched in parallel; interface decisions reviewed.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md",
+    "docs/v4/STATUS.md"
+   ],
+   "gap": "D03/D04 show the shared claim interface still splits identity and scope domains. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap_class": "bug",
+   "decisions": [
+    "D03",
+    "D04"
+   ]
+  },
+  {
+   "id": "CP2",
+   "group": "Checkpoints",
+   "source": "docs/uptime-v3/Uptime_V3_Work_DAG.md#checkpoints-and-objective-exit-criteria",
+   "requirement": "Live Ramp ID round-trip or documented blocker; Twilio and price-cap eligible/ineligible/unknown/unsupported traces.",
+   "disposition": "PARTIAL",
+   "owner": "W1",
+   "implementation": [],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md",
+    "docs/v4/STATUS.md"
+   ],
+   "gap": "Reads verified; no Uptime-origin write round-trip (restricted).",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D02"
+   ]
+  },
+  {
+   "id": "CP3A",
+   "group": "Checkpoints",
+   "source": "docs/uptime-v3/Uptime_V3_Work_DAG.md#checkpoints-and-objective-exit-criteria",
+   "requirement": "Atlassian declarative adapter, shadow tests, reviewer promotion and rollback.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md",
+    "docs/v4/STATUS.md"
+   ],
+   "gap": "Scripted reviewer in the Atlassian lab; separate recorded human review is CalyxQuay only. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D05"
+   ]
+  },
+  {
+   "id": "CP3B",
+   "group": "Checkpoints",
+   "source": "docs/uptime-v3/Uptime_V3_Work_DAG.md#checkpoints-and-objective-exit-criteria",
+   "requirement": "Simulator rejects/awards; dispute cures, accepts valid denial, escalates ambiguity; deadlines and idempotency.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md",
+    "docs/v4/STATUS.md"
+   ],
+   "gap": "Unseen reply generalization 0/50. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D13"
+   ]
+  },
+  {
+   "id": "CP4",
+   "group": "Checkpoints",
+   "source": "docs/uptime-v3/Uptime_V3_Work_DAG.md#checkpoints-and-objective-exit-criteria",
+   "requirement": "Dashboard on real or fixture state; claims/disputes/reconciliation persist across restart; policies enforced.",
+   "disposition": "MET_LOCAL",
+   "owner": "W7",
+   "implementation": [],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md",
+    "docs/v4/STATUS.md"
+   ],
+   "gap": "Local only. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D11"
+   ]
+  },
+  {
+   "id": "CP5",
+   "group": "Checkpoints",
+   "source": "docs/uptime-v3/Uptime_V3_Work_DAG.md#checkpoints-and-objective-exit-criteria",
+   "requirement": "Prompt injection, access control, monetary correctness, retries, simulator independence and demo backup QA.",
+   "disposition": "MET_LOCAL",
+   "owner": "W8",
+   "implementation": [],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md",
+    "docs/v4/STATUS.md"
+   ],
+   "gap": "Independent probes previously found real bugs after green suites; fresh independent evaluation is paused. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D13"
+   ]
+  },
+  {
+   "id": "CP6",
+   "group": "Checkpoints",
+   "source": "docs/uptime-v3/Uptime_V3_Work_DAG.md#checkpoints-and-objective-exit-criteria",
+   "requirement": "Two-minute reproducible demo with Ramp UI side by side, accurate flags, README, limitations and ADRs.",
+   "disposition": "PARTIAL",
+   "owner": "W8",
+   "implementation": [],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md",
+    "docs/v4/STATUS.md"
+   ],
+   "gap": "Current flow rehearsed but not filmed; native proof absent.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D01",
+    "D02"
+   ]
+  },
+  {
+   "id": "INV-1",
+   "group": "Architecture invariants",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#hard-architecture-invariants",
+   "requirement": "One finance/case interface with typed vendor extensions; vendor template and customer overlay separate; deterministic versioned contract resolution.",
+   "disposition": "PARTIAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/contracts.py",
+    "uptime/vendor_terms.py"
+   ],
+   "evidence": [
+    "tests/test_onboarding_rules.py::test_cross_tenant_facts_or_overlay_blocked"
+   ],
+   "gap": "Two claim routes and their identity domains disagree (D03); scope is one universal shape (D04). D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap_class": "bug",
+   "decisions": [
+    "D03",
+    "D04"
+   ]
+  },
+  {
+   "id": "INV-2",
+   "group": "Architecture invariants",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#hard-architecture-invariants",
+   "requirement": "Declarative rule DSL, UNSUPPORTED_RULE for unsupported clauses, DRAFT→VALIDATED→SHADOW→APPROVED→ACTIVE with rollback.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/onboarding.py",
+    "uptime/vendor_registry.py"
+   ],
+   "evidence": [
+    "tests/test_onboarding_lifecycle.py::test_unknown_field_quarantined_and_cannot_preserve_prior_approval",
+    "tests/test_onboarding_rules.py::test_untrusted_extractions_rejected"
+   ],
+   "gap": "Finite supported rule families. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D05"
+   ]
+  },
+  {
+   "id": "INV-3",
+   "group": "Architecture invariants",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#hard-architecture-invariants",
+   "requirement": "Four outcomes with clause-cited trace; contract-dependent evidence; vendor spend is not eligible spend.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/contracts.py",
+    "uptime/twilio.py"
+   ],
+   "evidence": [
+    "tests/test_twilio.py::test_four_independent_golden_outcomes_and_cp1",
+    "tests/test_contracts.py::test_missing_fixture_has_no_estimated_award"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "INV-4",
+   "group": "Architecture invariants",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#hard-architecture-invariants",
+   "requirement": "Decimal arithmetic, month/day/timezone accuracy, explicit invoice line mapping; amendment-effective dates change results.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/pricing.py",
+    "uptime/twilio.py"
+   ],
+   "evidence": [
+    "tests/test_contracts.py::test_financial_input_rejects_non_decimal_or_nonfinite",
+    "tests/test_pricing.py::test_performance_timestamp_and_timezone_control_amendment"
+   ],
+   "gap": "Matches the D07 narrow matrix decided 2026-11-09: USD only; proration, tax allocation and business calendars refuse by decision.",
+   "gap_class": null,
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "INV-5",
+   "group": "Architecture invariants",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#hard-architecture-invariants",
+   "requirement": "Claim/dispute state machine with authorization, idempotency, retry, no fabricated proof, appeal clocks, escalation and stop on correct denial.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/disputes.py",
+    "uptime/claim_identity.py"
+   ],
+   "evidence": [
+    "tests/test_disputes.py::test_repeated_concurrent_submission_has_one_receipt_and_restart",
+    "tests/test_disputes.py::test_second_request_for_same_proof_stops"
+   ],
+   "gap": "No real delivery channel; uncertain external outcomes are untested against a provider.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D08"
+   ]
+  },
+  {
+   "id": "INV-6",
+   "group": "Architecture invariants",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#hard-architecture-invariants",
+   "requirement": "Independent vendor simulator with a precommitted oracle; source and authority classification preserved.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/disputes_vendor.py",
+    "uptime/contracts.py"
+   ],
+   "evidence": [
+    "tests/test_disputes.py::test_heldout_oracle_kills_seeded_overpayment",
+    "tests/test_disputes.py::test_oracle_kills_fabricated_evidence_acceptance"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "INV-7",
+   "group": "Architecture invariants",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#hard-architecture-invariants",
+   "requirement": "Track value by stage: estimate, evidence-ready, submitted, award confirmed, credit posted, applied — never summed.",
+   "disposition": "PARTIAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/workbench.py",
+    "uptime/allocations.py"
+   ],
+   "evidence": [
+    "tests/test_portfolio_v4.py::test_all_recorded_partial_awards_are_counted_once"
+   ],
+   "gap": "No explicit evidence-ready stage metric; vendor-reported vs verified award are separate records but not separate KPIs.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D09"
+   ]
+  },
+  {
+   "id": "INV-8",
+   "group": "Architecture invariants",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#hard-architecture-invariants",
+   "requirement": "Every action carries role, tenant, audited time, source and permission; untrusted inputs are data, not commands.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/auth.py",
+    "uptime/mandates.py"
+   ],
+   "evidence": [
+    "tests/test_journey_api.py::test_action_body_cannot_override_server_authority",
+    "tests/test_onboarding_lifecycle.py::test_other_tenant_cannot_read_overlay_promote_or_reuse_action"
+   ],
+   "gap": "Local host administrator remains trusted. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D11"
+   ]
+  },
+  {
+   "id": "LC-1",
+   "group": "Claim lifecycle and dispute policy",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#claim-and-dispute-lifecycle",
+   "requirement": "Lifecycle DETECTED…CREDIT_APPLIED with partial awards and terminal states; CREDIT_ISSUED ≠ CREDIT_APPLIED.",
+   "disposition": "PARTIAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/correspondence.py",
+    "uptime/disputes.py",
+    "uptime/allocations.py"
+   ],
+   "evidence": [
+    "tests/test_release_boundaries.py::test_partial_application_preserves_disputed_remainder"
+   ],
+   "gap": "Implemented with different stage names split across disputes, correspondence and allocation; WITHDRAWN and CLOSED_UNRECOVERABLE have no equivalent. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D06"
+   ]
+  },
+  {
+   "id": "LC-2",
+   "group": "Claim lifecycle and dispute policy",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#claim-and-dispute-lifecycle",
+   "requirement": "Dispute policy for missing evidence, wrong scope, exclusions, amount challenges, time bars, clarification, partial award and final refusal.",
+   "disposition": "PARTIAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/correspondence_rules.py",
+    "uptime/correspondence_interpretation.py"
+   ],
+   "evidence": [
+    "tests/test_disputes.py::test_corroboration_required_before_accepting_exclusion",
+    "docs/v4/PHASE78-REVIEWED-DENIAL-BUNDLE.md"
+   ],
+   "gap": "Finite reply grammar; 0/50 unseen supported replies recognized. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D06",
+    "D13"
+   ]
+  },
+  {
+   "id": "LC-3",
+   "group": "Claim lifecycle and dispute policy",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#claim-and-dispute-lifecycle",
+   "requirement": "Follow-up controls: bounded automated follow-ups, cooldown, no threats or settlements, human approval for legal interpretation.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/disputes.py"
+   ],
+   "evidence": [
+    "tests/test_disputes.py::test_exact_cooldown_allows_followup",
+    "tests/test_disputes.py::test_no_appeal_without_new_scoped_document"
+   ],
+   "gap": "One evidence follow-up after the original filing (stricter than two) with a 24-hour cooldown; standing autonomy policy undecided. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D06"
+   ]
+  },
+  {
+   "id": "LC-4",
+   "group": "Claim lifecycle and dispute policy",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#claim-and-dispute-lifecycle",
+   "requirement": "Autonomy modes OBSERVE / ASSISTED (default) / POLICY_AUTOMATED with thresholds and emergency shutoff.",
+   "disposition": "PARTIAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/policy.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Modes exist (ASSISTED default, cap 0.00); no dedicated shutoff control beyond OBSERVE; the action matrix is a pending team decision. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D06"
+   ]
+  },
+  {
+   "id": "ONB-1",
+   "group": "Vendor onboarding pipeline",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#4-self-expanding-vendor-onboarding-the-precise-architecture",
+   "requirement": "Discover unsupported vendors from Ramp vendors/bills, contracts or incidents; match aliases without conflation.",
+   "disposition": "NOT_MET",
+   "owner": "W3",
+   "implementation": [
+    "uptime/ramp_records.py"
+   ],
+   "evidence": [
+    "docs/v4/CAPABILITIES.md"
+   ],
+   "gap": "No automatic discovery from Ramp records into onboarding; operators start intake. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D05"
+   ]
+  },
+  {
+   "id": "ONB-2",
+   "group": "Vendor onboarding pipeline",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#4-self-expanding-vendor-onboarding-the-precise-architecture",
+   "requirement": "Obtain governing terms; a public default SLA does not supersede a negotiated agreement.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/governing_fees.py",
+    "uptime/vendor_terms.py"
+   ],
+   "evidence": [
+    "docs/v4/GOVERNING-FEE-65A.md"
+   ],
+   "gap": "No real customer agreement is available in Ramp data. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "ONB-3",
+   "group": "Vendor onboarding pipeline",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#4-self-expanding-vendor-onboarding-the-precise-architecture",
+   "requirement": "Generate a candidate adapter manifest: plans, evidence connectors, submission channels, clause mappings.",
+   "disposition": "PARTIAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_model_jobs.py",
+    "uptime/vendor_terms.py"
+   ],
+   "evidence": [
+    "tests/test_vendor_catalog.py::test_multiple_arbitrary_catalog_entries_and_prose_products"
+   ],
+   "gap": "Rule family is supplied by the operator; submission-channel generation is not demonstrated. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D05"
+   ]
+  },
+  {
+   "id": "ONB-4",
+   "group": "Vendor onboarding pipeline",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#4-self-expanding-vendor-onboarding-the-precise-architecture",
+   "requirement": "Generate happy, denial, exclusion, ambiguous, timezone, amendment and amount test cases with citations.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_eval.py",
+    "uptime/onboarding.py"
+   ],
+   "evidence": [
+    "tests/test_onboarding_rules.py::test_held_out_contract_scenarios"
+   ],
+   "gap": "Shadow cases are authored by reviewers, not generated per vendor across every category. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D05"
+   ]
+  },
+  {
+   "id": "ONB-5",
+   "group": "Vendor onboarding pipeline",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#4-self-expanding-vendor-onboarding-the-precise-architecture",
+   "requirement": "Validation: schema, static checks, source integrity, security scan, replay, math tests and human sign-off.",
+   "disposition": "PARTIAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_registry.py",
+    "uptime/gates.py"
+   ],
+   "evidence": [
+    "tests/test_onboarding_rules.py::test_independent_gold_catches_plausible_but_wrong_credit_rates",
+    "tests/test_vendor_requirements_89.py"
+   ],
+   "gap": "No separate security-scan stage; the signed release gate is unsatisfied. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D13"
+   ]
+  },
+  {
+   "id": "ONB-6",
+   "group": "Vendor onboarding pipeline",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#4-self-expanding-vendor-onboarding-the-precise-architecture",
+   "requirement": "Shadow mode with non-sending evaluations and disagreement reports against human-labelled cases.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_registry.py"
+   ],
+   "evidence": [
+    "tests/test_onboarding_lifecycle.py::test_initial_shadow_contains_no_approval_and_viewer_cannot_mutate"
+   ],
+   "gap": "Labels are authored; no disagreement-report artifact across live events. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D13"
+   ]
+  },
+  {
+   "id": "ONB-7",
+   "group": "Vendor onboarding pipeline",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#4-self-expanding-vendor-onboarding-the-precise-architecture",
+   "requirement": "Human approval of a versioned adapter with audit history and rollback.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_registry.py",
+    "uptime/local_review_exception.py"
+   ],
+   "evidence": [
+    "docs/v4/evidence/local-review-88/recorded-review-20261109.json",
+    "tests/test_onboarding_lifecycle.py::test_reviewer_can_restore_prior_version_with_same_governing_terms"
+   ],
+   "gap": "One bounded local review recorded under the enrolled account; general release promotion remains gated. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D05",
+    "D13"
+   ]
+  },
+  {
+   "id": "ONB-8",
+   "group": "Vendor onboarding pipeline",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#4-self-expanding-vendor-onboarding-the-precise-architecture",
+   "requirement": "Monitor quality: false eligibility, unknown rate, missed deadlines, rejection reasons; re-approve significant changes.",
+   "disposition": "NOT_MET",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_registry.py"
+   ],
+   "evidence": [
+    "docs/v4/TEAM-DECISION-HANDOFF.md"
+   ],
+   "gap": "Dependency-bound re-approval exists; outcome quality metrics do not. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D13"
+   ]
+  },
+  {
+   "id": "ONB-9",
+   "group": "Vendor onboarding pipeline",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#4-self-expanding-vendor-onboarding-the-precise-architecture",
+   "requirement": "Never execute arbitrary generated or vendor-supplied code in the main application.",
+   "disposition": "MET",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_model.py",
+    "uptime/public_proposal_config.py"
+   ],
+   "evidence": [
+    "tests/test_public_proposal_config.py::test_runtime_configuration_is_private_and_has_no_request_selected_executable"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "IF-1",
+   "group": "Shared interfaces",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#14-v3-engineering-contracts-and-parallel-critical-path-ownership",
+   "requirement": "Shared objects: Vendor, Customer, ContractDocument/Version, Obligation, Fact, EvidenceBundle, Decision, ClaimCase, ExternalAction, VendorResponse, Dispute, Award, Reconciliation.",
+   "disposition": "PARTIAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/contracts.py",
+    "uptime/correspondence_types.py",
+    "uptime/allocations.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Objects exist per subsystem; there is no single Customer, ContractDocument, EvidenceBundle or ExternalAction type. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D03"
+   ]
+  },
+  {
+   "id": "IF-2",
+   "group": "Shared interfaces",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#14-v3-engineering-contracts-and-parallel-critical-path-ownership",
+   "requirement": "ContractContext, VendorTemplate (no private documents) and CustomerOverlay (credentials by reference).",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_terms.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Overlay identity values use a different domain from claim intake. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged.",
+   "gap_class": "bug",
+   "decisions": [
+    "D03"
+   ]
+  },
+  {
+   "id": "IF-3",
+   "group": "Shared interfaces",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#14-v3-engineering-contracts-and-parallel-critical-path-ownership",
+   "requirement": "EvidenceRequirement and EvidenceFact with required/optional, origin, hashes, confidentiality and unavailable reasons.",
+   "disposition": "PARTIAL",
+   "owner": "W5",
+   "implementation": [
+    "uptime/contracts.py",
+    "uptime/evidence.py",
+    "uptime/source_config.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md",
+    "tests/test_evidence_applicability_91.py",
+    "docs/v4/EVIDENCE-SUPPORT-MATRIX-91.md"
+   ],
+   "gap": "Requirements are per-family code, not a shared typed requirement record. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "IF-4",
+   "group": "Shared interfaces",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#14-v3-engineering-contracts-and-parallel-critical-path-ownership",
+   "requirement": "EvaluationResult: four outcomes, decimal trace, cited nodes, eligible basis, missing facts.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/contracts.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "IF-5",
+   "group": "Shared interfaces",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#14-v3-engineering-contracts-and-parallel-critical-path-ownership",
+   "requirement": "Case: organization, obligation, scope, financial state, stage, authorizations, idempotency key, provider refs, clocks.",
+   "disposition": "PARTIAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/correspondence_types.py",
+    "uptime/claim_identity.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Scope requires every field for every obligation and rejects spaced account/agreement identities. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap_class": "bug",
+   "decisions": [
+    "D03",
+    "D04"
+   ]
+  },
+  {
+   "id": "IF-6",
+   "group": "Shared interfaces",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#14-v3-engineering-contracts-and-parallel-critical-path-ownership",
+   "requirement": "VendorResponse and CreditApplication with awards, denials, memo references, Ramp credit and bill application IDs.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/allocations.py",
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Award source is constrained to the simulated counterparty; real memo ingestion unsupported.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D09"
+   ]
+  },
+  {
+   "id": "IF-7",
+   "group": "Shared interfaces",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#14-v3-engineering-contracts-and-parallel-critical-path-ownership",
+   "requirement": "AdapterCandidate with manifest, fixtures, coverage, blocked features, state, reviewer and history.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_registry.py",
+    "uptime/onboarding.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md",
+    "tests/test_vendor_requirements_89.py",
+    "docs/v4/ONBOARDING-TRACE-89.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "FIN-1",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Resolve document hierarchy and effective time (MSA → order form → amendments).",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/pricing.py"
+   ],
+   "evidence": [
+    "tests/test_pricing.py::test_missing_signatures_and_ambiguous_chain"
+   ],
+   "gap": "Order-form/amendment chains only; no explicit MSA precedence layer. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "FIN-2",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Explicit timezone and calendar; working days only when the clause defines them.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/other_obligations.py",
+    "uptime/twilio.py"
+   ],
+   "evidence": [
+    "tests/test_other_obligations.py::test_unknown_calendar_has_no_deadline",
+    "tests/test_twilio.py::test_calendar_month_dst_and_leap_year"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "FIN-3",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Merge overlapping outages, handle month boundaries and minimum continuous duration.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/twilio.py"
+   ],
+   "evidence": [
+    "tests/test_twilio.py::test_overlapping_intervals_union_and_duplicates_do_not_inflate",
+    "tests/test_twilio.py::test_outage_crosses_end_month_and_clips_once"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "FIN-4",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Check service, plan, region, exclusions, third-party causes, maintenance and customer culpability.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/twilio.py",
+    "uptime/vendor_resource_predicates.py"
+   ],
+   "evidence": [
+    "tests/test_twilio.py::test_service_scope",
+    "tests/test_twilio.py::test_scheduled_maintenance_requires_at_least_24_hours_notice"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "FIN-5",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Map spend to eligible invoice lines; vendor total is not the eligible base.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/governing_fees.py",
+    "uptime/twilio.py"
+   ],
+   "evidence": [
+    "tests/test_twilio.py::test_fee_basis_not_vendor_total",
+    "tests/test_pricing.py::test_no_partial_claim_when_one_line_unidentified"
+   ],
+   "gap": "Observed Ramp bills lack line facts. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "FIN-6",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Apply tax, currency, promotions, caps and rounding per terms.",
+   "disposition": "PARTIAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/pricing.py",
+    "uptime/credit_steps.py"
+   ],
+   "evidence": [
+    "tests/test_pricing.py::test_round_each_line_not_invoice_total",
+    "tests/test_pricing.py::test_tax_excluded_only_when_separately_itemized"
+   ],
+   "gap": "Under the D07 narrow matrix (2026-11-09), USD only and taxes in other forms return unsupported by decision. Promotions are not modelled and are not in the matrix.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "FIN-7",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Compute notice and filing deadlines deterministically.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/twilio.py",
+    "uptime/onboarding_rules.py"
+   ],
+   "evidence": [
+    "tests/test_northwind_financial.py::test_filing_cutoff_is_exclusive_after_thirty_full_days_and_receipt_is_required"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "FIN-8",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Store source references, spans, versions, evaluator version, input hashes, trace and approval history.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/contracts.py",
+    "uptime/vendor_registry.py"
+   ],
+   "evidence": [
+    "tests/test_pricing.py::test_versions_and_input_values_are_immutable",
+    "tests/test_onboarding_lifecycle.py::test_local_audit_and_version_rows_are_append_only"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "FIN-9",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Reject unsupported facts, conflicting evidence and missing permissions.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/evidence.py",
+    "uptime/reconciliation.py"
+   ],
+   "evidence": [
+    "tests/test_evidence.py::test_provenance_mismatch",
+    "tests/test_reconciliation.py::test_duplicate_or_conflicting_observations_cannot_inflate_money",
+    "tests/test_evidence_applicability_91.py"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "FIN-10",
+   "group": "Financial correctness rules",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#required-rules",
+   "requirement": "Immutable idempotency key per vendor/customer/contract/obligation/period/channel.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/claim_identity.py"
+   ],
+   "evidence": [
+    "tests/test_claim_identity.py::test_concurrent_routes_have_one_owner",
+    "docs/v4/decisions/ADR-0024-cross-route-claim-identity.md"
+   ],
+   "gap": "Channel and agreement version are deliberately excluded to dedupe across routes (ADR-0024); account/agreement domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged.",
+   "gap_class": "bug",
+   "decisions": [
+    "D03"
+   ]
+  },
+  {
+   "id": "GF-1",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Qualifying monthly SLA outage with correct eligible fee base.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_fee_basis_not_vendor_total",
+    "tests/test_northwind_financial.py::test_fee_base_comes_from_governing_price_and_tax_and_extras_are_excluded"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-2",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Public incident that did not affect the customer's service or region.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_not_customer_affected_and_other_api_do_not_count"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-3",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Vendor-excluded event (carrier failure) refused or unknown.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_defined_exclusions"
+   ],
+   "gap": "Exclusion is a typed input; nothing classifies a carrier failure from incident text.",
+   "gap_class": "unverified_behavior",
+   "decisions": []
+  },
+  {
+   "id": "GF-4",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Durations below the contractual minimum and overlapping intervals.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_strict_threshold_and_exact_five_minutes",
+    "tests/test_twilio.py::test_adjacent_records_merge_before_minimum_but_gaps_do_not"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-5",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Partial-month, multiple-month and timezone boundaries.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_explicit_timezone_changes_deadline_and_month_bounds"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-6",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Wrong plan or stale amendment.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_unsupported_agreement_and_plan_pairings",
+    "tests/test_pricing_advance.py::test_future_known_or_retroactive_contract_versions_refuse"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-7",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Missing required evidence or invoice granularity → unknown; absent optional evidence does not deny.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_unknown_required_facts_fail_closed",
+    "tests/test_pricing.py::test_unitemized_or_unreconciled_invoice_fails_closed"
+   ],
+   "gap": "No dedicated assertion that absent optional evidence leaves an eligible result unchanged.",
+   "gap_class": "unverified_behavior",
+   "decisions": []
+  },
+  {
+   "id": "GF-8",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Missed filing deadline → no unapproved external action.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_deadline_calendar_not_one_month_or_thirty_days_from_incident",
+    "tests/test_disputes.py::test_expiry_and_cooldown_are_enforced"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-9",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Price-cap overcharge with correct quantities and billing adjustment.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_pricing.py::test_fixture_oracles_and_payment_immutability",
+    "tests/test_ramp_cap_v4.py::test_840_over_800_is_only_hypothetical_and_deterministic"
+   ],
+   "gap": "Adjustment is a candidate only. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "GF-10",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Price increase permitted by an amendment → no claim.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_pricing.py::test_later_price_increase_is_permitted_by_explicit_snapshot"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-11",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Volume rebate threshold with returns and period aggregation.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_other_obligations.py::test_rebate_inclusive_threshold_after_returns"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-12",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Notice calculation with weekends and holidays.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_other_obligations.py::test_notice_weekend_holiday_timezone_and_exact_receipt"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-13",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Denial for missing evidence; revised package approved and filed once.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_northwind_workflow.py::test_real_services_complete_denial_cure_award_and_idempotent_post",
+    "tests/test_disputes.py::test_second_request_for_same_proof_stops"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-14",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Correct denial; the dispute agent stops.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_disputes_v4.py::test_no_supplement_ever_provisioned_stops_without_appeal"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-15",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Partial award; remainder disputed separately without double counting.",
+   "disposition": "PARTIAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_release_boundaries.py::test_partial_application_preserves_disputed_remainder",
+    "tests/test_correspondence.py::test_receipt_correction_and_independent_partial_award"
+   ],
+   "gap": "Remainder is preserved and sent to review; no separate remainder filing path. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D06"
+   ]
+  },
+  {
+   "id": "GF-16",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Credit issued but not yet applied keeps the correct accounting state.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [],
+   "evidence": [
+    "tests/test_reconciliation.py::test_partial_posting_and_partial_utilization",
+    "tests/test_northwind_workflow.py::test_april_only_application_preserves_march_exposure_and_distinct_versions"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-17",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Repeated reply, webhook or retry → idempotent updates.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [],
+   "evidence": [
+    "tests/test_ramp_workflow_webhooks.py::test_native_event_duplicate_is_durable_minimized",
+    "tests/test_correspondence.py::test_clone_concurrent_retry_restart_and_source_replay"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-18",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Generated adapter that fails a contract test is never promoted.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [],
+   "evidence": [
+    "tests/test_vendor_catalog.py::test_failing_or_tautological_independent_tests_cannot_approve"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "GF-19",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Prompt injection in contract, status or email cannot cause unapproved actions.",
+   "disposition": "MET_LOCAL",
+   "owner": "W8",
+   "implementation": [],
+   "evidence": [
+    "tests/test_intelligence.py::test_prompt_injected_input_is_rejected_before_transmission",
+    "tests/test_correspondence.py::test_unknown_injection_ambiguous_overaward"
+   ],
+   "gap": "No dedicated injection test inside an onboarding contract document.",
+   "gap_class": "unverified_behavior",
+   "decisions": []
+  },
+  {
+   "id": "GF-20",
+   "group": "Gold fixtures",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#minimum-gold-fixtures",
+   "requirement": "Sensitive evidence with secrets or PII is redacted and access-controlled.",
+   "disposition": "PARTIAL",
+   "owner": "W5",
+   "implementation": [],
+   "evidence": [
+    "tests/test_disputes.py::test_sensitive_attachment_closes_automatic_dispatch",
+    "tests/test_disputes_v4.py::test_minimization_precedes_simulator_and_approval_hashes_wire"
+   ],
+   "gap": "Redaction relies on declared classification; no content-level secret/PII detection. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D10"
+   ]
+  },
+  {
+   "id": "RG-1",
+   "group": "Release gates",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#engineering-release-gates",
+   "requirement": "No ungrounded monetary calculations in the golden suite.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_northwind_financial.py::test_expectations_are_not_engine_inputs_and_wrong_comparison_fails"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": [
+    "D13"
+   ]
+  },
+  {
+   "id": "RG-2",
+   "group": "Release gates",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#engineering-release-gates",
+   "requirement": "Zero duplicate outbound submissions under retries.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_cross_claims.py::test_definite_pure_simulator_failure_has_no_effect_and_retry_cannot_double_file",
+    "tests/test_release_boundaries.py::test_auto_replay_cannot_turn_duplicate_approval_into_new_filing"
+   ],
+   "gap": "Only local and simulated transport.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D08"
+   ]
+  },
+  {
+   "id": "RG-3",
+   "group": "Release gates",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#engineering-release-gates",
+   "requirement": "Every successful claim has clause, evidence, billing basis, deadline and approval record.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_disputes.py::test_new_filing_requires_cited_local_eligibility"
+   ],
+   "gap": "No single cross-route assertion covers every field for every claim.",
+   "gap_class": "unverified_behavior",
+   "decisions": []
+  },
+  {
+   "id": "RG-4",
+   "group": "Release gates",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#engineering-release-gates",
+   "requirement": "Missing required facts produce INSUFFICIENT_EVIDENCE.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_pricing.py::test_missing_line_proof_fails_closed",
+    "tests/test_other_obligations.py::test_missing_annual_data"
+   ],
+   "gap": "A spaced account identity can turn an ELIGIBLE month into INSUFFICIENT_EVIDENCE for a non-evidence reason (reported by the identity specialist). D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged.",
+   "gap_class": "bug",
+   "decisions": [
+    "D03"
+   ]
+  },
+  {
+   "id": "RG-5",
+   "group": "Release gates",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#engineering-release-gates",
+   "requirement": "Adapter draft → tested → shadow → approved → active with rollback.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [],
+   "evidence": [
+    "tests/test_vendor_catalog.py::test_rollback_restores_compatible_previously_reviewed_version"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "RG-6",
+   "group": "Release gates",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#engineering-release-gates",
+   "requirement": "Follow-ups obey frequency, deadline, authorization and privacy limits.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_disputes.py::test_narrow_dispatch_requires_bound_approval_grant_and_redaction"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "RG-7",
+   "group": "Release gates",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#engineering-release-gates",
+   "requirement": "Demo resets cleanly and runs offline with fixtures if APIs fail.",
+   "disposition": "MET_LOCAL",
+   "owner": "W8",
+   "implementation": [],
+   "evidence": [
+    "tests/test_disputes.py::test_entire_demo_has_no_outbound_transport",
+    "docs/v4/integration90/REHEARSAL.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "RAMP-1",
+   "group": "Ramp integration",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#6-ramp-integration-and-fallback-policy-verified-3-november-2026",
+   "requirement": "Obtain sandbox access and verify granted scopes.",
+   "disposition": "MET",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp.py",
+    "uptime/ramp_records.py",
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "docs/v4/evidence/native-demo-grants-20261106.json",
+    "tests/test_ramp_records_v4.py::test_exact_scopes_no_silent_fallback"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "RAMP-2",
+   "group": "Ramp integration",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#6-ramp-integration-and-fallback-policy-verified-3-november-2026",
+   "requirement": "Read vendors and bills.",
+   "disposition": "MET",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp.py",
+    "uptime/ramp_records.py",
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "docs/v4/evidence/native-demo-connection-20261104.json",
+    "tests/test_ramp_records_v4.py::test_bounded_list_and_detail_have_separate_coverage"
+   ],
+   "gap": "Vendor inventory sampled (truncated).",
+   "gap_class": "unverified_behavior",
+   "decisions": []
+  },
+  {
+   "id": "RAMP-3",
+   "group": "Ramp integration",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#6-ramp-integration-and-fallback-policy-verified-3-november-2026",
+   "requirement": "Ingest contracts/agreements if permitted.",
+   "disposition": "MET",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp.py",
+    "uptime/ramp_records.py",
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "tests/test_ramp_records_v4.py::test_agreement_query_and_documented_payee_uuid_and_linked_po",
+    "docs/v4/RAMP-RECORDS.md"
+   ],
+   "gap": "The live agreement query returned zero agreements.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D02"
+   ]
+  },
+  {
+   "id": "RAMP-4",
+   "group": "Ramp integration",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#6-ramp-integration-and-fallback-policy-verified-3-november-2026",
+   "requirement": "Read vendor credits and applied credits.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp.py",
+    "uptime/ramp_records.py",
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "tests/test_ramp_credit_sync_v4.py::test_conflicts_durably_quarantined_without_ledger_mutation",
+    "docs/v4/RAMP-CREDIT-SYNC.md"
+   ],
+   "gap": "Never exercised on a non-empty live credit.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D09"
+   ]
+  },
+  {
+   "id": "RAMP-5",
+   "group": "Ramp integration",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#6-ramp-integration-and-fallback-policy-verified-3-november-2026",
+   "requirement": "Create credits only through a demonstrated, permitted path.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp.py",
+    "uptime/ramp_records.py",
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "tests/test_northwind_local_ledger.py::test_local_write_readback_and_allocation_are_distinct_durable_records"
+   ],
+   "gap": "No native create/apply path exists or was used; Local ledger is not Ramp.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D09"
+   ]
+  },
+  {
+   "id": "RAMP-6",
+   "group": "Ramp integration",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#6-ramp-integration-and-fallback-policy-verified-3-november-2026",
+   "requirement": "Mock only missing vendor responses and absent write endpoints.",
+   "disposition": "SUPERSEDED",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp.py",
+    "uptime/ramp_records.py",
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "docs/v4/decisions/ADR-0064-clean-walkthrough.md",
+    "fixtures/northwind/README.md"
+   ],
+   "gap": "The November 4 and 7 team directions approved authored Northwind contract, usage and invoices as a disclosed walkthrough, beyond vendor responses.",
+   "gap_class": null,
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "RAMP-7",
+   "group": "Ramp integration",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#6-ramp-integration-and-fallback-policy-verified-3-november-2026",
+   "requirement": "RampProvider abstraction (sandbox vs fixture).",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp.py",
+    "uptime/ramp_records.py",
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "tests/test_ramp.py::test_sanitized_snapshot_and_fixture_are_distinct"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "RAMP-AUTH",
+   "group": "Ramp integration",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#6-ramp-integration-and-fallback-policy-verified-3-november-2026",
+   "requirement": "Distinguish vendor memo, Ramp credit record and bill application; verify scopes before writes; side-by-side Ramp UI.",
+   "disposition": "PARTIAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp.py",
+    "uptime/ramp_records.py",
+    "uptime/ramp_credit_sync.py"
+   ],
+   "evidence": [
+    "tests/test_ramp_credit_sync_v4.py::test_replay_cannot_be_relabelled_as_native",
+    "tests/test_ramp.py::test_mismatched_scope_capture_stops_write",
+    "docs/v4/evidence/demo-path-87/human-ui-observation.json",
+    "tests/test_ramp_case_lineage.py",
+    "docs/v4/RAMP-CASE-LINEAGE.md"
+   ],
+   "gap": "No real memo, credit or application exists to show side by side.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D02",
+    "D09"
+   ]
+  },
+  {
+   "id": "AG-1",
+   "group": "Logical agents",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#3-agent-responsibilities-and-state-boundaries",
+   "requirement": "Contract discovery: link MSA/order/amendments, scope, spans; flag conflicts and missing signatures.",
+   "disposition": "PARTIAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/pricing.py",
+    "uptime/pricing_terms.py"
+   ],
+   "evidence": [
+    "tests/test_pricing.py::test_missing_signatures_and_ambiguous_chain"
+   ],
+   "gap": "No automatic discovery or linking of agreements from Ramp or document stores. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "AG-2",
+   "group": "Logical agents",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#3-agent-responsibilities-and-state-boundaries",
+   "requirement": "Vendor onboarding agent proposes adapters, fixtures and shadow tests; requests promotion.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_model_jobs.py",
+    "uptime/public_proposal_jobs.py"
+   ],
+   "evidence": [
+    "docs/v4/evidence/browser-public-onboarding-82.json"
+   ],
+   "gap": "Public baseline 0/4 supported extractions. D05 decided 2026-11-09 (auto-select plus human approval); not implemented. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D05",
+    "D13"
+   ]
+  },
+  {
+   "id": "AG-3",
+   "group": "Logical agents",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#3-agent-responsibilities-and-state-boundaries",
+   "requirement": "Evidence agent fetches status, telemetry, tickets, usage, invoices with provenance and gaps.",
+   "disposition": "PARTIAL",
+   "owner": "W5",
+   "implementation": [
+    "uptime/evidence.py",
+    "uptime/evidence_refresh.py",
+    "uptime/source_config.py"
+   ],
+   "evidence": [
+    "tests/test_evidence.py::test_provenance_mismatch"
+   ],
+   "gap": "Signed controlled sources only; production telemetry/support enrollment absent. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "AG-4",
+   "group": "Logical agents",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#3-agent-responsibilities-and-state-boundaries",
+   "requirement": "Rules compiler and deterministic evaluator.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/vendor_terms.py",
+    "uptime/vendor_eval.py"
+   ],
+   "evidence": [
+    "tests/test_twilio.py::test_four_independent_golden_outcomes_and_cp1"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "AG-5",
+   "group": "Logical agents",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#3-agent-responsibilities-and-state-boundaries",
+   "requirement": "Claims agent builds packages, picks channel, gets approval, submits once, tracks ticket.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/correspondence.py",
+    "uptime/claim_identity.py"
+   ],
+   "evidence": [
+    "tests/test_cross_claims.py::test_both_route_orders_restart_and_repeat_have_one_effect"
+   ],
+   "gap": "No real submission channel.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D08"
+   ]
+  },
+  {
+   "id": "AG-6",
+   "group": "Logical agents",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#3-agent-responsibilities-and-state-boundaries",
+   "requirement": "Dispute/follow-up agent classifies replies, checks denial grounds, drafts and sends only if authorized.",
+   "disposition": "PARTIAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/correspondence_interpretation.py",
+    "uptime/correspondence_review.py"
+   ],
+   "evidence": [
+    "docs/v4/PHASE75-DISPUTE-RUNTIME.md"
+   ],
+   "gap": "Human semantic review required; unseen replies 0/50. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written. D13 decided 2026-11-09 (bar without native proof); onboarding-84 first attempts accepted 0/4, dispute sub-cohort not run.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D06",
+    "D13"
+   ]
+  },
+  {
+   "id": "AG-7",
+   "group": "Logical agents",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#3-agent-responsibilities-and-state-boundaries",
+   "requirement": "Reconciliation agent maps awards to credits and bills, prevents double counting.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/allocations.py",
+    "uptime/reconciliation.py"
+   ],
+   "evidence": [
+    "tests/test_allocation_ledger.py::test_two_awards_cannot_allocate_160_dollars_to_one_100_dollar_bill"
+   ],
+   "gap": "Simulated awards only.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D09"
+   ]
+  },
+  {
+   "id": "AG-8",
+   "group": "Logical agents",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#3-agent-responsibilities-and-state-boundaries",
+   "requirement": "Dashboard guide explains decisions and cites clauses without bypassing permissions.",
+   "disposition": "PARTIAL",
+   "owner": "W7",
+   "implementation": [
+    "uptime/intelligence.py"
+   ],
+   "evidence": [
+    "tests/test_intelligence.py::test_guide_ignores_commands_and_cannot_mutate_case"
+   ],
+   "gap": "Deterministic local explanations; no grounded LLM guide. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D10",
+    "D12"
+   ]
+  },
+  {
+   "id": "API-1",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /contracts/ingest.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_api.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Served by POST /api/vendors/{id}/candidates for public/authored text.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-2",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of GET /contracts/{id}/obligations.",
+   "disposition": "PARTIAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_api.py",
+    "uptime/northwind_workflow.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "No dedicated obligations route; vendor and workspace views carry them.",
+   "gap_class": "missing_functionality",
+   "decisions": []
+  },
+  {
+   "id": "API-3",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /vendors/onboarding-candidates.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_api.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-4",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /vendors/{id}/approve-adapter.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/vendor_api.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "POST /api/vendors/{id}/actions/{action}; release-gated.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-5",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /cases/evaluate.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/vendor_api.py",
+    "uptime/correspondence_api.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Split across vendor evaluate and claim intake routes.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-6",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of GET /cases.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/server.py",
+    "uptime/correspondence_api.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-7",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of GET /cases/{id}/evidence.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/server.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Evidence is embedded in case detail.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-8",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /cases/{id}/authorize.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/server.py",
+    "uptime/correspondence_api.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-9",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /cases/{id}/submit.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/server.py",
+    "uptime/correspondence_api.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Local filing only.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-10",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /cases/{id}/vendor-response.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/correspondence_api.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Service-signed delivery from the simulated counterparty.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-11",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /cases/{id}/follow-up.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/correspondence_api.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-12",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /cases/{id}/reconcile.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/server.py",
+    "uptime/ramp_native_binding.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-13",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of GET /dashboard/metrics.",
+   "disposition": "MET_LOCAL",
+   "owner": "W7",
+   "implementation": [
+    "uptime/server.py",
+    "uptime/workbench.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "API-14",
+   "group": "Backend operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Provide the equivalent of POST /guide/message.",
+   "disposition": "PARTIAL",
+   "owner": "W7",
+   "implementation": [
+    "uptime/server.py",
+    "uptime/intelligence.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Single-turn deterministic answers. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D12"
+   ]
+  },
+  {
+   "id": "STACK-1",
+   "group": "Stack, storage and operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Front end in Next.js + TypeScript.",
+   "disposition": "SUPERSEDED",
+   "owner": "W7",
+   "implementation": [
+    "web/workspace_ui.js"
+   ],
+   "evidence": [
+    "docs/decisions/ADR-0001-loopback-runtime.md"
+   ],
+   "gap": "Dependency-free JavaScript served by the local FastAPI app; recorded in the loopback runtime decision.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "STACK-2",
+   "group": "Stack, storage and operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "FastAPI + Pydantic v2 backend.",
+   "disposition": "MET",
+   "owner": "W0",
+   "implementation": [
+    "uptime/server.py"
+   ],
+   "evidence": [
+    "pyproject.toml"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "STACK-3",
+   "group": "Stack, storage and operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "PostgreSQL + SQLAlchemy migrations; content-addressed object storage.",
+   "disposition": "PARTIAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/storage.py"
+   ],
+   "evidence": [
+    "tests/test_storage.py::test_schema_mismatch_fails_closed"
+   ],
+   "gap": "SQLite with hash-chained revisions; hosted database is a deployment decision. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D11"
+   ]
+  },
+  {
+   "id": "STACK-4",
+   "group": "Stack, storage and operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Durable job queue with retries and dead-letter handling for external actions.",
+   "disposition": "PARTIAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/public_proposal_jobs.py",
+    "uptime/ramp_workflow.py"
+   ],
+   "evidence": [
+    "tests/test_ramp.py::test_ambiguous_create_is_never_retried",
+    "tests/test_operations_recovery_90.py::test_bounded_read_retries_only_follow_transient_failures",
+    "docs/v4/OPERATIONS-RECOVERY-90.md"
+   ],
+   "gap": "Local queue and outbox; uncertain work is intentionally not retried; no hosted workers. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D11"
+   ]
+  },
+  {
+   "id": "STACK-5",
+   "group": "Stack, storage and operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Observability: per-case timeline, trace ID, retries, outbound history, redacted logs.",
+   "disposition": "PARTIAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/workbench.py"
+   ],
+   "evidence": [
+    "tests/test_journey_api.py::test_dashboard_and_case_evidence_have_exact_provenance"
+   ],
+   "gap": "Per-case timeline and audit only; no tracing or metrics. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D11"
+   ]
+  },
+  {
+   "id": "DB-1",
+   "group": "Stack, storage and operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Tables for organizations, contracts, obligations, facts, cases, approvals, outbound actions, responses, awards, credits, adapters, audit and policies.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/storage.py",
+    "uptime/allocations.py",
+    "uptime/correspondence.py",
+    "uptime/policy.py"
+   ],
+   "evidence": [
+    "docs/v4/integration90/INTERFACES.md"
+   ],
+   "gap": "Equivalents exist per module; organizations and users are tenant strings plus enrolled keys.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SEC-1",
+   "group": "Stack, storage and operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#7-proposed-stack-modules-and-api-contracts",
+   "requirement": "Server-side authorization, tenant isolation, secret custody, safe uploads, redaction, hashes, injection defenses, allowlists, webhook signatures, backoff, dry-run default.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/auth.py",
+    "uptime/ramp_webhooks.py",
+    "uptime/ramp_credentials.py"
+   ],
+   "evidence": [
+    "tests/test_correspondence.py::test_narrowed_legacy_grant_cannot_revert_to_subscription_wildcard",
+    "tests/test_ramp_workflow_webhooks.py::test_subscription_binding_cannot_be_swapped",
+    "docs/v4/OPUS46-SECURITY-TRIAGE.md",
+    "tests/test_operations_recovery_90.py::test_installation_revocation_survives_restart_and_restore_and_stays_tenant_scoped",
+    "tests/test_operations_recovery_90.py::test_backup_contains_no_credentials_or_session_material"
+   ],
+   "gap": "Loopback-only; hosted threat boundary undecided. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D11"
+   ]
+  },
+  {
+   "id": "CONT-1",
+   "group": "Stack, storage and operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#economic-truth",
+   "requirement": "Continuous detection, evidence collection and deadline tracking.",
+   "disposition": "NOT_MET",
+   "owner": "W0",
+   "implementation": [
+    "uptime/evidence_refresh.py",
+    "uptime/ramp_webhooks.py",
+    "uptime/operations_health.py"
+   ],
+   "evidence": [
+    "docs/v4/TEAM-DECISION-HANDOFF.md",
+    "tests/test_operations_recovery_90.py::test_health_report_alerts_actionable_claim_cutoffs_only"
+   ],
+   "gap": "An operator-run health check now reports actionable claim cutoffs, retryable reads and uncertain effects; there is still no scheduler, live webhook subscription or alert delivery. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D02",
+    "D11"
+   ]
+  },
+  {
+   "id": "OAUTH-1",
+   "group": "Stack, storage and operations",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#6-ramp-integration-and-fallback-policy-verified-3-november-2026",
+   "requirement": "Customer installation with OAuth consent, token refresh/revocation and hosted callbacks.",
+   "disposition": "NOT_MET",
+   "owner": "W1",
+   "implementation": [
+    "uptime/ramp_installation.py",
+    "uptime/installation_revocation.py"
+   ],
+   "evidence": [
+    "docs/v4/RAMP-FEASIBILITY.md",
+    "docs/v4/CUSTOMER-INSTALLATION-DESIGN.md"
+   ],
+   "gap": "Client-credentials only. A customer installation design and durable installation revocation exist (W9); authorization-code consent, token refresh and hosted callbacks are not implemented. D11 decided 2026-11-09: stay local; hosting is a later milestone.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D11"
+   ]
+  },
+  {
+   "id": "UI-1",
+   "group": "Dashboard and copilot",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#8-dashboard-and-copilot-experience",
+   "requirement": "KPIs with denominators: potential, evidence-ready, awaiting response, awarded, applied, deadlines at risk.",
+   "disposition": "PARTIAL",
+   "owner": "W7",
+   "implementation": [
+    "uptime/workbench.py",
+    "web/app.js"
+   ],
+   "evidence": [
+    "web/app.test.cjs"
+   ],
+   "gap": "Stage amounts shown; no evidence-ready, awaiting-response or deadlines-at-risk KPI.",
+   "gap_class": "missing_functionality",
+   "decisions": []
+  },
+  {
+   "id": "UI-2",
+   "group": "Dashboard and copilot",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#8-dashboard-and-copilot-experience",
+   "requirement": "Recovery overview sortable by value, deadline, uncertainty, owner, vendor.",
+   "disposition": "MET_LOCAL",
+   "owner": "W7",
+   "implementation": [
+    "web/ramp_ui.js",
+    "uptime/ramp_workspace.py"
+   ],
+   "evidence": [
+    "tests/test_ramp_ui_v4.py::test_ramp_browser_navigation_and_read_only_plan"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "UI-3",
+   "group": "Dashboard and copilot",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#8-dashboard-and-copilot-experience",
+   "requirement": "Case investigator with citations, timeline, rule-by-rule explanations, provenance and approval CTA.",
+   "disposition": "MET_LOCAL",
+   "owner": "W7",
+   "implementation": [
+    "web/workspace_ui.js",
+    "uptime/northwind_workflow.py"
+   ],
+   "evidence": [
+    "tests/test_workspace_ui_v4.py::test_result_quotes_and_decimal_equations_render_as_server_text_without_html_execution"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "UI-4",
+   "group": "Dashboard and copilot",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#8-dashboard-and-copilot-experience",
+   "requirement": "Claim/dispute timeline with replies, drafts, approvals and next-action clock.",
+   "disposition": "MET_LOCAL",
+   "owner": "W7",
+   "implementation": [
+    "web/workspace_ui.js",
+    "web/interpretation.js"
+   ],
+   "evidence": [
+    "web/workspace_ui.test.cjs"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "UI-5",
+   "group": "Dashboard and copilot",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#8-dashboard-and-copilot-experience",
+   "requirement": "Vendor onboarding lab with approve-to-shadow, approve-to-live and rollback.",
+   "disposition": "MET_LOCAL",
+   "owner": "W7",
+   "implementation": [
+    "web/v4_ui.js",
+    "uptime/vendor_api.py"
+   ],
+   "evidence": [
+    "web/v4_ui.test.cjs",
+    "docs/v4/evidence/local-review-88/recorded-review-20261109.json"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "UI-6",
+   "group": "Dashboard and copilot",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#8-dashboard-and-copilot-experience",
+   "requirement": "Contract obligations view filtered by family.",
+   "disposition": "PARTIAL",
+   "owner": "W7",
+   "implementation": [
+    "web/workspace_ui.js"
+   ],
+   "evidence": [
+    "web/workspace_ui.test.cjs"
+   ],
+   "gap": "Northwind projection only; no portfolio-wide obligations filter.",
+   "gap_class": "missing_functionality",
+   "decisions": []
+  },
+  {
+   "id": "UI-7",
+   "group": "Dashboard and copilot",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#8-dashboard-and-copilot-experience",
+   "requirement": "Policies and approvals: modes, thresholds, follow-up limits, roles, shutdown.",
+   "disposition": "PARTIAL",
+   "owner": "W7",
+   "implementation": [
+    "uptime/policy.py",
+    "web/app.js"
+   ],
+   "evidence": [
+    "docs/v4/CAPABILITIES.md"
+   ],
+   "gap": "Modes and cap exist; no explicit shutdown control or follow-up policy editor. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D06"
+   ]
+  },
+  {
+   "id": "UI-8",
+   "group": "Dashboard and copilot",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#8-dashboard-and-copilot-experience",
+   "requirement": "Copilot explains evidence, drafts queries, highlights missing data, never bypasses approval.",
+   "disposition": "PARTIAL",
+   "owner": "W7",
+   "implementation": [
+    "uptime/intelligence.py"
+   ],
+   "evidence": [
+    "tests/test_journey_api.py::test_guide_injection_cannot_execute_human_actions"
+   ],
+   "gap": "Locally assembled; not an LLM conversation. D10 decided 2026-11-09 (public-only, Claude); no customer-consent mechanism exists yet. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D10",
+    "D12"
+   ]
+  },
+  {
+   "id": "UI-9",
+   "group": "Dashboard and copilot",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#8-dashboard-and-copilot-experience",
+   "requirement": "Demo moment: valid vs denied adjacent cases, denial cured, award reconciled to a bill.",
+   "disposition": "MET_LOCAL",
+   "owner": "W7",
+   "implementation": [
+    "uptime/northwind_workflow.py"
+   ],
+   "evidence": [
+    "docs/v4/evidence/demo-path-87/northwind-socket.json"
+   ],
+   "gap": "Award and application are authored Local ledger events.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D09"
+   ]
+  },
+  {
+   "id": "DEMO-TWILIO",
+   "group": "Primary demonstrators",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#132-primary-demonstrators",
+   "requirement": "Twilio SLA recovery with qualifying, non-qualifying and unresolved outcomes through award and credit application.",
+   "disposition": "PARTIAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/twilio.py",
+    "uptime/twilio_demo.py"
+   ],
+   "evidence": [
+    "tests/test_twilio.py::test_four_independent_golden_outcomes_and_cp1",
+    "fixtures/twilio/README.md"
+   ],
+   "gap": "Outcomes verified on synthetic usage; the full claim-to-application path is shown on Northwind, not Twilio.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "DEMO-PRICE",
+   "group": "Primary demonstrators",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#132-primary-demonstrators",
+   "requirement": "Synthetic amended price cap against real sandbox bills: pre-payment warning and post-payment recovery.",
+   "disposition": "PARTIAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/pricing.py",
+    "uptime/ramp_cap.py"
+   ],
+   "evidence": [
+    "tests/test_ramp_cap_v4.py::test_840_over_800_is_only_hypothetical_and_deterministic",
+    "docs/v4/RAMP-PRICE-EVIDENCE.md"
+   ],
+   "gap": "Real bills lack line items; the cap comparison is hypothetical. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D02",
+    "D07"
+   ]
+  },
+  {
+   "id": "DEMO-ATLASSIAN",
+   "group": "Primary demonstrators",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#132-primary-demonstrators",
+   "requirement": "Atlassian adapter generated from current terms with tests, shadow, approval UI.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [
+    "uptime/onboarding.py",
+    "uptime/onboarding_extract.py"
+   ],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md"
+   ],
+   "gap": "Scripted reviewer; separate from unseen-vendor proof. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D05"
+   ]
+  },
+  {
+   "id": "DEMO-SLACK",
+   "group": "Primary demonstrators",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#132-primary-demonstrators",
+   "requirement": "Slack negative onboarding: public SLA yields unsupported/insufficient terms.",
+   "disposition": "NOT_MET",
+   "owner": "W3",
+   "implementation": [],
+   "evidence": [
+    "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
+   ],
+   "gap": "No Slack source, fixture or test exists. D05 decided 2026-11-09 (auto-select plus human approval); not implemented.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D05"
+   ]
+  },
+  {
+   "id": "SIM-1",
+   "group": "Primary demonstrators",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#133-independent-vendor-dispute-simulator",
+   "requirement": "Independent simulated vendor bound by real public SLA, compared to a precommitted oracle; no ping-pong.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [
+    "uptime/disputes_vendor.py",
+    "uptime/disputes_replay.py"
+   ],
+   "evidence": [
+    "tests/test_disputes.py::test_heldout_oracle_kills_seeded_overpayment"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRED-1",
+   "group": "Demo credibility",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#135-demo-credibility-and-economics",
+   "requirement": "Source tags on every screen and metric.",
+   "disposition": "SUPERSEDED",
+   "owner": "W7",
+   "implementation": [
+    "uptime/contracts.py"
+   ],
+   "evidence": [
+    "docs/v4/decisions/ADR-0064-clean-walkthrough.md"
+   ],
+   "gap": "November 4 direction: ordinary product labels; source identity stays in APIs and audit exports; disclosures go to presenter materials.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRED-2",
+   "group": "Demo credibility",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#135-demo-credibility-and-economics",
+   "requirement": "Report prevented, requested, awarded and applied amounts separately; credits are not cash.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [
+    "uptime/workbench.py"
+   ],
+   "evidence": [
+    "tests/test_portfolio_v4.py::test_only_exact_pending_prepayment_contributes"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRED-3",
+   "group": "Demo credibility",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#135-demo-credibility-and-economics",
+   "requirement": "Explicit permission transitions observe → draft → approve → submit → response → dispute → award → apply.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [
+    "uptime/auth.py",
+    "uptime/policy.py"
+   ],
+   "evidence": [
+    "tests/test_journey_api.py::test_case_action_is_not_executable_by_get"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRED-4",
+   "group": "Demo credibility",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#economic-truth",
+   "requirement": "Rank by expected value, confidence, deadline, effort; separate gross, claimable, submitted, confirmed, applied and net.",
+   "disposition": "PARTIAL",
+   "owner": "W7",
+   "implementation": [
+    "uptime/workbench.py"
+   ],
+   "evidence": [
+    "docs/v4/CAPABILITIES.md"
+   ],
+   "gap": "Stages are separate; no value/effort ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D01",
+    "D06"
+   ]
+  },
+  {
+   "id": "OBL-1",
+   "group": "Obligation portfolio",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#2-contract-obligation-portfolio-and-sequencing",
+   "requirement": "Uptime/service SLA (P0 full demo).",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/twilio.py"
+   ],
+   "evidence": [
+    "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
+   ],
+   "gap": "Authored/synthetic customer facts.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "OBL-2",
+   "group": "Obligation portfolio",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#2-contract-obligation-portfolio-and-sequencing",
+   "requirement": "Invoice overcharge / price cap (P0).",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/pricing.py"
+   ],
+   "evidence": [
+    "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
+   ],
+   "gap": "Authored agreements only.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "OBL-3",
+   "group": "Obligation portfolio",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#2-contract-obligation-portfolio-and-sequencing",
+   "requirement": "Volume rebate / discount tier (P1/P2).",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/other_obligations.py"
+   ],
+   "evidence": [
+    "tests/test_other_obligations.py::test_rebate_inclusive_threshold_after_returns"
+   ],
+   "gap": "One authored Northbank agreement.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "OBL-4",
+   "group": "Obligation portfolio",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#2-contract-obligation-portfolio-and-sequencing",
+   "requirement": "Auto-renewal notice window (P1, preventive).",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [
+    "uptime/other_obligations.py"
+   ],
+   "evidence": [
+    "tests/test_other_obligations.py::test_notice_weekend_holiday_timezone_and_exact_receipt"
+   ],
+   "gap": "One authored calendar; no notice sent.",
+   "gap_class": "unverified_behavior",
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "OBL-5",
+   "group": "Obligation portfolio",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#2-contract-obligation-portfolio-and-sequencing",
+   "requirement": "Support response SLA (P2).",
+   "disposition": "NOT_MET",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
+   ],
+   "gap": "Not implemented.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "OBL-6",
+   "group": "Obligation portfolio",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#2-contract-obligation-portfolio-and-sequencing",
+   "requirement": "Delivery/milestone penalty (P2).",
+   "disposition": "NOT_MET",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
+   ],
+   "gap": "Not implemented.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "OBL-7",
+   "group": "Obligation portfolio",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#2-contract-obligation-portfolio-and-sequencing",
+   "requirement": "Most-favored-customer parity (P3, research only).",
+   "disposition": "NOT_MET",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
+   ],
+   "gap": "Not implemented; spec marks research-only.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D01"
+   ]
+  },
+  {
+   "id": "ORCH-1",
+   "group": "Orchestration and governance",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#orchestration-mechanism-and-concurrency",
+   "requirement": "W3 onboarding and W4 disputes run concurrently at equal priority.",
+   "disposition": "MET",
+   "owner": "W0",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/integration90/OWNERSHIP.md",
+    "docs/v4/PHASE69-WORKSTREAMS.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "ORCH-2",
+   "group": "Orchestration and governance",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#mandatory-opus-55-decision-consult-decision-not-delegation-substitute",
+   "requirement": "Genuine Opus 5.5 critique for impactful decisions; OPUS_BLOCKED when unavailable; ADR with dissent.",
+   "disposition": "MET",
+   "owner": "W0",
+   "implementation": [
+    "scripts/consult_v4.py"
+   ],
+   "evidence": [
+    "docs/v4/decisions/INDEX.md",
+    "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
+   ],
+   "gap": "D14 decided 2026-11-09: the execution policy replaces mandatory consultation; Opus is used when useful or requested. The AGENTS.md wording awaits Ronok's direct confirmation.",
+   "gap_class": null,
+   "decisions": [
+    "D14"
+   ]
+  },
+  {
+   "id": "ORCH-3",
+   "group": "Orchestration and governance",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#decision-hierarchy-no-unasked-interruptions",
+   "requirement": "Human permission for credentials, live writes, vendor communication, scope escalation, deployment.",
+   "disposition": "MET",
+   "owner": "W0",
+   "implementation": [
+    "uptime/mandates.py",
+    "uptime/gates.py"
+   ],
+   "evidence": [
+    "docs/v4/DEMO-PATH-87.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "ORCH-4",
+   "group": "Orchestration and governance",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#decision-hierarchy-no-unasked-interruptions",
+   "requirement": "Durable progress and documented resume; no claim of indefinite background execution.",
+   "disposition": "MET",
+   "owner": "W0",
+   "implementation": [
+    "scripts/serve_progress.py"
+   ],
+   "evidence": [
+    "docs/v4/OPERATIONS.md",
+    "progress/data.json"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "ORCH-5",
+   "group": "Orchestration and governance",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#orchestration-mechanism-and-concurrency",
+   "requirement": "Route models by task complexity and log actual model/session use.",
+   "disposition": "MET_LOCAL",
+   "owner": "W0",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/PHASE69-WORKSTREAMS.md",
+    "docs/v4/evidence/demo-path-87/opus-coding.json"
+   ],
+   "gap": "Specialist sessions on November 9 record their own model use in their ledgers.",
+   "gap_class": "unverified_behavior",
+   "decisions": []
+  },
+  {
+   "id": "ART-1",
+   "group": "Orchestration and governance",
+   "source": "docs/uptime-v3/Uptime_V3_Orchestrator_Handoff.md#durable-work-products-and-quality-loop",
+   "requirement": "Maintain STATUS, TASKS, CAPABILITY_MATRIX, BLOCKERS, DECISIONS_INDEX, ADRs and RUNBOOK.",
+   "disposition": "MET",
+   "owner": "W0",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/STATUS.md",
+    "docs/v4/CAPABILITIES.md",
+    "docs/v4/integration90/BLOCKERS.md",
+    "docs/v4/decisions/INDEX.md",
+    "docs/v4/integration90/SETUP.md"
+   ],
+   "gap": "The November 3 docs/orchestration files are historical; current records live under docs/v4.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRIT-1",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "This already exists.",
+   "disposition": "PARTIAL",
+   "owner": "TEAM",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/CAPABILITIES.md"
+   ],
+   "gap": "Differentiation depends on closed-loop Ramp reconciliation, which is not yet native.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D02",
+    "D09"
+   ]
+  },
+  {
+   "id": "CRIT-2",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "A status page isn't customer proof.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_public_incident_or_internal_telemetry_alone_not_enough"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRIT-3",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "Ramp payment total isn't eligible spend.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_fee_basis_not_vendor_total"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRIT-4",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "Agents hallucinate legal entitlements.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_northwind_financial.py::test_expectations_are_not_engine_inputs_and_wrong_comparison_fails"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRIT-5",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "The dispute agent could harass vendors.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_disputes.py::test_second_request_for_same_proof_stops"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRIT-6",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "Self-written rule schemas are unmaintainable.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [],
+   "evidence": [
+    "tests/test_vendor_catalog.py::test_failing_or_tautological_independent_tests_cannot_approve"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRIT-7",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "Uptime duplicates Ramp renewals and credits.",
+   "disposition": "MET_LOCAL",
+   "owner": "TEAM",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/RAMP-FEASIBILITY.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRIT-8",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "Recoverable credits may be tiny.",
+   "disposition": "PARTIAL",
+   "owner": "TEAM",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/CAPABILITIES.md"
+   ],
+   "gap": "No value ranking or minimum-value policy. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D06"
+   ]
+  },
+  {
+   "id": "CRIT-9",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "Confidential vendor terms.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [],
+   "evidence": [
+    "tests/test_vendor_catalog.py::test_tool_free_cli_has_digest_gate_and_never_transmits_private_overlay"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": [
+    "D10"
+   ]
+  },
+  {
+   "id": "CRIT-10",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "A fully simulated demo proves nothing.",
+   "disposition": "PARTIAL",
+   "owner": "W8",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/evidence/demo-path-87/human-ramp-note.json"
+   ],
+   "gap": "Live reads and a human-posted note exist; recovery is authored.",
+   "gap_class": "external_dependency",
+   "decisions": [
+    "D02"
+   ]
+  },
+  {
+   "id": "CRIT-11",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "Credit awarded is not money recovered.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [],
+   "evidence": [
+    "tests/test_northwind_workflow.py::test_april_only_application_preserves_march_exposure_and_distinct_versions"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRIT-12",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "Not every breach creates a credit.",
+   "disposition": "PARTIAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "uptime/other_obligations.py"
+   ],
+   "gap": "Non-monetary remedies beyond notices are not modelled. D07 decided 2026-11-09 (narrow published matrix: USD, calendar months, exact imports plus overlays); one real evidence source is still to be onboarded.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D07"
+   ]
+  },
+  {
+   "id": "CRIT-13",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "MFN may be unverifiable.",
+   "disposition": "MET",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md"
+   ],
+   "gap": "Not implemented, and not claimed.",
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "CRIT-14",
+   "group": "Judge criticisms to preempt",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#12-criticisms-the-build-must-preempt",
+   "requirement": "The demo won't work live.",
+   "disposition": "MET_LOCAL",
+   "owner": "W8",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/integration90/REHEARSAL.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-1",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Brand scope: pitch platform; demo SLA + pricing.",
+   "disposition": "MET",
+   "owner": "TEAM",
+   "implementation": [],
+   "evidence": [
+    "README.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-2",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Vendor breadth: candidate second adapter promoted only if tested and approved.",
+   "disposition": "MET_LOCAL",
+   "owner": "W3",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/evidence/local-review-88/recorded-review-20261109.json"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-3",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Canonical finance workflow plus typed vendor extensions.",
+   "disposition": "PARTIAL",
+   "owner": "W0",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/integration90/D03-D04-ALTERNATIVES.md"
+   ],
+   "gap": "Identity and scope domains disagree across routes. D03 decided 2026-11-09 (bounded exact source IDs); implemented on `work/identity-pricing-89`, not yet merged. D04 decided 2026-11-09 (server-selected scope variants; monthly keeps one incident); implementation in progress.",
+   "gap_class": "bug",
+   "decisions": [
+    "D03",
+    "D04"
+   ]
+  },
+  {
+   "id": "SPEC11-4",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Logical role agents with a deterministic shared engine.",
+   "disposition": "MET",
+   "owner": "W0",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/ARCHITECTURE.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-5",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Configurable autonomy with gated high-risk actions.",
+   "disposition": "PARTIAL",
+   "owner": "TEAM",
+   "implementation": [],
+   "evidence": [
+    "uptime/policy.py"
+   ],
+   "gap": "Action matrix undecided. D06 decided 2026-11-09 (humans gate judgment); the action matrix is not yet written.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D06"
+   ]
+  },
+  {
+   "id": "SPEC11-6",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Bounded dispute attempts with cooldown and escalation.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_disputes.py::test_expiry_and_cooldown_are_enforced"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-7",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Separate estimate, filed, awarded and applied metrics.",
+   "disposition": "MET_LOCAL",
+   "owner": "W1",
+   "implementation": [],
+   "evidence": [
+    "tests/test_portfolio_v4.py::test_all_recorded_partial_awards_are_counted_once"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-8",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Real sandbox where possible; fixtures for missing data.",
+   "disposition": "MET",
+   "owner": "W1",
+   "implementation": [],
+   "evidence": [
+    "docs/v4/RAMP-DEMO-CONNECTION.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-9",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Price cap as the second obligation.",
+   "disposition": "MET",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "fixtures/pricing/README.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-10",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Renewal: draft notices; authorized execution only.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_other_obligations.py::test_notice_weekend_holiday_timezone_and_exact_receipt"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-11",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Dashboard plus contextual guide without permission bypass.",
+   "disposition": "PARTIAL",
+   "owner": "W7",
+   "implementation": [],
+   "evidence": [
+    "uptime/intelligence.py"
+   ],
+   "gap": "Guide not an LLM. D12 decided 2026-11-09 (read-only first): no action drafting; the deterministic guide is within scope.",
+   "gap_class": "missing_functionality",
+   "decisions": [
+    "D12"
+   ]
+  },
+  {
+   "id": "SPEC11-12",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Labelled 'Uptime for Ramp' prototype, not a Ramp UI copy.",
+   "disposition": "MET",
+   "owner": "W7",
+   "implementation": [],
+   "evidence": [
+    "README.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-13",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Contract ambiguity yields unknown/review.",
+   "disposition": "MET_LOCAL",
+   "owner": "W2",
+   "implementation": [],
+   "evidence": [
+    "tests/test_pricing.py::test_missing_signatures_and_ambiguous_chain"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-14",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Approved factual claims only; legal opinions and settlements need people.",
+   "disposition": "MET_LOCAL",
+   "owner": "W4",
+   "implementation": [],
+   "evidence": [
+    "tests/test_disputes.py::test_narrow_dispatch_requires_bound_approval_grant_and_redaction"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-15",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Status pages and customer logs chosen per contract.",
+   "disposition": "MET_LOCAL",
+   "owner": "W5",
+   "implementation": [],
+   "evidence": [
+    "tests/test_twilio.py::test_public_incident_or_internal_telemetry_alone_not_enough"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  },
+  {
+   "id": "SPEC11-16",
+   "group": "Open decisions recommended in the spec (§11)",
+   "source": "docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md#11-open-decisions-with-pros-cons-and-recommendations",
+   "requirement": "Freeze the core vertical slice; add adapter demo after CP3.",
+   "disposition": "MET",
+   "owner": "W0",
+   "implementation": [],
+   "evidence": [
+    "docs/orchestration/CHECKPOINTS.md"
+   ],
+   "gap": null,
+   "gap_class": null,
+   "decisions": []
+  }
+ ]
+}

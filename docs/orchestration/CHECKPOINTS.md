@@ -1,5 +1,7 @@
 # CP0–CP6 evidence
 
+> **Historical November 3 baseline, preserved unchanged below.** Current requirement and checkpoint dispositions: [docs/v4/integration90/REQUIREMENTS.md](../v4/integration90/REQUIREMENTS.md).
+
 | Gate | Result | Basis |
 |---|---|---|
 | CP0 · audit | Passed | No application in the supplied workspace. Initialized new Git root and preserved the complete supplied package. Confirmed local 0600 sandbox config, Claude Code identity, native capacity and authenticated CLI. |

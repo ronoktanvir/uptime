@@ -1,5 +1,7 @@
 # Verified limits
 
+> **Historical November 3 baseline, preserved unchanged below.** Several limits here have changed. The current Ramp app has an observed `bills:write` grant; the agent posting retest is blocked by automatic approval review, not by scope. A person-posted note was verified by read-back. Current blockers: [docs/v4/integration90/BLOCKERS.md](../v4/integration90/BLOCKERS.md).
+
 - **Sandbox draft not authorized.** The authenticated app has exact `vendors:read` and `bills:read` grants. The token endpoint omitted `bills:write`. No create/update call was made. Read-only proof is sufficient to replay the observed bills. A sandbox admin would have to separately authorize the exact draft scope for a real draft demonstration.
 - **Browser proof requires a separate sandbox login.** The browser opened `demo.ramp.com/sign-in`. Provider object IDs were verified through the API, not visually confirmed in an authenticated browser. The IDs, timestamps and official UI link are in Integrations.
 - **No real credit to match.** The sandbox returned no vendor credits or applied amounts for the verified bills. The no-record observation is real. The awarded, posted and applied demo values are simulated.
