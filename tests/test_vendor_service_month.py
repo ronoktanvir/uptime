@@ -1,4 +1,5 @@
 """Independent fixed-period, attested aggregate instrument subscription controls."""
+from governing_binding_89 import reviewed_binding
 from copy import deepcopy
 from hashlib import sha256
 
@@ -57,7 +58,8 @@ def facts():
 def run(data, m=None):
     from test_vendor_semantic_bindings import reviewed_context
     m=m or manifest()
-    bound=bind_overlay(m,Overlay(**OVERLAY))
+    # F5 (2026-11-09): this source names no agreement, so the authored overlay carries the reviewed binding.
+    bound=bind_overlay(m,Overlay(**reviewed_binding(m,OVERLAY)))
     return evaluate(m,bound,data,'independent-compass',bindings=reviewed_context(m,bound,tenant='independent-compass'))
 
 
@@ -159,9 +161,9 @@ def test_service_aggregate_signed_api_produces_case_and_rollback(tmp_path, monke
     secret=secrets.token_urlsafe(32)
     from test_vendor_semantic_bindings import review_submission
     terms=manifest()
-    review=review_submission(terms,bind_overlay(terms,Overlay(**OVERLAY)),DOC['text'])
+    review=review_submission(terms,bind_overlay(terms,Overlay(**reviewed_binding(terms,OVERLAY))),DOC['text'])
     with serve(tmp_path/'replay.sqlite',secret) as origin:
-        receipt=exercise(DOC,OVERLAY,scenarios,origin,secret,semantic_review=review)
+        receipt=exercise(DOC,reviewed_binding(terms,OVERLAY),scenarios,origin,secret,semantic_review=review)
     assert receipt['human_approval'] is False and receipt['authority']==SCRIPT
     assert receipt['results'][0]['amount']=='20.99'
     assert receipt['operations'][-2]['operation']=='rolled-back dispatch denied'

@@ -1,0 +1,12 @@
+{
+ "branch": "work/dispute-closure-mandate-89f",
+ "base": "work/integration-90 16c4635 (includes agent0 b36827f, decision 2a) + merge of 89e 53e29ee",
+ "decision": "Ronok's decision 2a: zero-amount closure-bound accept-denial mandate action",
+ "command": "uv run --locked --offline pytest -q -p no:cacheprovider --basetemp=<unique> -o tmp_path_retention_policy=failed tests/test_correspondence*.py tests/test_disputes*.py tests/test_northwind*.py tests/test_cross_claims.py tests/test_v4_routes_integration.py tests/test_portfolio_v4.py tests/test_ramp_award_claim_integration.py tests/test_ramp_award_procedural.py tests/test_source_config_v4.py tests/test_mandate_claim_closure_2a.py tests/test_signed_mandates.py tests/test_v4_authority.py tests/test_local_review_exception_disputes.py",
+ "result": "1187 passed, 1 warning in 282.65s",
+ "started": "2026-11-09T12:51:16Z",
+ "ended": "2026-11-09T12:56:00Z",
+ "log_sha256": "23937578f17a85ccd4eaaca74ec43c66e3bffd6abaf29a95088468b2fb405a7b",
+ "mutation_check": "Restoring the pre-2a view behaviour (packet for every offer) makes test_other_tenant_view_offers_closure_preview_without_building_a_packet fail; source restored byte for byte.",
+ "not_run": "Full `uv run --locked pytest` is run by agent0 after merge."
+}

@@ -1,0 +1,633 @@
+{
+ "databases": {
+  "runtime/northwind-final-browser-001/local-ledger.db": {
+   "refused_value_sha256": {},
+   "tables": {}
+  },
+  "runtime/northwind-final-browser-001/workspace.db": {
+   "refused_value_sha256": {},
+   "tables": {
+    "case_revision": {
+     "$.vendor": {
+      "total": 6,
+      "widened_only": 6
+     },
+     "detail.product": {
+      "total": 6,
+      "widened_only": 6
+     },
+     "economic_identity.service": {
+      "total": 6,
+      "widened_only": 6
+     },
+     "economic_identity.vendor": {
+      "total": 6,
+      "widened_only": 6
+     }
+    },
+    "case_snapshot": {
+     "$.product": {
+      "legacy_restricted_id": 8,
+      "total": 8
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 4,
+      "total": 15,
+      "widened_only": 11
+     },
+     "detail.product": {
+      "total": 3,
+      "widened_only": 3
+     },
+     "economic_identity.service": {
+      "total": 3,
+      "widened_only": 3
+     },
+     "economic_identity.vendor": {
+      "total": 3,
+      "widened_only": 3
+     }
+    },
+    "claim_dispatch_identity_v2": {
+     "$.service": {
+      "total": 2,
+      "widened_only": 2
+     },
+     "$.vendor": {
+      "total": 2,
+      "widened_only": 2
+     }
+    },
+    "dispute_cases": {
+     "$.product": {
+      "total": 29,
+      "widened_only": 29
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    },
+    "inbox_account": {
+     "service": {
+      "total": 1,
+      "widened_only": 1
+     },
+     "vendor": {
+      "total": 1,
+      "widened_only": 1
+     }
+    },
+    "inbox_claim": {
+     "$.service": {
+      "total": 4,
+      "widened_only": 4
+     },
+     "$.vendor": {
+      "total": 4,
+      "widened_only": 4
+     },
+     "scope.service": {
+      "total": 2,
+      "widened_only": 2
+     },
+     "scope.vendor": {
+      "total": 2,
+      "widened_only": 2
+     }
+    },
+    "public_proposal_jobs": {
+     "value.product": {
+      "total": 1,
+      "widened_only": 1
+     }
+    },
+    "v4_vendor_artifact": {
+     "$.product": {
+      "total": 138,
+      "widened_only": 138
+     },
+     "credit_rule.product": {
+      "total": 4,
+      "widened_only": 4
+     },
+     "manifest.product": {
+      "total": 6,
+      "widened_only": 6
+     },
+     "manifest.vendor": {
+      "legacy_restricted_id": 6,
+      "total": 10,
+      "widened_only": 4
+     },
+     "overlay.product": {
+      "total": 10,
+      "widened_only": 10
+     },
+     "propositions.vendor": {
+      "legacy_restricted_id": 6,
+      "total": 6
+     },
+     "scope.product": {
+      "total": 12,
+      "widened_only": 12
+     },
+     "vendor": {
+      "legacy_restricted_id": 10,
+      "total": 10
+     }
+    },
+    "v4_vendor_event": {
+     "$.vendor": {
+      "legacy_restricted_id": 42,
+      "total": 63,
+      "widened_only": 21
+     },
+     "facts.product": {
+      "total": 108,
+      "widened_only": 108
+     },
+     "fields.service": {
+      "total": 81,
+      "widened_only": 81
+     },
+     "filing_proof.product": {
+      "total": 81,
+      "widened_only": 81
+     },
+     "service_invoice.product": {
+      "total": 81,
+      "widened_only": 81
+     },
+     "service_monitor.product": {
+      "total": 54,
+      "widened_only": 54
+     },
+     "vendor": {
+      "legacy_restricted_id": 63,
+      "total": 63
+     }
+    },
+    "v4_vendor_semantic_review": {
+     "vendor": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     }
+    },
+    "workspace_workflow_intent": {
+     "scope.service": {
+      "total": 15,
+      "widened_only": 15
+     },
+     "scope.vendor": {
+      "total": 15,
+      "widened_only": 15
+     }
+    },
+    "workspace_workflow_invoice": {
+     "scope.service": {
+      "total": 1,
+      "widened_only": 1
+     },
+     "scope.vendor": {
+      "total": 1,
+      "widened_only": 1
+     }
+    }
+   }
+  },
+  "runtime/northwind-presentation-87/local-ledger.db": {
+   "refused_value_sha256": {},
+   "tables": {}
+  },
+  "runtime/northwind-presentation-87/workspace.db": {
+   "refused_value_sha256": {},
+   "tables": {
+    "case_snapshot": {
+     "$.product": {
+      "legacy_restricted_id": 8,
+      "total": 8
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 4,
+      "total": 15,
+      "widened_only": 11
+     },
+     "detail.product": {
+      "total": 3,
+      "widened_only": 3
+     },
+     "economic_identity.service": {
+      "total": 3,
+      "widened_only": 3
+     },
+     "economic_identity.vendor": {
+      "total": 3,
+      "widened_only": 3
+     }
+    },
+    "dispute_cases": {
+     "$.product": {
+      "total": 29,
+      "widened_only": 29
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    },
+    "inbox_account": {
+     "service": {
+      "total": 1,
+      "widened_only": 1
+     },
+     "vendor": {
+      "total": 1,
+      "widened_only": 1
+     }
+    },
+    "inbox_claim": {
+     "$.service": {
+      "total": 3,
+      "widened_only": 3
+     },
+     "$.vendor": {
+      "total": 3,
+      "widened_only": 3
+     }
+    },
+    "v4_vendor_artifact": {
+     "$.product": {
+      "total": 40,
+      "widened_only": 40
+     },
+     "credit_rule.product": {
+      "total": 1,
+      "widened_only": 1
+     },
+     "manifest.product": {
+      "total": 2,
+      "widened_only": 2
+     },
+     "manifest.vendor": {
+      "legacy_restricted_id": 2,
+      "total": 3,
+      "widened_only": 1
+     },
+     "overlay.product": {
+      "total": 3,
+      "widened_only": 3
+     },
+     "propositions.vendor": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "scope.product": {
+      "total": 4,
+      "widened_only": 4
+     },
+     "vendor": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     }
+    },
+    "v4_vendor_event": {
+     "$.vendor": {
+      "legacy_restricted_id": 14,
+      "total": 20,
+      "widened_only": 6
+     },
+     "facts.product": {
+      "total": 36,
+      "widened_only": 36
+     },
+     "fields.service": {
+      "total": 27,
+      "widened_only": 27
+     },
+     "filing_proof.product": {
+      "total": 27,
+      "widened_only": 27
+     },
+     "service_invoice.product": {
+      "total": 27,
+      "widened_only": 27
+     },
+     "service_monitor.product": {
+      "total": 18,
+      "widened_only": 18
+     },
+     "vendor": {
+      "legacy_restricted_id": 20,
+      "total": 20
+     }
+    },
+    "v4_vendor_semantic_review": {
+     "vendor": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    }
+   }
+  },
+  "runtime/northwind-verification-87/local-ledger.db": {
+   "refused_value_sha256": {},
+   "tables": {}
+  },
+  "runtime/northwind-verification-87/workspace.db": {
+   "refused_value_sha256": {},
+   "tables": {
+    "case_snapshot": {
+     "$.product": {
+      "legacy_restricted_id": 8,
+      "total": 8
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 4,
+      "total": 15,
+      "widened_only": 11
+     },
+     "detail.product": {
+      "total": 3,
+      "widened_only": 3
+     },
+     "economic_identity.service": {
+      "total": 3,
+      "widened_only": 3
+     },
+     "economic_identity.vendor": {
+      "total": 3,
+      "widened_only": 3
+     }
+    },
+    "claim_dispatch_identity_v2": {
+     "$.service": {
+      "total": 2,
+      "widened_only": 2
+     },
+     "$.vendor": {
+      "total": 2,
+      "widened_only": 2
+     }
+    },
+    "dispute_cases": {
+     "$.product": {
+      "total": 29,
+      "widened_only": 29
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    },
+    "inbox_account": {
+     "service": {
+      "total": 1,
+      "widened_only": 1
+     },
+     "vendor": {
+      "total": 1,
+      "widened_only": 1
+     }
+    },
+    "inbox_claim": {
+     "$.service": {
+      "total": 4,
+      "widened_only": 4
+     },
+     "$.vendor": {
+      "total": 4,
+      "widened_only": 4
+     },
+     "scope.service": {
+      "total": 2,
+      "widened_only": 2
+     },
+     "scope.vendor": {
+      "total": 2,
+      "widened_only": 2
+     }
+    },
+    "v4_vendor_artifact": {
+     "$.product": {
+      "total": 40,
+      "widened_only": 40
+     },
+     "credit_rule.product": {
+      "total": 1,
+      "widened_only": 1
+     },
+     "manifest.product": {
+      "total": 2,
+      "widened_only": 2
+     },
+     "manifest.vendor": {
+      "legacy_restricted_id": 2,
+      "total": 3,
+      "widened_only": 1
+     },
+     "overlay.product": {
+      "total": 3,
+      "widened_only": 3
+     },
+     "propositions.vendor": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "scope.product": {
+      "total": 4,
+      "widened_only": 4
+     },
+     "vendor": {
+      "legacy_restricted_id": 3,
+      "total": 3
+     }
+    },
+    "v4_vendor_event": {
+     "$.vendor": {
+      "legacy_restricted_id": 14,
+      "total": 20,
+      "widened_only": 6
+     },
+     "facts.product": {
+      "total": 36,
+      "widened_only": 36
+     },
+     "fields.service": {
+      "total": 27,
+      "widened_only": 27
+     },
+     "filing_proof.product": {
+      "total": 27,
+      "widened_only": 27
+     },
+     "service_invoice.product": {
+      "total": 27,
+      "widened_only": 27
+     },
+     "service_monitor.product": {
+      "total": 18,
+      "widened_only": 18
+     },
+     "vendor": {
+      "legacy_restricted_id": 20,
+      "total": 20
+     }
+    },
+    "v4_vendor_semantic_review": {
+     "vendor": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    },
+    "workspace_workflow_intent": {
+     "scope.service": {
+      "total": 15,
+      "widened_only": 15
+     },
+     "scope.vendor": {
+      "total": 15,
+      "widened_only": 15
+     }
+    },
+    "workspace_workflow_invoice": {
+     "scope.service": {
+      "total": 1,
+      "widened_only": 1
+     },
+     "scope.vendor": {
+      "total": 1,
+      "widened_only": 1
+     }
+    }
+   }
+  },
+  "runtime/ronok-review-87/workspace.db": {
+   "refused_value_sha256": {},
+   "tables": {
+    "case_snapshot": {
+     "$.product": {
+      "legacy_restricted_id": 8,
+      "total": 8
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 4,
+      "total": 12,
+      "widened_only": 8
+     }
+    },
+    "dispute_cases": {
+     "$.product": {
+      "total": 29,
+      "widened_only": 29
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    },
+    "v4_vendor_artifact": {
+     "$.product": {
+      "total": 4,
+      "widened_only": 4
+     },
+     "manifest.product": {
+      "total": 2,
+      "widened_only": 2
+     },
+     "manifest.vendor": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "overlay.product": {
+      "total": 2,
+      "widened_only": 2
+     },
+     "propositions.vendor": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     },
+     "scope.product": {
+      "total": 4,
+      "widened_only": 4
+     },
+     "vendor": {
+      "legacy_restricted_id": 2,
+      "total": 2
+     }
+    },
+    "v4_vendor_event": {
+     "$.vendor": {
+      "legacy_restricted_id": 9,
+      "total": 9
+     },
+     "facts.product": {
+      "total": 15,
+      "widened_only": 15
+     },
+     "fields.service": {
+      "total": 15,
+      "widened_only": 15
+     },
+     "filing_proof.product": {
+      "total": 15,
+      "widened_only": 15
+     },
+     "service_invoice.product": {
+      "total": 15,
+      "widened_only": 15
+     },
+     "service_monitor.product": {
+      "total": 10,
+      "widened_only": 10
+     },
+     "vendor": {
+      "legacy_restricted_id": 9,
+      "total": 9
+     }
+    },
+    "v4_vendor_semantic_review": {
+     "vendor": {
+      "legacy_restricted_id": 1,
+      "total": 1
+     }
+    }
+   }
+  },
+  "workbench-sandbox.sqlite": {
+   "refused_value_sha256": {},
+   "tables": {
+    "case_snapshot": {
+     "$.product": {
+      "legacy_restricted_id": 8,
+      "total": 8
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 46,
+      "total": 54,
+      "widened_only": 8
+     }
+    },
+    "dispute_cases": {
+     "$.product": {
+      "total": 29,
+      "widened_only": 29
+     },
+     "$.vendor": {
+      "legacy_restricted_id": 4,
+      "total": 4
+     }
+    }
+   }
+  }
+ },
+ "fields": [
+  "product",
+  "public_product",
+  "service",
+  "vendor"
+ ],
+ "rule": "source-identity/1",
+ "total_refused": 0,
+ "values_printed": false
+}

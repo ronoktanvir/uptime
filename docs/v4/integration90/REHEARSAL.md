@@ -20,7 +20,9 @@ The CalyxQuay review **cannot be performed live again**: its grant is COMPLETED 
    - Review invoice NW-2026-03 before payment
    - Complete March 2026 usage evidence
    - Next step: Approve January claim
-3. **Ramp tab:** demo bill `f74ba12c-95d0-582d-9f62-26d8057d1d37` in demo.ramp.com, showing the person-posted note (comment `376563cf…`). Do not post, edit or approve anything. Optional: the W1 read-only pre-filming check (no write) confirms the note is still there and the bill is unchanged.
+3. **Ramp tab:** demo bill `f74ba12c-95d0-582d-9f62-26d8057d1d37` in demo.ramp.com, showing the person-posted note (comment `376563cf…`). Do not post, edit or approve anything. Optional read-only checks, neither of which writes anything:
+   - W1 Ramp check: `RAMP_ENV=sandbox UPTIME_RAMP_CREDENTIAL_FILE=~/.config/uptime/ramp-demo-native.json python scripts/ramp_prefilm_check.py --output-dir ~/.local/share/uptime-engineering/runtime/ramp-lineage-20261109`. Exit 0 prints `PREFILM PASS …`. The first run, at 12:36 UTC, passed with no failures and 0 writes ([summary](../evidence/ramp-lineage-93/prefilm-20261109T123606Z.json)). It refuses to run under CI.
+   - W9 machine check: `uv run --locked python scripts/operations_preflight.py` (disk, sandbox-only Ramp environment, loopback-only ports, no tunnel, workspace health, a verified backup). It returned READY on this Mac. Night-before steps are in [DEMO-MACHINE-90.md](../DEMO-MACHINE-90.md).
 4. **Review tab:** the recorded CalyxQuay review, either the 8777 listener's read-only vendor history or [the receipt](../evidence/local-review-88/recorded-review-20261109.json). Do not sign in to act there, and never read or use the reviewer key.
 5. **Fallback open in a background tab:** the saved screens in `docs/v4/evidence/finance-guide-90/` and the receipts listed under [Fallback](#fallback).
 
@@ -40,6 +42,13 @@ About 260 spoken words. Measured interaction time for all eleven steps plus two 
 
 If someone other than Ronok presents, say "Ronok's enrolled account" rather than "Ronok clicked": the record authenticates the account, not the person at the keyboard.
 
+## Screens to use and avoid while recording
+
+From the W7 sweep of a fresh workspace at 390 px and 1360 px: no sideways scroll and no page errors on any route.
+
+- **Use:** Contract worklist (finance view), Ramp records, Vendor intake & versions, Correspondence & disputes.
+- **Avoid:** Case ledger · Advanced, Onboarding lab, Integrations, Advanced workflows, Regression comparison, Policies. They show the older seeded comparison portfolio and simulator wording. Those labels are accurate but off-message for this script.
+
 ## Never say
 
 - "Recovered" or "saved" for the $2,400, or that anything reached Ramp, stopped a payment or held a bill.
@@ -54,7 +63,8 @@ If someone other than Ronok presents, say "Ronok's enrolled account" rather than
 
 - **"A status page isn't customer proof."** Show the W5 public status receipt ([public-status-live-91a.json](../evidence/evidence-custody-90/public-status-live-91a.json)). Twilio's real published incident `fm5fk85h6glc` was delivered as a signed status record, and the claim stayed INSUFFICIENT_EVIDENCE with a null amount until customer impact is shown. Disclosure: "the claim account is a local test scope; the outage is Twilio's real published incident." To re-run it, use `scripts/rehearse_public_status.py` in its own harness-hosted workspace, never the Northwind presentation workspace. Running it live needs one public HTTPS GET.
 - **"Where did this clause come from?"** Show the W5 custody receipt ([document-custody-91.json](../evidence/evidence-custody-90/document-custody-91.json)). A read-only audit re-sliced 77 of 77 stored citations, across 5 adapter versions in the presentation and review workspaces, from the stored source text at the stated offsets, with matching document and quote hashes. It proves where the words are, not that the interpretation is right.
-- **"How do new vendors get added?"** Point to the adapter requirement card (decision 90) and the D05 decision: Uptime selects among supported rule families, and a person approves before activation. Auto-selection is not built yet.
+- **"What happened in the dispute?"** Open the **Dispute record** panel on the Northwind case. It shows the vendor's missing-evidence request, the cure and the reported award, each with its checks. It shows only Claimed and Awarded; posting and application are on the bill reconciliation screen.
+- **"How do new vendors get added?"** Point to the adapter requirement card (decision 90) and D05: on the integration branch, Uptime selects the rule family from the source itself (decisions 97 and phase 2), and a person still approves before activation. The demo build `fde492c` predates phase 2. The unseen-vendor proof has not run.
 
 ## Fallback
 
@@ -67,7 +77,13 @@ Each fallback is offline and repeatable, and none performs a native or model act
 
 ## Local sessions
 
-Filled in when the presentation listener is prepared from the frozen tested build; see the rehearsal record.
+Prepared November 9, 2026, at about 13:03 UTC (5:03 AM Pacific):
+
+- **Presentation, http://127.0.0.1:8776**: served from the frozen demo build `fde492c` in the detached, clean checkout `$HOME/.local/share/uptime-engineering/presentation-fde492c`. The fresh, unfiled workspace is `$HOME/.local/share/uptime-engineering/runtime/northwind-presentation-fde492c`. Sign in as `scripted-test-reviewer` with that directory's `scripted-reviewer.jwk`. Its opening attention list matches the pre-filming checklist exactly. It runs in the Claude desktop terminal tab "Northwind presentation 8776 (demo build fde492c)"; stop it with Ctrl-C there. To restart without resetting state, run the same `setup_northwind.py` command from that checkout with `--resume`.
+- **Ronok's review, http://127.0.0.1:8777/#vendors**: unchanged, served from `$HOME/uptime`. Use the read-only history only; the grant is spent.
+- The earlier `northwind-presentation-87` directory is preserved and not served.
+
+Do not run `rehearse_northwind.py` against the presentation directory; it completes all actions. Use a throwaway directory instead (see Fallback).
 
 ## Rehearsal record
 
@@ -78,6 +94,9 @@ Filled in when the presentation listener is prepared from the frozen tested buil
 | W7 screens in headless Chrome, all 11 steps plus 2 guide questions | 8.2 s of interaction on `5312938`; initial attention list as above | [timing receipt](../evidence/finance-guide-90/screen-walkthrough-timing.json) |
 | Human-posted Ramp note | Verified November 7 by two read-only API reads; re-observed in a complete thread read at 2026-11-09 11:02 UTC; bill unchanged (USD 840, OPEN, approval PENDING, no applied credit) | [read-back](../evidence/demo-path-87/human-ramp-note.json), [re-read](../evidence/ramp-lineage-93/live-read-20261109.json) |
 | CalyxQuay recorded review | REVOKED at revision 9; grant COMPLETED | [receipt](../evidence/local-review-88/recorded-review-20261109.json) |
-| Rehearsal on the round-2 integration build | Pending the round-2 suite | — |
+| Integration suite on the demo build | Fresh clone of `fde492c`: 4,523 passed, 1 warning in 523.01 s; 92/92 JavaScript checks; offline rehearsal, progress graph, secret scan and checklist render passed | [receipt](../evidence/integration-90/verification-fde492c.json) |
+| 11-step walkthrough over real HTTP on the demo build | Passed in 5.1 s against a throwaway workspace served from the frozen checkout. Every duplicate was unchanged and every readback equal; Local ledger 2,400.00 claimed, awarded, posted and applied; April 11,000.00 → 8,600.00; authority `SCRIPTED_REVIEWER` | [receipt](../evidence/integration-90/northwind-http-fde492c.json) |
+| W9 machine preflight against the live listeners | READY, with no findings. 8776, 8777 and 8780 listen on 127.0.0.1 only; both workspaces are healthy; the Ramp environment is unset; 8.4 GiB free. The workspace databases are byte-identical before and after. Disclosed side effect: the read-only open created empty SQLite `-wal`/`-shm` sidecars in `ronok-review-87`, with no data written; they were left in place, and the W9 tool is being fixed | W9 (`gen6`) report |
+| Fresh presentation workspace on 8776 | Serving the demo build; opening attention list as in the checklist; no action taken | This section |
 | Timed run by a person | **Not done** | Needs the presenter and a stopwatch |
 | Film | **Not done**; Ronok decides when to record | — |

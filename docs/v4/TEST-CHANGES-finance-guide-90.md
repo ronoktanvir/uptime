@@ -49,7 +49,7 @@ Decision: [ADR 95](decisions/ADR-0095-grounded-finance-guide.md).
 | Focused regression before the critique changes | Working tree on `03b372e` | **338 passed, 1 warning in 587.64s** |
 | Same group after rebase | `8cf8f0c` | **349 passed, 1 warning in 276.90s** ([verification](evidence/finance-guide-90/verification.json)) |
 | JavaScript checks | Tree equal to `5312938` | **84/84 pass** (75 existing + 9 new) |
-| Full `uv run --locked pytest` | — | Not yet run. Requested from the integration owner; full suites run one at a time on this disk. |
+| Full `uv run --locked pytest` | `fde492c` (integration round 3, fresh clone) | **4523 passed, 1 warning in 523.01s (0:08:43)** — run by the integration owner; see the full-suite record below |
 
 The focused list covers:
 
@@ -120,4 +120,70 @@ No existing test changed. These existing tests run unchanged alongside the new f
 - `tests/test_v4_audit_protocol.py`
 
 Result: **94 passed, 1 warning in 87.66s**.
+
+## Dispute interaction and Ramp record wording (W4 request and demo copy)
+
+No existing test changed. New tests:
+
+| File | Count | Purpose |
+| --- | ---: | --- |
+| `tests/helpers/denial_acceptance.test.cjs` | 6 | Covers the following: <ul><li>"Accept denial" posts only `{basis_digest}` to `/denial-acceptance`, never `/actions/accept-denial`.</li><li>A stale-basis 409 accepts nothing and reloads the new offer.</li><li>A malformed offer or a read-only session cannot post.</li><li>The read-only dispute record uses plain labels and keeps vendor text inert.</li><li>A blocking contradicting delivery is explained, and nothing is inferred from the stage.</li><li>89b checks are worded by meaning; `contradicting_deliveries_unresolved: true` is never "pass".</li></ul> |
+| `tests/test_interpretation_denial_label_95.py` | 1 | Real Chrome. A DENIAL_REVIEW preview names the ground-recording step and shows plain classifications. The step posts to `/prepare-response` only. |
+| `web/ramp_wording.test.cjs` | 2 | Ramp record codes read as meaning-preserving wording, while other codes stay exact. Native routes lead each row and record page. Unverified URLs offer none. |
+
+Results:
+
+- JavaScript: **92/92**
+- Correspondence, disposition and interpretation suites, including W4's unchanged `test_correspondence_disposition_89.py`: **69 passed**
+- Companion and correspondence browser suites after the 89b follow-up: **25 passed**
+- Ramp, workspace and finance browser tests: **6 passed**
+
+## D05 automatic selection follow-up (branch `work/refusal-diagnostic-auto-89`, on agent2's `f1a37a1`)
+
+**Changed test (my own, from `5312938`): `tests/helpers/refusal_diagnostic.test.cjs`.** Its two tests are replaced:
+
+| Old test | New test |
+| --- | --- |
+| "a refused job shows fixed explanations, the exact passage and missing terms as text" | "a refused family shows its verified diagnostic; a family without one shows the summary" |
+| "no diagnostic, a wrong schema or a non-refused job shows nothing extra" | "a foreign or malformed diagnostic falls back to the summary; no refusal shows nothing extra" |
+
+Reason: decision 97 (D05) removes the "Extraction profile" select. A refused job is no longer opened in its own job view; each family's refusal appears in the selection view. On `f1a37a1` the old tests failed with `TypeError: Cannot set properties of undefined (setting 'value')`: 0 passed, 2 failed.
+
+The assertions are not weakened. They still pin all of the following:
+
+- fixed server explanations
+- exact block, offsets and SHA-256
+- missing terms
+- the source document
+- inert markup in quoted passages
+- no staging control
+- no post other than the read-only selection request
+
+They now also check two new points:
+
+- the verified diagnostic replaces the summary rather than repeating it;
+- a rejected diagnostic contributes no verified detail.
+
+UI change, one line in `web/v4_ui.js`: each family row prefers `refusalDiagnostic(f.public_diagnostic, 'Why this family was refused')` and falls back to agent2's `familyRefusal(f.refusal)` summary. The heading is kept so agent2's browser assertions are unchanged.
+
+Results on this branch:
+
+- JavaScript: 94/94
+- `test_vendor_model_jobs_browser`, `test_vendor_auth83`, `test_vendor_family_selection_89`, `test_advanced_companion`, finance, workspace and Ramp UI browser tests, and `test_v4_authority_browser`: **43 passed, 1 warning in 36.81s**
+- the same set on `f1a37a1` alone: 43 passed; JavaScript there was 92/94, the two failures being the old file above
+- Use-screen sweep at 390 px: no sideways scroll, no demo wording, no page errors
+
+## Full-suite record
+
+| Run | Tested commit | Result | Covers |
+| --- | --- | --- | --- |
+| Integration round 3 (integration owner, fresh clone) | `fde492c` | **4523 passed, 1 warning in 523.01s (0:08:43)** | Every W7 commit through `3f13db8`, including `679133c`, `0b6523e`, `a47fb5a`, `d3ac7d7` and `e7d9726` |
+| Integration round 5 | Pending | Result line to be recorded when the integration owner reports it | The D05 follow-up `0848d59`, merged as `1eac5ed`, which is not in `fde492c` |
+
+Receipts on `work/integration-90`:
+
+- `docs/v4/evidence/integration-90/full-suite-fde492c.log`
+- `docs/v4/evidence/integration-90/verification-fde492c.json`
+
+I did not run a separate full suite on this branch. The integration owner coordinates full runs one at a time on the shared disk. My queued run was cancelled before it started, and no temporary data was created.
 

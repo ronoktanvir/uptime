@@ -1,0 +1,41 @@
+{
+  "schema": "uptime-workstream-verification/1",
+  "requested_by": "overview session (Agent sessions progress review), 2026-11-09; results also sent to agent0",
+  "integration_head": "23805c995dc8ec40900d75fef880a31b8f8aa1ff",
+  "integration_head_note": "Local work/integration-90 tip at run time; origin was at 36aa17e (behind). W9 head 18144a1 not yet merged.",
+  "fresh_clone_focused_run": {
+    "clone": "git clone --no-local of the shared repository into the scratchpad, detached at 23805c9; clean before and after; deleted afterwards",
+    "environment": "existing locked Uptime-V4 environment (uv.lock unchanged since 861ab73), PYTHONDONTWRITEBYTECODE=1, unique basetemp, tmp_path_retention_policy=failed",
+    "suites": ["test_operations_recovery_90", "test_ramp*", "test_v4_authority", "test_opus46_security", "test_signed_mandates",
+               "test_local_review_exception*", "test_release_gate_v4", "test_release_boundaries", "test_workspace_tenant_v4",
+               "test_live_reviewer_setup", "test_vendor_auth83"],
+    "result": "1206 passed, 1 warning in 117.43s",
+    "not_a_full_suite": true
+  },
+  "preflight": {
+    "tool": "scripts/operations_preflight.py from work/operations-90 @ 18144a1 (not yet in integration)",
+    "workspaces": ["runtime/northwind-presentation-87/workspace.db", "runtime/ronok-review-87/workspace.db"],
+    "ports": [8776, 8777, 8780],
+    "result": "READY; only INFO PORT_NOT_LISTENING for 8776",
+    "details": {"northwind": "OK, replay, rehearsal, tenant bears", "review": "OK, replay, non-rehearsal, tenant bears",
+                "8777": "listening on 127.0.0.1 only", "8780": "listening on 127.0.0.1 only",
+                "ramp_environment": "RAMP_ENV and RAMP_BASE_URL unset", "free_space": "7.9 GiB"},
+    "backups_evaluated": false,
+    "sources_unchanged": "both databases byte-identical before and after; review database mtime unchanged"
+  },
+  "drills_on_copies": {
+    "method": "online backup (read-only on the live source) into the scratchpad, verify, restore to a new path, start create_app twice on the restored copy, health check, acknowledge on the copy; copies deleted afterwards",
+    "northwind": {"backup": "45 tables, integrity ok, case history VERIFIED", "verify": true,
+                  "restored_differs_only_in": ["operations_restore"],
+                  "restart": "refused at startup without the private rehearsal credential (ValueError: Only a scripted replay can use a private rehearsal credential); that secret was deliberately not used; no table changed",
+                  "health": "RESTORE_RECONCILIATION_PENDING then OK after acknowledgement (INFO NO_RAMP_CAPTURE)",
+                  "note": "A full Northwind restart needs its private configuration; W8's --resume restart receipt covers that path. Its local-ledger.db is a separate file not covered by workspace backup."},
+    "review": {"backup": "42 tables, integrity ok, case history VERIFIED", "verify": true,
+               "restored_differs_only_in": ["operations_restore"],
+               "restart": "two startups; unauthenticated GET /api/dashboard returned 401 both times; startup changed no table",
+               "vendor_events": "calyxquay: 9 events, max revision 9 (matches the recorded REVOKED revision 9)",
+               "health": "RESTORE_RECONCILIATION_PENDING then OK after acknowledgement (INFO NO_RAMP_CAPTURE)"},
+    "sources_unchanged": true
+  },
+  "not_claimed": ["full suite", "signed-in restart on the Northwind copy", "any change to live demo workspaces or running listeners"]
+}

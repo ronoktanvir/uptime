@@ -18,9 +18,9 @@ class Strict(BaseModel):
 
 class Scope(Strict):
     account: SourceIdentity
-    vendor: Name
+    vendor: SourceIdentity
     contract: SourceIdentity
-    service: Name
+    service: SourceIdentity
     component: Id
     invoice: Id
     incident: Id
@@ -92,9 +92,9 @@ class Line(Strict):
     # Omitted fields inherit the authenticated invoice envelope. An explicit
     # contradictory identity cannot be silently replaced with case scope.
     account: SourceIdentity | None = None
-    vendor: Name | None = None
+    vendor: SourceIdentity | None = None
     contract: SourceIdentity | None = None
-    service: Name | None = None
+    service: SourceIdentity | None = None
     component: Id | None = None
     invoice: Id | None = None
     incident: Id | None = None
@@ -157,7 +157,7 @@ class ResourceLine(Strict):
     gross_cents: int | None = Field(default=None, ge=0, le=10**15)
     discount_cents: int | None = Field(default=None, ge=0, le=10**15)
     discount_ref: Id | None = None
-    product: Name | None = None
+    product: SourceIdentity | None = None
     region: Id | None = None
     recurring: bool | None = None
     payment_state: Literal["paid","voided","unpaid"] | None = None
@@ -168,7 +168,7 @@ class ResourceLine(Strict):
 class MonitorRow(Interval):
     ref: Id
     account: SourceIdentity
-    product: Name
+    product: SourceIdentity
     region: Id
     resource_id: Id
     status: Name

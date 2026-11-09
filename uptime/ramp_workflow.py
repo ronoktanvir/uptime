@@ -143,6 +143,8 @@ class ScopedSandboxWorkflowProvider:
         form_digest = None
         if form_id is not None:
             form = self._call("GET", f"{PREFIX}/custom-form/collections/responses/{uuid_text(form_id)}", {"custom_forms:read"})
+            if not isinstance(form, dict) or form.get("id") != form_id:
+                raise WorkflowError("Exact custom form readback required")
             form_digest = digest(form)
         # These are the exact OpenAPI fields; spend_program_id is not on this resource.
         program_ref = request.get("assigned_spend_intent") or request.get("spend_intent")
@@ -328,7 +330,7 @@ class RampWorkflow:
         if not timedelta(0) <= self.clock()-observed <= timedelta(hours=24):
             raise WorkflowError("Stale finding requires reevaluation")
         sources = finding.get("sources")
-        if not isinstance(sources, list) or not sources or any(s not in SOURCE_LABELS for s in sources):
+        if not isinstance(sources, list) or not sources or any(not isinstance(s, str) or s not in SOURCE_LABELS for s in sources):
             raise WorkflowError("Explicit finding provenance required")
         result = {"finding_digest": finding["finding_digest"], "sources": sorted(set(sources)),
                 "observed_at": finding["observed_at"], "simulation_only":
@@ -425,6 +427,14 @@ class RampWorkflow:
         plan["review_digest"] = digest(plan)
         with database(self.path) as db, db:
             db.execute("BEGIN IMMEDIATE")
+            # A different logical action on the same object (for example, a newer finding)
+            # must not be prepared while an earlier one may already have reached Ramp.
+            for pending in db.execute("SELECT id,plan FROM rw_outbox WHERE tenant=? AND status IN ('UNCERTAIN','DISPATCHING')",
+                                      (self.tenant,)):
+                prior = json.loads(pending["plan"])
+                if (pending["id"] != ident and prior.get("kind") == plan["kind"]
+                        and prior.get("object_type") == plan["object_type"] and prior.get("object_id") == plan["object_id"]):
+                    raise WorkflowError("An uncertain action on this exact object must be reconciled first")
             old = db.execute("SELECT plan,status FROM rw_outbox WHERE tenant=? AND id=?", (self.tenant, ident)).fetchone()
             if old and old[0] != canonical(plan):
                 if old[1] not in {"PREPARED", "REVIEWED", "BLOCKED"}:
@@ -441,13 +451,28 @@ class RampWorkflow:
         row = db.execute("SELECT * FROM rw_outbox WHERE tenant=? AND id=?", (self.tenant, action_id)).fetchone()
         if row is None:
             raise WorkflowError("Exact workflow action unavailable")
+        # The signed review covers review_digest; a stored plan edited without it is refused.
+        plan = json.loads(row["plan"])
+        claimed = plan.pop("review_digest", None)
+        if (claimed != digest(plan) or plan.get("id") != action_id or plan.get("tenant") != self.tenant
+                or plan.get("business_id") != self.business_id):
+            raise WorkflowError("Stored workflow plan integrity mismatch")
         return row
 
     def get(self, action_id):
         with database(self.path) as db:
             row = self._row(db, action_id)
             plan = json.loads(row["plan"])
-            return {**plan, "status": row["status"], "delivery": row["status"], "remote_id": row["remote_id"],
+            current = None
+            if plan.get("approval_trigger_instance_id"):
+                # Display only: a later reset never rewrites the recorded delivery.
+                try:
+                    self._guard_trigger(plan, db)
+                    current = True
+                except RampError:
+                    current = False
+            return {**plan, "status": row["status"], "delivery": row["status"], "trigger_current": current,
+                    "remote_id": row["remote_id"],
                     "remote_state": json.loads(row["remote_state"]) if row["remote_state"] else None}
 
     def review_message(self, action_id, *, reviewer, expires_at):

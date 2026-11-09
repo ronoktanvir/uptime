@@ -70,7 +70,8 @@ class Issuer(Strict):
     # Empty business scope allows only local actions. Native permissions are enumerated.
     business_id: ObjectID | None = None
     native_actions: tuple[NativeAction, ...] = ()
-    local_purposes: tuple[Literal["workspace", "claim-filing", "vendor-promotion", "policy-change", "credit-allocation"], ...] = ("workspace",)
+    local_purposes: tuple[Literal["workspace", "claim-filing", "vendor-promotion", "policy-change", "credit-allocation",
+                                  "claim-closure"], ...] = ("workspace",)
 
     @model_validator(mode="after")
     def bounded(self):
@@ -114,6 +115,41 @@ def check_claim_decision(principal, action, scope, packet, db):
         raise PermissionError(DENIED)
 
 
+class ClosureDecision(Strict):
+    """Ronok's decision 2a (2026-11-09): a person closes a claim by accepting a reviewed denial.
+
+    Bound to the exact reviewed basis and claim state. It carries no money and has no
+    outbound effect; the award, ledger and submissions are unchanged.
+    """
+    claim_id: str = Field(pattern=r"^inbox-[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
+    action: Literal["accept-denial"]
+    scope_sha256: Key
+    basis_sha256: Key
+    claim_state_sha256: Key
+    max_amount_cents: Literal[0] = 0
+
+
+def closure_preview(claim_id, basis_sha256, scope, state):
+    """basis_sha256 is the basis_digest offered on the case's accept-denial action.
+
+    claim_state_sha256 uses the same [scope, state] fingerprint as credit decisions.
+    """
+    return ClosureDecision(claim_id=claim_id, action="accept-denial", scope_sha256=fingerprint(scope),
+                           basis_sha256=basis_sha256, claim_state_sha256=fingerprint([scope, state]))
+
+
+def check_closure_decision(db, principal, actual):
+    """Check a mandated denial acceptance against the current basis and claim state."""
+    decision = getattr(principal, "closure_decision", None)
+    if decision is None:
+        if principal.tenant == "bears" and not getattr(principal, "mandate_id", None):
+            return
+        raise PermissionError(DENIED)
+    recheck_financial_mandate(db, principal)
+    if decision != actual:
+        raise PermissionError(DENIED)
+
+
 class CreditDecision(Strict):
     claim_id: str = Field(pattern=r"^inbox-[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
     action: Literal["record-credit", "apply-balance"]
@@ -144,7 +180,8 @@ def recheck_financial_mandate(db, principal):
     signed = SignedMandate.model_validate_json(row[0])
     _verified(db, signed, time())
     if (signed.mandate.claim != getattr(principal, "claim_decision", None)
-            or signed.mandate.credit != getattr(principal, "credit_decision", None)):
+            or signed.mandate.credit != getattr(principal, "credit_decision", None)
+            or signed.mandate.closure != getattr(principal, "closure_decision", None)):
         raise PermissionError(DENIED)
 
 
@@ -165,9 +202,14 @@ def check_credit_decision(db, principal, actual):
         raise PermissionError("Claim or allocation journal changed after the mandate was issued")
 
 
+CLOSURE_PATH = re.compile(r"^/api/correspondence/claims/inbox-[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}/denial-acceptance$")
+
+
 def local_purpose(path):
     if path == "/api/policy":
         return "policy-change"
+    if CLOSURE_PATH.fullmatch(path):
+        return "claim-closure"
     if "/actions/" in path:
         action = path.rsplit("/",1)[-1]
         if path.startswith(("/api/vendors/", "/api/onboarding/")):
@@ -188,6 +230,7 @@ class ClaimedMandate:
     ticket: str | None
     claim_decision: ClaimDecision | None
     credit_decision: CreditDecision | None
+    closure_decision: ClosureDecision | None = None
 
 
 class Mandate(Strict):
@@ -206,6 +249,7 @@ class Mandate(Strict):
     effect: Effect | None = None
     claim: ClaimDecision | None = None
     credit: CreditDecision | None = None
+    closure: ClosureDecision | None = None
 
     @field_validator("path")
     @classmethod
@@ -231,6 +275,13 @@ class Mandate(Strict):
                 raise ValueError("Credit decision does not match the exact local action")
         elif local_purpose(self.path) == "credit-allocation":
             raise ValueError("A credit mutation requires an exact allocation plan")
+        if self.closure:
+            c = self.closure
+            if (self.effect or self.claim or self.credit
+                    or self.path != f"/api/correspondence/claims/{c.claim_id}/denial-acceptance"):
+                raise ValueError("Closure decision does not match the exact denial acceptance")
+        elif local_purpose(self.path) == "claim-closure":
+            raise ValueError("A denial acceptance requires an exact closure decision")
         return self
 
     def signing_bytes(self):
@@ -239,6 +290,8 @@ class Mandate(Strict):
             del data["credit"]
         if data["claim"] is None:
             del data["claim"]  # Preserve signing bytes of version-one non-claim mandates.
+        if data["closure"] is None:
+            del data["closure"]
         return json.dumps(data, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
 
 
@@ -383,7 +436,7 @@ def claim(path, principal, request_path, body_digest, instance, required):
         ticket = token_hex(32) if m.effect else None
         db.execute("UPDATE reviewer_mandate SET used=1,ticket=?,ticket_until=?,instance=? WHERE id=?",
                    (sha256(ticket.encode()).hexdigest() if ticket else None, min(at+60, m.valid_until), instance, m.mandate_id))
-        return ClaimedMandate(m.mandate_id, ticket, m.claim, m.credit)
+        return ClaimedMandate(m.mandate_id, ticket, m.claim, m.credit, m.closure)
 
 
 def consume_native(path, principal, instance, ticket, effect):

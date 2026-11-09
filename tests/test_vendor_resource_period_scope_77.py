@@ -29,7 +29,8 @@ def compile_rows(rows, name='Synthetic Decision77 terms'):
 
 def reviewed(manifest, overlay, facts, tenant):
     from test_vendor_semantic_bindings import reviewed_context
-    bound = bind_overlay(manifest, Overlay(**overlay))
+    from governing_binding_89 import reviewed_binding  # F5: unnamed-agreement sources need the reviewed binding
+    bound = bind_overlay(manifest, Overlay(**reviewed_binding(manifest, overlay)))
     return evaluate(manifest, bound, facts, tenant, bindings=reviewed_context(manifest, bound, tenant=tenant))
 
 

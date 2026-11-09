@@ -16,6 +16,7 @@ from uptime.correspondence_types import Claim, Delivery, Scope
 from uptime.correspondence_vendor import VendorRecord, adjudicate
 
 ORACLE = json.loads((Path(__file__).parents[1] / "fixtures/correspondence/oracle.json").read_text())
+ORACLE_D06 = json.loads((Path(__file__).parents[1] / "fixtures/correspondence/oracle-v2-d06.json").read_text())
 SCOPE = Scope(account="account-71", vendor="Twilio", contract="agreement-X", service="Twilio Messaging API",
               component="api-east", invoice="oct-invoice", incident="evt-411", currency="USD",
               month="2026-10", region="east")
@@ -111,6 +112,11 @@ def test_known_and_newly_received_maintenance(tmp_path):
     assert msg["stage"] == "AWAITING_NOTICE" and not msg["actions"]
     later.now += timedelta(minutes=10)
     later.send("notice")
+    # D06 (Q2 option A): the substantiated maintenance ground closes only on explicit acceptance.
+    pending = ORACLE_D06["notice_first_obtained_after_filing"]["before_acceptance"]
+    offered = later.get()["actions"]
+    assert later.get()["stage"] == pending["stage"] and [a["id"] for a in offered] == pending["actions"]
+    later.desk.accept_denial(REVIEWER, ID, offered[0]["basis_digest"])
     row = later.get()
     assert row["stage"] == ORACLE["notice_first_obtained_after_filing"]["stage"]
     assert row["evidence"][-1]["received_at"] > receipt["at"] and len(row["submissions"]) == 1

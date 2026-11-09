@@ -1,6 +1,6 @@
 # ADR 91a — Twilio's public status page as the first real evidence source
 
-Status: implemented on `work/evidence-custody-90` (`6d3536f` source, `9eafdf5` rehearsal); **intake path verified with a live public capture; launch path unverified.** November 9, 2026. Workstream W5. Implements the evidence-source element of D07 (narrow published matrix, decided November 9 by Ronok; relayed from his overview session and recorded by the integration owner).
+Status: implemented on `work/evidence-custody-90` (`6d3536f` source, `9eafdf5` rehearsal); **intake verified with a live public capture; release gate pending.** November 9, 2026. Workstream W5. Implements the evidence-source element of D07 (narrow published matrix, decided November 9 by Ronok; relayed from his overview session and recorded by the integration owner).
 
 [Decision packet](packets/91a-public-status-source.md) · [Actual Opus 5.5 critique](reviews/91a-public-status-source.json), session `6e0ce0dd-8e29-41c8-9da3-c2dec50de3b2` · [Live receipt](../evidence/evidence-custody-90/public-status-live-91a.json) · [Support matrix, section 7](../EVIDENCE-SUPPORT-MATRIX-91.md)
 

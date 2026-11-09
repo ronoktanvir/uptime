@@ -316,3 +316,97 @@ def test_generic_workflow_ignores_native_reason_extension_and_preserves_bytes(se
         + current["dedup_marker"]), "message_format": "PLAIN_TEXT"}
     review(flow, key, current)
     assert flow.execute(current["id"], provider=provider)["status"] == "DELIVERED"
+
+
+def test_concurrent_workers_dispatch_at_most_once(setup, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+    flow, provider, key, _, _, restart = setup
+    plan = flow.prepare_comment("bills", BILL, provider=provider)
+    review(flow, key, plan)
+    gate = Barrier(2)
+    read = provider.read_object
+    def together(*args):
+        result = read(*args)
+        gate.wait(timeout=5)
+        return result
+    monkeypatch.setattr(provider, "read_object", together)
+    def execute():
+        try:
+            return restart().execute(plan["id"], provider=provider)["status"]
+        except RampError:
+            return "CONCURRENT_DISPATCH_BLOCKED"
+    with ThreadPoolExecutor(max_workers=2) as workers:
+        results = list(workers.map(lambda _: execute(), range(2)))
+    assert "DELIVERED" in results
+    assert len(provider.calls) == 1
+
+
+def test_process_crash_after_remote_write_keeps_durable_uncertainty(setup, monkeypatch):
+    flow, provider, key, _, _, restart = setup
+    plan = flow.prepare_comment("bills", BILL, provider=provider)
+    review(flow, key, plan)
+    post = provider.post_comment
+    def crash(p):
+        post(p)
+        raise KeyboardInterrupt
+    monkeypatch.setattr(provider, "post_comment", crash)
+    with pytest.raises(KeyboardInterrupt):
+        flow.execute(plan["id"], provider=provider)
+    assert restart().get(plan["id"])["status"] == "DISPATCHING"
+    assert restart().reconcile(plan["id"], provider=provider)["status"] == "DELIVERED"
+    assert len(provider.calls) == 1
+
+
+def test_uncertain_prior_finding_cannot_be_bypassed_with_new_finding(setup):
+    flow, provider, key, findings, *_ = setup
+    plan = flow.prepare_comment("bills", BILL, provider=provider)
+    review(flow, key, plan)
+    with sqlite3.connect(flow.path) as db:
+        db.execute("UPDATE rw_outbox SET status='UNCERTAIN'")
+    findings["bills", BILL]["finding_digest"] = "c"*64
+    with pytest.raises(WorkflowError, match="reconciled first"):
+        flow.prepare_comment("bills", BILL, provider=provider)
+
+
+def test_stored_plan_tampering_detected_before_dispatch(setup):
+    flow, provider, key, *_ = setup
+    plan = flow.prepare_metadata(TRIGGER, provider=provider, url="https://inspector.example/case")
+    review(flow, key, plan)
+    with sqlite3.connect(flow.path) as db:
+        body = json.loads(db.execute("SELECT plan FROM rw_outbox").fetchone()[0])
+        body["body"]["status"] = "Evidence available"
+        db.execute("UPDATE rw_outbox SET plan=?", (json.dumps(body),))
+    with pytest.raises(WorkflowError, match="integrity"):
+        flow.execute(plan["id"], provider=provider)
+    assert provider.calls == []
+
+
+def test_reset_receipt_does_not_rewrite_prior_delivery_history(setup):
+    flow, provider, key, _, inbox, _ = setup
+    plan = flow.prepare_metadata(TRIGGER, provider=provider, url="https://inspector.example/case")
+    review(flow, key, plan)
+    assert flow.execute(plan["id"], provider=provider)["trigger_current"] is True
+    inbox.receive(*signed(native_event(ident=222, kind=RESET)))
+    result = flow.get(plan["id"])
+    assert result["status"] == "DELIVERED" and result["trigger_current"] is False
+
+
+def test_existing_exact_dedup_marker_prevents_post(setup):
+    flow, provider, key, *_ = setup
+    plan = flow.prepare_comment("bills", BILL, provider=provider)
+    review(flow, key, plan)
+    provider.post_comment(plan)
+    assert flow.execute(plan["id"], provider=provider)["status"] == "DELIVERED"
+    assert len(provider.calls) == 1
+
+
+def test_conflicting_remote_marker_requires_manual_resolution(setup):
+    flow, provider, key, *_ = setup
+    plan = flow.prepare_comment("bills", BILL, provider=provider)
+    review(flow, key, plan)
+    provider.post_comment(plan)
+    provider.threads["bills", BILL][0]["message"] += " altered"
+    with pytest.raises(WorkflowError, match="conflicts"):
+        flow.execute(plan["id"], provider=provider)
+    assert len(provider.calls) == 1

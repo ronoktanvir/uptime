@@ -10,7 +10,7 @@
 | Customer overlays | Supported, with binding gaps F4–F6 accepted by W3 for one batched semantics revision. |
 | One currency, calendar months | Evidence intake checks the granted `YYYY-MM` month (decision 91); currency equality is checked at the grant. |
 | No PDF intake | Confirmed: no general PDF path; the legacy Atlassian extractor stays a separate legacy lab (F9 out of scope). |
-| One real evidence source | Twilio's public status page through the ordinary enrollment tools and signed intake (decision 91a, section 7). **Intake path verified with a live public capture; launch path unverified**, because the ordinary launcher's release gate is unsatisfied and the rehearsal workspace was harness-hosted. |
+| One real evidence source | Twilio's public status page through the ordinary enrollment tools and signed intake (decision 91a, section 7). **Intake verified with a live public capture; release gate pending**, because the ordinary launcher's release gate is unsatisfied and the rehearsal workspace was harness-hosted. |
 
 ## 1. Contract documents
 
@@ -46,11 +46,13 @@ Each source is enrolled offline with an Ed25519 key, one role (`status`, `custom
 
 ## 3. Acceptance conditions
 
+Signed-path acceptance on the merged integration head `23805c9`: 219 passed, 1 warning, including seven dedicated controls in `tests/test_evidence_acceptance_91.py` ([receipt](evidence/evidence-custody-90/acceptance-merged-91.json)).
+
 | Condition | Current behavior |
 |:---|:---|
 | Wrong customer | Signed channel refuses envelope and nested mismatches. Embedded/HMAC channels store foreign nested rows (F2). |
 | Wrong period | Signed channel refuses records wholly outside the month (decision 91). Embedded/HMAC channels store them and block the claim (F1). A short record within 14 hours of the boundary is admitted and left to the evaluator. |
-| Stale | The public status snapshot is `stale` after 24 hours and `gap` if collected after the audit clock. A complete report observed before its period ended is refused. Signed evidence has **no maximum age**; a per-kind freshness policy for mutable records (payment state, refunds, account conditions) needs D07. |
+| Stale | The public status snapshot is `stale` after 24 hours and `gap` if collected after the audit clock. A complete report observed before its period ended is refused. Signed records are dated observations and have no intake maximum age; current-state freshness belongs to the evaluator that relies on it (section 6). |
 | Tampered | Signatures cover exact bytes; declared content digests are recomputed; public snapshots verify raw and per-observation hashes; Northwind fixtures verify file hashes and specimen signatures. |
 | Duplicated | Same event ID is idempotent; identical content under a new ID is recorded as an alias; overlapping intervals are merged as a union and cannot inflate downtime. |
 | Contradictory | One record per kind; a second becomes insufficient evidence. Status and impact must agree on the interval. Later contradictory evidence moves an awarded claim to human review. Customer and provider telemetry are combined by intersection, so disagreement cannot add downtime. |
@@ -88,7 +90,7 @@ On the signed channel the decision-91 grant refuses out-of-scope records with HT
 | Agreed support matrix | This document, aligned with D07 (header table) | Engine owners verify the unsupported outcomes for taxes, currencies, partial periods, ambiguous amendments and business calendars |
 | Document formats | Exact UTF-8 text with verified offsets. PDF, OCR and other formats are outside the first release (D07) | None for the first release. D10 (decided): only public data goes to Claude; private overlays and customer captures stay local. Both decision-91 critique packets contained only public or authored data |
 | Real evidence source | Twilio public status page, decision 91a. Live capture of November 9 delivered through the enrollment tools, the signed CLI and HTTP intake; retry idempotent; claim stays insufficient without customer impact. [Receipt](evidence/evidence-custody-90/public-status-live-91a.json) | Launch path: the ordinary launcher needs the release gate. Live claim use also depends on the W4 F3 change. Whether a harness-hosted run counts toward D07 is Ronok's call |
-| Freshness | Public status: 24 hours at delivery; complete reports cannot predate their period end | D07 did not set a per-kind maximum age for other mutable signed records (payment state, refunds, account conditions) |
+| Freshness | Public status: 24 hours at delivery; complete reports cannot predate their period end | W5 position, open to Ronok: a signed record is a dated observation and intake does not age it out. Staleness matters only where an evaluator relies on *current* state (still unpaid, not refunded, account still in good standing, subscription still active); that evaluator should require an observation no older than its own decision window and otherwise return insufficient evidence. D07 set no window, so none is invented here; the owners are W2/W4 (billing and account state) and W3 (subscription records) |
 | Dispute delivery channel | Authenticated signed intake for vendor messages and receipts | **D08** (pending) |
 | Retraction of a signed record (F7b) | W4 design: source-signed retraction that keeps history and voids approvals | Must fit the **D06** action matrix (owner W0, not yet written) |
 

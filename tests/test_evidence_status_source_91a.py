@@ -106,6 +106,15 @@ def test_wrong_vendor_incident_component_or_month_is_refused(update, match):
         status_delivery(SNAPSHOT, INCIDENT, SCOPE.model_copy(update=update), now=NOW)
 
 
+@pytest.mark.parametrize("absent", ["incident", "component"])
+def test_grant_without_incident_or_component_is_refused(absent):
+    # D04-C lets some claim families omit these fields; a public incident record cannot.
+    # model_construct mimics that optional scope on a schema where both are still required.
+    scope = Scope.model_construct(**{**SCOPE.model_dump(), absent: None})
+    with pytest.raises(StatusSourceRefusal, match="naming one incident and one component"):
+        status_delivery(SNAPSHOT, INCIDENT, scope, now=NOW)
+
+
 def test_unknown_or_unresolved_public_incidents_are_refused():
     with pytest.raises(StatusSourceRefusal, match="not in this snapshot"):
         status_delivery(SNAPSHOT, "zzzzzzzzzzzz", SCOPE.model_copy(update=dict(incident="zzzzzzzzzzzz")), now=NOW)

@@ -162,7 +162,7 @@ class RampWebhookInbox:
                 raise WebhookError(400, "Event header ID mismatch")
             if event.get("business_id") != self.deployment.business_id:
                 raise WebhookError(403, "Webhook business mismatch")
-            if event.get("type") not in self.deployment.event_types:
+            if not isinstance(event.get("type"), str) or event["type"] not in self.deployment.event_types:
                 raise WebhookError(400, "Unsubscribed event type")
             timestamp(event.get("created_at"))
             obj = event.get("object")
@@ -196,11 +196,16 @@ class RampWebhookInbox:
         with database(self.path) as db, db:
             row = db.execute("SELECT status,challenge_digest FROM rw_deployment WHERE id=?",
                              (self.deployment.deployment_id,)).fetchone()
-            if (response != {"success": True} or row[0] != "pending_verification" or
+            if (not isinstance(response, dict) or set(response) != {"success"} or response["success"] is not True or
+                    row[0] != "pending_verification" or
                     row[1] is None or not hmac.compare_digest(row[1], digest(challenge))):
                 raise RampError("Matching successful verification receipt required")
             db.execute("UPDATE rw_deployment SET status='active',challenge_digest=NULL WHERE id=?",
                        (self.deployment.deployment_id,))
+
+    def status(self):
+        with database(self.path) as db:
+            return db.execute("SELECT status FROM rw_deployment WHERE id=?", (self.deployment.deployment_id,)).fetchone()[0]
 
     def receive(self, raw_body: bytes, headers: Mapping):
         event = self._parse(raw_body, headers)
