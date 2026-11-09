@@ -63,7 +63,7 @@ Each blocker names its type, the owner who can move it, what unblocks it and the
 | Timed human rehearsal and Northwind film | Missing functionality | W8 / presenter | [Rehearsal](REHEARSAL.md) on the presenter's machine |
 | Disk capacity: the volume is nearly full; concurrent full suites exhausted it on November 9 | External dependency | Machine owner | Free space outside the repository; agents may delete only their own temporary trees |
 | Uncommitted sign-in change in `$HOME/uptime` (branch `fix/browser-signin-challenge`). Copied and committed here as `2205f0a`; the original was left untouched | Unverified behavior | Owner of that checkout | After merge, decide whether to discard the duplicate working-tree change; the 8777 listener still serves from that checkout |
-| Old unmerged branches with unique commits: `remediate/native_workflow` (offline workflow CLI, HTTP contract tests), `remediate/blind`, `remediate/ind_hold2` (frozen holdouts), `feat/native-qualification-59` (disabled, must not merge) | Unverified behavior | W1 / W8 | Disposition per branch. Holdouts and native qualification stay unmerged |
+| Old unmerged branches with unique commits: `remediate/native_workflow` (offline workflow CLI, HTTP contract tests), `remediate/blind`, `remediate/ind_hold2` (frozen holdouts), `feat/native-qualification-59` (disabled, must not merge) | Unverified behavior | W1 / W8 | Disposition per branch. Holdouts and native qualification stay unmerged **Disposition recorded by W1:** none merged or deleted; the holdout branches stay unread and unpushed. [Disposition](../RAMP-W1-FOLLOWUP-93.md#disposition-of-the-old-unmerged-branches) |
 
 ## Integration status of the November 9 specialist branches
 

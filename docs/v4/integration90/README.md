@@ -65,6 +65,8 @@ Each specialist's required handoff (commits, files, behavior, actual results, ga
 - [HANDOFF-89-identity-pricing.md](../HANDOFF-89-identity-pricing.md)
 - [HANDOFF-W3-ONBOARDING-89.md](../HANDOFF-W3-ONBOARDING-89.md)
 - [W7-HANDOFF-90.md](../W7-HANDOFF-90.md)
+- [HANDOFF-W1-93.md](../HANDOFF-W1-93.md)
+- [HANDOFF-W5-evidence-custody-90.md](../HANDOFF-W5-evidence-custody-90.md)
 - [HANDOFF-W9-OPERATIONS.md](../HANDOFF-W9-OPERATIONS.md)
 - Verification lane, on its own branch: [HANDOFF.md](https://github.com/ronoktanvir/uptime/blob/e6a5832111a36fa88abccc8e5d9dabdc397a5b79/docs/v4/evaluation-gent8/HANDOFF.md) and [RELEASE-ASSESSMENT.md](https://github.com/ronoktanvir/uptime/blob/e6a5832111a36fa88abccc8e5d9dabdc397a5b79/docs/v4/evaluation-gent8/RELEASE-ASSESSMENT.md) (commit `e6a5832`; not merged here, because that branch carries the evaluation runners)
 
@@ -76,6 +78,7 @@ Nothing has been merged to `main` or `v4/integration`; `origin/main` is still `0
 
 - To drop one specialist increment, revert its merge commit on this branch, for example `git revert -m 1 572d5b5`. Then rerun `uv run --locked pytest` and record the result. Each increment touches only its own files, plus index lines in `TEST-CHANGES.md`, `decisions/INDEX.md` and `CAPABILITIES.md`.
 - To drop the W9 mandate gate alone, revert `682d071` inside the W9 history. Native preparation remains gated by its other check (ADR-0096).
+- Reverting W5 decision 91 also requires reverting W4's F1/F2 follow-up (`39ee3f0`) first, because the W4 desk imports `uptime.evidence_applicability`; otherwise keep that module.
 - The CalyxQuay corrections are documentation. Reverting `8da2a3f` restores the stale wording, but the receipt it removes is the only reproducible record of the review, so keep the receipt.
 - The checklist test (`0448783`) can be reverted independently. Removing an ID instead is a visible test change for the ledger.
 - No database, credential, Ramp object, review grant or worktree belonging to another session was modified or deleted.
