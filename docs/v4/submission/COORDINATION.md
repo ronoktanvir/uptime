@@ -92,3 +92,5 @@ Owners publish the actual field names in their handoff file before the interface
 ## Status log
 
 - **13:05 PST.** Baseline and classification recorded. Integration worktree created from `55ea607`. Roles 1–4 briefed. Role 5 follows the freeze; role 6 follows the judge session's drafts.
+- **13:08 PST.** Role 5 briefed for pre-registration only (phase A); execution waits for the frozen commit. The judge session was asked where its two drafts live.
+- **13:10 PST. Disk incident.** Free space fell from 3.4 GiB to about 0.8 GiB in under ten minutes. Cause: a Google Chrome auto-update writing about 1.5 GB of patch files to the user temp directory. The coordinator paused the updater's two processes (`kill -STOP 37425 37494`, resumable with `kill -CONT`); nothing was deleted. Free space then held near 1.0 GiB. Specialists were told to skip tests under 1.5 GiB free and to download or clone nothing. Virtual environments are copy-on-write clones and cost no space. Clearing the updater's temp files, old pytest temp trees or the uv cache is Ronok's decision. No full suite runs until space is back.
