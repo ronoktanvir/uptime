@@ -318,3 +318,25 @@ def test_a_stale_approval_binding_is_never_dispatched(tmp_path):
         assert [s['operation'] for s in view['automation']['steps']] == ['approve-claim']
     finally:
         client.close()
+
+
+def test_a_workspace_recorded_before_step_timing_opens_without_losing_history(tmp_path):
+    import sqlite3
+    from uptime.storage import database
+    path = tmp_path / 'recorded.db'
+    with database(path) as db, db:
+        db.execute('''CREATE TABLE workspace_workflow_step (
+            seq INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT NOT NULL, class TEXT NOT NULL,
+            authority TEXT NOT NULL, state TEXT NOT NULL, at TEXT NOT NULL, recorded_at TEXT NOT NULL,
+            intent_id TEXT, detail TEXT)''')
+        db.execute("CREATE TRIGGER workflow_step_no_update BEFORE UPDATE ON workspace_workflow_step "
+                   "BEGIN SELECT RAISE(ABORT,'Workflow step history is append-only'); END")
+        db.execute("INSERT INTO workspace_workflow_step(operation,class,authority,state,at,recorded_at) "
+                   "VALUES('approve-claim','APPROVAL','{\"actor\": \"x\", \"kind\": \"PERSON\"}','COMPLETED','t','r')")
+    coordinator.setup(path)
+    coordinator.setup(path)  # idempotent
+    with database(path) as db:
+        rows = db.execute('SELECT operation,timing FROM workspace_workflow_step').fetchall()
+        assert [tuple(r) for r in rows] == [('approve-claim', None)]
+        with pytest.raises(sqlite3.DatabaseError):
+            db.execute("UPDATE workspace_workflow_step SET state='X'")
