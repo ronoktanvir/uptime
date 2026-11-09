@@ -43,6 +43,26 @@ The timed browser receipt on `5312938` measured 8.2 seconds of pure interaction 
 | 1:35–1:50 | Switch to the Ramp tab; show the note on bill `f74ba12c…`. | **Disclosure 3:** "The connected Ramp bill needs its own agreement; this authored contract is not evidence against it." "A teammate posted this note in Ramp, and we confirmed it through Ramp's API. Uptime did not post it." |
 | 1:50–2:00 | CalyxQuay receipt or the 8777 review history. | **Disclosure 2:** "In a separate local workspace, Ronok Tanvir's reviewer account recorded the CalyxQuay review: interpretation accepted, tests approved, activated, then rolled back, so nothing is active. The preparation before that was scripted." |
 
+## Screens to use and screens to avoid
+
+On a fresh Northwind workspace (checked at 390 px and 1360 px; no sideways scroll, no page errors), these screens use ordinary wording:
+
+- **Contract worklist** (the Northwind finance view)
+- **Ramp records**
+- **Vendor intake & versions**
+- **Correspondence & disputes**
+
+Do not open these during the recording:
+
+- Case ledger · Advanced
+- Onboarding lab
+- Integrations
+- Advanced workflows
+- Regression comparison
+- Policies
+
+They show the older seeded comparison portfolio and offline provider, labelled with "synthetic", "fixture" and "replay" wording, and the policy text mentions the simulator. The labels are accurate, but those records are not part of the Northwind walkthrough.
+
 ## Never say
 
 - "Recovered" or "saved" for the $2,400 in Ramp.
