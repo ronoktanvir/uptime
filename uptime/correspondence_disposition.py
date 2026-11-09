@@ -189,8 +189,8 @@ def _checks(desk, scope, state, current, view):
                            profile_assumed_origin="https://status.twilio.com"))
         checks.append(dict(check="month_coverage_basis",
                            result="EXPLICIT_MONTH_REPORT" if explicit else "PROVISIONED_SINGLE_INCIDENT_RECORD",
-                           detail=None if explicit else "No signed complete-month report; the amount is evaluated from a "
-                                  "single status record that provisioning treats as the month's only incident."))
+                           detail=None if explicit else "No signed complete-month report. One status record can establish "
+                                  "a breach (fixed-rate credit) but not that the target was met; that outcome stays insufficient evidence."))
     if state.get("reason") == "maintenance":
         checks.append(dict(check="timely_independent_maintenance_notice",
                            result=desk._maintenance_substantiated(scope, state, evaluation)))
