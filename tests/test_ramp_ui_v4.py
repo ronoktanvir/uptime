@@ -99,6 +99,7 @@ def test_ramp_browser_navigation_and_read_only_plan():
         page.get_by_role("button", name="Back to Ramp worklist").click()
         expect(page.get_by_role("heading", name="Ramp worklist", exact=True)).to_be_visible()
         expect(page.get_by_label("Search Ramp records")).to_have_value("Browser test vendor")
+        page.get_by_text("More tools", exact=True).click()
         page.get_by_role("link", name="Case ledger", exact=False).click()
         expect(page.get_by_role("heading", name="Evidence ledger", exact=True)).to_be_visible()
         page.go_back()

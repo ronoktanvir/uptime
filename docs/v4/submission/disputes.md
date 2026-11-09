@@ -104,9 +104,12 @@ All values come from `GET /api/workspace/workflow` (`workflow.*`) or the existin
 
 On the case's interpretation route (`GET /api/correspondence/claims/{id}/interpretation`):
 - **`model_job`:** `{enabled, can_request, reason, message, request_sha256, request_bytes, profile, job}`.
-- **`job`:** `{id, state, terminal, kind, target, context_digest, request_sha256, reason, result, submitted_at, started_at, finished_at}`.
+- **`job`:** `{id, state, terminal, kind, target, context_digest, request_sha256, reason, result, submitted_at, started_at, finished_at, provider}`.
+  - `provider` is the shared service's public receipt block, passed through unchanged, for any state including failures. Its keys are `model, session, client_reported_cost_usd, usage, returncode, tool_events, tool_inventory, mcp_inventory, output_sha256, result_sha256` and `transport{name, revision, binary_sha256}`.
+  - Show `tool_inventory: []` and `mcp_inventory: []` to make a tool-free call visible.
+  - New reason codes from role 1: `provider_failed` ("the model call failed; no proposal was produced; a new attempt needs its own approval") and `provider_identity_unverified`.
   - `state` is one of `QUEUED`, `RUNNING`, `SUCCEEDED`, `REFUSED`, `CANCELLED` or `UNCERTAIN`; a timeout is `UNCERTAIN` or `REFUSED` with `reason`.
-  - **The three timestamps are being added:** they exist on the shared job row but are dropped by `correspondence_model_jobs._job_view` today.
+  - The three timestamps are now projected (they exist on the shared job row).
 - **`candidates[]`**, shown only after the reviewer's own pre-reading (decision 60/75; the pre-reading screen is an undecided D06 sub-question and is unchanged):
   - `{id, interpretation, provenance}`
   - `interpretation.propositions[]` carries the proposed reading, each with its exact `source.quote` and byte span in the vendor reply: the cited evidence.
@@ -223,6 +226,8 @@ Result on this branch: **2 passed** (reply-first and notice-first).
 
 - Counterparty replies and the reviewer are authored and scripted. Automatic intake is not proof of a real vendor channel (D08).
 - The correct-denial branch is not in the Northwind walkthrough (see above).
-- With routine automation off (`--step-by-step`, and the Python `prepare()` default), every step is a click, as before. The browser tests (gent7) and the restart and socket probes (gent8) use that default until their owners move them.
+- With routine automation off (`--step-by-step`, and the Python `prepare()` default), every step is a click, as before.
+  - Tests that build workspaces with `prepare()` keep the eleven-step path.
+  - gent8's restart and socket probes create workspaces through the setup command, where automation is on by default. The restart probe's eleven-action assertion therefore failed in the full suite on `02d86f7` (correct product behavior). Its owner, gent8, is moving it to `--step-by-step` and adding a real-process kill for the automated default.
 - A failed or timed-out model job shows a receipt only once role 1's shared job projection (agent2, `611efdf`) is merged. My job view passes that `provider` block through.
 - No full suite run here; the coordinator runs it after integration.

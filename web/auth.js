@@ -67,7 +67,7 @@
     form.className = 'panel';
     const heading = document.createElement('h1'); heading.textContent = 'Sign in to Uptime';
     const note = document.createElement('p');
-    note.textContent = 'Use your named account for this local workspace. Select the credential file provisioned for your account. It is used locally to prove your identity.';
+    note.textContent = 'Use your named account for this local workspace. Workspace setup prints the account name and where its credential file was saved. Choose that file, or drag it onto this form. It is used only in this page to prove your identity and is never uploaded.';
     const feedback = document.createElement('p'); feedback.setAttribute('role','status');
     function field(title, type, auto) {
       const label = document.createElement('label'); label.textContent = title;
@@ -77,12 +77,28 @@
     form.append(heading, note);
     const subject = field('Account name', 'text', 'username'), credential = field('Credential file', 'file', 'off');
     credential.accept = '.json,.jwk,application/json,application/jwk+json';
+    // A dropped file is held only in this form until sign-in; the account name of an expired session is prefilled.
+    credential.required = false;
+    let dropped = null;
+    const previous = session();
+    if (previous && typeof previous.subject === 'string') subject.value = previous.subject;
+    form.addEventListener('dragover', event => { event.preventDefault(); });
+    form.addEventListener('drop', event => {
+      event.preventDefault();
+      const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+      if (file) { dropped = file; feedback.textContent = 'Credential file selected: ' + file.name; }
+    });
+    credential.addEventListener('change', () => { dropped = null; });
     const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = 'Sign in';
     form.append(submit, feedback);
     form.addEventListener('submit', async event => {
       event.preventDefault(); submit.disabled = true;
-      try { await login(subject.value, credential.files[0]); credential.value=''; onSuccess(); }
-      catch (error) { credential.value=''; feedback.textContent = error.message; }
+      try {
+        const file = (credential.files && credential.files[0]) || dropped;
+        if (!file) throw new Error('Choose the credential file named in the setup output, or drag it here.');
+        await login(subject.value, file); credential.value=''; dropped = null; onSuccess();
+      }
+      catch (error) { credential.value=''; dropped = null; feedback.textContent = error.message; }
       finally { submit.disabled = false; }
     });
     return form;
@@ -93,5 +109,7 @@
     finally { signingKey = null; sessionStorage.removeItem(storageKey); location.reload(); }
   }
   window.uptimeAPI = api;
-  window.uptimeAuth = {session, signInForm, signOut};
+  // True only while this page holds the in-memory signing key; a reload keeps the read session but not the key.
+  function canSign() { return signingKey !== null; }
+  window.uptimeAuth = {session, signInForm, signOut, canSign};
 })();

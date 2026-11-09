@@ -21,11 +21,11 @@ PRODUCT_WORDS = re.compile(r'synthetic|simulat|replay|fixture|\bdemo\b|post to r
 
 
 @contextmanager
-def live_workspace(tmp_path):
+def live_workspace(tmp_path, **prepare_options):
     sock = socket.socket(); sock.bind(('127.0.0.1', 0)); sock.listen(25)
     origin = 'http://127.0.0.1:' + str(sock.getsockname()[1])
     directory = tmp_path / 'owned'
-    app, private, events = setup.prepare(directory, origin)
+    app, private, events = setup.prepare(directory, origin, **prepare_options)
     with TestClient(app, base_url=origin, client=('127.0.0.1', 4510)) as client:
         setup.seed(client, app, private, events)
     server = uvicorn.Server(uvicorn.Config(app, log_level='critical', access_log=False))
@@ -98,7 +98,7 @@ def test_attention_guide_keyboard_actions_and_expired_session_recovery(tmp_path)
         assert page.evaluate('location.hash') == ''
         # Keyboard guide: Enter submits; Tab reaches the citation; Enter on it focuses the cited section.
         answer = ask(page, 'When is the filing deadline?')
-        expect(answer).to_contain_text('The January 2026 claim must be received before 2026-03-03T00:00:00+00:00. It has not been filed.')
+        expect(answer).to_contain_text('The January 2026 claim must be received before Mar 3, 2026, 00:00 UTC. It has not been filed.')
         page.get_by_label('Question', exact=True).focus(); page.keyboard.press('Tab'); page.keyboard.press('Tab')
         assert page.evaluate('document.activeElement.textContent') == 'Source: Filing deadline'
         page.keyboard.press('Enter')

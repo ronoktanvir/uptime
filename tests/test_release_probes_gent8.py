@@ -13,7 +13,8 @@ from scripts import probe_restart_gent8 as probe
 
 
 def test_hard_kill_mid_flow_preserves_state_idempotency_and_final_ledger(tmp_path):
-    result = probe.run(tmp_path / 'probe', tmp_path / 'receipt.json', actions_before_kill=4)
+    # Step-by-step workspace: one person action per operation, so the kill lands after 4 of 11.
+    result = probe.run(tmp_path / 'probe', tmp_path / 'receipt.json', actions_before_kill=4, step_by_step=True)
 
     assert result['before_kill']['actions'] == 4
     assert result['first_process_returncode'] == -9 and result['second_process_returncode'] == -9
@@ -34,6 +35,45 @@ def test_hard_kill_mid_flow_preserves_state_idempotency_and_final_ledger(tmp_pat
     assert Decimal(ledger['bill']['outstanding_amount']) == Decimal('8600.00')
     assert result['authority_kind'] == 'SCRIPTED_REVIEWER'
 
+
+
+def test_hard_kill_after_first_reviewer_decision_with_routine_automation(tmp_path):
+    """Default workspace (routine automation): two OS server processes, SIGKILL after the first decision.
+
+    The first reviewer decision runs its routine steps on the server and pauses for the next approval. After a
+    hard kill and restart the persisted state, including the automation step record, is identical; re-posting
+    the same decision changes nothing; the remaining decisions finish the flow with every step recorded once.
+    """
+    result = probe.run_automated(tmp_path / 'probe', tmp_path / 'receipt.json', decisions_before_kill=1)
+
+    before = result['before_kill']
+    assert before['decisions'] == 1
+    assert before['automation']['state'] == 'PAUSED'
+    assert before['automation']['pause']['reason'] == 'APPROVAL_REQUIRED'
+    assert before['automation']['counts']['person_decisions'] == 1
+    assert before['automation']['counts']['automatic_steps'] >= 1
+    assert result['first_process_returncode'] == -9 and result['second_process_returncode'] == -9
+    assert result['after_restart']['state_equal_to_pre_kill'] is True
+    assert result['after_restart']['duplicate_replay'] == {'http_status': 200, 'unchanged': True}
+
+    completion = result['completion']
+    assert completion['remaining_actions'] == 0 and completion['automation_state'] == 'COMPLETE'
+    assert completion['counts'] == {'person_decisions': 4, 'automatic_steps': 7}
+    assert completion['steps'] == 11 and completion['step_states'] == ['COMPLETED']
+    assert completion['unique_step_keys'] is True
+    assert completion['decisions_after_restart'] + before['decisions'] == 4
+    # No duplicate filing, response, credit or application: each appears exactly once.
+    for operation in ('submit-claim', 'submit-response', 'record-credit', 'apply-balance'):
+        assert completion['operations'].count(operation) == 1, operation
+    assert completion['every_duplicate_unchanged'] is True and completion['every_readback_equal'] is True
+
+    ledger = completion['ledger']
+    assert ledger['destination'] == 'Local ledger' and ledger['currency'] == 'USD'
+    assert all(Decimal(ledger[stage]) == Decimal('2400.00') for stage in ('claimed', 'awarded', 'posted', 'applied'))
+    assert Decimal(ledger['unapplied_credit']) == 0
+    assert Decimal(ledger['bill']['original_amount']) == Decimal('11000.00')
+    assert Decimal(ledger['bill']['outstanding_amount']) == Decimal('8600.00')
+    assert result['authority_kind'] == 'SCRIPTED_REVIEWER'
 
 def test_d03a_exact_source_identity_flows_from_onboarding_into_claim_intake(tmp_path, monkeypatch):
     """Decision D03-A (decided November 9; implemented in 6ebaffe): one bounded exact source identity.

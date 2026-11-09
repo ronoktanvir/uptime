@@ -9,26 +9,8 @@
       if (typeof value === 'string' && /^\/fixtures\/other_obligations\/agreement\.txt(?:#|$)/.test(value)) return value;
       const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? url.href : null; } catch { return null; }
   }
-  function presentationLabel(value) {
-    const raw = display(value);
-    const names = {'Replay shadow checks':'Run shadow checks','Synthetic Cloud (fictional)':'Cloud services',
-      'Synthetic signed agreement and amendment':'Agreement and amendment','Synthetic itemized invoice':'Itemized invoice',
-      'Synthetic customer evidence':'Customer evidence','Synthetic status documentation and customer mapping':'Status documentation and account mapping',
-      'Synthetic gross invoice cap rehearsal':'Invoice cap review','Candidate future-service credit (synthetic, unsubmitted)':'Estimated future-service credit',
-      'Simulated award':'Awarded credit',
-      'Record scoped simulated credit':'Record scoped credit','Apply simulated credit to the matched eligible bill':'Apply credit to the matched eligible bill',
-      'Total unique recorded simulated activity, including partial awards and comparison cases; not actual customer recovery.':'Recorded activity at this financial stage.',
-      'Deterministic synthetic fixture evaluated; nothing submitted':'Deterministic evaluation completed',
-      'Replay clock advanced to the first permitted follow-up time.':'Follow-up eligibility time updated.'};
-    return names[raw] || raw.replace(/^Synthetic fee line:/,'Fee line:').replace(/^Synthetic signatures:/,'Agreement version:').replace(/^Synthetic invoice issued;/,'Invoice issued;');
-  }
-  function evidenceDescription(item) {
-    // Source quotations remain exact in linked source text; these are server summaries.
-    if (/fictional signatures|synthetic|fixture|no live Ramp binding|not an observed historical incident/i.test(item.detail || '')) {
-      return [item.ref,item.digest].filter(Boolean).join(' · ');
-    }
-    return item.detail;
-  }
+  // Server labels already name the financial stage and its destination (for example "Vendor awarded" or "Record
+  // scoped simulated credit"). They are shown as sent: the browser never renames a state or hides where a record went.
   // Compare decimal strings without rounding large balances through binary floats.
   function compareDecimal(a, b) {
     const parse = v => { const m = /^(-?)(\d+)(?:\.(\d+))?$/.exec(String(v)); return m && {negative: !!m[1], whole: m[2].replace(/^0+(?=\d)/, ''), fraction: m[3] || ''}; };
@@ -53,7 +35,11 @@
       return {...rest, server_status:value.status, status:value.object_type === 'bills' ? 'READ_ONLY_PROPOSAL' : 'UNSUPPORTED_ENTITY',
         delivery:value.delivery, note:'Plan inspection only. No browser dispatch is offered. The installed native binding supports bill comments only; exact independent permission and current provider grants are required.'};
   }
+  // Primary destinations map onto existing views; every older route hash still works.
+  const DESTINATIONS = {overview:'ramp', cases:'disputes', agreements:'vendors', activity:'activity'};
   function companionRoute(requested) {
+    if (Object.prototype.hasOwnProperty.call(DESTINATIONS, requested)) return DESTINATIONS[requested];
+    if (requested.startsWith('cases/')) return 'disputes/' + requested.slice(6);
     if (requested === 'rehearsal') return 'dashboard';
     if (requested === 'records') return 'records';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
@@ -67,7 +53,8 @@
   let rampCase = null, rampScroll = 0;
   let companion, companionAssets, signedPage = false, companionAccess = {};
   const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
-  const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account});
+  // The finance view disables actions when this page holds no signing key (for example after a reload).
+  const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account,canAct:() => window.uptimeAuth?.canSign?.() !== false});
   const filters = {query: '', status: '', sort: 'value-desc'};
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
@@ -94,8 +81,28 @@
     }
     return data;
   }
+  // One workspace name on every route, whatever page is opened first: the company from the workflow projection,
+  // read once per sign-in, or the product name when the workspace has no configured workflow.
+  let workspaceName = null, workspaceNameRead = null;
+  function showWorkspaceName() {
+    const name = workspaceName || 'Uptime';
+    $('#workspace-name').textContent = name;
+    document.title = workspaceName ? workspaceName + ' · Uptime' : 'Uptime';
+  }
+  function companyOf(workflow) {
+    const company = workflow && typeof workflow === 'object' ? (workflow.company?.name || workflow.company) : null;
+    return typeof company === 'string' && company ? company : null;
+  }
+  function readWorkspaceName() {
+    if (!workspaceNameRead) {
+      workspaceNameRead = api('/api/workspace/workflow')
+        .then(projection => { const company = companyOf(projection && projection.workflow); if (company) workspaceName = company; })
+        .catch(() => { workspaceNameRead = null; });
+    }
+    return workspaceNameRead;
+  }
   function account() {
-    generation++; signedPage = false; companionAccess = {};
+    generation++; signedPage = false; companionAccess = {}; workspaceName = null; workspaceNameRead = null;
     content.setAttribute('aria-busy', 'false');
     ramp?.unmount(); workspaceWorkflow?.unmount(); companion?.unmount(content);
     if (dialog.open) dialog.close();
@@ -104,7 +111,7 @@
   function showError(target, error, retry) { target.replaceChildren(add(el('section', 'panel error'), el('h2', '', 'Unable to load this view'), el('p', '', error.message || 'Connection unavailable. Check that the server is running.'), button('Try again', retry, 'quiet'))); }
   function timeline(items, history = false) {
     const node = el('ol', 'activity');
-    list(items).forEach(item => { const row = el('li'); if (typeof item === 'string') add(row, el('span', '', item), sources([])); else add(row, el('time', '', item.at), el('span', '', presentationLabel(item.event)), item.case_id ? el('div', 'help', `Case ${item.case_id}`) : null, sources(item.sources)); node.append(row); });
+    list(items).forEach(item => { const row = el('li'); if (typeof item === 'string') add(row, el('span', '', item), sources([])); else add(row, el('time', '', item.at), el('span', '', display(item.event)), item.case_id ? el('div', 'help', `Case ${item.case_id}`) : null, sources(item.sources)); node.append(row); });
     return node.children.length ? node : empty(history ? 'No history returned by the server.' : 'No events returned by the server.');
   }
   // Unknown policy/integration fields remain read-only; source arrays are never renamed or inferred.
@@ -123,7 +130,7 @@
     const head = heading('Evidence ledger', 'Unpaid invoice exposure and the current recovery case. Each figure belongs to a separate financial stage.');
     head.append(el('div', 'as-of', `Updated ${display(data.as_of)}`));
     const metrics = el('section', 'metrics'); metrics.setAttribute('aria-label', 'Financial stages');
-    list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', presentationLabel(metric.label)), el('div', 'metric-value', metric.value), el('p', '', presentationLabel(metric.note)), sources(metric.sources))));
+    list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', display(metric.label)), el('div', 'metric-value', metric.value), el('p', '', display(metric.note)), sources(metric.sources))));
     if (!metrics.children.length) metrics.append(empty('No financial metrics returned.'));
     const ledger = el('section', 'panel ledger'), controls = el('div', 'filters');
     const search = el('input'); search.type = 'search'; search.placeholder = 'Vendor or case'; search.value = filters.query;
@@ -137,7 +144,7 @@
       const cases = list(data.cases).filter(c => (!filters.status || c.stage === filters.status) && [c.id,c.vendor,c.title].join(' ').toLowerCase().includes(filters.query.toLowerCase()));
       cases.sort((a,b) => filters.sort === 'status' ? display(a.stage).localeCompare(display(b.stage)) : (a.amount == null ? 1 : b.amount == null ? -1 : compareDecimal(a.amount,b.amount) * (filters.sort === 'value-asc' ? 1 : -1)));
       body.replaceChildren();
-      cases.forEach(c => body.append(add(el('tr'), add(el('td'), button(presentationLabel(c.vendor || c.id), () => openCase(c.id), 'case-link'), el('div', 'case-subtitle', presentationLabel(c.title)), el('div', 'help', c.id)), add(el('td'), badge(c.outcome)), add(el('td'), badge(c.stage)), add(el('td', 'amount'), el('div', '', money(c.amount,c.currency)), sources(c.sources)))));
+      cases.forEach(c => body.append(add(el('tr'), add(el('td'), button(display(c.vendor || c.id), () => openCase(c.id), 'case-link'), el('div', 'case-subtitle', display(c.title)), el('div', 'help', c.id)), add(el('td'), badge(c.outcome)), add(el('td'), badge(c.stage)), add(el('td', 'amount'), el('div', '', money(c.amount,c.currency)), sources(c.sources)))));
       if (!cases.length) { const td = el('td', 'empty', 'No cases match these filters. Clear search or select all statuses.'); td.colSpan = 4; body.append(add(el('tr'), td)); }
       count.textContent = `${cases.length} of ${list(data.cases).length} cases. Values are server-provided; no stages are added together.`;
     }
@@ -148,13 +155,13 @@
     const current = window.uptimeAuth.session();
     if (current) $('#account').textContent = 'Sign out · ' + current.subject;
     content.replaceChildren(head, metrics, ledger, add(el('div', 'section-grid'), audit, ramp));
-    $('#workspace-name').textContent = typeof data.workspace === 'string' ? data.workspace : 'Contract operations';
+    showWorkspaceName();
   }
   function actions(items, path, reload) {
     const node = el('div', 'actions');
     list(items).forEach(action => {
       if (!action.id) return;
-      const trigger = button(presentationLabel(action.label || action.id), async () => {
+      const trigger = button(display(action.label || action.id), async () => {
         if (busy) return;
         busy = true;
         document.querySelectorAll('[data-domain-action]').forEach(control => { control.disabled = true; });
@@ -202,9 +209,9 @@
     });
   }
   function renderCase(data, id) {
-    const name = el('h1', '', presentationLabel(data.title || data.vendor || id)); name.id = 'case-title';
-    const target = $('#case-content'); target.replaceChildren(name, el('p', 'help', `${presentationLabel(data.vendor)} / ${id}`), add(el('div', 'case-meta'), badge(data.outcome), badge(data.stage)), sources(data.sources));
-    const financials = panel('Financial stages'); list(data.financials).forEach(f => financials.append(add(el('div', 'record'), el('h3', '', presentationLabel(f.label)), el('div', 'metric-value', f.value), sources(f.sources)))); if (!list(data.financials).length) financials.append(empty('No financial stages returned.'));
+    const name = el('h1', '', display(data.title || data.vendor || id)); name.id = 'case-title';
+    const target = $('#case-content'); target.replaceChildren(name, el('p', 'help', `${display(data.vendor)} / ${id}`), add(el('div', 'case-meta'), badge(data.outcome), badge(data.stage)), sources(data.sources));
+    const financials = panel('Financial stages'); list(data.financials).forEach(f => financials.append(add(el('div', 'record'), el('h3', '', display(f.label)), el('div', 'metric-value', f.value), sources(f.sources)))); if (!list(data.financials).length) financials.append(empty('No financial stages returned.'));
     if (list(data.financial_refs).length) {
       financials.append(el('h3', '', 'Linked records'));
       data.financial_refs.forEach(ref => {
@@ -213,7 +220,7 @@
       });
     }
     const clauses = panel('Governing clauses'); list(data.clauses).forEach(c => { const url = safeURL(c.uri); const item = el(url ? 'a' : 'span', 'record', c.label); if (url) { item.href = url; item.target = '_blank'; item.rel = 'noopener noreferrer'; localSource(item, url); } clauses.append(add(el('p'), item)); }); if (!list(data.clauses).length) clauses.append(empty('No governing clauses returned.'));
-    const evidence = panel('Evidence'); list(data.evidence).forEach(e => evidence.append(add(el('article', 'record'), el('h3', '', presentationLabel(e.label)), el('p', '', evidenceDescription(e)), sources(e.sources)))); if (!list(data.evidence).length) evidence.append(empty('No evidence returned.'));
+    const evidence = panel('Evidence'); list(data.evidence).forEach(e => evidence.append(add(el('article', 'record'), el('h3', '', display(e.label)), el('p', '', display(e.detail)), sources(e.sources)))); if (!list(data.evidence).length) evidence.append(empty('No evidence returned.'));
     const trace = panel('Decision trace'); trace.append(add(el('ol', 'trace'), ...list(data.trace).filter(t=>!/^Synthetic invoice only; no live Ramp bill bound\.$/.test(t)).map(t => el('li', '', String(t).replace(/^Synthetic line allocation/, 'Line allocation').replace(/^Replayed interval/, 'Evidence interval').replace(/^Simulated scoped,/, 'Scoped,').replace(/^Simulated receipt/, 'Receipt')))));
     const history = panel('Case timeline'); history.append(timeline(data.timeline));
     const available = panel('Available actions'); add(available, el('p', 'help', 'Only actions offered by the server appear here. The server verifies this session’s permissions on every request.'), actions(data.actions, `/api/cases/${encodeURIComponent(id)}/actions`, async () => { await openCase(id); await load(); }));
@@ -326,25 +333,40 @@
     const data = await api('/api/ramp/workspace');
     if (token === generation) return ui.render(content,'catalog',data);
   }
-  // Add companion entry points without replacing the primary Ramp navigation.
-  const nav = document.querySelector('.rail nav');
-  if (nav) for (const [route, name] of [['advanced','Advanced workflows'],['vendors','Vendor intake & versions'],['disputes','Correspondence & disputes'],['lab','Onboarding lab'],['regression','Regression comparison']]) {
-    const link = el('a','',name); link.href = '#' + route; link.dataset.view = route; nav.append(link);
-  }
+  // Navigation is declared in index.html: four primary destinations and a secondary group.
+
   // Load responsive companion navigation styles on the primary worklist too.
   advanced().catch(() => {});
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
+    // Overview and Activity read the workflow themselves; any other page reads the name once, after its own content.
+    const readsWorkflow = route === 'activity' || (route === 'ramp' && !rampCase);
+    try { await renderRoute(); } finally {
+      if (!readsWorkflow && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
+    }
+    async function renderRoute() {
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
+    if (route === 'activity') {
+      const projection = await api('/api/workspace/workflow');
+      if (token !== generation) return;
+      if (projection && projection.workflow && typeof projection.workflow === 'object' && workspaceWorkflow) {
+        workspaceName = companyOf(projection.workflow) || workspaceName; workspaceNameRead = Promise.resolve();
+        await workspaceWorkflow.activity(content, projection.workflow);
+      } else content.replaceChildren(heading('Activity', 'What happened in this workspace, in order.'), empty('No workflow activity is recorded in this workspace.'));
+      showWorkspaceName();
+      return;
+    }
     if (route === 'ramp' || route === 'records') {
       if (route === 'ramp' && !rampCase) {
         const projection = await api('/api/workspace/workflow');
         if (token !== generation) return;
         if (!Object.prototype.hasOwnProperty.call(projection, 'workflow')) throw new Error('Workspace workflow response unavailable.');
+        workspaceNameRead = Promise.resolve();
         if (projection.workflow !== null) {
           if (!workspaceWorkflow || !projection.workflow || typeof projection.workflow !== 'object') throw new Error('Workspace workflow unavailable.');
           await workspaceWorkflow.render(content, projection.workflow);
-          $('#workspace-name').textContent = projection.workflow.company?.name || projection.workflow.company || 'Contract operations';
+          workspaceName = companyOf(projection.workflow) || workspaceName;
+          showWorkspaceName();
           const current = window.uptimeAuth.session();
           if (current) $('#account').textContent = 'Sign out · ' + current.subject;
           return;
@@ -354,7 +376,7 @@
       await ramp.render(content, rampCase);
       if (token === generation) {
         window.scrollTo?.({top:rampCase ? 0 : rampScroll, behavior:'instant'});
-        $('#workspace-name').textContent = 'Contract operations';
+        showWorkspaceName();
         const current = window.uptimeAuth.session();
         if (current) $('#account').textContent = 'Sign out · ' + current.subject;
       }
@@ -363,6 +385,7 @@
     const data = await api(`/api/${route === 'lab' ? 'onboarding' : route}`); if (token !== generation) return; if (route === 'dashboard') renderDashboard(data); else if ((route === 'onboarding' || route === 'lab')) renderOnboarding(data); else if (route === 'policy') renderPolicy(data); else renderIntegrations(data); }
     catch (error) { if (token === generation) { if (error.status === 401) account(); else showError(content,error,load); } }
     finally { if (token === generation) content.setAttribute('aria-busy', 'false'); }
+    }
   }
   function navigate() {
     const requested = location.hash.slice(1);
@@ -378,6 +401,8 @@
     }
     view = companionRoute(requested);
     document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
+    const more = document.querySelector?.('.rail-more');
+    if (more && more.querySelector?.('[aria-current]')) more.open = true;
     if (!content.children.length) content.append(empty('Loading server state…')); announce(''); load();
   }
   // Updating route history explicitly prevents fragment scrolling during normal navigation.

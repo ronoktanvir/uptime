@@ -35,7 +35,7 @@ test('attention items, destination and calculation inputs render from the server
   for(const expected of ['Needs attention','Reviewer action','File the January 2026 claim before the deadline','Evidence needed','Complete March 2026 usage evidence',
     'Ramp record','Not linked','No Ramp bill is linked to this agreement.','Open Ramp records','Calculation inputs','$12,000.00','fee-ref-1','20%',
     'amendment-v2','$11,000.00','not included in the credit stages','CalyxQuay coverage in this workspace','Dana Reyes · Scripted reviewer',
-    'Every entry is recorded by scripted-test-reviewer.','Ask about this case','Stages of the same credit'])
+    'Every entry is recorded by scripted-test-reviewer.','Ask about this case','One credit, shown at each stage. The amounts are not added together.'])
     assert.ok(view.includes(expected),expected);
   assert.doesNotMatch(view,/post to ramp|synthetic|simulat|replay|\bdemo\b/i);
   assert.equal(s.root.all('a').find(a=>a.textContent==='Open Ramp records').href,'#records');

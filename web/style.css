@@ -48,3 +48,54 @@
 .section-grid>*{min-width:0}
 .guide-suggestions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
 .guide-suggestions .suggestion{font-size:13px;padding:6px 10px;white-space:normal;text-align:left;max-width:100%}
+
+/* Submission interface: four primary destinations, a secondary tools group, outcome headline and credit lifecycle */
+.rail-primary{display:grid;gap:8px;margin-top:40px}
+.rail-more{margin-top:28px;border-top:1px solid #343e74;padding-top:14px}
+.rail-more summary{cursor:pointer;color:#b8c2e4;font-size:13px;padding:8px 12px;border-radius:7px;list-style-position:inside}
+.rail-more summary:hover{background:#2a3263}
+.rail-more nav{display:grid;gap:2px;margin-top:6px}
+.rail-more nav a{color:#c3cbee;text-decoration:none;border-radius:7px;padding:8px 12px 8px 24px;font-size:13px}
+.rail-more nav a[aria-current=page]{background:#343e74;color:#fff}
+.rail-more nav a:hover{background:#2a3263}
+.outcome{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:18px;margin:6px 0 18px}
+.outcome-card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:20px 22px;min-width:0}
+.outcome-card h2{font-size:15px;color:var(--muted);margin:0 0 12px;font-weight:600}
+.outcome-rows{margin:0;display:grid;gap:8px}
+.outcome-row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;font-variant-numeric:tabular-nums}
+.outcome-row dt{color:var(--muted);font-size:14px}
+.outcome-row dd{margin:0;font-size:22px;font-weight:600;color:var(--text)}
+.outcome-row.outcome-total{border-top:1px solid var(--line);padding-top:10px}
+.outcome-row.outcome-total dd{font-size:30px;color:var(--ink)}
+.outcome-value{font-size:30px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;margin-bottom:6px;overflow-wrap:anywhere}
+.outcome-exception{background:var(--amber);border-color:#f0d9a4}
+.outcome-exception .outcome-value{color:var(--brown)}
+.outcome-card .help{margin:6px 0 0}
+.lifecycle{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 22px;margin:0 0 18px}
+.lifecycle h2{font-size:15px;margin:0}
+.lifecycle>.help{margin:2px 0 12px}
+.lifecycle-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;counter-reset:step}
+.lifecycle-step{border-top:4px solid var(--line);padding-top:8px;display:grid;gap:2px;min-width:0}
+.lifecycle-step.done{border-top-color:var(--green)}
+.lifecycle-step[aria-current=step]{border-top-color:var(--ink)}
+.step-label{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.step-amount{font-size:17px;font-variant-numeric:tabular-nums}
+.step-state{font-size:11px;color:var(--muted)}
+.lifecycle-step.done .step-state{color:var(--green)}
+.inspector{margin-top:8px}
+.inspector>summary{font-size:12px;color:var(--muted);cursor:pointer}
+#finance-recovery .actions{margin:12px 0 4px}
+#finance-recovery .northwind-fields{margin:10px 0}
+@media(max-width:900px){.outcome{grid-template-columns:minmax(0,1fr)}.lifecycle-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.rail-primary{margin-top:18px;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);overflow-x:auto}.rail-more{margin-top:10px}.outcome-row.outcome-total dd,.outcome-value{font-size:25px}}
+/* Activity: the server's automation record, one row per step; times on the case timeline. */
+.automation-steps{list-style:none;margin:14px 0 0;padding:0}
+.automation-step{display:grid;grid-template-columns:minmax(150px,190px) minmax(0,1fr);column-gap:18px;padding:12px 0;border-top:1px solid var(--line)}
+.automation-step>time{grid-row:1/span 8;color:var(--muted);font-size:12px;padding-top:2px;font-variant-numeric:tabular-nums}
+.automation-step>strong{font-size:15px;color:var(--text)}
+.automation-step>.step-state{font-size:12px;color:var(--muted)}
+.automation-step>.help{margin:2px 0}
+.automation-step>.inspector{margin-top:4px}
+.automation-step.attention{border-left:3px solid #c98b24;padding-left:12px}
+.automation-line{margin:12px 0 0}
+@media(max-width:700px){.automation-step{grid-template-columns:minmax(0,1fr)}.automation-step>time{grid-row:auto}}

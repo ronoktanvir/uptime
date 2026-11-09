@@ -126,3 +126,10 @@ test('stale reviewer authority keeps recorded checks separate from current verif
  const history=s.nodes.content.querySelectorAll('details').find(n=>n.textContent.includes('Recorded checks'));
  assert.ok(history);assert.match(history.textContent,/Prior shadow check/);assert.notEqual(history.open,true);
 });
+test('server stage labels render as sent; the browser never renames a state to hide its destination', async () => {
+  const {nodes} = await setup();
+  assert.match(nodes.content.textContent,/Simulated award/);
+  assert.doesNotMatch(nodes.content.textContent,/Awarded credit/);
+  const source = fs.readFileSync(__dirname+'/app.js','utf8');
+  assert.doesNotMatch(source,/presentationLabel|evidenceDescription|'Simulated award'\s*:/);
+});

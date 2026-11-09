@@ -61,7 +61,7 @@ def _money(value):
     return None if value is None else str(Decimal(str(value)))
 
 
-def run(workdir, receipt_path, actions_before_kill=4):
+def run(workdir, receipt_path, actions_before_kill=4, step_by_step=True):
     import httpx
     from scripts.rehearse_northwind import run as rehearse
     from uptime.auth_client import ReviewerClient
@@ -72,11 +72,15 @@ def run(workdir, receipt_path, actions_before_kill=4):
     directory = workdir / 'workspace'
     origin = f'http://127.0.0.1:{_free_port()}'
     log = (workdir / 'server.log').open('ab')
+    # Step-by-step keeps one person action per workflow operation (11), so "kill after N of 11" lands mid-flow.
+    # The routine-automation default is exercised separately by run_automated().
     prepared = subprocess.run([sys.executable, str(ROOT / 'scripts/setup_northwind.py'), '--directory', str(directory),
-                               '--origin', origin], cwd=ROOT, capture_output=True, text=True, timeout=300)
+                               '--origin', origin] + (['--step-by-step'] if step_by_step else []),
+                              cwd=ROOT, capture_output=True, text=True, timeout=300)
     if prepared.returncode:
         raise RuntimeError('Workspace preparation failed: ' + prepared.stderr[-500:])
     result = dict(schema='restart-probe-gent8/1', started_at=datetime.now(UTC).isoformat(), transport='REAL_LOOPBACK_HTTP',
+                  step_by_step=step_by_step,
                   process_model='separate OS processes; SIGKILL between them', authority_kind='SCRIPTED_REVIEWER',
                   probe_sha256=sha256(Path(__file__).read_bytes()).hexdigest(), origin=origin)
     first = _serve(directory, origin, log)
@@ -116,6 +120,77 @@ def run(workdir, receipt_path, actions_before_kill=4):
     Path(receipt_path).write_text(json.dumps(result, indent=2, ensure_ascii=False) + '\n')
     return result
 
+
+
+def run_automated(workdir, receipt_path, decisions_before_kill=1):
+    """Routine-automation default: hard kill after a person decision whose routine steps ran on the server.
+
+    Checks, over two OS server processes: identical persisted state after restart (including the automation
+    step record); an exact re-post of the last decision changes nothing; the remaining person decisions finish
+    the flow; every step is recorded once; and the final ledger matches the step-by-step flow.
+    """
+    import httpx
+    from scripts.rehearse_northwind import run as rehearse
+    from uptime.auth_client import ReviewerClient
+    from uptime.auth import SCRIPT
+    from uptime.source_config import _protected_path, _check_file
+    workdir = Path(workdir).resolve()
+    workdir.mkdir(mode=0o700)
+    directory = workdir / 'workspace'
+    origin = f'http://127.0.0.1:{_free_port()}'
+    log = (workdir / 'server.log').open('ab')
+    prepared = subprocess.run([sys.executable, str(ROOT / 'scripts/setup_northwind.py'), '--directory', str(directory),
+                               '--origin', origin], cwd=ROOT, capture_output=True, text=True, timeout=300)
+    if prepared.returncode:
+        raise RuntimeError('Workspace preparation failed: ' + prepared.stderr[-500:])
+    path = _protected_path(directory / 'workspace.json')
+    with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW), 'r') as handle:
+        _check_file(handle.fileno())
+        secret = json.load(handle)['rehearsal_secret']
+    result = dict(schema='restart-probe-automated-gent8/1', started_at=datetime.now(UTC).isoformat(),
+                  transport='REAL_LOOPBACK_HTTP', process_model='separate OS processes; SIGKILL between them',
+                  authority_kind='SCRIPTED_REVIEWER', step_by_step=False,
+                  probe_sha256=sha256(Path(__file__).read_bytes()).hexdigest(), origin=origin)
+    first = _serve(directory, origin, log)
+    try:
+        before = rehearse(directory, workdir / 'before-kill.json', decisions_before_kill)
+    except BaseException:
+        _kill(first)
+        raise
+    pre_kill = before['final']
+    result['before_kill'] = dict(decisions=len(before['steps']), automation=pre_kill.get('automation'),
+                                 last_action=before['steps'][-1]['action'] if before['steps'] else None)
+    result['first_process_returncode'] = _kill(first)
+    second = _serve(directory, origin, log)
+    try:
+        with httpx.Client(base_url=origin, timeout=30, trust_env=False) as client:
+            actor = ReviewerClient(client, origin, SCRIPT, secret)
+            restored = client.get('/api/workspace/workflow', headers=actor.headers).json()['workflow']
+            replay = None
+            if result['before_kill']['last_action']:
+                response = actor.post('/api/workspace/workflow/actions/' + result['before_kill']['last_action']['id'], {})
+                after_replay = client.get('/api/workspace/workflow', headers=actor.headers).json()['workflow']
+                replay = dict(http_status=response.status_code, unchanged=after_replay == restored)
+        result['after_restart'] = dict(state_equal_to_pre_kill=restored == pre_kill, duplicate_replay=replay,
+                                       next_action_labels=[a.get('label') for a in restored.get('next_actions', [])])
+        after = rehearse(directory, workdir / 'after-restart.json', 20)
+    finally:
+        result['second_process_returncode'] = _kill(second)
+        log.close()
+    final = after['final']
+    automation = final.get('automation') or {}
+    steps = automation.get('steps') or []
+    keys = [(s.get('operation'), s.get('intent_id')) for s in steps]
+    result['completion'] = dict(decisions_after_restart=len(after['steps']), remaining_actions=after['available_actions_remaining'],
+                                automation_state=automation.get('state'), counts=automation.get('counts'),
+                                steps=len(steps), step_states=sorted({s.get('state') for s in steps}),
+                                unique_step_keys=len(set(keys)) == len(keys),
+                                operations=[s.get('operation') for s in steps], ledger=final['ledger'],
+                                every_duplicate_unchanged=all(s['duplicate_unchanged'] for s in after['steps']),
+                                every_readback_equal=all(s['readback_equal'] for s in after['steps']))
+    result['finished_at'] = datetime.now(UTC).isoformat()
+    Path(receipt_path).write_text(json.dumps(result, indent=2, ensure_ascii=False) + '\n')
+    return result
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)

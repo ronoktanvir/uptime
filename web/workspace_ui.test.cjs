@@ -12,14 +12,17 @@ class Element {
   all(t){return this.children.flatMap(c=>[...(c.tagName===t?[c]:[]),...c.all(t)]);}
 }
 const document={createElement:t=>new Element(t)};
-const projection={vendor:'Northwind Cloud',contract:{title:'Cloud Services Agreement',version:'2026-01',ref:'NW-CSA-2026'},reviewer:{name:'Dana Reyes',role:'Contract Counsel',authority_kind:'SCRIPTED_REVIEWER'},months:[{month:'January 2026',outcome:'ELIGIBLE',amount:'2400.00',currency:'USD',reason:'Eligible downtime exceeds the service threshold.',citations:[{label:'Service credit schedule, §4',ref:'NW-CSA-2026#4'}]},{month:'February 2026',outcome:'INELIGIBLE',amount:'0.00',currency:'USD',reason:'Availability meets the threshold.'},{month:'March 2026',outcome:'INSUFFICIENT_EVIDENCE',amount:null,currency:'USD',reason:'Full-month measurement pending.'}],price_finding:{state:'REVIEW_REQUIRED',amount:'1000.00',currency:'USD',reason:'Invoice exceeds amended price cap.',citations:[{label:'Amendment 1, §2',ref:'NW-AM1#2'}]},claim:{id:'nw-jan',state:'DRAFT',receipt_id:null},ledger:{destination:'Local ledger',claimed:'0.00',awarded:'0.00',posted:'0.00',applied:'0.00',currency:'USD',bill:{id:'NW-MAR-2026',original_amount:'12000.00',outstanding_amount:'12000.00'},record_ids:{}},next_actions:[{id:'draft/claim',label:'Prepare claim'}],audit:[],sources:['SYNTHETIC_CUSTOMER'],mode:'replay'};
+const projection={vendor:'Northwind Cloud',contract:{title:'Cloud Services Agreement',version:'2026-01',ref:'NW-CSA-2026'},reviewer:{name:'Dana Reyes',role:'Contract Counsel',authority_kind:'SCRIPTED_REVIEWER'},months:[{month:'January 2026',outcome:'ELIGIBLE',amount:'2400.00',currency:'USD',reason:'Eligible downtime exceeds the service threshold.',citations:[{label:'Service credit schedule, §4',ref:'NW-CSA-2026#4'}]},{month:'February 2026',outcome:'INELIGIBLE',amount:'0.00',currency:'USD',reason:'Availability meets the threshold.'},{month:'March 2026',outcome:'INSUFFICIENT_EVIDENCE',amount:null,currency:'USD',reason:'Full-month measurement pending.'}],price_finding:{state:'REVIEW_REQUIRED',amount:'1000.00',currency:'USD',reason:'Invoice exceeds amended price cap.',citations:[{label:'Amendment 1, §2',ref:'NW-AM1#2'}]},claim:{id:'nw-jan',state:'DRAFT',receipt_id:null},ledger:{destination:'Local ledger',claimed:'0.00',awarded:'0.00',posted:'0.00',applied:'0.00',currency:'USD',bill:{id:'NW-MAR-2026',original_amount:'12000.00',outstanding_amount:'12000.00'},record_ids:{}},finance:{stages:[{stage:'estimated',label:'Estimated',amount:'2400.00',status:'recorded'},{stage:'claimed',label:'Claimed',amount:'0.00',status:'not yet'},{stage:'awarded',label:'Awarded',amount:'0.00',status:'not yet'},{stage:'posted',label:'Posted to Local ledger',amount:'0.00',status:'not yet'},{stage:'applied',label:'Applied to bill',amount:'0.00',status:'not yet'}],bill:{id:'NW-MAR-2026',original:'12000.00',applied:null,outstanding:'12000.00',application_ref:null}},next_actions:[{id:'draft/claim',label:'Prepare claim'}],audit:[],sources:['SYNTHETIC_CUSTOMER'],mode:'replay'};
 function setup(api){const root=new Element('main'),requests=[];const ui=create({document,api:async(...args)=>{requests.push(args);return api ? api(...args) : {workflow:projection};}});return{root,requests,ui};}
 test('Northwind renders separate exact stages, uncertainty and cited source records without classification chrome',async()=>{
  const s=setup();await s.ui.render(s.root);const view=s.root.textContent;
  for(const expected of ['Northwind Cloud','$2,400.00','$0.00','Not determined','$1,000.00','Local ledger','NW-CSA-2026#4','NW-AM1#2','Dana Reyes','Scripted reviewer']) assert.ok(view.includes(expected),expected);
  assert.doesNotMatch(view,/synthetic|simulat|replay|demo/i);
  assert.equal(s.root.all('tbody')[0].all('tr').length,3);
- assert.equal(s.root.all('article').length,4);
+ // The stage tiles became one five-step credit lifecycle rendered from the server's finance.stages; the outcome headline holds the credit and the price exception.
+ const steps=s.root.all('li').filter(n=>String(n.className).startsWith('lifecycle-step'));
+ assert.deepEqual(steps.map(n=>n.children[0].textContent),['Estimated','Claimed','Awarded','Posted to Local ledger','Applied to bill']);
+ assert.equal(s.root.all('article').filter(n=>String(n.className).startsWith('outcome-card')).length,2);
 });
 test('actions use signed injected transport, encoded server IDs and suppress duplicate dispatch',async()=>{
  let release;const s=setup((path,body)=>body ? new Promise(r=>{release=r;}) : {workflow:projection});await s.ui.render(s.root);
@@ -79,4 +82,38 @@ test('missing measurement diagnostic stays visible in summary and detail without
  const s=setup(()=>({workflow:data}));await s.ui.render(s.root);
  assert.match(s.root.textContent,/Scoped, exclusion-adjusted, full-month vendor measurement is required/);assert.doesNotMatch(s.root.textContent,/Simulated/);
  assert.equal(s.root.all('tbody')[0].all('tr')[0].children[2].textContent,'Not determined');assert.equal(data.months[0].trace[0],diagnostic);
+});
+test('credit lifecycle and headline come only from the server finance projection, never from ledger fields',async()=>{
+ const bare=JSON.parse(JSON.stringify(projection));delete bare.finance;
+ const s=setup(()=>({workflow:bare}));await s.ui.render(s.root);
+ const steps=s.root.all('li').filter(n=>String(n.className).startsWith('lifecycle-step'));
+ assert.equal(steps.length,0);assert.match(s.root.textContent,/The server reported no credit stages for this case\./);
+ const applied=JSON.parse(JSON.stringify(projection));
+ applied.ledger.record_ids={application:'app-1'};applied.ledger.bill={id:'NW-2026-04',month:'2026-04',original_amount:'1.00',outstanding_amount:'1.00'};
+ applied.finance.bill={id:'NW-2026-04',original:'11000.00',applied:'2400.00',outstanding:'8600.00',application_ref:'app-1'};
+ applied.price_finding.month='2026-03';
+ const t=setup(()=>({workflow:applied}));await t.ui.render(t.root);
+ const [credit,exception]=t.root.all('article').filter(n=>String(n.className).startsWith('outcome-card'));
+ assert.match(credit.textContent,/^April invoice NW-2026-04Invoice\$11,000\.00Credit applied\$2,400\.00Remaining balance\$8,600\.00/);
+ assert.doesNotMatch(credit.textContent,/\$1\.00/);
+ assert.match(exception.textContent,/^March price exception\$1,000\.00/);
+});
+test('activity shows the server automation record: state, pause, counts, authority and case-timeline times without durations',async()=>{
+ const automation={enabled:true,state:'PAUSED',pause:{reason:'APPROVAL_REQUIRED',detail:'server detail',operation:'approve-response',since:'2026-03-02T09:05:00+00:00'},
+  counts:{person_decisions:1,automatic_steps:2},steps:[
+  {seq:1,operation:'approve-claim',label:'Approve January claim',class:'APPROVAL',authority:{kind:'PERSON',actor:'scripted-test-reviewer'},state:'COMPLETED',at:'2026-03-01T12:00:00+00:00',recorded_at:'2026-11-09T21:33:46.126115+00:00',intent_id:'action-1',detail:null,timing:{clock:'WORKSPACE',at:'2026-03-01T12:00:00+00:00'}},
+  {seq:2,operation:'submit-claim',label:'File January claim',class:'DELIVERY',authority:{kind:'APPROVED_OPERATION',actor:'scripted-test-reviewer',approval_action:'approve-claim',approval_digest:'b'.repeat(64),approved_at:'2026-03-01T12:00:00+00:00'},state:'COMPLETED',at:'2026-03-01T12:00:00+00:00',recorded_at:'2026-11-09T21:33:46.199784+00:00',intent_id:'action-2',detail:null,timing:{clock:'WORKSPACE',at:'2026-03-01T12:00:00+00:00',filing_cutoff:'2026-03-03T00:00:00+00:00'}},
+  {seq:3,operation:'receive-denial',label:'Receive vendor response',class:'INTAKE',authority:{kind:'EVENT_INTAKE',event_id:'northwind-denial-jan',source_subject:'northwind-2026-01-vendor'},state:'UNCERTAIN',at:'2026-03-01T12:10:00+00:00',recorded_at:'2026-11-09T21:33:46.261388+00:00',intent_id:'action-3',detail:'TimeoutError',timing:{clock:'WORKSPACE',at:'2026-03-01T12:10:00+00:00'}}]};
+ const s=setup(()=>({workflow:{...projection,automation}}));await s.ui.activity(s.root);
+ const text=s.root.textContent;
+ for(const expected of ['Routine steps: Paused · Waiting for a person to approve. 1 person decision and 2 automatic steps recorded.','Next: Prepare claim.',
+   'Decided by scripted-test-reviewer','Run automatically under the approval recorded by scripted-test-reviewer, Mar 1, 2026, 12:00 UTC',
+   'Received automatically: event northwind-denial-jan from northwind-2026-01-vendor','Filing cutoff Mar 3, 2026, 00:00 UTC',
+   'Intake · Outcome uncertain','TimeoutError','Recorded by the server','Nov 9, 2026, 21:33 UTC','Times are on this case’s timeline'])
+   assert.ok(text.includes(expected),expected);
+ assert.doesNotMatch(text,/\d+ (minutes?|hours?|days?) (later|after|waiting)|waited/i);
+ assert.doesNotMatch(text,/2026-03-01T|21:33:46/);
+ const off=setup(()=>({workflow:{...projection,automation:{enabled:false,state:null,pause:null,steps:[],counts:{person_decisions:0,automatic_steps:0}}}}));
+ await off.ui.activity(off.root);assert.ok(off.root.textContent.includes('Each step runs when a person presses it in this workspace.'));
+ const none=setup();await none.ui.activity(none.root);assert.ok(none.root.textContent.includes('This workspace does not report automation runs.'));
 });

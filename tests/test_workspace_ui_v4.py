@@ -50,12 +50,20 @@ def test_configured_workflow_keeps_evidence_money_and_original_navigation_reacha
         expect(page.get_by_text("$9,600.00", exact=True)).to_be_visible()
         expect(page.get_by_text("$1,000.00", exact=True)).to_be_visible()
         expect(page.get_by_text("$0.00", exact=True)).to_be_visible()
+        # Cited clauses sit in a collapsed inspector on each month row; opening it shows the exact reference.
+        expect(page.get_by_text("NW-CSA-2026#4", exact=True)).to_be_hidden()
+        page.locator("#finance-months").get_by_text("Cited clauses (1)", exact=True).click()
         expect(page.get_by_text("NW-CSA-2026#4", exact=True)).to_be_visible()
         page.get_by_text("Agreement & review record", exact=True).click()
         expect(page.get_by_text("scripted-test-reviewer", exact=True)).to_be_visible()
         assert "SYNTHETIC_CUSTOMER" not in page.locator("body").inner_text()
         assert "replay" not in page.locator("#content").inner_text().lower()
-        for label in ["Vendor contracts", "Correspondence", "Ramp records"]:
+        # Four primary destinations; the other tools stay one click away under More tools.
+        for label in ["Overview", "Cases", "Agreements", "Activity"]:
+            expect(page.locator("nav.rail-primary").get_by_role("link", name=label, exact=True)).to_be_visible()
+        expect(page.get_by_role("link", name="Ramp records", exact=True)).to_be_hidden()
+        page.get_by_text("More tools", exact=True).click()
+        for label in ["Ramp records", "Case ledger", "Integrations"]:
             expect(page.get_by_role("link", name=label, exact=True)).to_be_visible()
         page.set_viewport_size({"width": 1000, "height": 500})
         integrations = page.get_by_role("link", name="Integrations", exact=True)
@@ -89,6 +97,8 @@ def test_workflow_action_uses_real_dom_collection_and_refreshes_server_state():
                     vendor: 'Action verification',
                     claim: {id: 'claim-1', state: accepted ? 'CLAIMED' : 'DRAFT'},
                     ledger: {destination: 'Local ledger', claimed: accepted ? '2400.00' : '0.00'},
+                    finance: {stages: [{stage: 'claimed', label: 'Claimed', amount: accepted ? '2400.00' : '0.00',
+                                        status: accepted ? 'recorded' : 'not yet'}]},
                     next_actions: accepted ? [] : [{id: 'approve/claim-1', label: 'Approve claim'}]
                 }};
             };
@@ -96,7 +106,7 @@ def test_workflow_action_uses_real_dom_collection_and_refreshes_server_state():
         }""")
         page.get_by_role("button", name="Approve claim", exact=True).click()
         expect(page.get_by_role("button", name="Approve claim", exact=True)).to_have_count(0)
-        expect(page.get_by_text("$2,400.00", exact=True)).to_be_visible()
+        expect(page.locator(".lifecycle-step", has_text="Claimed")).to_contain_text("$2,400.00")
         expect(page.get_by_text("No actions available in the current state.", exact=True)).to_be_visible()
         assert page.evaluate("window.workflowCalls") == [
             {"path": "/api/workspace/workflow", "body": None},
@@ -123,6 +133,7 @@ def test_result_quotes_and_decimal_equations_render_as_server_text_without_html_
             await UptimeWorkspace.create({api:async()=>({workflow})}).render(document.getElementById('workflow'));
         }''',dict(quote=quote,calculation=calculation))
         expect(page.get_by_text(calculation,exact=True)).to_be_visible()
+        page.get_by_text('Cited clauses (1)',exact=True).click()
         page.get_by_text('Read clause',exact=True).click()
         expect(page.locator('blockquote')).to_have_text(quote)
         expect(page.locator('blockquote')).to_be_visible()

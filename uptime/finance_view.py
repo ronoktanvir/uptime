@@ -174,13 +174,24 @@ def attention(projection):
     return items
 
 
+def _estimate(projection):
+    """The ledger's estimate, or while the claim is in flight (the ledger reports none) the claim month's own
+    evaluated amount from the same projection. Copied, never computed; unknown stays None."""
+    ledger = projection.get('ledger') or {}
+    if ledger.get('estimated') is not None:
+        return ledger['estimated']
+    month = (projection.get('claim') or {}).get('month')
+    match = next((m for m in projection.get('months') or [] if month and isinstance(m, dict) and m.get('month') == month), None)
+    return match.get('amount') if match else None
+
+
 def stages(projection):
     ledger = projection.get('ledger') or {}
     destination = ledger.get('destination') or 'destination'
     rows = []
     for key, label in (('estimated', 'Estimated'), ('claimed', 'Claimed'), ('awarded', 'Awarded'),
                        ('posted', 'Posted to ' + destination), ('applied', 'Applied to bill')):
-        value = ledger.get(key)
+        value = _estimate(projection) if key == 'estimated' else ledger.get(key)
         amount = decimal(value)
         status = 'not determined' if amount is None else 'recorded' if amount > 0 else 'not yet'
         rows.append(dict(stage=key, label=label, amount=value if amount is not None else None, status=status))
