@@ -861,12 +861,23 @@ def credit_links(snapshot: dict, *, provider_business_id: str, bill_id: str) -> 
     """
     from .ramp_records import _validate_snapshot
     _validate_snapshot(snapshot)
+    group = snapshot["resources"]["credits"]
+    return credit_link_report(_latest_bill(snapshot, bill_id), group["records"], group["status"],
+                              provider_business_id=provider_business_id, bill_id=bill_id,
+                              capture_checksum=snapshot["checksum"], observed_at=snapshot["observed_at"])
+
+
+def credit_link_report(bill, credit_rows, credits_status, *, provider_business_id: str, bill_id: str,
+                       capture_checksum: str, observed_at: str) -> dict:
+    """The D09 read-back over already validated records (a full capture or a verified excerpt).
+
+    ``credit_rows`` must include every captured credit that could link this bill;
+    ``credits_status`` is the credit list's own status, so an incomplete list stays unknown.
+    """
     native_id(provider_business_id, "INVALID_BUSINESS")
     native_id(bill_id, "INVALID_BILL")
-    bill = _latest_bill(snapshot, bill_id)
-    group = snapshot["resources"]["credits"]
-    credits = {c["id"]: c for c in group["records"]} if group["status"] in READABLE else {}
-    credits_complete = group["status"] in COMPLETE
+    credits = {c["id"]: c for c in credit_rows} if credits_status in READABLE else {}
+    credits_complete = credits_status in COMPLETE
     currency = ((bill or {}).get("amount") or {}).get("currency")
     pairs, reasons = {}, []
     if bill is None:
@@ -915,10 +926,10 @@ def credit_links(snapshot: dict, *, provider_business_id: str, bill_id: str) -> 
     status = ("REVIEW_REQUIRED" if conflicts or vendor_conflict else "UNKNOWN" if unknown else
               "VERIFIED_APPLICATIONS" if verified else "NO_APPLIED_CREDITS")
     return {"schema": LINKS_SCHEMA, "status": status, "provider_business_id": provider_business_id,
-            "bill_id": bill_id, "capture_checksum": snapshot["checksum"], "observed_at": snapshot["observed_at"],
+            "bill_id": bill_id, "capture_checksum": capture_checksum, "observed_at": observed_at,
             "bill_currency": currency, "bill_amount_minor": ((bill or {}).get("amount") or {}).get("amount_minor"),
             "bill_status": None if bill is None else bill.get("status"),
-            "credits_list": {"status": group["status"], "complete": credits_complete,
+            "credits_list": {"status": credits_status, "complete": credits_complete,
                              "archived_requested": False},
             "links": rows, "reasons": sorted(set(reasons) | ({"CREDIT_VENDOR_CONFLICT"} if vendor_conflict else set())),
             "applied_verified_minor": (sum(r["bill_side_minor"] for r in verified)

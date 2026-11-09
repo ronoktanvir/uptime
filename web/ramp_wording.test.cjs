@@ -21,7 +21,7 @@ function render(get){const root=new Element('main');const ui=create({document,ap
 
 test('worklist codes read as ordinary, meaning-preserving wording; other codes stay exact',async()=>{
   const s=render(()=>data);await s.ui.render(s.root);const text=s.root.textContent;
-  for(const expected of ['Saved capture (not live)','Invoice cap review','Scenario only, not a finding','Local counterparty, not a vendor','TRUNCATED','NOT_GRANTED','UNAVAILABLE'])
+  for(const expected of ['Saved capture (not live)','Invoice cap review','Scenario only, not a finding','Local counterparty, not a vendor','Vendors: partial list','NOT_GRANTED','UNAVAILABLE'])
     assert.ok(text.includes(expected),expected);
   assert.doesNotMatch(text,/synthetic|simulat|historical_replay/i);
   const open=s.root.all('a').find(a=>a.textContent==='Open in Ramp');

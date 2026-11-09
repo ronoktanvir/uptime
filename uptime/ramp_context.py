@@ -30,7 +30,12 @@ from .ramp_records import _validate_snapshot
 ROOT = Path(__file__).resolve().parents[1]
 HUMAN_NOTE = ROOT / "docs/v4/evidence/demo-path-87/human-ramp-note.json"
 VERIFIED_RECORD = ROOT / "fixtures/ramp/verified-demo-bill.json"
-VERIFIED_SCHEMA = "uptime-ramp-verified-record/1"
+VERIFIED_SCHEMA = "uptime-ramp-verified-excerpt/2"
+ASSOCIATION_FIELDS = ("schema", "status", "origin", "business_id", "bill_id", "browser_url", "browser_url_source",
+                      "observed_at", "bill_record_sha256", "verified_read_scopes", "write_attempted")
+EXCERPT_STATEMENT = ("Excerpt of a saved Ramp read of one demo bill, started by a person and packaged by Uptime. "
+                     "Not a live read. Only the records shown for this bill are included; the full capture stays private "
+                     "and is referenced by its checksum.")
 DEMO_BILL_URL = "https://demo.ramp.com/bill-pay/bills/list/"
 LIST_KEYS = ("listed", "list_complete", "has_next", "pages_read", "page_size", "max_pages")
 WORKLIST = ("bills", "transactions", "purchase_orders")
@@ -109,7 +114,7 @@ def _binding(case, row, business_id, agreements):
     return {"status": "BOUND" if exact else "CONFLICT", "contract_id": contract, "binding_digest": bound}, exact
 
 
-def record_context(snapshot, case, *, business_id, association=None, agreements=None):
+def record_context(snapshot, case, *, business_id, association=None, agreements=None, credit_report=None):
     """Ramp context for one worklist row or record detail."""
     object_type, object_id = case.get("provider_object_type"), case.get("provider_id")
     resource = {"bills": "bills", "draft-bills": "bills", "transactions": "transactions",
@@ -129,7 +134,9 @@ def record_context(snapshot, case, *, business_id, association=None, agreements=
             discussion.append({"comment_id": comment["id"], "created_at": comment["created_at"],
                                "attribution": "PERSON_POSTED_VERIFIED_READBACK" if person else "UNATTRIBUTED"})
     credits = None
-    if object_type == "bills" and row is not None:
+    if credit_report is not None:
+        credits = {k: credit_report[k] for k in ("status", "reasons", "applied_verified_minor", "links")}
+    elif object_type == "bills" and row is not None:
         if business_id is None:
             credits = {"status": "UNKNOWN", "reasons": ["BUSINESS_UNVERIFIED"], "applied_verified_minor": None}
         else:
@@ -152,41 +159,118 @@ def record_context(snapshot, case, *, business_id, association=None, agreements=
             "native_confirmation": "RAMP_READ_ONLY", "actual_recovery": None}
 
 
-def verified_record(path=VERIFIED_RECORD):
-    """A saved, verified record of one Ramp demo bill, or None when anything fails to verify.
+def _digest(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
 
-    The file holds a sanitized capture and the association receipt for one bill. Shown
-    only as a saved record with its read time, never as a live read. The bill must be in
-    the capture with the exact digest the association verified; the link is the exact URL
-    a person observed for that bill. No agreement is bound, so no finding amount attaches.
+
+def package_verified_excerpt(capture, association):
+    """Package only what the verified-record panel shows, from a full private capture.
+
+    Refuses anything that would not verify on load. The excerpt keeps the association
+    receipt, the one bill, that bill's vendor record and comments, credits that link the
+    bill, per-resource coverage and the evidence-gap finding. Other vendors, transactions
+    and approvals stay in the private capture, referenced by its checksum.
     """
-    try:
-        body = json.loads(Path(path).read_text())
-        if body.get("schema") != VERIFIED_SCHEMA:
-            return None
-        capture, association = body["capture"], body["association"]
-        _validate_snapshot(capture)
-        business, bill_id = native_id(association["business_id"]), native_id(association["bill_id"])
-        observed, read = (datetime.fromisoformat(association["observed_at"]),
-                          datetime.fromisoformat(capture["observed_at"]))
-        row = next((r for r in capture["resources"]["bills"]["records"]
-                    if r.get("kind") == "bill" and r["id"] == bill_id), None)
-        if (association.get("status") != "ONE_BILL_READ_VERIFIED" or association.get("write_attempted") is not False
-                or association.get("browser_url") != DEMO_BILL_URL + bill_id or row is None
-                or abs(observed - read) > timedelta(hours=1)
-                or hashlib.sha256(json.dumps(row, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
-                                  ).hexdigest() != association.get("bill_record_sha256")):
-            return None
-    except (OSError, ValueError, KeyError, TypeError, RampError, AssociationError):
-        return None
+    _validate_snapshot(capture)
+    association = {k: association[k] for k in ASSOCIATION_FIELDS}
+    bill_id = native_id(association["bill_id"])
+    bill = next(r for r in capture["resources"]["bills"]["records"] if r.get("kind") == "bill" and r["id"] == bill_id)
+    vendor = next((v for v in capture["resources"]["vendors"]["records"] if v["id"] == bill["vendor_id"]), None)
+    comments = [c for c in capture["resources"]["comments"]["records"]
+                if c["object_type"] == "bills" and c["object_id"] == bill_id]
+    linked = {a["credit_id"] for a in bill.get("applied_credits") or []}
+    credits = [c for c in capture["resources"]["credits"]["records"]
+               if c["id"] in linked or c.get("reference_bill_id") == bill_id
+               or any(link["bill_id"] == bill_id for link in c.get("applied_bills") or [])]
     case = next(c for c in evaluate_snapshot(capture, as_of=datetime.fromisoformat(capture["completed_at"]))
                 if c["provider_object_type"] == "bills" and c["provider_id"] == bill_id)
-    context = record_context(capture, case, business_id=business, association=association)
-    return {"kind": "SAVED_VERIFIED_RECORD", "live_read": False,
-            "statement": "Saved verified record of one Ramp demo bill. Not a live read.",
-            "capture": capture_summary(capture, business_id=business, custody="packaged_verified_record",
-                                       freshness="HISTORICAL_REPLAY"),
-            "ramp_context": context,
+    summary = capture_summary(capture, business_id=association["business_id"], custody="packaged_verified_record",
+                              freshness="HISTORICAL_REPLAY")
+    body = {"schema": VERIFIED_SCHEMA, "statement": EXCERPT_STATEMENT, "started_by": "PERSON",
+            "association": association,
+            "source_capture": {k: capture[k] for k in ("schema", "origin", "observed_at", "completed_at", "checksum")}
+            | {"records_committed": False},
+            "coverage": {k: summary[k] for k in ("resources", "account_complete", "incomplete_lists")},
+            "records": {"bill": bill, "vendor": vendor, "comments": comments, "credits": credits},
+            "credits_status": capture["resources"]["credits"]["status"],
             "finding": {"outcome": case["outcome"], "finding_kind": case.get("finding_kind"),
-                        "missing": list(case.get("missing") or []), "amount": None},
+                        "missing": list(case.get("missing") or []), "finding_digest": case.get("finding_digest"),
+                        "record_digest": case["data_provenance"]["record_digest"],
+                        "capture_digest": case["data_provenance"]["capture_digest"]}}
+    body["excerpt_checksum"] = _digest(body)
+    if verified_record_from(body) is None:
+        raise ValueError("EXCERPT_DOES_NOT_VERIFY")
+    return body
+
+
+def verified_record(path=VERIFIED_RECORD):
+    """The saved, verified excerpt of the Ramp demo bill, or None when anything fails to verify."""
+    try:
+        return verified_record_from(json.loads(Path(path).read_text()))
+    except (OSError, ValueError):
+        return None
+
+
+def verified_record_from(body):
+    """Shown only as a saved record with its read time, never as a live read.
+
+    The bill must carry the exact digest the association verified, and the link is the
+    exact URL a person observed for that bill. No agreement is bound, so no finding amount
+    attaches. Each packaged record passes the same saved-record schema as a full capture.
+    """
+    from .contracts import fingerprint
+    from .ramp_case_lineage import credit_link_report
+    from .ramp_records import _validate_record
+    try:
+        if not isinstance(body, dict) or body.get("schema") != VERIFIED_SCHEMA:
+            return None
+        if body.get("excerpt_checksum") != _digest({k: v for k, v in body.items() if k != "excerpt_checksum"}):
+            return None
+        association, source, records = body["association"], body["source_capture"], body["records"]
+        if set(association) != set(ASSOCIATION_FIELDS) or body.get("started_by") != "PERSON":
+            return None
+        business, bill_id = native_id(association["business_id"]), native_id(association["bill_id"])
+        bill, vendor, comments, credits = records["bill"], records["vendor"], records["comments"], records["credits"]
+        _validate_record("bills", bill)
+        if vendor is not None:
+            _validate_record("vendors", vendor)
+        for row in comments:
+            _validate_record("comments", row)
+        for row in credits:
+            _validate_record("credits", row)
+        observed = datetime.fromisoformat(association["observed_at"])
+        read = datetime.fromisoformat(source["observed_at"])
+        finding = body["finding"]
+        if (association.get("status") != "ONE_BILL_READ_VERIFIED" or association.get("write_attempted") is not False
+                or association.get("browser_url") != DEMO_BILL_URL + bill_id
+                or bill.get("kind") != "bill" or bill["id"] != bill_id
+                or _digest(bill) != association.get("bill_record_sha256")
+                or abs(observed - read) > timedelta(hours=1)
+                or (vendor is not None and vendor["id"] != bill.get("vendor_id"))
+                or any((c["object_type"], c["object_id"]) != ("bills", bill_id) for c in comments)
+                or finding.get("record_digest") != fingerprint(bill)
+                or finding.get("capture_digest") != source.get("checksum")
+                or source.get("records_committed") is not False):
+            return None
+        report = credit_link_report(bill, credits, body["credits_status"], provider_business_id=business,
+                                    bill_id=bill_id, capture_checksum=source["checksum"], observed_at=source["observed_at"])
+    except (KeyError, TypeError, ValueError, RampError, AssociationError):
+        return None
+    view = {"observed_at": source["observed_at"], "checksum": source["checksum"],
+            "resources": {"bills": {"records": [bill]}, "transactions": {"records": []},
+                          "purchase_orders": {"records": []}, "vendors": {"records": [vendor] if vendor else []},
+                          "comments": {"records": comments}}}
+    case = {"provider_object_type": "bills", "provider_id": bill_id, "sources": ["LIVE_RAMP_SANDBOX"],
+            "data_provenance": {"classification": "PROVIDER_OBSERVATION"}, "outcome": finding["outcome"]}
+    context = record_context(view, case, business_id=business, association=association, credit_report=report)
+    coverage = body["coverage"]
+    return {"kind": "SAVED_VERIFIED_RECORD", "live_read": False, "started_by": "PERSON", "excerpt": True,
+            "statement": body["statement"],
+            "capture": {"business_id": business, "custody": "packaged_verified_record",
+                        "observed_at": source["observed_at"], "completed_at": source["completed_at"],
+                        "freshness": "HISTORICAL_REPLAY", "capture_checksum": source["checksum"],
+                        "excerpt_checksum": body["excerpt_checksum"], **coverage},
+            "ramp_context": context,
+            "finding": {"outcome": finding["outcome"], "finding_kind": finding["finding_kind"],
+                        "missing": list(finding["missing"]), "amount": None},
             "contract_terms": "NONE_BOUND", "actual_recovery": None}
