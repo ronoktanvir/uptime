@@ -48,7 +48,7 @@
     "Final source/compiler integration and semantic hash pins owned by integration agent.",
     "No customer records, keys, private evaluation answers, Ramp actions or human decisions delegated."
   ],
-  "parent_validation": "417 passed, 1 warning in 4.25s; compiler-dependent route controls pending coordinated integration",
+  "parent_validation": "491 passed, 1 warning in 6.18s with onboarding compiler b9930c5 imported as71f3e72; mandatory ordinary-route subset8 passed,1warning in1.27s, no skips",
   "files_sha256": {
     "uptime/claim_scope.py": "641029dcf98335959ee7ceeb7c2ef00607432f56106e2371356efc50eadf6504",
     "uptime/correspondence_types.py": "b6e09be4d7b72ba2cd8384cc5e3b5cdb98cda940d0ea79c69a4c63257be05cff",
