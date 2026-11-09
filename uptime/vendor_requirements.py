@@ -117,7 +117,9 @@ def _monthly_card(manifest, overlay):
         detail = {'filing_days': manifest['filing_days'], 'measured_from': 'end of the UTC calendar month'}
         override = overlay.get('override')
         if isinstance(override, dict):
-            detail['private_override'] = {'filing_days': override.get('filing_days'), 'source_ref': override.get('source_ref')}
+            detail['private_override'] = {'filing_days': override.get('filing_days'), 'source_ref': override.get('source_ref'),
+                                          'effective_from': override.get('effective_from'),
+                                          'governs': 'months starting on or after effective_from; earlier months keep the source rule'}
         elements.append(_element('deadline', PRESENT, cites['filing_days'], detail))
     else:
         elements.append(_missing('deadline', 'the claim filing deadline'))
@@ -236,12 +238,14 @@ def _drafts(manifest, overlay):
         return _no_drafts('The overlay product and plan have no cited tier.')
     if governed is None:
         return _no_drafts('No complete calendar month lies inside both the source and overlay intervals.')
-    filing_days = (overlay.get('override') or {}).get('filing_days', manifest['filing_days'])
-    if type(filing_days) is not int:
-        return _no_drafts('The filing window is not a whole number of days.')
+    from .vendor_terms import private_filing_days
     start, end = governed
     minutes = ((end - start).days + 1) * 1440
     month = start.strftime('%Y-%m')
+    # The draft month's own filing window: a private amendment governs only from its stated month (F4).
+    filing_days = private_filing_days(overlay, month, manifest['filing_days'])
+    if type(filing_days) is not int:
+        return _no_drafts('The filing window is not a whole number of days.')
     window_open = datetime(end.year, end.month, end.day, tzinfo=UTC) + timedelta(days=1)
     cutoff = window_open + timedelta(days=filing_days)
     cite = _monthly_cites(manifest)
