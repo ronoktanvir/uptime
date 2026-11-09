@@ -98,10 +98,14 @@ def evaluate(manifest, overlay, facts, tenant, *, bindings=None, governing_fee=N
         start = date(year, number, 1)
         last = date(year, number, total_days)
         end = datetime(year, number, total_days, tzinfo=UTC) + timedelta(days=1)
-        days = overlay.get('override', {}).get('filing_days', manifest['filing_days'])
-        cutoff = end + timedelta(days=days)
     except (OverflowError, ValueError):
         return stop(Outcome.UNSUPPORTED, 'Calendar interval outside supported range.')
+    try:
+        from .vendor_terms import private_filing_days
+        days = private_filing_days(overlay, month, manifest['filing_days'])
+        cutoff = end + timedelta(days=days)
+    except (OverflowError, ValueError) as error:
+        return stop(Outcome.UNSUPPORTED, str(error))
     base['claim_cutoff_exclusive'] = cutoff.isoformat()
     if (start.isoformat() < max(overlay['effective_from'], manifest['effective'][0])
             or last.isoformat() > min(overlay['effective_until'], manifest['effective'][1] or overlay['effective_until'])):

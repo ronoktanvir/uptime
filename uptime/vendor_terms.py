@@ -19,6 +19,7 @@ MAX_PERCENT = 100 * PERCENT_SCALE
 NUMBER = r'[0-9]{1,3}(?:\.[0-9]{1,6})?'
 NAME = r"[A-Za-z0-9][A-Za-z0-9 &(),_'./+\-]{0,99}?"
 DAY = r'[0-9]{4}-[0-9]{2}-[0-9]{2}'
+MONTH_START = r'[0-9]{4}-(?:0[1-9]|1[0-2])-01'
 
 
 class Strict(BaseModel):
@@ -36,6 +37,9 @@ class FilingOverride(Strict):
     filing_days: int = Field(ge=1, le=365)
     source_ref: str = Field(min_length=1, max_length=160)
     quote: str = Field(min_length=1, max_length=512)
+    # First day of the UTC calendar month from which the private amendment governs (F4). Earlier months keep
+    # the source filing rule; a missing, mid-month or out-of-interval date is unsupported, never defaulted.
+    effective_from: str = Field(min_length=10, max_length=10)
 
 
 class BillingPeriod(Strict):
@@ -354,12 +358,34 @@ def bind_overlay(manifest, overlay):
         match = _match(FILING, override.quote.strip().removesuffix('.'))
         if not match or int(match[1]) != override.filing_days or not _match(NAME, override.source_ref):
             raise ValueError('Private filing amendment must cite the matching contract clause.')
+        if (not re.fullmatch(MONTH_START, override.effective_from)
+                or not overlay.effective_from <= override.effective_from <= overlay.effective_until):
+            raise ValueError('A private filing amendment must take effect on the first day of a calendar month '
+                             'inside the overlay interval.')
+        date.fromisoformat(override.effective_from)
     bound = overlay.model_dump(exclude_none=True)
     if resource:
         from .claim_identity import resource_remedy
         resource_remedy(manifest, bound)
     return bound
 
+
+
+def private_filing_days(overlay, month, default):
+    """Calendar-day filing window for one UTC calendar month ('YYYY-MM') under an optional private amendment.
+
+    A private filing amendment governs only months that begin on or after its stated effective date; earlier
+    months keep the source rule (F4). An amendment without a calendar-month start date is unsupported.
+    """
+    override = (overlay or {}).get('override')
+    if not override:
+        return default
+    start = override.get('effective_from') if isinstance(override, dict) else None
+    if not isinstance(start, str) or not re.fullmatch(MONTH_START, start):
+        raise ValueError('A private filing amendment must state the calendar month it governs from.')
+    if not isinstance(month, str) or not re.fullmatch(r'[0-9]{4}-(?:0[1-9]|1[0-2])', month):
+        raise ValueError('A full UTC calendar month is required to choose the filing window.')
+    return override['filing_days'] if month + '-01' >= start else default
 
 # A reviewed artifact is coupled to the actual source installed in this process.
 # A comment-only change can conservatively require fresh review. Historical receipts stay readable.
