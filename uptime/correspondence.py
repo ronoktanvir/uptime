@@ -34,8 +34,11 @@ def reviewed_reply(state):
 
 
 def hold_reviewed_denial(state):
-    """A reviewed reading never closes a claim by itself; acceptance is a separate explicit action."""
-    if state["stage"] == "DENIAL_ACCEPTED" and reviewed_reply(state) and not state.get("denial_acceptance"):
+    """D06 "Humans gate judgment": no reading, grammar or reviewed, closes a claim by itself.
+
+    Closing is a separate explicit reviewer action bound to the substantiated basis.
+    """
+    if state["stage"] == "DENIAL_ACCEPTED" and state["replies"] and not state.get("denial_acceptance"):
         state["stage"] = DENIAL_REVIEW
 
 
@@ -429,6 +432,7 @@ class CorrespondenceDesk:
                     state["replies"].append(reply)
                     state["cooldown"] = (now + FOLLOW_UP).isoformat()
                     apply_response_state(state, current)
+                    hold_reviewed_denial(state)
                     audit(state, now, "claimant", "Linked vendor reply to verified historical receipt.", VENDOR, receipt=body["receipt_id"])
                 else:
                     self._reply(tenant, scope, state, fact, now)
@@ -663,7 +667,7 @@ class CorrespondenceDesk:
 
     def _denial_basis(self, scope, state, current):
         """Re-derive from current evidence and governing terms only that a reviewed denial ground holds."""
-        if state["stage"] != DENIAL_REVIEW or not reviewed_reply(state):
+        if state["stage"] != DENIAL_REVIEW or not state["replies"]:
             return None
         reviewed = state.get("interpretation_review")
         if reviewed and (reviewed["contract_version"] != current.version
@@ -673,7 +677,7 @@ class CorrespondenceDesk:
             return None
         reply = state["replies"][-1]
         return dict(reason=state["reason"], reply_digest=reply["digest"], receipt=reply["receipt"],
-                    review_id=reply["reviewed_interpretation"], evidence_digest=current.evidence_digest,
+                    review_id=reply.get("reviewed_interpretation"), evidence_digest=current.evidence_digest,
                     contract_version=current.version, contract_source_sha256=current.contract_source_sha256,
                     outcome=str(current.evaluation.outcome), clauses=[asdict(c) for c in current.evaluation.clauses])
 

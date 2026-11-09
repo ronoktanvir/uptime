@@ -181,7 +181,15 @@ def test_correct_denial_of_independently_witnessed_original_requires_actual_sign
     deliver(service, [("vendor-fixture", original)])
     text = "Denied. Your filing arrived after the deadline." if late else "Denied. Service availability met the threshold."
     deliver(service, [("vendor-fixture", dict(kind="message", receipt_id=original["receipt_id"], text=text))])
+    accept_explicitly(service)
     row = service.read()
     assert row["stage"] == "DENIAL_ACCEPTED", row
     assert row["actions"] == [] and row["submissions"] == []
     assert row["ledger"]["claimed"] == row["ledger"]["awarded"] == "0.00"
+
+
+def accept_explicitly(app):
+    """D06 (Q2 option A): a substantiated denial closes only through the explicit reviewer action."""
+    pending = app.read()
+    assert pending["stage"] == "DENIAL_REVIEW" and [a["id"] for a in pending["actions"]] == ["accept-denial"]
+    return app.post(app.url + "/denial-acceptance", dict(basis_digest=pending["actions"][0]["basis_digest"]))

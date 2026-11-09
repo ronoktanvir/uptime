@@ -193,6 +193,7 @@ def test_signed_original_retains_exact_fields_and_pins_through_valid_threshold_d
     immutable = original_record(filing)
     deliver(filing, [("vendor-fixture", dict(kind="message", receipt_id="outside-original",
                                            text="Denied. Service availability met the threshold."))])
+    accept_explicitly(filing)
     after = filing.read()
     assert after["stage"] == "DENIAL_ACCEPTED" and after["actions"] == []
     assert after["evidence"][-2] == before
@@ -277,3 +278,10 @@ def test_duplicate_signed_field_cannot_override_the_reviewed_reference(filing):
     body["fields"].append(dict(name="subscription fee", refs=["compass-install"]))
     deliver(filing, [("customer-fixture", body)])
     assert filing.read()["amount"] is None and filing.read()["actions"] == []
+
+
+def accept_explicitly(app):
+    """D06 (Q2 option A): a substantiated denial closes only through the explicit reviewer action."""
+    pending = app.read()
+    assert pending["stage"] == "DENIAL_REVIEW" and [a["id"] for a in pending["actions"]] == ["accept-denial"]
+    return app.post(app.url + "/denial-acceptance", dict(basis_digest=pending["actions"][0]["basis_digest"]))
