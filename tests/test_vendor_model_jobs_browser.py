@@ -22,6 +22,16 @@ BASE = '/api/vendors/' + VENDOR
 CHROME = Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 
 
+def await_selected_proposal(page):
+    """Family jobs may finish before or after the submit response; refresh the selection only when it is needed."""
+    finished = page.get_by_text('Every family evaluation has finished.', exact=False)
+    proposal = page.get_by_role('heading', name='Proposed public clauses', exact=True)
+    finished.or_(proposal).first.wait_for(timeout=15000)
+    if not proposal.count():
+        page.get_by_role('button', name='Refresh proposal status', exact=True).click()
+    proposal.wait_for(timeout=10000)
+
+
 @pytest.fixture
 def signed(runtime):
     db, _, _, service, _ = runtime
@@ -174,10 +184,8 @@ def test_browser_checks_permission_generates_and_stages_separate_overlay(selecti
                     page.get_by_role('button', name='Check generation access', exact=True).click()
                     page.get_by_text('Generation is permitted for this exact request.', exact=False).wait_for()
                 page.get_by_role('button', name='Generate proposals', exact=True).click()
-                page.get_by_text('Every family evaluation has finished.', exact=False).wait_for(timeout=15000)
+                await_selected_proposal(page)
                 assert sorted(provider.calls) == ['monthly-propositions', 'resource-month']
-                page.get_by_role('button', name='Refresh proposal status', exact=True).click()
-                page.get_by_role('heading', name='Proposed public clauses', exact=True).wait_for(timeout=10000)
                 assert page.get_by_text('Why this family was refused', exact=True).count() == 1
                 monthly = next(json.loads(r) for r in provider.requests if json.loads(r)['profile'] == 'monthly-propositions')
                 assert monthly['input']['text'] == document['text']

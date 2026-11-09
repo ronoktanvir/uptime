@@ -18,7 +18,7 @@ from uptime import vendor_registry
 from test_vendor_model_jobs_runtime import P
 from test_vendor_family_selection_89 import (PROSE as DOC, PROSE_AS_RESOURCE, PROSE_OVERLAY as OVERLAY, PROSE_PROPOSAL,
                                              VENDOR, approve, blocks_text, selecting)  # noqa: F401 (fixture)
-from test_vendor_model_jobs_browser import CHROME
+from test_vendor_model_jobs_browser import CHROME, await_selected_proposal
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -72,9 +72,7 @@ def test_expired_browser_session_recovers_same_job_without_resubmitting(selectin
             page.goto(origin+'/#vendors');login();source()
             page.get_by_text('Generation is permitted for this exact request.',exact=False).wait_for()
             page.get_by_role('button',name='Generate proposals',exact=True).click()
-            page.get_by_text('Every family evaluation has finished.',exact=False).wait_for(timeout=15000)
-            page.get_by_role('button',name='Refresh proposal status',exact=True).click()
-            page.get_by_role('heading',name='Proposed public clauses',exact=True).wait_for(timeout=10000)
+            await_selected_proposal(page)
             assert 'SUCCEEDED' in page.locator('.v4-status').inner_text()
             assert len(provider.calls)==2
             original_job=page.locator('.v4-job dd').first.inner_text()

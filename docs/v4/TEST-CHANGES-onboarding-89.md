@@ -94,3 +94,5 @@ Not changed by W3: `tests/helpers/refusal_diagnostic.test.cjs` (gent7's, round 3
 
 Results: the JS helpers (`vendor_auth83`, `vendor_monthly_profile79`, `vendor_model_jobs`) **24 passed**; `browser-contract`, `v4_ui` and `advanced_companion` **33 passed**. The Python set (`test_vendor_model_jobs_browser`, `test_vendor_auth83`, `test_vendor_monthly_profile_79`, `test_vendor_family_selection_89`, `test_advanced_companion`, `test_vendor_model_jobs_runtime`, `test_vendor_refusal_diagnostics_89`, `test_vendor_requirements_89`) **81 passed, 1 warning in 25.81s**.
 
+After merging integration head `c55f2fd`, the broad focused set reported **1 failed, 1182 passed, 1 warning in 58.84s**. The failure was a race in the new browser tests: with an instant provider double, both family jobs can finish before the submit response is computed, so the page goes straight to `SELECTED` and never shows the "finished" message. Both browser tests now accept either path through `await_selected_proposal`. `test_vendor_model_jobs_browser.py` and `test_vendor_auth83.py` then gave **7 passed** on two consecutive runs.
+
