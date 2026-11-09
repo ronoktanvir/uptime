@@ -1,0 +1,91 @@
+{
+  "schema": "evaluation85-transport-dryrun/1",
+  "mode": "ok",
+  "hang_seconds": 75,
+  "classification": "controlled fake CLI through real SafePublicClaude; not a model call; not corpus data",
+  "runner_constants": {
+    "provider_bound": 80,
+    "poll": 120,
+    "shutdown": 100
+  },
+  "elapsed_seconds": 3.039,
+  "report": {
+    "case_id": "dryrun-control",
+    "profile": "monthly-propositions",
+    "failure_stage": null,
+    "extraction": {
+      "status": "SUCCEEDED",
+      "job_id": "9514904c-cfc9-4a57-bde3-475549824708",
+      "reason": null
+    },
+    "shadow": {
+      "status": "SHADOW",
+      "version": "25661b4680cef717682b37259ee67fe66cdf80574b0886686bdce79f9db65d3d"
+    },
+    "deterministic": [
+      {
+        "name": "authored local observation",
+        "http_status": 200,
+        "result": {
+          "classification": "LOCAL_DRAFT_PREVIEW",
+          "dispatch_authorized": false,
+          "vendor_id": "v-a0f823e3abb808709129aca0",
+          "revision": 3,
+          "evaluation": {
+            "outcome": "ELIGIBLE",
+            "amount": "10.00",
+            "currency": "USD",
+            "trace": [
+              "44340/44640 UTC minutes available. Exact comparison gives 10000000/1000000% credit.",
+              "Affected fee 10000 USD cents; source-clause future invoice credit only."
+            ],
+            "missing": [],
+            "filing_status": "TIMELY",
+            "issuance_status": "FUTURE_INVOICE_CREDIT_UNCONFIRMED",
+            "basis": "50d31f03c235e19cc4a2b371e1113c71139aca282a249fed1df6d1d1a63b2f23",
+            "observation_digest": "9d7aef05d647391b09427cf4df341c7871fac914efa2e4611e584a9bcfbd6990",
+            "remedy": "affected_monthly_fees_future_invoice",
+            "citations": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "claim_cutoff_exclusive": "2026-08-21T00:00:00+00:00",
+            "monitor_ref": "local-authored-monitor",
+            "fee_ref": "local-authored-fee",
+            "tier_citation": 8,
+            "rate_units": 10000000
+          }
+        }
+      }
+    ],
+    "authority": {
+      "promotion_performed": false,
+      "actual_human_review": false,
+      "semantic_review_performed": false,
+      "fee_authority_created": false
+    },
+    "queue": {
+      "server_stopped": true,
+      "jobs": [
+        {
+          "status": "SUCCEEDED",
+          "reason": null
+        }
+      ],
+      "terminal_observed": true
+    }
+  },
+  "fake_cli_invocations": {
+    "help": 3,
+    "version": 3,
+    "model_calls": 1
+  },
+  "second_run": "FileExistsError"
+}

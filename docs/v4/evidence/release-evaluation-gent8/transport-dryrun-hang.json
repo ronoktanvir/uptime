@@ -1,0 +1,48 @@
+{
+  "schema": "evaluation85-transport-dryrun/1",
+  "mode": "hang",
+  "hang_seconds": 75,
+  "classification": "controlled fake CLI through real SafePublicClaude; not a model call; not corpus data",
+  "runner_constants": {
+    "provider_bound": 80,
+    "poll": 120,
+    "shutdown": 100
+  },
+  "elapsed_seconds": 63.775,
+  "report": {
+    "case_id": "dryrun-control",
+    "profile": "monthly-propositions",
+    "failure_stage": "extraction",
+    "extraction": {
+      "status": "UNCERTAIN",
+      "job_id": "a01225da-58ce-40e3-93fb-6a54e7f5cd41",
+      "reason": "provider_timeout"
+    },
+    "shadow": {
+      "status": "NOT_ATTEMPTED"
+    },
+    "deterministic": [],
+    "authority": {
+      "promotion_performed": false,
+      "actual_human_review": false,
+      "semantic_review_performed": false,
+      "fee_authority_created": false
+    },
+    "queue": {
+      "server_stopped": true,
+      "jobs": [
+        {
+          "status": "UNCERTAIN",
+          "reason": "provider_timeout"
+        }
+      ],
+      "terminal_observed": true
+    }
+  },
+  "fake_cli_invocations": {
+    "help": 3,
+    "version": 3,
+    "model_calls": 1
+  },
+  "second_run": "FileExistsError"
+}

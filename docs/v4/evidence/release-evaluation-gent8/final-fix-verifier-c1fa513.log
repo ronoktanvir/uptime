@@ -1,0 +1,13 @@
+/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/release-evaluation-gent8/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+Traceback (most recent call last):
+  File "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/release-evaluation-gent8/scripts/independent_final_fix_verifier.py", line 410, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/release-evaluation-gent8/scripts/independent_final_fix_verifier.py", line 396, in main
+    "original_artifacts": preserved_originals(), "results": {}}
+                          ~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/release-evaluation-gent8/scripts/independent_final_fix_verifier.py", line 48, in preserved_originals
+    assert actual == ORIGINALS, ("Original review artifacts changed", actual)
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError: ('Original review artifacts changed', {'scripts/independent_final_review_probes.py': 'a936bc148ea6a929ca99d3e8e1b0de529c7cc0a20d0d2623877349a6ad5cc6b6', 'docs/v4/INDEPENDENT-FINAL-REVIEW.md': '9633e9089125d051ad1bfc6a20e9287efe1dab80d76443a4c972b07f6adedf6f'})

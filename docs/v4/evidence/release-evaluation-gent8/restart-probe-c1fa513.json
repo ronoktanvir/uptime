@@ -1,0 +1,95 @@
+{
+  "schema": "restart-probe-gent8/1",
+  "started_at": "2026-11-09T11:10:51.388487+00:00",
+  "transport": "REAL_LOOPBACK_HTTP",
+  "process_model": "separate OS processes; SIGKILL between them",
+  "authority_kind": "SCRIPTED_REVIEWER",
+  "probe_sha256": "9585393f6ecb2e55ed2468f5789213321c2ab853c45fc50567f7ae6d7bbcdb91",
+  "origin": "http://127.0.0.1:53977",
+  "before_kill": {
+    "actions": 4,
+    "ledger": {
+      "destination": "Local ledger",
+      "estimated": null,
+      "claimed": "2400.00",
+      "awarded": "0.00",
+      "posted": "0.00",
+      "applied": "0.00",
+      "currency": "USD",
+      "record_ids": {
+        "award": null,
+        "credit": null,
+        "application": null
+      },
+      "unapplied_credit": "0.00",
+      "bill": {
+        "id": null,
+        "original_amount": null,
+        "outstanding_amount": null
+      }
+    },
+    "last_action": {
+      "id": "action-6d93c0d5b341c2692e538af1072140ee2f47ef6b926fda4f54c6cd5a503fca1a",
+      "label": "Attach requested log",
+      "group": "evidence"
+    }
+  },
+  "first_process_returncode": -9,
+  "after_restart": {
+    "state_equal_to_pre_kill": true,
+    "duplicate_replay": {
+      "http_status": 200,
+      "unchanged": true
+    }
+  },
+  "second_process_returncode": -9,
+  "completion": {
+    "actions_after_restart": 7,
+    "remaining_actions": 0,
+    "ledger": {
+      "destination": "Local ledger",
+      "estimated": "2400.00",
+      "claimed": "2400.00",
+      "awarded": "2400.00",
+      "posted": "2400.00",
+      "applied": "2400.00",
+      "currency": "USD",
+      "record_ids": {
+        "award": "inbox-award:4006d959c2f1d6a667a9d2f3529806606968d07f59939803f8250b1d3c08725b",
+        "credit": "local-ledger:545b5002-9e52-5f4e-be08-30ff844d80e5",
+        "application": "local-ledger:718779d3-7004-5152-bbfb-789a70b30bbe"
+      },
+      "unapplied_credit": "0.00",
+      "bill": {
+        "id": "NW-2026-04",
+        "original_amount": "11000.00",
+        "outstanding_amount": "8600.00",
+        "issued_at": "2026-04-01T00:00:00+00:00",
+        "service_start": "2026-04-01T00:00:00+00:00",
+        "service_end": "2026-05-01T00:00:00+00:00",
+        "known_at": "2026-04-01T09:00:00Z",
+        "source_sha256": "ba3a23e99bb642a94c206460071804678c771f46eb0a06ba55b76d7e14c6a9e2",
+        "governing_pricing_version": "amendment-v2",
+        "award_eligibility_version": "0211908c3efcd58b663a17a7af37761ff4d2c5741baca70a47ab0dbd4778ec50",
+        "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5",
+        "source_ref": "local-invoice:2020718e953d7dc1bf2fff6952cca1a5914872ba6ed1b0a943e43cb55ee58711",
+        "unchanged_sla": {
+          "citation": {
+            "end": 979,
+            "id": "amendment-2026-03.txt:4",
+            "quote": "3. Unchanged terms. Service scope, excluded taxes and non-covered charges, complete-month measurement, completed-step SLA credits, final HALF_UP cent rounding, claim window and remaining term are unchanged. The SLA base uses the governing monthly fee, not any invoice overcharge.",
+            "quote_sha256": "5af7ebb2b17315ca661c657182b44207efcd5d115abdd553bc7fef7f2e388033",
+            "source_file": "amendment-2026-03.txt",
+            "source_sha256": "ac2d5f59ac41af94a43fd25e747b92bea88e56e348198fc9886ea30dae4235f6",
+            "start": 700
+          },
+          "citation_id": "amendment-2026-03.txt:4",
+          "sla_source_sha256": "e38bac29ceb4468b267028f16892f9a3cdf24b8d6cdc0c63f40567103196cdb5"
+        }
+      }
+    },
+    "every_duplicate_unchanged": true,
+    "every_readback_equal": true
+  },
+  "finished_at": "2026-11-09T11:11:16.405756+00:00"
+}
