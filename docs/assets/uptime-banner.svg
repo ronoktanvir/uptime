@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="570" viewBox="0 0 1600 570" role="img" aria-labelledby="title desc">
+  <title id="title">Uptime — Make every clause count</title>
+  <desc id="desc">SLA enforcement and financial recovery automation. First edition: Ramp-native. A contract passes through evidence and rules to a financial outcome.</desc>
+  <defs>
+    <pattern id="ledger" width="80" height="54" patternUnits="userSpaceOnUse">
+      <path d="M0 53.5H80" fill="none" stroke="#D9E1D6" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#486554"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="570" rx="12" fill="#F6F8F0"/>
+  <path d="M0 12Q0 0 12 0H1588Q1600 0 1600 12V14H0Z" fill="#DDEF80"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <g transform="translate(70 62)" fill="#18312C">
+      <path d="M0 0H12V31L25 44L38 31V0H50V36L25 61L0 36Z"/>
+      <text x="73" y="48" font-size="52" font-weight="750" letter-spacing="2">UPTIME</text>
+    </g>
+    <text x="1530" y="103" font-size="23" fill="#486554" text-anchor="end">First edition / Ramp-native</text>
+    <line x1="70" y1="154" x2="1530" y2="154" stroke="#C8D3C6"/>
+    <text x="70" y="265" font-size="77" font-weight="700" letter-spacing="-3" fill="#18312C">Make every</text>
+    <text x="70" y="350" font-size="77" font-weight="700" letter-spacing="-3" fill="#18312C">clause count.</text>
+    <text x="73" y="408" font-size="27" fill="#486554">SLA enforcement &amp; financial recovery automation.</text>
+    <g transform="translate(930 204)">
+      <rect x="0" y="0" width="600" height="220" fill="url(#ledger)"/>
+      <path d="M0 0V220M600 0V220" stroke="#D9E1D6"/>
+      <rect x="24" y="24" width="130" height="168" rx="3" fill="#FFFFFF" stroke="#486554" stroke-width="2"/>
+      <path d="M44 56H134M44 74H114M44 112H134M44 130H134M44 148H101" stroke="#8B9D8C" stroke-width="3"/>
+      <rect x="40" y="102" width="98" height="41" fill="#DDEF80"/>
+      <path d="M47 115H129M47 130H112" stroke="#486554" stroke-width="3"/>
+      <path d="M168 110H230" stroke="#486554" stroke-width="2" marker-end="url(#arrow)"/>
+      <path d="M283 55L338 110L283 165L228 110Z" fill="#18312C"/>
+      <path d="M259 110H274L283 96L292 124L302 110H311" fill="none" stroke="#DDEF80" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M352 110H408" stroke="#486554" stroke-width="2" marker-end="url(#arrow)"/>
+      <rect x="422" y="53" width="152" height="114" rx="3" fill="#EAF1DA" stroke="#486554" stroke-width="2"/>
+      <path d="M441 79H555M441 100H555M441 144H555" stroke="#A2B49A" stroke-width="2"/>
+      <path d="M512 125H555" stroke="#18312C" stroke-width="4"/>
+      <text x="89" y="252" text-anchor="middle" font-size="21" fill="#486554">Contract</text>
+      <text x="283" y="252" text-anchor="middle" font-size="21" fill="#486554">Evidence + rules</text>
+      <text x="498" y="252" text-anchor="middle" font-size="21" fill="#486554">Outcome</text>
+    </g>
+    <line x1="70" y1="492" x2="1530" y2="492" stroke="#C8D3C6"/>
+    <text x="73" y="535" font-size="22" fill="#18312C">Prevent overcharges</text>
+    <path d="M325 522H360M351 515L360 522L351 529" fill="none" stroke="#486554" stroke-width="2"/>
+    <text x="392" y="535" font-size="22" fill="#18312C">Pursue credits</text>
+    <path d="M580 522H615M606 515L615 522L606 529" fill="none" stroke="#486554" stroke-width="2"/>
+    <text x="647" y="535" font-size="22" fill="#18312C">Reconcile outcomes</text>
+    <text x="1530" y="535" font-size="22" fill="#486554" text-anchor="end">Berkeley BBS × Ramp Hackathon</text>
+  </g>
+</svg>
