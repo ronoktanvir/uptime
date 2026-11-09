@@ -42,6 +42,13 @@ About 260 spoken words. Measured interaction time for all eleven steps plus two 
 
 If someone other than Ronok presents, say "Ronok's enrolled account" rather than "Ronok clicked": the record authenticates the account, not the person at the keyboard.
 
+## Screens to use and avoid while recording
+
+From the W7 sweep of a fresh workspace at 390 px and 1360 px: no sideways scroll and no page errors on any route.
+
+- **Use:** Contract worklist (finance view), Ramp records, Vendor intake & versions, Correspondence & disputes.
+- **Avoid:** Case ledger · Advanced, Onboarding lab, Integrations, Advanced workflows, Regression comparison, Policies. They show the older seeded comparison portfolio and simulator wording. Those labels are accurate but off-message for this script.
+
 ## Never say
 
 - "Recovered" or "saved" for the $2,400, or that anything reached Ramp, stopped a payment or held a bill.
