@@ -61,6 +61,30 @@ def make_router(db_path, actor, reviewer, check_write, mutex, *, governing_fees=
     def vendor(vendor_id: str, p=Depends(actor)):
         return registry.get_vendor(db_path, p, vendor_id,governing_fees=governing_fees or (),trusted_now=clock)
 
+    @router.get('/{vendor_id}/requirements')
+    def requirements(vendor_id: str, p=Depends(actor)):
+        """Read-only: what the current artifact establishes, what review still needs, and generated drafts."""
+        from .vendor_requirements import draft_overlap, requirement_card, scenario_drafts
+        # Same principal, tenant scope and artifact (including the overlay) as GET /{vendor_id}.
+        view = registry.get_vendor(db_path, p, vendor_id, governing_fees=governing_fees or (), trusted_now=clock)
+        manifest, overlay = view.get('manifest'), view.get('overlay')
+        if manifest is None or view['state'] == 'QUARANTINED':
+            reason = view.get('reason') or 'No compiled adapter is installed.'
+            card = {'schema': 'adapter-requirements/1', 'family': None, 'supported': False, 'no_open_requirements': False,
+                    'elements': [], 'review_requirements': [f'{reason} Supply a source this adapter family can represent.']}
+            drafts = {'generated': False, 'reason': 'No compiled adapter is installed.', 'scenarios': []}
+        else:
+            card, drafts = requirement_card(manifest, overlay), scenario_drafts(manifest, overlay)
+        with registry.transaction(db_path, p, vendor_id) as db:
+            submitted = registry._tail(db, p, vendor_id).get('tests', [])
+        reused = draft_overlap(drafts, submitted)
+        return {'vendor_id': vendor_id, 'version': view.get('version'), 'revision': view['revision'],
+                'state': view['state'], 'card': card, 'drafts': drafts,
+                'draft_overlap': {'tests_reusing_draft_facts': reused, 'warning': (
+                    'These reviewer tests reuse generated draft facts. Confirm each expectation was calculated '
+                    'independently from the cited clauses.') if reused else None},
+                'authority': {'approval_gate': False, 'dispatch_authorized': False}}
+
     @router.post('/{vendor_id}/candidates')
     def candidate(vendor_id: str, body: dict, p=Depends(reviewer)):
         return mutate(p, registry.install, vendor_id, body)
