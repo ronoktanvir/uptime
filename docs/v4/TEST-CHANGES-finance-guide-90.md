@@ -49,7 +49,7 @@ Decision: [ADR 95](decisions/ADR-0095-grounded-finance-guide.md).
 | Focused regression before the critique changes | Working tree on `03b372e` | **338 passed, 1 warning in 587.64s** |
 | Same group after rebase | `8cf8f0c` | **349 passed, 1 warning in 276.90s** ([verification](evidence/finance-guide-90/verification.json)) |
 | JavaScript checks | Tree equal to `5312938` | **84/84 pass** (75 existing + 9 new) |
-| Full `uv run --locked pytest` | — | Not yet run. Requested from the integration owner; full suites run one at a time on this disk. |
+| Full `uv run --locked pytest` | `fde492c` (integration round 3, fresh clone) | **4523 passed, 1 warning in 523.01s (0:08:43)** — run by the integration owner; see the full-suite record below |
 
 The focused list covers:
 
@@ -137,4 +137,18 @@ Results:
 - Correspondence, disposition and interpretation suites, including W4's unchanged `test_correspondence_disposition_89.py`: **69 passed**
 - Companion and correspondence browser suites after the 89b follow-up: **25 passed**
 - Ramp, workspace and finance browser tests: **6 passed**
+
+## Full-suite record
+
+| Run | Tested commit | Result | Covers |
+| --- | --- | --- | --- |
+| Integration round 3 (integration owner, fresh clone) | `fde492c` | **4523 passed, 1 warning in 523.01s (0:08:43)** | Every W7 commit through `3f13db8`, including `679133c`, `0b6523e`, `a47fb5a`, `d3ac7d7` and `e7d9726` |
+| Integration round 5 | Pending | Result line to be recorded when the integration owner reports it | The D05 follow-up `0848d59`, merged as `1eac5ed`, which is not in `fde492c` |
+
+Receipts on `work/integration-90`:
+
+- `docs/v4/evidence/integration-90/full-suite-fde492c.log`
+- `docs/v4/evidence/integration-90/verification-fde492c.json`
+
+I did not run a separate full suite on this branch. The integration owner coordinates full runs one at a time on the shared disk. My queued run was cancelled before it started, and no temporary data was created.
 
