@@ -1,6 +1,6 @@
 # V3 requirement completion checklist
 
-Every requirement in the original V3 handoff, specification and DAG, with its current disposition. Snapshot 2026-11-09 (round 6, 3f60647); baseline `3f60647`. Generated from [requirements.json](requirements.json) by `scripts/render_requirements.py`; `tests/test_requirements_traceability.py` fails if a requirement disappears, a cited file or test does not exist, or an incomplete item lacks a gap, class and owner.
+Every requirement in the original V3 handoff, specification and DAG, with its current disposition. Snapshot 2026-11-09 (round 7, 54e0033); baseline `54e0033`. Generated from [requirements.json](requirements.json) by `scripts/render_requirements.py`; `tests/test_requirements_traceability.py` fails if a requirement disappears, a cited file or test does not exist, or an incomplete item lacks a gap, class and owner.
 
 A disposition describes evidence, not effort. MET_LOCAL means verified with local tests or authored or controlled data; it is not live Ramp, real vendor or customer proof.
 

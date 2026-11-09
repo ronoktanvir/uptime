@@ -1,6 +1,6 @@
 # Reproduce Uptime from a fresh checkout
 
-Verified on November 9, 2026: every integration round cloned `work/integration-90` into an empty directory and ran exactly the commands under "Build and verify". The latest code round, 6 (`3f60647`), gave 4,664 passed with 1 warning, and 104 JavaScript checks; the other checks passed. Receipts: `docs/v4/evidence/integration-90/verification-<commit>.json`, with the full pytest logs beside them. The local clones came from the same pushed commits as GitHub.
+Verified on November 9, 2026: every integration round cloned `work/integration-90` into an empty directory and ran exactly the commands under "Build and verify". The latest code round, 7 (`54e0033`), gave 4,684 passed with 1 warning, and 104 JavaScript checks; the other checks passed. Receipts: `docs/v4/evidence/integration-90/verification-<commit>.json`, with the full pytest logs beside them. The local clones came from the same pushed commits as GitHub.
 
 ## Requirements
 

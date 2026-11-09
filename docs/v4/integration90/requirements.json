@@ -1,7 +1,7 @@
 {
  "schema": "uptime-v3-requirements/1",
- "as_of": "2026-11-09 (round 6, 3f60647)",
- "baseline_commit": "3f606471d38364959d814ba50629ee0a73951500",
+ "as_of": "2026-11-09 (round 7, 54e0033)",
+ "baseline_commit": "54e0033daba7a51a76ef0d2ba3d56260b0415d76",
  "dispositions": {
   "MET": "Implemented and verified with the kind of evidence the requirement asks for.",
   "MET_LOCAL": "Implemented and verified in local tests or with authored/controlled data; any live or external part is named in the gap.",
