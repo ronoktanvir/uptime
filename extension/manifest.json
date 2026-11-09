@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Uptime for Ramp side panel",
+  "version": "0.1.0",
+  "description": "Shows your local Uptime workspace beside the Ramp bill that is open. Reads only the address of Ramp tabs.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzBnsBGfYgeP55x/QvlnamhONyS4jx0Fj/0G0xLfNxqxywf4nvk+EN460tGMXCPPqpEgxuPaSoJcU9RHV6Wy0x5oBjMQCo4Av9po71VDhXq8v/9SW2ZFpzSXY59KaikSFWIYxzPZCCpabQtowR76vcps1Y4lSBEtdrTiJRg+NCmjqGXg0tKfmPqRspYQxqBYyNfzD5fcNHhTyCbSNdWA83ACBye3UMIXK0KUOriAmmUOfmcmcxWQrjMaRterl2+yJvX8dAB37WZm0HtrJDzwvJa6iKzmdWSQiaVlR7ISUkfz3IDzY+yx0bDpHeRnxdPSjENY7SHWZWS4eHjiRlx9vFwIDAQAB",
+  "permissions": [
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://demo.ramp.com/*"
+  ],
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open Uptime beside this bill"
+  }
+}

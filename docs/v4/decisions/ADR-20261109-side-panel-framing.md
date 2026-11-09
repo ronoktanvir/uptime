@@ -27,7 +27,7 @@ A Chrome extension's origin comes from the public key in its manifest. Anyone wh
 
 ## Validation
 
-`tests/test_side_panel_framing.py`, 28 cases:
+`tests/test_side_panel_framing.py`, 29 cases:
 
 - the default policy is byte-for-byte what it was;
 - with the option, only `frame-ancestors` differs and it names exactly the one origin;
@@ -36,6 +36,21 @@ A Chrome extension's origin comes from the public key in its manifest. Anyone wh
 - the serve command refuses a bad value before it listens or creates a database.
 
 With `tests/test_ramp_ui_v4.py`, `tests/test_v4_authority.py` and `tests/test_opus46_security.py`: 62 passed. No existing test changed. The new tests fail to import against the unchanged server, so they do exercise the change.
+
+## The extension, and what a real browser showed
+
+`extension/` holds the panel: a manifest, a one-line background script, a page with one frame, and about sixty lines of script. It asks Chrome for the side panel and for the addresses of `https://demo.ramp.com/` tabs only; it has no general tab permission, no content script, no storage and makes no request. Its public key pins the ID `kibophanbmnepbmhpampfagpjfhjfcnl`. Four JavaScript checks cover the address parsing, the routes, the manifest's permissions and ID, and a source scan for requests, storage, page scripting and injected markup.
+
+Checked on November 9, 2026 with the unpacked extension loaded into a throwaway Chrome 157 profile, against a test workspace started with the option. Ramp's site was not contacted; the Ramp-shaped address was answered by a local stub.
+
+1. The server sent `frame-ancestors chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl`.
+2. The extension loaded under that ID and its panel page framed the app at `#records`.
+3. Sign-in worked inside the frame, and the "Verified Ramp record" panel was visible.
+4. With a tab on `https://demo.ramp.com/bill-pay/bills/list/<bill id>` in front, the label read "Ramp bill f74ba12c…" and the frame moved to `#ramp-bill/<bill id>`, still signed in.
+5. A tab on another site with the same path was not followed: the label read "No Ramp bill open" and the frame returned to `#records`, still signed in.
+6. A different page that tried to frame the app was refused by the browser.
+
+Not checked: the side-panel container itself, which a person opens from the toolbar; real Ramp pages; and loading into a person's own Chrome. Not built yet: the `#ramp-bill/<bill id>` page in the interface. Until it exists that address falls back to the workspace's default page, so the panel must not be filmed or shipped before it lands.
 
 ## Rollback
 

@@ -3,6 +3,9 @@
 The option changes only who may display the page. It never lets that origin act: sign-in and
 every action still require this app's own origin.
 """
+import base64
+import hashlib
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -67,6 +70,16 @@ def test_the_framing_extension_cannot_act(tmp_path):
         login = client.post("/api/auth/challenge", json={"subject": "nobody", "path": "/api/auth/login", "body_sha256": ""},
                             headers={"X-Uptime-Action": "1", "Origin": EXTENSION})
         assert login.status_code == 403
+
+
+def test_the_packaged_extension_is_the_one_origin_the_option_is_documented_with():
+    manifest = json.loads((ROOT / "extension/manifest.json").read_text())
+    digest = hashlib.sha256(base64.b64decode(manifest["key"])).hexdigest()[:32]
+    identifier = "".join(chr(ord("a") + int(character, 16)) for character in digest)
+    assert panel_origin("chrome-extension://" + identifier) == EXTENSION
+    assert manifest["permissions"] == ["sidePanel"]
+    assert manifest["host_permissions"] == ["https://demo.ramp.com/*"]
+    assert EXTENSION in (ROOT / "extension/README.md").read_text()
 
 
 def test_serve_command_refuses_a_bad_origin_before_it_listens(tmp_path):
