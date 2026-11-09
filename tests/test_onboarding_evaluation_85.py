@@ -754,3 +754,102 @@ def test_opaque_target_does_not_disclose_case_family(world):
     assert re.fullmatch(r"v-[a-f0-9]{24}", exported["target"])
     assert "unsupported_variable_fee" not in json.dumps(exported)
     assert prepared["profile"] == "monthly-propositions"
+
+
+# --------------------------------------------------------------------------- gent8 additions
+# Added after pre-inference harness validation (see docs/v4/evaluation-gent8/HARNESS-VALIDATION.md).
+# Existing tests above are unchanged.
+
+
+def test_poll_and_shutdown_bounds_cover_the_installed_provider_bound():
+    import inspect
+    from uptime import correspondence_model_transport as transport
+
+    call_timeout = inspect.signature(transport.bounded_run).parameters["timeout"].default
+    constructor = inspect.getsource(transport.SafePublicClaude.__init__)
+    invocation = inspect.getsource(transport.SafePublicClaude.__call__)
+    # Constructor runs --help and --version with 10 s each; the call uses bounded_run's default.
+    assert constructor.count("timeout=10") == 2
+    assert "timeout=" not in invocation
+    assert harness.PROVIDER_BOUND_SECONDS >= call_timeout + 20
+    assert harness.POLL_SECONDS > harness.PROVIDER_BOUND_SECONDS
+    assert harness.SHUTDOWN_SECONDS > harness.PROVIDER_BOUND_SECONDS
+
+
+def test_poll_timeout_keeps_the_servers_own_terminal_state_without_retry(world, monkeypatch):
+    import time
+
+    class _SlowDouble(_ProviderDouble):
+        def __call__(self, request):
+            time.sleep(1.0)
+            return super().__call__(request)
+
+    monkeypatch.setattr(vendor_model_jobs, "build_vendor_provider", lambda *a, **k: _SlowDouble(world.log))
+    monkeypatch.setattr(harness, "POLL_SECONDS", 0.2)
+    prepared = world.prepare()
+    world.approve(prepared)
+
+    report = world.run()
+
+    # The runner stopped observing first: that is an unresolved observation, not a semantic result.
+    assert report["failure_stage"] == "extraction"
+    assert report["error_type"] == "TimeoutError"
+    assert report["extraction"]["status"] == "UNCERTAIN"
+    # Shutdown waited for the job pool, so the server's own record is terminal and retained.
+    assert report["queue"]["server_stopped"] is True
+    assert report["queue"]["terminal_observed"] is True
+    assert [job["status"] for job in report["queue"]["jobs"]] == ["SUCCEEDED"]
+    assert len(world.log.calls) == 1
+    assert report["shadow"]["status"] == "NOT_ATTEMPTED"
+    _assert_retained(world, report)
+    queue = json.loads((world.attempt_dir / "queue-evidence.json").read_text(encoding="utf-8"))
+    assert [row["status"] for row in queue] == ["SUCCEEDED"]
+    world.assert_gold_never_opened()
+
+
+def test_success_records_terminal_queue_state(world):
+    prepared = world.prepare()
+    world.approve(prepared)
+    report = world.run()
+    assert report["failure_stage"] is None
+    assert report["queue"] == {"server_stopped": True, "terminal_observed": True,
+                               "jobs": [{"status": "SUCCEEDED", "reason": None}]}
+
+
+def test_prepare_freezes_tracked_core_tree(world):
+    world.prepare()
+    frozen = json.loads((world.attempt_dir / "frozen.json").read_text(encoding="utf-8"))
+    assert frozen["core_tree_sha256"] == harness.core_tree()
+    assert _HEX64.fullmatch(frozen["core_tree_sha256"])
+
+
+def test_tracked_core_drift_after_freeze_prevents_inference(world, monkeypatch):
+    prepared = world.prepare()
+    world.approve(prepared)
+    monkeypatch.setattr(harness, "core_tree", lambda: "0" * 64)
+    report = world.run()
+    _assert_not_attempted(report, "frozen_inputs")
+    assert world.log.calls == []
+    _assert_retained(world, report)
+
+
+def test_core_tree_refuses_uncommitted_core_changes(tmp_path, monkeypatch):
+    import subprocess
+
+    repo = tmp_path / "repo"
+    (repo / "uptime").mkdir(parents=True)
+    (repo / "uptime" / "module.py").write_text("VALUE = 1\n")
+    git = ["git", "-c", "user.name=t", "-c", "user.email=t@example.invalid"]
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run([*git, "-C", str(repo), "add", "uptime"], check=True)
+    subprocess.run([*git, "-C", str(repo), "commit", "-qm", "base"], check=True)
+    monkeypatch.setattr(harness, "ROOT", repo)
+    clean = harness.core_tree()
+    assert _HEX64.fullmatch(clean)
+    (repo / "uptime" / "module.py").write_text("VALUE = 2\n")
+    with pytest.raises(ValueError):
+        harness.core_tree()
+    (repo / "uptime" / "module.py").write_text("VALUE = 1\n")
+    (repo / "uptime" / "untracked.py").write_text("")
+    with pytest.raises(ValueError):
+        harness.core_tree()

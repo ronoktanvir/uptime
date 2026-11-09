@@ -47,6 +47,12 @@ CORE_FILES = ('uptime/vendor_model_jobs.py', 'uptime/public_proposal_jobs.py',
               'uptime/vendor_api.py', 'uptime/server.py', 'uptime/auth.py', 'uptime/auth_client.py',
               'uptime/source_config.py', 'scripts/evaluate_onboarding_85.py', 'scripts/public_proposals.py')
 TERMINAL = {'SUCCEEDED', 'REFUSED', 'UNCERTAIN', 'CANCELLED'}
+# SafePublicClaude (uptime/correspondence_model_transport.py) runs --help and --version (10 s each)
+# when the job constructs its provider, then one 60 s call. The poll must outlast that bound, and
+# shutdown must let the job pool finish so the queue snapshot holds the job's own terminal state.
+PROVIDER_BOUND_SECONDS = 80
+POLL_SECONDS = PROVIDER_BOUND_SECONDS + 40
+SHUTDOWN_SECONDS = PROVIDER_BOUND_SECONDS + 20
 
 
 def _hash(data):
@@ -105,6 +111,16 @@ def source_pins(profile):
     return {name: _hash((ROOT / name).read_bytes()) for name in sorted(files)}
 
 
+def core_tree():
+    """Digest of every tracked uptime/ file as it exists on disk; refuses uncommitted core changes."""
+    def git(*args):
+        return subprocess.run(['git', *args], cwd=ROOT, capture_output=True, check=True, timeout=30).stdout
+    if git('status', '--porcelain', '--untracked-files=all', '--', 'uptime').strip():
+        raise ValueError('Tested core source must be committed before an attempt is frozen or run.')
+    names = sorted(name for name in git('ls-files', '-z', '--', 'uptime').decode().split('\0') if name)
+    return _hash(canonical({name: _hash((ROOT / name).read_bytes()) for name in names}))
+
+
 def _configuration(config_path):
     config = load_private(config_path, PublicProposalConfig)
     if config.kinds != ['vendor']:
@@ -146,6 +162,7 @@ def prepare_case(*, case_id, family, document_path, customer_path, document_sha2
                   source_text_sha256=_hash(document['text'].encode()), request_sha256=_hash(request),
                   context_sha256=exported['context_sha256'], provider_profile=provider.profile,
                   config_sha256=_hash(canonical(config.model_dump())), source_pins=pins,
+                  core_tree_sha256=core_tree(),
                   semantic_family=vendor_model_jobs.PROFILE_FAMILIES[profile],
                   semantic_digest=vendor_terms.SEMANTICS_REVISIONS[vendor_model_jobs.PROFILE_FAMILIES[profile]],
                   git_head=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
@@ -171,6 +188,8 @@ def _progress(path, stage, **values):
 def _verify(path, frozen, config_path):
     if frozen['profile'] != PROFILES[frozen['family']] or source_pins(frozen['profile']) != frozen['source_pins']:
         raise ValueError('Frozen runner or consumed core changed.')
+    if core_tree() != frozen.get('core_tree_sha256'):
+        raise ValueError('Tracked core source changed after the attempt was frozen.')
     for name in ('document', 'customer'):
         digest = frozen[name + '_sha256']
         _input(Path(frozen[name + '_path']), name + '.json', digest)
@@ -193,7 +212,7 @@ def _verify(path, frozen, config_path):
 
 
 @contextmanager
-def _loopback(db, config_path, frozen):
+def _loopback(db, config_path, frozen, lifecycle):
     import httpx
     import uvicorn
     from uptime.server import create_app
@@ -217,23 +236,27 @@ def _loopback(db, config_path, frozen):
             yield client, ReviewerClient(client, origin, frozen['subject'], key)
     finally:
         server.should_exit = True
-        thread.join(10)
+        # Lifespan shutdown closes the job pool with wait=True; a running provider call finishes or
+        # times out inside its own bound before the queue is snapshotted.
+        thread.join(SHUTDOWN_SECONDS)
+        lifecycle['server_stopped'] = not thread.is_alive()
         sock.close()
 
 
 def _queue_evidence(path, db, frozen):
     if not db.exists():
-        return
+        return []
     with sqlite3.connect(db) as connection:
         connection.row_factory = sqlite3.Row
         tables = {r[0] for r in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if 'public_proposal_jobs' not in tables:
-            return
+            return []
         rows = [dict(r) for r in connection.execute(
             'SELECT * FROM public_proposal_jobs WHERE tenant=? AND subject=? AND target=?',
             (frozen['tenant'], frozen['subject'], frozen['target']))]
     # Owner-only immutable audit snapshot; response/transport metadata never sent to model.
     _json_new(path / 'queue-evidence.json', rows)
+    return rows
 
 
 def run_attempt(*, attempt_dir, config_path):
@@ -248,6 +271,7 @@ def run_attempt(*, attempt_dir, config_path):
                   'semantic_review_performed': False, 'fee_authority_created': False})
     stage = 'frozen_inputs'
     own_database = False
+    lifecycle = {}
     db = path / 'workspace.sqlite'
     _progress(path, stage)
     try:
@@ -258,7 +282,7 @@ def run_attempt(*, attempt_dir, config_path):
         _progress(path, stage)
         load_approvals(Path(config.approvals_path))
         own_database = True
-        with _loopback(db, config_path, frozen) as (client, signed):
+        with _loopback(db, config_path, frozen, lifecycle) as (client, signed):
             base = '/api/vendors/' + frozen['target']
             body = _body(document, frozen['profile']).model_dump()
             access = signed.post(base + '/proposal-access', body)
@@ -277,7 +301,7 @@ def run_attempt(*, attempt_dir, config_path):
             job = response.json()
             job_id = vendor_model_jobs.job_identifier(job)
             report['extraction']['job_id'] = job_id
-            deadline = time.monotonic() + 90
+            deadline = time.monotonic() + POLL_SECONDS
             last_status = None
             while True:
                 if job.get('status') != last_status:
@@ -321,7 +345,12 @@ def run_attempt(*, attempt_dir, config_path):
         return report
     finally:
         if own_database:
-            _queue_evidence(path, db, frozen)
+            rows = _queue_evidence(path, db, frozen)
+            # The server's own record after shutdown, separate from what the poll last observed.
+            # A job still QUEUED/RUNNING here was not observed terminal; it is never retried.
+            report['queue'] = {'server_stopped': lifecycle.get('server_stopped', False),
+                               'jobs': [{'status': row.get('status'), 'reason': row.get('reason')} for row in rows],
+                               'terminal_observed': bool(rows) and all(row.get('status') in TERMINAL for row in rows)}
         _progress(path, 'finished', failure_stage=report['failure_stage'])
         _json_new(path / 'report.json', report)
 
