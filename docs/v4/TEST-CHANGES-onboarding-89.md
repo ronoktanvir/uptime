@@ -96,3 +96,7 @@ Results: the JS helpers (`vendor_auth83`, `vendor_monthly_profile79`, `vendor_mo
 
 After merging integration head `c55f2fd`, the broad focused set reported **1 failed, 1182 passed, 1 warning in 58.84s**. The failure was a race in the new browser tests: with an instant provider double, both family jobs can finish before the submit response is computed, so the page goes straight to `SELECTED` and never shows the "finished" message. Both browser tests now accept either path through `await_selected_proposal`. `test_vendor_model_jobs_browser.py` and `test_vendor_auth83.py` then gave **7 passed** on two consecutive runs.
 
+## D05 operator support (`work/onboarding-d05-runbook-89`)
+
+`scripts/public_proposals.py export-vendor --profile auto` writes one exact export per supported family. Every path must be new before any is written, and the provider is never invoked. Added `tests/onboarding79/test_public_proposal_export_auto_89.py` (2 tests). With `tests/onboarding79/` and `test_public_proposal_config.py`: **35 passed, 1 warning**. Existing tests changed: none. Runbook: [D05-UNSEEN-VENDOR-RUNBOOK.md](D05-UNSEEN-VENDOR-RUNBOOK.md).
+
