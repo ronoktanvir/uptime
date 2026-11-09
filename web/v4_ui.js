@@ -451,7 +451,7 @@
       box.append(note(current));
       const items = el('ol', undefined, 'v4-history');
       rows.forEach(row => items.append(add(el('li'), el('strong', 'Revision ' + shown(row.revision) + ' · ' + shown(row.kind)),
-        note(shown(row.at) + ' · ' + (/^scripted-/.test(String(row.actor)) ? 'Scripted preparation (' + row.actor + ')' : 'Recorded under account ' + shown(row.actor))))));
+        note(shown(at(row.at)) + ' · ' + (/^scripted-/.test(String(row.actor)) ? 'Scripted preparation (' + row.actor + ')' : 'Recorded under account ' + shown(row.actor))))));
       return add(box, items);
     }
     function vendor(m, data) {
