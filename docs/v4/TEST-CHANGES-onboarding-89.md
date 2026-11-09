@@ -41,6 +41,25 @@ Each test uses provider doubles; no real inference occurs. A model-text sentinel
 | `test_existing_job_table_gains_a_nullable_column_and_keeps_rows` | Additive migration keeps existing rows and reasons. |
 | `test_forged_or_stale_records_are_not_projected` | A self-consistent forgery with a substituted document, wrong offsets, an invented code, a changed profile, or another context is not shown. |
 
+## Added: `tests/test_vendor_family_selection_89.py` (22 tests, D05 phase 1)
+
+Real job service and deterministic validators; the provider double returns a scripted reading per family profile.
+
+| Test | What it establishes |
+|---|---|
+| `test_canonical_monthly_source_is_selected_offline_without_inference` | Offline selection; zero provider calls. |
+| `test_resource_language_keeps_even_a_canonical_source_off_the_offline_shortcut` | Opus falsification probe: dual-fit source refused offline and by the strict parser. |
+| `test_a_resource_symptom_clause_has_no_monthly_reading` | A symptom/cause clause is refused under every monthly field label. |
+| `test_no_job_is_queued_until_every_family_request_is_approved` | No partial spend. |
+| `test_monthly_family_selected_when_the_resource_reading_is_refused` | Monthly selected via jobs; loser reasons shown; SHADOW only; resubmission idempotent. |
+| `test_resource_family_selected_when_the_monthly_reading_meets_a_deterministic_qualifier` | Resource selected; the monthly loser was refused structurally. |
+| `test_both_refused_is_no_supported_family_with_concrete_requirements` | Per-family requirements. |
+| `test_a_family_with_no_grounded_reading_cannot_be_ruled_out` | `INCOMPLETE`, not `SELECTED`. |
+| `test_any_other_validated_family_makes_the_source_ambiguous_and_blocks_its_candidate` | A validated family from another reviewer's attempt gives `AMBIGUOUS`; the candidate is refused; a retry stays ambiguous. |
+| `test_offline_selection_is_also_ambiguous_when_another_family_validated` | The offline path checks attempts too. |
+| `test_outcome_matrix` (8 cases), `test_unsubmitted_and_unconfigured_outcomes`, `test_refusal_classification` | Pure outcome derivation. |
+| `test_signed_app_path_selects_stages_and_explains_the_family`, `test_signed_app_path_offline_selection_and_explanation` | Signed HTTP path on the existing draft routes, with `family_selection` on the requirements view. |
+
 ## Focused results
 
 Run from the worktree with the integration virtual environment (`UV_PROJECT_ENVIRONMENT`), unique `--basetemp` and `-o tmp_path_retention_policy=failed`, base directory deleted afterward.
@@ -52,3 +71,5 @@ Run from the worktree with the integration virtual environment (`UV_PROJECT_ENVI
 - Refusal diagnostics: first implementation **9 passed**. It was revised after the Opus critique, and `vendor_model_jobs.py` was reverted to byte-identical. Revised file: **12 passed, 1 warning in 1.96s**. The same focused set plus `test_public_proposal_jobs.py`, all `test_correspondence_model_jobs*.py` and `test_correspondence_public_queue_75.py`: **1527 passed, 1 warning in 374.43s**.
 
 Full `uv run --locked pytest`: not run on this branch, at the integration owner's request (shared nearly full disk). It runs once after merge into `work/integration-90`.
+
+- D05 phase 1: new file **22 passed, 1 warning in 1.78s** (first collection failed on a parametrize name that clashed with an imported module; fixed). Focused set (all `test_vendor_*`, `test_onboarding*`, proposal-job, correspondence model-job, route and authority tests): **1174 passed, 1 warning in 71.27s**.

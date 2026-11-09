@@ -48,18 +48,18 @@ That harness evaluates the frozen corpus84 with an **evaluator-supplied family l
 | `synthetic_public` classification and heading | `vendor_terms.py` 175–179, 266 | Declarative test-source provenance. Accepted alongside `public`. |
 | Model prompts | `vendor_model.PROMPT`; `vendor_resource_terms.PROMPT` | Family-specific extraction instructions, with no vendor names. Generic examples only. |
 
-## 4. Automatic family selection: blocked on D05
+## 4. Automatic family selection (D05, decided 2026-11-09)
 
-**D05 is pending** (`TEAM-DECISION-HANDOFF.md`). No approval record exists. This branch **does not** implement automatic selection. The operator-chosen profile remains.
+**D05 was decided on 2026-11-09: auto-select plus human approval.** Phase 1 is implemented ([decision 97](decisions/ADR-0097-automatic-family-selection.md)).
 
-The exact dependent change, once D05 is approved, is:
+`POST /api/vendors/{id}/proposal-access` and `/proposal-jobs` accept `{"document": …, "profile": "auto"}`. Uptime then selects the family itself:
+1. An offline deterministic parse, guarded against resource-family language.
+2. Otherwise, one exact-approved proposal job per supported family.
+3. A selection derived from the deterministic validators: `SELECTED`, `AMBIGUOUS`, `NO_SUPPORTED_FAMILY` or `INCOMPLETE`, each with concrete review requirements.
 
-1. Remove `profile` from `ProposalRequest`, or make it advisory, and replace the required UI select.
-2. Add a server-side selection step. Real prose needs a model to propose propositions, so selection means either one proposal per supported profile with deterministic validation choosing among the results, or a separate model classification call. Both change model call count and cost (D10).
-3. Define refusal reasons for "no family validates" and "more than one family validates". Ambiguity must become a review requirement, not a guess.
-4. `vendor_model_jobs.proposal_context` pins one profile. A multi-profile job changes the job pin schema in the shared `public_proposal_jobs` service (W3/W4 shared; integration-owner review).
+Ambiguity is monotone across attempts and reviewers. `GET /api/vendors/{id}/requirements` shows the installed artifact's `family_selection`.
 
-The requirement card added here (§5) is family-generic. It is the intended reporting surface for "which family's required elements does this source establish" once selection exists.
+**Phase 2 (pending, with W7):** candidate install accepts only the automatically selected job, and the "Extraction profile" select is replaced. Until then an operator-chosen profile can still stage a candidate, so no proof run counts as D05 evidence before phase 2.
 
 ## 5. Implemented in this workstream
 

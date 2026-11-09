@@ -1,0 +1,72 @@
+{
+  "purpose": "Single concise Opus 5.5 critique of the D05 automatic family-selection design before implementation.",
+  "invocation": "claude -p --model claude-opus-5-5 --tools '' --strict-mcp-config --setting-sources '' --no-session-persistence --output-format json (empty temporary cwd; packet on stdin)",
+  "packet_sha256": "107af163e9bc4b1aa11371192fb1d3735351d2e815e1c785b1d1def11fd50185",
+  "packet_bytes": 3186,
+  "packet_contents": "Design text only. No source code, credentials, customer captures, private overlays or sealed evaluation material.",
+  "verified_model": [
+    "claude-opus-5-5"
+  ],
+  "envelope": {
+    "type": "result",
+    "subtype": "success",
+    "is_error": false,
+    "duration_ms": 29394,
+    "num_turns": 1,
+    "result": "**Ranking:** A > D > C > B. D can never produce the required AMBIGUOUS refusal. C makes model confidence the selector. B selects without validation and breaks on the first unseen vendor. A is the only option where the decision's authority (deterministic validation) also makes the selection.\n\n**Dissent from A:** None on direction. A should ship only with the three amendments below.\n\n**Top risks**\n\n1. **Step 1 is an unproven claim about the grammars.** \"Strict monthly coverage excludes resource clauses\" is a property of two evolving grammars, not a law. If a later monthly parser version absorbs scoped language, the shortcut silently skips the ambiguity check. *Amend:* after an offline compile succeeds, run a deterministic check that resource-required markers are absent. Pin that check to the adapter version.\n\n2. **A flaky refusal can mask ambiguity.** If a source fits both families and one model run fails spuriously, you get SELECTED. INCOMPLETE retries with new nonces then become a way to fish for a convenient outcome. *Amend:* SELECTED should require that the losing family's refusal carry a *structural non-applicability* code. Extraction-failure codes should map to INCOMPLETE. Derive the outcome from one bound attempt pair, never by mixing attempts.\n\n3. **The two validators differ in strictness.** monthly-propositions has a guarded model fallback, while resource-month is block-bound. The more permissive validator will win \"exactly one SUCCEEDED\" more often than it should.\n\n4. **Selection can differ by reviewer.** Jobs are per reviewer subject, so two reviewers could get different selections for the same source. *Amend:* pin the selection to source digest plus adapter versions.\n\n5. **Phase 1 leaves a gap.** Operator-chosen profiles still install during Phase 1. The proof run is only meaningful after Phase 2.\n\n6. **The human approves job bytes, not the selection.** The final approval view must show the losing family's diagnostic, so the human can see why it lost.\n\n**Falsification tests**\n\n1. **Dual-fit adversarial source.** Write a canonically formatted monthly source that also contains per-resource scope, symptoms, provider causes and evidence clauses. If the offline parser compiles it *and* a resource-month job succeeds, step 1 is falsified.\n\n2. **Ambiguity stability.** Take a known dual-fit source and run 10 or more attempt pairs. Any SELECTED result means ambiguity detection depends on model luck. Also feed resource-shaped sources to monthly-propositions; any success there shows the validator asymmetry is real.\n\n3. **Holdout proof (Phase 2 only).** Use an independently chosen unseen vendor, the ordinary app path, and no operator profile choice. Two reviewer subjects must reach the same selection. The losing family's refusal must be structural. If either fails, the \"validation decides\" claim is not yet earned.",
+    "session_id": "f57c7f16-ac61-4dce-8232-51d73184e6f3",
+    "total_cost_usd": 0.0757738,
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 2,
+        "outputTokens": 2309,
+        "cacheReadInputTokens": 649,
+        "cacheCreationInputTokens": 3682,
+        "webSearchRequests": 0,
+        "costUSD": 0.0757738,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1334,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 3682,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 3682,
+      "cache_read_input_tokens": 649,
+      "output_tokens": 2309,
+      "output_tokens_details": {
+        "thinking_tokens": 1334
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 3682,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 2309,
+          "cache_read_input_tokens": 649,
+          "cache_creation_input_tokens": 3682,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3682
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    }
+  }
+}
