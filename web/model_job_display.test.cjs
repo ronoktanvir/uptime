@@ -11,3 +11,11 @@ test('a denial model job shows the model the server reports and its latest time,
   assert.equal(jobTime({state:'UNCERTAIN',reason:'provider_timeout'}),'');
   assert.equal(jobTime({state:'REFUSED',provider:{model:''},submitted_at:'not a time'}),' Submitted not a time.');
 });
+test('the denial job receipt shows only reported fields: return code, tool events, empty inventories, cost and session',()=>{
+  const {jobReceipt}=load('interpretation.js').UptimeInterpretation;
+  assert.equal(jobReceipt({provider:{model:'claude-opus-5-5',returncode:0,tool_events:0,tool_inventory:[],mcp_inventory:[],client_reported_cost_usd:0.044891,session:'ce56dc6e'}}),
+    ' Receipt: return code 0 · 0 tool events · no tools available · no MCP servers · client-reported cost USD 0.044891 · session ce56dc6e.');
+  assert.equal(jobReceipt({provider:{model:'x'}}),'');
+  assert.equal(jobReceipt({}),'');
+  assert.equal(jobReceipt({provider:{tool_inventory:['Read'],client_reported_cost_usd:'1e3'}}),' Receipt: tools available: Read.');
+});

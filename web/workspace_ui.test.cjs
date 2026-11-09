@@ -127,3 +127,12 @@ test('the recovery card labels the claim’s own stage and shows the credit’s 
  const early=setup();await early.ui.render(early.root);
  assert.match(early.root.all('section').find(n=>n.id==='finance-recovery').textContent,/Claim stagedraft.*Credit stageEstimated/);
 });
+test('a stop for a person shows the server’s reason and detail, and the recovery panel links to the claim’s case',async()=>{
+ const automation={enabled:true,state:'PAUSED',pause:{reason:'UNEXPECTED_GROUND',detail:"The vendor reply needs the reviewer's reading and semantic review.",operation:null,since:'2026-03-01T12:10:00+00:00'},
+  counts:{person_decisions:1,automatic_steps:2},steps:[]};
+ const s=setup(()=>({workflow:{...projection,claim:{...projection.claim,id:'inbox-northwind-2026-01'},automation,next_actions:[]}}));await s.ui.render(s.root);
+ const recovery=s.root.all('section').find(n=>n.id==='finance-recovery');
+ assert.ok(recovery.textContent.includes("Routine steps: Paused · Stopped for a person: the vendor gave a ground the system does not recognize. The vendor reply needs the reviewer's reading and semantic review. 1 person decision and 2 automatic steps recorded."));
+ const link=recovery.all('a').find(a=>a.textContent==='Open this claim’s case and correspondence');
+ assert.equal(link.href,'#cases/inbox-northwind-2026-01');
+});

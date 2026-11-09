@@ -306,7 +306,10 @@
         const link = el('a', 'See every step in Activity', 'case-link'); link.href = '#activity';
         recovery.append(add(el('p', null, 'help automation-line'), el('span', routine + ' '), link));
       }
-      add(recovery,controls,status,inspector('Connection details', fields([['Connection destination',connection.destination],['Connection status',state(connection.status)],['Receipt status',state(connection.receipt_status)]])));
+      // The case link follows the actions, so one Tab from the heading still reaches the next decision.
+      const caseLink = typeof claim.id === 'string' && claim.id ? el('a', 'Open this claim’s case and correspondence', 'case-link') : null;
+      if (caseLink) caseLink.href = '#cases/' + encodeURIComponent(claim.id);
+      add(recovery,controls,status,caseLink ? add(el('p', null, 'help'), caseLink) : null,inspector('Connection details', fields([['Connection destination',connection.destination],['Connection status',state(connection.status)],['Receipt status',state(connection.receipt_status)]])));
       const monthly=panel('Service credit evaluations','months'), table=el('table'), body=el('tbody');
       add(table,add(el('thead'),add(el('tr'),...['Service month','Decision','Service credit','Basis'].map(t=>{const th=el('th',t);th.scope='col';return th;}))),body);
       months.forEach(month=>body.append(add(el('tr'),el('td',monthLabel(month.month)),el('td',state(month.outcome)),el('td',money(month.amount,month.currency || currency)),monthEvidence(month))));
@@ -388,10 +391,12 @@
       if (automation.enabled === false) return 'Each step runs when a person presses it in this workspace.';
       const counts = automation.counts || {}, pause = pauseText(automation);
       const head = (AUTOMATION_STATE[automation.state] || state(automation.state)) + (pause && automation.state !== 'COMPLETE' ? ' · ' + pause : '');
+      const reason = (automation.pause || {}).reason, detail = (automation.pause || {}).detail;
+      const explained = typeof detail === 'string' && detail && !['APPROVAL_REQUIRED', 'FINANCIAL_APPROVAL_REQUIRED', 'ROUTINE_READY', 'WAITING'].includes(reason) && automation.state !== 'COMPLETE';
       const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
       const tally = [counts.person_decisions ? plural(counts.person_decisions, 'person decision') : null,
         counts.automatic_steps ? plural(counts.automatic_steps, 'automatic step') : null].filter(Boolean);
-      return 'Routine steps: ' + head + '.' + (tally.length ? ' ' + tally.join(' and ') + ' recorded.' : '');
+      return 'Routine steps: ' + head + '.' + (explained ? ' ' + detail.trim().replace(/([^.])$/, '$1.') : '') + (tally.length ? ' ' + tally.join(' and ') + ' recorded.' : '');
     }
     function automationPanel(automation, nextActions) {
       const node = panel('Automation');
