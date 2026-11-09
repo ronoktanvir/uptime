@@ -100,3 +100,4 @@ Current implementation and test boundaries appear in [engineering status](../STA
 - [90 — Read-only adapter requirement card](ADR-0090-adapter-requirement-card.md)
 - [91 — Refuse out-of-period evidence at the signed source grant](ADR-0091-evidence-temporal-applicability.md)
 - [93 — One Ramp case identity from financial record to reconciliation](ADR-0093-ramp-case-lineage.md)
+- [96 — Workspace recovery, installation revocation and operations health](ADR-0096-operations-recovery.md)
