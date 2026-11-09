@@ -13,3 +13,11 @@ Implementation and tests are in progress. No existing test has changed yet. The 
 ## Verification
 
 No implementation result is claimed by this preparation commit. Focused results and exact changed-test names will be appended before handoff. Full integration suites are serialized by the integration owner to bound temporary disk usage.
+
+## Explicit monthly evidence marker — first slice
+
+The user approved a separate strict whole-month path during this work. `vendor_monthly_basis.py` validates an optional `complete_service_month/1` manifest marker only with an exact explicit clause, source span, UTC monthly measurement, filing citation, supported remedy and one product/plan. An absent marker returns false; malformed or conflicting opt-in refuses. This pure helper does not activate the path or grant authority. Compiler/model wiring and the source-semantics pin remain integration work.
+
+New tests in `tests/onboarding_finish20261109/test_monthly_basis_helper.py` cover legacy absence, explicit acceptance, partial/rolling/incident/conditional variants, unsupported family/remedy, duplicate or missing citations, invalid spans and ambiguous service scope. **24 passed in 0.24s** using the locked existing environment and a unique temporary directory. No existing tests changed in this slice.
+
+Independent authored development controls in `test_parent_financial_controls.py` recorded the expected red phase before grammar implementation: **4 failed, 18 deselected in 0.56s**, all four at the unsupported source parser, not monetary arithmetic. These controls are not independent evaluation scores.
