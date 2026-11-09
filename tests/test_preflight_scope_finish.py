@@ -39,11 +39,12 @@ def builtin_payload(**fields):
 
 
 def manifest(family=MONTHLY, **fields):
-    return {'family': family, 'vendor': VENDOR, **fields}
+    return {'family': family, 'vendor': VENDOR, 'effective': ['2031-01-01', '2031-12-31'], **fields}
 
 
 def overlay(**fields):
-    return {'account': ACCOUNT, 'agreement': CONTRACT, 'product': SERVICE, **fields}
+    return {'account': ACCOUNT, 'agreement': CONTRACT, 'product': SERVICE,
+            'effective_from': '2031-01-01', 'effective_until': '2031-12-31', **fields}
 
 
 def outcome(result):
@@ -199,7 +200,7 @@ def test_absent_identity_key_in_terms_is_reported_as_absent():
         claim=SERVICE, terms_path='overlay.product', terms_present=False, terms=None, equal=False)
 
 
-@pytest.mark.parametrize('terms', [manifest('authored-unknown-family/9'), {'vendor': VENDOR}], ids=['unknown', 'absent'])
+@pytest.mark.parametrize('terms', [manifest('authored-unknown-family/9'), {'vendor': VENDOR, 'effective': ['2031-01-01', '2031-12-31']}], ids=['unknown', 'absent'])
 def test_unsupported_or_absent_family_is_unresolvable(terms):
     result = check(payload(incident=VALUES['incident']), terms, overlay())
     assert outcome(result) == ('route', 'SCOPE_UNRESOLVABLE', 'UNSUPPORTED_FAMILY')
@@ -286,3 +287,43 @@ def test_inputs_are_untouched_and_source_values_are_reported_exactly():
 def test_result_is_deterministic():
     body = payload(incident=VALUES['incident'])
     assert check(body, manifest(), overlay()) == check(body, manifest(), overlay())
+
+
+@pytest.mark.parametrize('missing', ['source_period', 'overlay_start', 'overlay_end'])
+def test_effective_dates_are_never_invented_to_make_preflight_admissible(missing):
+    terms, local = manifest(), overlay()
+    if missing == 'source_period': del terms['effective']
+    elif missing == 'overlay_start': del local['effective_from']
+    else: del local['effective_until']
+    before = copy.deepcopy((terms, local))
+    result = check(payload(incident=VALUES['incident']), terms, local)
+    assert outcome(result) == ('adapter', 'ADAPTER_SCOPE_PREREQUISITE_REFUSED', 'INVALID_EFFECTIVE_PERIOD')
+    assert (terms, local) == before and result['family'] is None
+
+
+def test_out_of_period_governing_terms_cannot_make_a_past_claim_admissible():
+    result = check(payload(incident=VALUES['incident']),
+                   manifest(effective=['2032-01-01', '2032-12-31']),
+                   overlay(effective_from='2032-01-01', effective_until='2032-12-31'))
+    assert outcome(result) == ('route', 'SCOPE_UNRESOLVABLE', 'NO_GOVERNING_TERMS')
+
+
+def test_explicit_monthly_basis_requires_original_source_bytes_in_preflight():
+    from uptime.vendor_terms import Document, compile_terms
+    source = f'''Vendor: {VENDOR}
+Agreement: {CONTRACT}
+Effective: 2031-01-01 through 2031-12-31
+Availability is measured over each UTC calendar month.
+For {SERVICE} on the Base plan, monthly availability below 99.9% earns a 10% service credit.
+Claims must be received within 14 calendar days after month end.
+Service credits apply to affected monthly fees on a future invoice.
+Claims are based on a complete UTC calendar-month report for the entire service; incident identifiers are not required.'''
+    terms = compile_terms(Document(name='Public preflight control', uri='urn:synthetic:preflight-source',
+                                   classification='synthetic_public', text=source))
+    local = overlay(plan='Base', fee_line_ref='authored-fee', currency='USD')
+    missing = check(payload(currency='USD'), terms, local)
+    assert outcome(missing) == ('setup', 'SETUP_INPUT_INVALID', 'OPT_IN_SOURCE_TEXT_REQUIRED')
+    exact = check(payload(currency='USD'), terms, local, source_text=source)
+    assert exact['outcome'] == pf.ADMISSIBLE and exact['variant'] == 'ServiceMonthScope'
+    changed = check(payload(currency='USD'), terms, local, source_text=source + '\nDifferent source.')
+    assert outcome(changed) == ('route', 'SCOPE_UNRESOLVABLE', 'GOVERNING_SOURCE_BASIS_REFUSED')
