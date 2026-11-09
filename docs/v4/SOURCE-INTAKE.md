@@ -72,3 +72,46 @@ python scripts/provision_sources.py revoke --config /private/operator/sources.js
 Configuration updates take an exclusive filesystem lock and replace the server file atomically. Prior process signatures fail after restart because each process chooses a new instance ID. Persisted event receipts enforce domain idempotency across restarts. Previously recorded evidence remains identifiable by its source at the time of receipt.
 
 HMAC is confined to the default tenant's programmatic replay fixture channel. The launcher provisions only the asymmetric source channel. Named reviewers in sandbox mode or additional tenants need an independently issued [reviewer mandate](REVIEWER-MANDATES.md) for each exact action. The operator and local OS control key files, database contents and ownership of the pinned listener. This protocol authenticates the sender to the workbench and assumes the operator controls the local listener.
+
+## Time applicability (decision 91)
+
+A grant covers one service month, so the grant and the delivery client refuse a record whose measured time cannot belong to that month. Both apply the same rule before signing and before anything is stored:
+
+- Short records refuse when they lie entirely outside the UTC month widened by 14 hours each side. These are status, impact, component, notice windows and the nested resource, telemetry, exclusion and maintenance rows; request witnesses use their request time.
+- A period report that crosses the month boundary must keep more than 14 hours inside the UTC month. These are coverage, resource status or attribution, and provider or customer telemetry. A report wholly inside the month is admitted however short.
+- A nested row must also overlap its own report's interval.
+- A report marked `complete` cannot be observed before its own interval ends.
+
+Issue, announcement, filing, delivery and billing-cycle times are not checked. The server answers a refused delivery with HTTP 403 and no reason. `deliver_evidence.py` prints the reason locally before signing, for example `The measured status interval lies outside service month 2026-10.` Correct the record and deliver it again; nothing was stored. [Decision 91](decisions/ADR-0091-evidence-temporal-applicability.md)
+
+## The public status source (decision 91a)
+
+Twilio's official public status page is the first real evidence source. It fills the `status` role only: it says Twilio published a resolved incident naming a component during an interval. It never establishes this customer's impact, fees or complete month coverage, which need separate customer and billing sources.
+
+1. Refresh a minimized public snapshot. This makes one unauthenticated HTTPS GET to the fixed official URL, with no redirects, and keeps typed fields plus hashes only:
+
+   ```sh
+   uv run --locked python -m uptime.evidence_refresh --live --output /private/operator/twilio-status.json
+   ```
+
+2. Choose a resolved incident in that snapshot. Write a scope whose `vendor` is `Twilio`, whose `incident` is the incident ID and whose `component` is one of the incident's published component IDs (not a name). Use the incident's UTC month. Enroll it as a `status` source with `provision_sources.py add`, as in "Provision one source" above.
+
+3. Deliver within 24 hours of the snapshot:
+
+   ```sh
+   uv run --locked python scripts/deliver_public_status.py --snapshot /private/operator/twilio-status.json \
+     --credential-file /private/operator/status-private.json --claim inbox-source-intake-1 --incident <incident-id>
+   ```
+
+The command refuses, before signing, in any of these cases:
+
+- another origin, or a snapshot older than 24 hours or from the future;
+- another vendor, incident or component;
+- an unresolved incident, or one with no published start (creation time is never substituted);
+- an interval resolved after observation, or one outside the month.
+
+The event identity follows the incident's canonical content hash. A retry or a later unchanged fetch reuses it. A public edit produces a new record, which intake keeps as a contradiction for a person to review. The printed receipt joins the workbench receipt with the public provenance: URI, observation time, raw hash and incident content hash.
+
+The receiving workbench must accept deliveries. The ordinary launcher does so only with `--enable-local-approvals`, which requires the verified release receipt. Until that gate verifies, `scripts/rehearse_public_status.py --directory NEW_DIR --snapshot SNAPSHOT` runs the same enrollment, CLI and HTTP intake in a fresh harness-hosted loopback workspace with disposable keys. Its receipt says so. [Decision 91a](decisions/ADR-0091a-public-status-source.md) · [Live receipt](evidence/evidence-custody-90/public-status-live-91a.json)
+
+The signer is the local operator who fetched the page, not Twilio. Until the dispute owner's month-coverage change (finding F3) lands, do not combine this record with customer and billing records in the ordinary Twilio claim profile and present the result as an entitlement.
