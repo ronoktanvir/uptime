@@ -23,6 +23,10 @@ It makes only reads: the business, the observed bill, one bounded records sync (
 
 First real run, 12:36 UTC: `PREFILM PASS bill=f74ba12c comments=376563cf capture=8d42567fdf7e failures=none warnings=none writes=0`. Bill USD 840, `OPEN`, approval `PENDING`, no applied credits; credit and agreement lists complete and empty.
 
+## Vendor inventory read
+
+REQUIREMENTS RAMP-2 and VAL-1 note that the vendor inventory was only sampled. A read-only sync at the maximum existing bounds (100 per page, 10 pages, 100 details) shows the demo business's vendor **list** is complete: 411 vendors over 5 pages, with no next page. The `TRUNCATED` status refers only to retained detail records, which stop at the 100-record detail budget; all 5 vendors linked from bills were read in full. Card transactions exceed the 1,000-record read bound. [Counts-only record](evidence/ramp-lineage-93/vendor-inventory-20261109.json); the raw capture stays private.
+
 ## Outbox safety fixes salvaged from `remediate/native_workflow`
 
 The November 4 branch `remediate/native_workflow` (`c61c384`, never pushed) held fixes to the reviewed Ramp outbox in `uptime/ramp_workflow.py` that integration had since diverged from. Its seven extra tests were run unchanged against integration `a3bfefc`. Three failed, which confirmed the gaps:
