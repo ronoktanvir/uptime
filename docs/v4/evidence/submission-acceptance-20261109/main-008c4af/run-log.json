@@ -1,0 +1,214 @@
+[
+ {
+  "t": 1.67,
+  "step": "browser launched",
+  "seconds": 0.47
+ },
+ {
+  "t": 3.95,
+  "step": "signed in (before)"
+ },
+ {
+  "t": 7.43,
+  "step": "captured",
+  "tag": "before-overview",
+  "url": "http://127.0.0.1:8851/",
+  "h1": "Northwind Cloud",
+  "rendered": 3570,
+  "expanded": 17534
+ },
+ {
+  "t": 7.47,
+  "step": "visible buttons before",
+  "buttons": [
+   "Refresh data",
+   "Sign out \u00b7 scripted-test-reviewer",
+   "Approve January claim",
+   "Show details",
+   "Show details",
+   "Show details",
+   "Show details",
+   "Show details",
+   "What needs my attention?",
+   "How was the January credit calculated?",
+   "Why is March undetermined?",
+   "Did the credit reach Ramp?",
+   "Ask"
+  ]
+ },
+ {
+  "t": 9.73,
+  "step": "signed in (decisions)"
+ },
+ {
+  "t": 9.79,
+  "step": "visible decision buttons",
+  "n": 1,
+  "labels": [
+   "Approve January claim"
+  ]
+ },
+ {
+  "t": 9.8,
+  "step": "clicked decision",
+  "n": 1,
+  "label": "Approve January claim"
+ },
+ {
+  "t": 12.47,
+  "step": "visible decision buttons",
+  "n": 2,
+  "labels": [
+   "Approve response"
+  ]
+ },
+ {
+  "t": 12.48,
+  "step": "clicked decision",
+  "n": 2,
+  "label": "Approve response"
+ },
+ {
+  "t": 15.2,
+  "step": "visible decision buttons",
+  "n": 3,
+  "labels": [
+   "Post to Local ledger"
+  ]
+ },
+ {
+  "t": 15.23,
+  "step": "clicked decision",
+  "n": 3,
+  "label": "Post to Local ledger"
+ },
+ {
+  "t": 17.89,
+  "step": "visible decision buttons",
+  "n": 4,
+  "labels": [
+   "Apply credit to eligible invoice"
+  ]
+ },
+ {
+  "t": 17.9,
+  "step": "clicked decision",
+  "n": 4,
+  "label": "Apply credit to eligible invoice"
+ },
+ {
+  "t": 20.56,
+  "step": "visible decision buttons",
+  "n": 5,
+  "labels": []
+ },
+ {
+  "t": 20.56,
+  "step": "decisions done",
+  "decisions": [
+   "Approve January claim",
+   "Approve response",
+   "Post to Local ledger",
+   "Apply credit to eligible invoice"
+  ]
+ },
+ {
+  "t": 22.8,
+  "step": "signed in (after)"
+ },
+ {
+  "t": 26.48,
+  "step": "captured",
+  "tag": "after-overview",
+  "url": "http://127.0.0.1:8851/",
+  "h1": "Northwind Cloud",
+  "rendered": 3255,
+  "expanded": 17634
+ },
+ {
+  "t": 29.22,
+  "step": "captured",
+  "tag": "after-cases",
+  "url": "http://127.0.0.1:8851/#cases",
+  "h1": "Cases",
+  "rendered": 735,
+  "expanded": 49843
+ },
+ {
+  "t": 32.05,
+  "step": "captured",
+  "tag": "after-agreements",
+  "url": "http://127.0.0.1:8851/#agreements",
+  "h1": "Agreements",
+  "rendered": 5429,
+  "expanded": 49198
+ },
+ {
+  "t": 34.84,
+  "step": "captured",
+  "tag": "after-activity",
+  "url": "http://127.0.0.1:8851/#activity",
+  "h1": "Activity",
+  "rendered": 3850,
+  "expanded": 6472
+ },
+ {
+  "t": 37.78,
+  "step": "captured",
+  "tag": "after-ramp-records",
+  "url": "http://127.0.0.1:8851/#records",
+  "h1": "Ramp records",
+  "rendered": 1919,
+  "expanded": 6054
+ },
+ {
+  "t": 41.02,
+  "step": "captured",
+  "tag": "after-case-page",
+  "url": "http://127.0.0.1:8851/#cases/inbox-northwind-2026-01",
+  "h1": "Claim correspondence \u00b7 NW-2026-01",
+  "rendered": 3365,
+  "expanded": 46941
+ },
+ {
+  "t": 43.72,
+  "step": "captured",
+  "tag": "after-ramp-bill-saved",
+  "url": "http://127.0.0.1:8851/#ramp-bill/f74ba12c-95d0-582d-9f62-26d8057d1d37",
+  "h1": "DocuSign",
+  "rendered": 836,
+  "expanded": 836
+ },
+ {
+  "t": 43.87,
+  "step": "done",
+  "requests": {
+   "origins": [
+    "http://127.0.0.1:8851"
+   ],
+   "fonts": [
+    "http://127.0.0.1:8851/static/InterVariable.woff2",
+    "http://127.0.0.1:8851/static/JetBrainsMono-Regular.woff2",
+    "http://127.0.0.1:8851/static/SourceSerif4-Regular.ttf.woff2"
+   ],
+   "images": [
+    "http://127.0.0.1:8851/static/favicon.svg"
+   ],
+   "count": 78
+  },
+  "document_fonts": [
+   [
+    "Inter",
+    "loaded"
+   ],
+   [
+    "Source Serif 4",
+    "loaded"
+   ],
+   [
+    "JetBrains Mono",
+    "loaded"
+   ]
+  ]
+ }
+]

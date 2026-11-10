@@ -1,0 +1,110 @@
+Case page with closed sections opened, two excerpts.
+
+1. 'Decision, unknowns and amounts as recorded' (lines 205-243 of the opened page):
+ELIGIBLE
+state
+AWARDED
+unknowns
+Not provided
+missing
+
+No records returned.
+
+owner
+Not provided
+filing cutoff
+Mar 3, 2026, 00:00 UTC
+next contact
+Mar 2, 2026, 12:10 UTC
+financials
+label
+Estimated
+value
+USD 2400.00
+sources
+label
+Claimed
+value
+USD 2400.00
+sources
+label
+Awarded
+value
+USD 2400.00
+sources
+label
+Disputed Remainder
+value
+USD 0.00
+sources
+
+This record does not track posting or application; the Overview’s credit lifecycle shows them for the credit it follows.
+
+
+2. 'Complete server case record' (title at line 1059); its ledger and financials (lines 1990-2055):
+next contact
+2026-03-02T12:10:00+00:00
+requested artifact
+type
+resource_log
+ref
+NW-JAN-LOG-001
+historical procedure
+Not provided
+obligation id
+8c72817a3c758580435c49f14ebd16b550f3421c22278193ea37a3855c3c75a8
+policy dispatchable
+false
+ledger
+estimated
+2400.00
+claimed
+2400.00
+awarded
+2400.00
+posted
+0.00
+applied
+0.00
+disputed remainder
+0.00
+denial acceptance
+Not provided
+contradicting deliveries
+
+No records returned.
+
+trace url
+/api/correspondence/claims/inbox-northwind-2026-01/trace
+financials
+label
+Estimated
+value
+USD 2400.00
+sources
+label
+Claimed
+value
+USD 2400.00
+sources
+label
+Awarded
+value
+USD 2400.00
+sources
+label
+Posted
+value
+USD 0.00
+sources
+label
+Applied
+value
+USD 0.00
+sources
+label
+Disputed Remainder
+value
+USD 0.00
+sources
+Your access on this page

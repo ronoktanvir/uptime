@@ -1,0 +1,16 @@
+Interface-only recheck of main, recorded by role 5 (gent8).
+
+Anonymous clone (env -i, empty HOME, no git config, credential.helper=, GIT_TERMINAL_PROMPT=0, askpass false, no SSH)
+  started 2026-11-10T07:42:39Z UTC; clone_exit=0; checked out branch main at 008c4afc66ad3ff9bdf2b276faa5bee94455a422
+  52f1a2f ancestor: yes; 08852a6 ancestor: yes. Under uptime/ only server.py differs from 52f1a2f.
+
+Served with the README's second command plus the documented --origin http://127.0.0.1:8851 (8776 left alone), HOME = an empty scratch folder,
+started 2026-11-10T07:42:46Z UTC:
+  {"directory": "$SCRATCH/home/uptime-demo/northwind-01", "origin": "http://127.0.0.1:8851", "account": "scripted-test-reviewer", "reviewer_credential_file": "$SCRATCH/home/uptime-demo/northwind-01/scripted-reviewer.jwk", "reviewer_credential_copy": null, "routine_automation": true}
+  Sign in with the reviewer file below (private key, mode 0600; never share or commit it).
+  $SCRATCH/home/uptime-demo/northwind-01/scripted-reviewer.jwk
+  scripted-test-reviewer
+  http://127.0.0.1:8851
+
+Browser: one headless system Chrome launch for the whole run, under a 420 s limit; it finished in 44 s, no stall.
+Swap at start: total = 8192.00M  used = 7355.38M  free = 836.62M  (encrypted)
