@@ -1,0 +1,29 @@
+{
+  "tested_commit": "9f482d4051af1fc6624b82e9d912078728489d68",
+  "branch": "work/submission-integration-20261109",
+  "role": "the revised storyboard made the storyboard of record, its filming checklist and one sentence in the judge guide, on top of main",
+  "contents": "main at ef1ebe9 plus role 6 at 11d6083: the proposal written from the judge session's content feedback (8b5c3b0), one sentence in the judge guide saying the claim and response text is not displayed (5072910), and the revision made the storyboard of record after Ronok chose it, with the earlier storyboard kept as replaced and the filming checklist brought in line (11d6083). Documentation and evidence only; nothing under uptime/, web/, scripts/ or tests/.",
+  "command": [
+    "UPTIME_REQUIRE_BROWSER=1",
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-9f482d4",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5464 passed, 1 warning in 841.93s (0:14:01)",
+  "log": "suite-9f482d4-pytest.log",
+  "started_at": "2026-11-10T10:41:28Z",
+  "finished_at": "2026-11-10T10:55:32Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "132 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "note": "The run took 14 minutes on a heavily loaded machine (swap 9.6 of 10 GB in use) and never stopped advancing.",
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}
