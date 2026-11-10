@@ -59,3 +59,15 @@ Decision67 adds `test_semantic_current_projection.py` for four independently rep
 - New integration test `test_every_monthly_admission_dependency_changes_reviewed_version`: changing any monthly evidence/admission source input invalidates the reviewed semantics version. It isolates module reload in a child process and changes no files.
 
 The final period-selection correction changes `tests/test_v4_routes_integration.py::test_active_effective_dates_must_cover_entire_measurement_month`: a wholly out-of-period claim now refuses intake with 409 and no stored row, rather than creating an unsupported draft. The distinct midmonth-abstention test remains unchanged. See the dispute ledger for the real two-installation reproduction and retained intermediate failures.
+
+## November 9 submission-readiness push
+
+Each role kept its own ledger. Every existing test it changed is named there with the reason, and no monetary, authority, idempotency or tenant assertion was weakened.
+
+- [Contract intelligence (role 1)](TEST-CHANGES-submission-onboarding-20261109.md): one existing job test now expects `provider_failed` where the provider itself failed, because no proposal exists to refuse.
+- [Dispute automation (role 2)](TEST-CHANGES-submission-disputes-20261109.md): no existing test changed. Routine automation is on only for workspaces the setup command creates, so tests built on `prepare()` still walk the eleven operations.
+- [Ramp (role 3)](TEST-CHANGES-submission-ramp-20261109.md): a shared fixture now carries a vendor name and invoice number, which the sanitizer keeps as bounded display fields.
+- [Interface before the redesign (role 4)](TEST-CHANGES-submission-ui-20261109.md): ten existing tests, for the four destinations, the headline outcome and collapsed records.
+- [Acceptance (role 5)](TEST-CHANGES-submission-acceptance-20261109.md): the restart probe keeps its eleven-step path with `--step-by-step`, assertions unchanged, and gains a real-process check of the automated default.
+- [Redesign](TEST-CHANGES-submission-design-20261109.md): eleven existing tests. Three follow "reviewer decision" replacing "person decision", because the walkthrough's reviewer is a scripted test account. The rest open a closed section before using a form, or follow a renamed heading.
+- Side panel: no existing test changed. Its tests are new: `tests/test_side_panel_framing.py`, `tests/test_setup_side_panel.py`, `tests/helpers/side_panel_extension.test.cjs`.

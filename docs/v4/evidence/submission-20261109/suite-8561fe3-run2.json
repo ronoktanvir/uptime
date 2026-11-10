@@ -1,0 +1,36 @@
+{
+  "tested_tree": "8561fe3 (local combination)",
+  "covers_merge": "3bbd47eb8b4052e16ed5a16175c1a862d31d159a",
+  "what_was_tested": "A local combination made before the merge and never pushed: the integration branch at 21eae2c, the redesign at a92f86c and the side-panel branch at dc4ff65, as commit 8561fe3. Its files are identical to the merge commit 3bbd47e except docs/v4/submission/COORDINATION.md and docs/v4/submission/HANDOFF.md, which are record files no test reads.",
+  "branch": "work/submission-integration-20261109",
+  "role": "the redesign and the side panel together, on top of main",
+  "application_commit": "6b93e31d4d6b57bece160603e2aa06c8d8aea844 for everything under uptime/ except uptime/server.py, which gains the side-panel framing option",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-8561fe3",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5452 passed, 1 warning in 574.29s (0:09:34)",
+  "log": "suite-8561fe3-run2-pytest.log",
+  "started_at": "2026-11-10T01:18:55Z",
+  "finished_at": "2026-11-10T01:28:31Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "129 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "first_run": "suite-8561fe3-aborted.json (stalled in a browser launch; no result)",
+  "also_checked": "The side panel inside the real extension, on the same combination: docs/v4/evidence/sidepanel-20261109/real-extension-check.json",
+  "not_yet": [
+    "a run on the merge commit itself, started after this receipt and recorded beside it",
+    "independent acceptance of the redesigned interface",
+    "final screenshots and video link in the README"
+  ],
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}

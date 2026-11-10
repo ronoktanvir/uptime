@@ -1,0 +1,22 @@
+{
+  "tested_tree": "8561fe3 (local combination)",
+  "covers_merge": "3bbd47eb8b4052e16ed5a16175c1a862d31d159a",
+  "what_was_tested": "A local combination made before the merge and never pushed: the integration branch at 21eae2c, the redesign at a92f86c and the side-panel branch at dc4ff65, as commit 8561fe3. Its files are identical to the merge commit 3bbd47e except docs/v4/submission/COORDINATION.md and docs/v4/submission/HANDOFF.md, which are record files no test reads.",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-8561fe3",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 134,
+  "pytest_result": "no result: the runner's watchdog aborted the run after it stopped advancing",
+  "log": "suite-8561fe3-aborted-pytest.log",
+  "started_at": "2026-11-10T01:11:49Z",
+  "aborted_at": "2026-11-10T01:17:28Z",
+  "what_happened": "The run stopped at the first browser test, tests/test_advanced_companion.py, at 10 percent. The capture in suite-8561fe3-aborted-stall.txt shows the same condition as on ea58f22: a freshly launched Chrome 157 with no page process and its main thread blocked in rbs_acquire_appnap_assertion. A second Chrome, launched thirteen seconds later by another session's own full run, was still unanswering more than seventeen minutes later.",
+  "what_changed_afterwards": "The runner had been starting pytest as a zsh background job, which zsh runs at lowered priority by default, so the run and every Chrome it launched were at lowered priority. That is now switched off. It is not the whole cause: the other session's run was at normal priority and blocked too.",
+  "limits": "Not a result."
+}

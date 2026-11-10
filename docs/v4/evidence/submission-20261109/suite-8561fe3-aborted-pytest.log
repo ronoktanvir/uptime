@@ -1,0 +1,241 @@
+commit 8561fe3b515d8e9fdcf8238642b02a956633730a
+started 2026-11-10T01:11:49Z
+command: uv run --locked pytest --basetemp=<private> -o tmp_path_retention_policy=failed
+chrome 156.0.8078.80 157.0.8103.40 
+============================= test session starts ==============================
+platform darwin -- Python 3.13.12, pytest-9.2.0, pluggy-1.7.0
+rootdir: /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-combined-check
+configfile: pyproject.toml
+testpaths: tests
+plugins: hypothesis-6.170.14, anyio-4.16.0
+collected 5452 items
+
+tests/auth_refusal_finish_20261109/test_signed_refusal_hook.py ......... [  0%]
+....                                                                     [  0%]
+tests/disputes_finish_20261109/test_refusal_journal.py ................. [  0%]
+....................................                                     [  1%]
+tests/monthly_finish_20261109/test_mf1109_evaluator.py ......            [  1%]
+tests/monthly_finish_20261109/test_mf1109_observation.py ............... [  1%]
+........................................................................ [  2%]
+......................                                                   [  3%]
+tests/monthly_finish_20261109/test_mf1109_route.py ........              [  3%]
+tests/monthly_finish_20261109/test_mf1109_scope_marker.py .............. [  3%]
+...........................                                              [  4%]
+tests/monthly_finish_20261109/test_mf1109_types.py ..................... [  4%]
+.............                                                            [  4%]
+tests/monthly_finish_20261109/test_monthly_temporal_parent.py .......... [  5%]
+.........                                                                [  5%]
+tests/monthly_finish_20261109/test_parent_monthly_controls.py .......... [  5%]
+...............                                                          [  5%]
+tests/monthly_finish_20261109/test_scope_effective_periods.py .......... [  5%]
+..........                                                               [  6%]
+tests/onboarding79/test_public_proposal_export_79.py ............        [  6%]
+tests/onboarding79/test_public_proposal_export_auto_89.py ..             [  6%]
+tests/onboarding_finish20261109/test_monthly_basis_compilation.py ...... [  6%]
+..........                                                               [  6%]
+tests/onboarding_finish20261109/test_monthly_basis_helper.py ........... [  6%]
+.............                                                            [  7%]
+tests/onboarding_finish20261109/test_parent_financial_controls.py ...... [  7%]
+................                                                         [  7%]
+tests/onboarding_finish20261109/test_strict_diagnostics_remediation_parity_20261109.py . [  7%]
+.........................                                                [  7%]
+tests/onboarding_finish20261109/test_strict_template_remediation_20261109.py . [  7%]
+........................................................................ [  9%]
+.........................................................                [ 10%]
+tests/test_adequate_holdout.py .........................                 [ 10%]
+tests/test_advanced_companion.py STALLED: no output for 312s; aborting to capture stacks (process list in suite-8561fe3-stall.txt)
+Fatal Python error: Aborted
+
+Thread 0x0000000171a9b000 (most recent call first):
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/unix_events.py", line 1443 in _do_waitpid
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 995 in run
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 1044 in _bootstrap_inner
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 1015 in _bootstrap
+
+Thread 0x0000000170a8f000 (most recent call first):
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/selectors.py", line 548 in select
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 2012 in _run_once
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 683 in run_forever
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 712 in run_until_complete
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/runners.py", line 118 in run
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/runners.py", line 195 in run
+  File "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-combined-check/.venv/lib/python3.13/site-packages/uvicorn/server.py", line 86 in run
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 995 in run
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 1044 in _bootstrap_inner
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 1015 in _bootstrap
+
+Current thread 0x0000000204fab840 (most recent call first):
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/selectors.py", line 548 in select
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 2012 in _run_once
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 683 in run_forever
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 712 in run_until_complete
+  File "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-combined-check/.venv/lib/python3.13/site-packages/playwright/sync_api/_context_manager.py", line 60 in greenlet_main
+
+Extension modules: _cffi_backend, greenlet._greenlet (total: 2)
+pytest_exit 134
+finished 2026-11-10T01:17:28Z
+=== node --test web/*.test.cjs tests/helpers/*.test.cjs ===
+✔ wizard reviews exact bytes, invalidates edits and posts only after confirmation (8.238625ms)
+✔ successful mutation reloads state; a lost response does not erase uncertainty (0.9045ms)
+✔ catalog preserves observed quarantine and credit states without inventing metrics (0.915625ms)
+✔ receipt actions reload the same correspondence case (0.832917ms)
+✔ explicit V3 and companion routes preserve primary Ramp fallback (0.098166ms)
+✔ provider plan never advertises unsupported writes or invents delivery (0.098667ms)
+✔ accept denial posts only the offered basis digest to the dedicated route, then reloads (4.165667ms)
+✔ a stale basis (409) accepts nothing, reloads and offers the new basis without blocking (2.549208ms)
+✔ a malformed offer or a read-only session cannot accept (6.309875ms)
+✔ the dispute record is read-only, uses plain labels and keeps vendor text inert (1.014417ms)
+✔ a blocking contradicting delivery is explained, and only offered actions render (89b) (0.328667ms)
+✔ the dispute record words the 89b checks by meaning, not as pass/fail (0.226292ms)
+✔ a refused family shows its verified diagnostic; a family without one shows the summary (8.661709ms)
+✔ a foreign or malformed diagnostic falls back to the summary; no refusal shows nothing extra (0.815417ms)
+✔ elements, reviewer tasks, family choice, missing drafts and overlap render as text only (7.474125ms)
+✔ a non-automatic version, a 401 and a failed read each say so without inventing content (0.696208ms)
+✔ no requirements control without a readable revision (0.18025ms)
+✔ a submission channel element renders generically, and a null family selection adds no section (3.48325ms)
+✔ a Ramp bill address gives Ramp's own bill ID, lower-cased, and nothing else does (2.100041ms)
+✔ the panel opens the bill page for a bill and the home page otherwise, only on the configured origin (1.433125ms)
+✔ when tab lookups finish out of order, only the most recent one moves the panel (43.70375ms)
+✔ the manifest asks for the side panel and Ramp tab addresses only, and its key pins one ID (2.048083ms)
+✔ the extension is a thin shell: no requests, storage, scripting of other pages or injected markup (1.064417ms)
+✔ vendors initial read401 requests sign-in once (1.614459ms)
+✔ disputes initial read401 requests sign-in once (0.143791ms)
+✔ case initial read401 requests sign-in once (0.144291ms)
+✔ vendor detail401 cannot become a partial read-only vendor card (0.26075ms)
+✔ action401 revokes detached controls and never retries a POST (3.016917ms)
+✔ access401 revokes detached controls and never retries a POST (0.563ms)
+✔ submit401 revokes detached controls and never retries a POST (0.90575ms)
+✔ poll401 revokes detached controls and never retries a POST (1.211542ms)
+✔ candidate401 revokes detached controls and never retries a POST (0.801917ms)
+✔ terminal polling updates live status but preserves later overlay review (1.575917ms)
+✔ late401 from a detached view cannot replace the current screen (0.295875ms)
+✔ parallel401 requests redirect once and old refresh cannot overwrite sign-in (4.514166ms)
+✔ an older overlapping status read cannot undo a newer terminal result or overlay review (0.577875ms)
+✔ the client never names a rule family (2.786417ms)
+✔ generation controls stay disabled without draft access and send nothing (1.078917ms)
+✔ access check posts exact untrimmed public fields only; unapproved families keep generation disabled (2.442917ms)
+✔ any edit invalidates access confirmation, including programmatic edits (4.257125ms)
+✔ explicit generation, GET-only polling, explicit refresh, safe text and staging only the selected job (2.824458ms)
+✔ offline selection stages the exact source through the deterministic candidate route with no job (0.520792ms)
+✔ non-selected outcomes and non-selected jobs offer no staging control (0.763125ms)
+✔ a lost reservation response is recovered by an explicit access recheck, never a second POST (1.288958ms)
+✔ superseded or unmounted asynchronous responses are ignored (0.828083ms)
+✔ local deterministic intake stays a separate, labeled local validation form (0.188417ms)
+✔ the rule family is selected by the server; any source edit revokes exact request confirmation (4.640958ms)
+✔ decimal ordering preserves balances beyond floating point precision (0.79125ms)
+✔ financial display preserves server precision and unknown state (0.139041ms)
+✔ clause links reject executable and local schemes (0.26125ms)
+✔ ledger consumes API data, keeps sources exact and treats markup as text (8.979209ms)
+✔ inspector action uses encoded route, empty POST and no client identity (5.617791ms)
+✔ onboarding keeps unproven event provenance explicit (2.634209ms)
+✔ unauthorized session offers named account login (1.26725ms)
+✔ default landing is Ramp, deep links encode opaque IDs, explicit rehearsal retains dashboard (8.426542ms)
+✔ Ramp authentication failures reuse named sign-in and skip link does not change route (5.204959ms)
+✔ configured workspace renders inside the finance shell and keeps native records accessible (4.639833ms)
+✔ workflow authorization and server errors never silently fall back to native records (4.133083ms)
+✔ stale reviewer authority keeps recorded checks separate from current verification (1.143167ms)
+✔ server stage labels render as sent; the browser never renames a state to hide its destination (1.668084ms)
+✔ the one-bill route makes one request, the saved Ramp workspace, and never reads the workflow projection (4.81725ms)
+✔ after a recorded action, focus moves to the recovery heading and never onto the next decision (11.706958ms)
+✔ a repeated Enter or Space key event on a decision is suppressed; a fresh press is not (0.25575ms)
+✔ when no step remains, focus moves to the recovery heading (0.276625ms)
+✔ a failed action does not move focus, and a later refresh does not steal it (0.466792ms)
+✔ attention items, destination and calculation inputs render from the server summary only (5.803458ms)
+✔ guide posts only the question, renders cited sentences and states it changed nothing (1.974209ms)
+✔ abstention and failure messages; empty questions are not sent (1.336042ms)
+✔ an expired session on a guide question returns to sign-in and stales the form (0.763958ms)
+✔ without a server summary the view keeps its previous layout and offers no guide (0.41775ms)
+✔ suggested questions are offered as a labelled group of ordinary buttons (2.432541ms)
+✔ a suggestion fills the question, asks once through the read-only route and shows the cited answer (2.035916ms)
+✔ suggestions are not offered without the server summary (0.190792ms)
+✔ a denial model job shows the model the server reports and its latest time, in UTC, and nothing it does not report (3.831792ms)
+✔ the denial job receipt shows only reported fields: return code, tool events, empty inventories, cost and session (0.51ms)
+✔ the verified bill shows what Ramp holds, what Uptime found and the person-posted note, from one read (3.896834ms)
+✔ a bill found only in the saved worklist shows that worklist’s own statement and a scenario is never its finding (0.493458ms)
+✔ an unknown, empty or malformed bill id says so in one sentence and offers Ramp records (0.205625ms)
+✔ a bound agreement and an attachable finding are stated as such; other bindings are never called bound (0.999375ms)
+✔ a failed read shows no bill and an expired session propagates to sign-in (0.400417ms)
+✔ native links accept only an exact HTTPS sandbox provider destination (2.33275ms)
+✔ default unpaid filter excludes paid, unknown and non-bill records; all remain accessible (0.218458ms)
+✔ pagination bounds 1000 records while all types are selectable; source and money stay exact (5.223208ms)
+✔ detail and plan are encoded GETs, never POST; receipt is scoped and unsafe link stays absent (1.109375ms)
+✔ detail envelope preserves evidence, native projection and provider destination (0.236375ms)
+✔ unmount invalidates late reads and detached plan buttons (0.190958ms)
+✔ errors hide transport internals and unauthorized reads propagate to existing sign-in (0.381417ms)
+✔ client uses injected auth, text nodes and no embedded provider or direct transport (0.249958ms)
+✔ a partial capture says what is missing and is never presented as the complete account (0.735292ms)
+✔ rows show vendor name, invoice and a verified link; a missing name is stated, never inferred (0.256917ms)
+✔ a finding amount is withheld on a Ramp record without an exact agreement binding (0.26125ms)
+✔ record page shows exact Ramp identity, freshness, link basis and person attribution; no local confirmation (0.279042ms)
+✔ the verified Ramp record panel is a dated saved record with its own business, beside an attributed worklist (0.495542ms)
+✔ instants and read-status codes render as exact plain words; server values stay unchanged (0.478958ms)
+✔ worklist codes read as ordinary, meaning-preserving wording; other codes stay exact (2.174834ms)
+✔ a record page leads with its native Ramp route; an unverified URL offers none (0.566792ms)
+✔ starts read-only even with returned actions; fields contain no sample values (5.677041ms)
+✔ vendor intake sends exact separate public document and overlay through injected client (1.152791ms)
+✔ invalid JSON never sends a request and leaves form data intact (0.428792ms)
+✔ test revision is server supplied; money strings remain exact (0.271708ms)
+✔ active evaluation uses provided facts without invented vendor, outcome or award (0.82525ms)
+✔ returned action IDs are encoded and POST has no client authority (0.293458ms)
+✔ write guard rechecks revoked access even for previously rendered buttons (0.156791ms)
+✔ inflight mutations suppress duplicates; lost responses require successful refresh (1.04625ms)
+✔ stale navigation results cannot replace a later view and unmounted actions cannot send (0.325417ms)
+✔ correspondence setup sends scoped identity only and has no event/service credential form (0.392625ms)
+✔ case inspector shows receipt timeline, exact source, IDs, unknowns and safe text (0.626708ms)
+✔ portfolio comparison preserves exact decimals, zero, unknown and server cohorts (0.108208ms)
+✔ failed reads expose no writable intake, no error details, and unknown provenance is explicit (0.427333ms)
+✔ extension uses no transport, browser storage, HTML injection or inline styles (0.479833ms)
+✔ catalog summary loads reviewer-bound detail before rendering version actions (0.179792ms)
+✔ failed vendor detail keeps that vendor read-only without hiding intake (0.123791ms)
+✔ unsupported projection requests never fall through to an empty API route (0.082125ms)
+✔ document origin copy preserves exact wire classifications without rendering source labels (0.151292ms)
+✔ a rolled-back adapter says nothing is active and separates scripted preparation from account actions (6.559333ms)
+✔ an active adapter names its version; other states are stated plainly (0.659541ms)
+✔ Northwind renders separate exact stages, uncertainty and cited source records without classification chrome (3.379708ms)
+✔ actions use signed injected transport, encoded server IDs and suppress duplicate dispatch (0.556083ms)
+✔ lost action response blocks repeat until explicit server refresh and stale buttons cannot act (0.706083ms)
+✔ expired signing authority returns to account login and invalidates stale action controls (0.205083ms)
+✔ decimal display never rounds through Number and missing monetary observations remain unknown (0.06425ms)
+✔ agreement amendments and adapter history retain actual references and scripted principal detail (1.075958ms)
+✔ invoice periods and source usage details preserve server observations and null without arithmetic (0.251917ms)
+✔ application invoice comes only from current projection and pricing failures remain visible without classification prefix (0.459916ms)
+✔ missing measurement diagnostic stays visible in summary and detail without generated source prefix (0.222375ms)
+✔ credit lifecycle and headline come only from the server finance projection, never from ledger fields (0.412625ms)
+✔ activity shows the server automation record: state, pause, counts, authority and case-timeline times without durations (0.576167ms)
+✔ the recovery card labels the claim’s own stage and shows the credit’s latest recorded stage beside it (0.237417ms)
+✔ a stop for a person shows the server’s reason and detail, and the recovery panel links to the claim’s case (0.157375ms)
+ℹ tests 129
+ℹ suites 0
+ℹ pass 129
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 375.308792
+node_exit 0
+=== node scripts/test_progress_graph.cjs ===
+Progress graph: dependency ordering, invalid graphs, and link safety passed.
+graph_exit 0
+=== uv run --locked python scripts/rehearse.py ===
+/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-combined-check/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{
+  "mode": "DETERMINISTIC_REPLAY",
+  "identity": "scripted-test-reviewer",
+  "price_exposure": "7500.00",
+  "confirmed_simulated_award": "100.00",
+  "recorded": "100.00",
+  "applied": "50.00",
+  "disputed": "20.00",
+  "onboarding": [
+    "SHADOW",
+    "APPROVED",
+    "ACTIVE",
+    "REVOKED"
+  ],
+  "actual_customer_recovery": null
+}
+rehearse_exit 0
+=== uv run --locked python scripts/check_repo.py ===
+Secret check passed for 3398 versioned text objects.
+check_repo_exit 0

@@ -1,0 +1,62 @@
+stall detected 2026-11-10T01:17:09Z after 312s without output
+--- descendants of the run (pid ppid elapsed state command)
+36699 36688 05:20 SN   uv run --locked pytest --basetemp=/Users/ronoktanvir/.local/share/uptime-engineering/tasks/submission-integration-20261109/bt-8561fe3 -o tmp_path_retention_policy=failed
+36702 36699 05:20 SN   /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-combined-check/.venv/bin/python /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-combined-check/.venv/bin/pytest --basetemp=/Users/ronoktanvir/.local/share/uptime-engineering/tasks/submission-integration-20261109/bt-8561fe3 -o tmp_path_retention_policy=failed
+36726 36702 05:12 SN   /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-combined-check/.venv/lib/python3.13/site-packages/playwright/driver/node /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-combined-check/.venv/lib/python3.13/site-packages/playwright/driver/package/cli.js run-driver
+36730 36726 05:12 SNs  /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-de
+36737 36730 05:12 SN   /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif GPU).app/Contents/MacOS/Google Chrome Helper (Aperitif GPU) --type=gpu-process --gpu-recent-crash-count=0 --no-sandbox --disable-breakpad --headless --enable-unsafe-swiftshader --metrics-client-id=3b9cf735-3dea-4c95-9f52-ff18826e
+36738 36730 05:12 SN   /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif).app/Contents/MacOS/Google Chrome Helper (Aperitif) --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=network --no-sandbox --mute-audio --metrics-client-id=3b9cf735-3dea-4c95-9f52-
+36739 36730 05:12 SN   /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif).app/Contents/MacOS/Google Chrome Helper (Aperitif) --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-US --service-sandbox-type=service --no-sandbox --mute-audio --metrics-client-id=3b9cf735-3dea-4c95-9f52-
+--- every Chrome main process on the machine
+36730 36726       05:12 SNs  /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-
+36827 36826       04:59 Ss   /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-
+68397     1    03:46:36 U    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+--- sample of Chrome 36730
+Sampling process 36730 for 2 seconds with 1 millisecond of run time between samples
+Sampling completed, processing symbols...
+Sample analysis of process 36730 written to file /tmp/Google_Chrome_2026-11-09_171710_hAjl.sample.txt
+
+Analysis of sampling Google Chrome (pid 36730) every 1 millisecond
+Process:         Google Chrome [36730]
+Path:            /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+Load Address:    0x10093c000
+Identifier:      com.google.Chrome
+Version:         157.0.8103.40 (8103.40)
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  node [36726]
+
+Date/Time:       2026-11-09 17:17:10.068 -0800
+Launch Time:     2026-11-09 17:11:57.365 -0800
+OS Version:      macOS 15.1 (24B83)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         37.7M
+Physical footprint (peak):  38.6M
+Idle exit:                  untracked
+----
+
+Call graph:
+    1598 Thread_6840668   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 1598 start  (in dyld) + 2840  [0x19fb14274]
+    +   1598 main  (in Google Chrome) + 200  [0x10093c810]
+    +     1598 ChromeMain  (in Google Chrome Framework) + 444  [0x12047cd5c]
+    +       1598 ChromeMain  (in Google Chrome Framework) + 44747016  [0x122f294a8]
+    +         1598 ChromeMain  (in Google Chrome Framework) + 38588116  [0x122949a74]
+    +           1598 ChromeMain  (in Google Chrome Framework) + 53727556  [0x1237b9ce4]
+    +             1598 ChromeMain  (in Google Chrome Framework) + 53727992  [0x1237b9e98]
+    +               1598 ChromeMain  (in Google Chrome Framework) + 53729436  [0x1237ba43c]
+    +                 1598 ChromeMain  (in Google Chrome Framework) + 33293144  [0x12243cef8]
+    +                   1598 ChromeMain  (in Google Chrome Framework) + 33294924  [0x12243d5ec]
+    +                     1598 ChromeMain  (in Google Chrome Framework) + 44404456  [0x122ed5a88]
+    +                       1598 ChromeMain  (in Google Chrome Framework) + 44404888  [0x122ed5c38]
+    +                         1598 -[NSApplication run]  (in AppKit) + 480  [0x1a3a9aae0]
+    +                           1598 ChromeMain  (in Google Chrome Framework) + 65978436  [0x124368be4]
+    +                             1598 ChromeMain  (in Google Chrome Framework) + 2968784  [0x120751870]
+    +                               1598 ChromeMain  (in Google Chrome Framework) + 72999336  [0x124a1ad48]
+    +                                 1598 -[NSApplication(NSEventRouting) _nextEventMatchingEventMask:untilDate:inMode:dequeue:]  (in AppKit) + 688  [0x1a43e7e0c]
+    +                                   1598 _DPSNextEvent  (in AppKit) + 660  [0x1a3aa7a08]
+    +                                     1598 _BlockUntilNextEventMatchingListInModeWithFilter  (in HIToolbox) + 76  [0x1ab3f1eb8]
+    +                                       1598 ReceiveNextEventCommon  (in HIToolbox) + 636  [0x1ab3f1d54]
+    +                                         1598 RunCurrentEventLoopInMode  (in HIToolbox) + 292  [0x1ab3ebf64]
