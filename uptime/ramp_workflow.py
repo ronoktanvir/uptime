@@ -209,7 +209,29 @@ class ScopedSandboxWorkflowProvider:
         raise WorkflowError("Real financial approve/reject is disabled; separate authority and gates required")
 
 
+DEMO_NOTE_SHAPES = {
+    # Demo line only: the fixed note shapes Uptime may leave on a matched sandbox bill.
+    "possible_credit": re.compile(
+        r"Uptime: this bill may be eligible for a [A-Z]{3} [0-9][0-9,]*\.[0-9]{2} service credit under agreement "
+        r"[A-Za-z0-9-]{1,40} \((January|February|March|April|May|June|July|August|September|October|November|December) "
+        r"[0-9]{4} availability\)\. "
+        r"(A claim is being prepared in Uptime\.|The estimate is waiting for review in Uptime\.)"),
+    "credit_applied": re.compile(
+        r"Uptime: the vendor awarded a [A-Z]{3} [0-9][0-9,]*\.[0-9]{2} service credit and it has been applied to this "
+        r"invoice in Uptime\. Remaining balance [A-Z]{3} [0-9][0-9,]*\.[0-9]{2}\."),
+    "price_exception": re.compile(
+        r"Uptime: this bill is [A-Z]{3} [0-9][0-9,]*\.[0-9]{2} above the contracted rate \([^()\n]{1,200}\)\. "
+        r"Review it in Uptime before payment\."),
+}
+
+
 def _comment_body(plan):
+    if "demo_note_kind" in plan:
+        kind, text = plan["demo_note_kind"], plan.get("demo_note_text")
+        if (plan["object_type"] != "bills" or kind not in DEMO_NOTE_SHAPES or not isinstance(text, str)
+                or not DEMO_NOTE_SHAPES[kind].fullmatch(text)):
+            raise WorkflowError("Only the fixed demo note shapes are permitted")
+        return {"message": text, "message_format": "PLAIN_TEXT"}
     if "native_review_reason" in plan:
         reason = plan["native_review_reason"]
         if not isinstance(reason, str) or reason not in NATIVE_REVIEW_MESSAGES or plan["object_type"] != "bills":

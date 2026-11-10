@@ -52,14 +52,27 @@ def test_the_verified_bill_card_is_in_the_first_viewport_of_a_420_px_panel(tmp_p
         assert api_reads(requests) == ['/api/ramp/workspace'], api_reads(requests)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         expect(page.get_by_role('link', name='Open the full record', exact=True)).to_have_attribute('href', '#records')
+        # An ordinary tab is never in panel mode: the navigation stays and the panel's button is absent.
+        assert page.evaluate("document.documentElement.classList.contains('panel-mode')") is False
+        expect(page.locator('nav.rail-primary')).to_be_visible()
+        assert page.get_by_role('button', name='Open Uptime', exact=True).count() == 0
         assert intents(directory) == 0 and errors == []
 
 
 def test_an_unknown_bill_says_so_and_ramp_records_opens_without_filling_the_panel_with_navigation(tmp_path):
     with live_workspace(tmp_path) as (app, origin, directory), browser_page(origin, PANEL) as (page, errors):
+        requests = []
+        page.on('request', lambda r: requests.append((r.method, urlsplit(r.url).path)))
+        # With no bill open the page reads nothing, so it needs no sign-in, and it says what the panel is for.
+        page.goto(origin + '/#ramp-bill')
+        expect(page.get_by_role('heading', name='No Ramp bill open', exact=True)).to_be_visible()
+        expect(page.locator('#content')).to_contain_text('Open a bill in Ramp, and Uptime shows here what it holds for that bill.')
+        assert api_reads(requests) == [], api_reads(requests)
+        assert page.evaluate("document.documentElement.classList.contains('panel-mode')") is False
         page.goto(origin + '/#ramp-bill/00000000-0000-0000-0000-000000000000')
         sign_in(page, directory)
         expect(page.locator('#content')).to_contain_text('This workspace has no saved record for this Ramp bill.')
+        expect(page.locator('#content')).to_contain_text('Nothing about this bill is inferred.')
         for text in WALKTHROUGH + ('DocuSign', 'USD 840'):
             assert text not in page.locator('#content').inner_text(), text
         page.get_by_role('link', name='Open Ramp records', exact=True).click()

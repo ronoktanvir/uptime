@@ -1,0 +1,13 @@
+[
+ {
+  "id": "halcyon-availability-addendum",
+  "title": "Halcyon Grid: Platform Availability Addendum",
+  "vendor": "Halcyon Grid Services",
+  "form": "Platform Availability Addendum",
+  "document": "halcyon-a",
+  "second_document": "halcyon-b",
+  "next_documents": [
+   "halcyon-c"
+  ]
+ }
+]

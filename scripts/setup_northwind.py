@@ -146,7 +146,7 @@ def source_inputs(package):
 
 
 def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None,counterparty_reply='request-log',
-            side_panel_origin=None):
+            side_panel_origin=None,ramp_records=None,ramp_notes=False,ramp_provider=None,ramp_reader=None):
     directory=Path(directory).absolute()
     if directory.exists():raise WorkspaceRefused('Select a fresh directory; use --resume for an existing immutable workspace.')
     from uptime.server import panel_origin
@@ -182,10 +182,32 @@ def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None
     if target is not None:
         # A visible, operator-chosen copy (0600, exclusive create, outside the repository). Only its path is printed.
         place_credential(target,rehearsal_key(private['rehearsal_secret']))
-    return open_workspace(directory,side_panel_origin=side_panel_origin)
+    return open_workspace(directory,side_panel_origin=side_panel_origin,ramp_records=ramp_records,ramp_notes=ramp_notes,
+                          ramp_provider=ramp_provider,ramp_reader=ramp_reader)
 
 
-def open_workspace(directory, *, proposal_config=None, side_panel_origin=None):
+def ramp_options(directory,ramp_records=None,ramp_notes=False,ramp_provider=None,ramp_reader=None):
+    """Demo line: verified Ramp bill folders (the optional one, then <workspace>/ramp/), notes and refresh.
+
+    ``ramp_notes`` is False, 'manual' (or True) or 'auto'. Live access uses the sandbox
+    provider with the credential from this process's environment only; a test supplies
+    ``ramp_provider`` (business_id -> comment provider) and ``ramp_reader`` instead.
+    A provider factory passed as ``ramp_notes`` means manual notes with that provider.
+    """
+    folders=([Path(ramp_records).expanduser().absolute()] if ramp_records else [])+[Path(directory)/'ramp']
+    if callable(ramp_notes):
+        ramp_provider,ramp_notes=ramp_notes,'manual'
+    mode={False:'off',None:'off',True:'manual','manual':'manual','auto':'auto'}[ramp_notes]
+    if mode!='off' and ramp_provider is None:
+        from uptime.ramp_demo import sandbox_provider as ramp_provider
+    if ramp_reader is None and (ramp_records or mode!='off'):
+        from uptime.ramp_demo import sandbox_reader as ramp_reader
+    return dict(ramp_record_dirs=folders,ramp_notes=ramp_provider if mode!='off' else None,
+                ramp_notes_mode=mode,ramp_reader=ramp_reader)
+
+
+def open_workspace(directory, *, proposal_config=None, side_panel_origin=None, ramp_records=None, ramp_notes=False,
+                   ramp_provider=None, ramp_reader=None):
     directory=Path(directory).resolve()
     from uptime.source_config import _protected_path,_check_file
     path=_protected_path(directory/'workspace.json')
@@ -204,8 +226,94 @@ def open_workspace(directory, *, proposal_config=None, side_panel_origin=None):
         routine_automation=bool(private.get('routine_automation',False)))
     app=create_app(directory/'workspace.db',mode='replay',rehearsal=True,approvals_enabled=True,
         rehearsal_secret=private['rehearsal_secret'],service_credentials=registry,origin=private['origin'],workflow_config=config,
-        proposal_config=proposal_config,side_panel_origin=side_panel_origin)
+        proposal_config=proposal_config,side_panel_origin=side_panel_origin,
+        **ramp_options(directory,ramp_records,ramp_notes,ramp_provider,ramp_reader))
     return app,private,events
+
+
+MODEL_JOB_FOLDER='model-jobs'
+MODEL_JOB_HOURS=12
+MODEL_JOB_APPROVER='workspace operator (setup_northwind.py --model-jobs)'
+
+
+def model_job_samples():
+    """The authored sample contracts the Agreements page offers, as (vendor id, fixture path); see web/contract_reading.js."""
+    folder=ROOT/'fixtures'/'submission_onboarding'
+    return [('corvid-ledger',folder/'corvid_ledger.json'),('halden-relay',folder/'halden_relay.json'),
+            ('halden-relay-control',folder/'halden_relay_control.json')]
+
+
+MODEL_JOB_TAKES=('retry-take1','retry-take2','retry-take3')
+
+
+def default_claude_executable():
+    import shutil
+    found=shutil.which('claude')
+    return str(Path(found).resolve()) if found else None
+
+
+def prepare_template_builds(directory,executable):
+    """Demo line: turn on the template builder for the served workspace; prints one start-up line.
+
+    Builds are stored under <workspace>/template-builds/. Only the authored Halcyon samples can be built, at most six
+    per server process. The Jev key file's presence is reported, never its contents; only JevClient reads it."""
+    if not executable or not Path(executable).is_file():
+        raise SystemExit('setup_northwind: --template-builder needs the Claude Code CLI; none was found (use --claude-executable).')
+    from uptime.template_builder import ClaudeCLI,TemplateBuilds
+    from uptime import jev as jev_module
+    key_file=Path(os.environ.get('UPTIME_JEV_KEY_FILE') or Path.home()/'.config'/'uptime'/'jev-api-key')
+    builds=TemplateBuilds(Path(directory)/'template-builds',ClaudeCLI(executable),jev_module.JevClient())
+    print('Template builder: on. Claude Code CLI: '+str(Path(executable).resolve())+'. Jev key file '
+          +('present' if key_file.is_file() else 'not found')+' at '+str(key_file)+'.',file=sys.stderr,flush=True)
+    return builds
+
+
+def prepare_model_jobs(directory,executable):
+    """Demo line: let the served walkthrough run live Claude readings of the authored sample contracts.
+
+    Writes <workspace>/model-jobs/ (0700): config.json (0600) for --public-proposal-config, and approvals.json (0600)
+    holding an operator approval of each exact sample request for the reviewer account, three takes per contract and
+    one request per supported rule family, valid for MODEL_JOB_HOURS. Approval grants model invocation only, never a
+    review, adapter approval or financial permission. Running it again renews the same approvals. Only the CLI's
+    --help and --version run here; no model is called and no credential is read or written.
+    """
+    from uptime.contracts import DraftReviewer
+    from uptime.public_proposal_jobs import canonical
+    from uptime import vendor_model_jobs
+    from uptime.vendor_model_jobs import ProposalRequest,public_approval_request
+    from scripts.public_proposals import approve
+    from uptime.vendor_family_selection import FAMILIES
+    if not executable or not Path(executable).is_absolute() or not Path(executable).is_file() or not os.access(executable,os.X_OK):
+        raise WorkspaceRefused('The Claude Code executable was not found. Pass its absolute path with --claude-executable.')
+    executable=str(Path(executable).resolve())
+    folder=Path(directory).resolve()/MODEL_JOB_FOLDER
+    folder.mkdir(mode=0o700,exist_ok=True);os.chmod(folder,0o700)
+    exports=folder/'exports';exports.mkdir(mode=0o700,exist_ok=True);os.chmod(exports,0o700)
+    approvals=folder/'approvals.json';config=folder/'config.json'
+    def write_private(path,value):
+        temporary=path.with_name('.'+path.name+'.new')
+        temporary.unlink(missing_ok=True)
+        fd=os.open(temporary,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+        with os.fdopen(fd,'w') as handle:
+            json.dump(value,handle,indent=2,ensure_ascii=False);handle.write('\n');handle.flush();os.fsync(handle.fileno())
+        os.replace(temporary,path)
+    write_private(config,dict(version=1,executable=executable,approvals_path=str(approvals),kinds=['vendor']))
+    # Three samples x three takes x two families = 18 jobs at most, inside the daily limits below.
+    write_private(approvals,dict(version=1,limits=dict(daily_jobs=20,daily_budget_usd='20.00'),approvals=[]))
+    provider=vendor_model_jobs.build_vendor_provider(executable)
+    reviewer=DraftReviewer('bears',SCRIPT,'reviewer')
+    approved=0
+    for vendor,path in model_job_samples():
+        document=json.loads(path.read_text(encoding='utf-8'))
+        for take in MODEL_JOB_TAKES:
+            for _,profile,_ in FAMILIES:
+                exported=public_approval_request(provider,reviewer,vendor,ProposalRequest(document=document,profile=profile,attempt_nonce=take))
+                export=exports/(vendor+'.'+take+'.'+profile+'.json')
+                write_private(export,exported)
+                approve(export,approvals,approved_by=MODEL_JOB_APPROVER,
+                        expected_digest=sha256(canonical(exported['request'])).hexdigest(),public_confirmed=True,hours=MODEL_JOB_HOURS)
+                approved+=1
+    return dict(config=str(config),approvals=str(approvals),approved_requests=approved,executable=executable)
 
 
 def checked(response):
@@ -231,6 +339,9 @@ def seed(client,app,private,events):
             checked(client.post(path,content=raw,headers=headers))
     state=seed_northwind(post,state,package)
     seed_calyx(post)
+    # Demo line: install Corvid Ledger from its recorded claude-opus-5-5 reading (uptime/demo_opportunities.py).
+    from uptime.demo_opportunities import seed as seed_corvid
+    seed_corvid(post,catalog_action,scripted_literal_review)
     return actor,state
 
 
@@ -307,6 +418,15 @@ def main():
     parser.add_argument('--resume',action='store_true')
     parser.add_argument('--serve',action='store_true')
     parser.add_argument('--public-proposal-config',type=Path,help='Protected exact-request model configuration for the served workspace')
+    parser.add_argument('--model-jobs',action='store_true',
+                        help='Let the served Agreements page start live Claude readings of the authored sample contracts: '
+                             'writes <workspace>/model-jobs/ (config and exact-request approvals) at start-up; the Claude Code '
+                             'CLI must already be signed in for this user')
+    parser.add_argument('--claude-executable',type=Path,
+                        help='Absolute path of the Claude Code CLI for --model-jobs (default: claude on PATH)')
+    parser.add_argument('--template-builder',action='store_true',
+                        help='Let the served Agreements page build a template for the authored Halcyon sample with Claude '
+                             'readers (Claude Code CLI, already signed in) and Jev (key file read by the Jev client at call time)')
     parser.add_argument('--step-by-step',action='store_true',
                         help='Offer every routine step as its own reviewer action (the earlier behavior); default runs routine steps automatically')
     parser.add_argument('--counterparty-reply',choices=COUNTERPARTY_REPLIES,default='request-log',
@@ -314,6 +434,11 @@ def main():
                              "'reworded-log-request', the same request in wording the fixed rules do not recognise")
     parser.add_argument('--side-panel-origin',metavar='chrome-extension://ID',
                         help='Let exactly this Chrome extension frame the served workspace in its side panel (not stored)')
+    parser.add_argument('--ramp-records',type=Path,metavar='DIR',
+                        help='Also load every verified Ramp bill (*.json) in this folder; <workspace>/ramp/ is always read')
+    parser.add_argument('--ramp-notes',nargs='?',const='manual',choices=('manual','auto'),
+                        help='Mount POST /api/ramp/notes (manual, the default) or also post notes automatically (auto); '
+                             'Ramp access uses RAMP_ENV=sandbox and UPTIME_RAMP_CREDENTIAL_FILE from this shell')
     parser.add_argument('--reviewer-credential',type=Path,
                         help='Also write the reviewer sign-in file to this visible absolute path outside the repository (mode 0600)')
     args=parser.parse_args()
@@ -326,8 +451,20 @@ def main():
     if side_panel and not args.serve:
         # Framing only affects a served app; without --serve the option would silently do nothing.
         parser.error('--side-panel-origin requires --serve')
+    if args.ramp_notes and not args.serve:
+        parser.error('--ramp-notes requires --serve')
+    if args.ramp_records and not args.ramp_records.expanduser().is_dir():
+        parser.exit(1,'setup_northwind: The --ramp-records folder does not exist: '+str(args.ramp_records)+'\n')
     if args.public_proposal_config and not args.serve:
         parser.error('--public-proposal-config requires --serve')
+    if args.model_jobs and not args.serve:
+        parser.error('--model-jobs requires --serve')
+    if args.model_jobs and args.public_proposal_config:
+        parser.error('--model-jobs writes its own proposal configuration; leave out --public-proposal-config')
+    if args.template_builder and not args.serve:
+        parser.error('--template-builder requires --serve')
+    if args.claude_executable and not (args.model_jobs or args.template_builder):
+        parser.error('--claude-executable applies with --model-jobs or --template-builder')
     if args.resume and (args.step_by_step or args.counterparty_reply!='request-log'):
         parser.error('--step-by-step and --counterparty-reply apply when a workspace is created')
     try:
@@ -341,14 +478,16 @@ def main():
     try:
         if args.resume:
             target=credential_target(args.reviewer_credential) if args.reviewer_credential else None
-            app,private,events=open_workspace(args.directory,side_panel_origin=side_panel)
+            app,private,events=open_workspace(args.directory,side_panel_origin=side_panel,
+                                              ramp_records=args.ramp_records,ramp_notes=args.ramp_notes)
             if target is not None:
                 from uptime.auth_keys import rehearsal_key
                 copy_state=place_credential(target,rehearsal_key(private['rehearsal_secret']))
         else:
             app,private,events=prepare(args.directory,args.origin,routine_automation=not args.step_by_step,
                                        reviewer_credential=args.reviewer_credential,counterparty_reply=args.counterparty_reply,
-                                       side_panel_origin=side_panel)
+                                       side_panel_origin=side_panel,ramp_records=args.ramp_records,
+                                       ramp_notes=args.ramp_notes)
             copy_state='WRITTEN' if args.reviewer_credential else None
     except (CredentialRefused,WorkspaceRefused) as refused:
         parser.exit(1,'setup_northwind: '+str(refused)+'\n')
@@ -364,6 +503,12 @@ def main():
                           reviewer_credential_file=str(credential),reviewer_credential_copy=copy_state,
                           routine_automation=bool(private.get('routine_automation',False)),
                           **({'side_panel_origin':side_panel} if side_panel else {}))),flush=True)
+    if args.ramp_records or args.ramp_notes:
+        # Demo line: shown only when a Ramp option is used, so the usual output is unchanged.
+        from uptime.ramp_demo import load_verified_records
+        loaded=load_verified_records(ramp_options(args.directory,args.ramp_records)['ramp_record_dirs'])
+        print('Verified Ramp bills loaded: '+str(len(loaded))+'. Notes to Ramp: '+(args.ramp_notes or 'off')+'.',
+              file=sys.stderr,flush=True)
     # Plain sign-in block; only the path of the private key file is ever printed.
     if side_panel:
         print('Only the side panel of '+side_panel+' may frame this served workspace.',file=sys.stderr)
@@ -371,12 +516,29 @@ def main():
     print(str(credential),file=sys.stderr)
     print(SCRIPT,file=sys.stderr)
     print(private['origin'],file=sys.stderr,flush=True)
+    if args.serve and args.model_jobs:
+        try:
+            prepared=prepare_model_jobs(args.directory,str(args.claude_executable) if args.claude_executable else default_claude_executable())
+        except WorkspaceRefused as refused:
+            parser.exit(1,'setup_northwind: '+str(refused)+'\n')
+        args.public_proposal_config=Path(prepared['config'])
+        print('Live Claude readings: on. '+str(prepared['approved_requests'])+' exact sample requests approved for '+str(MODEL_JOB_HOURS)
+              +' hours (model invocation only) in '+prepared['approvals']+'. Claude Code CLI: '+prepared['executable']
+              +'. It uses its own sign-in for this user; no credential is read here.',file=sys.stderr,flush=True)
     if args.serve:
         if args.public_proposal_config:
             # Seeding closes its TestClient lifecycle. Construct the configured
             # job service only for the process that will serve requests.
             app,private,events=open_workspace(args.directory,proposal_config=args.public_proposal_config,
-                                              side_panel_origin=side_panel)
+                                              side_panel_origin=side_panel,ramp_records=args.ramp_records,
+                                              ramp_notes=args.ramp_notes)
+        if args.ramp_notes=='auto':
+            # Demo line: post the notes matched bills should have; a failure is recorded, never fatal.
+            done=app.state.ramp_demo.auto_sync()
+            print('Uptime notes posted to Ramp at start-up: '+str(len(done['posted']))+'.'
+                  +''.join(' Not posted: '+e['sentence'] for e in done['failed'][:3]),file=sys.stderr,flush=True)
+        if args.template_builder:
+            app.state.template_builds=prepare_template_builds(args.directory,str(args.claude_executable) if args.claude_executable else default_claude_executable())
         import uvicorn
         uvicorn.run(app,host='127.0.0.1',port=int(private['origin'].rsplit(':',1)[1]),log_level='warning')
 

@@ -355,12 +355,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 ## Company pictures (supplied by Ronok)
 
-Two of the walkthrough's authored companies have a picture in place of their initials, at Ronok's request (November 9, 2026): a cloud mark for the vendor Northwind Cloud and a lighthouse mark for the workspace Harborline Analytics.
+Three of the walkthrough's authored companies have a picture in place of their initials, at Ronok's request (November 9–10, 2026): a cloud mark for the vendor Northwind Cloud, a lighthouse mark for the workspace Harborline Analytics, and a mark for the vendor CalyxQuay.
 
-- **Source:** images Ronok supplied in the design session, each 1254 by 1254 pixels: the lighthouse as an attachment, and the cloud first as an attachment on a dark ground and then, replacing it at his request, as a light version from his own machine (`djowajdi.png`). Each was cropped to its mark, scaled to 96 pixels and re-encoded as PNG; only those two small images are in the repository, as image tokens at the top of `web/style.css`. No file is served for them and nothing loads from another host.
+- **Source:** images Ronok supplied in the design session. The lighthouse and the cloud are each 1254 by 1254 pixels: the lighthouse as an attachment, and the cloud first on a dark ground and then, replacing it at his request, as a light version from his own machine (`djowajdi.png`). The CalyxQuay image, supplied November 10, is a 2172-by-724 logo lockup — the mark beside the word “CalyxQuax” — and only the mark on its left was taken. Each mark was cropped to its content, scaled to 96 pixels square and re-encoded as PNG; only those three small images are in the repository, as image tokens at the top of `web/style.css`. No file is served for them and nothing loads from another host.
 - **Where the images came from before that:** not recorded. The coordinator asked Ronok on November 9, since this repository is public, and this section will say once he has answered. Until then nothing here states who made them or under what terms.
-- **How a picture is chosen:** every company tile carries a class made from the name it stands for, and the stylesheet names the two pictures. Any other name, CalyxQuay for example, keeps its initials. The server sends no picture and nothing about it changed.
-- **What they are not:** both companies are authored for the walkthrough, as the package's README says. The pictures are decoration for those two names. They are not marks of real organisations and are hidden from assistive technology like the initials they replace.
+- **How a picture is chosen:** every company tile carries a class made from the name it stands for, and the stylesheet names the three pictures. Any other name — Acme, say — keeps its initials. The server sends no picture and nothing about it changed.
+- **What they are not:** all three companies are authored for the walkthrough, as the package's README says. The pictures are decoration for those three names. They are not marks of real organisations and are hidden from assistive technology like the initials they replace.
 
 ## Brand marks (supplied by Ronok)
 

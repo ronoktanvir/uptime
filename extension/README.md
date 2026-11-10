@@ -7,7 +7,25 @@ A small Chrome extension that shows your local Uptime workspace in the browser's
 - **Does:** frames the real Uptime page and moves it to Uptime's page for the Ramp bill in the active tab (`#ramp-bill/<bill ID>`), using Ramp's own bill ID from the tab's address. That page is part of the interface; on a build without it, the panel shows the workspace's default page whatever bill is open. For a bill the workspace has no saved record of, the page says so.
 - **Reads:** only the address of the active tab, and Chrome shows it that address only for `https://demo.ramp.com/`. Tabs on any other site read as "No Ramp bill open".
 - **Does not:** read or change Ramp's page, hold a credential, store anything, or make a request of its own. Sign-in happens inside the framed Uptime page with the same account and credential file as in an ordinary tab.
-- **When you leave the bill:** switching to a tab that is not a Ramp bill returns the panel to the workspace's records page. You stay signed in, but anything half-typed in the panel is lost.
+- **When you leave the bill:** switching to a tab that is not a Ramp bill returns the panel to the app's "No Ramp bill open" page (`#ramp-bill`). You stay signed in, but anything half-typed in the panel is lost.
+
+## Panel mode and "Open Uptime"
+
+Framed by this extension, the app shows a compact header (the Uptime brand and the account control) and no navigation rows. Each one-bill page has one primary button, **Open Uptime**, which opens the full app in a browser tab. The app decides it is in the panel only by being framed; the server lets no other page frame it.
+
+The framed page asks the panel to open the tab with one message, and the panel accepts nothing else:
+
+- **Shape:** exactly `{type: 'uptime-open-app', route: '<route>'}`, a plain object with those two keys and no others.
+- **Sender:** the message event's origin must equal `origin` in `config.js`, and its source must be the panel's own frame.
+- **Route:** one of `overview`, `records`, `cases`, or `cases/<id>` where the id is a letter or digit followed by up to 63 letters, digits, `.`, `_` or `-`. The panel opens `origin + '/#' + route` and no other address.
+- **Tab:** the first press opens a new tab. Later presses reuse the tab the panel opened, focusing it and setting the route, while it is still open; a closed tab is replaced by a new one. The panel forgets that tab when the panel is closed. If you navigated that tab elsewhere, a press brings it back to Uptime.
+- **The app's side:** it sends the message only to the one extension origin the browser names as its parent (`location.ancestorOrigins`), and it sends a route and nothing else. The new tab has its own sign-in; the panel's signing key is never passed to it.
+
+**Toolbar badge (demo line).** The framed page also sends `{type: 'uptime-bill-status', bill, state}` with `state` `match` or `none`, under the same sender checks and in that exact shape. For the bill the panel is showing, the panel sets a "$" badge on its toolbar button for that tab on `match` and clears it otherwise; moving to another bill or tab clears it first. This uses `chrome.action`, which needs only the manifest's existing `action` key.
+
+**What the active tab decides (demo line).** One Ramp bill opens that bill's page; any other Ramp page opens "Bills Uptime is tracking" (`#ramp-bills`), whose rows send `{type: 'uptime-open-bill', bill}` so the panel moves that Ramp tab to `https://demo.ramp.com/bill-pay/bills/list/<id>`; any other site reads "No Ramp bill open"; and a tab on the Uptime app itself (or the tab the panel opened) hides the frame, without reloading it, behind "You're in Uptime. You may close this panel." On this demo line `manifest.json` also asks for `http://127.0.0.1:8776/*`, only so the panel can read the address of a tab on the app; the panel makes no request to it. Keep it in step with `origin` in `config.js`.
+
+**Manifest change in round one: none.** Opening a tab, moving a tab the extension opened and focusing its window need no permission. Finding a tab you opened yourself on the app's address would need either the `tabs` permission (every tab's address on every site) or a host permission for the app's address; neither was added, so a tab opened some other way is not looked for and a new one opens instead. The permissions were then `sidePanel` and `https://demo.ramp.com/*`; the demo line adds the app's own origin, above.
 
 ## Use it
 
@@ -27,7 +45,7 @@ Loading an extension into your browser is your step; no script does it for you.
 
 ## Check it in a real browser
 
-`scripts/check_side_panel.py` loads a copy of this folder into a throwaway Chrome profile, signs in inside the panel and moves between tabs. It never contacts Ramp: a local stub answers the Ramp-shaped addresses. Run it against a workspace started with the framing option:
+`scripts/check_side_panel.py` loads a copy of this folder into a throwaway Chrome profile, signs in inside the panel, moves between tabs and presses **Open Uptime** twice. It never contacts Ramp: a local stub answers the Ramp-shaped addresses. Run it against a workspace started with the framing option:
 
 ```sh
 uv run --locked python scripts/check_side_panel.py http://127.0.0.1:8776 scripted-test-reviewer <credential file> <folder for screenshots>

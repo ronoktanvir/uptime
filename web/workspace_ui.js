@@ -58,11 +58,228 @@
   // A 64-character fingerprint inside a sentence is shown by its first ten characters; the exact value stays in the inspectors.
   const fingerprints = value => text(value).replace(/\b[0-9a-f]{64}\b/g, match => match.slice(0, 10) + '…');
   const isZero = value => /^-?0*(\.0*)?$/.test(String(value));
-  function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true}) {
+  // Steps in order: pure readings of the server's recorded steps. Nothing here creates, reorders or invents a step.
+  // The recorded order is the server's sequence number; without one on every step, the order the server sent.
+  function recordedOrder(steps) {
+    const rows = list(steps).filter(step => step && typeof step === 'object');
+    if (!rows.every(step => Number.isInteger(step.seq))) return rows;
+    return rows.map((step, index) => [step, index]).sort((a, b) => a[0].seq - b[0].seq || a[1] - b[1]).map(([step]) => step);
+  }
+  // The latest reviewer decision and every step recorded after it, in recorded order, with the steps before it.
+  function replayGroup(steps) {
+    const ordered = recordedOrder(steps);
+    let at = -1;
+    ordered.forEach((step, index) => { if (step.authority && step.authority.kind === 'PERSON') at = index; });
+    if (at < 0) return null;
+    return {decision: ordered[at], before: ordered.slice(0, at), replay: ordered.slice(at)};
+  }
+  // Who did what, counted from the recorded steps. An automatic step counts once it completed, as the server counts
+  // it; the server's own two counts are compared, never replaced, and a difference is reported.
+  function stepLegend(steps, counts) {
+    const ordered = recordedOrder(steps), kind = step => step.authority && step.authority.kind, done = step => step.state === 'COMPLETED';
+    const reviewer = ordered.filter(step => kind(step) === 'PERSON').length;
+    const approved = ordered.filter(step => kind(step) === 'APPROVED_OPERATION' && done(step)).length;
+    const received = ordered.filter(step => kind(step) === 'EVENT_INTAKE' && done(step)).length;
+    const other = ordered.length - reviewer - approved - received;
+    const c = counts && typeof counts === 'object' ? counts : {};
+    const agrees = (c.person_decisions == null || c.person_decisions === reviewer) && (c.automatic_steps == null || c.automatic_steps === approved + received);
+    return {reviewer, approved, received, other, total: ordered.length, agrees,
+      server: {person_decisions: c.person_decisions == null ? null : c.person_decisions, automatic_steps: c.automatic_steps == null ? null : c.automatic_steps}};
+  }
+  const REPLAY_PACE_MS = 1600, REPLAY_KEY = 'uptime.steps.replay', REPLAY_SEEN_KEY = 'uptime.steps.replay.seen';
+  // Who did the work, as three plain actors. The reviewer account decides; Uptime runs an automatic step under an approval
+  // already recorded (fixed automation, not a model); a received event is named by the source the server names.
+  const SOURCE_NAMES = {vendor:'Vendor', customer:'Customer source', status:'Status source', billing:'Billing source'};
+  function actorTag(step) {
+    const authority = step && step.authority && typeof step.authority === 'object' ? step.authority : {};
+    if (authority.kind === 'PERSON') return {label:'Reviewer decision', cls:'accent tag-reviewer'};
+    if (authority.kind === 'APPROVED_OPERATION') return {label:'Uptime · automatic', cls:'tag-agent'};
+    if (authority.kind === 'EVENT_INTAKE') {
+      const suffix = typeof authority.source_subject === 'string' ? authority.source_subject.split('-').pop() : null;
+      return {label:SOURCE_NAMES[suffix] || 'Received event', cls:'tag-received' + (suffix === 'vendor' ? ' tag-vendor' : '')};
+    }
+    return null;
+  }
+  // The short line shown before a recorded step appears on the Overview. It names the step about to be shown.
+  const LEAD_IN = {'submit-claim':'Filing the claim with the vendor', 'receive-denial':'Receiving the vendor’s reply',
+    'receive-artifact':'Attaching the requested service log', 'receive-verification':'Matching the service log to the request',
+    'submit-response':'Sending the response to the vendor', 'receive-award':'Receiving the vendor’s credit decision',
+    'record-credit':'Posting the credit', 'receive-invoice':'Receiving the next invoice', 'apply-balance':'Applying the credit'};
+  function leadIn(step) {
+    const s = step && typeof step === 'object' ? step : {};
+    return (LEAD_IN[s.operation] || (typeof s.label === 'string' && s.label ? s.label : 'Next recorded step')) + '…';
+  }
+  // The steps a decision added: those after the last step the page held before it, in recorded order.
+  function newSteps(prior, next) {
+    const before = recordedOrder(prior && prior.automation && prior.automation.steps), after = recordedOrder(next && next.automation && next.automation.steps);
+    if (before.every(s => Number.isInteger(s.seq)) && after.every(s => Number.isInteger(s.seq))) {
+      const last = before.reduce((max, s) => Math.max(max, s.seq), 0);
+      return after.filter(s => s.seq > last);
+    }
+    return after.slice(before.length);
+  }
+  // What the Overview's figures show while a decision's steps are still being shown: the server's new projection, with
+  // each credit stage (and the bill) held at its earlier recorded value until the step that recorded it is shown, and the
+  // claim's stage held until the last one is. Display only; with nothing pending it is exactly the new projection.
+  const STAGE_BY_OPERATION = {'submit-claim':'claimed', 'receive-award':'awarded', 'record-credit':'posted', 'apply-balance':'applied'};
+  function stagedView(prior, next, pending) {
+    const waiting = list(pending).filter(s => s && typeof s === 'object');
+    if (!waiting.length || !prior || typeof prior !== 'object') return next;
+    const held = new Set(waiting.map(s => STAGE_BY_OPERATION[s.operation]).filter(Boolean));
+    const priorFinance = prior.finance && typeof prior.finance === 'object' ? prior.finance : {}, finance = next.finance && typeof next.finance === 'object' ? next.finance : {};
+    const priorRows = list(priorFinance.stages);
+    const stages = list(finance.stages).map(row => row && held.has(row.stage) ? priorRows.find(old => old && old.stage === row.stage) || row : row);
+    const billHeld = waiting.some(s => s.operation === 'apply-balance' || s.operation === 'receive-invoice');
+    return {...next, claim: prior.claim || next.claim, ledger: billHeld ? prior.ledger || next.ledger : next.ledger,
+      finance: {...finance, stages, bill: billHeld ? priorFinance.bill : finance.bill}};
+  }
+  // ---- Portfolio: every agreement, opportunity and tracked bill in this workspace, built only from what the server
+  // sends (the workflow view, the agreements list and its details, and the saved Ramp workspace). Nothing is summed
+  // across items or stages; each amount is one item's own figure at its own recorded stage.
+  const slug = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const OPEN_PRICE = new Set(['PREPAYMENT_REVIEW', 'RETROSPECTIVE_REVIEW', 'NEEDS_REVIEW', 'REVIEW_REQUIRED']);
+  const PRICE_STAGE = {PREPAYMENT_REVIEW:'Open · before payment', RETROSPECTIVE_REVIEW:'Open · paid invoice', NEEDS_REVIEW:'Open', REVIEW_REQUIRED:'Open'};
+  const MODEL_NAMES = {'claude-opus-5-5':'Claude Opus 5.5'};
+  function readBy(extraction) {
+    const e = extraction && typeof extraction === 'object' ? extraction : {};
+    if (e.method === 'deterministic_document_parser') return {kind:'rules', label:'Read by fixed rules'};
+    if (e.method === 'tool_free_model_propositions') return {kind:'claude', label:'Read by ' + (MODEL_NAMES[e.model] || text(e.model)) + ' · recorded run', model:MODEL_NAMES[e.model] || e.model || null};
+    return null;
+  }
+  // Who acts next on the workspace's case, from the server's offered actions and its recorded pause.
+  function nextActor(workflow) {
+    const w = workflow && typeof workflow === 'object' ? workflow : {}, automation = w.automation && typeof w.automation === 'object' ? w.automation : {};
+    if (automation.state === 'COMPLETE') return null;
+    if (list(w.next_actions).some(action => action && action.id && action.enabled !== false)) return 'Reviewer';
+    const reason = automation.pause && automation.pause.reason;
+    if (reason === 'ROUTINE_READY') return 'Uptime · automatic';
+    if (reason === 'WAITING') return 'Vendor';
+    return reason ? 'Reviewer' : null;
+  }
+  function creditStage(workflow) {
+    const rows = list(workflow && workflow.finance && workflow.finance.stages).filter(row => row && typeof row === 'object');
+    const estimate = rows.find(r => r.stage === 'estimated'), reached = rows.filter(r => r.stage !== 'estimated' && r.status === 'recorded').pop();
+    return reached || (estimate && estimate.status === 'recorded' ? estimate : null);
+  }
+  // A tracked Ramp bill is matched when the server says so (its `match`); with no `match` field at all (an older server)
+  // the agreement binding decides. Only a bill with neither is "No agreement on file".
+  const billsOf = rampWorkspace => list(rampWorkspace && rampWorkspace.verified_records).filter(r => r && r.ramp_context && typeof r.ramp_context === 'object');
+  const matched = r => r.match && typeof r.match === 'object';
+  const bound = r => matched(r) || !Object.prototype.hasOwnProperty.call(r, 'match') && r.ramp_context.agreement_binding && r.ramp_context.agreement_binding.status === 'BOUND';
+  const uptimeNotes = r => list(r.notes).filter(n => n && n.by === 'UPTIME');
+  // The matched bill's facts, as one line under the opportunity it belongs to.
+  function rampLine(record) {
+    const match = record.match, parts = ['Bill ' + text(match.invoice && match.invoice.id) + ' in Ramp'];
+    if (uptimeNotes(record).length) parts.push('Uptime added a note');
+    if (match.ramp_credit && match.ramp_credit.status === 'APPLIED_CONFIRMED') parts.push('Credit applied in Ramp · confirmed');
+    return parts.join(' · ');
+  }
+  function portfolioRows(workflow, vendors, rampWorkspace) {
+    const w = workflow && typeof workflow === 'object' ? workflow : null, rows = [];
+    if (w) {
+      const vendor = typeof w.vendor === 'object' && w.vendor ? w.vendor.name : w.vendor, claim = w.claim || {}, currency = (w.ledger || {}).currency || 'USD';
+      list(w.months).filter(m => m && typeof m === 'object').forEach(m => {
+        const base = {vendor, subject: monthLabel(m.month), month: m.month};
+        if (m.outcome === 'ELIGIBLE' && claim.month === m.month) {
+          const stage = creditStage(w), applied = stage && stage.stage === 'applied';
+          rows.push({...base, key:'credit-' + m.month, kind:'credit', kindLabel:'Service credit', amount: stage ? stage.amount : m.amount, currency,
+            stage: stage ? stage.label : 'Not determined', open: !applied, next: applied ? null : nextActor(w), href:'#recovery'});
+        } else if (m.outcome === 'ELIGIBLE') {
+          rows.push({...base, key:'credit-' + m.month, kind:'credit', kindLabel:'Service credit', amount: m.amount, currency: m.currency || currency,
+            stage:'Not claimed', open:true, next:'Reviewer', href:'#recovery/finance-months'});
+        } else if (m.outcome === 'INELIGIBLE') {
+          rows.push({...base, key:'none-' + m.month, kind:'no-credit', kindLabel:'No credit due', amount:null, currency, stage:'Closed', open:false, next:null, href:'#recovery/finance-months'});
+        } else {
+          rows.push({...base, key:'evidence-' + m.month, kind:'evidence', kindLabel:'Needs usage evidence', amount:null, currency, stage:'Open', open:true, next:'Usage source', href:'#recovery/finance-months'});
+        }
+      });
+      const price = w.price_finding && typeof w.price_finding === 'object' ? w.price_finding : null;
+      if (price && (price.invoice_id || price.amount != null)) rows.push({vendor, key:'price-' + price.invoice_id, subject:'Invoice ' + text(price.invoice_id), month: price.month,
+        kind:'price', kindLabel:'Above contracted price', amount: price.amount, currency: price.currency || currency,
+        stage: PRICE_STAGE[price.state] || state(price.state), open: OPEN_PRICE.has(price.state), next: OPEN_PRICE.has(price.state) ? 'Reviewer' : null, href:'#recovery/finance-price-exception'});
+      // Estimates for other vendors the server lists in the workflow view: not claimed, so a reviewer acts next.
+      list(w.opportunities).filter(o => o && typeof o === 'object' && (o.kind == null || o.kind === 'service_credit')).forEach((o, index) => {
+        const route = typeof o.route === 'string' && o.route ? (o.route.startsWith('#') ? o.route : '#' + o.route) : '#overview';
+        const agreement = o.agreement && typeof o.agreement === 'object' ? o.agreement : {};
+        rows.push({vendor: o.vendor, key:'opportunity-' + index, subject: monthLabel(o.period), month: o.period, detail: agreement.id ? 'Agreement ' + text(agreement.id) : null,
+          kind:'credit', kindLabel:'Service credit', amount: o.amount == null ? null : o.amount, currency: o.currency || currency,
+          stage: o.stage === 'ESTIMATED' ? 'Estimated · not claimed' : state(o.stage), open:true, next:'Reviewer', href: route});
+      });
+    }
+    // A matched Ramp bill is not a row of its own: its facts go on the opportunity it belongs to.
+    billsOf(rampWorkspace).filter(matched).forEach(r => {
+      const m = r.match, invoice = m.invoice && m.invoice.id;
+      const target = m.kind === 'price_exception' ? rows.find(row => row.kind === 'price' && row.subject === 'Invoice ' + text(invoice))
+        : m.kind === 'service_credit' ? rows.find(row => row.kind === 'credit' && m.credit && row.month === m.credit.service_month) : null;
+      if (target) target.ramp = (target.ramp ? target.ramp + ' · ' : '') + rampLine(r);
+      else rows.push({vendor: r.ramp_context.vendor_name || (m.invoice && m.invoice.vendor), key:'bill-' + r.ramp_context.object_id, subject:'Bill ' + text(invoice), ramp: rampLine(r),
+        kind:'bill', kindLabel:'Tracked bill', amount:null, currency:null, stage:'Matched to invoice', open:false, next:null,
+        href: '#ramp-bill/' + encodeURIComponent(r.ramp_context.object_id || '')});
+    });
+    const covered = new Set(rows.map(r => slug(r.vendor)));
+    list(vendors).filter(v => v && typeof v === 'object').forEach(v => {
+      const name = v.vendor || v.name || v.vendor_id;
+      if (covered.has(slug(name))) return;
+      const read = readBy(v.extraction), active = v.state === 'ACTIVE' && v.active_version;
+      rows.push({vendor:name, key:'agreement-' + slug(name), subject: read ? read.label : 'How it was read is not recorded', kind:'agreement',
+        kindLabel: active ? 'Agreement in force' : 'Agreement · ' + state(v.state), amount:null, currency:null, stage: active ? 'In force' : state(v.state), open:false, next:null, href:'#agreements'});
+    });
+    billsOf(rampWorkspace).filter(r => !matched(r)).forEach(r => {
+      const ctx = r.ramp_context, onFile = bound(r), amount = ctx.amount && typeof ctx.amount === 'object' ? ctx.amount : null;
+      rows.push({vendor: ctx.vendor_name || 'Vendor name not captured', key:'bill-' + ctx.object_id, subject:'Bill ' + text(ctx.invoice_number),
+        detail: amount ? 'In Ramp: ' + text(amount.currency) + ' ' + text(amount.amount) + ' · ' + state(ctx.status) : null,
+        kind: onFile ? 'bill' : 'no-agreement', kindLabel: onFile ? 'Tracked bill' : 'No agreement on file', amount:null, currency:null,
+        stage: onFile ? 'Agreement on file' : r.finding && r.finding.outcome === 'INSUFFICIENT_EVIDENCE' ? 'Evidence gap' : 'Not checked',
+        open: !onFile, next: onFile ? null : 'Reviewer', href: typeof ctx.object_id === 'string' && ctx.object_id ? '#ramp-bill/' + encodeURIComponent(ctx.object_id) : '#records'});
+    });
+    return rows;
+  }
+  function portfolioTiles(rows, vendors, rampWorkspace) {
+    const reads = list(vendors).map(v => readBy(v && v.extraction));
+    const bills = billsOf(rampWorkspace);
+    const opportunity = list(rows).filter(r => r.open && ['credit', 'evidence', 'price'].includes(r.kind));
+    const credits = list(rows).filter(r => r.kind === 'credit' && r.open);
+    return {agreements: list(vendors).length, claude: reads.filter(r => r && r.kind === 'claude').length, rules: reads.filter(r => r && r.kind === 'rules').length,
+      opportunities: opportunity.length, byKind: ['credit', 'price', 'evidence'].map(kind => [kind, opportunity.filter(r => r.kind === kind).length]).filter(([, n]) => n),
+      credits: credits.map(r => ({subject: r.subject, vendor: r.vendor, amount: r.amount, currency: r.currency, stage: r.stage})),
+      bills: bills.length, matched: bills.filter(matched).length, unbound: bills.filter(r => !bound(r)).length};
+  }
+  function agentCounters(workflow, vendors, rampWorkspace) {
+    const notes = billsOf(rampWorkspace).flatMap(r => list(r.notes).filter(n => n && typeof n === 'object'));
+    const reads = list(vendors).map(v => readBy(v && v.extraction)).filter(r => r && r.kind === 'claude');
+    const legend = stepLegend(workflow && workflow.automation && workflow.automation.steps, null);
+    return {claudeReads: reads.length, models: [...new Set(reads.map(r => r.model).filter(Boolean))], agentSteps: legend.approved, received: legend.received, reviewerDecisions: legend.reviewer,
+      notes: notes.length, uptimeNotes: notes.filter(n => n.by === 'UPTIME').length};
+  }
+  // Needs attention across the portfolio: the case's own items, each opening its section on the case page, and every
+  // tracked Ramp bill that has no agreement on file.
+  function portfolioAttention(workflow, rampWorkspace) {
+    const w = workflow && typeof workflow === 'object' ? workflow : {}, vendor = typeof w.vendor === 'object' && w.vendor ? w.vendor.name : w.vendor;
+    const items = list(w.finance && w.finance.attention).filter(i => i && typeof i === 'object').map(i => ({vendor, owner: i.owner, title: i.title, detail: i.detail,
+      href: '#recovery' + (typeof i.section === 'string' && i.section ? '/' + i.section : '')}));
+    billsOf(rampWorkspace).filter(r => !bound(r)).forEach(r => {
+      const ctx = r.ramp_context;
+      items.push({vendor: null, owner:'reviewer', title:'Put an agreement on file for ' + text(ctx.vendor_name) + ' bill ' + text(ctx.invoice_number),
+        detail:'Uptime cannot check this bill against a contract until its agreement is on file.', href: '#ramp-bill/' + encodeURIComponent(ctx.object_id || '')});
+    });
+    return items;
+  }
+  function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true,
+    storage, schedule = (callback, ms) => global.setTimeout(callback, ms), reducedMotion}) {
+    // The replay setting lasts for this page's session. Browser storage may be absent or refuse; memory stands in.
+    const memory = {};
+    const session = (() => { if (storage !== undefined) return storage; try { return global.sessionStorage || null; } catch (_) { return null; } })();
+    const readSetting = key => { try { const value = session ? session.getItem(key) : null; if (value != null) return value; } catch (_) { /* memory below */ } return memory[key] == null ? null : memory[key]; };
+    const writeSetting = (key, value) => { memory[key] = value; try { if (session) session.setItem(key, value); } catch (_) { /* memory holds it */ } };
+    const still = () => { if (typeof reducedMotion === 'function') return reducedMotion() === true;
+      try { return typeof global.matchMedia === 'function' && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; } };
     // After a recorded action the page re-renders and focus moves to the recovery heading, never to the next
     // decision: a held or repeated Enter must not approve the next step. The status names what was recorded and what
     // comes next, one Tab away.
     let epoch = 0, busy = false, uncertain = false, focusNextStep = false, recordedLabel = null;
+    // The projection this page last drew, the one a pressed decision leaves behind, and the running Overview replay's stop.
+    let lastData = null, pendingReplay = null, stopReplay = null;
+    const replayOn = () => readSetting(REPLAY_KEY) !== 'off';
     const el = (tag, value, cls) => { const n = doc.createElement(tag); if (value != null) n.textContent = text(value); if (cls) n.className = cls; return n; };
     const add = (n, ...children) => { children.filter(Boolean).forEach(c => n.append(c)); return n; };
     const note = value => el('p',value,'help');
@@ -165,7 +382,8 @@
       node.append(credit);
       if (price.invoice_id || price.amount != null || price.state) {
         const priceMonth = monthOnly(price.month) || monthFor(price.invoice_id, months);
-        node.append(add(el('article', null, 'outcome-card outcome-exception'), el('h2', (priceMonth ? priceMonth + ' price exception' : 'Price exception')),
+        node.append(add((() => { const card = el('article', null, 'outcome-card outcome-exception'); card.id = 'finance-price-exception'; return card; })(),
+          (() => { const h = el('h2', (priceMonth ? priceMonth + ' price exception' : 'Price exception')); h.tabIndex = -1; return h; })(),
           el('div', money(price.amount, price.currency || currency), 'outcome-value'),
           add(el('p', null, 'help'), el('span', (PRICE_STATUS[price.state] || state(price.state)) + (price.invoice_id ? ' · invoice ' : '')),
             price.invoice_id ? el('span', price.invoice_id, 'nowrap') : null),
@@ -266,11 +484,18 @@
       return {table, row};
     }
     function renderData(root,data,token) {
+      // A decision pressed on this page leaves the projection it was pressed on; its new steps are shown one at a time.
+      const replay = pendingReplay; pendingReplay = null; lastData = data;
+      const plan = replay && replayOn() && data.automation && data.automation.enabled !== false
+        && newSteps(replay.prior, data).some(step => !(step.authority && step.authority.kind === 'PERSON')) ? newSteps(replay.prior, data) : null;
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
       const months = list(data.months);
       // The vendor's initials beside its name: decoration, hidden from assistive technology.
       const tile=el('span',String(vendor || '').split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0].toUpperCase()).join(''),'page-tile brand-'+String(vendor || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));tile.setAttribute('aria-hidden','true');
-      const header=add(el('div',null,'page-head'),tile,add(el('div'),el('p','Contract review & recovery','eyebrow'),el('h1',vendor || 'Contract review')),
+      // This page is one case: the vendor and the month are its heading, and the way back is the portfolio.
+      const caseMonth = data.claim && data.claim.month ? monthLabel(data.claim.month) : null;
+      const back = el('a', 'Portfolio', 'back-link'); back.href = '#overview';
+      const header=add(el('div',null,'page-head'),tile,add(el('div'),back,el('p',(caseMonth ? caseMonth + ' service credit · ' : '') + 'Contract review & recovery','eyebrow'),el('h1',vendor || 'Contract review')),
         data.as_of ? el('p','As of '+when(data.as_of),'as-of') : null);
       const ledger=data.ledger || {}, currency=ledger.currency || 'USD';
       const finance = data.finance && typeof data.finance === 'object' ? data.finance : null;
@@ -284,22 +509,29 @@
         note(document.effective_at ? 'Effective ' + day(document.effective_at) : 'Effective date not provided'),
         inspector('Document details', fields([['Reference',document.ref],['Version',document.version],['Effective date',document.effective_at]]), note(document.description)))));
       if (agreement.summary) contract.append(inspector('Agreement text', el('p', agreement.summary, 'help prose')));
-      let attention = null, ramp = null;
+      let attention = null, ramp = null, drawAttention = () => {};
       if (finance) {
-        const items = el('ol', null, 'attention-list');
-        list(finance.attention).forEach(item => {
+        // While a decision's steps are being shown, the list is the one the page held before it; it updates when they have all appeared.
+        const attentionFor = source => { const items = el('ol', null, 'attention-list');
+        list(source && source.attention).forEach(item => {
           const row = add(el('li', null, 'attention-item'), el('span', OWNERS[item.owner] || 'Next step', 'attention-owner' + (OWNERS[item.owner] ? ' owner-' + item.owner : '')),
             el('h3', item.title), note(instants(item.detail)));
           if (item.section) row.append(jumpButton('Show details', item.section));
           items.append(row);
         });
+        return items; };
+        const items = attentionFor(plan && replay.prior && replay.prior.finance ? replay.prior.finance : finance);
         // The heading keeps its exact name; the number of items sits beside it.
         const attentionHeading = el('h2', 'Needs attention'); attentionHeading.tabIndex = -1;
         const tally = items.children.length ? el('span', String(items.children.length), 'count') : null;
         if (tally) tally.setAttribute('aria-label', items.children.length + (items.children.length === 1 ? ' item' : ' items'));
         attention = add(el('section', null, 'panel'), add(el('div', null, 'panel-head'), attentionHeading, tally));
         attention.id = SECTION_IDS.attention;
-        attention.append(items.children.length ? items : note('Nothing in this case needs action now.'));
+        const attentionBody = el('div', null, 'attention-body');
+        attention.append(attentionBody);
+        drawAttention = () => { const now = attentionFor(finance); attentionBody.replaceChildren(now.children.length ? now : note('Nothing in this case needs action now.'));
+          if (tally) { tally.textContent = String(now.children.length); tally.setAttribute('aria-label', now.children.length + (now.children.length === 1 ? ' item' : ' items')); } };
+        attentionBody.append(items.children.length ? items : note('Nothing in this case needs action now.'));
         const rampInfo = finance.ramp || {};
         ramp = panel('Ramp record', 'ramp');
         const linked = rampInfo.linked_record && typeof rampInfo.linked_record === 'object' ? rampInfo.linked_record : null;
@@ -308,14 +540,19 @@
         const records = el('a', 'Open Ramp records', 'case-link ramp-glyph'); records.href = '#records'; ramp.append(records);
       }
       // The claim's own stage is shown as the server reports it, beside the credit's latest recorded lifecycle stage.
-      const reachedStage = serverStages(data).filter(row => row.status === 'recorded').pop();
+      const recoveryFacts = view => {
+        const reachedStage = serverStages(view).filter(row => row.status === 'recorded').pop(), shownClaim = view.claim || {};
+        return fields([['Claim stage',state(shownClaim.state)],['Credit stage',reachedStage ? reachedStage.label : null],['Destination',ledger.destination],['Claim reference',claim.id]].filter(([, value]) => value != null));
+      };
+      const factsBox = el('div', null, 'recovery-facts');
       // Who the reviewer is and of what kind, in view on this card: the name as the server sends it and its authority
       // kind in the same words the records below use. A plain field; left out when the server names no reviewer.
       if (reviewer.name != null && reviewer.name !== '') {
         const who = fields([['Reviewer', reviewer.name + (reviewer.authority_kind ? ' · ' + state(reviewer.authority_kind) : '')]]);
         who.className += ' recovery-reviewer'; recovery.append(who);
       }
-      add(recovery,fields([['Claim stage',state(claim.state)],['Credit stage',reachedStage ? reachedStage.label : null],['Destination',ledger.destination],['Claim reference',claim.id]].filter(([, value]) => value != null)),
+      factsBox.append(recoveryFacts(plan ? stagedView(replay.prior, data, plan) : data));
+      add(recovery,factsBox,
         claim.summary == null || claim.summary === '' ? null : note(claim.summary));
       const status=el('p',null,'help');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
       const controls=el('div',null,'actions');
@@ -328,11 +565,11 @@
         button.addEventListener('keydown', event => { if (event && event.repeat && (event.key === 'Enter' || event.key === ' ')) event.preventDefault(); });
         button.addEventListener('click', async()=>{
           if (busy || uncertain || token !== epoch || action.enabled === false || canAct() === false) return;
-          busy=true;Array.from(controls.children).forEach(c=>{c.disabled=true;});status.textContent='Recording action…';
+          const prior=lastData;busy=true;Array.from(controls.children).forEach(c=>{c.disabled=true;});status.textContent='Recording action…';
           try {
             await api('/api/workspace/workflow/actions/'+encodeURIComponent(action.id),{});
             if (token !== epoch) return;
-            focusNextStep=true;recordedLabel=action.label || state(action.id);try{await render(root);}finally{focusNextStep=false;recordedLabel=null;}await onRefresh();
+            focusNextStep=true;recordedLabel=action.label || state(action.id);pendingReplay={prior};try{await render(root);}finally{focusNextStep=false;recordedLabel=null;}await onRefresh();
           } catch(error) {
             if(token !== epoch) return;
             if(error.status === 401 && typeof onUnauthorized === 'function') {
@@ -354,12 +591,20 @@
       const routine = data.automation && data.automation.enabled !== false ? automationSummary(data.automation) : null;
       // Paused with nothing offered here means a reviewer is needed elsewhere (for example on the case); that state is marked.
       const stopped = !offered && data.automation && data.automation.enabled !== false && data.automation.state === 'PAUSED';
-      const decision = add(el('div', null, 'decision' + (offered ? '' : stopped ? ' idle stopped' : ' idle')), routine ? add(el('p', null, 'help automation-line'), el('span', routine)) : null, controls);
+      const routineLine = routine ? el('span', routine) : null;
+      const decision = add(el('div', null, 'decision' + (offered ? '' : stopped ? ' idle stopped' : ' idle')), routineLine ? add(el('p', null, 'help automation-line'), routineLine) : null, controls);
+      // The steps a decision added, shown one at a time under the decision bar, and the switch that turns this off.
+      const feed = el('div', null, 'overview-steps');
+      const showSteps = data.automation && data.automation.enabled !== false ? (() => {
+        const box = el('input'); box.type = 'checkbox'; box.checked = replayOn();
+        box.addEventListener('change', () => { writeSetting(REPLAY_KEY, box.checked ? 'on' : 'off'); if (!box.checked && stopReplay) stopReplay(); });
+        return add(el('label', null, 'replay-toggle overview-replay-toggle'), box, el('span', 'Show the steps one at a time after each decision'));
+      })() : null;
       const caseLink = typeof claim.id === 'string' && claim.id ? el('a', 'Open this claim’s case and correspondence', 'case-link') : null;
       if (caseLink) caseLink.href = '#cases/' + encodeURIComponent(claim.id);
       const stepsLink = routine ? el('a', 'See every step in Activity', 'case-link') : null;
       if (stepsLink) stepsLink.href = '#activity';
-      add(recovery,decision,status,caseLink || stepsLink ? add(el('p', null, 'help recovery-links'), caseLink, stepsLink) : null,
+      add(recovery,decision,status,feed,showSteps,caseLink || stepsLink ? add(el('p', null, 'help recovery-links'), caseLink, stepsLink) : null,
         inspector('Connection details', fields([['Connection destination',connection.destination],['Connection status',state(connection.status)],['Receipt status',state(connection.receipt_status)]])));
       const monthly=panel('Service credit evaluations','months'), evaluations=sheet(['Service month','Decision','Service credit','Basis'],[2]);
       months.forEach(month=>{
@@ -409,15 +654,66 @@
       const evidence = add(el('div', null, 'section-head'), el('h2', 'Evidence'));
       const records = add(el('div', null, 'fold-group'), contract, data.onboarding ? expansion : null, detail);
       const activityLink = add(el('p', null, 'help foot-link'), (() => { const a = el('a', 'See the full activity history', 'case-link'); a.href = '#activity'; return a; })());
-      root.replaceChildren(header,outcome(data, months),lifecycle(data),columns,evidence,monthly,add(el('div',null,'section-grid'),pricing,billing),records,activityLink);
+      // The outcome and the credit lifecycle: while a decision's steps are being shown they hold each stage until its step appears.
+      const figures = el('div', null, 'overview-figures');
+      const drawFigures = view => { figures.replaceChildren(outcome(view, months), lifecycle(view)); factsBox.replaceChildren(recoveryFacts(view)); if (view === data) drawAttention(); };
+      figures.replaceChildren(...(plan ? [outcome(stagedView(replay.prior, data, plan), months), lifecycle(stagedView(replay.prior, data, plan))] : [outcome(data, months), lifecycle(data)]));
+      let afterReplay = null;
+      root.replaceChildren(header,figures,columns,evidence,monthly,add(el('div',null,'section-grid'),pricing,billing),records,activityLink);
       if (focusNextStep) {
         focusNextStep=false;
         const next=Array.from(controls.children).find(c=>c.tagName==='BUTTON' && !c.disabled);
-        if (recordedLabel) status.textContent='Recorded: '+recordedLabel+'.'+(next ? ' Next: '+next.textContent+'.' : '');
+        // While the steps are shown the next decision waits out of view; it is named once they have all appeared.
+        if (recordedLabel) status.textContent='Recorded: '+recordedLabel+'.'+(next && !plan ? ' Next: '+next.textContent+'.' : '');
+        if (plan && recordedLabel) { const said = status.textContent; afterReplay = () => { status.textContent = said + (next ? ' Next: '+next.textContent+'.' : ''); }; }
         recordedLabel=null;
         const target=recovery.children[0];
         if (target && typeof target.focus==='function') target.focus();
       }
+      if (plan) playOverview({plan, prior: replay.prior, data, token, feed, controls, routineLine, routine, drawFigures, done: () => afterReplay && afterReplay()});
+    }
+    // The Overview's replay: display only. The decision has returned and every step below is already recorded; each is
+    // shown after a short line naming it, and the figures above move to the value that step recorded. No request is made.
+    const LEAD_MS = 500, STEP_MS = 900;
+    function stepRow(step) {
+      const tag = actorTag(step);
+      return add(el('li', null, 'overview-step' + (step.authority && step.authority.kind === 'PERSON' ? ' by-reviewer' : '') + (still() ? '' : ' replay-reveal')),
+        add(el('div', null, 'step-head'), el('strong', text(step.label || state(step.operation))), tag ? el('span', tag.label, 'pill ' + tag.cls) : null),
+        note(authorityText(step.authority)));
+    }
+    function playOverview({plan, prior, data, token, feed, controls, routineLine, routine, drawFigures, done}) {
+      const decision = plan[0] && plan[0].authority && plan[0].authority.kind === 'PERSON' ? plan[0] : null;
+      const key = decision ? String(decision.intent_id || decision.seq || '') : '';
+      if (key) writeSetting(REPLAY_SEEN_KEY, key);
+      const list_ = el('ol', null, 'overview-step-list');
+      const show = row => { list_.append(row); if (typeof row.scrollIntoView === 'function') row.scrollIntoView({block:'nearest', behavior: still() ? 'auto' : 'smooth'}); };
+      feed.replaceChildren(el('p', 'Steps recorded after ' + (decision ? '“' + text(decision.label || state(decision.operation)) + '”' : 'this decision') + ', shown in order', 'overview-steps-head'), list_);
+      controls.hidden = true;
+      if (routineLine) routineLine.textContent = 'Showing the steps this decision recorded, one at a time.';
+      let index = 0, stopped = false;
+      const alive = () => !stopped && token === epoch;
+      const finish = () => {
+        stopped = true; if (stopReplay === stop) stopReplay = null;
+        while (index < plan.length) list_.append(stepRow(plan[index++]));
+        Array.from(list_.children).filter(row => String(row.className).includes('overview-lead')).forEach(row => { row.hidden = true; });
+        drawFigures(data); controls.hidden = false; if (routineLine) routineLine.textContent = routine; done();
+      };
+      const stop = () => { if (!stopped && token === epoch) finish(); };
+      stopReplay = stop;
+      const next = () => {
+        if (!alive()) return;
+        if (index >= plan.length) { finish(); return; }
+        const step = plan[index];
+        if (step.authority && step.authority.kind === 'PERSON') { index++; show(stepRow(step)); drawFigures(stagedView(prior, data, plan.slice(index))); schedule(next, STEP_MS); return; }
+        const lead = el('li', leadIn(step), 'overview-lead'); show(lead);
+        schedule(() => {
+          if (!alive()) return;
+          lead.hidden = true; index++; show(stepRow(step));
+          drawFigures(stagedView(prior, data, plan.slice(index)));
+          schedule(next, STEP_MS);
+        }, LEAD_MS);
+      };
+      next();
     }
     function coverageHistory(onboarding) {
       const coverage=el('ol',null,'activity'), actors=[...new Set(list(onboarding.history).map(event=>event.actor).filter(Boolean))];
@@ -462,28 +758,35 @@
     }
     // What authorised a step, as one short tag beside the server's own sentence. A decision is attributed to the
     // reviewer account the server names, never to "a person": the account may be a scripted one.
-    const AUTHORITY_TAG = {PERSON:['Reviewer decision', 'accent tag-reviewer'], APPROVED_OPERATION:['Automatic step', 'tag-automatic'], EVENT_INTAKE:['Received event', 'tag-received']};
     const AUTOMATION_TONE = {COMPLETE:'ok', PAUSED:'warn', RUNNING:'accent'};
     function automationPanel(automation, nextActions) {
       const heading = el('h2', 'Steps in order'), head = add(el('div', null, 'panel-head'), heading), node = add(el('section', null, 'panel'), head);
       if (!automation || typeof automation !== 'object') return add(node, note('This workspace does not report automation runs.'));
       if (automation.enabled !== false && automation.state) head.append(el('span', AUTOMATION_STATE[automation.state] || state(automation.state), 'pill' + (AUTOMATION_TONE[automation.state] ? ' ' + AUTOMATION_TONE[automation.state] : '')));
       const counts = automation.counts && typeof automation.counts === 'object' ? automation.counts : {};
-      const figure = (label, value) => value == null ? null : add(el('div'), el('dt', label), el('dd', String(value)));
-      // The two counts are the server's own; nothing is counted here.
-      if (automation.enabled !== false && (counts.person_decisions != null || counts.automatic_steps != null))
-        node.append(add(el('dl', null, 'tally'), figure('Reviewer decisions', counts.person_decisions), figure('Automatic steps', counts.automatic_steps)));
+      const steps = recordedOrder(automation.steps);
+      // Who did what, at a glance: a legend counted from the recorded steps, in the same tags the steps carry.
+      if (steps.length) {
+        const legend = stepLegend(steps, counts);
+        const figure = (cls, label, value) => add(el('div'), add(el('dt'), el('span', label, 'pill ' + cls)), el('dd', String(value)));
+        node.append(add(el('dl', null, 'tally step-legend'), figure('accent tag-reviewer', 'Reviewer decisions', legend.reviewer),
+          figure('tag-agent', 'Uptime · automatic', legend.approved), figure('tag-received', 'Received from the vendor and other sources', legend.received),
+          legend.other ? add(el('div'), el('dt', 'Other steps, or not completed'), el('dd', String(legend.other))) : null));
+        node.append(note('Uptime runs an automatic step only under an approval a reviewer already recorded. Those steps and the received events are the automatic steps the server counts.'));
+        const counted = (n, word) => n == null ? null : n + ' ' + word + (n === 1 ? '' : 's');
+        if (!legend.agrees) node.append(note('The server’s own counts differ from the steps listed: ' + [counted(legend.server.person_decisions, 'reviewer decision'),
+          counted(legend.server.automatic_steps, 'automatic step')].filter(Boolean).join(' and ') + '.'));
+      }
       node.append(note(automationSummary(automation)));
       const offered = list(nextActions).filter(action => action && action.label).map(action => action.label);
       if (automation.enabled !== false && offered.length && automation.state !== 'COMPLETE') node.append(note('Next: ' + offered.join(', ') + '.'));
-      const steps = list(automation.steps).filter(step => step && typeof step === 'object');
       if (!steps.length) return add(node, note('No step has been recorded yet.'));
       node.append(note('Times are on this case’s timeline, the same clock as “As of”. Each step’s details hold the time the server recorded it.'));
-      const items = el('ol', null, 'automation-steps');
+      const items = el('ol', null, 'automation-steps'), rows = [];
       steps.forEach(step => {
         const timing = step.timing && typeof step.timing === 'object' ? step.timing : {};
         const authority = step.authority && typeof step.authority === 'object' ? step.authority : {};
-        const tag = AUTHORITY_TAG[authority.kind];
+        const actor = actorTag(step), tag = actor ? [actor.label, actor.cls] : null;
         const lines = [];
         if (timing.filing_cutoff) lines.push('Filing cutoff ' + when(timing.filing_cutoff));
         if (timing.not_before) lines.push('Not sent before ' + when(timing.not_before) + ', the end of the response cooldown');
@@ -494,9 +797,54 @@
           note(authorityText(step.authority)), ...lines.map(line => el('p', line, 'help step-note')), step.detail ? el('p', text(step.detail), 'help step-note') : null,
           inspector('Step details', fields([['Recorded by the server', step.recorded_at ? when(step.recorded_at) : null], ['Intent', step.intent_id],
             ['Approval digest', step.authority && step.authority.approval_digest], ['Event', step.authority && step.authority.event_id]].filter(([, value]) => value != null))));
-        items.append(item);
+        items.append(item); rows.push(item);
       });
-      return add(node, items);
+      return add(node, replayControls(steps, rows, automation.enabled !== false), items);
+    }
+    // Replay: display only. The steps have already run and been recorded when this page shows them; the replay reveals
+    // them one at a time, in recorded order, so each can be read. It sends no request, changes no record and waits on
+    // nothing but its own display timer. Off unless turned on with the visible control below.
+    function replayControls(steps, rows, automatic) {
+      const token = epoch, group = replayGroup(steps);
+      const latest = group ? String(group.decision.intent_id || group.decision.seq || '') : '';
+      const toggle = el('input'); toggle.type = 'checkbox'; toggle.checked = replayOn();
+      const again = el('button', 'Replay', 'quiet'); again.type = 'button';
+      const skip = el('button', 'Show every step now', 'quiet link-button'); skip.type = 'button'; skip.hidden = true;
+      const line = el('p', null, 'help replay-line'); line.setAttribute('role', 'status'); line.setAttribute('aria-live', 'polite'); line.hidden = true;
+      let running = false, run = 0;
+      const say = message => { line.textContent = message || ''; line.hidden = !message; };
+      function finish(message) { running = false; run++; rows.forEach(row => { row.hidden = false; }); skip.hidden = true; say(message); }
+      function play(from, message) {
+        if (token !== epoch) return;
+        const mine = ++run; running = true; skip.hidden = false; say(message);
+        rows.forEach((row, index) => { row.hidden = index >= from; });
+        let next = from;
+        const tick = () => {
+          if (!running || mine !== run || token !== epoch) return;
+          const row = rows[next++];
+          if (row) { row.hidden = false; if (!still()) row.className += ' replay-reveal'; }
+          if (next >= rows.length) { finish('Replay finished. These steps were recorded before the replay began; nothing ran during it.'); return; }
+          schedule(tick, REPLAY_PACE_MS);
+        };
+        tick();
+      }
+      toggle.addEventListener('change', () => {
+        if (token !== epoch) return;
+        writeSetting(REPLAY_KEY, toggle.checked ? 'on' : 'off');
+        // Turning it on marks the decision already shown; the steps of the next decision are the ones replayed.
+        if (toggle.checked) { if (latest) writeSetting(REPLAY_SEEN_KEY, latest); say('On. After the next reviewer decision, its steps are shown here one at a time.'); }
+        else finish('');
+      });
+      again.addEventListener('click', () => play(0, 'Replay: every step below has already run and been recorded. Shown one at a time so each can be read.'));
+      skip.addEventListener('click', () => { if (token === epoch) finish(''); });
+      const control = add(el('label', null, 'replay-toggle'), toggle, el('span', 'Show new steps one at a time'));
+      const box = add(el('div', null, 'replay-controls'), control, again, skip, line);
+      // A decision this page has not yet replayed is shown one step at a time, starting with the decision itself.
+      if (automatic && toggle.checked && group && latest && readSetting(REPLAY_SEEN_KEY) !== latest) {
+        writeSetting(REPLAY_SEEN_KEY, latest);
+        play(group.before.length, 'Replay: these steps ran when the reviewer decision “' + text(group.decision.label || state(group.decision.operation)) + '” was recorded. Shown one at a time so each can be read.');
+      }
+      return box;
     }
     function renderActivity(root, data) {
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
@@ -517,13 +865,79 @@
         add(el('p', null, 'help recovery-links'), casesLink, agreementsLink));
       root.replaceChildren(header, automationPanel(data.automation, data.next_actions), history, jobs, coverage);
     }
-    async function render(root, supplied) {
+    async function render(root, supplied, options = {}) {
       const token=++epoch;
       try {
         const data=supplied || (await api('/api/workspace/workflow')).workflow;
         if(token !== epoch) return;
         uncertain=false;busy=false;renderData(root,data,token);
+        // Opened at one card (for example the price exception from the portfolio): that card is brought into view.
+        if (options && typeof options.section === 'string' && /^finance-[a-z-]+$/.test(options.section)) jump(options.section);
       } catch(error) { if(token !== epoch) return;throw error; }
+    }
+    // The portfolio: the workflow view the page already read, plus the agreements and the saved Ramp workspace. A read
+    // that fails leaves its part marked unavailable; it never fills in a value.
+    async function portfolio(root, supplied) {
+      const token = ++epoch;
+      const settle = promise => promise.then(value => ({ok:true, value}), error => ({ok:false, error}));
+      const [workflowRead, vendorsRead, rampRead] = await Promise.all([supplied ? Promise.resolve({ok:true, value:supplied}) : settle(api('/api/workspace/workflow').then(r => r.workflow)),
+        settle(api('/api/vendors')), settle(api('/api/ramp/workspace'))]);
+      if (token !== epoch) return;
+      if (!workflowRead.ok) throw workflowRead.error;
+      const listed = vendorsRead.ok ? list(vendorsRead.value && vendorsRead.value.vendors) : [];
+      const details = await Promise.all(listed.map(v => typeof v.vendor_id === 'string' && v.vendor_id ? settle(api('/api/vendors/' + encodeURIComponent(v.vendor_id))) : Promise.resolve({ok:false})));
+      if (token !== epoch) return;
+      const vendors = listed.map((v, i) => details[i].ok && details[i].value && typeof details[i].value === 'object' ? {...v, ...details[i].value} : v);
+      renderPortfolio(root, workflowRead.value, vendorsRead.ok ? vendors : null, rampRead.ok ? rampRead.value : null);
+    }
+    const ACTOR_CLASS = {'Reviewer':'accent tag-reviewer', 'Uptime · automatic':'tag-agent', 'Vendor':'tag-received tag-vendor'};
+    function renderPortfolio(root, workflow, vendors, ramp) {
+      const company = workflow && workflow.company && typeof workflow.company === 'object' ? workflow.company.name : null;
+      const tile = el('span', null, 'page-tile tile-portfolio'); tile.setAttribute('aria-hidden', 'true');
+      const header = add(el('div', null, 'page-head'), tile, add(el('div'), el('p', company ? company + ' · every vendor, contract and month' : 'Every vendor, contract and month', 'eyebrow'), el('h1', 'Portfolio')),
+        null);
+      const rows = portfolioRows(workflow, vendors, ramp), tiles = portfolioTiles(rows, vendors, ramp), agents = agentCounters(workflow, vendors, ramp);
+      const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+      const KIND_WORDS = {credit:['service credit', 'service credits'], price:['price exception', 'price exceptions'], evidence:['awaiting usage evidence', 'awaiting usage evidence']};
+      const summary = (label, value, ...lines) => add(el('div', null, 'portfolio-tile'), el('p', label, 'portfolio-tile-label'), el('p', value, 'portfolio-tile-value'), ...lines.filter(Boolean).map(line => el('p', line, 'help')));
+      const tilesRow = add(el('section', null, 'portfolio-tiles'),
+        summary('Agreements on file', vendors ? String(tiles.agreements) : 'Unavailable', vendors ? tiles.claude + ' read by Claude · ' + tiles.rules + ' by fixed rules' : 'The agreements list could not be read.'),
+        summary('Opportunities open', String(tiles.opportunities), tiles.byKind.map(([kind, n]) => n + ' ' + KIND_WORDS[kind][n === 1 ? 0 : 1]).join(' · ') || 'None open'),
+        summary('Credits in progress', String(tiles.credits.length), ...tiles.credits.map(c => (c.vendor ? c.vendor + ' · ' : '') + c.subject + ': ' + money(c.amount, c.currency || 'USD') + ' · ' + text(c.stage))),
+        summary('Ramp bills tracked', ramp ? String(tiles.bills) : 'Unavailable', ramp ? [tiles.matched ? tiles.matched + ' matched to ' + (tiles.matched === 1 ? 'an invoice' : 'invoices') : null, plural(tiles.unbound, 'with no agreement on file', 'with no agreement on file')].filter(Boolean).join(' · ') : 'The saved Ramp workspace could not be read.'));
+      tilesRow.setAttribute('aria-label', 'Summary');
+      // Agents at work: counted from recorded facts only.
+      const counter = (cls, label, value, line) => add(el('div', null, 'agent-counter'), el('span', label, 'pill ' + cls), el('p', String(value), 'agent-counter-value'), el('p', line, 'help'));
+      const agentsPanel = add(el('section', null, 'panel agents-panel'), el('h2', 'Who is doing the work'),
+        add(el('div', null, 'agent-counters'),
+          counter('tag-claude', 'Claude', vendors ? agents.claudeReads : 'Unavailable', 'Contracts read by ' + (agents.models.join(', ') || 'Claude') + ', recorded runs'),
+          counter('tag-agent', 'Uptime · automatic', agents.agentSteps, 'Steps run by fixed rules under an approval a reviewer recorded'),
+          counter('accent tag-reviewer', 'Reviewer', agents.reviewerDecisions, 'Decisions by the signed-in reviewer account'),
+          agents.notes ? counter('tag-ramp-note', 'Notes in Ramp', agents.uptimeNotes, 'Posted by Uptime through Ramp’s API') : null));
+      const table = el('ol', null, 'portfolio-rows');
+      rows.forEach(row => {
+        const initials = String(row.vendor || '').split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('');
+        const avatar = el('span', initials, 'portfolio-avatar brand-' + slug(row.vendor)); avatar.setAttribute('aria-hidden', 'true');
+        const link = el('a', null, 'portfolio-row kind-' + row.kind + (row.open ? ' open' : '')); link.href = row.href;
+        add(link, avatar, add(el('span', null, 'portfolio-what'), el('strong', text(row.vendor)), el('span', row.subject + (row.detail ? ' · ' + row.detail : ''), 'help'), row.ramp ? el('span', row.ramp, 'portfolio-ramp') : null),
+          el('span', row.kindLabel, 'portfolio-kind'),
+          el('span', row.amount == null ? '—' : money(row.amount, row.currency || 'USD'), 'portfolio-amount num'),
+          add(el('span', null, 'portfolio-status'), el('span', row.stage, 'pill' + (row.open ? '' : ' muted')),
+            row.next ? el('span', 'Next: ' + row.next, 'pill portfolio-next ' + (ACTOR_CLASS[row.next] || 'tag-source')) : el('span', 'Nothing waiting', 'portfolio-next help')));
+        table.append(add(el('li'), link));
+      });
+      const opportunities = add(el('section', null, 'panel portfolio'), add(el('div', null, 'panel-head'), el('h2', 'Opportunities'), el('span', String(rows.length), 'count')),
+        note('Each row is one item: a month’s service credit, a price finding, an agreement or a bill in Ramp. Amounts belong to their own row and are never added together.'),
+        rows.length ? table : note('Nothing is recorded in this workspace yet.'));
+      const attention = add(el('section', null, 'panel'), add(el('div', null, 'panel-head'), el('h2', 'Needs attention')));
+      const items = el('ol', null, 'attention-list');
+      portfolioAttention(workflow, ramp).forEach(item => {
+        const open = el('a', 'Open', 'case-link'); open.href = item.href;
+        items.append(add(el('li', null, 'attention-item'), el('span', OWNERS[item.owner] || 'Next step', 'attention-owner' + (OWNERS[item.owner] ? ' owner-' + item.owner : '')),
+          el('h3', (item.vendor ? item.vendor + ': ' : '') + text(item.title)), note(instants(item.detail)), open));
+      });
+      attention.append(items.children.length ? items : note('Nothing in this portfolio needs action now.'));
+      root.replaceChildren(header, tilesRow, add(el('div', null, 'portfolio-columns'), add(el('div', null, 'portfolio-main'), opportunities), add(el('div', null, 'portfolio-side'), agentsPanel, attention)));
     }
     async function activity(root, supplied) {
       const token=++epoch;
@@ -531,9 +945,10 @@
       if (token !== epoch) return;
       renderActivity(root, data);
     }
-    return {render,activity,unmount:()=>{epoch++;}};
+    return {render,activity,portfolio,unmount:()=>{epoch++;}};
   }
-  const exports={create,money,when,day,rates,monthLabel};
+  const exports={create,money,when,day,rates,monthLabel,recordedOrder,replayGroup,stepLegend,actorTag,leadIn,newSteps,stagedView,
+    portfolioRows,portfolioTiles,agentCounters,portfolioAttention,nextActor,readBy};
   if(typeof module !== 'undefined' && module.exports) module.exports=exports;
   global.UptimeWorkspace=exports;
 })(typeof window === 'undefined' ? globalThis : window);

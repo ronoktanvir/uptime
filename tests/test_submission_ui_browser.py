@@ -5,7 +5,7 @@ from playwright.sync_api import expect
 
 from test_finance_browser_90 import browser_page, intents, live_workspace, login
 
-DESTINATIONS = [('Overview', '#overview', 'Northwind Cloud'), ('Cases', '#cases', None), ('Agreements', '#agreements', None),
+DESTINATIONS = [('Overview', '#overview', 'Portfolio'), ('Cases', '#cases', None), ('Agreements', '#agreements', None),
                 ('Activity', '#activity', 'Activity')]
 
 
@@ -39,7 +39,7 @@ def test_workspace_name_is_the_same_whatever_page_opens_first(tmp_path):
 
 def test_reload_keeps_reading_but_disables_actions_with_one_way_back(tmp_path):
     with live_workspace(tmp_path) as (app, origin, directory), browser_page(origin, {'width': 1280, 'height': 900}) as (page, errors):
-        page.goto(origin + '/')
+        page.goto(origin + '/#recovery')
         login(page, directory)
         approve = page.get_by_role('button', name='Approve January claim', exact=True)
         expect(approve).to_be_enabled()
@@ -92,7 +92,7 @@ def test_credential_file_can_be_dropped_on_the_sign_in_form_and_errors_name_the_
 
 def test_four_destinations_fit_a_phone_and_the_overview_leads_with_the_outcome(tmp_path):
     with live_workspace(tmp_path) as (app, origin, directory), browser_page(origin, {'width': 390, 'height': 844}) as (page, errors):
-        page.goto(origin + '/')
+        page.goto(origin + '/#recovery')
         login(page, directory)
         outcome = page.locator('#finance-outcome')
         expect(outcome).to_contain_text('January service credit')
@@ -115,7 +115,7 @@ def test_automation_workspace_needs_four_person_decisions_and_activity_shows_eve
     """The default setup runs routine steps on the server under recorded authority; the page only shows the record."""
     with live_workspace(tmp_path, routine_automation=True) as (app, origin, directory), \
             browser_page(origin, {'width': 1440, 'height': 900}) as (page, errors):
-        page.goto(origin + '/')
+        page.goto(origin + '/#recovery')
         login(page, directory)
         recovery = page.locator('#finance-recovery')
         expect(recovery).to_contain_text('Routine steps: Paused · Waiting for a reviewer to approve.')

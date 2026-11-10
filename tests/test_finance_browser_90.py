@@ -82,7 +82,7 @@ def ask(page, question):
 
 def test_attention_guide_keyboard_actions_and_expired_session_recovery(tmp_path):
     with live_workspace(tmp_path) as (app, origin, directory), browser_page(origin, {'width': 1360, 'height': 900}) as (page, errors):
-        page.goto(origin + '/')
+        page.goto(origin + '/#recovery')
         login(page, directory)
         items = page.locator('.attention-item h3')
         expect(items).to_have_text(['File the January 2026 claim before the deadline', 'Approve the claim packet before it is filed',
@@ -95,7 +95,7 @@ def test_attention_guide_keyboard_actions_and_expired_session_recovery(tmp_path)
         page.locator('.attention-item').first.get_by_role('button', name='Show details').focus()
         page.keyboard.press('Enter')
         assert page.evaluate('document.activeElement.textContent') == 'January recovery'
-        assert page.evaluate('location.hash') == ''
+        assert page.evaluate('location.hash') == '#recovery'
         # Keyboard guide: Enter submits; Tab reaches the citation; Enter on it focuses the cited section.
         answer = ask(page, 'When is the filing deadline?')
         expect(answer).to_contain_text('The January 2026 claim must be received before Mar 3, 2026, 00:00 UTC. It has not been filed.')
@@ -136,7 +136,7 @@ def test_attention_guide_keyboard_actions_and_expired_session_recovery(tmp_path)
 
 def test_narrow_screen_error_empty_and_guide_failure_states(tmp_path):
     with live_workspace(tmp_path) as (app, origin, directory), browser_page(origin, {'width': 390, 'height': 844}) as (page, errors):
-        page.goto(origin + '/')
+        page.goto(origin + '/#recovery')
         login(page, directory)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         answer = ask(page, 'How was the January credit calculated?')

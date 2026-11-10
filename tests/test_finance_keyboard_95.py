@@ -14,7 +14,7 @@ def focused(page):
 
 def test_keyboard_only_demo_path_needs_a_deliberate_tab_before_each_decision(tmp_path):
     with live_workspace(tmp_path) as (app, origin, directory), browser_page(origin, {'width': 390, 'height': 844}) as (page, errors):
-        page.goto(origin + '/')
+        page.goto(origin + '/#recovery')
         login(page, directory)
         # The skip link moves focus into the workbench without changing the view.
         page.locator('a.skip').focus()
@@ -60,7 +60,7 @@ def test_keyboard_only_demo_path_needs_a_deliberate_tab_before_each_decision(tmp
 def test_a_held_enter_records_one_decision_only(tmp_path):
     """A held key repeats keydown; only the first press may act, and focus leaves the next decision."""
     with live_workspace(tmp_path) as (app, origin, directory), browser_page(origin, {'width': 1280, 'height': 900}) as (page, errors):
-        page.goto(origin + '/')
+        page.goto(origin + '/#recovery')
         login(page, directory)
         page.get_by_role('button', name=STEPS[0], exact=True).focus()
         page.keyboard.down('Enter')

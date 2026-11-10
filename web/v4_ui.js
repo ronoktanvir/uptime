@@ -48,6 +48,76 @@
     return `${month} ${d.getUTCDate()}, ${d.getUTCFullYear()}, ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')} UTC`;
   };
   const label = key => key.replaceAll('_', ' ');
+  // How a contract was read (web/contract_reading.js): required in Node, loaded once from /static in the browser.
+  let reading = typeof module !== 'undefined' && module.exports && typeof require === 'function' ? require('./contract_reading.js') : global.UptimeContractReading || null;
+  let readingAsset = null;
+  function loadReading(doc) {
+    if (reading) return Promise.resolve(reading);
+    if (!doc || !doc.head || typeof doc.head.append !== 'function') return Promise.resolve(null);
+    return readingAsset ||= new Promise(resolve => {
+      const script = doc.createElement('script'); script.src = '/static/contract_reading.js';
+      script.onload = () => { reading = global.UptimeContractReading || null; resolve(reading); };
+      script.onerror = () => { readingAsset = null; script.remove(); resolve(null); };
+      doc.head.append(script);
+    });
+  }
+  // What was filed: one filing from the case record the page already loads (its submissions, each with its packet),
+  // in plain labels. Only fields the server sent are printed; a listed field it did not send says so. No amount is
+  // computed, no clause is inferred, and the evidence is named only by joining the packet's digests to the case's
+  // own evidence records.
+  const NOT_SENT = 'Not sent by the server';
+  // How an agreement's source was read, as a chip beside its name. Display only: the server's own words stay in the
+  // card's "Source read by" field. An unknown method or model gets no chip rather than a guessed one.
+  const MODEL_NAMES = {'claude-opus-5-5':'Claude Opus 5.5'};
+  function readByChip(extraction) {
+    const e = extraction && typeof extraction === 'object' ? extraction : {};
+    if (e.method === 'deterministic_document_parser') return {label:'Read by fixed rules', kind:'rules'};
+    if (e.method === 'tool_free_model_propositions' && MODEL_NAMES[e.model]) return {label:'Read by ' + MODEL_NAMES[e.model] + ' · recorded run', kind:'model'};
+    return null;
+  }
+  // The filing's destination in plain words; the exact value stays in the complete server record.
+  const DESTINATION_NAMES = {'isolated-local-simulator':'Vendor claims intake (local)'};
+  const FILING_KIND = {'submit-claim':'Claim', 'submit-response':'Response'};
+  const FILED_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function filedSummary(submission, evidence) {
+    const object = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    const s = object(submission), packet = object(s.packet), scope = object(packet.scope), approval = object(s.approval);
+    const given = value => typeof value === 'string' ? value !== '' : typeof value === 'number' && Number.isFinite(value);
+    const value = v => given(v) ? String(v) : NOT_SENT;
+    const month = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(scope.month));
+    let amount = NOT_SENT;
+    if (given(packet.requested)) {
+      const raw = String(packet.requested), exact = /^-?\d+(\.\d+)?$/.test(raw);
+      const [whole, fraction] = raw.split('.');
+      const figure = exact ? whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fraction === undefined ? '' : '.' + fraction) : raw;
+      amount = given(scope.currency) ? (scope.currency === 'USD' && exact ? '$' + figure : scope.currency + ' ' + figure) : figure + ' (currency not sent by the server)';
+    }
+    const known = new Map(list(evidence).filter(e => e && typeof e === 'object' && typeof e.digest === 'string').map(e => [e.digest, e]));
+    const refs = list(packet.artifacts).filter(a => a && typeof a === 'object').map(a => {
+      // A digest the case's evidence does not name is shown as the digest itself.
+      const e = known.get(a.digest);
+      const named = (e ? [a.kind, e.detail, e.artifact_ref, e.monitor_ref] : [a.kind, given(a.digest) ? 'Digest ' + a.digest : null]).filter(given).map(String);
+      return named.length ? named.join(' · ') : NOT_SENT;
+    });
+    const clauses = list(packet.clauses).map(c => typeof c === 'string' ? c : c && typeof c === 'object' ? c.label : null).filter(given);
+    const disclosed = object(packet.disclosed_artifact);
+    const optional = [['In reply to', packet.in_reply_to], ['Argument', packet.argument],
+      ['Disclosed document', [disclosed.ref, given(disclosed.type) ? label(disclosed.type) : null].filter(given).join(' · ')],
+      ['Terms fingerprint', packet.terms_digest]].filter(([, v]) => given(v));
+    return {kind: FILING_KIND[s.action] || (given(s.action) ? label(s.action) : 'Filing'), rows: [
+      ['Period', month ? FILED_MONTHS[Number(month[2]) - 1] + ' ' + month[1] : value(scope.month)],
+      ['Service', value(scope.service)],
+      ['Amount requested', amount],
+      ['Agreement', value(packet.agreement_id)],
+      ['Contract version', value(packet.version)],
+      ['Cited clause', clauses.length ? clauses : NOT_SENT],
+      ['Evidence references', refs.length ? refs : NOT_SENT],
+      ['Destination', given(packet.destination) ? DESTINATION_NAMES[packet.destination] || packet.destination : NOT_SENT],
+      ['Receipt', value(s.id)],
+      ['Filed', given(s.at) ? at(s.at) : NOT_SENT],
+      ['Approved by', given(approval.actor) ? approval.actor + (given(approval.at) ? ', ' + at(approval.at) : '') : NOT_SENT],
+      ...optional]};
+  }
   // Plain wording for server dispute codes; unknown codes are shown as lower-case words, never guessed.
   const CATEGORY = {MISSING_EVIDENCE:'missing evidence', CONTRACTUAL_DENIAL:'contractual denial',
     INCORRECT_FACTUAL_ASSERTION:'incorrect factual assertion', UNRESOLVED_DENIAL:'unresolved denial',
@@ -416,6 +486,25 @@
       });
       return items;
     }
+    // What was filed, each filing in its recorded order, from the submissions this case record already carries.
+    function filedView(data, key) {
+      const filings = list(data.submissions).filter(s => s && typeof s === 'object');
+      if (!filings.length) return null;
+      const n = add(fold(key + ':filed', 'What was filed'), note('Each filing as recorded with its receipt, from this case’s record. A field the record does not carry is marked “' + NOT_SENT + '”.'));
+      filings.forEach(submission => {
+        const summary = filedSummary(submission, data.evidence);
+        const rows = el('dl', undefined, 'v4-facts v4-filed-facts');
+        summary.rows.forEach(([name, value]) => {
+          // A 64-character fingerprint is shown by its first ten characters; the exact value is its title and stays in the complete record.
+          const dd = Array.isArray(value) ? add(el('dd'), add(el('ul', undefined, 'v4-filed-list'), ...value.map(item => el('li', item)))) : el('dd', short(value), value === NOT_SENT ? 'v4-not-sent' : undefined);
+          if (!Array.isArray(value) && short(value) !== value) dd.setAttribute('title', value);
+          rows.append(add(el('div', undefined, name === 'Evidence references' || name === 'Argument' ? 'v4-filed-wide' : undefined), el('dt', name), dd));
+        });
+        n.append(add(el('article', undefined, 'v4-filed'), el('h3', summary.kind), rows));
+      });
+      if (filings.length > 1) n.append(note('Each filing states the amount it requested for the same credit. The amounts are not added together.'));
+      return n;
+    }
     // One claim: where it stands, what a reviewer may do, and its correspondence in order. Receipts, digests,
     // evaluation traces and the complete server record are one click away.
     function caseView(m, data) {
@@ -453,6 +542,9 @@
       if (steps) out.append(add(section('Correspondence, in order'), steps));
       if (base && data.trace_url === '/api/correspondence/claims/' + id + '/trace') out.append(add(el('section', undefined, 'v4-panel'), disputeRecord(m, base + '/trace')));
       const records = el('div', undefined, 'v4-fold-group');
+      // What was filed sits below the correspondence, first of the closed sections, until opened.
+      const filed = filedView(data, key);
+      if (filed) records.append(filed);
       const amounts = recordedAmounts(data);
       add(records, fold(key + ':decision', 'Decision, unknowns and amounts as recorded', provenance(data.sources), record({...decisionRecord(data), financials:amounts.rows}),
         amounts.untracked.length ? note('This record does not track ' + amounts.untracked.join(' or ') + '; the Overview’s credit lifecycle shows '
@@ -661,6 +753,287 @@
         el('p', JOB_MESSAGES[job.status] || 'Unrecognized job status. No action is available.', 'v4-note v4-job-message'),
         details('Request details', requestDetails(job)));
     }
+    // ---- How this contract was read (demo line, November 10) ----
+    // The contract's text beside the terms read from it. Each term is tied to its sentence: hovering, focusing or
+    // pressing a term lights its sentence, and the reverse. Only what the server sent is shown; a missing piece is named.
+    const setClass = (node, cls, on) => {
+      const names = String(node.className || '').split(/\s+/).filter(name => name && name !== cls);
+      if (on) names.push(cls);
+      node.className = names.join(' ');
+    };
+    const typedValue = value => value === null || value === undefined ? null : typeof value === 'string' ? value : JSON.stringify(value, null, 1).replace(/\n\s*/g, ' ');
+    function twoColumn(text, terms, options = {}) {
+      const R = reading;
+      const links = R.linkTerms(text, terms), byId = new Map(links.map(l => [String(l.id), l]));
+      const pieces = new Map(), rows = new Map(), carriers = new Map();
+      const source = el('pre', undefined, 'v4-reading-text');
+      R.segments(text, links).forEach(piece => {
+        const span = el('span', piece.text, piece.ids.length ? 'v4-reading-sentence' : undefined);
+        piece.ids.forEach(id => { const key = String(id); if (!pieces.has(key)) pieces.set(key, []); pieces.get(key).push(span); });
+        if (piece.ids.length) carriers.set(span, piece.ids.map(String));
+        if (piece.ids.length) {
+          span.setAttribute('data-terms', piece.ids.join(' '));
+          span.addEventListener('mouseenter', () => light(piece.ids.map(String), false));
+          span.addEventListener('mouseleave', () => light(pinned, false));
+          span.addEventListener('click', () => light(piece.ids.map(String), true, true));
+        }
+        source.append(span);
+      });
+      const termList = el('ol', undefined, 'v4-reading-terms');
+      terms.forEach(term => {
+        const key = String(term.id), link = byId.get(key);
+        const row = add(el('li', undefined, 'v4-reading-term' + (term.nonmaterial ? ' v4-reading-minor' : '')),
+          el('strong', term.label, 'v4-reading-label'),
+          typedValue(term.value) == null ? null : el('code', typedValue(term.value), 'v4-reading-value'),
+          link && link.match === 'missing' ? el('span', 'Sentence not found in the source text', 'v4-reading-missing') : null);
+        row.tabIndex = 0; row.setAttribute('data-term', key);
+        row.addEventListener('mouseenter', () => light([key], false));
+        row.addEventListener('mouseleave', () => light(pinned, false));
+        row.addEventListener('focus', () => light([key], false));
+        row.addEventListener('click', () => light([key], true, true));
+        rows.set(key, row); termList.append(row);
+      });
+      let pinned = [];
+      function light(ids, pin, scroll = false) {
+        if (pin) pinned = pinned.length === ids.length && ids.every(id => pinned.includes(id)) ? [] : ids;
+        const on = new Set(pin ? pinned : ids);
+        // A sentence is lit when any term it carries is lit.
+        carriers.forEach((ids, span) => setClass(span, 'v4-lit', ids.some(k => on.has(k))));
+        rows.forEach((row, id) => setClass(row, 'v4-lit', on.has(id)));
+        if (scroll) {
+          const first = [...on].map(id => (pieces.get(id) || [])[0]).find(Boolean);
+          if (first && typeof first.scrollIntoView === 'function') first.scrollIntoView({block:'nearest'});
+          const row = [...on].map(id => rows.get(id)).find(Boolean);
+          if (row && typeof row.scrollIntoView === 'function') row.scrollIntoView({block:'nearest'});
+        }
+      }
+      // Replay: the terms appear one at a time in reading order, each lighting its sentence as it appears.
+      const order = R.replayOrder(links).map(String);
+      const progress = el('span', '', 'v4-replay-progress'); progress.textContent = ''; progress.setAttribute('aria-live', 'polite');
+      let run = 0;
+      const replay = button('Replay the reading', () => {
+        if (replay.textContent === 'Stop the replay') { run++; finish(); return; }
+        const mine = ++run;
+        replay.textContent = 'Stop the replay';
+        rows.forEach(row => setClass(row, 'v4-replay-hidden', true));
+        const step = i => {
+          if (mine !== run) return;
+          if (i >= order.length) { finish(); return; }
+          const row = rows.get(order[i]);
+          if (row) setClass(row, 'v4-replay-hidden', false);
+          light([order[i]], false, true);
+          progress.textContent = 'Term ' + (i + 1) + ' of ' + order.length;
+          schedule(() => step(i + 1), 1100);
+        };
+        step(0);
+      });
+      function finish() {
+        replay.textContent = 'Replay the reading';
+        rows.forEach(row => setClass(row, 'v4-replay-hidden', false));
+        light([], false); progress.textContent = '';
+      }
+      const bar = add(el('div', undefined, 'v4-replay-bar'), order.length ? replay : null,
+        options.runLabel ? el('span', options.runLabel, 'v4-run-label') : null, progress);
+      const grid = add(el('div', undefined, 'v4-reading-grid'),
+        add(el('div', undefined, 'v4-reading-source'), el('h4', 'Contract text'), source),
+        add(el('div', undefined, 'v4-reading-extracted'), el('h4', 'Terms read from it (' + terms.length + ')'), termList));
+      return {node:add(el('div', undefined, 'v4-reading-body'), bar, grid), links};
+    }
+    function verbatimFact(R, links) {
+      const v = R.verbatim(links);
+      if (!v.total) return null;
+      return v.all ? 'Every quoted sentence was found word for word in the source (' + v.found + ' of ' + v.total + ', checked on this page)'
+        : v.found + ' of ' + v.total + ' quoted sentences were found word for word in the source (checked on this page)';
+    }
+    const accountKind = kind => kind === 'scripted_test' ? ' (a scripted test account, not a person)' : '';
+    function readingView(data) {
+      const R = reading;
+      if (!R) return null;
+      const summary = R.readingSummary(data);
+      if (!summary.kind) return null;
+      const box = add(el('div', undefined, 'v4-reading v4-reading-' + summary.kind), el('h3', 'How this contract was read'));
+      box.append(el('p', summary.kind === 'model' ? (summary.modelName ? summary.modelName + ' read this contract' : 'A model read this contract')
+        : 'Read by fixed rules', 'v4-reading-lead'));
+      const text = typeof data.source_text === 'string' && data.source_text ? data.source_text : null;
+      const terms = R.termsFromRecord(data);
+      const missing = [];
+      if (!text) missing.push('the contract’s source text');
+      if (!terms.length) missing.push('the term-to-sentence links (manifest citations)');
+      const links = text ? R.linkTerms(text, terms) : [];
+      const factsLine = [summary.kind === 'model' ? (summary.model ? 'Model: ' + summary.model : null) : 'No model was used: Uptime’s deterministic parser read it',
+        text ? verbatimFact(R, links) : null,
+        summary.approver ? (summary.kind === 'model' && summary.interpretationAccepted ? 'Interpretation accepted by ' : 'Approved by ') + summary.approver + accountKind(summary.approverKind) : null]
+        .filter(Boolean).join(' · ');
+      if (factsLine) box.append(el('p', factsLine, 'v4-reading-facts'));
+      if (missing.length) box.append(note('The server did not send ' + missing.join(' or ') + ' for this agreement, so ' + (text ? 'terms cannot be tied to sentences.' : 'the sentences cannot be shown.')));
+      if (!text) {
+        if (terms.length) { const items = el('ol', undefined, 'v4-reading-terms'); terms.forEach(t => items.append(add(el('li', undefined, 'v4-reading-term'), el('strong', t.label), el('blockquote', t.quote)))); box.append(items); }
+        return box;
+      }
+      const runLabel = summary.kind === 'model' ? (summary.recordedAt ? 'Recorded run · ' + at(summary.recordedAt) : 'Recorded run (the record has no run date)')
+        : 'Recorded reading by fixed rules';
+      box.append(twoColumn(text, terms, {runLabel}).node);
+      return box;
+    }
+    // ---- Read a contract with Claude: a live proposal job started from this page ----
+    // It submits a real job through the server's proposal job service for an authored sample or pasted text, shows
+    // the job's own states as the server reports them, then the proposed terms beside their sentences. Nothing is
+    // staged or approved here: the result stays unreviewed.
+    function liveReader(m) {
+      const R = reading;
+      if (!R) return null;
+      const panel = add(el('section', undefined, 'v4-panel v4-live-read'), el('h2', 'Read a contract with Claude'),
+        note('Live: Start sends the chosen contract to Claude Opus 5.5 now, through this server’s proposal job service. Claude proposes each term with the exact sentence it came from; Uptime’s code then checks every quote against the contract. The result is not approved automatically.'));
+      const box = el('div', undefined, 'v4-form v4-live-form');
+      const choice = el('select'); choice.setAttribute('aria-label', 'Contract to read');
+      R.SAMPLES.forEach((sample, i) => { const o = el('option', sample.document.name); o.value = String(i); choice.append(o); });
+      const pasteOption = el('option', 'Paste a contract'); pasteOption.value = 'paste'; choice.append(pasteOption);
+      box.append(add(el('label', undefined, 'v4-field'), el('span', 'Contract'), choice));
+      const pasted = el('div', undefined, 'v4-live-paste');
+      const pasteName = el('input'); pasteName.type = 'text'; pasteName.setAttribute('aria-label', 'Contract name'); pasteName.value = 'Pasted contract';
+      const pasteText = el('textarea'); pasteText.rows = 10; pasteText.spellcheck = false; pasteText.setAttribute('aria-label', 'Contract text (sent exactly as entered)');
+      add(pasted, add(el('label', undefined, 'v4-field'), el('span', 'Contract name'), pasteName),
+        add(el('label', undefined, 'v4-field'), el('span', 'Contract text (sent exactly as entered)'), pasteText),
+        note('Pasted text needs an operator’s approval of its exact bytes before Claude may read it. The workspace setup approves only the sample contracts.'));
+      pasted.hidden = true;
+      const preview = el('pre', undefined, 'v4-live-preview');
+      const showChoice = () => {
+        const paste = choice.value === 'paste';
+        pasted.hidden = !paste; preview.hidden = paste;
+        if (!paste) preview.textContent = R.SAMPLES[Number(choice.value) || 0].document.text;
+      };
+      choice.addEventListener('change', showChoice); choice.value = '0'; showChoice();
+      const start = button('Start a live reading', () => begin());
+      start.draftAllowed = true; m.writes.push(start);
+      const states = el('ul', undefined, 'v4-live-states'); states.setAttribute('aria-live', 'polite');
+      const out = el('div', undefined, 'v4-live-result');
+      const said = el('p', '', 'v4-note v4-live-status'); said.textContent = ''; said.setAttribute('aria-live', 'polite');
+      add(box, pasted, preview, add(el('div', undefined, 'v4-actions'), start), said, states, out);
+      panel.append(box);
+      const live = () => mounts.get(m.root) === m;
+      let round = 0, reading_now = false;
+      const wait = ms => new Promise(resolve => schedule(resolve, ms));
+      const tell = text => { if (live()) said.textContent = text; };
+      function chosen() {
+        if (choice.value === 'paste') {
+          return {vendor:'pasted-contract', document:{name:pasteName.value || 'Pasted contract', uri:'urn:uptime:pasted-contract',
+            classification:'public', text:pasteText.value}};
+        }
+        const sample = R.SAMPLES[Number(choice.value) || 0];
+        return {vendor:sample.vendor_id, document:{...sample.document}};
+      }
+      const path = vendor => '/api/vendors/' + encodeURIComponent(vendor);
+      function drawStates(families, jobs) {
+        states.replaceChildren(...list(families).filter(f => f && typeof f === 'object').map(f => {
+          const job = jobs[f.family] || f.job;
+          const words = job ? R.jobStateWords(job) : {word:'Not submitted', tone:''};
+          return add(el('li', undefined, 'v4-live-state'), el('strong', shown(f.label ?? f.family) + ':'),
+            el('span', words.word, 'pill' + (words.tone ? ' ' + words.tone : '')),
+            job && job.job_id ? el('span', 'Job ' + job.job_id, 'v4-live-job') : null);
+        }));
+      }
+      async function begin() {
+        if (start.disabled || !live() || !writable(true)) return;
+        const mine = ++round, pick = chosen();
+        if (!pick.document.text) { tell('Paste the contract text first. Nothing was sent.'); return; }
+        reading_now = true; start.disabled = true; out.replaceChildren(); states.replaceChildren();
+        tell('Checking whether Claude may read this exact contract now…');
+        let last = null;
+        try {
+          for (const nonce of R.TAKES) {
+            const body = {document:pick.document, profile:'auto', attempt_nonce:nonce};
+            const answer = await request(m, path(pick.vendor) + '/proposal-access', body);
+            if (mine !== round || !live()) return;
+            const state = R.takeState(answer);
+            if (state === 'fresh') return await follow(mine, pick, body, await submitTake(mine, pick, body));
+            if (state === 'running') return await follow(mine, pick, body, answer);
+            if (state === 'used') { last = {body, answer}; continue; }
+            if (state === 'fixed_rules') { tell('Uptime’s fixed rules can read this contract on their own, so no model call is made.'); return; }
+            if (state === 'unconfigured') { tell('Live reading is not set up on this server. Start the workspace with setup_northwind.py --model-jobs. Nothing was sent.'); return; }
+            if (state === 'not_approved') {
+              if (last) break;
+              const digests = list(answer.families).map(f => shown(f.label ?? f.family) + ' ' + shown(f.request_sha256)).join('; ');
+              tell('Claude is not approved to read this exact text, so nothing was sent. An operator approves exact text outside the browser (scripts/public_proposals.py export-vendor --profile auto, then approve). Requests: ' + digests + '.');
+              return;
+            }
+            tell('Unrecognised answer from the server. Nothing was sent.'); return;
+          }
+          if (last) {
+            tell('Every approved take of this contract has already been read. Showing the most recent one: an earlier run, not a live one.');
+            drawStates(last.answer.families, {});
+            await result(mine, pick, last.body, last.answer, false);
+          }
+        } catch (error) {
+          if (mine === round) tell(error?.status === 401 ? 'Sign in again to read a contract.' : 'The request did not complete. Its outcome may be unknown; press Start again to see the current state. Nothing is resent automatically.');
+        } finally { if (mine === round) { reading_now = false; if (live()) start.disabled = !writable(true); } }
+      }
+      async function submitTake(mine, pick, body) {
+        tell('Submitting the reading to the proposal job service…');
+        const answer = await request(m, path(pick.vendor) + '/proposal-jobs', body);
+        if (mine === round) tell('Submitted. Claude reads the contract once for each supported rule family.');
+        return answer;
+      }
+      async function follow(mine, pick, body, answer) {
+        const jobs = {};
+        list(answer.families).forEach(f => { if (f && f.job && typeof f.job.job_id === 'string') jobs[f.family] = f.job; });
+        drawStates(answer.families, jobs);
+        for (let polls = 0; polls < 240; polls++) {
+          const open = Object.entries(jobs).filter(([, job]) => !R.jobStateWords(job).terminal);
+          if (!open.length) break;
+          await wait(1500);
+          if (mine !== round || !live()) return;
+          for (const [family, job] of open) {
+            const fresh = await request(m, path(pick.vendor) + '/proposal-jobs/' + encodeURIComponent(job.job_id));
+            if (mine !== round || !live()) return;
+            if (fresh && fresh.job_id === job.job_id) jobs[family] = fresh;
+          }
+          drawStates(answer.families, jobs);
+          const running = Object.values(jobs).some(job => job.status === 'RUNNING');
+          tell(running ? 'Claude is reading the contract now.' : 'Waiting for the job service…');
+        }
+        if (Object.values(jobs).some(job => !R.jobStateWords(job).terminal)) { tell('Still running after the page stopped watching. Press Start again to see the current state; nothing is resent.'); return; }
+        const settled = await request(m, path(pick.vendor) + '/proposal-access', body);
+        if (mine !== round || !live()) return;
+        await result(mine, pick, body, settled, true, jobs);
+      }
+      async function result(mine, pick, body, answer, isLive, known = {}) {
+        const selected = answer.selected && typeof answer.selected === 'object' ? answer.selected : null;
+        const families = list(answer.families).filter(f => f && typeof f === 'object');
+        const n = el('div', undefined, 'v4-reading v4-live-reading');
+        n.append(el('p', OUTCOMES[answer.outcome] || 'Selection outcome: ' + shown(answer.outcome) + '.', 'v4-note'));
+        let shownJob = false;
+        for (const f of families) {
+          const ref = f.job && typeof f.job === 'object' ? f.job : null;
+          if (!ref) continue;
+          let job = known[f.family] && known[f.family].job_id === ref.job_id ? known[f.family] : null;
+          if (!job || job.status === 'SUCCEEDED' && !job.proposal) job = await request(m, path(pick.vendor) + '/proposal-jobs/' + encodeURIComponent(ref.job_id));
+          if (mine !== round || !live()) return;
+          if (job.status !== 'SUCCEEDED') {
+            n.append(add(el('details', undefined, 'v4-detail v4-live-refusal'), el('summary', shown(f.label ?? f.family) + ': ' + R.jobStateWords(job).word),
+              refusalDiagnostic(f.public_diagnostic || job.public_diagnostic, 'Why validation refused this reading') || familyRefusal(f.refusal)));
+            continue;
+          }
+          shownJob = true;
+          const provider = job.provider && typeof job.provider === 'object' ? job.provider : {};
+          const model = provider.model || job.proposal?.model;
+          const terms = R.termsFromProposal(job), text = body.document.text;
+          const links = R.linkTerms(text, terms);
+          const isSelected = selected && selected.job_id === job.job_id;
+          const lead = (R.MODEL_NAMES[model] || shown(model)) + ' read this contract' + (isLive ? ' just now' : '');
+          const factsLine = ['Model: ' + shown(model), verbatimFact(R, links),
+            'Validation: the reading passed Uptime’s source checks' + (isSelected ? '; Uptime selected the ' + shown(f.label ?? f.family) + ' rule family' : ''),
+            'Unreviewed: nothing is staged or approved until a reviewer accepts the interpretation'].filter(Boolean).join(' · ');
+          const runLabel = (isLive ? 'Live run' : 'Earlier run (recorded)') + (job.finished_at ? ' · finished ' + at(job.finished_at) : '') + ' · job ' + job.job_id;
+          n.append(add(el('div', undefined, 'v4-live-family'), el('h3', shown(f.label ?? f.family)), el('p', lead, 'v4-reading-lead'),
+            el('p', factsLine, 'v4-reading-facts'), twoColumn(text, terms, {runLabel}).node));
+        }
+        if (!shownJob) n.append(note('No reading passed validation, so there are no terms to show. Nothing was staged.'));
+        out.replaceChildren(n);
+        if (isLive) tell(shownJob ? 'Finished. The terms Claude proposed are shown beside their sentences. They remain unreviewed.' : 'Finished. Validation refused every reading; see why below.');
+      }
+      start.stillCurrent = () => !reading_now; start.disabled = !writable(true);
+      return panel;
+    }
     // One agreement: its name and state, whether it is in force, the proposal job behind it when there is one, what
     // its source establishes with each cited clause, and who performed the review steps. Forms, version actions and
     // the full record are one click away.
@@ -668,8 +1041,10 @@
       const id = data.vendor_id ?? data.id;
       const n = el('section', undefined, 'v4-panel v4-vendor');
       const tone = STATE_TONE[data.state];
+      const chip = readByChip(data.extraction);
       n.append(add(el('div', undefined, 'v4-vendor-head'), avatar(data.name ?? data.vendor ?? id), el('h2', shown(data.name ?? data.vendor ?? id)),
-        typeof data.state === 'string' && data.state ? el('span', data.state, 'pill' + (tone ? ' ' + tone : '')) : null));
+        typeof data.state === 'string' && data.state ? el('span', data.state, 'pill' + (tone ? ' ' + tone : '')) : null,
+        chip ? el('span', chip.label, 'v4-read-chip v4-read-' + chip.kind) : null));
       if (typeof data.state === 'string' && data.state) {
         const force = data.state === 'ACTIVE' && data.active_version ? 'In force in this workspace.'
           : data.active_version ? 'An earlier version is in force; this revision is not.' : 'Not in force.';
@@ -691,6 +1066,7 @@
       if (typeof id !== 'string' || !id) { n.append(note('Vendor ID missing; actions unavailable.')); return n; }
       const base = '/api/vendors/' + encodeURIComponent(id), key = 'vendor:' + id;
       if (data.detail_unavailable) { n.append(note('Vendor details unavailable. Refresh before reviewing or changing this version.')); return n; }
+      add(n, readingView(data));
       // The proposal job this version was staged from, directly under the vendor.
       if (extras.job && typeof extras.job === 'object') {
         const card = jobView(extras.job, 'Model proposal job');
@@ -1094,6 +1470,7 @@
       return panel;
     }
     async function vendors(m, data) {
+      await loadReading(doc);
       const summaries = Array.isArray(data) ? data : list(data.vendors);
       // Each agreement is read once before the page is drawn, so nothing shifts in afterwards: its detail, then its
       // requirements when the detail carries a source manifest, then the proposal job it was staged from when it has
@@ -1134,6 +1511,8 @@
         });
         m.body.append(index);
       }
+      // Shown only to a signed-in account that may stage drafts; a read-only page cannot start a reading.
+      if (!readOnly()) add(m.body, liveReader(m));
       cards.forEach(card => m.body.append(card));
       if (!items.length) m.body.append(note('No vendors returned. No example vendor has been selected.'));
       // Adding an agreement: the model-assisted proposal form and the local deterministic intake, closed until wanted.
@@ -1332,7 +1711,7 @@
     }
     return Object.freeze({render, inspect, unmount, refreshAccess: sync});
   }
-  const api = Object.freeze({create, parseJSON});
+  const api = Object.freeze({create, parseJSON, filedSummary, readByChip});
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (global) global.UptimeV4 = api;
 })(typeof window !== 'undefined' ? window : globalThis);

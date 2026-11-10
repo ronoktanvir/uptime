@@ -42,24 +42,84 @@
     if (requested.startsWith('cases/')) return 'disputes/' + requested.slice(6);
     if (requested === 'rehearsal') return 'dashboard';
     if (requested === 'records') return 'records';
-    // One Ramp bill by Ramp's own id, for the panel beside Ramp.
+    // One case's own page (Northwind's January credit today), optionally opened at one of its cards.
+    if (requested === 'recovery' || requested.startsWith('recovery/')) return 'recovery';
+    // One Ramp bill by Ramp's own id, for the panel beside Ramp; with no id, the panel's "no bill open" page.
     if (requested.startsWith('ramp-bill/')) return 'ramp-bill';
+    if (requested === 'ramp-bill') return 'ramp-bill-none';
+    // A Ramp page that is not one bill: the bills Uptime is tracking.
+    if (requested === 'ramp-bills') return 'ramp-bills';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
+    if (requested.startsWith('template-build/')) return 'template-build';
     return ['dashboard','onboarding','lab','regression','advanced','vendors','disputes','policy','integrations'].includes(requested) || requested.startsWith('disputes/') ? requested : 'ramp';
   }
-  if (typeof module !== 'undefined' && module.exports) module.exports = {compareDecimal, money, safeURL, companionPlan, companionRoute};
+  // ---- Panel mode ----
+  // The server lets exactly one named browser extension frame this app (its side panel beside Ramp); every other
+  // framing page is refused by the browser. So a framed page is the panel, and only a framed page is in panel mode.
+  // Panel mode changes presentation only: a compact header, and one button that asks the panel to open the full app.
+  function framed(win) {
+    try { return !!win && win.self !== win.top; } catch { return true; }
+  }
+  // The routes the panel may ask to open in a full tab. The extension enforces the same pattern on its side.
+  const PANEL_OPEN_ROUTE = /^(?:overview|records|recovery|agreements|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
+  const PANEL_MESSAGE_TYPE = 'uptime-open-app';
+  // The extension page that frames this one, when the browser names it; the message is addressed to it alone.
+  function panelParent(loc) {
+    const origins = loc && loc.ancestorOrigins;
+    const first = origins && origins.length === 1 ? origins[0] : null;
+    return typeof first === 'string' && /^chrome-extension:\/\/[a-p]{32}$/.test(first) ? first : null;
+  }
+  function panelMessage(route) {
+    return PANEL_OPEN_ROUTE.test(route) ? {type: PANEL_MESSAGE_TYPE, route} : null;
+  }
+  // Tells the panel whether the bill it shows is matched to an Uptime invoice, for the toolbar badge.
+  const PANEL_STATUS_TYPE = 'uptime-bill-status';
+  const RAMP_BILL = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  // Asks the panel to move the Ramp tab to one bill from the tracking list.
+  const PANEL_BILL_TYPE = 'uptime-open-bill';
+  function openBillMessage(bill) {
+    return typeof bill === 'string' && RAMP_BILL.test(bill) ? {type: PANEL_BILL_TYPE, bill} : null;
+  }
+  function billStatusMessage(bill, state) {
+    return typeof bill === 'string' && RAMP_BILL.test(bill) && (state === 'match' || state === 'none') ? {type: PANEL_STATUS_TYPE, bill, state} : null;
+  }
+  if (typeof module !== 'undefined' && module.exports) module.exports = {compareDecimal, money, safeURL, companionPlan, companionRoute,
+    framed, panelParent, panelMessage, PANEL_OPEN_ROUTE, PANEL_MESSAGE_TYPE, billStatusMessage, PANEL_STATUS_TYPE, openBillMessage, PANEL_BILL_TYPE};
   if (typeof document === 'undefined') return;
+  const panelMode = framed(window);
+  if (panelMode) document.documentElement?.classList?.add('panel-mode');
+  // Asks the extension shell to open the full app at an allowed route. It sends a route and nothing else; when no
+  // extension parent is named, it opens the route in a new tab itself.
+  function openApp(route) {
+    const message = panelMessage(route), parent = panelParent(window.location);
+    if (!message) return;
+    if (parent && window.parent && window.parent !== window) window.parent.postMessage(message, parent);
+    else window.open('/#' + route, '_blank', 'noopener');
+  }
+  // Only inside the panel, and only to the one extension origin the browser names as the parent.
+  function openBill(bill) {
+    const message = openBillMessage(bill), parent = panelParent(window.location);
+    if (message && parent && window.parent && window.parent !== window) window.parent.postMessage(message, parent);
+  }
+  function billState(bill, state) {
+    const message = billStatusMessage(bill, state), parent = panelParent(window.location);
+    if (message && parent && window.parent && window.parent !== window) window.parent.postMessage(message, parent);
+  }
   const $ = selector => document.querySelector(selector);
   const content = $('#content'), notice = $('#notice'), dialog = $('#inspector');
   let view = 'ramp', generation = 0, caseGeneration = 0, activeCase = null, busy = false;
-  let rampCase = null, rampScroll = 0, rampBill = null;
+  let rampCase = null, rampScroll = 0, rampBill = null, recoverySection = null;
   // Which page a Ramp record was opened from: it stays the marked destination, and "Back" returns to it.
   let rampOrigin = 'ramp';
   let companion, companionAssets, signedPage = false, companionAccess = {};
-  const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + (route === 'ramp' ? rampOrigin : route)); navigate(); }});
+  const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + (route === 'ramp' ? rampOrigin : route)); navigate(); },
+    ...(panelMode ? {openApp, onBillState: billState, openBill} : {})});
   // The finance view disables actions when this page holds no signing key (for example after a reload).
   const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account,canAct:() => window.uptimeAuth?.canSign?.() !== false});
   const filters = {query: '', status: '', sort: 'value-desc'};
+  // A run of the template builder (#template-build/<id>) and its section on the Agreements page.
+  let templateBuildId = null;
+  const templateBuilder = window.UptimeTemplateBuilder?.create({api, onUnauthorized: account, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
   function button(label, handler, className = '') { const node = el('button', className, label); node.type = 'button'; node.addEventListener('click', handler); return node; }
@@ -120,7 +180,7 @@
   function account() {
     generation++; signedPage = false; companionAccess = {}; workspaceName = null; workspaceNameRead = null;
     content.setAttribute('aria-busy', 'false');
-    ramp?.unmount(); workspaceWorkflow?.unmount(); companion?.unmount(content);
+    ramp?.unmount(); workspaceWorkflow?.unmount(); companion?.unmount(content); templateBuilder?.unmount();
     if (dialog.open) dialog.close();
     content.replaceChildren(window.uptimeAuth.signInForm(() => { signedPage = true; navigate(); }));
   }
@@ -353,7 +413,8 @@
       gate:session?.approvals_enabled === true ? 'Deployment approvals enabled; server rechecks every request' : 'Read-only deployment',
       canWrite:signedPage && policy.role === 'reviewer' && session?.approvals_enabled === true,
       canDraft:signedPage && session?.role === 'reviewer' && session?.drafts_enabled === true};
-    if (route === 'vendors' || route === 'disputes') return ui.render(content,route);
+    if (route === 'vendors') { await ui.render(content,route); if (token === generation) await templateBuilder?.section(content); return; }
+    if (route === 'disputes') return ui.render(content,route);
     if (route.startsWith('disputes/')) return ui.inspect(content,decodeURIComponent(route.slice(9)));
     if (route === 'regression') {
       const data = await api('/api/dashboard');
@@ -370,13 +431,32 @@
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
     // Overview and Activity read the workflow themselves; any other page reads the name once, after its own content.
-    const readsWorkflow = route === 'activity' || (route === 'ramp' && !rampCase);
+    const readsWorkflow = route === 'activity' || route === 'recovery' || (route === 'ramp' && !rampCase);
     // The one-bill page makes exactly one request, the saved Ramp workspace, so it does not read the workspace name.
     try { await renderRoute(); } finally {
-      if (!readsWorkflow && route !== 'ramp-bill' && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
+      if (!readsWorkflow && route !== 'ramp-bill' && route !== 'ramp-bill-none' && route !== 'ramp-bills' && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
     }
     async function renderRoute() {
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
+    if (route === 'template-build') {
+      if (!templateBuilder) throw new Error('Template builder asset unavailable.');
+      await templateBuilder.run(content, templateBuildId);
+      if (token === generation) { const current = window.uptimeAuth.session(); if (current) showAccount(current.subject); }
+      return;
+    }
+    if (route === 'recovery') {
+      const projection = await api('/api/workspace/workflow');
+      if (token !== generation) return;
+      workspaceNameRead = Promise.resolve();
+      if (projection && projection.workflow && typeof projection.workflow === 'object' && workspaceWorkflow) {
+        await workspaceWorkflow.render(content, projection.workflow, {section: recoverySection});
+        workspaceName = companyOf(projection.workflow) || workspaceName;
+      } else content.replaceChildren(heading('Recovery', 'One case, step by step.'), empty('No recovery case is recorded in this workspace.'));
+      showWorkspaceName();
+      const current = window.uptimeAuth.session();
+      if (current) showAccount(current.subject);
+      return;
+    }
     if (route === 'activity') {
       const projection = await api('/api/workspace/workflow');
       if (token !== generation) return;
@@ -385,6 +465,20 @@
         await workspaceWorkflow.activity(content, projection.workflow);
       } else content.replaceChildren(heading('Activity', 'What happened in this workspace, in order.'), empty('No workflow activity is recorded in this workspace.'));
       showWorkspaceName();
+      return;
+    }
+    // No Ramp bill is open in the tab beside the panel. Nothing is read: the page holds no data.
+    if (route === 'ramp-bill-none') {
+      if (!ramp) throw new Error('Ramp UI asset unavailable.');
+      ramp.noBill(content);
+      const current = window.uptimeAuth.session();
+      if (current) showAccount(current.subject);
+      return;
+    }
+    if (route === 'ramp-bills') {
+      if (!ramp) throw new Error('Ramp UI asset unavailable.');
+      await ramp.bills(content);
+      if (token === generation) { const current = window.uptimeAuth.session(); if (current) showAccount(current.subject); }
       return;
     }
     if (route === 'ramp-bill') {
@@ -406,7 +500,8 @@
         workspaceNameRead = Promise.resolve();
         if (projection.workflow !== null) {
           if (!workspaceWorkflow || !projection.workflow || typeof projection.workflow !== 'object') throw new Error('Workspace workflow unavailable.');
-          await workspaceWorkflow.render(content, projection.workflow);
+          // The Overview is the portfolio; the one case it holds has its own page, #recovery.
+          await workspaceWorkflow.portfolio(content, projection.workflow);
           workspaceName = companyOf(projection.workflow) || workspaceName;
           showWorkspaceName();
           const current = window.uptimeAuth.session();
@@ -438,8 +533,11 @@
     ramp?.unmount();
     workspaceWorkflow?.unmount();
     companion?.unmount(content);
+    templateBuilder?.unmount();
+    templateBuildId = requested.startsWith('template-build/') ? requested.slice(15) : null;
+    try { if (templateBuildId) templateBuildId = decodeURIComponent(templateBuildId); } catch { templateBuildId = null; }
     if (dialog.open) dialog.close();
-    rampCase = null; rampBill = null;
+    rampCase = null; rampBill = null; recoverySection = requested.startsWith('recovery/') ? requested.slice(9) : null;
     if (requested.startsWith('ramp/')) {
       try { rampCase = decodeURIComponent(requested.slice(5)); } catch { rampCase = null; }
     }
@@ -449,7 +547,7 @@
     view = companionRoute(requested);
     // A page under a destination (one case under Cases) keeps that destination marked as the current one.
     // One Ramp record keeps the page it was opened from marked.
-    const marked = rampCase ? rampOrigin : view === 'ramp-bill' ? 'records' : view;
+    const marked = rampCase ? rampOrigin : view === 'ramp-bill' || view === 'ramp-bill-none' || view === 'ramp-bills' ? 'records' : view === 'recovery' ? 'ramp' : view === 'template-build' ? 'vendors' : view;
     document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === marked || marked.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
     // On a wide screen the group that holds the current page is opened. On a narrow one the header stays slim:
     // the group's own label is marked instead, and the list opens only when asked for.
@@ -460,6 +558,8 @@
   // Updating route history explicitly prevents fragment scrolling during normal navigation.
   document.querySelectorAll('.rail a[href^="#"]').forEach(link => link.addEventListener('click', event => {
     if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    // In the panel the brand opens the full app in a tab instead of squeezing it into the panel.
+    if (panelMode) { event.preventDefault(); openApp('overview'); return; }
     event.preventDefault(); history.pushState(null, '', link.getAttribute('href')); navigate();
     // A choice made from the narrow header's list closes the list, so the page it opened is in view.
     const group = link.closest?.('.rail-more');
