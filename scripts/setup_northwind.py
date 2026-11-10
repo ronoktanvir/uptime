@@ -222,6 +222,75 @@ def open_workspace(directory, *, proposal_config=None, side_panel_origin=None, r
     return app,private,events
 
 
+MODEL_JOB_FOLDER='model-jobs'
+MODEL_JOB_HOURS=12
+MODEL_JOB_APPROVER='workspace operator (setup_northwind.py --model-jobs)'
+
+
+def model_job_samples():
+    """The authored sample contracts the Agreements page offers, as (vendor id, fixture path); see web/contract_reading.js."""
+    folder=ROOT/'fixtures'/'submission_onboarding'
+    return [('corvid-ledger',folder/'corvid_ledger.json'),('halden-relay',folder/'halden_relay.json'),
+            ('halden-relay-control',folder/'halden_relay_control.json')]
+
+
+MODEL_JOB_TAKES=('retry-take1','retry-take2','retry-take3')
+
+
+def default_claude_executable():
+    import shutil
+    found=shutil.which('claude')
+    return str(Path(found).resolve()) if found else None
+
+
+def prepare_model_jobs(directory,executable):
+    """Demo line: let the served walkthrough run live Claude readings of the authored sample contracts.
+
+    Writes <workspace>/model-jobs/ (0700): config.json (0600) for --public-proposal-config, and approvals.json (0600)
+    holding an operator approval of each exact sample request for the reviewer account, three takes per contract and
+    one request per supported rule family, valid for MODEL_JOB_HOURS. Approval grants model invocation only, never a
+    review, adapter approval or financial permission. Running it again renews the same approvals. Only the CLI's
+    --help and --version run here; no model is called and no credential is read or written.
+    """
+    from uptime.contracts import DraftReviewer
+    from uptime.public_proposal_jobs import canonical
+    from uptime import vendor_model_jobs
+    from uptime.vendor_model_jobs import ProposalRequest,public_approval_request
+    from scripts.public_proposals import approve
+    from uptime.vendor_family_selection import FAMILIES
+    if not executable or not Path(executable).is_absolute() or not Path(executable).is_file() or not os.access(executable,os.X_OK):
+        raise WorkspaceRefused('The Claude Code executable was not found. Pass its absolute path with --claude-executable.')
+    executable=str(Path(executable).resolve())
+    folder=Path(directory).resolve()/MODEL_JOB_FOLDER
+    folder.mkdir(mode=0o700,exist_ok=True);os.chmod(folder,0o700)
+    exports=folder/'exports';exports.mkdir(mode=0o700,exist_ok=True);os.chmod(exports,0o700)
+    approvals=folder/'approvals.json';config=folder/'config.json'
+    def write_private(path,value):
+        temporary=path.with_name('.'+path.name+'.new')
+        temporary.unlink(missing_ok=True)
+        fd=os.open(temporary,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+        with os.fdopen(fd,'w') as handle:
+            json.dump(value,handle,indent=2,ensure_ascii=False);handle.write('\n');handle.flush();os.fsync(handle.fileno())
+        os.replace(temporary,path)
+    write_private(config,dict(version=1,executable=executable,approvals_path=str(approvals),kinds=['vendor']))
+    # Three samples x three takes x two families = 18 jobs at most, inside the daily limits below.
+    write_private(approvals,dict(version=1,limits=dict(daily_jobs=20,daily_budget_usd='20.00'),approvals=[]))
+    provider=vendor_model_jobs.build_vendor_provider(executable)
+    reviewer=DraftReviewer('bears',SCRIPT,'reviewer')
+    approved=0
+    for vendor,path in model_job_samples():
+        document=json.loads(path.read_text(encoding='utf-8'))
+        for take in MODEL_JOB_TAKES:
+            for _,profile,_ in FAMILIES:
+                exported=public_approval_request(provider,reviewer,vendor,ProposalRequest(document=document,profile=profile,attempt_nonce=take))
+                export=exports/(vendor+'.'+take+'.'+profile+'.json')
+                write_private(export,exported)
+                approve(export,approvals,approved_by=MODEL_JOB_APPROVER,
+                        expected_digest=sha256(canonical(exported['request'])).hexdigest(),public_confirmed=True,hours=MODEL_JOB_HOURS)
+                approved+=1
+    return dict(config=str(config),approvals=str(approvals),approved_requests=approved,executable=executable)
+
+
 def checked(response):
     if response.status_code!=200:raise ValueError(str(response.status_code)+': '+response.text)
     return response.json()
@@ -321,6 +390,12 @@ def main():
     parser.add_argument('--resume',action='store_true')
     parser.add_argument('--serve',action='store_true')
     parser.add_argument('--public-proposal-config',type=Path,help='Protected exact-request model configuration for the served workspace')
+    parser.add_argument('--model-jobs',action='store_true',
+                        help='Let the served Agreements page start live Claude readings of the authored sample contracts: '
+                             'writes <workspace>/model-jobs/ (config and exact-request approvals) at start-up; the Claude Code '
+                             'CLI must already be signed in for this user')
+    parser.add_argument('--claude-executable',type=Path,
+                        help='Absolute path of the Claude Code CLI for --model-jobs (default: claude on PATH)')
     parser.add_argument('--step-by-step',action='store_true',
                         help='Offer every routine step as its own reviewer action (the earlier behavior); default runs routine steps automatically')
     parser.add_argument('--counterparty-reply',choices=COUNTERPARTY_REPLIES,default='request-log',
@@ -350,6 +425,12 @@ def main():
         parser.exit(1,'setup_northwind: The --ramp-records folder does not exist: '+str(args.ramp_records)+'\n')
     if args.public_proposal_config and not args.serve:
         parser.error('--public-proposal-config requires --serve')
+    if args.model_jobs and not args.serve:
+        parser.error('--model-jobs requires --serve')
+    if args.model_jobs and args.public_proposal_config:
+        parser.error('--model-jobs writes its own proposal configuration; leave out --public-proposal-config')
+    if args.claude_executable and not args.model_jobs:
+        parser.error('--claude-executable applies with --model-jobs')
     if args.resume and (args.step_by_step or args.counterparty_reply!='request-log'):
         parser.error('--step-by-step and --counterparty-reply apply when a workspace is created')
     try:
@@ -401,6 +482,15 @@ def main():
     print(str(credential),file=sys.stderr)
     print(SCRIPT,file=sys.stderr)
     print(private['origin'],file=sys.stderr,flush=True)
+    if args.serve and args.model_jobs:
+        try:
+            prepared=prepare_model_jobs(args.directory,str(args.claude_executable) if args.claude_executable else default_claude_executable())
+        except WorkspaceRefused as refused:
+            parser.exit(1,'setup_northwind: '+str(refused)+'\n')
+        args.public_proposal_config=Path(prepared['config'])
+        print('Live Claude readings: on. '+str(prepared['approved_requests'])+' exact sample requests approved for '+str(MODEL_JOB_HOURS)
+              +' hours (model invocation only) in '+prepared['approvals']+'. Claude Code CLI: '+prepared['executable']
+              +'. It uses its own sign-in for this user; no credential is read here.',file=sys.stderr,flush=True)
     if args.serve:
         if args.public_proposal_config:
             # Seeding closes its TestClient lifecycle. Construct the configured
