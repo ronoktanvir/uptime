@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 17:42 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 17:50 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -16,11 +16,11 @@ In the order they block the submission.
 | # | Decision | What it turns on | State |
 |:--|:---|:---|:---|
 | 1 | Move `main` to the verified build | Judges clone the default branch. Independent acceptance ranked this first of its findings ([P1-A](acceptance.md)) | **Done** on his instruction, by fast-forward only: 16:42, 17:03 and about 17:33 PST |
-| 2 | Which film is the submission film | Role 6 wrote a measured two-minute storyboard and a filming checklist for a spoken film. Separately, a session started by the judge session produced a silent, captioned 89-second cut in `~/uptime-demo/video-01/`, outside the repository; Ronok chose captions over a voice there | Open. Both were made on the build before the redesign, which is now on `main`, so whichever he picks needs redoing |
+| 2 | Which film is the submission film | Role 6 wrote a measured two-minute storyboard and a filming checklist for a spoken film. Separately, a session started by the judge session produced a silent, captioned 89-second cut in `~/uptime-demo/video-01/`, outside the repository; Ronok chose captions over a voice there | **Partly decided, about 17:50 PST:** the film opens on the real Ramp bill with the side panel beside it, then shows the Northwind case as a separate story. Role 6 is re-cutting the storyboard for it. Still open: a spoken film, the silent captioned cut, or both. Both existing versions were made before the redesign |
 | 3 | Film on the redesigned build, or on the accepted one | The [filming checklist](presentation.md#filming-checklist-for-ronok) was written for `52f1a2f` and still works on a checkout of it. On `main` several controls have moved or been renamed, and role 6 has not yet rewritten the checklist | Open |
 | 4 | Record the voiceover and the film; choose cut A or B after a timed read | Only a person can | Not done |
 | 5 | Ease the load on this Mac, or restart it | Five of the coordinator's full runs have stalled in a browser launch, and one of the redesign session's. Two were captured: a freshly launched Chrome sat with its main thread blocked inside a macOS system service, so it never answered the test. Swap was almost full, and in both captures another session had launched Chrome within seconds. The earlier guess, Chrome's pending update, was never shown. Fewer sessions driving Chrome at once, or a restart, is the likely cure | Not done; his call |
-| 6 | Load the side-panel extension into his own browser | `chrome://extensions` → Developer mode → Load unpacked → `extension/` from a checkout of `main`. No script does this for him. The steps are under "Start, resume, reset" | Ready for him |
+| 6 | Load the side-panel extension into his own browser | `chrome://extensions` → Developer mode → Load unpacked. No script does this for him. A copy set to port 8806 is in `~/uptime-demo/side-panel-extension`, with a workspace serving on that port. The steps are under "Start, resume, reset" | Ready for him. The toolbar button opening Chrome's own side panel is the one step no agent could test |
 | 7 | Whether a person approves a model candidate on camera | The walkthrough's reviewer is a scripted test account. A person's approval needs a person | Open; the film does not need it |
 | 8 | D02: put an authored Northwind bill into the Ramp sandbox | It would show an authored finding beside a Ramp bill. Role 3 recommends against it | Not done; default keeps Northwind out of Ramp |
 | 9 | D05 run 2 (sealed vendor evaluation) | Runs only on his go-ahead, in the evaluation session | Not part of this push |
@@ -144,13 +144,13 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 
 | Item | Owner | State |
 |:---|:---|:---|
-| Setup command: its real-process tests take a port from 8821–8829 and skip if all are taken; they should take a port the system assigns | Role 2 | Not yet sent: messages are paused. The plain refusals and the `--serve` rule are done |
-| Interface-only acceptance check of the redesign | Role 5 | Not yet requested: messages are paused |
-| README screenshots, a timing recheck, a filming checklist for the new labels, the video link | Role 6 | Not yet requested: messages are paused. The README's and the judge guide's wording still matches the redesigned interface's labels |
-| Say how the requested log arrives | Role 6 | The narration and the README's third step say Uptime "attaches" and "verifies" the log. In the walkthrough the log and its verification record arrive as authored events through the signed intake, and Uptime matches them. The product's step names say attach and verify; its authority line says received. Queued with the item above |
+| Setup command: its real-process tests take a port from 8821–8829 and skip if all are taken; they should take a port the system assigns | Role 2 | Requested at 17:50 PST. The plain refusals and the `--serve` rule are done |
+| Interface-only acceptance check of the redesign and the side panel's default | Role 5 | Requested at 17:50 PST |
+| The storyboard re-cut for the Ramp opening, a filming checklist for the new labels, README screenshots, a timing recheck, a README line for the side panel, the video link | Role 6 | Requested at 17:50 PST. The README's and the judge guide's wording still matches the redesigned interface's labels |
+| Say how the requested log arrives | Role 6 | The narration and the README's third step say Uptime "attaches" and "verifies" the log. In the walkthrough the log and its verification record arrive as authored events through the signed intake, and Uptime matches them. The product's step names say attach and verify; its authority line says received. Requested with the item above |
 | Evidence requests are recognised only in wording the rules know | Disputes owner | Not changed in this push; the wording that overstated it is corrected |
-| A case's own claim record sends "0.00" for posted and applied, which it does not track (`uptime/correspondence.py:822`) | Role 2 | Found by the redesign session. The redesigned case page does not show those two figures; the record should send no value instead of a zero. Queued |
-| Re-shoot the 90-second cut on the redesigned build | The video session | Its command is `./remake.sh <commit>` in `~/uptime-demo/video-01/`; it says its selectors need editing first |
+| A case's own claim record sends "0.00" for posted and applied, which it does not track (`uptime/correspondence.py:822`) | Role 2 | Found by the redesign session. The redesigned case page does not show those two figures; the record should send no value instead of a zero. Role 2 is assessing every consumer before any change |
+| Re-shoot the 90-second cut on the redesigned build | The video session | Told at 17:50 PST to wait for role 6's storyboard. Its command is `./remake.sh <commit>` in `~/uptime-demo/video-01/`; its selectors need editing first. The Ramp opening is footage only Ronok can record |
 | Unseen contracts: 0 of 4 | The Codex lanes ([queued work](../NEXT-WORKSTREAMS-20261109.md)) | Outside this push |
 | Responses that return before the header middleware carry no security headers | Application owners | Existing gap, found in review; not changed |
 | Any write to Ramp by Uptime | Ronok and the team | Needs a signed native release |
@@ -170,7 +170,7 @@ Ronok asked for whatever needs merging to be merged. These nine branches hold co
 ## If the coordinator's session ends
 
 - **State lives in Git.** This file, the coordination record and the receipts are on `work/submission-integration-20261109`. Each role's handoff is beside this file.
-- **Messages between sessions pause** after ten sent without a message from Ronok in the coordinator's session, and resume when he types there. Anything waiting to be sent is listed at the end of the coordination record's log.
+- **Messages between sessions pause** after ten sent without a new message from Ronok in the coordinator's session. A message he sends while a turn is running does not lift the pause; his next one after the turn ends does. Anything waiting to be sent is listed at the end of the coordination record's log.
 - **To merge a finished branch:** merge it into the integration branch with `--no-ff`, run `uv run --locked pytest` once on the merge commit, then the JavaScript checks, `node scripts/test_progress_graph.cjs`, `scripts/rehearse.py` and `scripts/check_repo.py`. Write a receipt beside the others with the exact commit, command, result and log. Push only after it passes. If a run stops advancing for five minutes, abort it, keep the log and run it again.
 - **Order from here:** role 5's interface check and role 6's screenshots and checklist on the redesigned build; then the small fixes waiting with role 2. After each verified merge, fast-forward `main` to it: `git push origin <verified commit>:refs/heads/main`. Never force.
 - **Rules that do not relax:** no force-push; no write to Ramp and no retry of the refused posting action; no real vendor contact; no credential, private evaluation answer or customer capture in Git; every changed existing test recorded by exact name and reason; the scripted reviewer is never described as a person; a local credit is never described as money in Ramp.
