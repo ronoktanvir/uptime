@@ -137,7 +137,7 @@ def test_automation_workspace_needs_four_person_decisions_and_activity_shows_eve
         page.locator('nav.rail-primary').get_by_role('link', name='Activity', exact=True).click()
         steps = page.locator('.automation-step')
         expect(steps).to_have_count(11)
-        expect(page.locator('#content')).to_contain_text('Routine steps: Complete. 4 person decisions and 7 automatic steps recorded.')
+        expect(page.locator('#content')).to_contain_text('Routine steps: Complete. 4 reviewer decisions and 7 automatic steps recorded.')
         assert page.locator('.automation-step', has_text='Decided by').count() == 4
         assert page.locator('.automation-step', has_text='Run automatically under the approval recorded by').count() == 2
         assert page.locator('.automation-step', has_text='Received automatically: event').count() == 5

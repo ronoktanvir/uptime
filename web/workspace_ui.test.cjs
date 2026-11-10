@@ -106,7 +106,7 @@ test('activity shows the server automation record: state, pause, counts, authori
   {seq:3,operation:'receive-denial',label:'Receive vendor response',class:'INTAKE',authority:{kind:'EVENT_INTAKE',event_id:'northwind-denial-jan',source_subject:'northwind-2026-01-vendor'},state:'UNCERTAIN',at:'2026-03-01T12:10:00+00:00',recorded_at:'2026-11-09T21:33:46.261388+00:00',intent_id:'action-3',detail:'TimeoutError',timing:{clock:'WORKSPACE',at:'2026-03-01T12:10:00+00:00'}}]};
  const s=setup(()=>({workflow:{...projection,automation}}));await s.ui.activity(s.root);
  const text=s.root.textContent;
- for(const expected of ['Routine steps: Paused · Waiting for a person to approve. 1 person decision and 2 automatic steps recorded.','Next: Prepare claim.',
+ for(const expected of ['Routine steps: Paused · Waiting for a person to approve. 1 reviewer decision and 2 automatic steps recorded.','Next: Prepare claim.',
    'Decided by scripted-test-reviewer','Run automatically under the approval recorded by scripted-test-reviewer, Mar 1, 2026, 12:00 UTC',
    'Received automatically: event northwind-denial-jan from northwind-2026-01-vendor','Filing cutoff Mar 3, 2026, 00:00 UTC',
    'Intake · Outcome uncertain','TimeoutError','Recorded by the server','Nov 9, 2026, 21:33 UTC','Times are on this case’s timeline'])
@@ -132,7 +132,7 @@ test('a stop for a person shows the server’s reason and detail, and the recove
   counts:{person_decisions:1,automatic_steps:2},steps:[]};
  const s=setup(()=>({workflow:{...projection,claim:{...projection.claim,id:'inbox-northwind-2026-01'},automation,next_actions:[]}}));await s.ui.render(s.root);
  const recovery=s.root.all('section').find(n=>n.id==='finance-recovery');
- assert.ok(recovery.textContent.includes("Routine steps: Paused · Stopped for a person: the vendor gave a ground the system does not recognize. The vendor reply needs the reviewer's reading and semantic review. 1 person decision and 2 automatic steps recorded."));
+ assert.ok(recovery.textContent.includes("Routine steps: Paused · Stopped for a person: the vendor gave a ground the system does not recognize. The vendor reply needs the reviewer's reading and semantic review. 1 reviewer decision and 2 automatic steps recorded."));
  const link=recovery.all('a').find(a=>a.textContent==='Open this claim’s case and correspondence');
  assert.equal(link.href,'#cases/inbox-northwind-2026-01');
 });
