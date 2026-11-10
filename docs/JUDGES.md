@@ -1,5 +1,8 @@
 # Uptime: a guide for judges
 
+> **November 10 update.** After this guide was written, three things were added: Uptime's notes on matched bills in Ramp's sandbox (posted through Ramp's API and read back), a portfolio page with a second vendor, and a template builder in which Claude agents and the decision model Jev build a reader for a new contract type, behind code checks and a reviewer's approval. Where this guide says Uptime writes nothing to Ramp, read "nothing except those fixed notes". The [README](../README.md#where-ramp-fits) and [the day's notes](../DEMO-NOTES.md) are current; [the film](demo/film/README.md) shows all three.
+
+
 [Uptime](../README.md) / Judge guide
 
 Five minutes, no credentials. This page says what to run, what to look at, what is authored, and where the evidence for each claim lives.
@@ -35,7 +38,7 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 - **Local:** the vendor's side of the dispute is a counterparty built into Uptime, and credits go to a local ledger. No real vendor is contacted, and no money moves in Ramp. The claim packet and the response are approved by their exact content and filed to a local outbox with a receipt; this build does not display their text on any page.
 - **Scripted:** the walkthrough's reviewer account, `scripted-test-reviewer`, is a test account, not a record of a person's approval.
 - **Recorded:** the model readings were made on November 9 through the ordinary application routes, on authored contracts and two authored vendor replies: one call per rule family, so two per contract and six for the three contracts, plus one for each reply, none retried. Their provider receipts are kept. Northwind's own contract and its vendor's log request are handled by fixed rules, with no model call. The log request uses wording the rules know; a request worded differently goes to a reviewer.
-- **Real:** the Ramp sandbox reads, and the note a person posted on sandbox bill `f74ba12c-95d0-582d-9f62-26d8057d1d37`.
+- **Real:** the Ramp sandbox reads, and the note a person posted on sandbox bill `f74ba12c-95d0-582d-9f62-26d8057d1d37`. Since November 10, also the four notes Uptime posted through Ramp's API on three sandbox bills that were entered for the demo.
 
 ## Five questions, answered
 
@@ -48,7 +51,7 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 **Who authorizes follow-up?** A reviewer: in the product, an enrolled person; in the walkthrough, whoever is driving it, signed in as the scripted test account. The reviewer approves the claim packet and the response, then posts and applies the credit. Uptime runs only intake and the dispatch of steps a reviewer already approved. Correctly accepting a vendor's denial is not shown in any demo workspace. Automated tests cover it through the same signed routes. The independent acceptance run also exercised one such case over real HTTP: an announced maintenance window, corroborated by the customer's own notice, reached denial review with only acceptance offered and closed on a signed acceptance, with nothing awarded. A genuinely late filing could not be used, because the routes refuse to file after the cutoff. [Acceptance report](v4/submission/acceptance.md) No standing policy lets it act alone, and it stops on anything unexpected: a new legal ground, contradictory evidence, or uncertain delivery.
 
 **What remains unimplemented?**
-- Any write to Ramp by Uptime, payment holds, and recording vendor credits in Ramp.
+- Any write to Ramp by Uptime other than its fixed notes on matched bills, payment holds, and recording or applying vendor credits in Ramp.
 - Real vendor delivery: the claim channel is still undecided.
 - Reliable reading of unseen contracts, and measured accuracy on unseen dispute replies.
 - A hosted installation with Ramp sign-in.

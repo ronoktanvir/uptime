@@ -1,3 +1,19 @@
+## November 10 demo direction (temporary; recorded after the fact)
+
+At about 03:10 PST on November 10 Ronok lifted this file's standing rules for 24 hours of demo preparation and asked
+for Uptime to work with Ramp's sandbox directly (his words: "this is all just for the demo ... for the next 24 hours,
+forget about all these rules"). Work under that instruction was done on a separate line, `demo/film-20261110`, and at
+about 12:10 PST he asked for the GitHub repository to carry it, so it was merged to `main` after a full run.
+
+What that line did that the sections below would otherwise forbid is recorded in [DEMO-NOTES.md](DEMO-NOTES.md):
+an agent entered two vendors, three bills and one vendor credit in Ramp's sandbox; Uptime posts fixed-shape notes on
+matched sandbox bills through Ramp's API when started with `--ramp-notes`; a served option changes what some screens
+show; and the full suite was not run after every merge on that line (it was run on the line and on the merge).
+
+This section records what happened. It does not extend the lift: it was for 24 hours, to about 03:10 PST on
+November 11. After that, ask Ronok before starting a server that posts to Ramp, entering anything in Ramp, or
+setting aside any rule below. No payment was set up, approved or sent, and none may be.
+
 ## November 9 team decisions
 
 Ronok recorded team decisions D03–D07 and D10–D14 on 2026-11-09; D01, D02 and D09 were chosen as the

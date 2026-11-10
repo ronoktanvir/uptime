@@ -4,6 +4,7 @@ This ledger records presentation and fixture changes for the Northwind walkthrou
 
 | Workstream | Exact test names and reasons | Integration status |
 | --- | --- | --- |
+| Demo line of November 10 (Ramp notes, portfolio, steps, second vendor, template builder) | [Demo line ledger](../../DEMO-CHANGES.md), with the two side-panel and steps ledgers it links ([panel](TEST-CHANGES-submission-panel-20261110.md), [steps](TEST-CHANGES-submission-steps-20261110.md)): every changed existing test by exact name and reason. One Python fixture was changed before publishing so that a read never writes to Ramp. | Merged into `work/submission-integration-20261109` on November 10 after a full run. |
 | Ramp case lineage and credit read-back | [93 ledger](TEST-CHANGES-93.md): new controlled cases in one new file. No existing function or assertion changed. Failed first attempts are recorded. | Merged into `work/integration-90`; covered by the integration full suite. No native write. |
 | Evidence period applicability | [W5 ledger](TEST-CHANGES-evidence-custody-90.md): 23 new cases. No existing function or assertion changed. Two failed intermediate runs preserved. | Merged into `work/integration-90`. |
 | Adapter requirement card | [W3 ledger](TEST-CHANGES-onboarding-89.md): 16 new cases. No existing test changed. | Merged into `work/integration-90`. |
