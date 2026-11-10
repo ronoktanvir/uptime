@@ -1,0 +1,28 @@
+{
+  "tested_commit": "e3dab64745553a7475ad44e78d9202a6e9fb908e",
+  "branch": "work/submission-integration-20261109",
+  "role": "role 2's port change in its real-process setup tests, on top of main",
+  "contents": "main at 0cd60d9 plus role 2 at 8addc5a: tests/test_setup_refusals.py and tests/test_setup_side_panel.py take a port the operating system assigns instead of scanning 8821 to 8829, with no skip path. Tests and their ledger only; no application, script or interface file changes.",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-e3dab64",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5452 passed, 1 warning in 541.39s (0:09:01)",
+  "log": "suite-e3dab64-pytest.log",
+  "started_at": "2026-11-10T01:52:55Z",
+  "finished_at": "2026-11-10T02:08:04Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "129 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "note": "The run took nine minutes instead of the usual six or seven because other sessions were working at the same time (load average near 17). It did not stall. No test was skipped.",
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}
