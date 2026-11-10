@@ -361,6 +361,24 @@
     }
     const decisionRecord = data => ({outcome:data.outcome, state:data.state ?? data.stage, unknowns:data.unknowns, missing:data.missing ?? data.preflight?.missing,
       owner:data.owner, filing_cutoff:at(data.filing_cutoff), next_contact:at(data.next_contact), financials:data.financials});
+    // The claim's own record does not track posting or application: for both it sends a zero whatever happened to
+    // the credit. A zero there is therefore not stated as an amount, and one sentence says where those stages are
+    // recorded; a non-zero amount is shown like the others. The complete record below stays exact, zeros included.
+    function recordedAmounts(data) {
+      const ledger = data.ledger && typeof data.ledger === 'object' ? data.ledger : {};
+      const zero = value => /^-?0+(?:\.0+)?$/.test(String(value).trim());
+      const untracked = [];
+      if (!Array.isArray(data.financials)) return {rows:data.financials, untracked};
+      const rows = data.financials.filter(row => {
+        const key = row && typeof row.label === 'string' ? row.label.trim().toLowerCase().replace(/\s+/g, '_') : null;
+        if (key !== 'posted' && key !== 'applied') return true;
+        const amount = Object.prototype.hasOwnProperty.call(ledger, key) ? ledger[key] : String(row.value ?? '').trim().split(/\s+/).pop();
+        if (!zero(amount)) return true;
+        untracked.push(key === 'posted' ? 'posting' : 'application');
+        return false;
+      });
+      return {rows, untracked};
+    }
     const caseRecords = data => [['Event timeline', data.timeline ?? data.events],
       ['Evidence & receipts', {evidence:data.evidence, receipts:data.receipts, submissions:data.submissions, replies:data.replies}],
       ['Current and historical evaluation', {evaluation:data.evaluation ?? data.preflight, history:data.history, trace:data.trace}]];
@@ -435,7 +453,10 @@
       if (steps) out.append(add(section('Correspondence, in order'), steps));
       if (base && data.trace_url === '/api/correspondence/claims/' + id + '/trace') out.append(add(el('section', undefined, 'v4-panel'), disputeRecord(m, base + '/trace')));
       const records = el('div', undefined, 'v4-fold-group');
-      add(records, fold(key + ':decision', 'Decision, unknowns and amounts as recorded', provenance(data.sources), record(decisionRecord(data))));
+      const amounts = recordedAmounts(data);
+      add(records, fold(key + ':decision', 'Decision, unknowns and amounts as recorded', provenance(data.sources), record({...decisionRecord(data), financials:amounts.rows}),
+        amounts.untracked.length ? note('This record does not track ' + amounts.untracked.join(' or ') + '; the Overview’s credit lifecycle shows '
+          + (amounts.untracked.length > 1 ? 'them' : 'it') + ' for the credit it follows.') : null));
       for (const [title, value] of caseRecords(data)) records.append(fold(key + ':' + title, title, record(value)));
       records.append(fold(key + ':record', 'Complete server case record', record(data)));
       out.append(records);
