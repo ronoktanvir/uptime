@@ -888,3 +888,23 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* 16. Side panel (submission-panel-20261110). Everything in this block applies only when the page is framed by the
+   one extension the server allows (app.js adds .panel-mode to <html> then), or styles the one-bill page's own parts.
+   Presentation only: no state, record or word is hidden by it. The full app in an ordinary tab is unchanged. */
+.panel-mode body { display: block; }
+.panel-mode .rail { position: sticky; top: 0; z-index: 5; height: auto; overflow: visible; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; border-right: 0; border-bottom: 1px solid var(--line); background: var(--surface); }
+.panel-mode .rail-workspace, .panel-mode .rail-primary, .panel-mode .rail-more, .panel-mode #refresh { display: none; }
+.panel-mode .brand { padding: 4px 0; }
+.panel-mode .rail-foot { margin: 0; padding: 0; border-top: 0; display: flex; align-items: center; }
+.panel-mode .rail-foot button { min-height: 32px; }
+.panel-mode #account { max-width: 55vw; }
+.panel-mode main { padding: 0 16px 32px; }
+.panel-mode .page-head { padding: 16px 0 14px; }
+.panel-mode h1 { font-size: 22px; line-height: 28px; }
+.panel-mode #content { gap: 12px; }
+.panel-mode .panel { padding: 16px; }
+.panel-mode .ramp-bill { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.panel-open-app { display: flex; }
+.panel-open-app-button { flex: 1 1 auto; min-height: 40px; }
+.ramp-bill-empty > .ramp-ids { margin-top: 12px; }

@@ -5,7 +5,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const DIR = path.join(__dirname, '..', '..', 'extension');
-const {billFromUrl, routeFor, frameUrl, labelFor, latestOnly} = require(path.join(DIR, 'panel.js'));
+const {billFromUrl, routeFor, frameUrl, labelFor, latestOnly, openRequest, appUrl, openApp, allowedRoute, OPEN_TYPE} = require(path.join(DIR, 'panel.js'));
+const app = require(path.join(__dirname, '..', '..', 'web', 'app.js'));
 const config = require(path.join(DIR, 'config.js'));
 const manifest = JSON.parse(fs.readFileSync(path.join(DIR, 'manifest.json'), 'utf8'));
 const BILL = 'f74ba12c-95d0-582d-9f62-26d8057d1d37';
@@ -35,9 +36,9 @@ test('a Ramp bill address gives Ramp\'s own bill ID, lower-cased, and nothing el
 
 test('the panel opens the bill page for a bill and the home page otherwise, only on the configured origin', () => {
   assert.equal(routeFor(BILL, config), 'ramp-bill/' + BILL);
-  assert.equal(routeFor(null, config), 'records');
+  assert.equal(routeFor(null, config), 'ramp-bill');
   assert.equal(frameUrl(BILL, config), 'http://127.0.0.1:8776/#ramp-bill/' + BILL);
-  assert.equal(frameUrl(null, config), 'http://127.0.0.1:8776/#records');
+  assert.equal(frameUrl(null, config), 'http://127.0.0.1:8776/#ramp-bill');
   assert.equal(labelFor(BILL), 'Ramp bill f74ba12c…');
   assert.equal(labelFor(null), 'No Ramp bill open');
   const origin = new URL(config.origin);
@@ -78,11 +79,93 @@ test('the extension is a thin shell: no requests, storage, scripting of other pa
   const source = ['background.js', 'config.js', 'panel.js'].map(name => fs.readFileSync(path.join(DIR, name), 'utf8')).join('\n');
   for (const banned of [/\bfetch\s*\(/, /XMLHttpRequest/, /WebSocket/, /sendBeacon/, /localStorage/, /sessionStorage/, /indexedDB/,
     /chrome\.storage/, /chrome\.scripting/, /chrome\.cookies/, /chrome\.webRequest/, /chrome\.debugger/, /executeScript/,
-    /innerHTML/, /insertAdjacentHTML/, /document\.write/, /\beval\s*\(/, /new Function/, /postMessage/, /document\.cookie/])
+    /innerHTML/, /insertAdjacentHTML/, /document\.write/, /\beval\s*\(/, /new Function/, /postMessage/, /document\.cookie/,
+    /chrome\.runtime/, /externally_connectable/])
     assert.equal(banned.test(source), false, String(banned));
   const html = fs.readFileSync(path.join(DIR, 'panel.html'), 'utf8');
   assert.equal(/<script(?![^>]*\ssrc=)/.test(html), false);
   assert.equal(/\son[a-z]+\s*=/.test(html), false);
   assert.equal(/style\s*=/.test(html), false);
   assert.deepEqual(Array.from(html.matchAll(/src="([^"]+)"/g), m => m[1]), ['config.js', 'panel.js']);
+});
+
+// ---- Opening the full app from the panel ----
+const ORIGIN = config.origin;
+const frameWindow = {name: 'the framed app'};
+const message = (data, extra = {}) => ({origin: ORIGIN, source: frameWindow, data, ...extra});
+
+test('the shell accepts only {type, route} from the framed window on the configured origin', () => {
+  assert.equal(OPEN_TYPE, 'uptime-open-app');
+  assert.equal(openRequest(message({type: OPEN_TYPE, route: 'records'}), config, frameWindow), 'records');
+  assert.equal(openRequest(message({route: 'overview', type: OPEN_TYPE}), config, frameWindow), 'overview');
+  for (const [why, event] of [
+    ['another origin', message({type: OPEN_TYPE, route: 'records'}, {origin: 'https://demo.ramp.com'})],
+    ['the origin with a trailing slash', message({type: OPEN_TYPE, route: 'records'}, {origin: ORIGIN + '/'})],
+    ['the same origin but another window', message({type: OPEN_TYPE, route: 'records'}, {source: {}})],
+    ['no source window', message({type: OPEN_TYPE, route: 'records'}, {source: null})],
+    ['another type', message({type: 'open', route: 'records'})],
+    ['an extra key', message({type: OPEN_TYPE, route: 'records', url: 'https://evil.example/'})],
+    ['a missing route', message({type: OPEN_TYPE})],
+    ['a string', message('uptime-open-app records')],
+    ['an array', message([OPEN_TYPE, 'records'])],
+    ['null', message(null)],
+    ['an object with another prototype', message(Object.assign(Object.create({inherited: true}), {type: OPEN_TYPE, route: 'records'}))],
+    ['a route off the list', message({type: OPEN_TYPE, route: 'ramp-bill/f74ba12c-95d0-582d-9f62-26d8057d1d37'})],
+  ]) assert.equal(openRequest(event, config, frameWindow), null, why);
+  assert.equal(openRequest(message({type: OPEN_TYPE, route: 'records'}), config, null), null, 'no frame');
+  assert.equal(openRequest(undefined, config, frameWindow), null);
+});
+
+test('only overview, records, cases and one case by a plain id may be opened, on the configured origin only', () => {
+  for (const route of ['overview', 'records', 'cases', 'cases/inbox-1', 'cases/A.b_c-9', 'cases/' + 'a'.repeat(64)])
+    assert.equal(allowedRoute(route), true, route);
+  for (const route of ['', 'activity', 'agreements', 'ramp', 'ramp/bill-1', 'ramp-bill', 'ramp-bill/x', 'cases/', 'cases/-x', 'cases/.x',
+    'cases/a/b', 'cases/a%2Fb', 'cases/a?b', 'cases/a#b', 'cases/' + 'a'.repeat(65), 'records ', ' records', 'RECORDS', 'records/x',
+    'overview\n', '//evil.example', 'https://evil.example/#records', 'javascript:alert(1)', null, undefined, 7, ['records'], {}])
+    assert.equal(allowedRoute(route), false, String(route));
+  assert.equal(appUrl('records', config), 'http://127.0.0.1:8776/#records');
+  assert.equal(appUrl('cases/inbox-1', config), 'http://127.0.0.1:8776/#cases/inbox-1');
+  assert.equal(appUrl('activity', config), null);
+  // The app asks with the same pattern and the same message shape, and asks for nothing else.
+  assert.equal(String(app.PANEL_OPEN_ROUTE), String(/^(?:overview|records|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/));
+  assert.equal(app.PANEL_MESSAGE_TYPE, OPEN_TYPE);
+  assert.deepEqual(app.panelMessage('records'), {type: OPEN_TYPE, route: 'records'});
+  assert.equal(openRequest(message(app.panelMessage('cases/inbox-1')), config, frameWindow), 'cases/inbox-1');
+  for (const route of ['activity', 'ramp/x', 'https://evil.example/']) assert.equal(app.panelMessage(route), null, route);
+});
+
+function fakeTabs(closed = []) {
+  const calls = [];
+  let next = 40;
+  return {calls,
+    tabs: {query: async filter => { calls.push(['query', filter]); return []; },
+      update: async (id, change) => { calls.push(['update', id, change]); if (closed.includes(id)) throw new Error('No tab with id'); return {id, windowId: 6}; },
+      create: async props => { calls.push(['create', props]); return {id: next++, windowId: 6}; }},
+    windows: {update: async (id, change) => { calls.push(['focus', id, change]); }}};
+}
+
+test('the first press opens one tab; later presses focus that same tab and set the route; a closed tab is replaced', async () => {
+  const remembered = {tabId: null};
+  const f = fakeTabs([40]);
+  await openApp('records', config, f.tabs, f.windows, remembered);
+  assert.deepEqual(f.calls, [['create', {url: ORIGIN + '/#records', active: true}]]);
+  assert.equal(remembered.tabId, 40);
+  const g = fakeTabs();
+  await openApp('overview', config, g.tabs, g.windows, remembered);
+  assert.deepEqual(g.calls, [['update', 40, {url: ORIGIN + '/#overview', active: true}], ['focus', 6, {focused: true}]]);
+  // The person closed that tab: a new one opens and is remembered instead.
+  await openApp('cases', config, f.tabs, f.windows, remembered);
+  assert.deepEqual(f.calls.slice(1), [['update', 40, {url: ORIGIN + '/#cases', active: true}], ['create', {url: ORIGIN + '/#cases', active: true}]]);
+  assert.equal(remembered.tabId, 41);
+  // No tab is ever searched for, and a route off the list does nothing at all.
+  assert.equal([...f.calls, ...g.calls].some(([kind]) => kind === 'query'), false);
+  const refused = fakeTabs();
+  assert.equal(await openApp('ramp/bill-1', config, refused.tabs, refused.windows, remembered), null);
+  assert.deepEqual(refused.calls, []);
+});
+
+test('the shell listens for messages only through its one handler and never sends one', () => {
+  const source = fs.readFileSync(path.join(DIR, 'panel.js'), 'utf8');
+  assert.equal(source.match(/addEventListener\('message'/g).length, 1);
+  assert.match(source, /openRequest\(event, config, frame\.contentWindow\)/);
 });

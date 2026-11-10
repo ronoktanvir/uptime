@@ -77,7 +77,7 @@
       (filter === 'hypothetical' && hypothetical(row));
     return included && [row.id,row.provider_id,row.vendor,row.title,row.native_status].join(' ').toLowerCase().includes(query.toLowerCase());
   }
-  function create({api, document: doc = global.document, onNavigate = () => {}}) {
+  function create({api, document: doc = global.document, onNavigate = () => {}, openApp = null}) {
     let epoch = 0;
     const filters = {kind:'unpaid', query:'', page:0};
     const el = (tag, text, cls) => { const n = doc.createElement(tag); if (text != null) n.textContent = shown(text); if (cls) n.className = cls; return n; };
@@ -311,40 +311,74 @@
           ['Ramp status', shown(ctx.status_summary)], ['Approval', shown(ctx.approval_status)]], 'ramp-bill'),
         fields([['Bill', ctx.object_id]], 'ramp-ids'), statement ? note(statement) : null);
     }
-    function billView(root, data, id) {
-      const v = data && data.verified_record, records = link('Open Ramp records', '#records');
-      if (v && v.ramp_context && sameId(v.ramp_context.object_id, id)) {
-        const ctx = v.ramp_context, started = v.started_by === 'PERSON' ? ', started by a person' : '';
-        const found = add(el('section', null, 'panel'), el('h2', 'What Uptime found for this bill'));
-        const evidenceGap = v.finding?.outcome === 'INSUFFICIENT_EVIDENCE';
-        add(found, el('p', evidenceGap ? 'Evidence gap: the governing agreement or usage evidence is missing' : shown(v.finding?.outcome), 'ramp-finding-line'));
-        const missing = list(v.finding?.missing).filter(item => typeof item === 'string' && item);
-        if (missing.length) add(found, add(el('ul', null, 'ramp-missing'), ...missing.map(item => el('li', item))));
-        add(found, note(bindingWords(ctx)), note(attachWords(ctx)), note(creditStatus(ctx.credit_links) + '.'));
-        const talk = add(el('section', null, 'panel'), el('h2', 'Note in Ramp', 'ramp-glyph'), ...discussion(ctx, 'No comments read on this bill.'),
-          note('Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
-        root.replaceChildren(billHead(ctx, 'Verified Ramp record'),
-          billSummary(ctx, `Saved record read from Ramp ${when(v.capture?.observed_at)}${started}. Not a live read.`), found, talk,
-          add(el('p', null, 'help recovery-links'), link('Open the full record', '#records')));
-        return;
+    // The way into the full app from this page. In the side panel (openApp given) it is the page's one primary button,
+    // which asks the panel to open the full app in a browser tab; in an ordinary tab it stays a link on this page.
+    const RAMP_BILL_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    function intoApp(route, label, href) {
+      if (typeof openApp === 'function') return add(el('div', null, 'panel-open-app'), button('Open Uptime', () => openApp(route), 'panel-open-app-button'));
+      return add(el('p', null, 'help recovery-links'), link(label, href));
+    }
+    // The bill view's states, in order: the verified record; the saved worklist; [reserved, not built: a Ramp bill that
+    // matches an invoice in Uptime's own workspace]; no saved record. Each state is one function returning the page.
+    function verifiedBill(v) {
+      const ctx = v.ramp_context, started = v.started_by === 'PERSON' ? ', started by a person' : '';
+      const found = add(el('section', null, 'panel'), el('h2', 'What Uptime found for this bill'));
+      const evidenceGap = v.finding?.outcome === 'INSUFFICIENT_EVIDENCE';
+      add(found, el('p', evidenceGap ? 'Evidence gap: the governing agreement or usage evidence is missing' : shown(v.finding?.outcome), 'ramp-finding-line'));
+      const missing = list(v.finding?.missing).filter(item => typeof item === 'string' && item);
+      if (missing.length) add(found, add(el('ul', null, 'ramp-missing'), ...missing.map(item => el('li', item))));
+      add(found, note(bindingWords(ctx)), note(attachWords(ctx)), note(creditStatus(ctx.credit_links) + '.'));
+      const talk = add(el('section', null, 'panel'), el('h2', 'Note in Ramp', 'ramp-glyph'), ...discussion(ctx, 'No comments read on this bill.'),
+        note('Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
+      return [billHead(ctx, 'Verified Ramp record'),
+        billSummary(ctx, `Saved record read from Ramp ${when(v.capture?.observed_at)}${started}. Not a live read.`), found, talk,
+        intoApp('records', 'Open the full record', '#records')];
+    }
+    // A bill found only in the earlier saved worklist. Beside a Ramp bill this page states no outcome and lists no
+    // scenario: it names the bill's own records and their stage, and says how many scenarios are kept elsewhere.
+    function worklistBill(data, matches) {
+      const ctx = matches[0].ramp_context;
+      const own = matches.filter(r => !isScenario(r)), scenarios = matches.length - own.length;
+      const found = add(el('section', null, 'panel'), el('h2', 'In the saved worklist'), note(bindingWords(ctx)), note(attachWords(ctx)),
+        note(creditStatus(ctx.credit_links) + '.'));
+      if (own.length) {
+        const rows = el('ul', null, 'ramp-bill-records');
+        own.forEach(r => rows.append(add(el('li'), el('strong', TITLES[r.title] || shown(r.title || r.id)), note(stageWords(r.stage)),
+          typeof openApp === 'function' ? null : link('Open this record', '#ramp/' + encodeURIComponent(r.id)))));
+        add(found, rows);
       }
+      if (scenarios) add(found, note(`${scenarios === 1 ? 'One contract scenario about this bill is' : `${scenarios} contract scenarios about this bill are`} kept in Ramp records. A scenario is not a finding on this bill.`));
+      return [billHead(ctx, 'Ramp bill in the saved worklist'), billSummary(ctx, coverageText(data.capture)), found,
+        intoApp('records', 'Open Ramp records', '#records')];
+    }
+    // Reserved for a later state, not built: a Ramp bill that matches an invoice in Uptime's own workspace. It would sit
+    // here, between the saved worklist and "no saved record", and return its page in the same way. Until it is built,
+    // no matching is done and nothing from Uptime's own workspace (no claim, credit or price finding) is shown here.
+    function noRecord(id) {
+      const known = typeof id === 'string' && RAMP_BILL_ID.test(id);
+      return [add(el('div', null, 'page-head'), add(el('div'), el('p', 'Ramp bill', 'eyebrow'), el('h1', 'No saved record for this bill'),
+        el('p', 'This workspace has no saved record for this Ramp bill.', 'lead'))),
+        add(el('section', null, 'panel ramp-bill-empty'), note('Uptime shows a bill here only when it holds a saved read of it from Ramp. Nothing about this bill is inferred.'),
+          known ? fields([['Bill', id.toLowerCase()]], 'ramp-ids') : null),
+        intoApp('overview', 'Open Ramp records', '#records')];
+    }
+    function billView(root, data, id) {
+      const v = data && data.verified_record;
+      if (v && v.ramp_context && sameId(v.ramp_context.object_id, id)) return root.replaceChildren(...verifiedBill(v));
       const matches = list(data && data.records).filter(r => r && r.ramp_context && sameId(r.ramp_context.object_id, id));
       if (matches.length) {
-        // The bill's own record first; a scenario about the same bill is listed after it and never as its finding.
+        // The bill's own record first; a scenario about the same bill is never its finding.
         matches.sort((a, b) => Number(isScenario(a)) - Number(isScenario(b)));
-        const ctx = matches[0].ramp_context;
-        const found = add(el('section', null, 'panel'), el('h2', 'In the saved worklist'), note(bindingWords(ctx)), note(attachWords(ctx)),
-          note(creditStatus(ctx.credit_links) + '.'));
-        const rows = el('ul', null, 'ramp-bill-records');
-        matches.forEach(r => rows.append(add(el('li'), el('strong', TITLES[r.title] || shown(r.title || r.id)),
-          isScenario(r) ? el('span', CODES.SIMULATION_ONLY, 'pill warn') : note(`${outcomeWords(r.outcome)} · ${stageWords(r.stage)}`),
-          link('Open this record', '#ramp/' + encodeURIComponent(r.id)))));
-        root.replaceChildren(billHead(ctx, 'Ramp bill in the saved worklist'), billSummary(ctx, coverageText(data.capture)), add(found, rows),
-          add(el('p', null, 'help recovery-links'), records));
-        return;
+        return root.replaceChildren(...worklistBill(data, matches));
       }
-      root.replaceChildren(add(el('div', null, 'page-head'), add(el('div'), el('p', 'Ramp bill', 'eyebrow'), el('h1', 'No saved record for this bill'),
-        el('p', 'This workspace has no saved record for this Ramp bill.', 'lead'))), add(el('p', null, 'help recovery-links'), records));
+      root.replaceChildren(...noRecord(id));
+    }
+    // No Ramp bill is open in the tab beside the panel. It reads nothing and shows no record.
+    function noBill(root) {
+      epoch++;
+      root.replaceChildren(add(el('div', null, 'page-head'), add(el('div'), el('p', 'This tab', 'eyebrow'), el('h1', 'No Ramp bill open'),
+        el('p', 'Open a bill in Ramp, and Uptime shows here what it holds for that bill.', 'lead'))),
+        intoApp('overview', 'Open Ramp records', '#records'));
     }
     async function bill(root, id) {
       const token=++epoch;
@@ -355,7 +389,7 @@
         billView(root, data, typeof id === 'string' ? id : '');
       } catch(error) { if(token===epoch) loadError(root,error,()=>bill(root,id)); }
     }
-    return {render,bill,unmount:() => {epoch++;}};
+    return {render,bill,noBill,unmount:() => {epoch++;}};
   }
   const exported={create,providerURL,matches,hypothetical,clean};
   if(typeof module!=='undefined' && module.exports) module.exports=exported;
