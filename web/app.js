@@ -88,10 +88,19 @@
   // One workspace name on every route, whatever page is opened first: the company from the workflow projection,
   // read once per sign-in, or the product name when the workspace has no configured workflow.
   let workspaceName = null, workspaceNameRead = null;
+  // Presentation only: up to two initials of a name, for the tile beside it.
+  const initials = value => String(value || '').split(/[\s._-]+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('');
+  function showAccount(subject) {
+    const control = $('#account');
+    control.textContent = 'Sign out · ' + subject;
+    if (typeof control.setAttribute === 'function') control.setAttribute('data-initials', initials(subject));
+  }
   function showWorkspaceName() {
     const name = workspaceName || 'Uptime';
     const slot = $('#workspace-name');
     slot.textContent = name;
+    const tile = document.querySelector?.('.rail-avatar');
+    if (tile) tile.textContent = initials(name);
     // Without a workspace name the line under the brand would only repeat the product name.
     if (slot.parentElement) slot.parentElement.hidden = !workspaceName;
     document.title = workspaceName ? workspaceName + ' · Uptime' : 'Uptime';
@@ -174,7 +183,7 @@
     const audit = panel('Activity'); audit.append(timeline(data.audit));
     const ramp = panel('Ramp connection'); ramp.append(record(data.ramp || {status: 'Not provided'}));
     const current = window.uptimeAuth.session();
-    if (current) $('#account').textContent = 'Sign out · ' + current.subject;
+    if (current) showAccount(current.subject);
     content.replaceChildren(head, metrics, ledger, add(el('div', 'section-grid'), audit, ramp));
     showWorkspaceName();
   }
@@ -339,7 +348,7 @@
     const policy = await api('/api/policy');
     if (token !== generation) return;
     const session = window.uptimeAuth.session();
-    if (session) $('#account').textContent = 'Sign out · ' + session.subject;
+    if (session) showAccount(session.subject);
     companionAccess = {identity:session?.subject, enrollment:policy.role,
       gate:session?.approvals_enabled === true ? 'Deployment approvals enabled; server rechecks every request' : 'Read-only deployment',
       canWrite:signedPage && policy.role === 'reviewer' && session?.approvals_enabled === true,
@@ -385,7 +394,7 @@
         window.scrollTo?.({top:0, behavior:'instant'});
         showWorkspaceName();
         const current = window.uptimeAuth.session();
-        if (current) $('#account').textContent = 'Sign out · ' + current.subject;
+        if (current) showAccount(current.subject);
       }
       return;
     }
@@ -401,7 +410,7 @@
           workspaceName = companyOf(projection.workflow) || workspaceName;
           showWorkspaceName();
           const current = window.uptimeAuth.session();
-          if (current) $('#account').textContent = 'Sign out · ' + current.subject;
+          if (current) showAccount(current.subject);
           return;
         }
       }
@@ -411,7 +420,7 @@
         window.scrollTo?.({top:rampCase ? 0 : rampScroll, behavior:'instant'});
         showWorkspaceName();
         const current = window.uptimeAuth.session();
-        if (current) $('#account').textContent = 'Sign out · ' + current.subject;
+        if (current) showAccount(current.subject);
       }
       return;
     }

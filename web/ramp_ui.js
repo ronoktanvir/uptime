@@ -125,8 +125,8 @@
     const outcomeWords = value => OUTCOME_WORDS[value] || shown(value), stageWords = value => STAGE_WORDS[value] || shown(value);
     function worklist(root, data) {
       const verified = verifiedPanel(data.verified_record);
-      const head = add(el('div', null, 'page-head'), add(el('div'), el('p', 'Read from Ramp', 'eyebrow'), el('h1', 'Ramp records'),
-        el('p', 'What Uptime has read from Ramp, with the time of each read and how complete it was. Ramp stays the system of record.', 'lead')));
+      const tile = el('span', null, 'page-tile tile-ramp'); tile.setAttribute('aria-hidden', 'true');
+      const head = add(el('div', null, 'page-head'), tile, add(el('div'), el('p', 'Read from Ramp', 'eyebrow'), el('h1', 'Ramp records')));
       const status = data.snapshot_status;
       const coverage = add(el('details', null, 'panel ramp-details'), el('summary', 'Record coverage'));
       add(coverage, record(status && typeof status === 'object' ? {...status, freshness: FRESHNESS[status.freshness] || status.freshness} : status));

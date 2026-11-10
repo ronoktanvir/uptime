@@ -89,6 +89,12 @@
     const add = (node, ...children) => { children.filter(Boolean).forEach(child => node.append(child)); return node; };
     const section = title => add(el('section', undefined, 'v4-panel'), el('h2', title));
     const note = text => el('p', text, 'v4-note');
+    // Up to two initials of a name in a small tile beside it: decoration, hidden from assistive technology. Nothing when there is no name.
+    const avatar = name => {
+      const letters = typeof name === 'string' ? name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('') : '';
+      if (!letters) return null;
+      const n = el('span', letters, 'v4-avatar'); n.setAttribute('aria-hidden', 'true'); return n;
+    };
     const button = (text, handler) => { const n = el('button', text); n.type = 'button'; n.addEventListener('click', handler); return n; };
     // A 64-character fingerprint is shown by its first ten characters wherever the exact value sits one click away.
     const short = value => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value) ? value.slice(0, 10) + '…' : value;
@@ -426,7 +432,7 @@
       if (base) add(standing, el('h3', 'Reviewer actions'), actions(m, data, base));
       out.append(standing);
       const steps = caseTimeline(data);
-      if (steps) out.append(add(section('Correspondence, in order'), note('Each step with the actor the server recorded for it. Vendor replies are quoted exactly as received.'), steps));
+      if (steps) out.append(add(section('Correspondence, in order'), steps));
       if (base && data.trace_url === '/api/correspondence/claims/' + id + '/trace') out.append(add(el('section', undefined, 'v4-panel'), disputeRecord(m, base + '/trace')));
       const records = el('div', undefined, 'v4-fold-group');
       add(records, fold(key + ':decision', 'Decision, unknowns and amounts as recorded', provenance(data.sources), record(decisionRecord(data))));
@@ -641,7 +647,7 @@
       const id = data.vendor_id ?? data.id;
       const n = el('section', undefined, 'v4-panel v4-vendor');
       const tone = STATE_TONE[data.state];
-      n.append(add(el('div', undefined, 'v4-vendor-head'), el('h2', shown(data.name ?? data.vendor ?? id)),
+      n.append(add(el('div', undefined, 'v4-vendor-head'), avatar(data.name ?? data.vendor ?? id), el('h2', shown(data.name ?? data.vendor ?? id)),
         typeof data.state === 'string' && data.state ? el('span', data.state, 'pill' + (tone ? ' ' + tone : '')) : null));
       if (typeof data.state === 'string' && data.state) {
         const force = data.state === 'ACTIVE' && data.active_version ? 'In force in this workspace.'
@@ -1148,7 +1154,7 @@
           const usable = typeof id === 'string' && id;
           // The case opens by route, so the address names it and Back returns to this list.
           const link = (text, cls) => { const a = el('a', text, cls); a.href = '#cases/' + encodeURIComponent(id); return a; };
-          const name = add(el('td'), usable ? link(shown(claim.title ?? id), 'v4-case-title') : el('span', shown(claim.title ?? id)),
+          const name = add(el('td', undefined, 'v4-case-cell'), avatar(claim.vendor), usable ? link(shown(claim.title ?? id), 'v4-case-title') : el('span', shown(claim.title ?? id)),
             el('p', [claim.vendor, claim.title == null ? null : id].filter(value => value != null).join(' · '), 'v4-note'));
           // An ineligible claim owes no credit: a determined outcome, not an unknown amount.
           const amount = claim.amount == null && claim.outcome === 'INELIGIBLE' ? 'No credit' : money(claim.amount, claim.currency) ?? 'Not determined';
@@ -1176,6 +1182,7 @@
         el('p', shown(metric.value), 'v4-figure-value'), metric.note == null ? null : note(metric.note), details('Full record', metric));
     }
     function portfolio(m, data) {
+      m.body.append(note('Portfolio and seeded comparison are separate server-declared cohorts. A seeded scenario is not a portfolio total.'));
       const grid = el('div', undefined, 'v4-grid v4-cohorts');
       for (const [key, title] of [['portfolio','Portfolio'],['seeded','Seeded comparison']]) {
         const cohort = data[key]; const n = section(title);
@@ -1241,11 +1248,11 @@
       const wrap = el('div', undefined, 'uptime-v4');
       // Each page says what it is in its first lines: a short context line, the title and one sentence.
       const [eyebrow, title, lead] = {
-        vendors:['Vendor agreements & versions', 'Agreements', 'Each agreement Uptime reads in this workspace: whether it is in force, what its source establishes with the exact clauses, and who performed each review step.'],
-        disputes:['Correspondence & disputes', 'Cases', 'Each claim filed with a vendor, its stage and its correspondence. Open a case to read every step in order.'],
-        portfolio:['Regression comparison', 'Portfolio comparison', 'Portfolio and seeded comparison are separate server-declared cohorts. A seeded scenario is not a portfolio total.'],
+        vendors:['Vendor agreements & versions', 'Agreements', null],
+        disputes:['Correspondence & disputes', 'Cases', null],
+        portfolio:['Regression comparison', 'Portfolio comparison', null],
         case:[null, 'Case inspector', null],
-        catalog:['More tools', 'Advanced companion workflows', 'Review vendor terms, correspondence and financial reconciliation.']}[view];
+        catalog:['More tools', 'Advanced companion workflows', null]}[view];
       const refresh = button('Refresh server state', async () => {
         if (busy || !active(m)) return;
         // Supplied projections must be refreshed by their owner, not reclassified as current.
@@ -1259,7 +1266,9 @@
       refresh.className = 'v4-refresh'; m.body.className = 'v4-body';
       m.head = add(el('div'), eyebrow ? el('p', eyebrow, 'eyebrow') : null, el('h1', title), lead ? el('p', lead, 'lead') : null);
       m.tools = add(el('div', undefined, 'v4-head-tools'), refresh);
-      add(wrap, add(el('div', undefined, 'page-head'), m.head, m.tools),
+      // An icon tile beside the title, by page: decoration, hidden from assistive technology.
+      const tile = el('span', undefined, 'page-tile tile-' + ({vendors:'agreements', disputes:'cases', case:'cases', portfolio:'regression', catalog:'advanced'}[view])); tile.setAttribute('aria-hidden', 'true');
+      add(wrap, add(el('div', undefined, 'page-head'), tile, m.head, m.tools),
         readOnly() ? el('p', accessNote(), 'v4-banner') : null, m.status, m.result, m.body, identity()); root.replaceChildren(wrap);
       try {
         const data = supplied === undefined ? await request(m, view === 'vendors' ? '/api/vendors' : view === 'disputes' ? '/api/correspondence/claims' : '') : supplied;
@@ -1292,7 +1301,7 @@
         const scope = data && data.scope && typeof data.scope === 'object' ? data.scope : {};
         const back = el('a', 'All cases', 'v4-back'); back.href = '#cases';
         const context = [data.vendor, scope.month == null ? null : monthName(scope.month)].filter(value => typeof value === 'string' && value).join(' · ');
-        m.head.replaceChildren(back, el('p', context || 'Correspondence case', 'eyebrow'), el('h1', shown(data.title ?? id)), el('p', shown(id), 'lead'));
+        m.head.replaceChildren(back, el('p', context || 'Correspondence case', 'eyebrow'), el('h1', shown(data.title ?? id)), el('p', shown(id), 'page-ref'));
         m.tools.replaceChildren(button('Refresh case receipts', () => active(m) && inspect(root,id)));
         m.body.replaceChildren(inspector(m,data,true));
         uncertain = false; sync();
