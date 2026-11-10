@@ -94,6 +94,10 @@
 .uptime-v4 .v4-vendor > .v4-fold:last-child { border-radius: 0 0 var(--radius) var(--radius); }
 .uptime-v4 .v4-vendor > .v4-note:last-child, .uptime-v4 .v4-vendor > .v4-facts:last-child, .uptime-v4 .v4-vendor > .v4-review:last-child { margin-bottom: 24px; }
 .uptime-v4 .v4-vendor-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: -12px; }
+.uptime-v4 .v4-avatar { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--brand-bg, var(--ink)) var(--brand, none) center / cover no-repeat; color: var(--brand-ink, #fff); font-size: 12px; line-height: 1; font-weight: 650; letter-spacing: .02em; }
+/* In the list of cases the vendor's tile sits at the left of the case's two lines. */
+.uptime-v4 td.v4-case-cell { position: relative; padding-left: 60px; }
+.uptime-v4 .v4-case-cell .v4-avatar { position: absolute; left: 16px; top: 16px; }
 .uptime-v4 .v4-vendor-head h2 { font-size: 20px; line-height: 28px; letter-spacing: -.01em; }
 .uptime-v4 .v4-force { display: flex; flex-wrap: wrap; gap: 0 8px; color: var(--text); }
 .uptime-v4 .v4-vendor h3 { margin: 0 0 12px; }
@@ -243,6 +247,8 @@
   .uptime-v4 .v4-panel { padding: 20px 16px; }
   .uptime-v4 .v4-cases { padding: 0; }
   .uptime-v4 .v4-cases .stack td { padding: 0; }
+  .uptime-v4 .v4-cases .stack td.v4-case-cell { padding-left: 44px; }
+  .uptime-v4 .v4-cases .stack .v4-case-cell .v4-avatar { left: 0; top: 2px; }
   .uptime-v4 .v4-open { text-align: left; }
   .uptime-v4 .v4-step { grid-template-columns: minmax(0, 1fr); padding-left: 28px; }
   .uptime-v4 .v4-step::before { left: 0; }

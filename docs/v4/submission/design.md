@@ -27,9 +27,10 @@ One accent (a cobalt indigo), a navy ink, cool slate neutrals and three status t
 
 | Token | Value | Use | Contrast |
 |:---|:---|:---|:---|
-| `--bg` | `#f6f8fb` | Page canvas | |
+| `--bg` | `#ffffff` | Page canvas (white since the second pass; it was `#f6f8fb`) | |
+| `--rail-bg` | `#f5f6f8` | Sidebar | |
 | `--surface` | `#ffffff` | Cards, sidebar, inputs | |
-| `--sunken` | `#f8fafc` | Table heads, quotes, code | |
+| `--sunken` | `#f6f7f9` | Table heads, quotes, code | |
 | `--line` | `#e3e8ef` | Hairlines and card borders | decorative |
 | `--field` | `#8a94a6` | Input borders | 3.06:1 on white (non-text) |
 | `--ink` | `#0f1a36` | Headings and key figures | 17.2:1 on white |
@@ -53,12 +54,19 @@ Inter, one variable font file that the app serves itself ([notices](THIRD-PARTY-
 |:---|:---|:---|
 | Hero figure | 40 / 44 | 600 |
 | Figure | 24 / 30 | 600 |
-| Page title (`h1`) | 28 / 34 | 600 |
-| Card title (`h2`) | 16 / 24 | 600 |
-| Sub-heading (`h3`) | 14 / 20 | 600 |
-| Body | 14 / 22 | 400 |
+| Page title (`h1`) | 24 / 30 | 650 |
+| Card title (`h2`) | 15 / 22 | 600 |
+| Sub-heading (`h3`) | 13 / 20 | 600 |
+| Body | 14 / 20 | 400 |
+| Table head | 11 / 16, capitals, wide-set | 600 |
 | Secondary | 13 / 20 | 400 |
 | Label and caption | 12 / 16 | 500 |
+
+Three voices, each for one kind of text (second pass):
+
+- **Interface:** Inter, for everything the product itself says.
+- **Quoted source text:** a serif, for a contract clause or a vendor's reply, so a document's words never look like the interface's own. It is the system serif (`ui-serif`, New York on a Mac, Georgia elsewhere); no file is bundled for it.
+- **References:** monospace, for identifiers and digests, as before.
 
 ### Space, shape, depth, motion
 
@@ -211,6 +219,18 @@ Restyled through the shared components; structure and the server's own words are
 - **Portfolio comparison:** each cohort shows its figures (the server's label, value and note) and its cases (title, amount, the server's outcome and stage words). Every full record is one click away. It was a 23,774 px list of raw fields.
 - **A failed read** shows "Unable to load this view" with the reason and "Try again", with the same distance from the top as a page header.
 
+### Second pass: the look of an established application (November 9, late)
+
+Ronok asked for the interface to read as an established application rather than a small page that explains itself: an application's structure, more icons, more than one typeface, and typographic emphasis, with Ramp's layout as a possible reference. Layout conventions were taken from that kind of product (a tinted sidebar beside a white working area, compact page headers, dense tables with entity tiles and state chips). No logo, colour, wordmark, illustration or typeface of Ramp's is used, and nothing suggests the product is Ramp's.
+
+- **Shell.** The working area is white and the sidebar is tinted. The sidebar opens with the brand and a "for Ramp" tag, then a workspace block (the workspace's initials, the label "Workspace" and its name). The current page is a raised white row. Every tool under "More tools" has its icon. The account row shows the account's initials beside the control's own words.
+- **Page headers.** Each page opens with a tile (the vendor's initials on the Overview, the page's icon elsewhere), a small context line and the title, on a hairline. The introduction sentences under the titles are gone: the Overview's, Activity's, Agreements', Cases', Ramp records' and Advanced workflows'. The Evidence group's sentence and the sentence over a case's correspondence are gone too. Statements that say what a figure is or is not were kept, word for word: "One credit, shown at each stage. The amounts are not added together.", "Separate from the service credit and not included in it.", "Read only. These requirements grant no approval, activation or dispatch.", the Ramp page's read and partial-list statements, and the Portfolio page's "A seeded scenario is not a portfolio total."
+- **Cards and tables.** The main cards carry a small icon beside their titles. Table heads are small capitals. A state chip carries a dot in its own colour. The decision button carries a check mark, and "Sign in again to take actions" a key.
+- **Entities.** A vendor's initials sit in a tile beside its name on its agreement card and on each row of the Cases list.
+- **Company pictures.** At Ronok's request the two authored companies he supplied pictures for show them in place of their initials: a cloud mark for Northwind Cloud (Overview header, Cases rows, its agreement card) and a lighthouse mark for Harborline Analytics (the sidebar's workspace block). The stylesheet names the two pictures; any other name keeps its initials. Details are in [the notices](THIRD-PARTY-NOTICES.md).
+- **Type.** Titles are smaller and heavier, text is set tighter, and quoted source text is in a serif (section 2).
+- **Unchanged.** Every control keeps its words and its place: no row was added to the table below for this pass. No amount, state, destination or disclosure changed, and no test changed.
+
 ### Controls renamed or moved (for the filming checklist)
 
 Every control keeps what it does. A label not listed here is unchanged. "Closed section" means a titled row with a chevron: click the title and the content is the same as before.
@@ -268,6 +288,7 @@ Every control keeps what it does. A label not listed here is unchanged. "Closed 
 | Coordinator's correction | The interface must not assert that a person decided. | Steps are tagged "Reviewer decision" and name the account as sent; the count sentence reads "4 reviewer decisions and 7 automatic steps recorded"; the model jobs note reads "A model proposes; a reviewer decides." Three assertions changed (ledger rows 1 to 3). |
 | **A1** (P2), Overview, Activity, case page, Agreements | The routine-steps line said a person acts ("Waiting for a person to approve", "Stopped for a person: …"), and the approval then comes from a scripted account. | Every interface sentence about who approves, reviews or presses now says "reviewer": the six pause reasons, "Each step runs when a reviewer presses it in this workspace.", "A reviewer must review it; this case offers no action until then." and "… a reviewer’s approval remain required." Left as they are, because they are about an actual person: "Posted by a person in Ramp", "started by a person" and "observed in Ramp by a person" on the Ramp read. Four tests changed (ledger rows 14 to 17). |
 | **A3** (P3), Overview | The server's statement that this reviewer is scripted was only inside closed sections on the film's main screen. | The recovery card shows one field at the right of its title line: "Reviewer" with the name as the server sends it and its authority kind in the same words the closed records use ("Dana Reyes · Scripted reviewer"). It takes no height of its own, is not a control, and is left out when the server names no reviewer. |
+| **A2** (P2), one case | The closed section "Decision, unknowns and amounts as recorded" showed "Posted USD 0.00" and "Applied USD 0.00" after the credit had been posted and applied, because the claim's own record does not track those two stages and sends a zero for both. | In that section a zero for Posted or Applied is no longer stated as an amount; one sentence says so: "This record does not track posting or application; the Overview’s credit lifecycle shows them for the credit it follows." A non-zero amount on the record is shown like the others. Estimated, Claimed, Awarded and Disputed remainder are as the record sends them, and "Complete server case record" below is unchanged, zeros included. Three new tests; no existing test changed. |
 
 Confirmed by acceptance and still true: the reviewer is shown as scripted; no screen says money was recovered in Ramp; the Ramp card reads "No Ramp bill is linked to this agreement"; quotes are byte-exact and untrimmed.
 
@@ -347,6 +368,10 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
 
 - **Acceptance findings A1 and A3** (the commit after `main`'s `53c38e3` on this branch): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 129`, `pass 129`, `fail 0`. The same 23 files, one at a time under the same limit: 124 passed, none failed, 123 seconds. Looked at on the Overview at 1440×900 and 390×844: the reviewer field sits on the recovery card's title line, nothing below it moved, no console message, no page wider than its window. Four tests changed (ledger rows 14 to 17). The full run for this change is the coordinator's, before it merges.
 
+- **Second pass and A2** (the two commits after `main`'s `d23db79` on this branch): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 132`, `pass 132`, `fail 0` (three new, for A2). The same 23 files, one at a time under the same limit: 124 passed, none failed, 145 seconds. Looked at on sign-in, Overview, Activity, Cases, one case (with the closed amounts section open), Agreements, Ramp records and Portfolio comparison at 1440×900, and the one-bill page at 420×900: no console message, no failed request, no page wider than its window. The full run is the coordinator's, before it merges.
+
+- **Company pictures** (the commit after the three above): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 132`, `pass 132`, `fail 0`. The same 23 files, one at a time under the same limit: 124 passed, none failed, 121 seconds. Looked at on the Overview and Cases at 1440×900: both pictures in their tiles, no console message, no page wider than its window. No test changed.
+
 ## 7. Known limits and open items
 
 - **Phone width is usable, not polished.** Ronok asked for the computer layout first and the phone later, since the demo does not use it. At 390×844 no page is wider than the window and every control is reachable, and the 390 px images above show the present state. Spacing, type sizes and the order of blocks at that width have not had the pass the computer layout had.
@@ -354,6 +379,7 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
 - **More tools keep the server's own codes.** Case ledger, the case inspector, Onboarding lab, Policies and Integrations were restyled and tidied, not redesigned. They show stage and eligibility as the server's words in capitals (for example `RETROSPECTIVE_REVIEW`), and the case inspector shows an evidence detail as the server's JSON text. The Onboarding lab shows both offered actions as primary buttons.
 - **Quotes keep the source's own line breaks.** A clause is shown byte for byte, so in a wide column its lines can end early. That is deliberate.
 - **Light theme only.** The page declares a light colour scheme; no dark theme was made.
+- **Two of the three type voices are the system's.** Quoted text uses the system serif and references the system monospace, so their letter shapes differ between a Mac and other machines. Bundling a serif and a monospace would fix that; it needs Ronok's yes to two downloads.
 - **One font file.** The typeface is a 344 KB file loaded from the app itself on each page load. Until it arrives no text is drawn in another face (up to three seconds on a slow connection; a few milliseconds locally), so text never reflows.
 - **The panel beside Ramp** (`#ramp-bill/<id>`) is tested at 420×900 in Chrome, not inside the extension's side panel; the coordinator is checking it there.
 

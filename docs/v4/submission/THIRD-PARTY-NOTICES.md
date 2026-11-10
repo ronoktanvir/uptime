@@ -2,11 +2,11 @@
 
 ## Phosphor Icons
 
-The interface uses 21 icons from the Phosphor icon family, at Ronok's request (November 9, 2026).
+The interface uses 40 icons from the Phosphor icon family, at Ronok's request (November 9, 2026). The second pass that evening added the sidebar's tool icons, the page tiles and the card title icons.
 
 - **Source:** [github.com/phosphor-icons/homepage](https://github.com/phosphor-icons/homepage), folder `public/assets/phosphor.iconjar/icons/`, at commit `7a57592e564f9ba7996ebac05be5b0546464fb9c`.
-- **Files:** `squares-four`, `tray`, `file-text`, `pulse`, `arrows-clockwise`, `arrows-clockwise-bold`, `arrow-right-bold`, `arrow-left-bold`, `arrow-square-out-bold`, `user-bold`, `lightning-bold`, `tray-arrow-down-bold`, `paperclip-bold`, `clock-bold`, `lock-simple-bold`, `check-bold`, `info-fill`, `warning-fill`, `warning-circle-fill`, `seal-check-fill`, `check-circle-fill` (each with the extension `.svg`).
-- **How they are used:** only each file's path outline is kept, unchanged. Four are inline in `web/index.html` (the sidebar) with the refresh icon; the rest are image tokens at the top of `web/style.css`, drawn as masks so each icon takes the colour of the text beside it. No file is loaded from another host and no new file is served.
+- **Files:** `squares-four`, `tray`, `file-text`, `pulse`, `arrows-clockwise`, `arrows-clockwise-bold`, `arrow-right-bold`, `arrow-left-bold`, `arrow-square-out-bold`, `user-bold`, `lightning-bold`, `tray-arrow-down-bold`, `paperclip-bold`, `clock-bold`, `lock-simple-bold`, `check-bold`, `info-fill`, `warning-fill`, `warning-circle-fill`, `seal-check-fill`, `check-circle-fill`, `bank`, `list-magnifying-glass`, `flask`, `shield-check`, `plugs-connected`, `flow-arrow`, `chart-bar`, `file-text-bold`, `tray-bold`, `path-bold`, `hand-coins-bold`, `list-checks-bold`, `chat-circle-text-bold`, `scales-bold`, `tag-bold`, `receipt-bold`, `pulse-bold`, `check-circle-bold`, `key-bold` (each with the extension `.svg`).
+- **How they are used:** only each file's path outline is kept, unchanged. The sidebar's eleven destinations and the refresh icon are inline in `web/index.html`; the rest are image tokens at the top of `web/style.css`, drawn as masks so each icon takes the colour of the text beside it. No file is loaded from another host and no new file is served.
 - **How they were taken in:** each file was read as data and accepted only if it had exactly the one expected shape (a single filled path with path-outline characters); nothing else from a file is copied.
 - **Decoration only:** every icon is hidden from assistive technology or is an empty pseudo-element, so no link, tag or heading is named by an icon. No icon states anything the words beside it do not.
 
@@ -140,3 +140,12 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
+
+## Company pictures (supplied by Ronok; not third-party)
+
+Two of the walkthrough's authored companies have a picture in place of their initials, at Ronok's request (November 9, 2026): a cloud mark for the vendor Northwind Cloud and a lighthouse mark for the workspace Harborline Analytics.
+
+- **Source:** two images Ronok attached to the design session, each 1254 by 1254 pixels. Each was cropped to its mark, scaled to 96 pixels and re-encoded as PNG; only those two small images are in the repository, as image tokens at the top of `web/style.css`. No file is served for them and nothing loads from another host.
+- **How a picture is chosen:** every company tile carries a class made from the name it stands for, and the stylesheet names the two pictures. Any other name, CalyxQuay for example, keeps its initials. The server sends no picture and nothing about it changed.
+- **What they are not:** both companies are authored for the walkthrough, as the package's README says. The pictures are decoration for those two names. They are not marks of real organisations and are hidden from assistive technology like the initials they replace.
+

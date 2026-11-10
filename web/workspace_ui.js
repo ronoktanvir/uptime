@@ -268,8 +268,9 @@
     function renderData(root,data,token) {
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
       const months = list(data.months);
-      const header=add(el('div',null,'page-head'),add(el('div'),el('p','Contract review & recovery','eyebrow'),el('h1',vendor || 'Contract review'),
-        el('p','Uptime checks this vendor’s invoices against the agreement behind them. This page follows one credit from estimate to applied and lists what still needs a reviewer.','lead')),
+      // The vendor's initials beside its name: decoration, hidden from assistive technology.
+      const tile=el('span',String(vendor || '').split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0].toUpperCase()).join(''),'page-tile brand-'+String(vendor || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));tile.setAttribute('aria-hidden','true');
+      const header=add(el('div',null,'page-head'),tile,add(el('div'),el('p','Contract review & recovery','eyebrow'),el('h1',vendor || 'Contract review')),
         data.as_of ? el('p','As of '+when(data.as_of),'as-of') : null);
       const ledger=data.ledger || {}, currency=ledger.currency || 'USD';
       const finance = data.finance && typeof data.finance === 'object' ? data.finance : null;
@@ -405,8 +406,7 @@
       const guide=finance ? guidePanel(token) : null;
       // One reading order at every width: the recovery card, what needs attention beside it, then the Ramp record and the guide.
       const columns = add(el('div', null, 'overview-columns' + (attention ? '' : ' single')), recovery, attention, ramp, guide);
-      const evidence = add(el('div', null, 'section-head'), el('h2', 'Evidence'),
-        el('p', 'How each figure above was reached: the monthly evaluations, the price review and the bill, with the clauses and records behind them.'));
+      const evidence = add(el('div', null, 'section-head'), el('h2', 'Evidence'));
       const records = add(el('div', null, 'fold-group'), contract, data.onboarding ? expansion : null, detail);
       const activityLink = add(el('p', null, 'help foot-link'), (() => { const a = el('a', 'See the full activity history', 'case-link'); a.href = '#activity'; return a; })());
       root.replaceChildren(header,outcome(data, months),lifecycle(data),columns,evidence,monthly,add(el('div',null,'section-grid'),pricing,billing),records,activityLink);
@@ -500,8 +500,8 @@
     }
     function renderActivity(root, data) {
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
-      const header = add(el('div', null, 'page-head'), add(el('div'), el('p', vendor ? vendor + ' · contract review & recovery' : 'Contract review & recovery', 'eyebrow'), el('h1', 'Activity'),
-        el('p', 'Every step on this case in order, with who or what authorised it.', 'lead')),
+      const tile = el('span', null, 'page-tile tile-activity'); tile.setAttribute('aria-hidden', 'true');
+      const header = add(el('div', null, 'page-head'), tile, add(el('div'), el('p', vendor ? vendor + ' · contract review & recovery' : 'Contract review & recovery', 'eyebrow'), el('h1', 'Activity')),
         data.as_of ? el('p', 'As of ' + when(data.as_of), 'as-of') : null);
       const history = panel('Workflow history'), timeline = el('ol', null, 'activity');
       list(data.audit).forEach(event => timeline.append(add(el('li'), el('time', when(event.at)), el('span', event.event), event.ref ? el('code', shortRef(event.ref)) : null)));

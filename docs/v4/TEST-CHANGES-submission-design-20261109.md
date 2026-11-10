@@ -37,11 +37,15 @@ The helper `open_section(page, title)` and the two section titles were added to 
   - `a bound agreement and an attachable finding are stated as such; other bindings are never called bound`
   - `a failed read shows no bill and an expired session propagates to sign-in`
 - `web/browser-contract.test.cjs`: `the one-bill route makes one request, the saved Ramp workspace, and never reads the workflow projection`
+- `tests/helpers/case_recorded_amounts.test.cjs` (acceptance A2: the claim record does not track these stages):
+  - `a zero for posting and application is not stated as an amount; the other four and the complete record are exact`
+  - `a non-zero posted or applied amount on the record is shown like the others`
+  - `a record without amounts states none and adds no sentence`
 - `tests/test_ramp_bill_panel.py`:
   - `test_the_verified_bill_card_is_in_the_first_viewport_of_a_420_px_panel`
   - `test_an_unknown_bill_says_so_and_ramp_records_opens_without_filling_the_panel_with_navigation`
 
-The pass over every page on a computer screen (`1dca1cf`, `53f6115`) changed no test. Neither did the icons. The typeface changed two (rows 12 and 13).
+The pass over every page on a computer screen (`1dca1cf`, `53f6115`) changed no test. Neither did the icons. The typeface changed two (rows 12 and 13). The second pass (the application shell, page headers without introductions, tiles, card icons and the serif voice) changed none. Acceptance A2 changed none either: no existing test asserted the two zero rows in that closed section, so the fix is covered by three new tests instead.
 
 ## Interrupted runs
 
