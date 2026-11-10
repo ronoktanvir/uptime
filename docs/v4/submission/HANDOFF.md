@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:58 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 22:10 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -46,13 +46,13 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 
 | Branch | Commit | What it is | Verified |
 |:---|:---|:---|:---|
-| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last merge, `eacd182` (5,464, none skipped). Hosted checks passed on `main` at `11a6770`, `21eae2c`, `1fa4ab4` and `9bea5fb`, and on `15034f3` |
+| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last code merge, `eacd182`, and on the documentation merge after it, `b04fd31` (5,464 each, none skipped). Hosted checks passed on `main` at `11a6770`, `21eae2c`, `1fa4ab4` and `9bea5fb`, and on `15034f3` |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
 | `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `4c93a44`: the interface set in Inter, after `15034f3`, the film re-cut and the icons | Full run passes on `4c93a44`, `15034f3`, `e3dab64` and `1fa4ab4` (5,452 each) |
 | `work/submission-design-20261109` | `91dc42c` | The redesign, then 21 Phosphor icons (MIT), the Inter typeface (SIL Open Font License) and a list of renamed controls; [notices](THIRD-PARTY-NOTICES.md) | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
 | `work/sidepanel-server-20261109` | `dc4ff65` | Side-panel option, extension, setup option and the real-browser check | Merged. Checked inside the real extension together with the redesign's bill page |
 | `work/submission-onboarding-20261109` | `088da4a` | Role 1, contract reading | Merged |
-| `work/submission-disputes-20261109` | `d1ca9b4` | Role 2: disputes, the walkthrough, the setup refusals, its test port change, and the authored reply variant with its driver | Merged |
+| `work/submission-disputes-20261109` | `845b411` | Role 2: disputes, the walkthrough, the setup refusals, its test port change, and the authored reply variant with its driver | Merged |
 | `work/submission-ramp-20261109` | `a15d987` | Role 3, Ramp | Merged |
 | `work/submission-ui-20261109` | `7ca68b2` | Role 4, interface before the redesign | Merged |
 | `work/submission-acceptance-20261109` | `319ca43` | Role 5: acceptance, its dated correction, and the interface-only addendum on `main` | Merged |
@@ -106,6 +106,7 @@ This push did not improve the unseen-contract result and must not be presented a
 **In the product, all recorded on November 9, none live:**
 - Six `claude-opus-5-5` calls read three authored contracts, one call per rule family and none retried.
 - One `claude-opus-5-5` call read an authored unclear vendor reply. It was read as ambiguous, the case went to a reviewer, and nothing was awarded.
+- One `claude-opus-5-5` call read an authored reply asking for the January log in other words. It proposed the right document and type, and tagged the month, which the reply gives without a year. Uptime's checks will not act on a period that is not one exact month, so the case stayed with a reviewer and nothing was awarded.
 - Each call ran with no tools, after an operator recorded permission for that exact request. The operator was the engineering agent, named as such; no approval names Ronok. A model's output is a proposal only.
 - Northwind's own contract and its vendor's log request use fixed rules, with no model call.
 
@@ -150,7 +151,7 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 | Item | Owner | State |
 |:---|:---|:---|
 | Setup command: its real-process tests took a port from 8821–8829 and skipped if all were taken | Role 2 | **Done** (`8addc5a`): they take a port the system assigns. Requested at 17:50 PST. The plain refusals and the `--serve` rule are done |
-| A model step inside the main case: a third authored reply the fixed rules do not recognise, read by one genuine model call and checked by the reviewer against their own reading | Role 2, then the coordinator | Approved by Ronok at about 21:30 PST, relayed by the judge session, for the variant and the one call only. The variant, its tests and its driver are merged (`eacd182`) with no change under `uptime/`. The one call is next, from a clean checkout of `main`. The film is decided after the call |
+| A model step inside the main case: a third authored reply the fixed rules do not recognise, read by one genuine model call and checked by the reviewer against their own reading | Role 2, then the coordinator | Approved by Ronok at about 21:30 PST, relayed by the judge session, for the variant and the one call only. Both are done. **The call's result:** Claude proposed the right document and type but tagged the month without a year, and Uptime's checks would not act on that proposal; under the rule fixed beforehand it does not count as the log request, the case stayed in review and no money moved ([receipt](../evidence/submission-disputes-20261109/reworded-model-job.json)). The film decision is Ronok's: by the agreed rule the current cut stands |
 | The routine-steps line said a person approves where the account is scripted (acceptance A1, P2); the scripted reviewer's display name was only inside closed sections of the Overview (A3, P3) | The redesign session | **Done** (`91dc42c`), merged; role 5 has not rechecked them. Requested at 21:47 PST |
 | Interface-only acceptance check of the redesign and the side panel's default | Role 5 | **Done** (`319ca43`). First requested at 17:50 PST |
 | Retake the README's three screenshots (taken before the icons and the typeface), add a README link to the third-party notices, the video link | Role 6 | Not yet requested: waiting for the look to stop changing. The storyboard re-cut, the filming checklist for `main`, the timing recheck and the README's side-panel paragraph are **done** (`7f6e9ec`). First requested at 17:50 PST. The README's and the judge guide's wording still matches the redesigned interface's labels |

@@ -1,0 +1,28 @@
+{
+  "tested_commit": "b04fd31409057d5333ecc8d7064ceffffbb90b8f",
+  "branch": "work/submission-integration-20261109",
+  "role": "the record of the one genuine model call on the reworded log request, and the wording that follows from it",
+  "contents": "main at df712bf plus role 2 at 845b411 (the call's receipt and its written result) and one commit by the coordinator that updates the README's and the judge guide's count of model calls and says what this one returned. Documentation and evidence only: no application, script, interface or test file differs from eacd182, which passed in full.",
+  "command": [
+    "UPTIME_REQUIRE_BROWSER=1",
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-b04fd31",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5464 passed, 1 warning in 468.26s (0:07:48)",
+  "log": "suite-b04fd31-pytest.log",
+  "started_at": "2026-11-10T06:02:00Z",
+  "finished_at": "2026-11-10T06:09:50Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "129 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "limits": "Regression verification of a documentation and evidence merge. It says nothing about the model call itself; that call's own receipt is docs/v4/evidence/submission-disputes-20261109/reworded-model-job.json. Nothing from Uptime has been written to Ramp."
+}
