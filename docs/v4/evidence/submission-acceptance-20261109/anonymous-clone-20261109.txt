@@ -1,0 +1,51 @@
+Anonymous HTTPS clone of the README's first command, recorded by role 5 (gent8).
+Requested by the coordinator to recheck the Task 4 deviation "SSH clone (the repository is private)".
+
+Started: 2026-11-09T23:59:38Z (UTC). Machine git: git version 2.39.5 (Apple Git-154).
+
+Environment: env -i with PATH=/usr/bin:/bin:/usr/sbin:/sbin, HOME set to an empty scratch directory,
+GIT_CONFIG_NOSYSTEM=1, GIT_TERMINAL_PROMPT=0, GIT_ASKPASS=/usr/bin/false, SSH_ASKPASS=/usr/bin/false,
+git -c credential.helper= . No global or system git config, no credential helper, no SSH, no prompt.
+
+1. git clone https://github.com/ronoktanvir/uptime.git
+   exit 0
+   output: Cloning into 'uptime'...
+   checked-out branch: main
+   checked-out HEAD:   b6e93bd181161ecff69eb1679bfbfb937cfe86a7
+
+2. git checkout -q 52f1a2f478f414d258dc89e122c243f7f5573e0b
+   exit 0; HEAD 52f1a2f478f414d258dc89e122c243f7f5573e0b
+
+3. git ls-remote --symref https://github.com/ronoktanvir/uptime.git HEAD   (anonymous, same environment)
+   ref: refs/heads/main  HEAD
+   b6e93bd181161ecff69eb1679bfbfb937cfe86a7  HEAD
+   refs/heads/main                                 b6e93bd181161ecff69eb1679bfbfb937cfe86a7
+   refs/heads/frozen/submission-fallback-20261109  52f1a2f478f414d258dc89e122c243f7f5573e0b
+
+4. Unauthenticated GitHub API, GET /repos/ronoktanvir/uptime (no token):
+   private false, visibility public, default_branch main
+   GET /repos/ronoktanvir/uptime/readme (the README the repository page renders):
+   sha bf3ca577ff3bc1546b27db07b74baaf2187b0a6d = blob of README.md at b6e93bd (main)
+   README.md at 52f1a2f is blob 40570171220cb960b9986d79893c3f5b0e5e46f9
+
+5. Relation of main to the frozen build (local, read-only):
+   b6e93bd is an ancestor of 52f1a2f; 85 commits behind; 109 files changed, 11,668 insertions, 281 deletions.
+   README.md differs: 80 insertions, 95 deletions.
+   Merges present in 52f1a2f but not in main include 02d86f7 (role 2 dispute automation),
+   c756853 (role 2 sign-in fix, role 1 contract intelligence, role 3 Ramp context),
+   ff7977c (role 3 verified Ramp excerpt), 0fe20b4 and 6b93e31 (role 4 screens),
+   52f1a2f (role 6 README, judge guide and storyboard).
+   scripts/setup_northwind.py on main accepts --directory, --origin, --resume, --serve and
+   --public-proposal-config; the frozen build adds --step-by-step, --counterparty-reply and
+   --reviewer-credential. The frozen README's second command (--directory ... --serve) is therefore
+   accepted by main's script without error.
+   Neither README tells the reader to check out 52f1a2f or frozen/submission-fallback-20261109.
+
+Not done: main's walkthrough was not run; nothing about main's run-time behaviour is claimed here.
+
+Phase B (2026-11-09 23:25:29Z) for comparison, from the session record: it cloned
+git@github.com:ronoktanvir/uptime.git (the SSH URL of this machine's existing remote) and then ran
+git checkout -q 52f1a2f478f414d258dc89e122c243f7f5573e0b before the README's second command.
+Whether the repository was private at 23:25Z was not checked at the time.
+
+The clone and its scratch HOME were deleted after this record was written.
