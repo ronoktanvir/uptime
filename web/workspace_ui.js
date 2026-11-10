@@ -58,7 +58,44 @@
   // A 64-character fingerprint inside a sentence is shown by its first ten characters; the exact value stays in the inspectors.
   const fingerprints = value => text(value).replace(/\b[0-9a-f]{64}\b/g, match => match.slice(0, 10) + '…');
   const isZero = value => /^-?0*(\.0*)?$/.test(String(value));
-  function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true}) {
+  // Steps in order: pure readings of the server's recorded steps. Nothing here creates, reorders or invents a step.
+  // The recorded order is the server's sequence number; without one on every step, the order the server sent.
+  function recordedOrder(steps) {
+    const rows = list(steps).filter(step => step && typeof step === 'object');
+    if (!rows.every(step => Number.isInteger(step.seq))) return rows;
+    return rows.map((step, index) => [step, index]).sort((a, b) => a[0].seq - b[0].seq || a[1] - b[1]).map(([step]) => step);
+  }
+  // The latest reviewer decision and every step recorded after it, in recorded order, with the steps before it.
+  function replayGroup(steps) {
+    const ordered = recordedOrder(steps);
+    let at = -1;
+    ordered.forEach((step, index) => { if (step.authority && step.authority.kind === 'PERSON') at = index; });
+    if (at < 0) return null;
+    return {decision: ordered[at], before: ordered.slice(0, at), replay: ordered.slice(at)};
+  }
+  // Who did what, counted from the recorded steps. An automatic step counts once it completed, as the server counts
+  // it; the server's own two counts are compared, never replaced, and a difference is reported.
+  function stepLegend(steps, counts) {
+    const ordered = recordedOrder(steps), kind = step => step.authority && step.authority.kind, done = step => step.state === 'COMPLETED';
+    const reviewer = ordered.filter(step => kind(step) === 'PERSON').length;
+    const approved = ordered.filter(step => kind(step) === 'APPROVED_OPERATION' && done(step)).length;
+    const received = ordered.filter(step => kind(step) === 'EVENT_INTAKE' && done(step)).length;
+    const other = ordered.length - reviewer - approved - received;
+    const c = counts && typeof counts === 'object' ? counts : {};
+    const agrees = (c.person_decisions == null || c.person_decisions === reviewer) && (c.automatic_steps == null || c.automatic_steps === approved + received);
+    return {reviewer, approved, received, other, total: ordered.length, agrees,
+      server: {person_decisions: c.person_decisions == null ? null : c.person_decisions, automatic_steps: c.automatic_steps == null ? null : c.automatic_steps}};
+  }
+  const REPLAY_PACE_MS = 1600, REPLAY_KEY = 'uptime.steps.replay', REPLAY_SEEN_KEY = 'uptime.steps.replay.seen';
+  function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true,
+    storage, schedule = (callback, ms) => global.setTimeout(callback, ms), reducedMotion}) {
+    // The replay setting lasts for this page's session. Browser storage may be absent or refuse; memory stands in.
+    const memory = {};
+    const session = (() => { if (storage !== undefined) return storage; try { return global.sessionStorage || null; } catch (_) { return null; } })();
+    const readSetting = key => { try { const value = session ? session.getItem(key) : null; if (value != null) return value; } catch (_) { /* memory below */ } return memory[key] == null ? null : memory[key]; };
+    const writeSetting = (key, value) => { memory[key] = value; try { if (session) session.setItem(key, value); } catch (_) { /* memory holds it */ } };
+    const still = () => { if (typeof reducedMotion === 'function') return reducedMotion() === true;
+      try { return typeof global.matchMedia === 'function' && global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; } };
     // After a recorded action the page re-renders and focus moves to the recovery heading, never to the next
     // decision: a held or repeated Enter must not approve the next step. The status names what was recorded and what
     // comes next, one Tab away.
@@ -469,17 +506,25 @@
       if (!automation || typeof automation !== 'object') return add(node, note('This workspace does not report automation runs.'));
       if (automation.enabled !== false && automation.state) head.append(el('span', AUTOMATION_STATE[automation.state] || state(automation.state), 'pill' + (AUTOMATION_TONE[automation.state] ? ' ' + AUTOMATION_TONE[automation.state] : '')));
       const counts = automation.counts && typeof automation.counts === 'object' ? automation.counts : {};
-      const figure = (label, value) => value == null ? null : add(el('div'), el('dt', label), el('dd', String(value)));
-      // The two counts are the server's own; nothing is counted here.
-      if (automation.enabled !== false && (counts.person_decisions != null || counts.automatic_steps != null))
-        node.append(add(el('dl', null, 'tally'), figure('Reviewer decisions', counts.person_decisions), figure('Automatic steps', counts.automatic_steps)));
+      const steps = recordedOrder(automation.steps);
+      // Who did what, at a glance: a legend counted from the recorded steps, in the same tags the steps carry.
+      if (steps.length) {
+        const legend = stepLegend(steps, counts);
+        const figure = (kind, label, value) => add(el('div'), add(el('dt'), el('span', label, 'pill' + (AUTHORITY_TAG[kind] ? ' ' + AUTHORITY_TAG[kind][1] : ''))), el('dd', String(value)));
+        node.append(add(el('dl', null, 'tally step-legend'), figure('PERSON', 'Reviewer decisions', legend.reviewer),
+          figure('APPROVED_OPERATION', 'Automatic steps under a recorded approval', legend.approved), figure('EVENT_INTAKE', 'Received events', legend.received),
+          legend.other ? add(el('div'), el('dt', 'Other steps, or not completed'), el('dd', String(legend.other))) : null));
+        node.append(note('Received events are counted among the automatic steps.'));
+        const counted = (n, word) => n == null ? null : n + ' ' + word + (n === 1 ? '' : 's');
+        if (!legend.agrees) node.append(note('The server’s own counts differ from the steps listed: ' + [counted(legend.server.person_decisions, 'reviewer decision'),
+          counted(legend.server.automatic_steps, 'automatic step')].filter(Boolean).join(' and ') + '.'));
+      }
       node.append(note(automationSummary(automation)));
       const offered = list(nextActions).filter(action => action && action.label).map(action => action.label);
       if (automation.enabled !== false && offered.length && automation.state !== 'COMPLETE') node.append(note('Next: ' + offered.join(', ') + '.'));
-      const steps = list(automation.steps).filter(step => step && typeof step === 'object');
       if (!steps.length) return add(node, note('No step has been recorded yet.'));
       node.append(note('Times are on this case’s timeline, the same clock as “As of”. Each step’s details hold the time the server recorded it.'));
-      const items = el('ol', null, 'automation-steps');
+      const items = el('ol', null, 'automation-steps'), rows = [];
       steps.forEach(step => {
         const timing = step.timing && typeof step.timing === 'object' ? step.timing : {};
         const authority = step.authority && typeof step.authority === 'object' ? step.authority : {};
@@ -494,9 +539,54 @@
           note(authorityText(step.authority)), ...lines.map(line => el('p', line, 'help step-note')), step.detail ? el('p', text(step.detail), 'help step-note') : null,
           inspector('Step details', fields([['Recorded by the server', step.recorded_at ? when(step.recorded_at) : null], ['Intent', step.intent_id],
             ['Approval digest', step.authority && step.authority.approval_digest], ['Event', step.authority && step.authority.event_id]].filter(([, value]) => value != null))));
-        items.append(item);
+        items.append(item); rows.push(item);
       });
-      return add(node, items);
+      return add(node, replayControls(steps, rows), items);
+    }
+    // Replay: display only. The steps have already run and been recorded when this page shows them; the replay reveals
+    // them one at a time, in recorded order, so each can be read. It sends no request, changes no record and waits on
+    // nothing but its own display timer. Off unless turned on with the visible control below.
+    function replayControls(steps, rows) {
+      const token = epoch, group = replayGroup(steps);
+      const latest = group ? String(group.decision.intent_id || group.decision.seq || '') : '';
+      const toggle = el('input'); toggle.type = 'checkbox'; toggle.checked = readSetting(REPLAY_KEY) === 'on';
+      const again = el('button', 'Replay', 'quiet'); again.type = 'button';
+      const skip = el('button', 'Show every step now', 'quiet link-button'); skip.type = 'button'; skip.hidden = true;
+      const line = el('p', null, 'help replay-line'); line.setAttribute('role', 'status'); line.setAttribute('aria-live', 'polite'); line.hidden = true;
+      let running = false, run = 0;
+      const say = message => { line.textContent = message || ''; line.hidden = !message; };
+      function finish(message) { running = false; run++; rows.forEach(row => { row.hidden = false; }); skip.hidden = true; say(message); }
+      function play(from, message) {
+        if (token !== epoch) return;
+        const mine = ++run; running = true; skip.hidden = false; say(message);
+        rows.forEach((row, index) => { row.hidden = index >= from; });
+        let next = from;
+        const tick = () => {
+          if (!running || mine !== run || token !== epoch) return;
+          const row = rows[next++];
+          if (row) { row.hidden = false; if (!still()) row.className += ' replay-reveal'; }
+          if (next >= rows.length) { finish('Replay finished. These steps were recorded before the replay began; nothing ran during it.'); return; }
+          schedule(tick, REPLAY_PACE_MS);
+        };
+        tick();
+      }
+      toggle.addEventListener('change', () => {
+        if (token !== epoch) return;
+        writeSetting(REPLAY_KEY, toggle.checked ? 'on' : 'off');
+        // Turning it on marks the decision already shown; the steps of the next decision are the ones replayed.
+        if (toggle.checked) { if (latest) writeSetting(REPLAY_SEEN_KEY, latest); say('On. After the next reviewer decision, its steps are shown here one at a time.'); }
+        else finish('');
+      });
+      again.addEventListener('click', () => play(0, 'Replay: every step below has already run and been recorded. Shown one at a time so each can be read.'));
+      skip.addEventListener('click', () => { if (token === epoch) finish(''); });
+      const control = add(el('label', null, 'replay-toggle'), toggle, el('span', 'Show new steps one at a time'));
+      const box = add(el('div', null, 'replay-controls'), control, again, skip, line);
+      // A decision this page has not yet replayed is shown one step at a time, starting with the decision itself.
+      if (toggle.checked && group && latest && readSetting(REPLAY_SEEN_KEY) !== latest) {
+        writeSetting(REPLAY_SEEN_KEY, latest);
+        play(group.before.length, 'Replay: these steps ran when the reviewer decision “' + text(group.decision.label || state(group.decision.operation)) + '” was recorded. Shown one at a time so each can be read.');
+      }
+      return box;
     }
     function renderActivity(root, data) {
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
@@ -533,7 +623,7 @@
     }
     return {render,activity,unmount:()=>{epoch++;}};
   }
-  const exports={create,money,when,day,rates,monthLabel};
+  const exports={create,money,when,day,rates,monthLabel,recordedOrder,replayGroup,stepLegend};
   if(typeof module !== 'undefined' && module.exports) module.exports=exports;
   global.UptimeWorkspace=exports;
 })(typeof window === 'undefined' ? globalThis : window);

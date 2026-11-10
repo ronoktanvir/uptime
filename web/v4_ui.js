@@ -48,6 +48,52 @@
     return `${month} ${d.getUTCDate()}, ${d.getUTCFullYear()}, ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')} UTC`;
   };
   const label = key => key.replaceAll('_', ' ');
+  // What was filed: one filing from the case record the page already loads (its submissions, each with its packet),
+  // in plain labels. Only fields the server sent are printed; a listed field it did not send says so. No amount is
+  // computed, no clause is inferred, and the evidence is named only by joining the packet's digests to the case's
+  // own evidence records.
+  const NOT_SENT = 'Not sent by the server';
+  const FILING_KIND = {'submit-claim':'Claim', 'submit-response':'Response'};
+  const FILED_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function filedSummary(submission, evidence) {
+    const object = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    const s = object(submission), packet = object(s.packet), scope = object(packet.scope), approval = object(s.approval);
+    const given = value => typeof value === 'string' ? value !== '' : typeof value === 'number' && Number.isFinite(value);
+    const value = v => given(v) ? String(v) : NOT_SENT;
+    const month = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(scope.month));
+    let amount = NOT_SENT;
+    if (given(packet.requested)) {
+      const raw = String(packet.requested), exact = /^-?\d+(\.\d+)?$/.test(raw);
+      const [whole, fraction] = raw.split('.');
+      const figure = exact ? whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fraction === undefined ? '' : '.' + fraction) : raw;
+      amount = given(scope.currency) ? (scope.currency === 'USD' && exact ? '$' + figure : scope.currency + ' ' + figure) : figure + ' (currency not sent by the server)';
+    }
+    const known = new Map(list(evidence).filter(e => e && typeof e === 'object' && typeof e.digest === 'string').map(e => [e.digest, e]));
+    const refs = list(packet.artifacts).filter(a => a && typeof a === 'object').map(a => {
+      // A digest the case's evidence does not name is shown as the digest itself.
+      const e = known.get(a.digest);
+      const named = (e ? [a.kind, e.detail, e.artifact_ref, e.monitor_ref] : [a.kind, given(a.digest) ? 'Digest ' + a.digest : null]).filter(given).map(String);
+      return named.length ? named.join(' · ') : NOT_SENT;
+    });
+    const clauses = list(packet.clauses).map(c => typeof c === 'string' ? c : c && typeof c === 'object' ? c.label : null).filter(given);
+    const disclosed = object(packet.disclosed_artifact);
+    const optional = [['In reply to', packet.in_reply_to], ['Argument', packet.argument],
+      ['Disclosed document', [disclosed.ref, given(disclosed.type) ? label(disclosed.type) : null].filter(given).join(' · ')],
+      ['Terms fingerprint', packet.terms_digest]].filter(([, v]) => given(v));
+    return {kind: FILING_KIND[s.action] || (given(s.action) ? label(s.action) : 'Filing'), rows: [
+      ['Period', month ? FILED_MONTHS[Number(month[2]) - 1] + ' ' + month[1] : value(scope.month)],
+      ['Service', value(scope.service)],
+      ['Amount requested', amount],
+      ['Agreement', value(packet.agreement_id)],
+      ['Contract version', value(packet.version)],
+      ['Cited clause', clauses.length ? clauses : NOT_SENT],
+      ['Evidence references', refs.length ? refs : NOT_SENT],
+      ['Destination', value(packet.destination)],
+      ['Receipt', value(s.id)],
+      ['Filed', given(s.at) ? at(s.at) : NOT_SENT],
+      ['Approved by', given(approval.actor) ? approval.actor + (given(approval.at) ? ', ' + at(approval.at) : '') : NOT_SENT],
+      ...optional]};
+  }
   // Plain wording for server dispute codes; unknown codes are shown as lower-case words, never guessed.
   const CATEGORY = {MISSING_EVIDENCE:'missing evidence', CONTRACTUAL_DENIAL:'contractual denial',
     INCORRECT_FACTUAL_ASSERTION:'incorrect factual assertion', UNRESOLVED_DENIAL:'unresolved denial',
@@ -416,6 +462,25 @@
       });
       return items;
     }
+    // What was filed, each filing in its recorded order, from the submissions this case record already carries.
+    function filedView(data) {
+      const filings = list(data.submissions).filter(s => s && typeof s === 'object');
+      if (!filings.length) return null;
+      const n = add(section('What was filed'), note('Each filing as recorded with its receipt, from this case’s record. A field the record does not carry is marked “' + NOT_SENT + '”.'));
+      filings.forEach(submission => {
+        const summary = filedSummary(submission, data.evidence);
+        const rows = el('dl', undefined, 'v4-facts v4-filed-facts');
+        summary.rows.forEach(([name, value]) => {
+          // A 64-character fingerprint is shown by its first ten characters; the exact value is its title and stays in the complete record.
+          const dd = Array.isArray(value) ? add(el('dd'), add(el('ul', undefined, 'v4-filed-list'), ...value.map(item => el('li', item)))) : el('dd', short(value), value === NOT_SENT ? 'v4-not-sent' : undefined);
+          if (!Array.isArray(value) && short(value) !== value) dd.setAttribute('title', value);
+          rows.append(add(el('div', undefined, name === 'Evidence references' || name === 'Argument' ? 'v4-filed-wide' : undefined), el('dt', name), dd));
+        });
+        n.append(add(el('article', undefined, 'v4-filed'), el('h3', summary.kind), rows));
+      });
+      if (filings.length > 1) n.append(note('Each filing states the amount it requested for the same credit. The amounts are not added together.'));
+      return n;
+    }
     // One claim: where it stands, what a reviewer may do, and its correspondence in order. Receipts, digests,
     // evaluation traces and the complete server record are one click away.
     function caseView(m, data) {
@@ -449,6 +514,8 @@
       // Only the actions the server offers for this claim; the server checks each one again when it is pressed.
       if (base) add(standing, el('h3', 'Reviewer actions'), actions(m, data, base));
       out.append(standing);
+      const filed = filedView(data);
+      if (filed) out.append(filed);
       const steps = caseTimeline(data);
       if (steps) out.append(add(section('Correspondence, in order'), steps));
       if (base && data.trace_url === '/api/correspondence/claims/' + id + '/trace') out.append(add(el('section', undefined, 'v4-panel'), disputeRecord(m, base + '/trace')));
@@ -1332,7 +1399,7 @@
     }
     return Object.freeze({render, inspect, unmount, refreshAccess: sync});
   }
-  const api = Object.freeze({create, parseJSON});
+  const api = Object.freeze({create, parseJSON, filedSummary});
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (global) global.UptimeV4 = api;
 })(typeof window !== 'undefined' ? window : globalThis);
