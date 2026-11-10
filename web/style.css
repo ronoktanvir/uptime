@@ -916,7 +916,13 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .panel-mode .brand { padding: 4px 0; }
 .panel-mode .rail-foot { margin: 0; padding: 0; border-top: 0; display: flex; align-items: center; }
 .panel-mode .rail-foot button { min-height: 32px; }
-.panel-mode #account { max-width: 55vw; }
+/* At panel width one header row holds the wordmark and the whole account name: the "for Ramp" pill and the
+   initials circle give way (the panel's own bar already says it is beside Ramp). */
+.panel-mode .rail { overflow: hidden; }
+.panel-mode .brand small { display: none; }
+.panel-mode .rail-foot { min-width: 0; }
+.panel-mode #account { max-width: 100%; padding-inline: 6px; }
+.panel-mode #account::before { content: none; }
 .panel-mode main { padding: 0 16px 32px; }
 .panel-mode .page-head { padding: 16px 0 14px; }
 .panel-mode h1 { font-size: 22px; line-height: 28px; }
@@ -926,3 +932,38 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .panel-open-app { display: flex; }
 .panel-open-app-button { flex: 1 1 auto; min-height: 40px; }
 .ramp-bill-empty > .ramp-ids { margin-top: 12px; }
+/* The matched one-bill page (demo line): headline, actions, evidence, money, stages and notes. */
+.match-hero { border-top: 3px solid var(--accent); }
+.match-hero h2 { font-size: 17px; line-height: 24px; font-weight: 650; color: var(--ink); }
+.match-hero .eyebrow { margin-bottom: 4px; }
+.match-amount { margin-top: 6px; font-size: 36px; line-height: 42px; font-weight: 650; letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.match-hero > .help { margin-top: 4px; }
+.match-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.match-actions > button { flex: 1 1 100%; min-height: 40px; }
+.match-note-result:empty { display: none; }
+.match-note-result { margin-top: 8px; color: var(--text); }
+.match-evidence blockquote { margin: 12px 0 0; }
+.match-citation { margin-top: 6px; font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+.match-inputs { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.match-bill .help { margin-top: 12px; }
+.match-bill .help + .help { margin-top: 4px; }
+.match-balance { grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 4px; }
+.match-balance .northwind-field { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+.match-balance .northwind-field:first-child { border-top: 0; }
+.match-balance dt { margin: 0; font-size: 13px; line-height: 20px; }
+.match-balance dd { font-size: 17px; line-height: 24px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; overflow-wrap: normal; }
+.match-balance .northwind-field:last-child dd { font-size: 20px; line-height: 28px; }
+.match-stages { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 0; }
+.match-stage { position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 6px 0 6px 26px; }
+.match-stage::before { content: ""; position: absolute; left: 4px; top: 11px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--field); background: var(--surface); }
+.match-stage:not(:last-child)::after { content: ""; position: absolute; left: 10px; top: 25px; bottom: -11px; width: 2px; background: var(--line); }
+.match-stage.done::before { border-color: var(--ok); background: var(--ok); }
+.match-stage.current::before { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.match-stage .step-label { font-size: 13px; line-height: 20px; color: var(--text); }
+.match-stage.current .step-label { font-weight: 650; color: var(--ink); }
+.match-stage .step-state { font-size: 12px; line-height: 20px; color: var(--muted); }
+.match-stage.current .step-state { color: var(--accent-strong); font-weight: 600; }
+.match-notes { list-style: none; margin: 8px 0 0; padding: 0; }
+.match-notes:empty { display: none; }
+.match-note { display: grid; gap: 2px; padding: 10px 0; border-top: 1px solid var(--line); }
+.match-note:first-child { border-top: 0; }

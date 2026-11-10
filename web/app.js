@@ -67,8 +67,14 @@
   function panelMessage(route) {
     return PANEL_OPEN_ROUTE.test(route) ? {type: PANEL_MESSAGE_TYPE, route} : null;
   }
+  // Tells the panel whether the bill it shows is matched to an Uptime invoice, for the toolbar badge.
+  const PANEL_STATUS_TYPE = 'uptime-bill-status';
+  const RAMP_BILL = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  function billStatusMessage(bill, state) {
+    return typeof bill === 'string' && RAMP_BILL.test(bill) && (state === 'match' || state === 'none') ? {type: PANEL_STATUS_TYPE, bill, state} : null;
+  }
   if (typeof module !== 'undefined' && module.exports) module.exports = {compareDecimal, money, safeURL, companionPlan, companionRoute,
-    framed, panelParent, panelMessage, PANEL_OPEN_ROUTE, PANEL_MESSAGE_TYPE};
+    framed, panelParent, panelMessage, PANEL_OPEN_ROUTE, PANEL_MESSAGE_TYPE, billStatusMessage, PANEL_STATUS_TYPE};
   if (typeof document === 'undefined') return;
   const panelMode = framed(window);
   if (panelMode) document.documentElement?.classList?.add('panel-mode');
@@ -80,6 +86,11 @@
     if (parent && window.parent && window.parent !== window) window.parent.postMessage(message, parent);
     else window.open('/#' + route, '_blank', 'noopener');
   }
+  // Only inside the panel, and only to the one extension origin the browser names as the parent.
+  function billState(bill, state) {
+    const message = billStatusMessage(bill, state), parent = panelParent(window.location);
+    if (message && parent && window.parent && window.parent !== window) window.parent.postMessage(message, parent);
+  }
   const $ = selector => document.querySelector(selector);
   const content = $('#content'), notice = $('#notice'), dialog = $('#inspector');
   let view = 'ramp', generation = 0, caseGeneration = 0, activeCase = null, busy = false;
@@ -88,7 +99,7 @@
   let rampOrigin = 'ramp';
   let companion, companionAssets, signedPage = false, companionAccess = {};
   const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + (route === 'ramp' ? rampOrigin : route)); navigate(); },
-    ...(panelMode ? {openApp} : {})});
+    ...(panelMode ? {openApp, onBillState: billState} : {})});
   // The finance view disables actions when this page holds no signing key (for example after a reload).
   const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account,canAct:() => window.uptimeAuth?.canSign?.() !== false});
   const filters = {query: '', status: '', sort: 'value-desc'};
