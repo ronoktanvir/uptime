@@ -9,7 +9,9 @@
 
    One message is accepted from the framed page: {type: 'uptime-open-app', route}, and only from the
    framed window on the configured app origin. It opens the full app at config.origin + '/#' + route
-   in a browser tab, for a route on a fixed list; the tab this panel opened is reused while it is open. */
+   in a browser tab, for a route on a fixed list; the tab this panel opened is reused while it is open.
+   A second message, {type: 'uptime-bill-status', bill, state}, with the same sender checks, sets or
+   clears a small badge on the toolbar button for the tab whose bill the panel shows. */
 (function () {
   'use strict';
   const BILL = /\/bills\/(?:list\/)?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/|$)/i;
@@ -41,6 +43,25 @@
     if (keys.length !== 2 || keys[0] !== 'route' || keys[1] !== 'type' || data.type !== OPEN_TYPE) return null;
     return allowedRoute(data.route) ? data.route : null;
   }
+  // The second message: whether the bill the panel shows is matched to an Uptime invoice. Same sender checks;
+  // exactly {type, bill, state} with a Ramp bill id and state 'match' or 'none'.
+  const STATUS_TYPE = 'uptime-bill-status';
+  const BILL_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  function statusRequest(event, config, frameWindow) {
+    if (!event || !config || event.origin !== config.origin || !frameWindow || event.source !== frameWindow) return null;
+    const data = event.data;
+    if (!data || typeof data !== 'object' || Array.isArray(data) || Object.getPrototypeOf(data) !== Object.prototype) return null;
+    const keys = Object.keys(data).sort();
+    if (keys.length !== 3 || keys[0] !== 'bill' || keys[1] !== 'state' || keys[2] !== 'type' || data.type !== STATUS_TYPE) return null;
+    if (typeof data.bill !== 'string' || !BILL_ID.test(data.bill) || (data.state !== 'match' && data.state !== 'none')) return null;
+    return {bill: data.bill, state: data.state};
+  }
+  // A small badge on the toolbar button, for that one tab, while its bill is matched; cleared otherwise.
+  async function setBadge(action, tabId, matched) {
+    if (!action || !Number.isInteger(tabId)) return;
+    if (matched) await action.setBadgeBackgroundColor({tabId, color: '#4353e0'});
+    await action.setBadgeText({tabId, text: matched ? '$' : ''});
+  }
   function appUrl(route, config) { return allowedRoute(route) ? config.origin + '/#' + route : null; }
   // Opens the full app in a browser tab. The tab this panel opened earlier is reused while it is still open, so a
   // second press focuses it and sets the route there instead of opening another. The extension has no permission
@@ -67,17 +88,22 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) module.exports = {billFromUrl, routeFor, frameUrl, labelFor, latestOnly,
-    openRequest, appUrl, openApp, allowedRoute, OPEN_TYPE};
+    openRequest, appUrl, openApp, allowedRoute, OPEN_TYPE, statusRequest, setBadge, STATUS_TYPE};
   if (typeof document === 'undefined') return;
 
   const config = globalThis.UPTIME_PANEL_CONFIG;
   const frame = document.getElementById('uptime');
   const label = document.getElementById('bill');
   let loaded = false;
-  let current;
+  let current, currentTab = null;
+  const action = globalThis.chrome && chrome.action;
 
-  function follow(tabUrl) {
+  function follow(tabUrl, tabId = null) {
     const bill = typeof tabUrl === 'string' ? billFromUrl(tabUrl, config.rampHosts) : null;
+    if (loaded && bill === current && tabId === currentTab) return;
+    // The tab's badge is cleared when the panel moves; the framed page sets it again for a matched bill.
+    if (Number.isInteger(tabId) && (bill !== current || tabId !== currentTab)) setBadge(action, tabId, false).catch(() => {});
+    currentTab = tabId;
     if (loaded && bill === current) return;
     current = bill;
     label.textContent = labelFor(bill);
@@ -91,13 +117,16 @@
     const appTab = {tabId: null};
     globalThis.addEventListener('message', event => {
       const route = openRequest(event, config, frame.contentWindow);
-      if (route) openApp(route, config, chrome.tabs, chrome.windows, appTab).catch(() => {});
+      if (route) { openApp(route, config, chrome.tabs, chrome.windows, appTab).catch(() => {}); return; }
+      const status = statusRequest(event, config, frame.contentWindow);
+      // Only for the bill the panel is showing, on the tab it is showing it for.
+      if (status && status.bill === current) setBadge(action, currentTab, status.state === 'match').catch(() => {});
     });
     const refresh = latestOnly(async () => {
       const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
       // A tab on any other site has no address visible to this extension; that reads as "no bill".
-      return tab ? tab.url : null;
-    }, follow);
+      return tab ? {url: tab.url, id: tab.id} : null;
+    }, tab => follow(tab ? tab.url : null, tab ? tab.id : null));
     chrome.tabs.onActivated.addListener(refresh);
     chrome.tabs.onUpdated.addListener((id, change, tab) => {
       if (tab.active && (change.url !== undefined || change.status === 'loading')) refresh();

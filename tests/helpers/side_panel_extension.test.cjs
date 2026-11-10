@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const DIR = path.join(__dirname, '..', '..', 'extension');
-const {billFromUrl, routeFor, frameUrl, labelFor, latestOnly, openRequest, appUrl, openApp, allowedRoute, OPEN_TYPE} = require(path.join(DIR, 'panel.js'));
+const {billFromUrl, routeFor, frameUrl, labelFor, latestOnly, openRequest, appUrl, openApp, allowedRoute, OPEN_TYPE, statusRequest, setBadge, STATUS_TYPE} = require(path.join(DIR, 'panel.js'));
 const app = require(path.join(__dirname, '..', '..', 'web', 'app.js'));
 const config = require(path.join(DIR, 'config.js'));
 const manifest = JSON.parse(fs.readFileSync(path.join(DIR, 'manifest.json'), 'utf8'));
@@ -168,4 +168,39 @@ test('the shell listens for messages only through its one handler and never send
   const source = fs.readFileSync(path.join(DIR, 'panel.js'), 'utf8');
   assert.equal(source.match(/addEventListener\('message'/g).length, 1);
   assert.match(source, /openRequest\(event, config, frame\.contentWindow\)/);
+});
+
+// ---- Demo line: the toolbar badge ----
+test('the shell accepts the bill-status message only in its one shape, from its own frame on the configured origin', () => {
+  assert.equal(STATUS_TYPE, 'uptime-bill-status');
+  const ok = {type: STATUS_TYPE, bill: BILL, state: 'match'};
+  assert.deepEqual(statusRequest(message(ok), config, frameWindow), {bill: BILL, state: 'match'});
+  assert.deepEqual(statusRequest(message({...ok, state: 'none'}), config, frameWindow), {bill: BILL, state: 'none'});
+  for (const [why, event] of [
+    ['another origin', message(ok, {origin: 'https://demo.ramp.com'})],
+    ['another window', message(ok, {source: {}})],
+    ['an extra key', message({...ok, text: '9'})],
+    ['a missing state', message({type: STATUS_TYPE, bill: BILL})],
+    ['another state', message({...ok, state: 'credit'})],
+    ['an upper-case bill', message({...ok, bill: BILL.toUpperCase()})],
+    ['a malformed bill', message({...ok, bill: 'f74ba12c'})],
+    ['the open message', message({type: OPEN_TYPE, route: 'records'})],
+    ['an array', message([STATUS_TYPE, BILL, 'match'])],
+  ]) assert.equal(statusRequest(event, config, frameWindow), null, why);
+  // The two shapes never overlap.
+  assert.equal(openRequest(message(ok), config, frameWindow), null);
+});
+
+test('the badge is set for one tab on a match and cleared otherwise, and needs no permission', async () => {
+  const calls = [];
+  const action = {setBadgeText: async v => calls.push(['text', v]), setBadgeBackgroundColor: async v => calls.push(['color', v])};
+  await setBadge(action, 7, true);
+  await setBadge(action, 7, false);
+  await setBadge(action, null, true);
+  await setBadge(undefined, 7, true);
+  assert.deepEqual(calls, [['color', {tabId: 7, color: '#4353e0'}], ['text', {tabId: 7, text: '$'}], ['text', {tabId: 7, text: ''}]]);
+  assert.deepEqual(manifest.permissions, ['sidePanel']);
+  assert.ok(manifest.action, 'chrome.action needs the manifest action key, which is present');
+  const source = fs.readFileSync(path.join(DIR, 'panel.js'), 'utf8');
+  assert.match(source, /status\.bill === current\) setBadge\(action, currentTab/);
 });
