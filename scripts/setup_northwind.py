@@ -274,6 +274,9 @@ def main():
         side_panel=panel_origin(args.side_panel_origin)
     except ValueError as refused:
         parser.exit(1,'setup_northwind: '+str(refused)+'\n')
+    if side_panel and not args.serve:
+        # Framing only affects a served app; without --serve the option would silently do nothing.
+        parser.error('--side-panel-origin requires --serve')
     if args.public_proposal_config and not args.serve:
         parser.error('--public-proposal-config requires --serve')
     if args.resume and (args.step_by_step or args.counterparty_reply!='request-log'):
