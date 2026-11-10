@@ -1,0 +1,63 @@
+{
+  "what": "Real-browser check of the side-panel extension, run by hand with scripts/check_side_panel.py, on main's own build",
+  "run_at": "2026-11-09, about 21:48 PST",
+  "browser": "Google Chrome 157.0.8103.40, throwaway profile, headless, 420 by 900",
+  "served_from": "A clean checkout of main at 08852a6 (the redesign, the icons and the Inter typeface; no file under web/, extension/, uptime/ or scripts/ differs from main at the time of this record). A Northwind walkthrough workspace resumed by scripts/setup_northwind.py with --side-panel-origin chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl --serve on port 8806.",
+  "extension": "A copy of main's extension/ differing only in the origin written in config.js (port 8806 instead of 8776). Every other file has the same SHA-256 as main's; the manifest key and therefore the extension's ID are unchanged.",
+  "ramp": "Not contacted. Every request to demo.ramp.com was answered by a local stub.",
+  "supersedes": "../real-extension-check.json, which was made on a local combination of branches before they were merged. That record is kept.",
+  "result": {
+    "1_frame_ancestors": "frame-ancestors chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl",
+    "extension_loaded_as": "kibophanbmnepbmhpampfagpjfhjfcnl",
+    "2_panel_frames_uptime": "http://127.0.0.1:8806/#records",
+    "3_signed_in_inside_frame": {
+      "account_control": "Sign out · scripted-test-reviewer",
+      "label": "No Ramp bill open",
+      "verified_record_visible": true
+    },
+    "4_follows_the_ramp_bill_tab": {
+      "stub_served": "local stub",
+      "label": "Ramp bill f74ba12c…",
+      "frame_url": "http://127.0.0.1:8806/#ramp-bill/f74ba12c-95d0-582d-9f62-26d8057d1d37",
+      "still_signed_in": "Sign out · scripted-test-reviewer",
+      "heading": "DocuSign",
+      "says": {
+        "DD-PREAPPROVAL": true,
+        "USD 840": true,
+        "Not a live read": true,
+        "Uptime has made no write to Ramp": true,
+        "Posted by a person in Ramp": true
+      },
+      "wider_than_panel": false
+    },
+    "5_a_bill_with_no_saved_record": {
+      "label": "Ramp bill 11111111…",
+      "frame_url": "http://127.0.0.1:8806/#ramp-bill/11111111-2222-4333-8444-555555555555",
+      "heading": "No saved record for this bill",
+      "shows_the_other_bills_facts": false
+    },
+    "6_another_site_with_the_same_path_is_not_followed": {
+      "label": "No Ramp bill open",
+      "frame_url": "http://127.0.0.1:8806/#records",
+      "still_signed_in": "Sign out · scripted-test-reviewer"
+    },
+    "7_another_page_may_not_frame_the_app": {
+      "child_frames": [
+        "chrome-error://chromewebdata/"
+      ],
+      "browser_said": []
+    },
+    "panel_console": []
+  },
+  "not_checked": [
+    "the browser's side-panel container, which a person opens from the toolbar: pressing the extension's action through the debugging protocol succeeded but headless Chrome produced no panel",
+    "real Ramp pages",
+    "loading into a person's own Chrome",
+    "any reviewer decision made inside the panel"
+  ],
+  "screenshots": [
+    "panel-1-records-signed-in.png",
+    "panel-2-the-verified-bill.png",
+    "panel-3-no-saved-record.png"
+  ]
+}
