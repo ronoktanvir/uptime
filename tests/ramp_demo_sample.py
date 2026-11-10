@@ -21,9 +21,11 @@ from uptime.ramp_records import seal_snapshot, sync_records  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 SAMPLE = ROOT / "tests/fixtures/ramp-records/northwind-nw-2026-04.json"
 MARCH_SAMPLE = ROOT / "tests/fixtures/ramp-records/northwind-nw-2026-03.json"
+CORVID_SAMPLE = ROOT / "tests/fixtures/ramp-records/corvid-cdc-2026-10-0117.json"
 BUSINESS = json.loads((ROOT / "docs/v4/evidence/demo-path-87/human-ramp-note.json").read_text())["business_id"]
 NORTHWIND_BILL = uid(0x20260400)
 MARCH_BILL = uid(0x20260300)
+CORVID_BILL = uid(0x20261000)
 CREDIT_ID = uid(0x20260401)
 AT = datetime(2026, 11, 10, 15, tzinfo=UTC)
 
@@ -77,8 +79,14 @@ def march_sample(**changes):
                             issued="2026-03-01T00:00:00+00:00", **changes)
 
 
+def corvid_sample(bill_id=CORVID_BILL, **changes):
+    """The second company's October bill (vendor Corvid Data Cooperative), authored."""
+    return northwind_sample(bill_id, **{"vendor_name": "Corvid Data Cooperative", "invoice_number": "CDC-2026-10-0117",
+                                           "total": 1000000, "issued": "2026-11-01T00:00:00+00:00", **changes})
+
+
 if __name__ == "__main__":
     SAMPLE.parent.mkdir(parents=True, exist_ok=True)
-    for path, body in ((SAMPLE, northwind_sample()), (MARCH_SAMPLE, march_sample())):
+    for path, body in ((SAMPLE, northwind_sample()), (MARCH_SAMPLE, march_sample()), (CORVID_SAMPLE, corvid_sample())):
         path.write_text(json.dumps(body, indent=1, sort_keys=True, allow_nan=False) + "\n")
         print(path)

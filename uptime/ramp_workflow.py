@@ -210,11 +210,12 @@ class ScopedSandboxWorkflowProvider:
 
 
 DEMO_NOTE_SHAPES = {
-    # Demo line only: the two fixed note shapes Uptime may leave on a matched sandbox bill.
+    # Demo line only: the fixed note shapes Uptime may leave on a matched sandbox bill.
     "possible_credit": re.compile(
         r"Uptime: this bill may be eligible for a [A-Z]{3} [0-9][0-9,]*\.[0-9]{2} service credit under agreement "
         r"[A-Za-z0-9-]{1,40} \((January|February|March|April|May|June|July|August|September|October|November|December) "
-        r"[0-9]{4} availability\)\. A claim is being prepared in Uptime\."),
+        r"[0-9]{4} availability\)\. "
+        r"(A claim is being prepared in Uptime\.|The estimate is waiting for review in Uptime\.)"),
     "credit_applied": re.compile(
         r"Uptime: the vendor awarded a [A-Z]{3} [0-9][0-9,]*\.[0-9]{2} service credit and it has been applied to this "
         r"invoice in Uptime\. Remaining balance [A-Z]{3} [0-9][0-9,]*\.[0-9]{2}\."),
