@@ -49,7 +49,8 @@ def panel_origin(value):
 
 def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=False, rehearsal_secret=None,
                service_credentials=None, origin=DEFAULT_ORIGIN, tenant=TENANT, native_config=None, award_office=None,
-               workflow_config=None, proposal_jobs=None, proposal_config=None, side_panel_origin=None):
+               workflow_config=None, proposal_jobs=None, proposal_config=None, side_panel_origin=None,
+               ramp_record_dirs=(), ramp_notes=None):
     if workflow_config is not None and (native_config is not None or mode != 'replay' or not rehearsal or tenant != TENANT):
         raise PermissionError('A configured local workflow requires its isolated rehearsal workspace, without a native connection.')
     frame_ancestors = panel_origin(side_panel_origin) or "'none'"
@@ -194,7 +195,8 @@ def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=Fal
             trusted_now=(lambda:app.state.workflow.now()) if workflow_config is not None else None,
             proposal_jobs=proposal_jobs)
     from .ramp_workspace import register_ramp_workspace
-    native_workspace = register_ramp_workspace(app, bench, auth, award_office=award_office)
+    native_workspace = register_ramp_workspace(app, bench, auth, award_office=award_office,
+                                               ramp_record_dirs=ramp_record_dirs, ramp_notes=ramp_notes)
     if native_config is not None:
         from .ramp_native_binding import register_native_binding
         native_workspace.native_binding = register_native_binding(app, workspace=native_workspace, auth=auth, config_path=native_config)

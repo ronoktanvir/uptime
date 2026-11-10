@@ -326,14 +326,22 @@ class RampWorkspace:
                     portfolio_note="Ramp records own financial status. Separate Uptime evidence and hypothetical findings carry their source labels.")
 
 
-def register_ramp_workspace(app,bench,auth,*,award_office=None):
+def register_ramp_workspace(app,bench,auth,*,award_office=None,ramp_record_dirs=(),ramp_notes=None):
     workspace=RampWorkspace(bench,award_office=award_office)
     app.state.ramp_workspace=bench.native_workspace=workspace
+    # Demo line: more verified bills, their walkthrough match and Uptime's notes. ``ramp_notes``
+    # is a provider factory (business_id -> comment provider) or None, which leaves the route unmounted.
+    from .ramp_demo import RampDemo, register_ramp_notes
+    demo=app.state.ramp_demo=RampDemo(app,bench,record_dirs=ramp_record_dirs,provider_factory=ramp_notes)
+    if ramp_notes is not None:
+        register_ramp_notes(app,demo,auth)
 
     @app.get("/api/ramp/workspace")
     def overview(principal=Depends(auth.actor)):
         bench.require_tenant(principal)
-        return workspace.overview()
+        result=workspace.overview()
+        result["verified_records"]=demo.records(principal) if result["verified_record"] is not None else []
+        return result
 
     @app.get("/api/ramp/records/{case_id}/workflow")
     def workflow(case_id:str,principal=Depends(auth.actor)):
