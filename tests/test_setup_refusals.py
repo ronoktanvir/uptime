@@ -37,32 +37,30 @@ def refused_with(result, line):
 @pytest.fixture(scope='module')
 def workspace(tmp_path_factory):
     folder = tmp_path_factory.mktemp('refusals') / 'northwind-01'
-    created = cli('--directory', folder, '--origin', 'http://127.0.0.1:8822')
+    origin = assigned_origin()
+    created = cli('--directory', folder, '--origin', origin)
     assert created.returncode == 0, created.stderr[-2000:]
-    return folder
+    return folder, origin
 
 
-def hold(port):
+def busy_port():
+    """A port the operating system assigns, held listening by this socket until the caller closes it."""
     holder = socket.socket()
     holder.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    try:
-        holder.bind(('127.0.0.1', port))
-    except OSError:
-        holder.close()
-        return None
+    holder.bind(('127.0.0.1', 0))
     holder.listen()
-    return holder
+    return holder, holder.getsockname()[1]
 
 
-def occupied_port():
-    for port in range(8821, 8830):  # the throwaway range assigned for this push
-        holder = hold(port)
-        if holder is not None:
-            return holder, port
-    pytest.skip('No free throwaway port in 8821-8829.')
+def assigned_origin():
+    """An origin on a port the operating system assigns; recorded only, never served by these tests."""
+    holder, port = busy_port()
+    holder.close()
+    return 'http://127.0.0.1:' + str(port)
 
 
 def test_rerunning_create_in_the_same_folder_is_a_plain_refusal(workspace):
+    workspace, _ = workspace
     before = snapshot(workspace)
     refused_with(cli('--directory', workspace, '--serve'), setup.FOLDER_HOLDS_WORKSPACE)
     assert snapshot(workspace) == before
@@ -91,7 +89,7 @@ def test_resuming_a_folder_without_a_workspace_is_refused(tmp_path):
 
 
 def test_serving_on_a_busy_port_is_refused_before_a_workspace_is_created(tmp_path):
-    holder, port = occupied_port()
+    holder, port = busy_port()
     folder = tmp_path / 'northwind-02'
     try:
         origin = 'http://127.0.0.1:' + str(port)
@@ -104,15 +102,12 @@ def test_serving_on_a_busy_port_is_refused_before_a_workspace_is_created(tmp_pat
 
 
 def test_resuming_on_a_busy_port_is_refused_and_leaves_the_workspace_unchanged(tmp_path):
-    holder, port = occupied_port()
+    holder, port = busy_port()  # held for the whole test; creating without --serve never binds it
     folder = tmp_path / 'northwind-03'
     origin = 'http://127.0.0.1:' + str(port)
     try:
-        holder.close()  # free it to create the workspace on this port, then take it again
         created = cli('--directory', folder, '--origin', origin)
         assert created.returncode == 0, created.stderr[-2000:]
-        holder = hold(port)
-        assert holder is not None, 'The port was taken by another process during the test.'
         before = snapshot(folder)
         refused_with(cli('--directory', folder, '--resume', '--serve'),
                      'Port ' + str(port) + ' is already in use, so ' + origin + ' cannot be served. '
@@ -124,6 +119,7 @@ def test_resuming_on_a_busy_port_is_refused_and_leaves_the_workspace_unchanged(t
 
 def test_a_workspace_from_a_different_package_is_refused_plainly(workspace, tmp_path):
     import shutil
+    workspace, _ = workspace
     copy = tmp_path / 'copy'
     shutil.copytree(workspace, copy)
     private = json.loads((copy / 'workspace.json').read_text())
@@ -135,6 +131,7 @@ def test_a_workspace_from_a_different_package_is_refused_plainly(workspace, tmp_
 
 
 def test_a_correct_resume_still_works(workspace):
+    workspace, origin = workspace
     resumed = cli('--directory', workspace, '--resume')
     assert resumed.returncode == 0 and 'Traceback' not in resumed.stderr
-    assert resumed.stderr.strip().splitlines()[-1] == 'http://127.0.0.1:8822'
+    assert resumed.stderr.strip().splitlines()[-1] == origin
