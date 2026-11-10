@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 18:18 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:15 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -46,17 +46,17 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 
 | Branch | Commit | What it is | Verified |
 |:---|:---|:---|:---|
-| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last merge, `e3dab64` (5,452). Hosted checks passed on `main` at `11a6770`, `21eae2c` and `1fa4ab4` |
+| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last merge, `15034f3` (5,452). Hosted checks passed on `main` at `11a6770`, `21eae2c`, `1fa4ab4` and `9bea5fb`, and on `15034f3` |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
-| `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `e3dab64`: role 2's test port change, after `3bbd47e`, the redesign and the side panel | Full run passes on `e3dab64` and on `1fa4ab4` (5,452 each) |
-| `work/submission-design-20261109` | `a92f86c` | The redesign | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
+| `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `15034f3`: the film re-cut for the Ramp opening and the interface icons | Full run passes on `15034f3`, `e3dab64` and `1fa4ab4` (5,452 each) |
+| `work/submission-design-20261109` | `fb97e8d` | The redesign, then 21 Phosphor icons (MIT, [notice](THIRD-PARTY-NOTICES.md)) and a list of renamed controls | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
 | `work/sidepanel-server-20261109` | `dc4ff65` | Side-panel option, extension, setup option and the real-browser check | Merged. Checked inside the real extension together with the redesign's bill page |
 | `work/submission-onboarding-20261109` | `088da4a` | Role 1, contract reading | Merged |
 | `work/submission-disputes-20261109` | `8addc5a` | Role 2, disputes, the walkthrough, the setup refusals and its test port change | Merged |
 | `work/submission-ramp-20261109` | `a15d987` | Role 3, Ramp | Merged |
 | `work/submission-ui-20261109` | `7ca68b2` | Role 4, interface before the redesign | Merged |
 | `work/submission-acceptance-20261109` | `e60cd60` | Role 5, acceptance, with its dated correction | Merged |
-| `work/submission-presentation-20261109` | `2bf3754` | Role 6, README, judge guide, film | Merged |
+| `work/submission-presentation-20261109` | `7f6e9ec` | Role 6: README, judge guide, the film re-cut for the Ramp opening, the filming checklist for `main`, three README screenshots | Merged |
 
 ## Test results
 
@@ -77,7 +77,8 @@ The required command is `uv run --locked pytest`, run once per merge, one run at
 | `783d5ec` | 5,398 passed | The same merge plus the records of its stalled runs: 5,390 and 8 new setup-refusal tests |
 | `3bbd47e` | Aborted, then 5,452 passed | The redesign and the side panel. Run on a local combination whose files are the same except two record files. 129 JavaScript checks |
 | `1fa4ab4` | 5,452 passed | The same merge with its records, run on the commit itself |
-| `e3dab64` | 5,452 passed | Role 2's test port change. **This is what `main` holds** |
+| `e3dab64` | 5,452 passed | Role 2's test port change |
+| `15034f3` | 5,452 passed | The film re-cut, its screenshots and the interface icons. The first attempt was cut off by a restart of the Mac before any test ran. **This is what `main` holds** |
 
 GitHub's check workflow runs the same command on a clean machine for every pushed commit. It passes on the accepted build, on every integration commit through `1fa4ab4` (the redesign and side-panel merge), on the redesign's commits through `c280283` and on the side-panel branch through `a162951`.
 

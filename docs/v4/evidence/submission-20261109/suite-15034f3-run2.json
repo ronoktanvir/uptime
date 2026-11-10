@@ -1,0 +1,29 @@
+{
+  "tested_commit": "15034f3c1e13a1b8283bcffa3c1f53315fc2d139",
+  "branch": "work/submission-integration-20261109",
+  "role": "the film re-cut for the Ramp opening with its checklist and screenshots, and interface icons, on top of main",
+  "contents": "main at 9bea5fb plus role 6 at 7f6e9ec (storyboard re-cut for the side-panel opening, the wording on how the requested log arrives, three README screenshots from main, timing on the redesigned build, a filming checklist for main, one README paragraph for the browser side panel) and the redesign session at fb97e8d (21 Phosphor icons held as path outlines, with their MIT licence in docs/v4/submission/THIRD-PARTY-NOTICES.md, and a list of renamed and moved controls). Outside docs/, the files that differ from main are README.md and seven files under web/. No test changed.",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-15034f3",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5452 passed, 1 warning in 405.28s (0:06:45)",
+  "log": "suite-15034f3-run2-pytest.log",
+  "started_at": "2026-11-10T05:07:16Z",
+  "finished_at": "2026-11-10T05:14:02Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "129 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "first_attempt": "Started at 2026-11-10T02:35:08Z and cut off within seconds when the Mac was restarted; its log, suite-15034f3-interrupted-pytest.log, holds only the header. No test had run. Not a result.",
+  "hosted_check": "GitHub's check workflow passed on this commit while this session was down.",
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}

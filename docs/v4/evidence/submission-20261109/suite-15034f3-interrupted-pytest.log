@@ -1,0 +1,4 @@
+commit 15034f3c1e13a1b8283bcffa3c1f53315fc2d139
+started 2026-11-10T02:35:08Z
+command: uv run --locked pytest --basetemp=<private> -o tmp_path_retention_policy=failed
+chrome 156.0.8078.80 157.0.8103.40 
