@@ -216,7 +216,7 @@ main:focus-visible { box-shadow: inset 0 2px 0 var(--accent); }
 #content > button { align-self: flex-start; margin-top: 24px; }
 #content > button + .page-head { padding-top: 0; }
 /* A page that opens without its header (a failed read, an empty state) keeps the header's distance from the top. */
-#content > .panel:first-child, #content > .empty:first-child { margin-top: 32px; }
+#content > .panel:first-child:not(.signin), #content > .empty:first-child:not(.boot) { margin-top: 32px; }
 .notice:not(:empty) { margin-top: 16px; padding: 10px 14px; border: 1px solid var(--accent-line); border-radius: 8px; background: var(--accent-soft); color: var(--ink); font-size: 13px; line-height: 20px; }
 /* Before sign-in and while the first page loads there is nothing to navigate to. */
 body:has(#content > .signin), body:has(#content > .boot) { grid-template-columns: minmax(0, 1fr); }
