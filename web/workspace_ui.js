@@ -305,7 +305,7 @@
         const linked = rampInfo.linked_record && typeof rampInfo.linked_record === 'object' ? rampInfo.linked_record : null;
         add(ramp, fields([['Connection destination', rampInfo.destination], ['Ramp bill', linked ? linked.id : 'Not linked']]),
           note(linked ? 'Open the linked bill in Ramp to continue its native workflow.' : rampInfo.note));
-        const records = el('a', 'Open Ramp records', 'case-link'); records.href = '#records'; ramp.append(records);
+        const records = el('a', 'Open Ramp records', 'case-link ramp-glyph'); records.href = '#records'; ramp.append(records);
       }
       // The claim's own stage is shown as the server reports it, beside the credit's latest recorded lifecycle stage.
       const reachedStage = serverStages(data).filter(row => row.status === 'recorded').pop();
