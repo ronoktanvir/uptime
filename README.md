@@ -14,7 +14,9 @@ Built for the **Berkeley BBS × Ramp Hackathon: Automate the Old Way**.
 
 <!-- VIDEO: add the two-minute film link here only once the recording exists. -->
 
-<!-- SCREENSHOT 1 (phase 2, from the frozen build): docs/assets/submission/overview.png — Overview after the four decisions: April $11,000.00 → $8,600.00, the open $1,000.00 March finding, the credit lifecycle. -->
+<p align="center">
+  <img src="docs/assets/submission/overview.png" alt="Uptime Overview for the authored Northwind Cloud agreement after the four reviewer decisions: April invoice NW-2026-04, invoice $11,000.00, credit applied $2,400.00, remaining balance $8,600.00, credit recorded in Local ledger; the separate open March price exception of $1,000.00, not included in the credit; the credit lifecycle showing one $2,400.00 credit at each stage, not added together; 4 reviewer decisions and 7 automatic steps recorded." width="100%">
+</p>
 
 ## The old way
 
@@ -80,7 +82,9 @@ Use a new folder name for each fresh run; add `--resume` to reopen one. [Full se
 
 ## Where the model fits
 
-<!-- SCREENSHOT 2 (phase 2, from the frozen build): docs/assets/submission/contract-reading.png — a recorded Claude Opus 5.5 reading of an authored contract: each proposed term beside its quoted sentence, the validation result and the shadow state. -->
+<p align="center">
+  <img src="docs/assets/submission/contract-reading.png" alt="A recorded Claude Opus 5.5 proposal job on the Agreements page for the authored Corvid Ledger contract: job 26ee4e3f, status SUCCEEDED, model claude-opus-5-5, November 9, 2026, 21:17 UTC, with the note that it was validated against the exact public source and is unreviewed and not approved, and each proposed term beside the exact sentence it cites." width="100%">
+</p>
 
 Claude Opus 5.5 does two things. It proposes contract terms for wording the fixed rules do not know, and it proposes a reading of a vendor's reply, with the cited text, for a reviewer to check. Both run through the ordinary application routes. Before each call, an operator records permission for that exact request, covering the model call only. In these runs the operator was the engineering agent running the demonstration, named as such in the receipts. The model gets no tools. Its output is a proposal: it cannot approve itself, invent evidence or set an amount. Northwind's own agreement is read by fixed rules with no model call. So is its vendor's request for a log, which uses wording the rules know; a request worded differently goes to a reviewer.
 
@@ -97,7 +101,9 @@ Claude Opus 5.5 does two things. It proposes contract terms for wording the fixe
 
 ## Where Ramp fits
 
-<!-- SCREENSHOT 3 (phase 2, from the frozen build): docs/assets/submission/ramp-record.png — the verified Ramp record for sandbox bill f74ba12c: business, read time, the person-posted note and its API read-back. -->
+<p align="center">
+  <img src="docs/assets/submission/ramp-record.png" alt="The verified Ramp record for sandbox bill f74ba12c: saved record read from Ramp November 9, 2026, 22:00 UTC, started by a person, not a live read; vendor DocuSign, invoice DD-PREAPPROVAL, USD 840, open and pending approval; finding: evidence gap, no contract terms attached; the note posted by a person in Ramp and read back; and the line that Uptime has made no write to Ramp." width="100%">
+</p>
 
 The first edition is a **Ramp-focused integration that runs beside Ramp**, as a separate local application; it is not embedded in Ramp's interface. Ramp stays the system of record. It is integrated with Ramp's developer API, read-only: when a person starts a read, Uptime reads bills, vendors, transactions, purchase orders and approvals from the demo sandbox. It shows when each record was read and whether the list was complete.
 
@@ -122,7 +128,7 @@ What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-58
 
 ## Verification
 
-The badge above runs the full check suite on every push to `main`. The frozen submission build's full run is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-52f1a2f.json). These are regression results, not a measure of model accuracy or production readiness. An independent acceptance run on a fresh clone of that build followed only these published instructions; its results, limits and ranked findings are in [the acceptance report](docs/v4/submission/acceptance.md) ([summary](docs/JUDGES.md#independent-acceptance)).
+The badge above runs the full check suite on every push to `main`. The full run on `main`'s current application code is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-1fa4ab4.json). These are regression results, not a measure of model accuracy or production readiness. An independent acceptance run checked the earlier frozen build `52f1a2f` from a fresh clone, following only these published instructions; its results, limits and ranked findings are in [the acceptance report](docs/v4/submission/acceptance.md) ([summary](docs/JUDGES.md#independent-acceptance)). It has not yet assessed the redesigned interface.
 
 ```sh
 uv run --locked pytest

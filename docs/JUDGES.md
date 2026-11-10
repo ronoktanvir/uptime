@@ -55,7 +55,7 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 
 ## Independent acceptance
 
-A separate session checked the frozen build `52f1a2f` from a fresh clone, following only the published instructions, against expectations it sealed by digest before it saw the build.
+A separate session checked the earlier frozen build `52f1a2f` (before the interface redesign, which it has not yet assessed) from a fresh clone, following only the published instructions, against expectations it sealed by digest before it saw the build.
 - **The walkthrough:** sign-in and four reviewer decisions, with seven automatic steps between them.
 - **Matched the sealed expectations:** the money, 58 of 58 citations and the authority recorded for each step.
 - **Safety:** no unsafe acceptance, invented evidence or unauthorized money movement was observed.
@@ -67,5 +67,5 @@ The [acceptance report](v4/submission/acceptance.md) has the evidence, the contr
 
 ## Evidence index
 
-- [Capability matrix](v4/CAPABILITIES.md) · [Independent evaluation results](v4/evaluation-finish-20261109/RESULTS.md) · [Full test receipt for the frozen build](v4/evidence/submission-20261109/suite-52f1a2f.json)
+- [Capability matrix](v4/CAPABILITIES.md) · [Independent evaluation results](v4/evaluation-finish-20261109/RESULTS.md) · [Full test receipt for main](v4/evidence/submission-20261109/suite-1fa4ab4.json) · [for the frozen build `52f1a2f`](v4/evidence/submission-20261109/suite-52f1a2f.json)
 - [Presentation storyboard and script](v4/submission/presentation.md) · [Engineering map](ENGINEERING-MAP.md) · [Decision records](v4/decisions/INDEX.md)

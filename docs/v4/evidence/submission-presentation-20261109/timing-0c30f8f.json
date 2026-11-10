@@ -1,0 +1,192 @@
+{
+ "schema": "submission-presentation-timing/1",
+ "build": {
+  "commit": "0c30f8f",
+  "ref": "main (redesigned interface a92f86c, side panel dc4ff65)",
+  "checkout": "detached, clean (0 changed files)"
+ },
+ "measured_at": "2026-11-09 (PST evening)",
+ "browser": "Google Chrome 157.0.8103.40 , headless, 1440x900 viewport at 2x (panel page: 420x900), driven through the ordinary sign-in form and offered controls only",
+ "method": "Seconds from the click (or navigation) to the rendered result named in each event. Local loopback servers on 8865-8868. Speech time is not measured; see presentation.md.",
+ "walkthrough_take_1": {
+  "events": {
+   "sign-in form shown": 0.34,
+   "signed in, first view rendered": 0.51,
+   "activity rendered": 0.06,
+   "Ramp records with verified record rendered (from Open Ramp records)": 0.11
+  },
+  "decisions": [
+   {
+    "clicked": "Approve January claim",
+    "seconds_to_settled": 1.64,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve. 1 reviewer decision and 4 automatic steps recorded."
+   },
+   {
+    "clicked": "Approve response",
+    "seconds_to_settled": 1.02,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve a ledger change. 2 reviewer decisions and 6 automatic steps recorded."
+   },
+   {
+    "clicked": "Post to Local ledger",
+    "seconds_to_settled": 0.87,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve a ledger change. 3 reviewer decisions and 7 automatic steps recorded."
+   },
+   {
+    "clicked": "Apply credit to eligible invoice",
+    "seconds_to_settled": 0.82,
+    "routine_line": "Routine steps: Complete. 4 reviewer decisions and 7 automatic steps recorded."
+   }
+  ],
+  "attention_before": [
+   "File the January 2026 claim before the deadline",
+   "Approve the claim packet before it is filed",
+   "Review invoice NW-2026-03 before payment",
+   "Complete March 2026 usage evidence",
+   "Next step: Approve January claim"
+  ],
+  "page_errors": []
+ },
+ "walkthrough_take_2": {
+  "events": {
+   "sign-in form shown": 0.18,
+   "signed in, first view rendered": 0.4,
+   "activity rendered": 0.02,
+   "Ramp records with verified record rendered (from Open Ramp records)": 0.09
+  },
+  "decisions": [
+   {
+    "clicked": "Approve January claim",
+    "seconds_to_settled": 1.5,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve. 1 reviewer decision and 4 automatic steps recorded."
+   },
+   {
+    "clicked": "Approve response",
+    "seconds_to_settled": 1.57,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve a ledger change. 2 reviewer decisions and 6 automatic steps recorded."
+   },
+   {
+    "clicked": "Post to Local ledger",
+    "seconds_to_settled": 1.15,
+    "routine_line": "Routine steps: Paused · Waiting for a person to approve a ledger change. 3 reviewer decisions and 7 automatic steps recorded."
+   },
+   {
+    "clicked": "Apply credit to eligible invoice",
+    "seconds_to_settled": 0.73,
+    "routine_line": "Routine steps: Complete. 4 reviewer decisions and 7 automatic steps recorded."
+   }
+  ],
+  "page_errors": []
+ },
+ "note_on_speed": "Decisions settle in 0.73-1.64 s on main against 0.30-0.59 s on 52f1a2f, in both takes; still inside every window's slack.",
+ "recorded_contract_copy": {
+  "served": "copy of role 1's preserved workspace (sha256 9043eaaf..., restored), port 8866, tenant submission-onboarding, account role1-operator",
+  "events": {
+   "sign-in form shown": 0.18,
+   "signed in, first view rendered": 0.14,
+   "agreements rendered with the recorded model job on the card": 0.08
+  },
+  "how": "On main the Agreements card shows the recorded model job under the agreement's facts; no form entry or access check is needed",
+  "page_errors": []
+ },
+ "side_panel_page": {
+  "route": "#ramp-bill/f74ba12c-95d0-582d-9f62-26d8057d1d37 at 420x900",
+  "events": {
+   "sign-in form shown": 0.29,
+   "signed in, first view rendered": 0.42,
+   "ramp-bill page rendered at panel width": 0.07
+  },
+  "page_errors": []
+ },
+ "side_panel_real_extension_check": {
+  "command": "uv run --locked python scripts/check_side_panel.py <origin> scripted-test-reviewer <credential> <out>",
+  "ramp": "local stub; Ramp not contacted",
+  "result": {
+   "1_frame_ancestors": "frame-ancestors chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl",
+   "extension_loaded_as": "kibophanbmnepbmhpampfagpjfhjfcnl",
+   "2_panel_frames_uptime": "http://127.0.0.1:8865/#records",
+   "3_signed_in_inside_frame": {
+    "account_control": "Sign out · scripted-test-reviewer",
+    "label": "No Ramp bill open",
+    "verified_record_visible": true
+   },
+   "4_follows_the_ramp_bill_tab": {
+    "stub_served": "local stub",
+    "label": "Ramp bill f74ba12c…",
+    "frame_url": "http://127.0.0.1:8865/#ramp-bill/f74ba12c-95d0-582d-9f62-26d8057d1d37",
+    "still_signed_in": "Sign out · scripted-test-reviewer",
+    "heading": "DocuSign",
+    "says": {
+     "DD-PREAPPROVAL": true,
+     "USD 840": true,
+     "Not a live read": true,
+     "Uptime has made no write to Ramp": true,
+     "Posted by a person in Ramp": true
+    },
+    "wider_than_panel": false
+   },
+   "5_a_bill_with_no_saved_record": {
+    "label": "Ramp bill 11111111…",
+    "frame_url": "http://127.0.0.1:8865/#ramp-bill/11111111-2222-4333-8444-555555555555",
+    "heading": "No saved record for this bill",
+    "shows_the_other_bills_facts": false
+   },
+   "6_another_site_with_the_same_path_is_not_followed": {
+    "label": "No Ramp bill open",
+    "frame_url": "http://127.0.0.1:8865/#records",
+    "still_signed_in": "Sign out · scripted-test-reviewer"
+   },
+   "7_another_page_may_not_frame_the_app": {
+    "child_frames": [
+     "chrome-error://chromewebdata/"
+    ],
+    "browser_said": []
+   },
+   "panel_console": []
+  },
+  "evidence": "docs/v4/evidence/submission-presentation-20261109/side-panel-0c30f8f/"
+ },
+ "deterministic_fallback": {
+  "command": "uv run --locked python scripts/rehearse_northwind.py --directory <throwaway> --receipt <receipt.json>",
+  "wall_seconds": 4.07,
+  "transport": "REAL_LOOPBACK_HTTP",
+  "authority_kind": "SCRIPTED_REVIEWER",
+  "steps": [
+   "Approve January claim",
+   "Approve response",
+   "Post to Local ledger",
+   "Apply credit to eligible invoice"
+  ],
+  "available_actions_remaining": 0,
+  "ledger": {
+   "destination": "Local ledger",
+   "claimed": "2400.00",
+   "awarded": "2400.00",
+   "posted": "2400.00",
+   "applied": "2400.00"
+  },
+  "bill": {
+   "id": "NW-2026-04",
+   "original": "11000.00",
+   "applied": "2400.00",
+   "outstanding": "8600.00",
+   "application_ref": "local-ledger:e34a6e19-5085-5740-8691-40cd4c708922"
+  },
+  "automation": {
+   "state": "COMPLETE",
+   "counts": {
+    "person_decisions": 4,
+    "automatic_steps": 7
+   }
+  }
+ },
+ "not_measured": [
+  "the Ramp page in demo.ramp.com (needs Ronok's sign-in)",
+  "the browser's own side-panel container (only a person can open it from the toolbar)",
+  "speech"
+ ],
+ "screenshots": [
+  "docs/assets/submission/overview.png (take 2, after the four decisions)",
+  "docs/assets/submission/contract-reading.png (recorded job 26ee4e3f on the Agreements card)",
+  "docs/assets/submission/ramp-record.png (take 2, More tools -> Ramp records)"
+ ]
+}
