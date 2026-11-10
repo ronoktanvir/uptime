@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:57 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:58 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -160,6 +160,7 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 | Re-shoot the 90-second cut on the redesigned build | The video session | Told at 17:50 PST to wait for role 6's storyboard. Its command is `./remake.sh <commit>` in `~/uptime-demo/video-01/`; its selectors need editing first. The Ramp opening is footage only Ronok can record |
 | Unseen contracts: 0 of 4 | The Codex lanes ([queued work](../NEXT-WORKSTREAMS-20261109.md)) | Outside this push |
 | Responses that return before the header middleware carry no security headers | Application owners | Existing gap, found in review; not changed |
+| Server messages that say "a person" or "human" where the interface now says "reviewer" | Application owners | Listed in the coordination record. Left as they are: they state what a step requires, not who acted |
 | Any write to Ramp by Uptime | Ronok and the team | Needs a signed native release |
 | Nine other branches on GitHub hold commits that are not on `main` | Their owners | Left as they are; see below |
 
