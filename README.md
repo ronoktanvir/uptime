@@ -93,9 +93,10 @@ Claude Opus 5.5 does two things. It proposes contract terms for wording the fixe
 - The other (Halden Relay) was refused for the same vendor-naming reason as the independent cohort.
 - A third, a deliberate control, was refused.
 - An authored unclear vendor reply was read as unsupported, citing the whole reply, and went to a reviewer with nothing awarded.
-- The model was called once per rule family: two calls per contract, six for the three contracts, and one more for the unclear reply. Each call took 5–15 seconds, and none was retried.
+- An authored reply asking for the January log in other words was read as a request for the right document. Claude also tagged the month, which the reply gives without a year, and Uptime's checks will not act on a period that is not one exact month. The claim stayed with a reviewer and nothing was awarded.
+- The model was called once per rule family: two calls per contract, six for the three contracts, and once for each of the two replies. Each call took 4–15 seconds, and none was retried.
 
-[Recorded runs](docs/v4/submission/onboarding-runbook.md) · [Recorded reply reading](docs/v4/evidence/submission-disputes-20261109/denial-model-job.json)
+[Recorded runs](docs/v4/submission/onboarding-runbook.md) · [Recorded reply reading](docs/v4/evidence/submission-disputes-20261109/denial-model-job.json) · [Reworded log request](docs/v4/evidence/submission-disputes-20261109/reworded-model-job.json)
 
 **On contracts it has not seen, it is not reliable yet.** In the latest independent first pass, 12 actual Opus calls returned and all 12 proposals failed validation: 0 of 4 intended positive contracts reached shadow, all 6 contracts were refused, and all 8 dispute cases stopped at setup, so held-out dispute accuracy is unmeasured. Earlier first attempts (0 of 4, 3 of 6, 0 of 50) and a refused public SLA (Backblaze) stand as recorded. A refusal names the passage it stopped at; it never produces a number. [Independent results](docs/v4/evaluation-finish-20261109/RESULTS.md)
 
