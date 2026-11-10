@@ -1,0 +1,203 @@
+{
+ "build": "main 08852a611a1bc6db2714f675e47bd143c60943f9",
+ "read_from": "GET /api/workspace/workflow and GET /api/correspondence/claims/inbox-northwind-2026-01 on http://127.0.0.1:8851 after the four decisions (signed scripted-reviewer headers, read-only)",
+ "automation": {
+  "state": "COMPLETE",
+  "counts": {
+   "person_decisions": 4,
+   "automatic_steps": 7
+  },
+  "steps": [
+   {
+    "operation": "approve-claim",
+    "class": "APPROVAL",
+    "state": "COMPLETED",
+    "authority_kind": "PERSON",
+    "actor": "scripted-test-reviewer",
+    "approval_digest_present": false,
+    "event_id_present": false
+   },
+   {
+    "operation": "submit-claim",
+    "class": "DELIVERY",
+    "state": "COMPLETED",
+    "authority_kind": "APPROVED_OPERATION",
+    "actor": "scripted-test-reviewer",
+    "approval_digest_present": true,
+    "event_id_present": false
+   },
+   {
+    "operation": "receive-denial",
+    "class": "INTAKE",
+    "state": "COMPLETED",
+    "authority_kind": "EVENT_INTAKE",
+    "actor": null,
+    "approval_digest_present": false,
+    "event_id_present": true
+   },
+   {
+    "operation": "receive-artifact",
+    "class": "INTAKE",
+    "state": "COMPLETED",
+    "authority_kind": "EVENT_INTAKE",
+    "actor": null,
+    "approval_digest_present": false,
+    "event_id_present": true
+   },
+   {
+    "operation": "receive-verification",
+    "class": "INTAKE",
+    "state": "COMPLETED",
+    "authority_kind": "EVENT_INTAKE",
+    "actor": null,
+    "approval_digest_present": false,
+    "event_id_present": true
+   },
+   {
+    "operation": "approve-response",
+    "class": "APPROVAL",
+    "state": "COMPLETED",
+    "authority_kind": "PERSON",
+    "actor": "scripted-test-reviewer",
+    "approval_digest_present": false,
+    "event_id_present": false
+   },
+   {
+    "operation": "submit-response",
+    "class": "DELIVERY",
+    "state": "COMPLETED",
+    "authority_kind": "APPROVED_OPERATION",
+    "actor": "scripted-test-reviewer",
+    "approval_digest_present": true,
+    "event_id_present": false
+   },
+   {
+    "operation": "receive-award",
+    "class": "INTAKE",
+    "state": "COMPLETED",
+    "authority_kind": "EVENT_INTAKE",
+    "actor": null,
+    "approval_digest_present": false,
+    "event_id_present": true
+   },
+   {
+    "operation": "record-credit",
+    "class": "FINANCIAL_MUTATION",
+    "state": "COMPLETED",
+    "authority_kind": "PERSON",
+    "actor": "scripted-test-reviewer",
+    "approval_digest_present": false,
+    "event_id_present": false
+   },
+   {
+    "operation": "receive-invoice",
+    "class": "INTAKE",
+    "state": "COMPLETED",
+    "authority_kind": "EVENT_INTAKE",
+    "actor": null,
+    "approval_digest_present": false,
+    "event_id_present": true
+   },
+   {
+    "operation": "apply-balance",
+    "class": "FINANCIAL_MUTATION",
+    "state": "COMPLETED",
+    "authority_kind": "PERSON",
+    "actor": "scripted-test-reviewer",
+    "approval_digest_present": false,
+    "event_id_present": false
+   }
+  ]
+ },
+ "workflow_ledger": {
+  "claimed": "2400.00",
+  "awarded": "2400.00",
+  "posted": "2400.00",
+  "applied": "2400.00",
+  "unapplied_credit": "0.00",
+  "destination": "Local ledger",
+  "currency": "USD"
+ },
+ "bill": {
+  "original_amount": "11000.00",
+  "outstanding_amount": "8600.00"
+ },
+ "finance_stages": [
+  [
+   "estimated",
+   "2400.00",
+   "recorded"
+  ],
+  [
+   "claimed",
+   "2400.00",
+   "recorded"
+  ],
+  [
+   "awarded",
+   "2400.00",
+   "recorded"
+  ],
+  [
+   "posted",
+   "2400.00",
+   "recorded"
+  ],
+  [
+   "applied",
+   "2400.00",
+   "recorded"
+  ]
+ ],
+ "finance_ramp": {
+  "destination": "Local ledger",
+  "linked_record": null,
+  "note": "No Ramp bill is linked to this agreement. Credits in this workspace are recorded in Local ledger."
+ },
+ "price_finding": {
+  "state": "PREPAYMENT_REVIEW",
+  "amount": "1000.00",
+  "currency": "USD",
+  "invoice_id": "NW-2026-03",
+  "credit_applied": "0.00",
+  "month": "2026-03"
+ },
+ "months": [
+  {
+   "month": "2026-01",
+   "outcome": "ELIGIBLE",
+   "amount": "2400.00",
+   "currency": "USD"
+  },
+  {
+   "month": "2026-02",
+   "outcome": "INELIGIBLE",
+   "amount": null,
+   "currency": "USD"
+  },
+  {
+   "month": "2026-03",
+   "outcome": "INSUFFICIENT_EVIDENCE",
+   "amount": null,
+   "currency": "USD"
+  }
+ ],
+ "reviewer": {
+  "name": "Dana Reyes",
+  "role": "Contract reviewer",
+  "authority_kind": "SCRIPTED_REVIEWER",
+  "principal": "scripted-test-reviewer"
+ },
+ "citations": {
+  "total": 58,
+  "re_sliced_exact": 58
+ },
+ "correspondence_claim_ledger": {
+  "estimated": "2400.00",
+  "claimed": "2400.00",
+  "awarded": "2400.00",
+  "posted": "0.00",
+  "applied": "0.00",
+  "disputed_remainder": "0.00"
+ }
+}

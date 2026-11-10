@@ -1,0 +1,160 @@
+Contract review & recovery
+
+Northwind Cloud
+
+Uptime checks this vendor’s invoices against the agreement behind them. This page follows one credit from estimate to applied and lists what still needs a reviewer.
+
+As of Mar 2, 2026, 09:05 UTC
+
+January service credit
+$2,400.00
+
+Current stage: Claimed. Not yet applied to an invoice.
+
+March price exception
+$1,000.00
+
+Open · review before payment · invoice NW-2026-03
+
+Separate from the service credit and not included in it.
+
+Credit lifecycle
+
+One credit, shown at each stage. The amounts are not added together.
+
+Estimated
+$2,400.00
+Recorded
+Claimed
+$2,400.00
+Recorded
+Awarded
+$0.00
+Not yet
+Posted to Local ledger
+$0.00
+Not yet
+Applied to bill
+$0.00
+Not yet
+January recovery
+Claim stage
+response drafted
+Credit stage
+Claimed
+Destination
+Local ledger
+Claim reference
+inbox-northwind-2026-01
+
+Routine steps: Paused · Waiting for a person to approve. 1 reviewer decision and 4 automatic steps recorded.
+
+Approve response
+
+Recorded: Approve January claim. Next: Approve response.
+
+Open this claim’s case and correspondence
+See every step in Activity
+
+Connection details
+Needs attention
+4
+Reviewer action
+Approve the evidence response before it is sent
+
+The claim is at stage RESPONSE_DRAFTED; a signed-in reviewer must approve before anything is sent.
+
+Show details
+Reviewer action
+Review invoice NW-2026-03 before payment
+
+line cloud-hosting-monthly billed $12,000.00 against $11,000.00 under amendment-v2. The $1,000.00 difference is an open finding, not an awarded credit.
+
+Show details
+Evidence needed
+Complete March 2026 usage evidence
+
+Eligible downtime minutes not provided by northwind-monthly-coverage-2026-03. This month is not ineligible; its credit is undetermined until the evidence is complete.
+
+Show details
+Reviewer action
+Next step: Approve response
+
+Run it from the recovery panel. It records one exact step; repeating it does not repeat the effect.
+
+Show details
+Ramp record
+Connection destination
+Local ledger
+Ramp bill
+Not linked
+
+No Ramp bill is linked to this agreement. Credits in this workspace are recorded in Local ledger.
+
+Open Ramp records
+Ask about this case
+
+Answers come only from this case’s records and name the record behind each statement. The guide can’t take actions.
+
+Try:
+What needs my attention?
+How was the January credit calculated?
+Why is March undetermined?
+Did the credit reach Ramp?
+Question
+Ask
+Evidence
+
+How each figure above was reached: the monthly evaluations, the price review and the bill, with the clauses and records behind them.
+
+Service credit evaluations
+Service month	Decision	Service credit	Basis
+January 2026	Eligible	$2,400.00	
+2 completed shortfall increments; 20% credit after the contractual cap.
+USD 12000.00 × 20% = USD 2400.00 after final-cent rounding.
+Calculation inputs
+Cited clauses (9)
+Inspect invoice & usage
+
+February 2026	Ineligible	No credit	
+0 completed shortfall increments; 0% credit after the contractual cap.
+Calculation inputs
+Cited clauses (9)
+Inspect invoice & usage
+
+March 2026	Needs evidence	Not determined	
+
+Scoped, exclusion-adjusted, full-month vendor measurement is required.
+
+Cited clauses (9)
+Inspect invoice & usage
+March price review
+Finding
+Price cap review
+Status
+Open · review before payment
+Invoice
+NW-2026-03
+Invoice line	Governing version	Billed	Contract amount	Difference
+cloud-hosting-monthly	amendment-v2	$12,000.00	$11,000.00	$1,000.00
+overcharge
+
+An open price finding. It is not a credit and is not included in the credit stages.
+
+Evaluator trace
+Cited clauses (15)
+Bill reconciliation
+Destination
+Local ledger
+Original bill
+Not determined
+Applied credit
+None applied
+Outstanding balance
+Not determined
+References
+Governing agreement
+CalyxQuay coverage in this workspace
+Agreement & review record
+
+See the full activity history

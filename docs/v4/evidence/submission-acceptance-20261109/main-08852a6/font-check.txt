@@ -1,0 +1,10 @@
+Font check on main 08852a6
+web/InterVariable.woff2: git blob 5a8d3e72ad7ffb62af3b146e1b1f54ab5813a212, 352240 bytes, SHA-256 693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3
+upstream rsms/inter tag v4.1, docs/font-files/InterVariable.woff2 (GitHub contents API, metadata only): blob 5a8d3e72ad7ffb62af3b146e1b1f54ab5813a212, size 352240 -> equal
+GET http://127.0.0.1:8851/static/InterVariable.woff2 -> 200 font/woff2; served bytes SHA-256 equal the file
+web/style.css @font-face src: url("/static/InterVariable.woff2") format("woff2")
+document.fonts after sign-in: Inter loaded, weight 100 900
+Every request recorded by the browser on every page in this run (sign-in, four decisions, Overview, Cases, Agreements, Activity, Ramp records, case page, ten one-bill loads): origin http://127.0.0.1:8851 only
+Content-Security-Policy served: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+Content-Security-Policy in 52f1a2f source: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none' -> identical
+Licence: SIL OFL 1.1 reproduced in docs/v4/submission/THIRD-PARTY-NOTICES.md

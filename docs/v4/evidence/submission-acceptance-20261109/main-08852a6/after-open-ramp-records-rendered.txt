@@ -1,0 +1,63 @@
+Read from Ramp
+
+Ramp records
+
+What Uptime has read from Ramp, with the time of each read and how complete it was. Ramp stays the system of record.
+
+Verified Ramp record
+Open this bill in Ramp
+
+Saved record read from Ramp Nov 9, 2026, 22:00 UTC, started by a person. Not a live read.
+
+Only this bill’s records are kept here; the full read stays private and is referenced by its checksum.
+
+The bill, as read from Ramp
+Vendor
+DocuSign
+Invoice
+DD-PREAPPROVAL
+Amount
+USD 840
+Status
+OPEN
+Ramp status
+APPROVAL_PENDING
+Approval
+PENDING
+Vendor credits
+No credits applied to this bill
+Business
+1569e402-460e-4952-adad-9df27db628a0
+Vendor ID
+8bde54ed-22d7-4801-82b1-e32c0ddb1b49
+Bill
+f74ba12c-95d0-582d-9f62-26d8057d1d37
+
+Ramp link: Exact URL observed in Ramp by a person and confirmed against this bill by API read
+
+What Uptime found for this bill
+Finding
+Evidence gap: the governing agreement or usage evidence is missing
+Contract terms
+No contract terms are attached to this bill
+Ramp discussion
+
+Posted by a person in Ramp; Uptime read it back on this bill · Nov 8, 2026, 01:46 UTC · Comment ID: 376563cf-950c-409d-b3d8-a68599c45fa0
+
+Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.
+
+Ramp worklist
+
+Updated Nov 5, 2026, 00:36 UTC · Saved capture (not live)
+
+Saved worklist from an earlier Ramp demo installation; its Ramp business is not recorded in this capture. Read from Ramp Nov 5, 2026, 00:36 UTC. Partial capture. Card transactions: 12 kept of 40 listed, more remain in Ramp; Purchase orders: 12 kept of 40 listed, more remain in Ramp. This is not the complete account.
+
+Not every list in this read is complete. Vendors: partial list; Card transactions: partial list; Purchase orders: partial list; Approvals: partial list. Listed records are not a complete portfolio.
+
+Records in this worklist
+Record coverage
+Agreements & permission
+Credit reconciliation
+Writeback evidence
+
+Ramp records own financial status. Separate Uptime evidence and hypothetical findings carry their source labels.

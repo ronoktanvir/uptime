@@ -1,0 +1,120 @@
+Excerpt of the case page with closed sections opened: the claim record's own amounts (two places on the page).
+
+Receipt LOCAL-8b5657729de2e03cb9426989
+
+Dispute record
+
+A read-only summary of the replies, checks and permitted next actions. It grants no approval or closure.
+
+Show dispute record
+Decision, unknowns and amounts as recorded
+outcome
+ELIGIBLE
+state
+AWARDED
+unknowns
+Not provided
+missing
+
+No records returned.
+
+owner
+Not provided
+filing cutoff
+Mar 3, 2026, 00:00 UTC
+next contact
+Mar 2, 2026, 12:10 UTC
+financials
+label
+Estimated
+value
+USD 2400.00
+sources
+label
+Claimed
+value
+USD 2400.00
+sources
+label
+Awarded
+value
+USD 2400.00
+sources
+label
+Posted
+value
+USD 0.00
+sources
+label
+Applied
+value
+USD 0.00
+sources
+label
+Disputed Remainder
+value
+USD 0.00
+sources
+Event timeline
+...
+resource_log
+ref
+NW-JAN-LOG-001
+historical procedure
+Not provided
+obligation id
+8c72817a3c758580435c49f14ebd16b550f3421c22278193ea37a3855c3c75a8
+policy dispatchable
+false
+ledger
+estimated
+2400.00
+claimed
+2400.00
+awarded
+2400.00
+posted
+0.00
+applied
+0.00
+disputed remainder
+0.00
+denial acceptance
+Not provided
+contradicting deliveries
+
+No records returned.
+
+trace url
+/api/correspondence/claims/inbox-northwind-2026-01/trace
+financials
+label
+Estimated
+value
+USD 2400.00
+sources
+label
+Claimed
+value
+USD 2400.00
+sources
+label
+Awarded
+value
+USD 2400.00
+sources
+label
+Posted
+value
+USD 0.00
+sources
+label
+Applied
+value
+USD 0.00
+sources
+label
+Disputed Remainder
+value
+USD 0.00
+sources

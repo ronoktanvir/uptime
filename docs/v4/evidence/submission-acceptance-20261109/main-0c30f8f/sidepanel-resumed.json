@@ -1,0 +1,89 @@
+{
+ "workspace": "same side-panel workspace, resumed WITHOUT the option",
+ "origin": "http://127.0.0.1:8852",
+ "at": "2026-11-10T02:07:17+00:00",
+ "get": [
+  {
+   "path": "/",
+   "status": 200,
+   "frame_ancestors": "frame-ancestors 'none'"
+  },
+  {
+   "path": "/index.html",
+   "status": 404,
+   "frame_ancestors": "frame-ancestors 'none'"
+  },
+  {
+   "path": "/app.js",
+   "status": 404,
+   "frame_ancestors": "frame-ancestors 'none'"
+  },
+  {
+   "path": "/api/workspace/workflow",
+   "status": 401,
+   "frame_ancestors": "frame-ancestors 'none'"
+  },
+  {
+   "path": "/api/ramp/workspace",
+   "status": 401,
+   "frame_ancestors": "frame-ancestors 'none'"
+  }
+ ],
+ "post": [
+  {
+   "case": "own origin (control)",
+   "route": "/api/auth/challenge",
+   "origin_header": "http://127.0.0.1:8852",
+   "sec_fetch_site": null,
+   "status": 200,
+   "detail": "challenge issued (body withheld)"
+  },
+  {
+   "case": "extension origin",
+   "route": "/api/auth/challenge",
+   "origin_header": "chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl",
+   "sec_fetch_site": null,
+   "status": 403,
+   "detail": "Same-origin authenticated workbench action required"
+  },
+  {
+   "case": "extension origin, cross-site",
+   "route": "/api/auth/challenge",
+   "origin_header": "chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl",
+   "sec_fetch_site": "cross-site",
+   "status": 403,
+   "detail": "Same-origin authenticated workbench action required"
+  },
+  {
+   "case": "no Origin header",
+   "route": "/api/auth/challenge",
+   "origin_header": null,
+   "sec_fetch_site": null,
+   "status": 403,
+   "detail": "Same-origin authenticated workbench action required"
+  },
+  {
+   "case": "own origin, cross-site",
+   "route": "/api/auth/challenge",
+   "origin_header": "http://127.0.0.1:8852",
+   "sec_fetch_site": "cross-site",
+   "status": 403,
+   "detail": "Same-origin authenticated workbench action required"
+  },
+  {
+   "case": "other web origin",
+   "route": "/api/auth/challenge",
+   "origin_header": "http://127.0.0.1:8859",
+   "sec_fetch_site": null,
+   "status": 403,
+   "detail": "Same-origin authenticated workbench action required"
+  },
+  {
+   "case": "extension origin on a decision route",
+   "route": "/api/workspace/workflow/actions/approve-claim",
+   "origin_header": "chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl",
+   "status": 403,
+   "detail": "Same-origin authenticated workbench action required"
+  }
+ ]
+}
