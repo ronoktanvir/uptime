@@ -937,6 +937,60 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .uptime-v4 .v4-read-model { background: var(--accent-soft); color: var(--accent); }
 .uptime-v4 .v4-read-model::before { --icon: var(--i-chat); }
 @media (prefers-reduced-motion: reduce) { .overview-lead, .overview-step.replay-reveal { animation: none !important; } }
+/* Demo line, round three: the portfolio Overview and the case page's way back. */
+.tile-portfolio { --icon: var(--i-chart); }
+.back-link { display: inline-block; margin-bottom: 4px; font-size: 13px; font-weight: 500; color: var(--accent); text-decoration: none; }
+.back-link::before { content: "←"; margin-right: 6px; }
+.back-link:hover { text-decoration: underline; }
+.portfolio-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.portfolio-tile { padding: 18px 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); min-width: 0; }
+.portfolio-tile-label { margin: 0; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); }
+.portfolio-tile-value { margin: 6px 0 4px; font-size: 28px; line-height: 34px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.portfolio-tile .help { margin: 2px 0 0; }
+.portfolio-columns { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.portfolio-side { display: grid; gap: 16px; min-width: 0; }
+.portfolio-main { min-width: 0; }
+.portfolio-rows { list-style: none; margin: 12px 0 0; padding: 0; }
+.portfolio-rows li + li { border-top: 1px solid var(--line); }
+.portfolio-row { display: grid; grid-template-columns: 32px minmax(0, 1.5fr) minmax(0, 1fr) 96px minmax(0, 1.1fr); align-items: center; gap: 14px;
+  padding: 12px 6px; color: var(--ink); text-decoration: none; border-radius: 8px; }
+.portfolio-row:hover { background: var(--sunken); }
+.portfolio-avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; font-size: 12px; font-weight: 600;
+  color: var(--brand-ink, #fff); background: var(--brand-bg, var(--ink)) var(--brand, none) center / cover no-repeat; box-shadow: var(--brand-ring, none); }
+.portfolio-what { display: grid; min-width: 0; }
+.portfolio-what strong { font-size: 14px; line-height: 20px; }
+.portfolio-what .help { overflow-wrap: anywhere; }
+.portfolio-kind { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
+.portfolio-kind::before { content: ""; flex: none; width: 16px; height: 16px; background: currentColor; -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; color: var(--muted); }
+.kind-credit .portfolio-kind::before { --icon: var(--i-coins); color: var(--ok); }
+.kind-no-credit .portfolio-kind::before { --icon: var(--i-check-circle); }
+.kind-evidence .portfolio-kind::before { --icon: var(--i-paperclip); color: var(--warn); }
+.kind-price .portfolio-kind::before { --icon: var(--i-warning); color: #e2a53a; }
+.kind-agreement .portfolio-kind::before { --icon: var(--i-file); color: var(--accent); }
+.kind-no-agreement .portfolio-kind::before, .kind-bill .portfolio-kind::before { --icon: var(--i-receipt); color: var(--bad); }
+.portfolio-status { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.portfolio-amount { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.portfolio-row .pill.muted { background: var(--neutral-soft); color: var(--muted); }
+.portfolio-next.help { margin: 0; font-size: 12px; }
+.pill.tag-source { background: var(--neutral-soft); color: var(--neutral); }
+.pill.tag-claude { background: var(--accent-soft); color: var(--accent-strong); }
+.pill.tag-claude::before { content: ""; display: inline-block; width: 1em; height: 1em; margin-right: 4px; vertical-align: -0.14em; background: currentColor;
+  -webkit-mask: var(--i-chat) center / contain no-repeat; mask: var(--i-chat) center / contain no-repeat; }
+.agent-counters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.agent-counter { min-width: 0; }
+.agent-counter-value { margin: 6px 0 2px; font-size: 24px; line-height: 30px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.agent-counter .help { margin: 0; font-size: 12px; line-height: 16px; }
+@media (max-width: 1100px) {
+  .portfolio-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .portfolio-columns { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .portfolio-tiles { grid-template-columns: minmax(0, 1fr); }
+  .portfolio-row { grid-template-columns: 32px minmax(0, 1fr) auto; }
+  .portfolio-row > .portfolio-kind, .portfolio-row > .portfolio-status { grid-column: 2 / -1; justify-self: start; }
+  .portfolio-status { justify-content: flex-start; }
+  .agent-counters { grid-template-columns: minmax(0, 1fr); }
+}
 /* 16. Side panel (submission-panel-20261110). Everything in this block applies only when the page is framed by the
    one extension the server allows (app.js adds .panel-mode to <html> then), or styles the one-bill page's own parts.
    Presentation only: no state, record or word is hidden by it. The full app in an ordinary tab is unchanged. */

@@ -37,3 +37,21 @@ Tests changed on the demo line because the demo deliberately changes a rule. One
 No assertion about money, authority or what reached Ramp was weakened. No Python test was changed.
 
 - `web/ramp_bill.test.cjs` › `a matched bill leads with the possible credit, how it was matched, the evidence, the money and the stages`: the matched page no longer says who started the read, because on the demo line the Northwind bill was entered in Ramp and read back by an agent at the owner's direction.
+
+## The Overview becomes the portfolio; the January case moves to `#recovery` (November 10, round three)
+
+The case's figures, lifecycle, recovery card, decisions, step display, price exception and Ramp record now live at `#recovery`, unchanged. Tests that used them from `#overview` now open `#recovery`. No assertion about amounts, stages or who acted was changed.
+
+- `tests/test_finance_browser_90.py` › `test_attention_guide_keyboard_actions_and_expired_session_recovery`: opens `/#recovery`; the "Show details" focus check now expects `location.hash == '#recovery'` instead of `''`, because the page's own route is now `#recovery` (the button still does not change the route).
+- `tests/test_finance_browser_90.py` › `test_narrow_screen_error_empty_and_guide_failure_states`: opens `/#recovery`, where the guide, months table and recovery card now are.
+- `tests/test_finance_keyboard_95.py` › `test_keyboard_only_demo_path_needs_a_deliberate_tab_before_each_decision`: opens `/#recovery`, where the decisions are.
+- `tests/test_finance_keyboard_95.py` › `test_a_held_enter_records_one_decision_only`: opens `/#recovery`, where the decisions are.
+- `tests/test_guide_suggestions_browser_95.py` › `test_suggested_questions_answer_read_only_by_click_and_keyboard_on_a_narrow_screen`: opens `/#recovery`, where the guide is.
+- `tests/test_submission_ui_browser.py` › `DESTINATIONS` (used by `test_workspace_name_is_the_same_whatever_page_opens_first`): the Overview's heading is now "Portfolio", not "Northwind Cloud".
+- `tests/test_submission_ui_browser.py` › `test_reload_keeps_reading_but_disables_actions_with_one_way_back`: opens `/#recovery`, where "Approve January claim" is.
+- `tests/test_submission_ui_browser.py` › `test_four_destinations_fit_a_phone_and_the_overview_leads_with_the_outcome`: opens `/#recovery` for the outcome and lifecycle checks; the four destinations are still each visited.
+- `tests/test_submission_ui_browser.py` › `test_automation_workspace_needs_four_person_decisions_and_activity_shows_every_step`: opens `/#recovery`, where the four decisions are.
+- `tests/test_workspace_ui_v4.py` › `test_configured_workflow_keeps_evidence_money_and_original_navigation_reachable`: opens `/#recovery`; its stub server answers only the workflow read, and the portfolio also reads the agreements and the Ramp workspace.
+- `web/browser-contract.test.cjs` › "configured workspace renders inside the finance shell and keeps native records accessible": the Overview now shows "Portfolio" and reads the workflow first, then `/api/vendors` and `/api/ramp/workspace`; "Northwind Cloud" and the single workflow read are now checked on `#recovery`.
+
+The Python browser tests above were edited but not run (no full suite). One headless Chrome look went through the same paths.

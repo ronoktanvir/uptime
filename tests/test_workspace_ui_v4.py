@@ -47,7 +47,7 @@ def test_configured_workflow_keeps_evidence_money_and_original_navigation_reacha
         page.route("**/*", serve)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.add_init_script("sessionStorage.setItem('uptime-v4-session', " + json.dumps(json.dumps({"token": "browser-projection-token", "subject": "browser-reviewer"})) + ")")
-        page.goto("http://127.0.0.1:8765/")
+        page.goto("http://127.0.0.1:8765/#recovery")
         expect(page.get_by_role("heading", name="Northwind Cloud", exact=True)).to_be_visible()
         expect(page.get_by_text("$9,600.00", exact=True)).to_be_visible()
         expect(page.get_by_text("$1,000.00", exact=True)).to_be_visible()
