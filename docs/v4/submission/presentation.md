@@ -183,10 +183,31 @@ Full answers are in [the judge guide](../../JUDGES.md#five-questions-answered).
 
 ## Screenshots
 
-**In the README, from `main` (`0c30f8f`):** 2880×1800, a 1440 px viewport at 2x, taken through the ordinary sign-in and offered controls.
-- [overview.png](../../assets/submission/overview.png): Overview after the four decisions, take 2. April $11,000.00 → $8,600.00; the March $1,000.00 exception "not included in it"; the lifecycle; "4 reviewer decisions and 7 automatic steps recorded".
-- [contract-reading.png](../../assets/submission/contract-reading.png): Agreements, "Model proposal job" `26ee4e3f`, claude-opus-5-5, "unreviewed and not approved", each term beside its exact sentence.
-- [ramp-record.png](../../assets/submission/ramp-record.png): More tools → Ramp records, "Verified Ramp record": DocuSign, DD-PREAPPROVAL, USD 840, read time "started by a person", evidence gap, the person's note and "Uptime has made no write to Ramp". The worklist below it has its rows closed.
+**In the README, from `main` at `008c4af`** (retaken November 10; the earlier set was from `0c30f8f`): 2880×1800, a 1440 px viewport at 2x, through the ordinary sign-in and offered controls.
+- [overview.png](../../assets/submission/overview.png): Overview after the four decisions. April $11,000.00 → $8,600.00; the March $1,000.00 exception "not included in it"; the lifecycle; the January recovery card with "Reviewer · Dana Reyes · Scripted reviewer" and "4 reviewer decisions and 7 automatic steps recorded".
+- [contract-reading.png](../../assets/submission/contract-reading.png): Agreements, "Model proposal job" `26ee4e3f`, claude-opus-5-5, "unreviewed and not approved", each term beside its exact sentence (quoted text now in Source Serif 4).
+- [ramp-record.png](../../assets/submission/ramp-record.png): More tools → Ramp records, "Verified Ramp record": DocuSign, DD-PREAPPROVAL, USD 840, read time "started by a person", evidence gap, the person's note and "Uptime has made no write to Ramp". The worklist below it keeps its rows closed.
+
+**Retake in one command** from the root of a clean checkout of the build to capture:
+
+```bash
+uv run --locked python docs/v4/submission/tools/capture_readme_screenshots.py
+```
+
+The script:
+- builds a fresh authored Northwind workspace in a temporary folder and serves it on 8865;
+- serves a copy of the preserved recorded onboarding workspace on 8866, never the original, with no model call possible;
+- drives one headless Chrome through the sign-in and the four offered decisions;
+- overwrites the three images;
+- writes [readme-capture-report.json](../evidence/submission-presentation-20261109/readme-capture-report.json), with the commit, the decisions and the visible text used to check each alt text;
+- stops both servers and deletes the folder.
+
+It refuses a busy port (choose others with `--walk-port` and `--contract-port`) and stops at `--limit-seconds` (default 420). A stalled browser is reported, never retried. After a retake, compare each image with its alt text in `README.md` before committing.
+
+**First run on `008c4af`:**
+- **Failed, kept as found:** two attempts. The script used an unresolved macOS temporary path (`/var` → `/private/var`), which Uptime correctly refuses for credential and config files, so both servers exited at start.
+- **The fix:** the script now resolves that path.
+- **The third attempt:** captured in 10.6 s; the decisions took 0.30–0.50 s.
 
 **Side-panel evidence, not in the README** ([folder](../evidence/submission-presentation-20261109/side-panel-0c30f8f/)): the panel page at 420 px and three frames from the real-extension check, with Ramp stubbed locally.
 
