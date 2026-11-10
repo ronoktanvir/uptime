@@ -1,0 +1,19 @@
+Interface-only acceptance of main, recorded by role 5 (gent8).
+
+1. Anonymous clone (env -i, empty HOME, no git config, credential.helper=, GIT_TERMINAL_PROMPT=0, askpass false, no SSH)
+   started 2026-11-10T05:25:43Z UTC; clone_exit=0
+   checked out branch main at 08852a611a1bc6db2714f675e47bd143c60943f9
+   ls-remote --symref HEAD: ref: refs/heads/main HEAD 08852a611a1bc6db2714f675e47bd143c60943f9 HEAD
+   52f1a2f and 0c30f8f are ancestors of 08852a6. Under uptime/ only server.py differs from 52f1a2f (side-panel framing option).
+
+2. README second command. Port 8776 was free on this run (the machine had restarted), so the verbatim command would have bound
+   the presentation port, which acceptance must leave alone. It was not run verbatim. The earlier run on 0c30f8f, with 8776
+   occupied, recorded the one-line refusal and no folder written (main-0c30f8f/clone-and-setup.txt).
+
+3. README second command plus the documented --origin http://127.0.0.1:8851, HOME = an empty scratch folder (cold uv cache),
+   started 2026-11-10T05:25:54Z UTC:
+   {"directory": "$SCRATCH/home/uptime-demo/northwind-01", "origin": "http://127.0.0.1:8851", "account": "scripted-test-reviewer", "reviewer_credential_file": "$SCRATCH/home/uptime-demo/northwind-01/scripted-reviewer.jwk", "reviewer_credential_copy": null, "routine_automation": true}
+   Sign in with the reviewer file below (private key, mode 0600; never share or commit it).
+   $SCRATCH/home/uptime-demo/northwind-01/scripted-reviewer.jwk
+   scripted-test-reviewer
+   http://127.0.0.1:8851

@@ -1,0 +1,12 @@
+# Invalid --side-panel-origin values (fresh folder each, port 8853), 2026-11-10T01:56:52Z
+[with --serve] 'https://example.com' -> exit=0 folder_created=no port_bound=no :: setup_northwind: The side panel option takes exactly one chrome-extension origin.
+[with --serve] '*' -> exit=0 folder_created=no port_bound=no :: setup_northwind: The side panel option takes exactly one chrome-extension origin.
+[with --serve] 'chrome-extension://KIBOPHANBMNEPBMHPAMPFAGPJFHJFCNL' -> exit=0 folder_created=no port_bound=no :: setup_northwind: The side panel option takes exactly one chrome-extension origin.
+[with --serve] 'chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl' -> exit=0 folder_created=no port_bound=no :: setup_northwind: The side panel option takes exactly one chrome-extension origin.
+[with --serve] 'chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl/' -> exit=0 folder_created=no port_bound=no :: setup_northwind: The side panel option takes exactly one chrome-extension origin.
+[with --serve] 'chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnq1' -> exit=0 folder_created=no port_bound=no :: setup_northwind: The side panel option takes exactly one chrome-extension origin.
+[valid value WITHOUT --serve] 'chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl' -> exit=0 folder_created=no port_bound=no :: setup_northwind.py: error: --side-panel-origin requires --serve
+# exit codes, measured directly
+'https://example.com' -> exit=1 :: setup_northwind: The side panel option takes exactly one chrome-extension origin.
+'*' -> exit=1 :: setup_northwind: The side panel option takes exactly one chrome-extension origin.
+valid value without --serve -> exit=2 :: setup_northwind.py: error: --side-panel-origin requires --serve

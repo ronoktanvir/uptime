@@ -1,0 +1,25 @@
+{
+ "launch_seconds": 0.54,
+ "results": [
+  {
+   "framed_origin": "http://127.0.0.1:8851",
+   "framing_page": "http://127.0.0.1:8859/0",
+   "main_frame_url": "http://127.0.0.1:8859/0",
+   "child_frame_url": "chrome-error://chromewebdata/",
+   "child_text": "127.0.0.1 refused to connect.",
+   "chrome_console": [
+    "Framing 'http://127.0.0.1:8851/' violates the following Content Security Policy directive: \"frame-ancestors 'none'\". The request has been blocked.\n"
+   ]
+  },
+  {
+   "framed_origin": "http://127.0.0.1:8852",
+   "framing_page": "http://127.0.0.1:8859/1",
+   "main_frame_url": "http://127.0.0.1:8859/1",
+   "child_frame_url": "chrome-error://chromewebdata/",
+   "child_text": "127.0.0.1 refused to connect.",
+   "chrome_console": [
+    "Framing 'http://127.0.0.1:8852/' violates the following Content Security Policy directive: \"frame-ancestors chrome-extension://kibophanbmnepbmhpampfagpjfhjfcnl\". The request has been blocked.\n"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,172 @@
+All cases
+
+Northwind Cloud · January 2026
+
+Claim correspondence · NW-2026-01
+
+inbox-northwind-2026-01
+
+Refresh case receipts
+Where this claim stands
+Stage
+awarded
+Outcome
+Eligible
+Claim amount
+$2,400.00
+Filing cutoff
+Mar 3, 2026, 00:00 UTC
+Next contact
+Mar 2, 2026, 12:10 UTC
+Requested document
+resource log · NW-JAN-LOG-001
+Service
+Cloud Hosting
+Invoice
+NW-2026-01
+Incident
+NW-INC-2026-01-17
+Account
+harborline-001
+Contract
+NW-2026-001
+Estimated
+$2,400.00
+Claimed
+$2,400.00
+Awarded
+$2,400.00
+Disputed remainder
+$0.00
+
+One claim at each stage of its correspondence. The amounts are not added together.
+
+Reviewer actions
+
+No approved action is available in the returned server state.
+
+Correspondence, in order
+
+Each step with the actor the server recorded for it. Vendor replies are quoted exactly as received.
+
+Mar 1, 2026, 12:00 UTC
+
+Opened an assisted local claim intake.
+Actor: scripted-test-reviewer
+
+Mar 1, 2026, 12:00 UTC
+
+Received authenticated invoice record.
+Actor: northwind-2026-01-billing
+
+Event northwind-invoice-2026-01
+
+Mar 1, 2026, 12:00 UTC
+
+Received authenticated status record.
+Actor: northwind-2026-01-status
+
+Event northwind-status-2026-01
+
+Mar 1, 2026, 12:00 UTC
+
+Received authenticated impact record.
+Actor: northwind-2026-01-customer
+
+Event northwind-impact-2026-01
+
+Mar 1, 2026, 12:00 UTC
+
+Received authenticated coverage record.
+Actor: northwind-2026-01-status
+
+Event northwind-monthly-coverage-2026-01
+
+Mar 1, 2026, 12:00 UTC
+
+Approved exact local packet.
+Actor: scripted-test-reviewer
+
+Mar 1, 2026, 12:00 UTC
+
+Filed approved packet in the isolated local outbox.
+Actor: scripted-test-reviewer
+
+Receipt LOCAL-227ca089291540979c1caaf1
+
+Mar 1, 2026, 12:10 UTC
+
+Received authenticated message record.
+Actor: northwind-2026-01-vendor
+
+Event northwind-denial-jan
+
+Vendor reply, as received
+
+Please furnish the dated service log, document NW-JAN-LOG-001.
+Mar 1, 2026, 12:10 UTC
+
+Evaluated vendor correspondence: NEEDS_EVIDENCE.
+Actor: claimant
+
+Receipt LOCAL-227ca089291540979c1caaf1
+
+Mar 2, 2026, 09:00 UTC
+
+Received authenticated artifact record.
+Actor: northwind-2026-01-customer
+
+Event northwind-jan-resource-log
+
+Mar 2, 2026, 09:05 UTC
+
+Received authenticated status_verification record.
+Actor: northwind-2026-01-status
+
+Event northwind-jan-status-verification
+
+Mar 2, 2026, 09:05 UTC
+
+A newly acquired artifact matches the requested proof and independent verification.
+Actor: claimant
+
+Mar 2, 2026, 09:05 UTC
+
+Approved exact local packet.
+Actor: scripted-test-reviewer
+
+Mar 2, 2026, 12:10 UTC
+
+Filed approved packet in the isolated local outbox.
+Actor: scripted-test-reviewer
+
+Receipt LOCAL-8b5657729de2e03cb9426989
+
+Mar 2, 2026, 13:00 UTC
+
+Received authenticated message record.
+Actor: northwind-2026-01-vendor
+
+Event NW-CM-2026-01
+
+Vendor reply, as received
+
+We have approved a service credit of USD 2400.00.
+Mar 2, 2026, 13:00 UTC
+
+Evaluated vendor correspondence: AWARDED.
+Actor: claimant
+
+Receipt LOCAL-8b5657729de2e03cb9426989
+
+Dispute record
+
+A read-only summary of the replies, checks and permitted next actions. It grants no approval or closure.
+
+Show dispute record
+Decision, unknowns and amounts as recorded
+Event timeline
+Evidence & receipts
+Current and historical evaluation
+Complete server case record
+Your access on this page

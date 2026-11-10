@@ -1,0 +1,144 @@
+{
+ "results": [
+  {
+   "case": "saved",
+   "id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+   "how": "hash change after sign-in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/f74ba12c-95d0-582d-9f62-26d8057d1d37",
+   "eyebrow": "Verified Ramp record",
+   "h1": "DocuSign",
+   "saved_bill_facts_shown": [
+    "DD-PREAPPROVAL",
+    "376563cf",
+    "Verified Ramp record"
+   ],
+   "recovered_or_attached_lines": [
+    "No contract finding is attached to this bill."
+   ],
+   "shows_40": false
+  },
+  {
+   "case": "well-formed-no-record",
+   "id": "7c1e0a52-3f7b-4d55-9a3e-1b2c3d4e5f60",
+   "how": "hash change after sign-in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/7c1e0a52-3f7b-4d55-9a3e-1b2c3d4e5f60",
+   "eyebrow": "Ramp bill",
+   "h1": "No saved record for this bill",
+   "saved_bill_facts_shown": [],
+   "recovered_or_attached_lines": [],
+   "shows_40": false
+  },
+  {
+   "case": "worklist-bill-with-scenario",
+   "id": "ae98c421-2c70-5586-8719-4fe8acd7ceda",
+   "how": "hash change after sign-in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/ae98c421-2c70-5586-8719-4fe8acd7ceda",
+   "eyebrow": "Ramp bill in the saved worklist",
+   "h1": "Vendor name not captured",
+   "saved_bill_facts_shown": [],
+   "recovered_or_attached_lines": [
+    "No contract finding is attached to this bill."
+   ],
+   "shows_40": false
+  },
+  {
+   "case": "saved-uppercase",
+   "id": "F74BA12C-95D0-582D-9F62-26D8057D1D37",
+   "how": "hash change after sign-in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/F74BA12C-95D0-582D-9F62-26D8057D1D37",
+   "eyebrow": "Verified Ramp record",
+   "h1": "DocuSign",
+   "saved_bill_facts_shown": [
+    "DD-PREAPPROVAL",
+    "376563cf",
+    "Verified Ramp record"
+   ],
+   "recovered_or_attached_lines": [
+    "No contract finding is attached to this bill."
+   ],
+   "shows_40": false
+  },
+  {
+   "case": "saved-prefix",
+   "id": "f74ba12c",
+   "how": "hash change after sign-in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/f74ba12c",
+   "eyebrow": "Ramp bill",
+   "h1": "No saved record for this bill",
+   "saved_bill_facts_shown": [],
+   "recovered_or_attached_lines": [],
+   "shows_40": false
+  },
+  {
+   "case": "malformed-text",
+   "id": "not-a-bill",
+   "how": "hash change after sign-in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/not-a-bill",
+   "eyebrow": "Ramp bill",
+   "h1": "No saved record for this bill",
+   "saved_bill_facts_shown": [],
+   "recovered_or_attached_lines": [],
+   "shows_40": false
+  },
+  {
+   "case": "malformed-escape",
+   "id": "%E0%A4%A",
+   "how": "hash change after sign-in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/%E0%A4%A",
+   "eyebrow": "Ramp bill",
+   "h1": "No saved record for this bill",
+   "saved_bill_facts_shown": [],
+   "recovered_or_attached_lines": [],
+   "shows_40": false
+  },
+  {
+   "case": "malformed-html",
+   "id": "%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E",
+   "how": "hash change after sign-in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E",
+   "eyebrow": "Ramp bill",
+   "h1": "No saved record for this bill",
+   "saved_bill_facts_shown": [],
+   "recovered_or_attached_lines": [],
+   "shows_40": false
+  },
+  {
+   "case": "empty",
+   "id": "",
+   "how": "hash change after sign-in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/",
+   "eyebrow": "Ramp bill",
+   "h1": "No saved record for this bill",
+   "saved_bill_facts_shown": [],
+   "recovered_or_attached_lines": [],
+   "shows_40": false
+  },
+  {
+   "case": "saved-cold-load",
+   "id": "f74ba12c-95d0-582d-9f62-26d8057d1d37",
+   "how": "URL opened before sign-in, then signed in",
+   "url": "http://127.0.0.1:8851/#ramp-bill/f74ba12c-95d0-582d-9f62-26d8057d1d37",
+   "eyebrow": "Verified Ramp record",
+   "h1": "DocuSign",
+   "saved_bill_facts_shown": [
+    "DD-PREAPPROVAL",
+    "376563cf",
+    "Verified Ramp record"
+   ],
+   "recovered_or_attached_lines": [
+    "No contract finding is attached to this bill."
+   ],
+   "shows_40": false
+  }
+ ],
+ "dialogs": [],
+ "requests": {
+  "origins": [
+   "http://127.0.0.1:8851"
+  ],
+  "fonts": [
+   "http://127.0.0.1:8851/static/InterVariable.woff2"
+  ],
+  "count": 32
+ }
+}

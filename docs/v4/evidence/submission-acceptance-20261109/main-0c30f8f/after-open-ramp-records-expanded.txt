@@ -1,0 +1,328 @@
+Read from Ramp
+
+Ramp records
+
+What Uptime has read from Ramp, with the time of each read and how complete it was. Ramp stays the system of record.
+
+Verified Ramp record
+Open this bill in Ramp
+
+Saved record read from Ramp Nov 9, 2026, 22:00 UTC, started by a person. Not a live read.
+
+Only this bill’s records are kept here; the full read stays private and is referenced by its checksum.
+
+The bill, as read from Ramp
+Vendor
+DocuSign
+Invoice
+DD-PREAPPROVAL
+Amount
+USD 840
+Status
+OPEN
+Ramp status
+APPROVAL_PENDING
+Approval
+PENDING
+Vendor credits
+No credits applied to this bill
+Business
+1569e402-460e-4952-adad-9df27db628a0
+Vendor ID
+8bde54ed-22d7-4801-82b1-e32c0ddb1b49
+Bill
+f74ba12c-95d0-582d-9f62-26d8057d1d37
+
+Ramp link: Exact URL observed in Ramp by a person and confirmed against this bill by API read
+
+What Uptime found for this bill
+Finding
+Evidence gap: the governing agreement or usage evidence is missing
+Contract terms
+No contract terms are attached to this bill
+Ramp discussion
+
+Posted by a person in Ramp; Uptime read it back on this bill · Nov 8, 2026, 01:46 UTC · Comment ID: 376563cf-950c-409d-b3d8-a68599c45fa0
+
+Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.
+
+Ramp worklist
+
+Updated Nov 5, 2026, 00:36 UTC · Saved capture (not live)
+
+Saved worklist from an earlier Ramp demo installation; its Ramp business is not recorded in this capture. Read from Ramp Nov 5, 2026, 00:36 UTC. Partial capture. Card transactions: 12 kept of 40 listed, more remain in Ramp; Purchase orders: 12 kept of 40 listed, more remain in Ramp. This is not the complete account.
+
+Not every list in this read is complete. Vendors: partial list; Card transactions: partial list; Purchase orders: partial list; Approvals: partial list. Listed records are not a complete portfolio.
+
+Records in this worklist
+Show
+Unpaid bills
+All bills
+Transactions
+Purchase orders
+Contract scenarios
+All records
+Search
+
+5 of 43 records · Page 1 of 1 · Up to 25 rows per page
+
+Record / native ID	Native status	Ramp amount	Contract finding	Finding amount
+Vendor name not captured
+Invoice cap review
+
+Invoice: not captured · Vendor ID: 436983ac-8c74-4512-b9af-46af645a6a83 · Native ID: ae98c421-2c70-5586-8719-4fe8acd7ceda
+
+	OPEN
+
+Approval: PENDING
+
+Ramp status: APPROVAL_PENDING
+
+	USD 840	Scenario only, not a finding
+
+Scenario outcome: Eligible
+
+	
+
+Scenario amount
+
+USD 40.00
+Vendor name not captured
+bills: evidence review
+
+Invoice: not captured · Vendor ID: f0d1e986-d262-427d-aaf8-9c20d0e0ceb8 · Native ID: 6a70b95b-4ef8-571a-9d47-cc8b3e5a6afb
+
+	OPEN
+
+Approval: APPROVED
+
+Ramp status: WAITING_FOR_TRANSFER_MATCH
+
+	USD 1250	Needs evidence
+
+Review before payment
+
+	Not determined
+Vendor name not captured
+bills: evidence review
+
+Invoice: not captured · Vendor ID: ea62e3fd-8a99-4d9f-bac0-28485e6f3ab9 · Native ID: 3140fb0e-d1aa-52ca-b6ec-fe2023f3b5e8
+
+	OPEN
+
+Approval: APPROVED
+
+Ramp status: WAITING_FOR_TRANSFER_MATCH
+
+	USD 650	Needs evidence
+
+Review before payment
+
+	Not determined
+Vendor name not captured
+bills: evidence review
+
+Invoice: not captured · Vendor ID: ea62e3fd-8a99-4d9f-bac0-28485e6f3ab9 · Native ID: f2db195b-b3b2-5031-9a8f-968cef5798c9
+
+	OPEN
+
+Approval: APPROVED
+
+Ramp status: WAITING_FOR_TRANSFER_MATCH
+
+	USD 350	Needs evidence
+
+Review before payment
+
+	Not determined
+Vendor name not captured
+bills: evidence review
+
+Invoice: not captured · Vendor ID: 436983ac-8c74-4512-b9af-46af645a6a83 · Native ID: ae98c421-2c70-5586-8719-4fe8acd7ceda
+
+	OPEN
+
+Approval: PENDING
+
+Ramp status: APPROVAL_PENDING
+
+	USD 840	Needs evidence
+
+Review before payment
+
+	Not determined
+Previous page
+Next page
+Record coverage
+integrity
+CHECKSUM_VERIFIED
+freshness
+Saved capture (not live)
+custody
+packaged_receipt
+external writes
+false
+business id
+Not provided
+price terms
+verified bindings
+0
+omissions
+None
+Bills
+complete list
+
+Records kept: 6 · Complete: yes
+
+None
+Vendors
+partial list
+
+Records kept: 12 · Complete: no
+
+None
+Card transactions
+partial list
+
+Records kept: 12 · Complete: no
+
+None
+Agreements
+complete list, none in Ramp
+
+Records kept: 0 · Complete: yes
+
+None
+Purchase orders
+partial list
+
+Records kept: 12 · Complete: no
+
+None
+Vendor credits
+complete list, none in Ramp
+
+Records kept: 0 · Complete: yes
+
+None
+Approvals
+partial list
+
+Records kept: 11 · Complete: no
+
+None
+Bill comments
+complete list, none in Ramp
+
+Records kept: 0 · Complete: yes
+
+None
+Agreements & permission
+
+No verified agreement or action grant is established by this worklist. Inspect each case’s evidence and current server plan. A provider record or hypothetical cap does not establish legal entitlement.
+
+comment
+granted
+None
+scope field
+false
+exact
+false
+blank canvas
+granted
+None
+scope field
+false
+exact
+false
+scope receipt at
+Nov 5, 2026, 00:22 UTC
+
+Delivery receipts apply only to their exact object, operation and authoritative readback. Accepted delivery does not prove approval execution or cash recovery.
+
+Credit reconciliation
+journal
+status
+UNAVAILABLE
+observed at
+Not provided
+captured credits
+Not provided
+unmatched credits
+Not provided
+linked credits
+0
+recorded cents
+Not provided
+applied cents
+Not provided
+currency
+USD
+awards without native credit
+1
+claimed only
+Not provided
+claims balance
+Not provided
+actual recovery
+Not provided
+claims status
+NOT_SUPPLIED
+award provenance
+Local counterparty, not a vendor
+recovery status
+UNVERIFIED
+quarantined
+false
+provider business id
+Not provided
+scope status
+UNSCOPED
+business scope custody
+CALLER_ASSERTED_BUSINESS_CONTEXT_NOT_OAUTH_PROOF
+observation provider business id
+Not provided
+external writes
+false
+amounts are historical
+true
+observed totals
+None
+issues
+None
+captured credits
+0
+verified award attribution
+status
+NO_VERIFICATION_OFFICE
+actual recovery
+Not provided
+external writes
+false
+attributable real recovery
+Not provided
+Writeback evidence
+scope receipt at
+Nov 5, 2026, 00:22 UTC
+comment
+granted
+None
+scope field
+false
+exact
+false
+blank canvas
+granted
+None
+scope field
+false
+exact
+false
+mode
+requires exact reviewed permission
+actual writes
+0
+registered active trigger
+Not provided
+
+Ramp records own financial status. Separate Uptime evidence and hypothetical findings carry their source labels.

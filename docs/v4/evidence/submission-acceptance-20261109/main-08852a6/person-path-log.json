@@ -1,0 +1,100 @@
+[
+ {
+  "t": 0.48,
+  "step": "browser launched",
+  "seconds": 0.33
+ },
+ {
+  "t": 1.06,
+  "step": "typed account name"
+ },
+ {
+  "t": 1.07,
+  "step": "chose credential file"
+ },
+ {
+  "t": 1.12,
+  "step": "clicked Sign in"
+ },
+ {
+  "t": 2.65,
+  "step": "visible decision buttons",
+  "n": 1,
+  "labels": [
+   "Approve January claim"
+  ]
+ },
+ {
+  "t": 2.68,
+  "step": "clicked decision",
+  "n": 1,
+  "label": "Approve January claim"
+ },
+ {
+  "t": 5.34,
+  "step": "visible decision buttons",
+  "n": 2,
+  "labels": [
+   "Approve response"
+  ]
+ },
+ {
+  "t": 5.34,
+  "step": "clicked decision",
+  "n": 2,
+  "label": "Approve response"
+ },
+ {
+  "t": 8.0,
+  "step": "visible decision buttons",
+  "n": 3,
+  "labels": [
+   "Post to Local ledger"
+  ]
+ },
+ {
+  "t": 8.01,
+  "step": "clicked decision",
+  "n": 3,
+  "label": "Post to Local ledger"
+ },
+ {
+  "t": 10.66,
+  "step": "visible decision buttons",
+  "n": 4,
+  "labels": [
+   "Apply credit to eligible invoice"
+  ]
+ },
+ {
+  "t": 10.68,
+  "step": "clicked decision",
+  "n": 4,
+  "label": "Apply credit to eligible invoice"
+ },
+ {
+  "t": 13.33,
+  "step": "visible decision buttons",
+  "n": 5,
+  "labels": []
+ },
+ {
+  "t": 13.56,
+  "step": "done",
+  "decisions": [
+   "Approve January claim",
+   "Approve response",
+   "Post to Local ledger",
+   "Apply credit to eligible invoice"
+  ],
+  "requests": {
+   "origins": [
+    "http://127.0.0.1:8851"
+   ],
+   "fonts": [
+    "http://127.0.0.1:8851/static/InterVariable.woff2"
+   ],
+   "count": 26
+  }
+ }
+]

@@ -1,0 +1,20 @@
+Interface-only acceptance of main, recorded by role 5 (gent8).
+
+1. Anonymous clone (env -i, empty HOME, no git config, credential.helper=, GIT_TERMINAL_PROMPT=0, askpass false, no SSH)
+   started 2026-11-10T01:49:41Z UTC; clone_exit=0
+   git clone https://github.com/ronoktanvir/uptime.git -> checked out branch main at 0c30f8fa07dbe5845bc2c29c058851b8293a7c5f
+   ls-remote --symref: ref: refs/heads/main	HEAD 0c30f8fa07dbe5845bc2c29c058851b8293a7c5f	HEAD 0c30f8fa07dbe5845bc2c29c058851b8293a7c5f	refs/heads/main
+   52f1a2f is an ancestor of 0c30f8f; uptime/ differs only in uptime/server.py (side-panel framing option).
+
+2. README second command, verbatim, HOME = an empty scratch folder (so "$HOME/uptime-demo/northwind-01" is the README's own path and uv's cache is cold)
+   started 2026-11-10T01:50:25Z UTC; port 8776 is held by the presentation server on this machine
+   exit=1 seconds=5 (includes the cold dependency download)
+   last line: setup_northwind: Port 8776 is already in use, so http://127.0.0.1:8776 cannot be served. Stop whatever is using it, or choose another port with --origin.
+   folder created: no
+
+3. Same command plus the documented --origin http://127.0.0.1:8851 (started 2026-11-10T01:50:36Z UTC)
+   {"directory": "$SCRATCH/home/uptime-demo/northwind-01", "origin": "http://127.0.0.1:8851", "account": "scripted-test-reviewer", "reviewer_credential_file": "$SCRATCH/home/uptime-demo/northwind-01/scripted-reviewer.jwk", "reviewer_credential_copy": null, "routine_automation": true}
+   Sign in with the reviewer file below (private key, mode 0600; never share or commit it).
+   $SCRATCH/home/uptime-demo/northwind-01/scripted-reviewer.jwk
+   scripted-test-reviewer
+   http://127.0.0.1:8851

@@ -1,0 +1,59 @@
+{
+ "tag": "after",
+ "pages": [
+  {
+   "page": "overview",
+   "url": "http://127.0.0.1:8851/",
+   "rendered_chars": 3512,
+   "expanded_chars": 17891
+  },
+  {
+   "page": "cases",
+   "url": "http://127.0.0.1:8851/#cases",
+   "rendered_chars": 828,
+   "expanded_chars": 49936
+  },
+  {
+   "page": "agreements",
+   "url": "http://127.0.0.1:8851/#agreements",
+   "rendered_chars": 5585,
+   "expanded_chars": 49354
+  },
+  {
+   "page": "activity",
+   "url": "http://127.0.0.1:8851/#activity",
+   "rendered_chars": 3917,
+   "expanded_chars": 6539
+  },
+  {
+   "page": "overview",
+   "url": "http://127.0.0.1:8851/#overview",
+   "rendered_chars": 3512,
+   "expanded_chars": 17891
+  },
+  {
+   "page": "open-ramp-records",
+   "url": "http://127.0.0.1:8851/#records",
+   "rendered_chars": 2038,
+   "expanded_chars": 6173
+  }
+ ],
+ "launch_seconds": 0.35,
+ "font_status": [
+  [
+   "Inter",
+   "loaded",
+   "100 900"
+  ]
+ ],
+ "computed_body_font": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+ "requests": {
+  "origins": [
+   "http://127.0.0.1:8851"
+  ],
+  "fonts": [
+   "http://127.0.0.1:8851/static/InterVariable.woff2"
+  ],
+  "count": 30
+ }
+}

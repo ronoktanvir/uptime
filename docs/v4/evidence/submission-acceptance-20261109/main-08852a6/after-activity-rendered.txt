@@ -1,0 +1,164 @@
+Northwind Cloud · contract review & recovery
+
+Activity
+
+Every step on this case in order, with who or what authorised it.
+
+As of Apr 1, 2026, 09:00 UTC
+
+Steps in order
+Complete
+Reviewer decisions
+4
+Automatic steps
+7
+
+Routine steps: Complete. 4 reviewer decisions and 7 automatic steps recorded.
+
+Times are on this case’s timeline, the same clock as “As of”. Each step’s details hold the time the server recorded it.
+
+Mar 1, 2026, 12:00 UTC
+Approve January claim
+Reviewer decision
+Approval · Completed
+
+Decided by scripted-test-reviewer
+
+Step details
+Mar 1, 2026, 12:00 UTC
+File January claim
+Automatic step
+Delivery · Completed
+
+Run automatically under the approval recorded by scripted-test-reviewer, Mar 1, 2026, 12:00 UTC
+
+Filing cutoff Mar 3, 2026, 00:00 UTC
+
+Step details
+Mar 1, 2026, 12:10 UTC
+Receive vendor response
+Received event
+Intake · Completed
+
+Received automatically: event northwind-denial-jan from northwind-2026-01-vendor
+
+Step details
+Mar 2, 2026, 09:00 UTC
+Attach requested log
+Received event
+Intake · Completed
+
+Received automatically: event northwind-jan-resource-log from northwind-2026-01-customer
+
+Step details
+Mar 2, 2026, 09:05 UTC
+Verify supplied log
+Received event
+Intake · Completed
+
+Received automatically: event northwind-jan-status-verification from northwind-2026-01-status
+
+Step details
+Mar 2, 2026, 09:05 UTC
+Approve response
+Reviewer decision
+Approval · Completed
+
+Decided by scripted-test-reviewer
+
+Step details
+Mar 2, 2026, 12:10 UTC
+Send response
+Automatic step
+Delivery · Completed
+
+Run automatically under the approval recorded by scripted-test-reviewer, Mar 2, 2026, 09:05 UTC
+
+Filing cutoff Mar 3, 2026, 00:00 UTC
+
+Not sent before Mar 2, 2026, 12:10 UTC, the end of the response cooldown
+
+Step details
+Mar 2, 2026, 13:00 UTC
+Receive credit decision
+Received event
+Intake · Completed
+
+Received automatically: event NW-CM-2026-01 from northwind-2026-01-vendor
+
+Step details
+Mar 2, 2026, 13:00 UTC
+Post to Local ledger
+Reviewer decision
+Ledger change · Completed
+
+Decided by scripted-test-reviewer
+
+Step details
+Apr 1, 2026, 09:00 UTC
+Receive next invoice
+Received event
+Intake · Completed
+
+Received automatically: event invoice-NW-2026-04 from northwind-2026-04-billing
+
+Step details
+Apr 1, 2026, 09:00 UTC
+Apply credit to eligible invoice
+Reviewer decision
+Ledger change · Completed
+
+Decided by scripted-test-reviewer
+
+Step details
+Workflow history
+Mar 1, 2026, 12:00 UTC
+Opened an assisted local claim intake.
+Mar 1, 2026, 12:00 UTC
+Received authenticated invoice record.
+northwind-invoice-2026-01
+Mar 1, 2026, 12:00 UTC
+Received authenticated status record.
+northwind-status-2026-01
+Mar 1, 2026, 12:00 UTC
+Received authenticated impact record.
+northwind-impact-2026-01
+Mar 1, 2026, 12:00 UTC
+Received authenticated coverage record.
+northwind-monthly-coverage-2026-01
+Mar 1, 2026, 12:00 UTC
+Approved exact local packet.
+227ca08929…
+Mar 1, 2026, 12:00 UTC
+Filed approved packet in the isolated local outbox.
+Mar 1, 2026, 12:10 UTC
+Received authenticated message record.
+northwind-denial-jan
+Mar 1, 2026, 12:10 UTC
+Evaluated vendor correspondence: NEEDS_EVIDENCE.
+Mar 2, 2026, 09:00 UTC
+Received authenticated artifact record.
+northwind-jan-resource-log
+Mar 2, 2026, 09:05 UTC
+Received authenticated status_verification record.
+northwind-jan-status-verification
+Mar 2, 2026, 09:05 UTC
+A newly acquired artifact matches the requested proof and independent verification.
+Mar 2, 2026, 09:05 UTC
+Approved exact local packet.
+8b5657729d…
+Mar 2, 2026, 12:10 UTC
+Filed approved packet in the isolated local outbox.
+Mar 2, 2026, 13:00 UTC
+Received authenticated message record.
+NW-CM-2026-01
+Mar 2, 2026, 13:00 UTC
+Evaluated vendor correspondence: AWARDED.
+Model jobs
+
+Each model job is shown with what it read: a vendor reply on its case, a contract on its agreement. A model proposes; a reviewer decides.
+
+Cases
+Agreements
+
+CalyxQuay coverage history in this workspace (14 entries)
