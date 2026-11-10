@@ -21,6 +21,8 @@ The framed page asks the panel to open the tab with one message, and the panel a
 - **Tab:** the first press opens a new tab. Later presses reuse the tab the panel opened, focusing it and setting the route, while it is still open; a closed tab is replaced by a new one. The panel forgets that tab when the panel is closed. If you navigated that tab elsewhere, a press brings it back to Uptime.
 - **The app's side:** it sends the message only to the one extension origin the browser names as its parent (`location.ancestorOrigins`), and it sends a route and nothing else. The new tab has its own sign-in; the panel's signing key is never passed to it.
 
+**Toolbar badge (demo line).** The framed page also sends `{type: 'uptime-bill-status', bill, state}` with `state` `match` or `none`, under the same sender checks and in that exact shape. For the bill the panel is showing, the panel sets a "$" badge on its toolbar button for that tab on `match` and clears it otherwise; moving to another bill or tab clears it first. This uses `chrome.action`, which needs only the manifest's existing `action` key.
+
 **Manifest change: none.** Opening a tab, moving a tab the extension opened and focusing its window need no permission. Finding a tab you opened yourself on the app's address would need either the `tabs` permission (every tab's address on every site) or a host permission for the app's address; neither was added, so a tab opened some other way is not looked for and a new one opens instead. The permissions remain `sidePanel` and `https://demo.ramp.com/*`.
 
 ## Use it
