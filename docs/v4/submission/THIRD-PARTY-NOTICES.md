@@ -140,3 +140,12 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
+
+## Company pictures (supplied by Ronok; not third-party)
+
+Two of the walkthrough's authored companies have a picture in place of their initials, at Ronok's request (November 9, 2026): a cloud mark for the vendor Northwind Cloud and a lighthouse mark for the workspace Harborline Analytics.
+
+- **Source:** two images Ronok attached to the design session, each 1254 by 1254 pixels. Each was cropped to its mark, scaled to 96 pixels and re-encoded as PNG; only those two small images are in the repository, as image tokens at the top of `web/style.css`. No file is served for them and nothing loads from another host.
+- **How a picture is chosen:** every company tile carries a class made from the name it stands for, and the stylesheet names the two pictures. Any other name, CalyxQuay for example, keeps its initials. The server sends no picture and nothing about it changed.
+- **What they are not:** both companies are authored for the walkthrough, as the package's README says. The pictures are decoration for those two names. They are not marks of real organisations and are hidden from assistive technology like the initials they replace.
+

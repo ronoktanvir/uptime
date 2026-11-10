@@ -269,7 +269,7 @@
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
       const months = list(data.months);
       // The vendor's initials beside its name: decoration, hidden from assistive technology.
-      const tile=el('span',String(vendor || '').split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0].toUpperCase()).join(''),'page-tile');tile.setAttribute('aria-hidden','true');
+      const tile=el('span',String(vendor || '').split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0].toUpperCase()).join(''),'page-tile brand-'+String(vendor || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));tile.setAttribute('aria-hidden','true');
       const header=add(el('div',null,'page-head'),tile,add(el('div'),el('p','Contract review & recovery','eyebrow'),el('h1',vendor || 'Contract review')),
         data.as_of ? el('p','As of '+when(data.as_of),'as-of') : null);
       const ledger=data.ledger || {}, currency=ledger.currency || 'USD';

@@ -100,7 +100,7 @@
     const slot = $('#workspace-name');
     slot.textContent = name;
     const tile = document.querySelector?.('.rail-avatar');
-    if (tile) tile.textContent = initials(name);
+    if (tile) { tile.textContent = initials(name); tile.className = 'rail-avatar brand-' + String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
     // Without a workspace name the line under the brand would only repeat the product name.
     if (slot.parentElement) slot.parentElement.hidden = !workspaceName;
     document.title = workspaceName ? workspaceName + ' · Uptime' : 'Uptime';

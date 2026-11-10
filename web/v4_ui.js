@@ -93,7 +93,7 @@
     const avatar = name => {
       const letters = typeof name === 'string' ? name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('') : '';
       if (!letters) return null;
-      const n = el('span', letters, 'v4-avatar'); n.setAttribute('aria-hidden', 'true'); return n;
+      const n = el('span', letters, 'v4-avatar brand-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')); n.setAttribute('aria-hidden', 'true'); return n;
     };
     const button = (text, handler) => { const n = el('button', text); n.type = 'button'; n.addEventListener('click', handler); return n; };
     // A 64-character fingerprint is shown by its first ten characters wherever the exact value sits one click away.
