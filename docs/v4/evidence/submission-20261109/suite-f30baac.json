@@ -1,0 +1,29 @@
+{
+  "tested_commit": "f30baac337205d40bcd908735e05865bb81a6067",
+  "branch": "work/submission-integration-20261109",
+  "role": "coordinator",
+  "contents": "integration 96e37d7 plus the demo line demo/film-20261110 (b42fef5) merged as e60042e, the pre-publish fixes f39daa0, and the README, film and records f30baac",
+  "command": [
+    "UPTIME_REQUIRE_BROWSER=1",
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-f30baac",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5543 passed, 1 warning in 433.12s (0:07:13)",
+  "log": "suite-f30baac-pytest.log",
+  "started_at": "2026-11-10T20:19:36Z",
+  "finished_at": "2026-11-10T20:26:51Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "220 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "note": "The demo line had its own full runs on 977bd19 (5,539 passed, 3 failed) and 1ac84fe (5,543 passed); their logs are in the coordinator's private task folder.",
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}

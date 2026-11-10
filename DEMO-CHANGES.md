@@ -160,7 +160,7 @@ The full suite was run once on `977bd19`: 5,539 passed and 3 failed, all three b
 - `tests/test_vendor_requirements_89.py` › `test_new_vendor_name_reaches_shadow_with_useful_drafts_and_no_vendor_code` was NOT changed. It checks that no file in the `uptime` package names its made-up vendor "Halcyon", and the template builder had named its own sample vendor in code. The sample list moved to `fixtures/template_builder_demo/samples.json`; `uptime/template_builder.py` now names no vendor and serves only the documents that file lists.
 - Added `tests/test_template_builder.py` › `test_only_the_listed_sample_texts_are_served`: the sample text is served, and `expected.json` (the authored answers), `samples.json`, the README and an unlisted name are not.
 
-## Before publishing (coordinator, November 10, about 12:30 PST)
+## Before publishing (coordinator, November 10, about 12:15 PST)
 
 A read-only review of everything the demo line adds found nothing that blocked publishing and several things worth fixing first.
 
