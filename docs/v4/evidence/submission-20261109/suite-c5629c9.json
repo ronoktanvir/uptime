@@ -1,0 +1,33 @@
+{
+  "tested_commit": "c5629c9f6b17976747ba0da598ceef3432307a3c",
+  "branch": "work/submission-integration-20261109",
+  "role": "role 5's interface-only acceptance of main, and the wording that follows from it",
+  "contents": "main at 53c38e3 plus role 5 at 319ca43 (a dated addendum to the acceptance report and its evidence) and one commit by the coordinator that updates two sentences in README.md and docs/JUDGES.md, which had said the redesign was not yet assessed. Documentation and evidence only: no application, script, interface or test file differs from 4c93a44, which passed in full.",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-c5629c9",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5451 passed, 1 skipped, 1 warning in 570.55s (0:09:30)",
+  "the_skip": {
+    "test": "tests/test_correspondence_artifact_category_ui_81.py::test_note_is_absent_before_blind_entry",
+    "reason": "Its page helper skips with 'Browser unavailable' when Chrome fails to launch. One launch failed in this run, with the load average near 9 while other sessions were working. A skipped test is not a pass.",
+    "recheck": "Run alone on the same commit straight afterwards: tests/test_correspondence_artifact_category_ui_81.py, 2 passed.",
+    "what_changed_afterwards": "The repository's check workflow sets UPTIME_REQUIRE_BROWSER=1 so that a browser which cannot launch fails its test instead of skipping it. The coordinator's runner did not; it does from the next run on."
+  },
+  "log": "suite-c5629c9-pytest.log",
+  "started_at": "2026-11-10T05:36:22Z",
+  "finished_at": "2026-11-10T05:45:54Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "129 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "limits": "Regression verification of a documentation and evidence merge, with one test skipped and rechecked alone. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}
