@@ -107,7 +107,7 @@ No existing test was changed for this.
 - `tests/test_ramp_demo_notes.py` › `test_the_northwind_sample_matches_and_the_docusign_bill_does_not`: the expected `agreement` gains `read_by` (`deterministic_document_parser`, the Northwind agreement's own extraction method), so a page can say who read each contract.
 - Added `tests/test_ramp_demo_round3.py`: a Ramp bill that agrees with another vendor's estimated credit (Corvid, `opportunities`) is matched with route `agreements`; auto mode posts its note once; a bill one cent off does not match. The note for such a bill ends "The estimate is waiting for review in Uptime." because no claim is being prepared for it; the fixed shapes in `uptime/ramp_workflow.py` allow that second ending.
 
-## Wording and the panel's routes (coordinator, November 10, about 04:35 PST)
+## Wording and the panel's routes (coordinator, November 10, 04:31 PST)
 
 - Rule-based steps are labelled "Uptime · automatic" (they were "Uptime agent"), and the portfolio's counters are headed "Who is doing the work" (was "Agents at work"), so that "agent" on screen always means a model. Changed tests: `web/steps_replay.test.cjs` (the legend figures and the sentence under them), `web/overview_steps.test.cjs` › "three plain actors: the reviewer, Uptime automatic steps, and the vendor or the named source" (was "... the Uptime agent ...") and its two label lists, `web/portfolio.test.cjs` › "the work counters count recorded facts: Claude readings, automatic steps and reviewer decisions" (was "agents at work counts ...") plus the `nextActor` word and the page-text list.
 - The portfolio header no longer shows one case's "As of" date, because the page spans months and vendors.
