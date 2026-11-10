@@ -103,12 +103,18 @@ test('Ramp authentication failures reuse named sign-in and skip link does not ch
 
 test('configured workspace renders inside the finance shell and keeps native records accessible', async () => {
   const s=await setup(false,'#ramp',{workflow:{vendor:'Northwind Cloud',company:'Northwind Finance',months:[],ledger:{destination:'Local ledger'},claim:{state:'DRAFT'},next_actions:[]}});
-  assert.match(s.nodes.content.textContent,/Northwind Cloud/);
+  // Demo line: the Overview is the portfolio. It reads the workflow first, then the agreements and the saved Ramp workspace.
+  assert.match(s.nodes.content.textContent,/Portfolio/);
   assert.equal(s.nodes['workspace-name'].textContent,'Northwind Finance');
-  assert.equal(s.requests.length,1);
+  assert.equal(s.requests[0].path,'/api/workspace/workflow');
+  assert.deepEqual(s.requests.slice(1).map(r=>r.path).sort(),['/api/ramp/workspace','/api/vendors']);
+  const before=s.requests.length;
+  s.location.hash='#recovery';s.window.hashchange();await flush();
+  assert.match(s.nodes.content.textContent,/Northwind Cloud/);
+  assert.equal(s.requests[before].path,'/api/workspace/workflow');assert.equal(s.requests.length,before+1);
   s.location.hash='#records';s.window.hashchange();await flush();
   assert.match(s.nodes.content.textContent,/Ramp worklist/);
-  assert.equal(s.requests[1].path,'/api/ramp/workspace');
+  assert.equal(s.requests[before+1].path,'/api/ramp/workspace');
 });
 test('workflow authorization and server errors never silently fall back to native records', async () => {
   for(const status of [403,500]) {

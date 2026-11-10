@@ -8,7 +8,7 @@ def test_suggested_questions_answer_read_only_by_click_and_keyboard_on_a_narrow_
     with live_workspace(tmp_path) as (app, origin, directory), browser_page(origin, {'width': 390, 'height': 844}) as (page, errors):
         posts = []
         page.on('request', lambda r: posts.append(r.url.split(origin)[-1]) if r.method == 'POST' else None)
-        page.goto(origin + '/')
+        page.goto(origin + '/#recovery')
         login(page, directory)
         group = page.get_by_role('group', name='Suggested questions')
         expect(group.get_by_role('button')).to_have_count(4)

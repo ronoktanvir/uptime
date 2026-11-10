@@ -133,6 +133,105 @@
     return {...next, claim: prior.claim || next.claim, ledger: billHeld ? prior.ledger || next.ledger : next.ledger,
       finance: {...finance, stages, bill: billHeld ? priorFinance.bill : finance.bill}};
   }
+  // ---- Portfolio: every agreement, opportunity and tracked bill in this workspace, built only from what the server
+  // sends (the workflow view, the agreements list and its details, and the saved Ramp workspace). Nothing is summed
+  // across items or stages; each amount is one item's own figure at its own recorded stage.
+  const slug = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const OPEN_PRICE = new Set(['PREPAYMENT_REVIEW', 'RETROSPECTIVE_REVIEW', 'NEEDS_REVIEW', 'REVIEW_REQUIRED']);
+  const PRICE_STAGE = {PREPAYMENT_REVIEW:'Open · before payment', RETROSPECTIVE_REVIEW:'Open · paid invoice', NEEDS_REVIEW:'Open', REVIEW_REQUIRED:'Open'};
+  const MODEL_NAMES = {'claude-opus-5-5':'Claude Opus 5.5'};
+  function readBy(extraction) {
+    const e = extraction && typeof extraction === 'object' ? extraction : {};
+    if (e.method === 'deterministic_document_parser') return {kind:'rules', label:'Read by fixed rules'};
+    if (e.method === 'tool_free_model_propositions') return {kind:'claude', label:'Read by ' + (MODEL_NAMES[e.model] || text(e.model)) + ' · recorded run', model:MODEL_NAMES[e.model] || e.model || null};
+    return null;
+  }
+  // Who acts next on the workspace's case, from the server's offered actions and its recorded pause.
+  function nextActor(workflow) {
+    const w = workflow && typeof workflow === 'object' ? workflow : {}, automation = w.automation && typeof w.automation === 'object' ? w.automation : {};
+    if (automation.state === 'COMPLETE') return null;
+    if (list(w.next_actions).some(action => action && action.id && action.enabled !== false)) return 'Reviewer';
+    const reason = automation.pause && automation.pause.reason;
+    if (reason === 'ROUTINE_READY') return 'Uptime agent';
+    if (reason === 'WAITING') return 'Vendor';
+    return reason ? 'Reviewer' : null;
+  }
+  function creditStage(workflow) {
+    const rows = list(workflow && workflow.finance && workflow.finance.stages).filter(row => row && typeof row === 'object');
+    const estimate = rows.find(r => r.stage === 'estimated'), reached = rows.filter(r => r.stage !== 'estimated' && r.status === 'recorded').pop();
+    return reached || (estimate && estimate.status === 'recorded' ? estimate : null);
+  }
+  function portfolioRows(workflow, vendors, rampWorkspace) {
+    const w = workflow && typeof workflow === 'object' ? workflow : null, rows = [];
+    if (w) {
+      const vendor = typeof w.vendor === 'object' && w.vendor ? w.vendor.name : w.vendor, claim = w.claim || {}, currency = (w.ledger || {}).currency || 'USD';
+      list(w.months).filter(m => m && typeof m === 'object').forEach(m => {
+        const base = {vendor, subject: monthLabel(m.month), month: m.month};
+        if (m.outcome === 'ELIGIBLE' && claim.month === m.month) {
+          const stage = creditStage(w), applied = stage && stage.stage === 'applied';
+          rows.push({...base, key:'credit-' + m.month, kind:'credit', kindLabel:'Service credit', amount: stage ? stage.amount : m.amount, currency,
+            stage: stage ? stage.label : 'Not determined', open: !applied, next: applied ? null : nextActor(w), href:'#recovery'});
+        } else if (m.outcome === 'ELIGIBLE') {
+          rows.push({...base, key:'credit-' + m.month, kind:'credit', kindLabel:'Service credit', amount: m.amount, currency: m.currency || currency,
+            stage:'Not claimed', open:true, next:'Reviewer', href:'#recovery/finance-months'});
+        } else if (m.outcome === 'INELIGIBLE') {
+          rows.push({...base, key:'none-' + m.month, kind:'no-credit', kindLabel:'No credit due', amount:null, currency, stage:'Closed', open:false, next:null, href:'#recovery/finance-months'});
+        } else {
+          rows.push({...base, key:'evidence-' + m.month, kind:'evidence', kindLabel:'Needs usage evidence', amount:null, currency, stage:'Open', open:true, next:'Usage source', href:'#recovery/finance-months'});
+        }
+      });
+      const price = w.price_finding && typeof w.price_finding === 'object' ? w.price_finding : null;
+      if (price && (price.invoice_id || price.amount != null)) rows.push({vendor, key:'price-' + price.invoice_id, subject:'Invoice ' + text(price.invoice_id), month: price.month,
+        kind:'price', kindLabel:'Above contracted price', amount: price.amount, currency: price.currency || currency,
+        stage: PRICE_STAGE[price.state] || state(price.state), open: OPEN_PRICE.has(price.state), next: OPEN_PRICE.has(price.state) ? 'Reviewer' : null, href:'#recovery/finance-price-exception'});
+    }
+    const covered = new Set(rows.map(r => slug(r.vendor)));
+    list(vendors).filter(v => v && typeof v === 'object').forEach(v => {
+      const name = v.vendor || v.name || v.vendor_id;
+      if (covered.has(slug(name))) return;
+      const read = readBy(v.extraction), active = v.state === 'ACTIVE' && v.active_version;
+      rows.push({vendor:name, key:'agreement-' + slug(name), subject: read ? read.label : 'How it was read is not recorded', kind:'agreement',
+        kindLabel: active ? 'Agreement in force' : 'Agreement · ' + state(v.state), amount:null, currency:null, stage: active ? 'In force' : state(v.state), open:false, next:null, href:'#agreements'});
+    });
+    list(rampWorkspace && rampWorkspace.verified_records).filter(r => r && r.ramp_context && typeof r.ramp_context === 'object').forEach(r => {
+      const ctx = r.ramp_context, binding = ctx.agreement_binding && typeof ctx.agreement_binding === 'object' ? ctx.agreement_binding : {};
+      const bound = binding.status === 'BOUND', amount = ctx.amount && typeof ctx.amount === 'object' ? ctx.amount : null;
+      rows.push({vendor: ctx.vendor_name || 'Vendor name not captured', key:'bill-' + ctx.object_id, subject:'Bill ' + text(ctx.invoice_number),
+        detail: amount ? 'In Ramp: ' + text(amount.currency) + ' ' + text(amount.amount) + ' · ' + state(ctx.status) : null,
+        kind: bound ? 'bill' : 'no-agreement', kindLabel: bound ? 'Tracked bill' : 'No agreement on file', amount:null, currency:null,
+        stage: bound ? 'Agreement on file' : r.finding && r.finding.outcome === 'INSUFFICIENT_EVIDENCE' ? 'Evidence gap' : 'Not checked',
+        open: !bound, next: bound ? null : 'Reviewer', href: typeof ctx.object_id === 'string' && ctx.object_id ? '#ramp-bill/' + encodeURIComponent(ctx.object_id) : '#records'});
+    });
+    return rows;
+  }
+  function portfolioTiles(rows, vendors, rampWorkspace) {
+    const reads = list(vendors).map(v => readBy(v && v.extraction));
+    const bills = list(rampWorkspace && rampWorkspace.verified_records).filter(r => r && r.ramp_context);
+    const opportunity = list(rows).filter(r => r.open && ['credit', 'evidence', 'price'].includes(r.kind));
+    const credits = list(rows).filter(r => r.kind === 'credit' && r.open);
+    return {agreements: list(vendors).length, claude: reads.filter(r => r && r.kind === 'claude').length, rules: reads.filter(r => r && r.kind === 'rules').length,
+      opportunities: opportunity.length, byKind: ['credit', 'price', 'evidence'].map(kind => [kind, opportunity.filter(r => r.kind === kind).length]).filter(([, n]) => n),
+      credits: credits.map(r => ({subject: r.subject, vendor: r.vendor, amount: r.amount, currency: r.currency, stage: r.stage})),
+      bills: bills.length, unbound: bills.filter(r => !(r.ramp_context.agreement_binding && r.ramp_context.agreement_binding.status === 'BOUND')).length};
+  }
+  function agentCounters(workflow, vendors) {
+    const reads = list(vendors).map(v => readBy(v && v.extraction)).filter(r => r && r.kind === 'claude');
+    const legend = stepLegend(workflow && workflow.automation && workflow.automation.steps, null);
+    return {claudeReads: reads.length, models: [...new Set(reads.map(r => r.model).filter(Boolean))], agentSteps: legend.approved, received: legend.received, reviewerDecisions: legend.reviewer};
+  }
+  // Needs attention across the portfolio: the case's own items, each opening its section on the case page, and every
+  // tracked Ramp bill that has no agreement on file.
+  function portfolioAttention(workflow, rampWorkspace) {
+    const w = workflow && typeof workflow === 'object' ? workflow : {}, vendor = typeof w.vendor === 'object' && w.vendor ? w.vendor.name : w.vendor;
+    const items = list(w.finance && w.finance.attention).filter(i => i && typeof i === 'object').map(i => ({vendor, owner: i.owner, title: i.title, detail: i.detail,
+      href: '#recovery' + (typeof i.section === 'string' && i.section ? '/' + i.section : '')}));
+    list(rampWorkspace && rampWorkspace.verified_records).filter(r => r && r.ramp_context && !(r.ramp_context.agreement_binding && r.ramp_context.agreement_binding.status === 'BOUND')).forEach(r => {
+      const ctx = r.ramp_context;
+      items.push({vendor: null, owner:'reviewer', title:'Put an agreement on file for ' + text(ctx.vendor_name) + ' bill ' + text(ctx.invoice_number),
+        detail:'Uptime cannot check this bill against a contract until its agreement is on file.', href: '#ramp-bill/' + encodeURIComponent(ctx.object_id || '')});
+    });
+    return items;
+  }
   function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true,
     storage, schedule = (callback, ms) => global.setTimeout(callback, ms), reducedMotion}) {
     // The replay setting lasts for this page's session. Browser storage may be absent or refuse; memory stands in.
@@ -251,7 +350,8 @@
       node.append(credit);
       if (price.invoice_id || price.amount != null || price.state) {
         const priceMonth = monthOnly(price.month) || monthFor(price.invoice_id, months);
-        node.append(add(el('article', null, 'outcome-card outcome-exception'), el('h2', (priceMonth ? priceMonth + ' price exception' : 'Price exception')),
+        node.append(add((() => { const card = el('article', null, 'outcome-card outcome-exception'); card.id = 'finance-price-exception'; return card; })(),
+          (() => { const h = el('h2', (priceMonth ? priceMonth + ' price exception' : 'Price exception')); h.tabIndex = -1; return h; })(),
           el('div', money(price.amount, price.currency || currency), 'outcome-value'),
           add(el('p', null, 'help'), el('span', (PRICE_STATUS[price.state] || state(price.state)) + (price.invoice_id ? ' · invoice ' : '')),
             price.invoice_id ? el('span', price.invoice_id, 'nowrap') : null),
@@ -360,7 +460,10 @@
       const months = list(data.months);
       // The vendor's initials beside its name: decoration, hidden from assistive technology.
       const tile=el('span',String(vendor || '').split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0].toUpperCase()).join(''),'page-tile brand-'+String(vendor || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));tile.setAttribute('aria-hidden','true');
-      const header=add(el('div',null,'page-head'),tile,add(el('div'),el('p','Contract review & recovery','eyebrow'),el('h1',vendor || 'Contract review')),
+      // This page is one case: the vendor and the month are its heading, and the way back is the portfolio.
+      const caseMonth = data.claim && data.claim.month ? monthLabel(data.claim.month) : null;
+      const back = el('a', 'Portfolio', 'back-link'); back.href = '#overview';
+      const header=add(el('div',null,'page-head'),tile,add(el('div'),back,el('p',(caseMonth ? caseMonth + ' service credit · ' : '') + 'Contract review & recovery','eyebrow'),el('h1',vendor || 'Contract review')),
         data.as_of ? el('p','As of '+when(data.as_of),'as-of') : null);
       const ledger=data.ledger || {}, currency=ledger.currency || 'USD';
       const finance = data.finance && typeof data.finance === 'object' ? data.finance : null;
@@ -730,13 +833,78 @@
         add(el('p', null, 'help recovery-links'), casesLink, agreementsLink));
       root.replaceChildren(header, automationPanel(data.automation, data.next_actions), history, jobs, coverage);
     }
-    async function render(root, supplied) {
+    async function render(root, supplied, options = {}) {
       const token=++epoch;
       try {
         const data=supplied || (await api('/api/workspace/workflow')).workflow;
         if(token !== epoch) return;
         uncertain=false;busy=false;renderData(root,data,token);
+        // Opened at one card (for example the price exception from the portfolio): that card is brought into view.
+        if (options && typeof options.section === 'string' && /^finance-[a-z-]+$/.test(options.section)) jump(options.section);
       } catch(error) { if(token !== epoch) return;throw error; }
+    }
+    // The portfolio: the workflow view the page already read, plus the agreements and the saved Ramp workspace. A read
+    // that fails leaves its part marked unavailable; it never fills in a value.
+    async function portfolio(root, supplied) {
+      const token = ++epoch;
+      const settle = promise => promise.then(value => ({ok:true, value}), error => ({ok:false, error}));
+      const [workflowRead, vendorsRead, rampRead] = await Promise.all([supplied ? Promise.resolve({ok:true, value:supplied}) : settle(api('/api/workspace/workflow').then(r => r.workflow)),
+        settle(api('/api/vendors')), settle(api('/api/ramp/workspace'))]);
+      if (token !== epoch) return;
+      if (!workflowRead.ok) throw workflowRead.error;
+      const listed = vendorsRead.ok ? list(vendorsRead.value && vendorsRead.value.vendors) : [];
+      const details = await Promise.all(listed.map(v => typeof v.vendor_id === 'string' && v.vendor_id ? settle(api('/api/vendors/' + encodeURIComponent(v.vendor_id))) : Promise.resolve({ok:false})));
+      if (token !== epoch) return;
+      const vendors = listed.map((v, i) => details[i].ok && details[i].value && typeof details[i].value === 'object' ? {...v, ...details[i].value} : v);
+      renderPortfolio(root, workflowRead.value, vendorsRead.ok ? vendors : null, rampRead.ok ? rampRead.value : null);
+    }
+    const ACTOR_CLASS = {'Reviewer':'accent tag-reviewer', 'Uptime agent':'tag-agent', 'Vendor':'tag-received tag-vendor'};
+    function renderPortfolio(root, workflow, vendors, ramp) {
+      const company = workflow && workflow.company && typeof workflow.company === 'object' ? workflow.company.name : null;
+      const tile = el('span', null, 'page-tile tile-portfolio'); tile.setAttribute('aria-hidden', 'true');
+      const header = add(el('div', null, 'page-head'), tile, add(el('div'), el('p', company ? company + ' · every vendor, contract and month' : 'Every vendor, contract and month', 'eyebrow'), el('h1', 'Portfolio')),
+        workflow && workflow.as_of ? el('p', 'As of ' + when(workflow.as_of), 'as-of') : null);
+      const rows = portfolioRows(workflow, vendors, ramp), tiles = portfolioTiles(rows, vendors, ramp), agents = agentCounters(workflow, vendors);
+      const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+      const KIND_WORDS = {credit:['service credit', 'service credits'], price:['price exception', 'price exceptions'], evidence:['awaiting usage evidence', 'awaiting usage evidence']};
+      const summary = (label, value, ...lines) => add(el('div', null, 'portfolio-tile'), el('p', label, 'portfolio-tile-label'), el('p', value, 'portfolio-tile-value'), ...lines.filter(Boolean).map(line => el('p', line, 'help')));
+      const tilesRow = add(el('section', null, 'portfolio-tiles'),
+        summary('Agreements on file', vendors ? String(tiles.agreements) : 'Unavailable', vendors ? tiles.claude + ' read by Claude · ' + tiles.rules + ' by fixed rules' : 'The agreements list could not be read.'),
+        summary('Opportunities open', String(tiles.opportunities), tiles.byKind.map(([kind, n]) => n + ' ' + KIND_WORDS[kind][n === 1 ? 0 : 1]).join(' · ') || 'None open'),
+        summary('Credits in progress', String(tiles.credits.length), ...tiles.credits.map(c => c.subject + ': ' + money(c.amount, c.currency || 'USD') + ' · ' + text(c.stage))),
+        summary('Ramp bills tracked', ramp ? String(tiles.bills) : 'Unavailable', ramp ? plural(tiles.unbound, 'with no agreement on file', 'with no agreement on file') : 'The saved Ramp workspace could not be read.'));
+      tilesRow.setAttribute('aria-label', 'Summary');
+      // Agents at work: counted from recorded facts only.
+      const counter = (cls, label, value, line) => add(el('div', null, 'agent-counter'), el('span', label, 'pill ' + cls), el('p', String(value), 'agent-counter-value'), el('p', line, 'help'));
+      const agentsPanel = add(el('section', null, 'panel agents-panel'), el('h2', 'Agents at work'),
+        add(el('div', null, 'agent-counters'),
+          counter('tag-claude', 'Claude', vendors ? agents.claudeReads : 'Unavailable', 'Contracts read by ' + (agents.models.join(', ') || 'Claude') + ', recorded runs'),
+          counter('tag-agent', 'Uptime agent', agents.agentSteps, 'Steps run under an approval a reviewer recorded'),
+          counter('accent tag-reviewer', 'Reviewer', agents.reviewerDecisions, 'Decisions by the signed-in reviewer account')));
+      const table = el('ol', null, 'portfolio-rows');
+      rows.forEach(row => {
+        const initials = String(row.vendor || '').split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('');
+        const avatar = el('span', initials, 'portfolio-avatar brand-' + slug(row.vendor)); avatar.setAttribute('aria-hidden', 'true');
+        const link = el('a', null, 'portfolio-row kind-' + row.kind + (row.open ? ' open' : '')); link.href = row.href;
+        add(link, avatar, add(el('span', null, 'portfolio-what'), el('strong', text(row.vendor)), el('span', row.subject + (row.detail ? ' · ' + row.detail : ''), 'help')),
+          el('span', row.kindLabel, 'portfolio-kind'),
+          el('span', row.amount == null ? '—' : money(row.amount, row.currency || 'USD'), 'portfolio-amount num'),
+          add(el('span', null, 'portfolio-status'), el('span', row.stage, 'pill' + (row.open ? '' : ' muted')),
+            row.next ? el('span', 'Next: ' + row.next, 'pill portfolio-next ' + (ACTOR_CLASS[row.next] || 'tag-source')) : el('span', 'Nothing waiting', 'portfolio-next help')));
+        table.append(add(el('li'), link));
+      });
+      const opportunities = add(el('section', null, 'panel portfolio'), add(el('div', null, 'panel-head'), el('h2', 'Opportunities'), el('span', String(rows.length), 'count')),
+        note('Each row is one item: a month’s service credit, a price finding, an agreement or a bill in Ramp. Amounts belong to their own row and are never added together.'),
+        rows.length ? table : note('Nothing is recorded in this workspace yet.'));
+      const attention = add(el('section', null, 'panel'), add(el('div', null, 'panel-head'), el('h2', 'Needs attention')));
+      const items = el('ol', null, 'attention-list');
+      portfolioAttention(workflow, ramp).forEach(item => {
+        const open = el('a', 'Open', 'case-link'); open.href = item.href;
+        items.append(add(el('li', null, 'attention-item'), el('span', OWNERS[item.owner] || 'Next step', 'attention-owner' + (OWNERS[item.owner] ? ' owner-' + item.owner : '')),
+          el('h3', (item.vendor ? item.vendor + ': ' : '') + text(item.title)), note(instants(item.detail)), open));
+      });
+      attention.append(items.children.length ? items : note('Nothing in this portfolio needs action now.'));
+      root.replaceChildren(header, tilesRow, add(el('div', null, 'portfolio-columns'), add(el('div', null, 'portfolio-main'), opportunities), add(el('div', null, 'portfolio-side'), agentsPanel, attention)));
     }
     async function activity(root, supplied) {
       const token=++epoch;
@@ -744,9 +912,10 @@
       if (token !== epoch) return;
       renderActivity(root, data);
     }
-    return {render,activity,unmount:()=>{epoch++;}};
+    return {render,activity,portfolio,unmount:()=>{epoch++;}};
   }
-  const exports={create,money,when,day,rates,monthLabel,recordedOrder,replayGroup,stepLegend,actorTag,leadIn,newSteps,stagedView};
+  const exports={create,money,when,day,rates,monthLabel,recordedOrder,replayGroup,stepLegend,actorTag,leadIn,newSteps,stagedView,
+    portfolioRows,portfolioTiles,agentCounters,portfolioAttention,nextActor,readBy};
   if(typeof module !== 'undefined' && module.exports) module.exports=exports;
   global.UptimeWorkspace=exports;
 })(typeof window === 'undefined' ? globalThis : window);

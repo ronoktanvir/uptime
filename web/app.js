@@ -42,6 +42,8 @@
     if (requested.startsWith('cases/')) return 'disputes/' + requested.slice(6);
     if (requested === 'rehearsal') return 'dashboard';
     if (requested === 'records') return 'records';
+    // One case's own page (Northwind's January credit today), optionally opened at one of its cards.
+    if (requested === 'recovery' || requested.startsWith('recovery/')) return 'recovery';
     // One Ramp bill by Ramp's own id, for the panel beside Ramp; with no id, the panel's "no bill open" page.
     if (requested.startsWith('ramp-bill/')) return 'ramp-bill';
     if (requested === 'ramp-bill') return 'ramp-bill-none';
@@ -94,7 +96,7 @@
   const $ = selector => document.querySelector(selector);
   const content = $('#content'), notice = $('#notice'), dialog = $('#inspector');
   let view = 'ramp', generation = 0, caseGeneration = 0, activeCase = null, busy = false;
-  let rampCase = null, rampScroll = 0, rampBill = null;
+  let rampCase = null, rampScroll = 0, rampBill = null, recoverySection = null;
   // Which page a Ramp record was opened from: it stays the marked destination, and "Back" returns to it.
   let rampOrigin = 'ramp';
   let companion, companionAssets, signedPage = false, companionAccess = {};
@@ -413,13 +415,26 @@
   async function load() {
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
     // Overview and Activity read the workflow themselves; any other page reads the name once, after its own content.
-    const readsWorkflow = route === 'activity' || (route === 'ramp' && !rampCase);
+    const readsWorkflow = route === 'activity' || route === 'recovery' || (route === 'ramp' && !rampCase);
     // The one-bill page makes exactly one request, the saved Ramp workspace, so it does not read the workspace name.
     try { await renderRoute(); } finally {
       if (!readsWorkflow && route !== 'ramp-bill' && route !== 'ramp-bill-none' && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
     }
     async function renderRoute() {
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
+    if (route === 'recovery') {
+      const projection = await api('/api/workspace/workflow');
+      if (token !== generation) return;
+      workspaceNameRead = Promise.resolve();
+      if (projection && projection.workflow && typeof projection.workflow === 'object' && workspaceWorkflow) {
+        await workspaceWorkflow.render(content, projection.workflow, {section: recoverySection});
+        workspaceName = companyOf(projection.workflow) || workspaceName;
+      } else content.replaceChildren(heading('Recovery', 'One case, step by step.'), empty('No recovery case is recorded in this workspace.'));
+      showWorkspaceName();
+      const current = window.uptimeAuth.session();
+      if (current) showAccount(current.subject);
+      return;
+    }
     if (route === 'activity') {
       const projection = await api('/api/workspace/workflow');
       if (token !== generation) return;
@@ -457,7 +472,8 @@
         workspaceNameRead = Promise.resolve();
         if (projection.workflow !== null) {
           if (!workspaceWorkflow || !projection.workflow || typeof projection.workflow !== 'object') throw new Error('Workspace workflow unavailable.');
-          await workspaceWorkflow.render(content, projection.workflow);
+          // The Overview is the portfolio; the one case it holds has its own page, #recovery.
+          await workspaceWorkflow.portfolio(content, projection.workflow);
           workspaceName = companyOf(projection.workflow) || workspaceName;
           showWorkspaceName();
           const current = window.uptimeAuth.session();
@@ -490,7 +506,7 @@
     workspaceWorkflow?.unmount();
     companion?.unmount(content);
     if (dialog.open) dialog.close();
-    rampCase = null; rampBill = null;
+    rampCase = null; rampBill = null; recoverySection = requested.startsWith('recovery/') ? requested.slice(9) : null;
     if (requested.startsWith('ramp/')) {
       try { rampCase = decodeURIComponent(requested.slice(5)); } catch { rampCase = null; }
     }
@@ -500,7 +516,7 @@
     view = companionRoute(requested);
     // A page under a destination (one case under Cases) keeps that destination marked as the current one.
     // One Ramp record keeps the page it was opened from marked.
-    const marked = rampCase ? rampOrigin : view === 'ramp-bill' || view === 'ramp-bill-none' ? 'records' : view;
+    const marked = rampCase ? rampOrigin : view === 'ramp-bill' || view === 'ramp-bill-none' ? 'records' : view === 'recovery' ? 'ramp' : view;
     document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === marked || marked.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
     // On a wide screen the group that holds the current page is opened. On a narrow one the header stays slim:
     // the group's own label is marked instead, and the list opens only when asked for.
