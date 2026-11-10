@@ -48,6 +48,56 @@ CORRECTION = {
 }
 
 
+# Fixed before any call. The model read the reply as the log request if and only if the product's own
+# deterministic mapping of the model's candidate alone (proposal_for_review, same server context; no
+# reviewer input) gives reason "artifact" with reference "NW-JAN-LOG-001", and artifact_type
+# "resource_log" or absent. Otherwise the script does no review, preview or preparation.
+LOG_REQUEST_CRITERION = dict(reason='artifact', reference='NW-JAN-LOG-001', artifact_type=('resource_log', None))
+CRITERION_TEXT = ('model_reads_as.reason == "artifact" and model_reads_as.reference == "NW-JAN-LOG-001" and '
+                  'model_reads_as.artifact_type in ("resource_log", null); judged on the model candidate alone with '
+                  'proposal_for_review and the server context, before and without any reviewer input')
+PROPOSITION_FIELDS = ('family', 'source', 'polarity', 'modality', 'referent', 'conditions', 'slots', 'artifact_type',
+                      'scope_field', 'filing_fields')
+
+
+def model_reads_as(context, interpretation):
+    """What the product's deterministic mapping makes of the model's candidate alone."""
+    from uptime.correspondence_interpretation import Interpretation, proposal_for_review
+    try:
+        proposal = proposal_for_review(context, Interpretation.model_validate(interpretation))
+    except (ValueError, TypeError) as error:
+        return dict(reason='unknown', artifact_type=None, reference=None, mapping_error=type(error).__name__)
+    return dict(reason=proposal.reason, artifact_type=proposal.artifact_type, reference=proposal.reference)
+
+
+def reads_as_log_request(read):
+    criterion = LOG_REQUEST_CRITERION
+    return (read['reason'] == criterion['reason'] and read['reference'] == criterion['reference']
+            and read['artifact_type'] in criterion['artifact_type'])
+
+
+def agreement(mine, candidate):
+    """Per proposition: accepted as proposed, corrected (with the exact differing fields), or rejected."""
+    rows, differing = [], []
+    for i in range(max(len(mine), len(candidate))):
+        if i >= len(mine):
+            rows.append(dict(proposition=i, verdict='reject', differs=['proposition absent from the reviewed reading'],
+                             explanation='Scripted review: the model proposed an additional meaning that the reviewer does not adopt.'))
+            differing.append('extra proposition rejected')
+            continue
+        other = candidate[i] if i < len(candidate) else {}
+        fields = [k for k in PROPOSITION_FIELDS if mine[i].get(k) != other.get(k)]
+        if not fields:
+            rows.append(dict(proposition=i, verdict='accept', differs=[], explanation=(
+                "Scripted review: the reading matches the reviewer's own reading and the model proposal.")))
+        else:
+            rows.append(dict(proposition=i, verdict='correct', differs=fields, explanation=(
+                'Scripted review: the same request for NW-JAN-LOG-001; corrected fields: ' + ', '.join(fields) + '.')))
+            differing.extend(fields)
+    value = 'IDENTICAL' if not differing else 'SAME_REQUEST_DIFFERENT_FIELDS'
+    return rows, dict(value=value, differing_fields=sorted(set(differing)))
+
+
 def private_json(path, value):
     fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, 'w') as handle:
@@ -149,7 +199,8 @@ def _review(get, post, context, reading, candidate, variant):
 
 
 def continuation(source_root, copy_root, reading, variant):
-    """On a scratch copy only: semantic review, preview, preparation if allowed, then the walkthrough."""
+    """On a scratch copy only, and only after the model read the reply as the log request:
+    semantic review, preview, preparation if allowed, then the walkthrough."""
     shutil.copytree(source_root / 'workspace', copy_root / 'workspace')
     app, private, _ = setup.open_workspace(copy_root / 'workspace')
     client, actor = _client(app, private)
@@ -160,8 +211,15 @@ def continuation(source_root, copy_root, reading, variant):
         context, candidates = view['context'], view.get('candidates') or []
         if not candidates:
             return dict(location=str(copy_root), outcome='NO_CANDIDATE_TO_REVIEW')
-        review_id, preview = _review(get, post, context, reading, candidates[0], variant)
-        result = dict(location=str(copy_root), authority=SCRIPTED, review_id=review_id,
+        candidate = candidates[0]
+        rows, agreed = agreement(reading['propositions'], candidate['interpretation']['propositions'])
+        review_id = post(BASE + '/interpretation/reviews', dict(
+            context_digest=context['digest'], interpretation=reading, candidate_id=candidate['id'],
+            resolutions=[{k: row[k] for k in ('proposition', 'verdict', 'explanation')} for row in rows],
+            residuals_reviewed=True, complete_meaning_reviewed=True))['id']
+        preview = get(BASE + '/interpretation/reviews/' + review_id + '/preview')
+        result = dict(location=str(copy_root), authority=SCRIPTED, review_id=review_id, agreement=agreed,
+                      propositions=[{k: row[k] for k in ('proposition', 'verdict', 'differs')} for row in rows],
                       preview=dict(disposition=preview['disposition'], prepare_allowed=preview['prepare_allowed'],
                                    category=preview['assertions']['category'], ledger_unchanged=preview['ledger_unchanged'],
                                    external_actions=preview['external_actions']))
@@ -256,7 +314,12 @@ def run(*, directory, executable, approved_by, origin='http://127.0.0.1:8823', v
             conditions=[x['source']['quote'] if isinstance(x.get('source'), dict) else x for x in p.get('conditions', [])])
             for p in c['interpretation']['propositions']],
             provenance={k: c['provenance'].get(k) for k in ('model', 'session', 'request_sha256', 'response_sha256', 'elapsed_seconds',
-                                                            'usage', 'client_reported_cost_usd', 'output_mode')}) for c in candidates]
+                                                            'usage', 'client_reported_cost_usd', 'output_mode')},
+            interpretation=c['interpretation']) for c in candidates]  # exactly what the model returned, as stored
+        if variant != 'unclear':
+            receipt['criterion'] = CRITERION_TEXT
+            receipt['model_reads_as'] = model_reads_as(context, candidates[0]['interpretation']) if len(candidates) == 1 else None
+            receipt['model_read_a_log_request'] = bool(receipt['model_reads_as']) and reads_as_log_request(receipt['model_reads_as'])
         if variant == 'unclear' and candidates:
             review_id, preview = _review(get, post, context, reading, candidates[0], variant)
             receipt['semantic_review'] = dict(authority=SCRIPTED, review_id=review_id, disposition=preview['disposition'],
@@ -272,9 +335,14 @@ def run(*, directory, executable, approved_by, origin='http://127.0.0.1:8823', v
     receipt['provenance'] = provenance(workspace / 'workspace.db', job_id)  # after the job service has closed
     receipt['raw_artifacts_location'] = 'run directory outside Git: ' + str(root)
     if variant != 'unclear':
-        copy_root = Path(continuation_directory or root.parent / (root.name + '-continuation')).absolute()
-        copy_root.mkdir(mode=0o700, parents=True)
-        receipt['continuation'] = continuation(root, copy_root, reading, variant)
+        if not receipt['model_read_a_log_request']:
+            # The model's reading stands: no review, preview or preparation; the case stays in review.
+            receipt['continuation'] = dict(outcome='MODEL_DID_NOT_READ_A_LOG_REQUEST' if receipt['candidates'] else 'NO_CANDIDATE',
+                                           review=None, preview=None, preparation=None)
+        else:
+            copy_root = Path(continuation_directory or root.parent / (root.name + '-continuation')).absolute()
+            copy_root.mkdir(mode=0o700, parents=True)
+            receipt['continuation'] = continuation(root, copy_root, reading, variant)
     return receipt
 
 

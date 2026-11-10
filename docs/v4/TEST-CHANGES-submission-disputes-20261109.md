@@ -115,3 +115,20 @@ Result: both files, **19 passed, 1 warning**, no skips.
   - the `unclear` run keeps its earlier shape.
 
 First runs: **5 passed**, **7 passed**. Focused set (new tests, coordinator, setup refusals, side panel, Northwind workflow, model jobs, job view and interpretation tests): **167 passed, 1 warning**.
+
+## Model reading gate in the denial driver (coordinator review of `5d69f9d`)
+
+**Problem:** the continuation's scripted review always submitted the reviewer's own reading and answered any difference with "correct". So a model reading that was not a log request would still have completed the walkthrough.
+
+**Change, fixed in code before any call:**
+- `LOG_REQUEST_CRITERION` and `CRITERION_TEXT`: the model's candidate **alone** is mapped with the product's `proposal_for_review` and the server context, with no reviewer input. The model read the reply as the log request **iff** `reason == "artifact"`, `reference == "NW-JAN-LOG-001"`, and `artifact_type` is `resource_log` or absent.
+- **If it fails:** no review, preview, preparation or copy. The outcome is `MODEL_DID_NOT_READ_A_LOG_REQUEST`, the case stays in review, and the receipt keeps the full candidate interpretation as stored.
+- **If it holds:** the review on the copy records, per proposition, accept or correct with the exact differing fields. The overall `agreement` is `IDENTICAL` or `SAME_REQUEST_DIFFERENT_FIELDS` with the list.
+
+**Tests:** these are this push's own new tests (in `tests/test_run_denial_model_job_r2.py`, not yet on main), so this is not a change to existing tests.
+- The earlier `test_reworded_run_stops_after_the_candidate_and_continues_only_on_a_copy` is replaced by:
+  - `test_identical_reading_continues_on_the_copy_and_records_identical`
+  - `test_the_same_request_with_a_different_field_continues_and_names_the_field`. The reply is a single source block, so any model proposition spans the whole reply. The field that can differ while the mapping holds is `artifact_type` (absent).
+  - `test_a_reading_that_is_not_the_log_request_stands_and_nothing_continues[unsupported, two-propositions, different-reference]`. Each asserts no copy, no review rows, the case in review, and no money moved.
+
+Result: **7 passed** on the first run. **Mutation check:** making the criterion always true makes all three "not a log request" cases fail.
