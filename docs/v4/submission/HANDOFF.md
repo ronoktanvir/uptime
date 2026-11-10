@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:47 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:57 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -46,13 +46,13 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 
 | Branch | Commit | What it is | Verified |
 |:---|:---|:---|:---|
-| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last code merge, `4c93a44` (5,452); the documentation merge after it, `c5629c9`, ran 5,451 passed and 1 skipped, with the skipped test passing alone. Hosted checks passed on `main` at `11a6770`, `21eae2c`, `1fa4ab4` and `9bea5fb`, and on `15034f3` |
+| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last merge, `eacd182` (5,464, none skipped). Hosted checks passed on `main` at `11a6770`, `21eae2c`, `1fa4ab4` and `9bea5fb`, and on `15034f3` |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
 | `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `4c93a44`: the interface set in Inter, after `15034f3`, the film re-cut and the icons | Full run passes on `4c93a44`, `15034f3`, `e3dab64` and `1fa4ab4` (5,452 each) |
-| `work/submission-design-20261109` | `f689e5d` | The redesign, then 21 Phosphor icons (MIT), the Inter typeface (SIL Open Font License) and a list of renamed controls; [notices](THIRD-PARTY-NOTICES.md) | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
+| `work/submission-design-20261109` | `91dc42c` | The redesign, then 21 Phosphor icons (MIT), the Inter typeface (SIL Open Font License) and a list of renamed controls; [notices](THIRD-PARTY-NOTICES.md) | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
 | `work/sidepanel-server-20261109` | `dc4ff65` | Side-panel option, extension, setup option and the real-browser check | Merged. Checked inside the real extension together with the redesign's bill page |
 | `work/submission-onboarding-20261109` | `088da4a` | Role 1, contract reading | Merged |
-| `work/submission-disputes-20261109` | `8addc5a` | Role 2, disputes, the walkthrough, the setup refusals and its test port change | Merged |
+| `work/submission-disputes-20261109` | `d1ca9b4` | Role 2: disputes, the walkthrough, the setup refusals, its test port change, and the authored reply variant with its driver | Merged |
 | `work/submission-ramp-20261109` | `a15d987` | Role 3, Ramp | Merged |
 | `work/submission-ui-20261109` | `7ca68b2` | Role 4, interface before the redesign | Merged |
 | `work/submission-acceptance-20261109` | `319ca43` | Role 5: acceptance, its dated correction, and the interface-only addendum on `main` | Merged |
@@ -80,7 +80,8 @@ The required command is `uv run --locked pytest`, run once per merge, one run at
 | `e3dab64` | 5,452 passed | Role 2's test port change |
 | `15034f3` | 5,452 passed | The film re-cut, its screenshots and the interface icons. The first attempt was cut off by a restart of the Mac before any test ran |
 | `4c93a44` | 5,452 passed | The interface set in Inter |
-| `c5629c9` | 5,451 passed, 1 skipped | Role 5's addendum and two sentences; documentation only. One browser failed to launch under load and its test skipped; that test passed alone on the same commit. **This is what `main` holds** |
+| `c5629c9` | 5,451 passed, 1 skipped | Role 5's addendum and two sentences; documentation only. One browser failed to launch under load and its test skipped; that test passed alone on the same commit. |
+| `eacd182` | 5,464 passed | The authored reply variant with its driver, and the interface's "reviewer" wording. Twelve new tests; none skipped, with a browser required. **This is what `main` holds** |
 
 GitHub's check workflow runs the same command on a clean machine for every pushed commit. It passes on the accepted build, on every integration commit through `1fa4ab4` (the redesign and side-panel merge), on the redesign's commits through `c280283` and on the side-panel branch through `a162951`.
 
@@ -149,8 +150,8 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 | Item | Owner | State |
 |:---|:---|:---|
 | Setup command: its real-process tests took a port from 8821–8829 and skipped if all were taken | Role 2 | **Done** (`8addc5a`): they take a port the system assigns. Requested at 17:50 PST. The plain refusals and the `--serve` rule are done |
-| A model step inside the main case: a third authored reply the fixed rules do not recognise, read by one genuine model call and checked by the reviewer against their own reading | Role 2, then the coordinator | Approved by Ronok at about 21:30 PST, relayed by the judge session, for the variant and the one call only. The route already exists and was run without a model. The film is decided after the call |
-| The routine-steps line says a person approves where the account is scripted (acceptance A1, P2); the scripted reviewer's display name is only inside closed sections of the Overview (A3, P3) | The redesign session | Requested at 21:47 PST |
+| A model step inside the main case: a third authored reply the fixed rules do not recognise, read by one genuine model call and checked by the reviewer against their own reading | Role 2, then the coordinator | Approved by Ronok at about 21:30 PST, relayed by the judge session, for the variant and the one call only. The variant, its tests and its driver are merged (`eacd182`) with no change under `uptime/`. The one call is next, from a clean checkout of `main`. The film is decided after the call |
+| The routine-steps line said a person approves where the account is scripted (acceptance A1, P2); the scripted reviewer's display name was only inside closed sections of the Overview (A3, P3) | The redesign session | **Done** (`91dc42c`), merged; role 5 has not rechecked them. Requested at 21:47 PST |
 | Interface-only acceptance check of the redesign and the side panel's default | Role 5 | **Done** (`319ca43`). First requested at 17:50 PST |
 | Retake the README's three screenshots (taken before the icons and the typeface), add a README link to the third-party notices, the video link | Role 6 | Not yet requested: waiting for the look to stop changing. The storyboard re-cut, the filming checklist for `main`, the timing recheck and the README's side-panel paragraph are **done** (`7f6e9ec`). First requested at 17:50 PST. The README's and the judge guide's wording still matches the redesigned interface's labels |
 | Say how the requested log arrives | Role 6 | The narration and the README's third step say Uptime "attaches" and "verifies" the log. In the walkthrough the log and its verification record arrive as authored events through the signed intake, and Uptime matches them. The product's step names say attach and verify; its authority line says received. Requested with the item above |

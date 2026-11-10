@@ -1,0 +1,29 @@
+{
+  "tested_commit": "eacd182d45e2f0042e59055feea23e109a48455c",
+  "branch": "work/submission-integration-20261109",
+  "role": "the authored 'reworded-log-request' reply with its driver, and the interface's \"reviewer\" wording, on top of main",
+  "contents": "main at 8ede314 plus role 2 at d1ca9b4 (a third authored January reply the fixed rules read as unknown, its setup option and pinned digest, tests of the reviewer-only bridge, and the driver for one genuine model call, which judges the model's reading alone and stops before any semantic review) and the redesign session at 91dc42c (\"reviewer\" where the interface said a person acts; the reviewer's name and authority kind in view on the Overview). No file under uptime/ changes. No model call has been made.",
+  "command": [
+    "UPTIME_REQUIRE_BROWSER=1",
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-eacd182",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5464 passed, 1 warning in 416.75s (0:06:56)",
+  "log": "suite-eacd182-pytest.log",
+  "started_at": "2026-11-10T05:49:50Z",
+  "finished_at": "2026-11-10T05:56:49Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "129 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "note": "5,464 is the previous 5,452 plus twelve new tests for the reply variant and its driver. This is the first run with UPTIME_REQUIRE_BROWSER=1, as in the repository's check workflow: a browser that cannot launch now fails its test instead of skipping it. None was skipped.",
+  "limits": "Regression verification. The variant's tests use the reviewer's own reading and a stand-in provider; they say nothing about what a genuine model call will return. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}
