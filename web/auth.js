@@ -115,8 +115,8 @@
         secondLabel.textContent = 'Password';
         password = document.createElement('input'); password.type = 'password'; password.required = true; password.autocomplete = 'off';
         secondLabel.append(password);
-        note.textContent = 'Sign in to this demo workspace with your reviewer name and any password.';
-        hint.textContent = 'Any password works here. Your name records which reviewer is deciding; no credential file is needed.';
+        note.textContent = 'Sign in to this workspace with your reviewer name and password.';
+        hint.hidden = true;
         if (typeof context.subject === 'string' && context.subject && !subject.value) subject.value = context.subject;
       }).catch(() => {});
     }
