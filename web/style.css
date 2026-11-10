@@ -889,6 +889,24 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
+/* 16. Steps in order: legend and replay; the case page's "What was filed" (submission-steps-20261110).
+   The replay is display only: a reveal of steps already recorded. Its fade is the only motion, and the
+   reduced-motion rule above removes it; the script also leaves the class off when reduced motion is set. */
+.step-legend dt .pill { font-size: 12px; }
+.step-legend + .help { margin-top: -8px; }
+.replay-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 16px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); }
+.replay-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; color: var(--ink); cursor: pointer; }
+.replay-controls .replay-line { flex: 1 0 100%; margin: 0; color: var(--text); }
+.automation-step:has(+ .automation-step[hidden])::after { display: none; }
+.automation-step.replay-reveal { animation: replay-reveal 240ms ease-out both; }
+@keyframes replay-reveal { from { opacity: 0; } to { opacity: 1; } }
+.uptime-v4 .v4-filed { margin-top: 16px; }
+.uptime-v4 .v4-filed + .v4-filed { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+.uptime-v4 .v4-filed h3 { margin: 0 0 12px; }
+.uptime-v4 .v4-filed + .v4-note { margin-top: 16px; }
+.uptime-v4 .v4-filed-facts > .v4-filed-wide { flex: 1 0 100%; }
+.uptime-v4 .v4-filed-list { margin: 0; padding-left: 18px; }
+.uptime-v4 .v4-facts dd.v4-not-sent { color: var(--muted); font-style: italic; }
 /* 16. Side panel (submission-panel-20261110). Everything in this block applies only when the page is framed by the
    one extension the server allows (app.js adds .panel-mode to <html> then), or styles the one-bill page's own parts.
    Presentation only: no state, record or word is hidden by it. The full app in an ordinary tab is unchanged. */
@@ -908,21 +926,3 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .panel-open-app { display: flex; }
 .panel-open-app-button { flex: 1 1 auto; min-height: 40px; }
 .ramp-bill-empty > .ramp-ids { margin-top: 12px; }
-/* 16. Steps in order: legend and replay; the case page's "What was filed" (submission-steps-20261110).
-   The replay is display only: a reveal of steps already recorded. Its fade is the only motion, and the
-   reduced-motion rule above removes it; the script also leaves the class off when reduced motion is set. */
-.step-legend dt .pill { font-size: 12px; }
-.step-legend + .help { margin-top: -8px; }
-.replay-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 16px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); }
-.replay-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; color: var(--ink); cursor: pointer; }
-.replay-controls .replay-line { flex: 1 0 100%; margin: 0; color: var(--text); }
-.automation-step:has(+ .automation-step[hidden])::after { display: none; }
-.automation-step.replay-reveal { animation: replay-reveal 240ms ease-out both; }
-@keyframes replay-reveal { from { opacity: 0; } to { opacity: 1; } }
-.uptime-v4 .v4-filed { margin-top: 16px; }
-.uptime-v4 .v4-filed + .v4-filed { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
-.uptime-v4 .v4-filed h3 { margin: 0 0 12px; }
-.uptime-v4 .v4-filed + .v4-note { margin-top: 16px; }
-.uptime-v4 .v4-filed-facts > .v4-filed-wide { flex: 1 0 100%; }
-.uptime-v4 .v4-filed-list { margin: 0; padding-left: 18px; }
-.uptime-v4 .v4-facts dd.v4-not-sent { color: var(--muted); font-style: italic; }
