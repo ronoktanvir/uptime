@@ -87,6 +87,7 @@ A system font stack, because the content security policy allows no external font
 | Buttons | Primary (accent), secondary (white with hairline), quiet text button. 36 px high, 44 px on a phone. |
 | Inputs | 36 px high, visible border, accent ring on focus, a dashed drop area for the credential file. |
 | Status line | The live region for results and errors; tinted only when it has something to say. |
+| Icons | [Phosphor Icons](THIRD-PARTY-NOTICES.md) (MIT), held in the stylesheet and the page itself. Used where they help recognition: the sidebar, the tags that say who or what acted, links that go forward, back or out to Ramp, the "as of" time, and four status marks (price exception, verified Ramp record, in force, failed read). Decoration only: no icon names an element or says more than the words beside it. |
 
 ## 3. Layout plan per page
 
@@ -138,6 +139,8 @@ The state this branch started from is in [the earlier interface evidence](../evi
 - The sidebar is hidden before sign-in and while the first page loads, because there is nothing to navigate to yet.
 - The content column is capped at 1,120 px and centred in the space beside the sidebar, so the layout is the same at 1440 and 1920.
 - Unchanged: the skip link, both live regions, every route (`#overview`, `#cases`, `#cases/<id>`, `#agreements`, `#activity`, `#records` and every older hash), the order of requests on load, and the static file list (no asset file was added).
+
+- **Icons** (added after the first merge, at Ronok's request): the sidebar, tags, link arrows and four status marks use Phosphor Icons, as listed in [the notices](THIRD-PARTY-NOTICES.md). The words are unchanged.
 
 ### Sign-in
 

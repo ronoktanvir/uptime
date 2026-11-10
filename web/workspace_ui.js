@@ -456,7 +456,7 @@
     }
     // What authorised a step, as one short tag beside the server's own sentence. A decision is attributed to the
     // reviewer account the server names, never to "a person": the account may be a scripted one.
-    const AUTHORITY_TAG = {PERSON:['Reviewer decision', 'accent'], APPROVED_OPERATION:['Automatic step', ''], EVENT_INTAKE:['Received event', '']};
+    const AUTHORITY_TAG = {PERSON:['Reviewer decision', 'accent tag-reviewer'], APPROVED_OPERATION:['Automatic step', 'tag-automatic'], EVENT_INTAKE:['Received event', 'tag-received']};
     const AUTOMATION_TONE = {COMPLETE:'ok', PAUSED:'warn', RUNNING:'accent'};
     function automationPanel(automation, nextActions) {
       const heading = el('h2', 'Steps in order'), head = add(el('div', null, 'panel-head'), heading), node = add(el('section', null, 'panel'), head);

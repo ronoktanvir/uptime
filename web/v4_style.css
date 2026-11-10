@@ -160,9 +160,18 @@
 .uptime-v4 .v4-open { text-align: right; white-space: nowrap; }
 .uptime-v4 .v4-open-link { font-weight: 500; text-decoration: none; }
 .uptime-v4 .v4-open-link:hover { text-decoration: underline; }
-.uptime-v4 .v4-open-link::after { content: " \2192"; content: " \2192" / ""; }
+.uptime-v4 .v4-open-link::after, .uptime-v4 .v4-cta::after, .uptime-v4 .v4-back::before, .uptime-v4 .v4-head-tools button::before,
+.uptime-v4 .v4-in-force::before, .uptime-v4 .v4-job-message::before {
+  content: ""; display: inline-block; flex: none; width: 1em; height: 1em; vertical-align: -0.14em; background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat;
+}
+.uptime-v4 .v4-open-link::after { --icon: var(--i-arrow-right); margin-left: 5px; }
+.uptime-v4 .v4-cta::after { --icon: var(--i-arrow-right); margin-left: 8px; }
+.uptime-v4 .v4-head-tools button::before { --icon: var(--i-arrows-clockwise); color: var(--muted); }
+.uptime-v4 .v4-in-force::before { --icon: var(--i-check-circle); align-self: center; margin-right: -2px; width: 1.15em; height: 1.15em; color: var(--ok); }
+.uptime-v4 .v4-job-message::before { --icon: var(--i-info); margin-right: 6px; width: 1.1em; height: 1.1em; vertical-align: -0.18em; }
 .uptime-v4 .v4-back { display: inline-block; margin-bottom: 10px; font-size: 13px; font-weight: 500; text-decoration: none; }
-.uptime-v4 .v4-back::before { content: "\2190  "; content: "\2190  " / ""; }
+.uptime-v4 .v4-back::before { --icon: var(--i-arrow-left); margin-right: 6px; }
 .uptime-v4 .v4-back:hover { text-decoration: underline; }
 .uptime-v4 .v4-case-view { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .uptime-v4 .v4-callout { border-left: 3px solid #e2a53a; }

@@ -70,7 +70,7 @@
     const brand = make('p', 'signin-brand'); brand.append(mark, make('span', 'signin-name', 'Uptime'), make('span', 'signin-for', 'for Ramp'));
     const heading = make('h1', null, 'Sign in to Uptime');
     const note = make('p', null, 'Use your named account for this local workspace. Workspace setup prints the account name and where its credential file was saved.');
-    const hint = make('p', null, 'Choose that file, or drag it onto this form. It is used only in this page to prove your identity and is never uploaded.');
+    const hint = make('p', 'signin-hint', 'Choose that file, or drag it onto this form. It is used only in this page to prove your identity and is never uploaded.');
     const feedback = make('p'); feedback.setAttribute('role','status');
     function field(title, type, auto) {
       const label = make('label', null, title);
