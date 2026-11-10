@@ -9,6 +9,7 @@ Owner `agent0`. Branch `work/submission-presentation-20261109`, from `origin/mai
 - The deterministic fallback rehearsed again on `main`.
 - [The filming checklist](#filming-checklist-for-ronok-main-0c30f8f) rewritten for `main`, with labels read off the redesigned pages.
 - Part A results on `52f1a2f` are kept below for reference.
+- **November 10:** a [proposed revision, not chosen](#proposed-revision-not-chosen-judge-sessions-content-feedback-november-10) follows the storyboard of record. It answers the judge session's content feedback, checked on `main` at `fa16c71`. The storyboard of record is unchanged until Ronok chooses.
 
 ## What phase 1 changes
 
@@ -85,6 +86,83 @@ The reviewer account, `scripted-test-reviewer`, shows at the foot of the sidebar
 **Not in this cut:** the unclear-reply model reading. It no longer fits in 120 seconds with the Ramp opening. It stays in [the judge guide](../../JUDGES.md) with its receipt.
 
 **Rules for the model beats** (coordinator, November 9): the cut must not imply that the model read the Northwind contract or the cure-branch reply.
+
+## Proposed revision: not chosen (judge session's content feedback, November 10)
+
+**Status: a proposal only.** The storyboard above stays the storyboard of record until Ronok chooses. The judge session asked whether the cut "properly show[s] the product end to end". Its finding: every stage appears, but across three vendors, and the main case's middle is told through log rows when `main` can show the real items. The opening in Ramp and the order are Ronok's decisions and are kept. No story moves; two screens change.
+
+**Every quoted screen text below was checked on `main` at `fa16c71`** (application unchanged since `008c4af`). The check used a fresh walkthrough, one headless Chrome, and only the ordinary sign-in and offered controls. All 18 strings were found; there were no page errors. [Screen check](../evidence/submission-presentation-20261109/proposal-fa16c71/screen-check.json) · [screens](../evidence/submission-presentation-20261109/proposal-fa16c71/)
+
+### Suggestion 1, adopted in this proposal: Northwind's own agreement before the finding
+
+- **Screen, 0:44–1:03.** In the walkthrough tab, go to **Agreements**. The page shows CalyxQuay's card first; press the **Northwind Cloud** jump chip, or scroll. One view then holds:
+  - "Northwind Cloud · ACTIVE · In force in this workspace.";
+  - Agreement NW-2026-001; "Source read by: deterministic document parser";
+  - "Reviewer: scripted-test-reviewer (scripted test)";
+  - under "What the source establishes": "For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.";
+  - "Claim deadline: stated in the source — Claims must be received within 30 calendar days after month end."
+- **Measured:** the Agreements page renders in 0.01 s.
+- **The amendment.** Its date is not on the Agreements card. It is on the Overview, inside the closed "Governing agreement" section at the foot of the page: "Amendment 1 to NW-2026-001 · Effective Mar 1, 2026". Opening it costs a scroll and a click. **Recommendation:** narrate the amendment at 1:03 over the March price exception card instead. Its "Needs attention" item already reads "billed $12,000.00 against $11,000.00 under amendment-v2".
+- **Why:** the case then runs contract → finding without a number appearing first. The bridge line stays and is spoken over this view.
+
+### Suggestion 2, adopted in this proposal: the vendor's own words in the reply window
+
+- **Screen, 1:18–1:46**, after "Approve January claim" (0.52 s):
+  1. Press **Open this claim's case and correspondence →** (case page 0.05 s) and scroll to "Correspondence, in order". In view:
+     - "Approved exact local packet." and "Filed approved packet in the isolated local outbox. · Receipt LOCAL-…";
+     - "Vendor reply, as received", quoted: "Please furnish the dated service log, document NW-JAN-LOG-001.";
+     - "Received authenticated artifact record. · Actor: northwind-2026-01-customer" and "Received authenticated status_verification record. · Actor: northwind-2026-01-status";
+     - "A newly acquired artifact matches the requested proof and independent verification."
+  2. Sidebar **Overview**, then **Approve response** (0.58 s).
+  3. Back to the case page (0.03 s) and scroll to its end: "Vendor reply, as received" now quotes "We have approved a service credit of USD 2400.00."
+- **Use the Overview's button.** The case page offers its own **Approve Response** button. It was not exercised, so the film keeps the tested Overview control.
+- **Why:** the vendor's request, the evidence match and the award appear on screen in the vendor's words instead of as log rows.
+
+### Re-timed proposal (same method: speech at 125 and 150 wpm; product steps measured above)
+
+| Window | On screen | Narration |
+|:---|:---|:---|
+| **0:00–0:24** Ramp | As in the storyboard of record | "This is a vendor bill in Ramp. Checking it by hand means finding the contract, totalling outages and filing a claim in time. Uptime's side panel shows no agreement on file: an evidence gap. A person posted that note; Uptime has made no write to Ramp." (46) |
+| **0:24–0:44** Model | As in the storyboard of record (Corvid Ledger, recorded) | "Contracts come in two ways. For new wording, Claude proposes the terms; this recorded run read an authored contract, each term quoted from its text. Code validated it; it waits in shadow for a reviewer. A second was refused." (39) |
+| **0:44–1:03** Agreement | Agreements → Northwind Cloud card (suggestion 1) | "For a vendor whose contract Uptime holds, here is one full case, authored for this demo. Fixed rules read Northwind's contract: 99.9% monthly uptime, a 10% credit per tenth of a point, claims within 30 days." (36) |
+| **1:03–1:18** Finding | Overview: credit, March exception; **Approve January claim** | "January: 135 minutes down, two steps below target, a $2,400 credit. March's invoice ignored the amendment that cut the fee to $11,000: $1,000 over. I approve the claim." (28) |
+| **1:18–1:46** Reply | Case page correspondence, Overview **Approve response**, case page award (suggestion 2) | "Uptime files the claim. The vendor, a local counterparty, not a real vendor, asks for the service log in wording the rules know; other wording goes to a reviewer. The log and its verification arrive through a signed source; Uptime matches them and stops for me. I approve the response, and the vendor awards $2,400." (55) |
+| **1:46–2:00** Credit | Overview: **Post to Local ledger**, **Apply credit to eligible invoice**, $8,600.00 | "I post the credit and apply it to April's invoice: $11,000 becomes $8,600. One credit, in a local ledger, not money recovered in Ramp." (24) |
+
+| Window | Seconds | Words | Speech at 125 wpm | Speech at 150 wpm | Slack at 125 wpm |
+|:---|---:|---:|---:|---:|---:|
+| 0:00–0:24 | 24 | 46 | 22.1 | 18.4 | 1.9 |
+| 0:24–0:44 | 20 | 39 | 18.7 | 15.6 | 1.3 |
+| 0:44–1:03 | 19 | 36 | 17.3 | 14.4 | 1.7 |
+| 1:03–1:18 | 15 | 28 | 13.4 | 11.2 | 1.6 |
+| 1:18–1:46 | 28 | 55 | 26.4 | 22.0 | 1.6 |
+| 1:46–2:00 | 14 | 24 | 11.5 | 9.6 | 2.5 |
+| **Total** | **120** | **228** | **109.4** | **91.2** | |
+
+Every window keeps at least 1.3 s of slack at 125 wpm for its clicks; the product steps themselves take 0.01–0.58 s.
+
+**What it costs.**
+- The opening and the model lines lose a few words: "for this bill" and "Fixed rules read wording Uptime knows", the second now said over Northwind's card instead.
+- The finding loses "clause attached"; the clause is on screen one window earlier.
+- The reply window has the most navigation (case page, Overview, case page), so most of its 1.6 s of slack goes to scrolling while speaking. If a rehearsal shows that is too tight, drop the second case-page visit and let the award show on the Overview's lifecycle at 1:46.
+- **Disclosures still spoken:** "A person posted that note; Uptime has made no write to Ramp", "this recorded run read an authored contract", "authored for this demo", "a local counterparty, not a real vendor", "in a local ledger, not money recovered in Ramp".
+
+### Suggestion 3: the claim and the response text (product gap, not built here)
+
+**Checked:** on `main` the case page and Activity show only that a packet was approved and filed, and its receipt: "Approved exact local packet.", "Filed approved packet in the isolated local outbox.", "Receipt LOCAL-…". I found no open section showing the packet's text. The judge session found none anywhere, including closed sections.
+
+**Recommendation, if it stays for this push:**
+- **Narration:** the proposed line "Uptime files the claim" is accurate (filed to the isolated local outbox, with a receipt). It must not say what the claim says, or read from it, because nothing on screen shows that.
+- **Judge guide:** add one sentence. "The claim packet and the response are approved by their exact content and filed to a local outbox with a receipt; this build does not display their text on any page."
+- **No narration should suggest a message reached a real vendor.** The counterparty is local (D08 is undecided).
+
+### Suggestion 4: CalyxQuay instead of Corvid Ledger
+
+**Recommendation: keep Corvid Ledger.** The swap would save a second tab and a second sign-in, and it would put both reading paths on one page. But on screen:
+- CalyxQuay shows ACTIVE and "In force in this workspace" with reviewer "scripted-test-reviewer (scripted test)". A viewer can take that as a model's reading approved for use, and the approval was a scripted account's.
+- The card shows "Source read by: tool free model propositions · claude-opus-5-5" but no job id, model times or receipt.
+
+Corvid Ledger's card shows "Model proposal job" `26ee4e3f…`, claude-opus-5-5, its submitted, started and finished times, and "The proposal is unreviewed and not approved." That is the more careful picture. Choose the swap only if Ronok prefers it.
 
 ## Recorded workspaces for the model beats
 
