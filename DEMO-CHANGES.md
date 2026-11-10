@@ -35,3 +35,5 @@ Tests changed on the demo line because the demo deliberately changes a rule. One
 - `web/filed_view.test.cjs` › "the case page shows What was filed before the correspondence, from the record it already loaded": renamed "the case page shows What was filed below the correspondence, closed until opened, from the record it already loaded", because the section moved below the correspondence and is now closed by default.
 
 No assertion about money, authority or what reached Ramp was weakened. No Python test was changed.
+
+- `web/ramp_bill.test.cjs` › `a matched bill leads with the possible credit, how it was matched, the evidence, the money and the stages`: the matched page no longer says who started the read, because on the demo line the Northwind bill was entered in Ramp and read back by an agent at the owner's direction.

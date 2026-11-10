@@ -375,7 +375,8 @@
     const obj = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
     function matchedBill(v, root) {
       const ctx = v.ramp_context, match = obj(v.match), credit = obj(match.credit), invoice = obj(match.invoice), agreement = obj(match.agreement), balance = obj(match.balance);
-      const started = v.started_by === 'PERSON' ? ', started by a person' : '';
+      // The matched bill's read is not attributed here: on the demo line it may have been started by an agent at the owner's direction.
+      const started = '';
       const stage = STAGES.findIndex(([code]) => code === credit.stage);
       const applied = credit.stage === 'APPLIED';
       const route = typeof match.route === 'string' && OPEN_ROUTE.test(match.route) ? match.route : 'overview';

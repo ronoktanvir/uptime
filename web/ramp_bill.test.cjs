@@ -183,7 +183,7 @@ test('a matched bill leads with the possible credit, how it was matched, the evi
   for(const expected of ['Matched to an Uptime invoice','Northwind Cloud','Invoice NW-2026-04','Service credit','A service credit may apply to this bill','$2,400.00',
     'For service in January 2026 · Estimated','Review and file the claim','Add a note to this bill in Ramp','Next in Uptime: Approve January claim',
     'The bill in Ramp','$11,000.00','APPROVAL_PENDING',"Matched to Uptime's invoice NW-2026-04 by vendor, invoice number and amount",
-    'Saved record read from Ramp Nov 9, 2026, 22:00 UTC, started by a person. Not a live read.',
+    'Saved record read from Ramp Nov 9, 2026, 22:00 UTC. Not a live read.',
     'The evidence','NW-2026-001',clause,'agreement.txt#L42','Measured availability','99.41%','Monthly fee','$12,000.00',
     'The money','Invoice','Credit applied so far','$0.00','Remaining','Where the credit stands',
     'Notes on this bill in Ramp','No notes read on this bill.','Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.'])
