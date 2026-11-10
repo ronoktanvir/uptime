@@ -169,7 +169,7 @@ A read-only review of everything the demo line adds found nothing that blocked p
 - `uptime/template_builder.py`: the sample text route checks the tenant. `uptime/template_rules.py`: a text over 200,000 characters is refused.
 - Notes corrected: the sentence above about writes to Ramp, the two sentences about Python tests, `docs/demo/TEMPLATE-BUILDER.md` on which routes need a reviewer, and the route list in `extension/README.md`.
 
-## After GitHub's check run (coordinator, November 10, 12:46 PST)
+## After GitHub's check run (coordinator, November 10, 12:44 PST)
 
 GitHub's check workflow ran the suite on the published commits and one test failed there (5,542 passed): on its Linux image `/usr/bin/true` is a link to `/usr/bin/gnutrue`, and the configuration records the resolved path.
 
