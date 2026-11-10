@@ -1,6 +1,6 @@
 # A demo sign-in by name and password: built, held, not merged
 
-Status: built by the redesign session on `work/submission-design-20261109` at `5f6c90c`, with a wording change at `530362c`. Held off `main` by the coordinator on November 10, 2026, at about 02:15 PST. Which variant replaces it, if any, is Ronok's choice and has not been made.
+Status: built by the redesign session on `work/submission-design-20261109` at `5f6c90c`, with a wording change at `530362c`. Held off `main` by the coordinator on November 10, 2026, at about 02:15 PST. On November 10 at about 02:20 PST Ronok chose to rework it (option A below). Role 2 is building that on `work/submission-demo-reviewer-20261110`; it is not built yet, and the two original commits stay unmerged.
 
 ## Request and authority
 
@@ -85,6 +85,32 @@ One fresh `claude-opus-5-5` reviewer was given the commit, `AGENTS.md` and the a
 | The tests miss most of the change and carry a real person's name | Findings 4 and 8 |
 
 It found sound: the route's 404 outside a rehearsal and without the flag; that a deployment that is not a rehearsal never uses the new names; that challenge, proof and single-use checks are unchanged; the setup command's argument rules; the name pattern; the file sign-in path; and that native and Ramp actions are still refused in a rehearsal. It could not determine how audit exports serialise these records.
+
+## The rework Ronok chose
+
+Asked "Rework the demo sign-in with a real password, or sign in off camera instead?", Ronok answered the coordinator directly: "Rework it" (November 10, about 02:20 PST). The design below is option A after a second criticism by the same Opus 5.5 reviewer, and is the brief given to role 2.
+
+1. **Start-up.** `--serve --demo-reviewer NAME`. The password is read at a no-echo prompt and nowhere else, so nothing that is not at the keyboard can supply it. It is never stored and never printed. `create_app` itself refuses the option outside a rehearsal workspace, for a reserved or scripted name, and for a short password.
+2. **Sign-in, with no key leaving the page.** The page makes its own key that cannot be exported and posts its public half with the name and password. The server checks the password against a verifier held in memory and registers that key for the name for this run. The scripted file cannot sign in under the name, and the name's keys cannot sign in as the scripted account.
+3. **Records.** Every record the name's decision writes carries a demo-reviewer marker and the signing key's thumbprint: the person step, the resumed path, the approval and denial-acceptance records and the timeline, so the steps that run under that approval carry it too. The marker is read from the records afterwards, never from how the server was started. What the scripted account writes does not change.
+4. **Views.** With no demo reviewer configured, every response is what it is today. Wherever the name is shown as an actor it carries "Demo reviewer". The recovery card's reviewer is read from that claim's recorded person steps. CalyxQuay's reviewer stays exactly as it is.
+5. **Workflow.** The write gate accepts the demo reviewer only when one is configured. An operation left executing by another account is refused with who must resume it.
+6. **Form.** Name and password, reading as an ordinary login, because it is one.
+7. **Tests** use the name `demo-presenter`. No agent and no test uses Ronok's name or learns his password; he starts the filmed walkthrough himself.
+8. **Disclosure,** in the command's help and the README: a record under that name shows that someone who knew that run's password decided. It is not an enrolled person's approval.
+
+**The second criticism and what was done with it:**
+
+| The reviewer's point | Disposition |
+|:---|:---|
+| A marker on workflow steps alone leaves the same actor unmarked in the approval record, the denial acceptance and the timeline, and the page then says "Run automatically under the approval recorded by" that name with no mark | Taken: point 3 |
+| The resumed path builds its own authority record and would skip the marker | Taken: point 3 |
+| The marker does not say which run made a record, since the key changes at each start | Taken: the key's thumbprint goes on each record |
+| The design shows who could decide, not who did; a password file would let a script sign as the name | Taken: the password file is cut, the prompt is the only way, and the disclosure says exactly what a record shows |
+| Returning the name's private key puts it in the browser's network log | Taken: the page makes the key and only its public half is sent |
+| One lockout counter lets any local process end a take | Taken: no permanent lockout; a costly check and a short delay instead |
+| Reading CalyxQuay's reviewer from history would change today's output | Taken: CalyxQuay's reviewer is left alone |
+| Drop the recovery card's reviewer derivation and let the step list speak | **Not taken.** A fixed "Dana Reyes" beside decisions another account made would be wrong in the other direction, and his name as reviewer is what he asked for. The rule is kept small and applies only when a demo reviewer is configured |
 
 ## Rollback
 
