@@ -65,8 +65,10 @@ Inter, one variable font file that the app serves itself ([notices](THIRD-PARTY-
 Three voices, each for one kind of text (second pass):
 
 - **Interface:** Inter, for everything the product itself says.
-- **Quoted source text:** a serif, for a contract clause or a vendor's reply, so a document's words never look like the interface's own. It is the system serif (`ui-serif`, New York on a Mac, Georgia elsewhere); no file is bundled for it.
-- **References:** monospace, for identifiers and digests, as before.
+- **Quoted source text:** Source Serif 4, for a contract clause or a vendor's reply, so a document's words never look like the interface's own.
+- **References:** JetBrains Mono, for identifiers and digests.
+
+All three are files the app serves itself ([notices](THIRD-PARTY-NOTICES.md)); the serif and the monospace are bundled in the regular weight they are used in, with the system's serif and monospace as fallbacks.
 
 ### Space, shape, depth, motion
 
@@ -227,7 +229,7 @@ Ronok asked for the interface to read as an established application rather than 
 - **Page headers.** Each page opens with a tile (the vendor's initials on the Overview, the page's icon elsewhere), a small context line and the title, on a hairline. The introduction sentences under the titles are gone: the Overview's, Activity's, Agreements', Cases', Ramp records' and Advanced workflows'. The Evidence group's sentence and the sentence over a case's correspondence are gone too. Statements that say what a figure is or is not were kept, word for word: "One credit, shown at each stage. The amounts are not added together.", "Separate from the service credit and not included in it.", "Read only. These requirements grant no approval, activation or dispatch.", the Ramp page's read and partial-list statements, and the Portfolio page's "A seeded scenario is not a portfolio total."
 - **Cards and tables.** The main cards carry a small icon beside their titles. Table heads are small capitals. A state chip carries a dot in its own colour. The decision button carries a check mark, and "Sign in again to take actions" a key.
 - **Entities.** A vendor's initials sit in a tile beside its name on its agreement card and on each row of the Cases list.
-- **Company pictures.** At Ronok's request the two authored companies he supplied pictures for show them in place of their initials: a cloud mark for Northwind Cloud (Overview header, Cases rows, its agreement card) and a lighthouse mark for Harborline Analytics (the sidebar's workspace block). The stylesheet names the two pictures; any other name keeps its initials. Details are in [the notices](THIRD-PARTY-NOTICES.md).
+- **Company pictures.** At Ronok's request the two authored companies he supplied pictures for show them in place of their initials: a cloud mark for Northwind Cloud (Overview header, Cases rows, its agreement card; the light version he supplied later replaced the first, dark one) and a lighthouse mark for Harborline Analytics (the sidebar's workspace block). The stylesheet names the two pictures; any other name keeps its initials. Details are in [the notices](THIRD-PARTY-NOTICES.md).
 - **Type.** Titles are smaller and heavier, text is set tighter, and quoted source text is in a serif (section 2).
 - **Unchanged.** Every control keeps its words and its place: no row was added to the table below for this pass. No amount, state, destination or disclosure changed, and no test changed.
 
@@ -377,6 +379,8 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
   - *The focus ring on the recovery heading.* The heading still takes focus after every action. Its ring is now drawn only when the keyboard is in use (`:focus-visible`), so it is not in the frame after a pointer click. Checked in Chrome on a fresh walkthrough: after a click the heading has focus and no ring; after Tab and Enter it has focus and a 2-pixel ring, and one Tab from the heading still reaches the next decision. The agreement headings that the jump chips focus follow the same rule.
   - `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 132`, `pass 132`, `fail 0`. The same 23 files, one at a time under the same limit: 124 passed, none failed, 421 seconds (a slower machine, no run stalled). No test changed.
 
+- **Serif, monospace and the light cloud** (the two commits after the header and focus fixes): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 132`, `pass 132`, `fail 0`. The same 23 files, one at a time under the same limit: 124 passed, none failed, 129 seconds. The real server sends both fonts as `font/woff2` (76,260 and 92,164 bytes). Looked at on the Overview, Cases, Agreements, one case and Ramp records at 1440×900: the faces loaded are Inter on every page, with Source Serif 4 and JetBrains Mono where a quotation or a reference is shown; no console message, no failed request. The same two tests changed again, to serve the two files (ledger rows 12 and 13).
+
 ## 7. Known limits and open items
 
 - **Phone width is usable, not polished.** Ronok asked for the computer layout first and the phone later, since the demo does not use it. At 390×844 no page is wider than the window and every control is reachable, and the 390 px images above show the present state. Spacing, type sizes and the order of blocks at that width have not had the pass the computer layout had.
@@ -384,7 +388,7 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
 - **More tools keep the server's own codes.** Case ledger, the case inspector, Onboarding lab, Policies and Integrations were restyled and tidied, not redesigned. They show stage and eligibility as the server's words in capitals (for example `RETROSPECTIVE_REVIEW`), and the case inspector shows an evidence detail as the server's JSON text. The Onboarding lab shows both offered actions as primary buttons.
 - **Quotes keep the source's own line breaks.** A clause is shown byte for byte, so in a wide column its lines can end early. That is deliberate.
 - **Light theme only.** The page declares a light colour scheme; no dark theme was made.
-- **Two of the three type voices are the system's.** Quoted text uses the system serif and references the system monospace, so their letter shapes differ between a Mac and other machines. Bundling a serif and a monospace would fix that; it needs Ronok's yes to two downloads.
+- **Three font files.** The serif and the monospace are bundled in one weight each (regular). Where a reference or a quotation is marked strong, it is drawn in that same weight rather than a synthesised bold.
 - **One font file.** The typeface is a 344 KB file loaded from the app itself on each page load. Until it arrives no text is drawn in another face (up to three seconds on a slow connection; a few milliseconds locally), so text never reflows.
 - **The panel beside Ramp** (`#ramp-bill/<id>`) is tested at 420×900 in Chrome, not inside the extension's side panel; the coordinator is checking it there.
 

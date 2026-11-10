@@ -95,7 +95,7 @@
 .uptime-v4 .v4-vendor > .v4-fold:last-child { border-radius: 0 0 var(--radius) var(--radius); }
 .uptime-v4 .v4-vendor > .v4-note:last-child, .uptime-v4 .v4-vendor > .v4-facts:last-child, .uptime-v4 .v4-vendor > .v4-review:last-child { margin-bottom: 24px; }
 .uptime-v4 .v4-vendor-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: -12px; }
-.uptime-v4 .v4-avatar { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--brand-bg, var(--ink)) var(--brand, none) center / cover no-repeat; color: var(--brand-ink, #fff); font-size: 12px; line-height: 1; font-weight: 650; letter-spacing: .02em; }
+.uptime-v4 .v4-avatar { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--brand-bg, var(--ink)) var(--brand, none) center / cover no-repeat; box-shadow: var(--brand-ring, none); color: var(--brand-ink, #fff); font-size: 12px; line-height: 1; font-weight: 650; letter-spacing: .02em; }
 /* In the list of cases the vendor's tile sits at the left of the case's two lines. */
 .uptime-v4 td.v4-case-cell { position: relative; padding-left: 60px; }
 .uptime-v4 .v4-case-cell .v4-avatar { position: absolute; left: 16px; top: 16px; }
