@@ -1,6 +1,6 @@
 # Demo line changes (`demo/film-20261110`)
 
-This line is for the film recorded on November 10, 2026. For it the owner lifted three limits: the side panel may say a service credit may apply to a Ramp bill, the extension may show a toolbar badge, and Uptime may post a note to the bill in Ramp. Everything else stands: nothing here makes a write to Ramp by itself, and every amount, stage and match on the matched page is the server's.
+This line is for the film recorded on November 10, 2026. For it the owner lifted three limits: the side panel may say a service credit may apply to a Ramp bill, the extension may show a toolbar badge, and Uptime may post a note to the bill in Ramp. Everything else stands: nothing here makes a write to Ramp by itself except the fixed notes a server started with `--ramp-notes auto` posts at start-up, after a reviewer decision and after a refresh, and every amount, stage and match on the matched page is the server's.
 
 ## Side panel, round two
 
@@ -50,7 +50,7 @@ Tests changed on the demo line because the demo deliberately changes a rule. One
 - `web/filed_view.test.cjs` › "a filed claim prints exactly the packet’s own fields in plain labels": the destination now reads "Vendor claims intake (local)" in place of `isolated-local-simulator`; the exact value stays in the complete server record.
 - `web/filed_view.test.cjs` › "the case page shows What was filed before the correspondence, from the record it already loaded": renamed "the case page shows What was filed below the correspondence, closed until opened, from the record it already loaded", because the section moved below the correspondence and is now closed by default.
 
-No assertion about money, authority or what reached Ramp was weakened. No Python test was changed.
+No assertion about money, authority or what reached Ramp was weakened. No Python test was changed in this round.
 
 - `web/ramp_bill.test.cjs` › `a matched bill leads with the possible credit, how it was matched, the evidence, the money and the stages`: the matched page no longer says who started the read, because on the demo line the Northwind bill was entered in Ramp and read back by an agent at the owner's direction.
 
@@ -70,7 +70,7 @@ The case's figures, lifecycle, recovery card, decisions, step display, price exc
 - `tests/test_workspace_ui_v4.py` › `test_configured_workflow_keeps_evidence_money_and_original_navigation_reachable`: opens `/#recovery`; its stub server answers only the workflow read, and the portfolio also reads the agreements and the Ramp workspace.
 - `web/browser-contract.test.cjs` › "configured workspace renders inside the finance shell and keeps native records accessible": the Overview now shows "Portfolio" and reads the workflow first, then `/api/vendors` and `/api/ramp/workspace`; "Northwind Cloud" and the single workflow read are now checked on `#recovery`.
 
-The Python browser tests above were edited but not run (no full suite). One headless Chrome look went through the same paths.
+The Python browser tests above were edited but not run at the time (no full suite). One headless Chrome look went through the same paths. They have since passed in the full runs recorded in `DEMO-NOTES.md`.
 
 ## Ramp demo server, round two: price exception, automatic notes, refresh, the credit as Ramp shows it (November 10)
 
@@ -159,3 +159,12 @@ The full suite was run once on `977bd19`: 5,539 passed and 3 failed, all three b
 - `tests/test_ramp_ui_v4.py` › `test_ramp_browser_navigation_and_read_only_plan` and `tests/test_workspace_ui_v4.py` › `test_configured_workflow_keeps_evidence_money_and_original_navigation_reachable`: each test's stand-in server lists the static files the page may load; the list gains `template_builder_ui.js`, the new script `web/index.html` loads. Nothing else in either test changed.
 - `tests/test_vendor_requirements_89.py` › `test_new_vendor_name_reaches_shadow_with_useful_drafts_and_no_vendor_code` was NOT changed. It checks that no file in the `uptime` package names its made-up vendor "Halcyon", and the template builder had named its own sample vendor in code. The sample list moved to `fixtures/template_builder_demo/samples.json`; `uptime/template_builder.py` now names no vendor and serves only the documents that file lists.
 - Added `tests/test_template_builder.py` › `test_only_the_listed_sample_texts_are_served`: the sample text is served, and `expected.json` (the authored answers), `samples.json`, the README and an unlisted name are not.
+
+## Before publishing (coordinator, November 10, about 12:30 PST)
+
+A read-only review of everything the demo line adds found nothing that blocked publishing and several things worth fixing first.
+
+- `tests/test_ramp_demo_round2.py`, the shared `auto` fixture and › `test_a_failed_note_never_breaks_a_decision_and_is_recorded`: reading `/api/ramp/workspace` used to retry a failed note, so a read could write to Ramp. It no longer does. The fixture now reads the workspace while a retry is due and the test asserts nothing was posted; the retry itself is then run the way the served app's timer runs it (`auto_check`). The assertions about what reaches Ramp are otherwise unchanged.
+- `uptime/ramp_workspace.py`: the read route no longer calls the note poster. `uptime/ramp_demo.py`: `start_retries` retries a failed note from a background timer in auto mode; `ramp_credit` answers `APPLIED_CONFIRMED` only when exactly one applied credit is verified on both sides, and `UNKNOWN` otherwise.
+- `uptime/template_builder.py`: the sample text route checks the tenant. `uptime/template_rules.py`: a text over 200,000 characters is refused.
+- Notes corrected: the sentence above about writes to Ramp, the two sentences about Python tests, `docs/demo/TEMPLATE-BUILDER.md` on which routes need a reviewer, and the route list in `extension/README.md`.

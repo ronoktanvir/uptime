@@ -17,7 +17,7 @@ The framed page asks the panel to open the tab with one message, and the panel a
 
 - **Shape:** exactly `{type: 'uptime-open-app', route: '<route>'}`, a plain object with those two keys and no others.
 - **Sender:** the message event's origin must equal `origin` in `config.js`, and its source must be the panel's own frame.
-- **Route:** one of `overview`, `records`, `cases`, or `cases/<id>` where the id is a letter or digit followed by up to 63 letters, digits, `.`, `_` or `-`. The panel opens `origin + '/#' + route` and no other address.
+- **Route:** one of `overview`, `records`, `recovery`, `agreements`, `cases`, or `cases/<id>` where the id is a letter or digit followed by up to 63 letters, digits, `.`, `_` or `-`. The panel opens `origin + '/#' + route` and no other address.
 - **Tab:** the first press opens a new tab. Later presses reuse the tab the panel opened, focusing it and setting the route, while it is still open; a closed tab is replaced by a new one. The panel forgets that tab when the panel is closed. If you navigated that tab elsewhere, a press brings it back to Uptime.
 - **The app's side:** it sends the message only to the one extension origin the browser names as its parent (`location.ancestorOrigins`), and it sends a route and nothing else. The new tab has its own sign-in; the panel's signing key is never passed to it.
 

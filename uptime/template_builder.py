@@ -694,6 +694,7 @@ def register_template_builds(app, bench, auth):
 
     @app.get("/fixtures/template_builder_demo/{name}")
     def sample_text(name: str, p=Depends(auth.actor)):
+        bench.require_tenant(p)
         if name not in shipped_texts():
             return JSONResponse(off, 404)
         return FileResponse(FIXTURES / name, media_type="text/plain; charset=utf-8")

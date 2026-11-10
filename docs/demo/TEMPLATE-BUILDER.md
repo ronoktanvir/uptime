@@ -55,7 +55,7 @@ Start-up: `scripts/setup_northwind.py --serve --template-builder` turns the feat
 
 ## HTTP
 
-All routes need a signed-in reviewer, like the rest of `/api`. POSTs are signed reviewer requests.
+Every route needs a signed-in account, like the rest of `/api`: the GET routes and the sample text accept any signed-in account of the tenant, and the POSTs are signed reviewer requests.
 
 | Route | Body | Answer |
 |:---|:---|:---|

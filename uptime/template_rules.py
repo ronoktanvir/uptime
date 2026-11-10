@@ -17,6 +17,7 @@ from time import perf_counter
 
 PATTERN_LIMIT = 400
 MATCH_SECONDS = 0.5
+TEXT_LIMIT = 200_000  # characters; the sample contracts are about 6,000
 
 # The fixed term set an SLA credit needs. `question` is how Jev is asked whether a sentence supports the term.
 TERMS = (
@@ -266,13 +267,17 @@ def run_rule(rule, text, matcher=MATCHER):
 def apply(template, text, matcher=MATCHER):
     """Run every rule of `template` on `text`; a term a rule does not find is null, never guessed."""
     started = perf_counter()
-    text = normalize(text)
+    too_long = len(text) > TEXT_LIMIT
+    text = "" if too_long else normalize(text)
     by_field = {r.get("field"): r for r in template.get("rules", [])}
     terms = []
     for term in TERMS:
         rule = by_field.get(term["field"])
-        result = run_rule(rule, text, matcher) if rule else {"value": None, "raw": None, "quote": None,
-                                                            "error": "The template has no rule for this term."}
+        if too_long:
+            result = {"value": None, "raw": None, "quote": None, "error": "The contract is too long for the interpreter."}
+        else:
+            result = run_rule(rule, text, matcher) if rule else {"value": None, "raw": None, "quote": None,
+                                                                "error": "The template has no rule for this term."}
         terms.append({"field": term["field"], "label": term["label"], "type": term["type"],
                       "value": result["value"], "display": display(term["field"], result["value"]),
                       "quote": result["quote"], "error": result["error"]})

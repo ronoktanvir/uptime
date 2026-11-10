@@ -342,9 +342,8 @@ def register_ramp_workspace(app,bench,auth,*,award_office=None,ramp_record_dirs=
     def overview(principal=Depends(auth.actor)):
         bench.require_tenant(principal)
         result=workspace.overview()
+        # A read never writes to Ramp: notes are posted at start-up, after a reviewer decision and after a refresh.
         records=demo.records(principal) if result["verified_record"] is not None else []
-        if records and demo.auto_check(principal,records):
-            records=demo.records(principal)
         result.update(verified_records=records,notes_mode=demo.notes_mode,notes_errors=demo.note_errors())
         return result
 

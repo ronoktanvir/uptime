@@ -95,6 +95,8 @@ def auto(tmp_path_factory):
         out["thread_while_failing"] = providers.thread(NORTHWIND_BILL)
         providers.fail = False
         app.state.ramp_demo._failed_at -= timedelta(seconds=61)  # the retry is due again
+        out["read_while_due"] = providers.thread(NORTHWIND_BILL) if ramp() else None  # a read posts nothing
+        app.state.ramp_demo.auto_check()                         # what the served app's retry timer runs
         out["retried"] = ramp()
     return out
 
@@ -134,6 +136,7 @@ def test_auto_notes_post_at_start_up_and_when_the_stage_changes(auto):
 def test_a_failed_note_never_breaks_a_decision_and_is_recorded(auto):
     assert auto["decisions"] == [200, 200, 200, 200]
     assert auto["thread_while_failing"] == [POSSIBLE]
+    assert auto["read_while_due"] == [POSSIBLE]  # reading the workspace never writes to Ramp, even when a retry is due
     errors = auto["failed"]["notes_errors"]
     assert [(e["bill_id"], e["kind"]) for e in errors] == [(NORTHWIND_BILL, "credit_applied")]
     assert errors[0]["sentence"].startswith("No Ramp sandbox credential is available")

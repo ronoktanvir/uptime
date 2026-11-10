@@ -12,7 +12,8 @@ import json
 import os
 from pathlib import Path
 import re
-from threading import RLock
+from threading import RLock, Thread
+import time
 
 from .ramp import RampError
 from .ramp_context import DEMO_BILL_URL, VERIFIED_RECORD, package_verified_excerpt, verified_record_from
@@ -111,8 +112,9 @@ def ramp_credit(body, record):
         return {"status": "UNKNOWN", "amount": None}
     verified = [link["credit_id"] for link in report.get("links") or [] if link["state"] == "VERIFIED_BOTH_SIDES"]
     sides = [a for a in body["records"]["bill"].get("applied_credits") or [] if a["credit_id"] in verified]
-    amount = sides[0]["amount"].get("amount") if len(sides) == 1 else None
-    number = _decimal(amount)
+    if len(sides) != 1:
+        return {"status": "UNKNOWN", "amount": None}
+    number = _decimal(sides[0]["amount"].get("amount"))
     return {"status": "APPLIED_CONFIRMED", "amount": None if number is None else f"{number:.2f}"}
 
 
@@ -471,6 +473,20 @@ class RampDemo:
         except Exception:  # noqa: BLE001
             return None
         return self.auto_sync(principal, records)
+
+    def start_retries(self, seconds=30):
+        """Auto mode: retry a failed note from a background timer, so that reading a page never writes to Ramp."""
+        if self.notes_mode != "auto":
+            return None
+
+        def loop():
+            while True:
+                time.sleep(seconds)
+                if self._failed_at is not None:
+                    self.auto_check()
+        thread = Thread(target=loop, name="ramp-note-retries", daemon=True)
+        thread.start()
+        return thread
 
     def refresh(self, principal):
         if self.reader_factory is None:

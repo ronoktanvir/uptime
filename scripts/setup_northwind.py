@@ -535,6 +535,7 @@ def main():
         if args.ramp_notes=='auto':
             # Demo line: post the notes matched bills should have; a failure is recorded, never fatal.
             done=app.state.ramp_demo.auto_sync()
+            app.state.ramp_demo.start_retries()  # a failed note is retried by a timer, never by a page read
             print('Uptime notes posted to Ramp at start-up: '+str(len(done['posted']))+'.'
                   +''.join(' Not posted: '+e['sentence'] for e in done['failed'][:3]),file=sys.stderr,flush=True)
         if args.template_builder:
