@@ -146,7 +146,8 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 |:---|:---|:---|
 | Setup command: its real-process tests take a port from 8821–8829 and skip if all are taken; they should take a port the system assigns | Role 2 | Not yet sent: messages are paused. The plain refusals and the `--serve` rule are done |
 | Interface-only acceptance check of the redesign | Role 5 | Not yet requested: messages are paused |
-| README screenshots, a timing recheck, a filming checklist for the new labels, the video link | Role 6 | Not yet requested: messages are paused. The README's and the judge guide's own wording still matches the redesigned interface |
+| README screenshots, a timing recheck, a filming checklist for the new labels, the video link | Role 6 | Not yet requested: messages are paused. The README's and the judge guide's wording still matches the redesigned interface's labels |
+| Say how the requested log arrives | Role 6 | The narration and the README's third step say Uptime "attaches" and "verifies" the log. In the walkthrough the log and its verification record arrive as authored events through the signed intake, and Uptime matches them. The product's step names say attach and verify; its authority line says received. Queued with the item above |
 | Evidence requests are recognised only in wording the rules know | Disputes owner | Not changed in this push; the wording that overstated it is corrected |
 | A case's own claim record sends "0.00" for posted and applied, which it does not track (`uptime/correspondence.py:822`) | Role 2 | Found by the redesign session. The redesigned case page does not show those two figures; the record should send no value instead of a zero. Queued |
 | Re-shoot the 90-second cut on the redesigned build | The video session | Its command is `./remake.sh <commit>` in `~/uptime-demo/video-01/`; it says its selectors need editing first |
