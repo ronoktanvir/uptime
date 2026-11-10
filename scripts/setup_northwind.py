@@ -45,6 +45,54 @@ class CredentialRefused(ValueError):
     """A visible reviewer-credential path that setup will not use; reported as one plain line."""
 
 
+class WorkspaceRefused(ValueError):
+    """A folder or port setup will not use as asked; reported as one plain line, before anything is written."""
+
+
+FOLDER_HOLDS_WORKSPACE=('That folder already holds a workspace. Add --resume to reopen it, '
+                        'or choose a new folder name for a fresh run.')
+FOLDER_EXISTS='That folder already exists. Choose a new folder name for a fresh run.'
+FOLDER_MISSING='That folder does not exist. Run without --resume to create a workspace there.'
+FOLDER_EMPTY='That folder holds no workspace. Choose a new folder name and run without --resume to create one.'
+
+
+def check_folder(directory,resume):
+    """Refuse a folder that does not match --resume, before anything is written."""
+    directory=Path(directory).expanduser().absolute()
+    holds=(directory/'workspace.json').exists()
+    if not resume and directory.exists():
+        raise WorkspaceRefused(FOLDER_HOLDS_WORKSPACE if holds else FOLDER_EXISTS)
+    if resume and not directory.is_dir():
+        raise WorkspaceRefused(FOLDER_MISSING)
+    if resume and not holds:
+        raise WorkspaceRefused(FOLDER_EMPTY)
+
+
+def stored_origin(directory):
+    from uptime.source_config import _protected_path,_check_file
+    with os.fdopen(os.open(_protected_path(Path(directory).resolve()/'workspace.json'),os.O_RDONLY|os.O_NOFOLLOW),'r') as handle:
+        _check_file(handle.fileno())
+        return json.load(handle)['origin']
+
+
+def check_port(origin,resume):
+    """Refuse a port another process holds, binding the way the server will (127.0.0.1, SO_REUSEADDR)."""
+    import socket
+    try:
+        port=int(origin.rsplit(':',1)[1])
+    except (IndexError,ValueError):
+        return
+    with socket.socket() as probe:
+        probe.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+        try:
+            probe.bind(('127.0.0.1',port))
+        except OSError:
+            advice=('; a resumed workspace keeps the port it was created with.' if resume
+                    else ', or choose another port with --origin.')
+            raise WorkspaceRefused('Port '+str(port)+' is already in use, so '+origin+' cannot be served. '
+                                   'Stop whatever is using it'+advice) from None
+
+
 def credential_target(path):
     """Check a visible reviewer-credential path before anything is written."""
     target=Path(path).expanduser().absolute()
@@ -99,7 +147,7 @@ def source_inputs(package):
 
 def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None,counterparty_reply='request-log'):
     directory=Path(directory).absolute()
-    if directory.exists():raise ValueError('Select a fresh directory; use --resume for an existing immutable workspace.')
+    if directory.exists():raise WorkspaceRefused('Select a fresh directory; use --resume for an existing immutable workspace.')
     target=None
     if reviewer_credential is not None:
         # Checked before anything is written, so a refused path never leaves a half-created workspace.
@@ -142,7 +190,7 @@ def open_workspace(directory, *, proposal_config=None):
         _check_file(handle.fileno());private=json.load(handle)
     package=load_package()
     if private['schema']!='authored-workspace/1' or private['package_sha256']!=fingerprint(package['input_sha256']):
-        raise ValueError('The verified package differs from this workspace; preserve it and create a new directory.')
+        raise WorkspaceRefused('The verified package differs from this workspace; preserve it and create a new directory.')
     scopes,events=source_inputs(package)
     registry=SourceRegistry(directory/'sources.json','replay',private['origin'],'bears')
     senders={(grant.scope.month,grant.source):load_private(directory/(grant.subject+'.json'),SenderCredential) for grant in registry.config.services}
@@ -267,6 +315,13 @@ def main():
         parser.error('--public-proposal-config requires --serve')
     if args.resume and (args.step_by_step or args.counterparty_reply!='request-log'):
         parser.error('--step-by-step and --counterparty-reply apply when a workspace is created')
+    try:
+        # Plain refusals for the common mistakes, checked before anything is written or served.
+        check_folder(args.directory,args.resume)
+        if args.serve:
+            check_port(stored_origin(args.directory) if args.resume else args.origin,args.resume)
+    except WorkspaceRefused as refused:
+        parser.exit(1,'setup_northwind: '+str(refused)+'\n')
     copy_state=None
     try:
         if args.resume:
@@ -279,7 +334,7 @@ def main():
             app,private,events=prepare(args.directory,args.origin,routine_automation=not args.step_by_step,
                                        reviewer_credential=args.reviewer_credential,counterparty_reply=args.counterparty_reply)
             copy_state='WRITTEN' if args.reviewer_credential else None
-    except CredentialRefused as refused:
+    except (CredentialRefused,WorkspaceRefused) as refused:
         parser.exit(1,'setup_northwind: '+str(refused)+'\n')
     if not args.resume:
         from fastapi.testclient import TestClient
