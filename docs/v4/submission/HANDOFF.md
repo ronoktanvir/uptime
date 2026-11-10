@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 17:02 PST. It is updated as the two open branches land. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 17:12 PST. It is updated as the two open branches land. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -16,7 +16,7 @@ In the order they block the submission.
 | # | Decision | What it turns on | State |
 |:--|:---|:---|:---|
 | 1 | Move `main` to the verified build | Judges clone the default branch. Independent acceptance ranked this first of its findings ([P1-A](acceptance.md)) | **Done at 16:42 PST** on his instruction: `b6e93bd` → `11a6770`, a fast-forward. Moved again after the next verified merge |
-| 2 | Which film is the submission film | Role 6 wrote a measured two-minute storyboard and a filming checklist. Separately, the judge session started a "90-second walkthrough video" session at 15:34 PST, which the coordinator did not start | Open. The two must not contradict each other |
+| 2 | Which film is the submission film | Role 6 wrote a measured two-minute storyboard and a filming checklist for a spoken film. Separately, a session started by the judge session produced a silent, captioned 89-second cut in `~/uptime-demo/video-01/`, outside the repository; Ronok chose captions over a voice there | Open. Both were made on the build before the redesign, so either needs redoing once the redesign is on `main` |
 | 3 | Film now on the verified build, or wait for the redesign | The [filming checklist](presentation.md#filming-checklist-for-ronok) works today on `52f1a2f`. The redesign changes every screen | Open |
 | 4 | Record the voiceover and the film; choose cut A or B after a timed read | Only a person can | Not done |
 | 5 | Ease the load on this Mac, or restart it | Four full runs have stalled in a browser launch. The last one was captured: a freshly launched Chrome sat with its main thread blocked inside a macOS system service, so it never answered the test. Swap was almost full and three sessions were launching Chrome at once. The earlier guess, Chrome's pending update, was never shown. Fewer sessions driving Chrome at the same time, or a restart, is the likely cure | Not done; his call |
@@ -48,8 +48,8 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 | `main` | The integration branch's head, moved at 16:42 PST and again after `783d5ec` passed | The default branch: the verified build, the setup refusals and the records. It was `b6e93bd` before | Full run passes on `783d5ec`; the hosted checks pass on `11a6770` |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
 | `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `ea58f22`: plain one-line refusals for setup mistakes | Full run passes on `783d5ec` (5,398), after two runs that stalled in a browser launch with no test failing |
-| `work/submission-design-20261109` | `c280283` so far | The redesign: every primary page is in the new system, and the side panel's bill page is written | Not merged. Hosted checks pass on its commits through `203b252`; the coordinator's review and a local full run come next |
-| `work/sidepanel-server-20261109` | `a162951` | Side-panel option, extension and setup option | Focused checks (52 Python, 5 JavaScript) and hosted checks pass; not merged, waiting for the bill page |
+| `work/submission-design-20261109` | `a92f86c` so far | The redesign: every primary page is in the new system, and the side panel's bill page is written. Its owner is making a last pass over the desktop layout | Not merged: its owner asked to say when it is complete. The coordinator has looked at every page at 1440 and 420 pixels wide and found nothing to raise; hosted checks pass on its commits through `c280283` |
+| `work/sidepanel-server-20261109` | `dc4ff65` | Side-panel option, extension, setup option and the real-browser check | Focused checks pass, and it was checked inside the real extension together with the redesign's bill page. Not merged: it goes in with the redesign |
 | `work/submission-onboarding-20261109` | `088da4a` | Role 1, contract reading | Merged |
 | `work/submission-disputes-20261109` | `d1d0187` | Role 2, disputes, the walkthrough and the setup refusals | Merged |
 | `work/submission-ramp-20261109` | `a15d987` | Role 3, Ramp | Merged |
@@ -140,11 +140,13 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 | Item | Owner | State |
 |:---|:---|:---|
 | Interface redesign, including the Agreements page, the Ramp bill page for the side panel, and two acceptance findings (the "$40 · Scenario only" row beside the verified bill; February's credit cell) | The redesign session | Every primary page and the bill page are pushed (`c280283`). Next: the coordinator's review, a full run, the merge, and `main` |
-| Side panel: check inside the real extension, full run, merge | Coordinator | Waits for the bill page |
+| Side panel: full run and merge | Coordinator | Checked inside the real extension at 17:11 PST. Goes in with the redesign |
 | Setup command: its real-process tests take a port from 8821–8829 and skip if all are taken; they should take a port the system assigns | Role 2 | Not yet sent: messages are paused. The plain refusals and the `--serve` rule are done |
 | Interface-only acceptance check of the redesign | Role 5 | Waits for the redesign to merge |
 | Final README screenshots, timing recheck, video link | Role 6 | Waits for the redesign |
 | Evidence requests are recognised only in wording the rules know | Disputes owner | Not changed in this push; the wording that overstated it is corrected |
+| A case's own claim record sends "0.00" for posted and applied, which it does not track (`uptime/correspondence.py:822`) | Role 2 | Found by the redesign session. The redesigned case page does not show those two figures; the record should send no value instead of a zero. Queued |
+| Re-shoot the 90-second cut on the redesigned build | The video session | Its command is `./remake.sh <commit>` in `~/uptime-demo/video-01/`; it says its selectors need editing first |
 | Unseen contracts: 0 of 4 | The Codex lanes ([queued work](../NEXT-WORKSTREAMS-20261109.md)) | Outside this push |
 | Responses that return before the header middleware carry no security headers | Application owners | Existing gap, found in review; not changed |
 | Any write to Ramp by Uptime | Ronok and the team | Needs a signed native release |
