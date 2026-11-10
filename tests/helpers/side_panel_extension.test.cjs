@@ -59,10 +59,12 @@ test('when tab lookups finish out of order, only the most recent one moves the p
   assert.deepEqual(delivered, ['tab 2', 'tab 3']);
 });
 
-test('the manifest asks for the side panel and Ramp tab addresses only, and its key pins one ID', () => {
+test('the manifest asks for the side panel, Ramp tab addresses and the Uptime app\'s own tab addresses only, and its key pins one ID', () => {
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.permissions, ['sidePanel']);
-  assert.deepEqual(manifest.host_permissions, config.rampHosts.map(host => `https://${host}/*`));
+  // Demo line: the app's own origin is added so that a tab on Uptime itself can be recognised.
+  assert.deepEqual(manifest.host_permissions, [...config.rampHosts.map(host => `https://${host}/*`), config.origin + '/*']);
+  assert.equal(new URL(config.origin).origin, config.origin);
   for (const key of ['content_scripts', 'optional_permissions', 'optional_host_permissions', 'externally_connectable',
     'web_accessible_resources', 'content_security_policy', 'oauth2', 'chrome_url_overrides', 'declarative_net_request'])
     assert.equal(manifest[key], undefined, key);
@@ -116,8 +118,8 @@ test('the shell accepts only {type, route} from the framed window on the configu
   assert.equal(openRequest(undefined, config, frameWindow), null);
 });
 
-test('only overview, records, cases and one case by a plain id may be opened, on the configured origin only', () => {
-  for (const route of ['overview', 'records', 'cases', 'cases/inbox-1', 'cases/A.b_c-9', 'cases/' + 'a'.repeat(64)])
+test('only overview, records, recovery, cases and one case by a plain id may be opened, on the configured origin only', () => {
+  for (const route of ['overview', 'records', 'recovery', 'cases', 'cases/inbox-1', 'cases/A.b_c-9', 'cases/' + 'a'.repeat(64)])
     assert.equal(allowedRoute(route), true, route);
   for (const route of ['', 'activity', 'agreements', 'ramp', 'ramp/bill-1', 'ramp-bill', 'ramp-bill/x', 'cases/', 'cases/-x', 'cases/.x',
     'cases/a/b', 'cases/a%2Fb', 'cases/a?b', 'cases/a#b', 'cases/' + 'a'.repeat(65), 'records ', ' records', 'RECORDS', 'records/x',
@@ -127,7 +129,7 @@ test('only overview, records, cases and one case by a plain id may be opened, on
   assert.equal(appUrl('cases/inbox-1', config), 'http://127.0.0.1:8776/#cases/inbox-1');
   assert.equal(appUrl('activity', config), null);
   // The app asks with the same pattern and the same message shape, and asks for nothing else.
-  assert.equal(String(app.PANEL_OPEN_ROUTE), String(/^(?:overview|records|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/));
+  assert.equal(String(app.PANEL_OPEN_ROUTE), String(/^(?:overview|records|recovery|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/));
   assert.equal(app.PANEL_MESSAGE_TYPE, OPEN_TYPE);
   assert.deepEqual(app.panelMessage('records'), {type: OPEN_TYPE, route: 'records'});
   assert.equal(openRequest(message(app.panelMessage('cases/inbox-1')), config, frameWindow), 'cases/inbox-1');
@@ -203,4 +205,53 @@ test('the badge is set for one tab on a match and cleared otherwise, and needs n
   assert.ok(manifest.action, 'chrome.action needs the manifest action key, which is present');
   const source = fs.readFileSync(path.join(DIR, 'panel.js'), 'utf8');
   assert.match(source, /status\.bill === current\) setBadge\(action, currentTab/);
+});
+
+// ---- Demo line, round three: where the active tab is, the tracking list and the app tab ----
+const {placeFor, placeRoute, placeLabel, openBillRequest, billUrl, BILL_TYPE} = require(path.join(DIR, 'panel.js'));
+
+test('the active tab decides the panel: one bill, the tracking list on any other Ramp page, nothing elsewhere, and Uptime itself', () => {
+  const at = (url, id = 3, appTabId = null) => placeFor(url, id, config, appTabId);
+  assert.deepEqual(at(`https://demo.ramp.com/bill-pay/bills/list/${BILL}`), {kind: 'bill', bill: BILL});
+  for (const url of ['https://demo.ramp.com/bill-pay/bills/list', 'https://demo.ramp.com/home', 'https://demo.ramp.com/'])
+    assert.deepEqual(at(url), {kind: 'list'}, url);
+  for (const url of ['https://evil.example/bill-pay/bills/list', 'http://demo.ramp.com/home', 'https://demo.ramp.com.evil.example/', undefined, null, 'nope'])
+    assert.deepEqual(at(url), {kind: 'none'}, String(url));
+  assert.deepEqual(at(ORIGIN + '/#overview'), {kind: 'app'});
+  assert.deepEqual(at(ORIGIN + '/'), {kind: 'app'});
+  assert.deepEqual(at(undefined, 9, 9), {kind: 'app'}, 'the tab the panel opened, even without its address');
+  assert.deepEqual(at('http://127.0.0.1:8777/', 3, 9), {kind: 'none'});
+  assert.equal(placeRoute({kind: 'bill', bill: BILL}, config), 'ramp-bill/' + BILL);
+  assert.equal(placeRoute({kind: 'list'}, config), 'ramp-bills');
+  assert.equal(placeRoute({kind: 'none'}, config), 'ramp-bill');
+  assert.deepEqual([placeLabel({kind: 'app'}), placeLabel({kind: 'list'}), placeLabel({kind: 'none'}), placeLabel({kind: 'bill', bill: BILL})],
+    ['Uptime', 'Ramp, no single bill open', 'No Ramp bill open', 'Ramp bill f74ba12c…']);
+});
+
+test('the panel page has a quiet You\'re in Uptime state, hidden until the active tab is Uptime', () => {
+  const html = fs.readFileSync(path.join(DIR, 'panel.html'), 'utf8');
+  assert.match(html, /<section id="in-uptime" hidden>\s*<p class="mark">Uptime<\/p>\s*<h1>You're in Uptime<\/h1>\s*<p>You may close this panel\.<\/p>/);
+  const source = fs.readFileSync(path.join(DIR, 'panel.js'), 'utf8');
+  // That state hides the frame without changing its address, and clears the tab's badge first.
+  const appBranch = source.slice(source.indexOf("if (place.kind === 'app')"), source.indexOf('inUptime.hidden = true'));
+  assert.match(appBranch, /frame\.hidden = true; inUptime\.hidden = false;\s*return;/);
+  assert.doesNotMatch(appBranch, /location|src/);
+});
+
+test('the open-bill message moves only to Ramp\'s own bill address, from the framed app in its one shape', () => {
+  assert.equal(BILL_TYPE, 'uptime-open-bill');
+  assert.equal(openBillRequest(message({type: BILL_TYPE, bill: BILL}), config, frameWindow), BILL);
+  for (const [why, event] of [
+    ['another origin', message({type: BILL_TYPE, bill: BILL}, {origin: 'https://demo.ramp.com'})],
+    ['another window', message({type: BILL_TYPE, bill: BILL}, {source: {}})],
+    ['an extra key', message({type: BILL_TYPE, bill: BILL, url: 'https://evil.example/'})],
+    ['an upper-case bill', message({type: BILL_TYPE, bill: BILL.toUpperCase()})],
+    ['a path', message({type: BILL_TYPE, bill: '../../x'})],
+    ['the status message', message({type: STATUS_TYPE, bill: BILL, state: 'match'})],
+  ]) assert.equal(openBillRequest(event, config, frameWindow), null, why);
+  assert.equal(openRequest(message({type: BILL_TYPE, bill: BILL}), config, frameWindow), null);
+  assert.equal(statusRequest(message({type: BILL_TYPE, bill: BILL}), config, frameWindow), null);
+  assert.equal(billUrl(BILL, config), 'https://demo.ramp.com/bill-pay/bills/list/' + BILL);
+  const source = fs.readFileSync(path.join(DIR, 'panel.js'), 'utf8');
+  assert.match(source, /if \(bill && active === 'list' && Number\.isInteger\(currentTab\)\) chrome\.tabs\.update\(currentTab, \{url: billUrl\(bill, config\)\}\)/);
 });

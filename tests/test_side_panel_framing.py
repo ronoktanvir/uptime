@@ -92,7 +92,8 @@ def test_the_packaged_extension_is_the_one_origin_the_option_is_documented_with(
     identifier = "".join(chr(ord("a") + int(character, 16)) for character in digest)
     assert panel_origin("chrome-extension://" + identifier) == EXTENSION
     assert manifest["permissions"] == ["sidePanel"]
-    assert manifest["host_permissions"] == ["https://demo.ramp.com/*"]
+    # Demo line: the Uptime app's own origin, so the panel can recognise a tab on Uptime itself.
+    assert manifest["host_permissions"] == ["https://demo.ramp.com/*", "http://127.0.0.1:8776/*"]
     assert EXTENSION in (ROOT / "extension/README.md").read_text()
 
 

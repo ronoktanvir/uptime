@@ -77,7 +77,7 @@
       (filter === 'hypothetical' && hypothetical(row));
     return included && [row.id,row.provider_id,row.vendor,row.title,row.native_status].join(' ').toLowerCase().includes(query.toLowerCase());
   }
-  function create({api, document: doc = global.document, onNavigate = () => {}, openApp = null, onBillState = null}) {
+  function create({api, document: doc = global.document, onNavigate = () => {}, openApp = null, onBillState = null, openBill = null}) {
     let epoch = 0;
     const filters = {kind:'unpaid', query:'', page:0};
     const el = (tag, text, cls) => { const n = doc.createElement(tag); if (text != null) n.textContent = shown(text); if (cls) n.className = cls; return n; };
@@ -356,7 +356,7 @@
     // balance and the notes. The browser formats amounts as strings (no arithmetic) and never adds stages together.
     const STAGES = [['ESTIMATED','Estimated'],['CLAIMED','Claimed'],['AWARDED','Awarded'],['POSTED','Posted'],['APPLIED','Applied']];
     const BASIS = {vendor_name:'vendor', invoice_number:'invoice number', amount:'amount'};
-    const OPEN_ROUTE = /^(?:overview|records|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
+    const OPEN_ROUTE = /^(?:overview|records|recovery|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
     const NOTE_KIND = {possible_credit:'Possible service credit', credit_applied:'Credit applied'};
     function money(amount, currency) {
       if (amount == null || amount === '') return 'Not determined';
@@ -373,27 +373,55 @@
     }
     function joinWords(words) { return words.length < 2 ? words.join('') : `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`; }
     const obj = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-    function matchedBill(v, root) {
+    // How the record was read: a live read names its time and can be refreshed; a saved one says it is not live.
+    function readParts(v, ctx, rerender) {
+      const live = v.read && typeof v.read === 'object' && v.read.live === true;
+      if (!live) return [note(`Saved record read from Ramp ${when(v.capture?.observed_at)}. Not a live read.`)];
+      const status = el('p', null, 'help match-refresh-result'); status.setAttribute('role', 'status');
+      const refresh = button('Refresh from Ramp', async () => {
+        if (refresh.disabled) return;
+        refresh.disabled = true; status.textContent = 'Reading the bill from Ramp…';
+        try { await api('/api/ramp/refresh', {bill_id: ctx.object_id}); status.textContent = ''; if (typeof rerender === 'function') await rerender(); }
+        catch (error) {
+          if (error.status === 404) { refresh.hidden = true; status.textContent = ''; return; }
+          status.textContent = typeof error.message === 'string' && error.message ? error.message : 'Ramp could not be read.';
+        } finally { refresh.disabled = false; }
+      }, 'link-button match-refresh');
+      return [add(el('div', null, 'match-read'), note(`Read from Ramp just now · ${when(v.read.at)}`), refresh), status];
+    }
+    function matchedBill(v, data, rerender) {
       const ctx = v.ramp_context, match = obj(v.match), credit = obj(match.credit), invoice = obj(match.invoice), agreement = obj(match.agreement), balance = obj(match.balance);
-      // The matched bill's read is not attributed here: on the demo line it may have been started by an agent at the owner's direction.
-      const started = '';
-      const stage = STAGES.findIndex(([code]) => code === credit.stage);
-      const applied = credit.stage === 'APPLIED';
+      const price = match.kind === 'price_exception', exception = obj(match.exception), rampCredit = obj(match.ramp_credit);
+      const confirmed = !price && rampCredit.status === 'APPLIED_CONFIRMED';
+      const mode = data && typeof data.notes_mode === 'string' ? data.notes_mode : null;
+      let stage = STAGES.findIndex(([code]) => code === credit.stage);
+      if (confirmed) stage = STAGES.length - 1;
+      const applied = credit.stage === 'APPLIED' || confirmed;
       const route = typeof match.route === 'string' && OPEN_ROUTE.test(match.route) ? match.route : 'overview';
       const month = monthWords(credit.service_month);
-      // The headline: what may apply, how much, for which month, and where it stands.
-      const hero = add(el('section', null, 'panel match-hero'), el('p', 'Service credit', 'eyebrow'),
-        el('h2', 'A service credit may apply to this bill'),
-        el('p', money(credit.amount, credit.currency || invoice.currency), 'match-amount'),
-        note(`${month ? `For service in ${month}` : 'Service month not recorded'} · ${stage >= 0 ? STAGES[stage][1] : 'Stage not recorded'}`));
-      const primaryWords = stage <= 0 ? 'Review and file the claim' : 'Open the case in Uptime';
+      // The headline: what may be recovered on this bill, how much, and where it stands.
+      const hero = price
+        ? add(el('section', null, 'panel match-hero match-price'), el('p', 'Price check', 'eyebrow'),
+            el('h2', `This bill is above the contracted price by ${money(exception.amount, exception.currency || invoice.currency)}`),
+            el('p', money(exception.amount, exception.currency || invoice.currency), 'match-amount'),
+            fields([['Billed', money(exception.billed, exception.currency || invoice.currency)], ['Expected', money(exception.expected, exception.currency || invoice.currency)]], 'match-price-figures'),
+            exception.basis != null ? note(`Basis: ${shown(exception.basis)}`) : null,
+            exception.state != null ? note(`State: ${shown(exception.state)}`) : null)
+        : add(el('section', null, 'panel match-hero'), el('p', 'Service credit', 'eyebrow'),
+            el('h2', confirmed ? 'A service credit was applied to this bill in Ramp' : 'A service credit may apply to this bill'),
+            el('p', money(credit.amount, credit.currency || invoice.currency), 'match-amount'),
+            note(`${month ? `For service in ${month}` : 'Service month not recorded'} · ${confirmed ? 'Applied in Ramp' : stage >= 0 ? STAGES[stage][1] : 'Stage not recorded'}`));
+      const primaryWords = price ? 'Review in Uptime' : stage <= 0 ? 'Review and file the claim' : 'Open the case in Uptime';
       const primary = button(primaryWords, () => (typeof openApp === 'function' ? openApp(route) : onNavigate(route)), 'match-primary');
       const next = match.next_action && typeof match.next_action.label === 'string' ? note(`Next in Uptime: ${match.next_action.label}`) : null;
       const result = el('p', null, 'help match-note-result'); result.setAttribute('role', 'status');
       const noteKind = applied ? 'credit_applied' : 'possible_credit';
       const notesList = el('ul', null, 'match-notes');
       const noWrite = note('Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.');
-      const noteButton = button('Add a note to this bill in Ramp', async () => {
+      // The note button: offered for a service credit when notes are manual (or the mode is not stated); in auto mode
+      // Uptime posts the notes itself, and when notes are off there is nothing to offer.
+      const offerNote = !price && (mode === null || mode === 'manual');
+      const noteButton = offerNote ? button('Add a note to this bill in Ramp', async () => {
         if (noteButton.disabled) return;
         noteButton.disabled = true; result.textContent = 'Posting the note to Ramp…';
         try {
@@ -408,7 +436,7 @@
           result.textContent = typeof error.message === 'string' && error.message ? error.message : 'The note was not posted.';
           noteButton.disabled = false;
         }
-      }, 'quiet match-note-button');
+      }, 'quiet match-note-button') : null;
       add(hero, add(el('div', null, 'match-actions'), primary, noteButton), next, result);
       // The bill in Ramp and how it was matched.
       const basis = list(match.basis).map(b => BASIS[b]).filter(Boolean);
@@ -416,39 +444,77 @@
         fields([['Vendor', ctx.vendor_name || 'Name not captured'], ['Invoice', ctx.invoice_number || 'Not captured'],
           ['Amount', ctx.amount ? money(ctx.amount.amount, ctx.amount.currency) : 'Amount unavailable'], ['Status', shown(ctx.status_summary || ctx.status)]], 'ramp-bill'),
         note(`Matched to Uptime's invoice ${shown(invoice.id)}${basis.length ? ` by ${joinWords(basis)}` : ''}`),
-        note(`Saved record read from Ramp ${when(v.capture?.observed_at)}${started}. Not a live read.`));
+        ...readParts(v, ctx, rerender));
       // The evidence: the agreement, its clause quoted exactly, and the inputs.
       const evidence = add(el('section', null, 'panel match-evidence'), el('h2', 'The evidence'),
         fields([['Agreement', agreement.id || 'Not provided']]),
         typeof agreement.clause === 'string' && agreement.clause ? el('blockquote', agreement.clause) : note('No clause quoted.'),
         typeof agreement.citation === 'string' && agreement.citation ? el('p', agreement.citation, 'help match-citation') : null,
         list(match.inputs).length ? fields(list(match.inputs).filter(i => i && typeof i === 'object').map(i => [shown(i.label), shown(i.value)]), 'match-inputs') : null);
-      // The money, as the server states it. The three figures are not added together here.
-      const currency = credit.currency || invoice.currency;
-      const moneyCard = add(el('section', null, 'panel match-money'), el('h2', 'The money'),
+      // The money, as the server states it. The figures are not added together here.
+      const currency = credit.currency || exception.currency || invoice.currency;
+      const moneyCard = price && !v.match.balance ? null : add(el('section', null, 'panel match-money'), el('h2', 'The money'),
         fields([['Invoice', money(balance.invoice, currency)], ['Credit applied so far', money(balance.credit_applied, currency)],
-          ['Remaining', money(balance.remaining, currency)]], 'match-balance'));
+          ['Remaining', money(balance.remaining, currency)]], 'match-balance'),
+        confirmed ? el('p', `Credit applied in Ramp · ${money(rampCredit.amount, currency)} · confirmed on the bill and the credit`, 'match-confirmed') : null);
       // Where the credit stands: five stages, the current one marked in words.
-      const steps = el('ol', null, 'match-stages');
-      STAGES.forEach(([code, label], i) => {
-        const state = stage < 0 ? 'Not recorded' : i < stage ? 'Recorded' : i === stage ? 'Current stage' : 'Not yet';
-        const item = add(el('li', null, 'match-stage ' + (i < stage ? 'done' : i === stage ? 'current' : 'pending')), el('span', label, 'step-label'), el('span', state, 'step-state'));
-        if (i === stage) item.setAttribute('aria-current', 'step');
-        steps.append(item);
-      });
-      const standing = add(el('section', null, 'panel match-standing'), el('h2', 'Where the credit stands'), steps);
+      let standing = null;
+      if (!price) {
+        const steps = el('ol', null, 'match-stages');
+        STAGES.forEach(([code, label], i) => {
+          const last = i === STAGES.length - 1;
+          const state = confirmed && last ? 'Confirmed in Ramp' : stage < 0 ? 'Not recorded' : i < stage ? 'Recorded' : i === stage ? 'Current stage' : 'Not yet';
+          const cls = confirmed ? 'done' : i < stage ? 'done' : i === stage ? 'current' : 'pending';
+          const item = add(el('li', null, 'match-stage ' + cls + (confirmed && last ? ' confirmed' : '')), el('span', label, 'step-label'), el('span', state, 'step-state'));
+          if (i === stage) item.setAttribute('aria-current', 'step');
+          steps.append(item);
+        });
+        standing = add(el('section', null, 'panel match-standing'), el('h2', 'Where the credit stands'), steps);
+      }
       // Notes on the bill: who posted each one.
       function noteRow(n) {
+        if (mode === 'auto' && n.by === 'UPTIME') return add(el('li', null, 'match-note'), el('strong', `Uptime added a note to this bill in Ramp · ${when(n.at)}`));
         const who = n.by === 'UPTIME' ? 'Posted by Uptime' : n.by === 'RAMP' ? 'Posted in Ramp' : 'Author not recorded';
         return add(el('li', null, 'match-note'), el('strong', who), note([NOTE_KIND[n.kind], when(n.at)].filter(Boolean).join(' · ')));
       }
       const notes = Array.isArray(v.notes) ? v.notes.filter(n => n && typeof n === 'object') : null;
       if (notes) notes.forEach(n => notesList.append(noteRow(n)));
-      const posted = notes && notes.some(n => n.by === 'UPTIME');
+      // The no-write statement stands only while nothing shows Uptime writing to Ramp or a credit applied there.
+      const wrote = (notes && notes.some(n => n.by === 'UPTIME')) || confirmed;
       const talk = add(el('section', null, 'panel match-notes-card'), el('h2', 'Notes on this bill in Ramp', 'ramp-glyph'),
         ...(notes ? (notes.length ? [] : [note('No notes read on this bill.')]) : discussion(ctx, 'No comments read on this bill.')), notesList,
-        posted ? null : noWrite);
-      return [billHead(ctx, 'Matched to an Uptime invoice'), hero, billCard, evidence, moneyCard, standing, talk];
+        wrote ? null : noWrite);
+      return [billHead(ctx, 'Matched to an Uptime invoice'), hero, billCard, evidence, moneyCard, standing, talk].filter(Boolean);
+    }
+    // One line of what Uptime found for a bill in the list.
+    function findingLine(v) {
+      if (!isMatch(v)) return v.ramp_context?.agreement_binding?.status === 'BOUND' ? 'No money found to recover' : 'No agreement on file';
+      const m = v.match, currency = obj(m.invoice).currency;
+      if (m.kind === 'price_exception') return `Above contracted price · ${money(obj(m.exception).amount, obj(m.exception).currency || currency)}`;
+      return `Service credit may apply · ${money(obj(m.credit).amount, obj(m.credit).currency || currency)}`;
+    }
+    // Every bill Uptime is tracking, matched ones first, for a Ramp page that is not one bill.
+    function billsView(root, data) {
+      const records = list(data && data.verified_records).filter(v => v && v.ramp_context);
+      if (!records.length && data && data.verified_record && data.verified_record.ramp_context) records.push(data.verified_record);
+      const ordered = [...records.filter(isMatch), ...records.filter(v => !isMatch(v))];
+      const matched = ordered.filter(isMatch).length;
+      const count = matched === 1 ? '1 bill may have money to recover' : matched ? `${matched} bills may have money to recover` : 'No tracked bill shows money to recover';
+      const rows = el('ul', null, 'track-list');
+      ordered.forEach(v => {
+        const ctx = v.ramp_context, id = typeof ctx.object_id === 'string' ? ctx.object_id.toLowerCase() : '';
+        const body = [add(el('span', null, 'track-top'), el('strong', ctx.vendor_name || 'Vendor name not captured'),
+            el('span', ctx.amount ? money(ctx.amount.amount, ctx.amount.currency) : 'Amount unavailable', 'track-amount')),
+          el('span', ctx.invoice_number ? `Invoice ${ctx.invoice_number}` : 'Invoice not captured', 'track-invoice'),
+          el('span', findingLine(v), 'track-finding' + (isMatch(v) ? ' found' : ''))];
+        let row;
+        if (typeof openBill === 'function' && RAMP_BILL_ID.test(id)) row = add(button('', () => openBill(id), 'track-row'), ...body);
+        else { row = add(el('a', null, 'track-row'), ...body); row.href = '#ramp-bill/' + encodeURIComponent(id); }
+        rows.append(add(el('li'), row));
+      });
+      root.replaceChildren(add(el('div', null, 'page-head'), add(el('div'), el('p', 'Ramp', 'eyebrow'), el('h1', 'Bills Uptime is tracking'),
+          el('p', ordered.length ? count : 'Uptime is not tracking any Ramp bill yet.', 'lead track-count'))),
+        ...(ordered.length ? [add(el('section', null, 'panel track-panel'), rows)] : []), intoApp('overview', 'Open Ramp records', '#records'));
     }
     // Looks a bill up by Ramp's id: the list of verified records first, then the single verified record.
     function verifiedFor(data, id) {
@@ -469,7 +535,7 @@
     function billView(root, data, id) {
       const v = verifiedFor(data, id);
       if (typeof onBillState === 'function' && typeof id === 'string' && RAMP_BILL_ID.test(id)) onBillState(id.toLowerCase(), isMatch(v) ? 'match' : 'none');
-      if (isMatch(v)) return root.replaceChildren(...matchedBill(v, root));
+      if (isMatch(v)) return root.replaceChildren(...matchedBill(v, data, () => bill(root, id)));
       if (v) return root.replaceChildren(...verifiedBill(v));
       const matches = list(data && data.records).filter(r => r && r.ramp_context && sameId(r.ramp_context.object_id, id));
       if (matches.length) {
@@ -495,7 +561,16 @@
         billView(root, data, typeof id === 'string' ? id : '');
       } catch(error) { if(token===epoch) loadError(root,error,()=>bill(root,id)); }
     }
-    return {render,bill,noBill,unmount:() => {epoch++;}};
+    async function bills(root) {
+      const token=++epoch;
+      if (!root.children.length) root.append(note('Loading the bills Uptime is tracking…'));
+      try {
+        const data=await api('/api/ramp/workspace');
+        if(token!==epoch) return;
+        billsView(root, data);
+      } catch(error) { if(token===epoch) loadError(root,error,()=>bills(root)); }
+    }
+    return {render,bill,bills,noBill,unmount:() => {epoch++;}};
   }
   const exported={create,providerURL,matches,hypothetical,clean};
   if(typeof module!=='undefined' && module.exports) module.exports=exported;

@@ -201,6 +201,9 @@ def main():
     if text.count(packaged) != 1:
         sys.exit("extension/config.js no longer has the packaged origin this check rewrites.")
     config.write_text(text.replace(packaged, "origin: '" + origin + "'"))
+    # The copy's host permission for the app follows the same origin, so a tab on it is recognised.
+    manifest = copy / "manifest.json"
+    manifest.write_text(manifest.read_text().replace('"http://127.0.0.1:8776/*"', json.dumps(origin + "/*")))
     try:
         child = subprocess.run([sys.executable, __file__, "--child", str(copy), origin, account, credential, out_dir],
                                capture_output=True, text=True, timeout=LIMIT_SECONDS)
