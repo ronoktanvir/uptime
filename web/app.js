@@ -42,6 +42,8 @@
     if (requested.startsWith('cases/')) return 'disputes/' + requested.slice(6);
     if (requested === 'rehearsal') return 'dashboard';
     if (requested === 'records') return 'records';
+    // One Ramp bill by Ramp's own id, for the panel beside Ramp.
+    if (requested.startsWith('ramp-bill/')) return 'ramp-bill';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
     return ['dashboard','onboarding','lab','regression','advanced','vendors','disputes','policy','integrations'].includes(requested) || requested.startsWith('disputes/') ? requested : 'ramp';
   }
@@ -50,7 +52,7 @@
   const $ = selector => document.querySelector(selector);
   const content = $('#content'), notice = $('#notice'), dialog = $('#inspector');
   let view = 'ramp', generation = 0, caseGeneration = 0, activeCase = null, busy = false;
-  let rampCase = null, rampScroll = 0;
+  let rampCase = null, rampScroll = 0, rampBill = null;
   // Which page a Ramp record was opened from: it stays the marked destination, and "Back" returns to it.
   let rampOrigin = 'ramp';
   let companion, companionAssets, signedPage = false, companionAccess = {};
@@ -346,8 +348,9 @@
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
     // Overview and Activity read the workflow themselves; any other page reads the name once, after its own content.
     const readsWorkflow = route === 'activity' || (route === 'ramp' && !rampCase);
+    // The one-bill page makes exactly one request, the saved Ramp workspace, so it does not read the workspace name.
     try { await renderRoute(); } finally {
-      if (!readsWorkflow && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
+      if (!readsWorkflow && route !== 'ramp-bill' && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
     }
     async function renderRoute() {
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
@@ -359,6 +362,17 @@
         await workspaceWorkflow.activity(content, projection.workflow);
       } else content.replaceChildren(heading('Activity', 'What happened in this workspace, in order.'), empty('No workflow activity is recorded in this workspace.'));
       showWorkspaceName();
+      return;
+    }
+    if (route === 'ramp-bill') {
+      if (!ramp) throw new Error('Ramp UI asset unavailable.');
+      await ramp.bill(content, rampBill);
+      if (token === generation) {
+        window.scrollTo?.({top:0, behavior:'instant'});
+        showWorkspaceName();
+        const current = window.uptimeAuth.session();
+        if (current) $('#account').textContent = 'Sign out · ' + current.subject;
+      }
       return;
     }
     if (route === 'ramp' || route === 'records') {
@@ -402,14 +416,17 @@
     workspaceWorkflow?.unmount();
     companion?.unmount(content);
     if (dialog.open) dialog.close();
-    rampCase = null;
+    rampCase = null; rampBill = null;
     if (requested.startsWith('ramp/')) {
       try { rampCase = decodeURIComponent(requested.slice(5)); } catch { rampCase = null; }
+    }
+    if (requested.startsWith('ramp-bill/')) {
+      try { rampBill = decodeURIComponent(requested.slice(10)); } catch { rampBill = null; }
     }
     view = companionRoute(requested);
     // A page under a destination (one case under Cases) keeps that destination marked as the current one.
     // One Ramp record keeps the page it was opened from marked.
-    const marked = rampCase ? rampOrigin : view;
+    const marked = rampCase ? rampOrigin : view === 'ramp-bill' ? 'records' : view;
     document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === marked || marked.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
     // On a wide screen the group that holds the current page is opened. On a narrow one the header stays slim:
     // the group's own label is marked instead, and the list opens only when asked for.

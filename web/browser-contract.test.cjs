@@ -133,3 +133,17 @@ test('server stage labels render as sent; the browser never renames a state to h
   const source = fs.readFileSync(__dirname+'/app.js','utf8');
   assert.doesNotMatch(source,/presentationLabel|evidenceDescription|'Simulated award'\s*:/);
 });
+test('the one-bill route makes one request, the saved Ramp workspace, and never reads the workflow projection', async () => {
+  const workflow={workflow:{vendor:'Northwind Cloud',company:'Northwind Finance',months:[],ledger:{destination:'Local ledger'},claim:{state:'DRAFT'},next_actions:[]}};
+  const s=await setup(false,'#ramp-bill/NATIVE-1',workflow);
+  assert.deepEqual(s.requests.map(r=>r.path),['/api/ramp/workspace']);
+  assert.match(s.nodes.content.textContent,/This workspace has no saved record for this Ramp bill\./);
+  assert.doesNotMatch(s.nodes.content.textContent,/Northwind|Local ledger/);
+  assert.equal(s.nodes['workspace-name'].textContent,'Uptime');
+  // Leaving the bill for the Overview reads the workflow as usual; coming back reads only the Ramp workspace again.
+  s.location.hash='#overview';s.window.hashchange();await flush();
+  assert.equal(s.requests[1].path,'/api/workspace/workflow');
+  const before=s.requests.length;
+  s.location.hash='#ramp-bill/native-1';s.window.hashchange();await flush();
+  assert.deepEqual(s.requests.slice(before).map(r=>r.path),['/api/ramp/workspace']);
+});

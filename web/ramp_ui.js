@@ -288,7 +288,74 @@
         if(id) detail(root,data,id,token); else worklist(root,data);
       } catch(error) { if(token===epoch) loadError(root,error,()=>render(root,id)); }
     }
-    return {render,unmount:() => {epoch++;}};
+    // ---- One Ramp bill, by Ramp's own bill id: a compact page for a narrow panel beside Ramp ----
+    // It reads the same saved workspace as Ramp records, with one GET and nothing else, and shows only what that read
+    // holds for this bill. It never shows a claim, credit or price finding from an agreement that is not bound to it.
+    const BINDING = {NONE:'No agreement on file for this bill.', HYPOTHETICAL:'Hypothetical terms only; no agreement on file for this bill.',
+      CONFLICT:'Agreement records for this bill conflict; needs review.'};
+    const sameId = (a, b) => typeof a === 'string' && typeof b === 'string' && a !== '' && a.toLowerCase() === b.toLowerCase();
+    function bindingWords(ctx) {
+      const binding = ctx.agreement_binding && typeof ctx.agreement_binding === 'object' ? ctx.agreement_binding : {};
+      return binding.status === 'BOUND' ? `Agreement on file: ${shown(binding.contract_id)}.` : BINDING[binding.status] || 'Agreement binding not recorded for this bill.';
+    }
+    const attachWords = ctx => ctx.finding_attachable === true ? 'A contract finding can be attached to this bill.' : 'No contract finding is attached to this bill.';
+    const link = (text, href, cls = 'case-link') => { const a = el('a', text, cls); a.href = href; return a; };
+    function billHead(ctx, context) {
+      return add(el('div', null, 'page-head'), add(el('div'), el('p', context, 'eyebrow'), el('h1', ctx.vendor_name || 'Vendor name not captured'),
+        el('p', ctx.invoice_number ? `Invoice ${ctx.invoice_number}` : 'Invoice not captured', 'lead')));
+    }
+    // Amount and Ramp's own statuses, exactly as read.
+    function billSummary(ctx, statement) {
+      return add(el('section', null, 'panel ramp-bill-card'), el('h2', 'In Ramp'),
+        fields([['Amount', ctx.amount ? `${ctx.amount.currency} ${ctx.amount.amount}` : 'Amount unavailable'], ['Status', shown(ctx.status)],
+          ['Ramp status', shown(ctx.status_summary)], ['Approval', shown(ctx.approval_status)]], 'ramp-bill'),
+        fields([['Bill', ctx.object_id]], 'ramp-ids'), statement ? note(statement) : null);
+    }
+    function billView(root, data, id) {
+      const v = data && data.verified_record, records = link('Open Ramp records', '#records');
+      if (v && v.ramp_context && sameId(v.ramp_context.object_id, id)) {
+        const ctx = v.ramp_context, started = v.started_by === 'PERSON' ? ', started by a person' : '';
+        const found = add(el('section', null, 'panel'), el('h2', 'What Uptime found for this bill'));
+        const evidenceGap = v.finding?.outcome === 'INSUFFICIENT_EVIDENCE';
+        add(found, el('p', evidenceGap ? 'Evidence gap: the governing agreement or usage evidence is missing' : shown(v.finding?.outcome), 'ramp-finding-line'));
+        const missing = list(v.finding?.missing).filter(item => typeof item === 'string' && item);
+        if (missing.length) add(found, add(el('ul', null, 'ramp-missing'), ...missing.map(item => el('li', item))));
+        add(found, note(bindingWords(ctx)), note(attachWords(ctx)), note(creditStatus(ctx.credit_links) + '.'));
+        const talk = add(el('section', null, 'panel'), el('h2', 'Note in Ramp'), ...discussion(ctx, 'No comments read on this bill.'),
+          note('Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
+        root.replaceChildren(billHead(ctx, 'Verified Ramp record'),
+          billSummary(ctx, `Saved record read from Ramp ${when(v.capture?.observed_at)}${started}. Not a live read.`), found, talk,
+          add(el('p', null, 'help recovery-links'), link('Open the full record', '#records')));
+        return;
+      }
+      const matches = list(data && data.records).filter(r => r && r.ramp_context && sameId(r.ramp_context.object_id, id));
+      if (matches.length) {
+        // The bill's own record first; a scenario about the same bill is listed after it and never as its finding.
+        matches.sort((a, b) => Number(isScenario(a)) - Number(isScenario(b)));
+        const ctx = matches[0].ramp_context;
+        const found = add(el('section', null, 'panel'), el('h2', 'In the saved worklist'), note(bindingWords(ctx)), note(attachWords(ctx)),
+          note(creditStatus(ctx.credit_links) + '.'));
+        const rows = el('ul', null, 'ramp-bill-records');
+        matches.forEach(r => rows.append(add(el('li'), el('strong', TITLES[r.title] || shown(r.title || r.id)),
+          isScenario(r) ? el('span', CODES.SIMULATION_ONLY, 'pill warn') : note(`${outcomeWords(r.outcome)} · ${stageWords(r.stage)}`),
+          link('Open this record', '#ramp/' + encodeURIComponent(r.id)))));
+        root.replaceChildren(billHead(ctx, 'Ramp bill in the saved worklist'), billSummary(ctx, coverageText(data.capture)), add(found, rows),
+          add(el('p', null, 'help recovery-links'), records));
+        return;
+      }
+      root.replaceChildren(add(el('div', null, 'page-head'), add(el('div'), el('p', 'Ramp bill', 'eyebrow'), el('h1', 'No saved record for this bill'),
+        el('p', 'This workspace has no saved record for this Ramp bill.', 'lead'))), add(el('p', null, 'help recovery-links'), records));
+    }
+    async function bill(root, id) {
+      const token=++epoch;
+      if (!root.children.length) root.append(note('Loading the saved Ramp record…'));
+      try {
+        const data=await api('/api/ramp/workspace');
+        if(token!==epoch) return;
+        billView(root, data, typeof id === 'string' ? id : '');
+      } catch(error) { if(token===epoch) loadError(root,error,()=>bill(root,id)); }
+    }
+    return {render,bill,unmount:() => {epoch++;}};
   }
   const exported={create,providerURL,matches,hypothetical,clean};
   if(typeof module!=='undefined' && module.exports) module.exports=exported;

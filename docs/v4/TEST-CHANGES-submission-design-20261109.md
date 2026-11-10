@@ -24,7 +24,16 @@ The helper `open_section(page, title)` and the two section titles were added to 
 
 ## Added tests
 
-None yet.
+- `web/ramp_bill.test.cjs` (the one-bill page for the panel beside Ramp):
+  - `the verified bill shows what Ramp holds, what Uptime found and the person-posted note, from one read`
+  - `a bill found only in the saved worklist shows that worklist’s own statement and a scenario is never its finding`
+  - `an unknown, empty or malformed bill id says so in one sentence and offers Ramp records`
+  - `a bound agreement and an attachable finding are stated as such; other bindings are never called bound`
+  - `a failed read shows no bill and an expired session propagates to sign-in`
+- `web/browser-contract.test.cjs`: `the one-bill route makes one request, the saved Ramp workspace, and never reads the workflow projection`
+- `tests/test_ramp_bill_panel.py`:
+  - `test_the_verified_bill_card_is_in_the_first_viewport_of_a_420_px_panel`
+  - `test_an_unknown_bill_says_so_and_ramp_records_opens_without_filling_the_panel_with_navigation`
 
 ## Interrupted runs
 
