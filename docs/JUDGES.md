@@ -55,15 +55,16 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 
 ## Independent acceptance
 
-A separate session checked the earlier frozen build `52f1a2f` (before the interface redesign, which it has not yet assessed) from a fresh clone, following only the published instructions, against expectations it sealed by digest before it saw the build.
+A separate session checked the earlier frozen build `52f1a2f` (before the interface redesign) from a fresh clone, following only the published instructions, against expectations it sealed by digest before it saw the build.
 - **The walkthrough:** sign-in and four reviewer decisions, with seven automatic steps between them.
 - **Matched the sealed expectations:** the money, 58 of 58 citations and the authority recorded for each step.
 - **Safety:** no unsafe acceptance, invented evidence or unauthorized money movement was observed.
 - **The model work** was verified from its receipts. It is recorded, not live.
 - **Not shown:** generalization. The independent cohort reached shadow on 0 of 4 contracts.
 - **Ramp:** nothing reaches Ramp from Uptime.
+- **The redesigned interface:** checked afterwards on `main` at `08852a6`, from an anonymous default clone with no extra step. Every sealed figure, all 58 citations and each step's authority still hold. Three further findings are open: a status line that says a person approves where the account is scripted, a case's own record that shows zeros for posted and applied, and the scripted reviewer's display name being visible only inside closed sections of the Overview.
 
-The [acceptance report](v4/submission/acceptance.md) has the evidence, the controls and its five ranked findings ("Bugs and risks, ranked by consequence").
+The [acceptance report](v4/submission/acceptance.md) has the evidence, the controls and its five ranked findings ("Bugs and risks, ranked by consequence"), and ends with the addendum on the redesigned interface and its three.
 
 ## Evidence index
 

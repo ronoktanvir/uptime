@@ -128,7 +128,7 @@ What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-58
 
 ## Verification
 
-The badge above runs the full check suite on every push to `main`. The full run on `main`'s current application code is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-1fa4ab4.json). These are regression results, not a measure of model accuracy or production readiness. An independent acceptance run checked the earlier frozen build `52f1a2f` from a fresh clone, following only these published instructions; its results, limits and ranked findings are in [the acceptance report](docs/v4/submission/acceptance.md) ([summary](docs/JUDGES.md#independent-acceptance)). It has not yet assessed the redesigned interface.
+The badge above runs the full check suite on every push to `main`. The full run on `main`'s current application code is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-1fa4ab4.json). These are regression results, not a measure of model accuracy or production readiness. An independent acceptance run checked the earlier frozen build `52f1a2f` from a fresh clone, following only these published instructions; its results, limits and ranked findings are in [the acceptance report](docs/v4/submission/acceptance.md) ([summary](docs/JUDGES.md#independent-acceptance)). It then checked the redesigned interface on `main` at `08852a6` from an anonymous default clone: the same figures, citations and step authorities held, and its addendum lists three further findings.
 
 ```sh
 uv run --locked pytest
