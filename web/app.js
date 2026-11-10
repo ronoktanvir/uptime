@@ -309,7 +309,7 @@
 
   function renderIntegrations(data) {
     const ramp=data.ramp, publicData=data.public_evidence, model=data.model;
-    const bills=panel('Ramp Bill Pay');
+    const bills=add(el('section', 'panel'), el('h2', 'ramp-glyph', 'Ramp Bill Pay'));
     add(bills,el('p','',ramp.note),sources(ramp.sources));
     if (ramp.observed_at) bills.append(el('p','help','Retrieved '+(instant(ramp.observed_at) || ramp.observed_at)));
     if (ramp.ui_url) {

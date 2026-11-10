@@ -362,3 +362,8 @@ Two of the walkthrough's authored companies have a picture in place of their ini
 - **How a picture is chosen:** every company tile carries a class made from the name it stands for, and the stylesheet names the two pictures. Any other name, CalyxQuay for example, keeps its initials. The server sends no picture and nothing about it changed.
 - **What they are not:** both companies are authored for the walkthrough, as the package's README says. The pictures are decoration for those two names. They are not marks of real organisations and are hidden from assistive technology like the initials they replace.
 
+## Brand marks (supplied by Ronok)
+
+- **Uptime logo.** The brand lockup in the sidebar and sign-in, and the favicon, are the Uptime wordmark and its U-mark that Ronok supplied (`~/Downloads/wd.png`, November 10, 2026). The wordmark is cropped to content and scaled to 120 px tall, held as an image token in `web/style.css`; the U-mark is cropped and wrapped in `web/favicon.svg`. No new file is served and nothing loads from another host.
+- **Ramp mark.** A small Ramp mark (supplied by Ronok) sits beside the labels, headings and links that name the Ramp service — the "for Ramp" tag, the Ramp records navigation, tile and page headings, the Overview Ramp card, and the "open in Ramp" links. It is a 64 px transparent image token in `web/style.css`, used nominatively to denote the real Ramp service this tool reads from and posts a note to. The product's own identity stays "Uptime, for Ramp"; this is a reference to Ramp, not a claim of affiliation or endorsement. Ramp's name and mark are trademarks of Ramp.
+
