@@ -83,3 +83,12 @@ Asked on November 9, 2026, after the server option, the extension and the setup 
 ## Rollback
 
 Remove `side_panel_origin` and `panel_origin` from `uptime/server.py`, the `--side-panel-origin` option from `scripts/serve.py` and from `scripts/setup_northwind.py` (including the argument it passes to `create_app`), and delete `tests/test_side_panel_framing.py`, `tests/test_setup_side_panel.py`, `tests/helpers/side_panel_extension.test.cjs`, `scripts/check_side_panel.py` and `extension/`. The interface's `#ramp-bill/<bill id>` page can stay: it is an ordinary page that reads one saved record. No stored data, signature or approval depends on any of it. A server started without the option already behaves as before.
+
+## Change on November 10: panel mode and one message
+
+Branch `work/submission-panel-20261110`. The framing policy, the server and the manifest's permissions are unchanged. Two things the record above says no longer hold word for word:
+
+- **A message now crosses the frame, one way.** The framed app, when it is framed, can send the panel exactly `{type: 'uptime-open-app', route}`, addressed to the one extension origin the browser names as its parent. The panel accepts it only from its own frame on the configured app origin, only in that shape, and only for `overview`, `records`, `cases` or `cases/<id>`; it then opens `origin + '/#' + route` in a tab. The panel still sends no message, holds no credential, reads nothing from Ramp's page and makes no request. Details: [the extension's README](../../../extension/README.md).
+- **With no bill open the panel shows the app's "No Ramp bill open" page** (`#ramp-bill`), not the records page.
+
+Panel mode (a compact header without navigation rows) is decided in the browser by being framed, which only this extension can do. It is presentation only. Tests: [the ledger](../TEST-CHANGES-submission-panel-20261110.md).
