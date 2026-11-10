@@ -20,6 +20,22 @@ No existing test that forbids "claim", "eligible" or the Northwind figures neede
 
 `web/ramp_bill.test.cjs`: the matched page's words and stages, the button words by stage, the notes button's two kinds, its refusal, its non-POSTED answer and its 404 hiding, notes by author, the fallbacks for a missing `verified_records`, `match` or `notes`, and the bill-status message shape. `tests/helpers/side_panel_extension.test.cjs`: the bill-status message checks and the badge calls.
 
+## Side panel, round three
+
+- **"You're in Uptime."** When the active tab is the Uptime app (the tab the panel opened, or any tab on the app's origin) the panel hides its frame without reloading it and shows the Uptime mark, "You're in Uptime" and "You may close this panel."; the bar reads "Uptime" and that tab's badge is cleared. **Permission added:** `http://127.0.0.1:8776/*` in `host_permissions`, so the panel can read the address of a tab on the app's origin; it makes no request to it. Change it with `origin` in `extension/config.js`.
+- **"Bills Uptime is tracking."** On a Ramp page that is not one bill (the bar reads "Ramp, no single bill open") the frame opens `#ramp-bills`: every verified record, matched first, with vendor, invoice, amount and one line ("Service credit may apply · $2,400.00", "Above contracted price · $1,000.00", "No agreement on file"), under a count ("2 bills may have money to recover"). A row sends `{type: 'uptime-open-bill', bill}`; the panel, under the same sender checks, moves that Ramp tab to `https://demo.ramp.com/bill-pay/bills/list/<id>`. Any other site still reads "No Ramp bill open".
+- **Price exception.** `match.kind: "price_exception"` reads "This bill is above the contracted price by <amount>", with Billed, Expected, Basis and State, and the button "Review in Uptime" to `recovery` (added to the routes the page and the panel allow). It has no credit stages and no note button.
+- **Notes and the read.** `notes_mode` `auto` hides the note button and shows Uptime's notes as "Uptime added a note to this bill in Ramp · <time>"; `off` hides the button; `manual` or absent keeps it. A record with `read: {at, live: true}` says "Read from Ramp just now · <time>" with a "Refresh from Ramp" link that calls `POST /api/ramp/refresh` with `{bill_id}` and re-renders (hidden on 404). `ramp_credit.status: "APPLIED_CONFIRMED"` heads the page "A service credit was applied to this bill in Ramp", closes the money card with "Credit applied in Ramp · <amount> · confirmed on the bill and the credit", and marks Applied "Confirmed in Ramp".
+
+### Existing tests changed in round three
+
+| Test (exact name) | Reason |
+|---|---|
+| `tests/test_side_panel_framing.py::test_the_packaged_extension_is_the_one_origin_the_option_is_documented_with` | The manifest now also asks for the Uptime app's own origin, to recognise a tab on Uptime itself. |
+| `tests/helpers/side_panel_extension.test.cjs` › `the manifest asks for the side panel and Ramp tab addresses only, and its key pins one ID`, renamed `the manifest asks for the side panel, Ramp tab addresses and the Uptime app's own tab addresses only, and its key pins one ID` | The same added host permission, pinned to `config.origin`. |
+| `tests/helpers/side_panel_extension.test.cjs` › `only overview, records, cases and one case by a plain id may be opened, on the configured origin only`, renamed `only overview, records, recovery, cases and one case by a plain id may be opened, on the configured origin only` | `recovery` is now an allowed route, for the price exception. |
+| `web/ramp_bill.test.cjs` › `panel mode is on only when the page is framed, and its message is addressed to one extension origin` | Its stylesheet-scope check also allows the tracking list's `.track-` rules. |
+
 ## From the steps and case-page work
 
 Tests changed on the demo line because the demo deliberately changes a rule. One line of reason each.

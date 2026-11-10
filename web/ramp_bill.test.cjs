@@ -159,7 +159,7 @@ test('panel mode is on only when the page is framed, and its message is addresse
   assert.equal(css.split('.panel-mode').length-1,block.split('.panel-mode').length-1);
   const selectors=block.split('}').filter(r=>r.includes('{')).flatMap(r=>r.replace(/\/\*[\s\S]*?\*\//g,'').split('{')[0].split(',')).map(x=>x.trim());
   assert.ok(selectors.includes('.panel-mode body') && selectors.length>=15,String(selectors.length));
-  for(const selector of selectors)assert.ok(/^\.panel-mode\s|^\.panel-open-app|^\.ramp-bill-empty|^\.match-/.test(selector),selector);
+  for(const selector of selectors)assert.ok(/^\.panel-mode\s|^\.panel-open-app|^\.ramp-bill-empty|^\.match-|^\.track-/.test(selector),selector);
 });
 
 // ---- Demo line: a Ramp bill matched to an Uptime invoice ----
@@ -271,4 +271,99 @@ test('the bill-status message has one shape and goes only to the extension paren
   assert.deepEqual(app.billStatusMessage(MATCHED,'match'),{type:'uptime-bill-status',bill:MATCHED,state:'match'});
   assert.deepEqual(app.billStatusMessage(MATCHED,'none'),{type:'uptime-bill-status',bill:MATCHED,state:'none'});
   for(const [b,st] of [[MATCHED,'maybe'],[MATCHED.toUpperCase(),'match'],['x','match'],[null,'none'],[MATCHED,null]])assert.equal(app.billStatusMessage(b,st),null,String(b)+st);
+});
+
+// ---- Demo line, round three ----
+const PRICE='7c6d5e4f-3a2b-4c1d-8e9f-0a1b2c3d4e5f';
+const priceCtx={...ctx,object_id:PRICE,vendor_name:'Northwind Cloud',invoice_number:'NW-2026-05',amount:{currency:'USD',amount:'9600.00'},discussion:[]};
+const priceRecord={...verified,ramp_context:priceCtx,notes:[],match:{kind:'price_exception',basis:['vendor_name','invoice_number','amount'],
+  invoice:{id:'NW-2026-05',vendor:'Northwind Cloud',total:'9600.00',currency:'USD'},
+  exception:{amount:'1000.00',currency:'USD',billed:'9600.00',expected:'8600.00',basis:'Contracted unit price 0.043 per GB',state:'OPEN'},
+  agreement:{id:'NW-2026-001',clause:'Unit price: USD 0.043 per GB.',citation:'agreement.txt#L12'},inputs:[],next_action:null,route:'recovery'}};
+const docuOnly={...verified};
+const round3=(extra={})=>({...workspace,verified_records:[docuOnly,priceRecord,matchedRecord('ESTIMATED')],...extra});
+
+test('a price exception leads with the amount above the contracted price, billed against expected, and Review in Uptime',async()=>{
+  const s=demo(round3(),{panel:true});await s.ui.bill(s.root,PRICE);const text=s.root.textContent;
+  for(const expected of ['Price check','This bill is above the contracted price by $1,000.00','Billed','$9,600.00','Expected','$8,600.00',
+    'Basis: Contracted unit price 0.043 per GB','State: OPEN','Review in Uptime',"Matched to Uptime's invoice NW-2026-05 by vendor, invoice number and amount",
+    'NW-2026-001','Unit price: USD 0.043 per GB.'])assert.ok(text.includes(expected),expected);
+  // No credit wording, stages or note button on a price exception.
+  assert.doesNotMatch(text,/service credit may apply|Where the credit stands|Add a note to this bill in Ramp|Review and file the claim/i);
+  byText(s.root,'Review in Uptime').listeners.click();assert.deepEqual(s.opened,['recovery']);
+  assert.deepEqual(s.states,[[PRICE,'match']]);
+});
+
+test('Bills Uptime is tracking lists every verified record, matched first, with one line each and a count',async()=>{
+  const opened=[];
+  const root=new Element('main');const ui=create({document,api:async()=>round3(),onNavigate:()=>{},openApp:()=>{},openBill:id=>opened.push(id)});
+  await ui.bills(root);const text=root.textContent;
+  for(const expected of ['Bills Uptime is tracking','2 bills may have money to recover','Above contracted price · $1,000.00',
+    'Service credit may apply · $2,400.00','No agreement on file','Invoice NW-2026-05','Invoice NW-2026-04','Invoice DD-PREAPPROVAL','$9,600.00','$11,000.00','$840'])
+    assert.ok(text.includes(expected),expected);
+  const rows=root.all('button').filter(b=>b.className==='track-row');
+  assert.equal(rows.length,3);
+  assert.match(rows[2].textContent,/DocuSign.*No agreement on file/);
+  rows[0].listeners.click();rows[2].listeners.click();assert.deepEqual(opened,[PRICE,BILL]);
+  // In an ordinary tab the rows are links to the bill page.
+  const plainRoot=new Element('main');await create({document,api:async()=>round3(),onNavigate:()=>{}}).bills(plainRoot);
+  assert.deepEqual(plainRoot.all('a').filter(a=>a.className==='track-row').map(a=>a.href),['#ramp-bill/'+PRICE,'#ramp-bill/'+MATCHED,'#ramp-bill/'+BILL]);
+  // One matched bill, none, and an empty list; without verified_records the single verified record is listed.
+  for(const [data,line] of [[{...workspace,verified_records:[matchedRecord('ESTIMATED')]},'1 bill may have money to recover'],
+    [{...workspace,verified_records:[docuOnly]},'No tracked bill shows money to recover'],[{records:[],verified_records:[]},'Uptime is not tracking any Ramp bill yet.'],
+    [workspace,'No tracked bill shows money to recover']]){
+    const r=new Element('main');await create({document,api:async()=>data,onNavigate:()=>{}}).bills(r);assert.ok(r.textContent.includes(line),line);
+  }
+});
+
+test('notes_mode: auto hides the button and states Uptime’s notes as posted; off hides it; manual keeps it',async()=>{
+  const notes=[{id:'n2',at:'2026-11-10T18:04:00+00:00',by:'UPTIME',kind:'possible_credit'},{id:'n1',at:'2026-11-08T01:46:45+00:00',by:'RAMP',kind:null}];
+  const auto=demo({...demoWorkspace('ESTIMATED',notes),notes_mode:'auto'});await auto.ui.bill(auto.root,MATCHED);
+  assert.equal(byText(auto.root,'Add a note to this bill in Ramp'),undefined);
+  assert.ok(auto.root.textContent.includes('Uptime added a note to this bill in Ramp · Nov 10, 2026, 18:04 UTC'));
+  assert.ok(auto.root.textContent.includes('Posted in RampNov 8, 2026, 01:46 UTC'));
+  const off=demo({...demoWorkspace('ESTIMATED'),notes_mode:'off'});await off.ui.bill(off.root,MATCHED);assert.equal(byText(off.root,'Add a note to this bill in Ramp'),undefined);
+  const manual=demo({...demoWorkspace('ESTIMATED'),notes_mode:'manual'});await manual.ui.bill(manual.root,MATCHED);assert.ok(byText(manual.root,'Add a note to this bill in Ramp'));
+});
+
+test('a live read says so with its time and can be refreshed; refresh hides on 404; a saved read keeps Not a live read',async()=>{
+  const live=r=>({...workspace,verified_records:[{...matchedRecord('ESTIMATED'),read:{at:r,live:true}}]});
+  let reads=0;const root=new Element('main'),requests=[];
+  const ui=create({document,api:async(path,payload)=>{requests.push([path,payload]);if(payload!==undefined)return {status:'READ'};reads++;return live(reads===1?'2026-11-10T18:00:00+00:00':'2026-11-10T18:05:00+00:00');},onNavigate:()=>{}});
+  await ui.bill(root,MATCHED);
+  assert.ok(root.textContent.includes('Read from Ramp just now · Nov 10, 2026, 18:00 UTC'));assert.doesNotMatch(root.textContent,/Not a live read/);
+  await byText(root,'Refresh from Ramp').listeners.click();
+  assert.deepEqual(requests.map(r=>r[0]),['/api/ramp/workspace','/api/ramp/refresh','/api/ramp/workspace']);assert.deepEqual(requests[1][1],{bill_id:MATCHED});
+  assert.ok(root.textContent.includes('Read from Ramp just now · Nov 10, 2026, 18:05 UTC'));
+  const gone=create({document,api:async(path,payload)=>{if(payload!==undefined)throw Object.assign(new Error('Not Found'),{status:404});return live('2026-11-10T18:00:00+00:00');},onNavigate:()=>{}});
+  const g=new Element('main');await gone.bill(g,MATCHED);const b=byText(g,'Refresh from Ramp');await b.listeners.click();assert.equal(b.hidden,true);
+  const saved=demo(demoWorkspace('ESTIMATED'));await saved.ui.bill(saved.root,MATCHED);
+  assert.ok(saved.root.textContent.includes('Not a live read'));assert.equal(byText(saved.root,'Refresh from Ramp'),undefined);
+  // A read that is not marked live is not called live.
+  const notLive={...workspace,verified_records:[{...matchedRecord('ESTIMATED'),read:{at:'2026-11-10T18:00:00+00:00',live:'yes'}}]};
+  const n=demo(notLive);await n.ui.bill(n.root,MATCHED);assert.doesNotMatch(n.root.textContent,/just now/);
+});
+
+test('a credit confirmed in Ramp closes the money card and marks the last stage; anything else does not',async()=>{
+  const confirmed={...workspace,verified_records:[{...matchedRecord('POSTED'),match:{...matchFor('POSTED'),ramp_credit:{status:'APPLIED_CONFIRMED',amount:'2400.00'}}}]};
+  const s=demo(confirmed);await s.ui.bill(s.root,MATCHED);const text=s.root.textContent;
+  assert.ok(text.includes('Credit applied in Ramp · $2,400.00 · confirmed on the bill and the credit'));
+  assert.ok(text.includes('For service in January 2026 · Applied in Ramp'));
+  assert.ok(text.includes('A service credit was applied to this bill in Ramp'));assert.doesNotMatch(text,/may apply/);
+  const stages=s.root.all('li').filter(li=>/match-stage/.test(li.className));
+  assert.equal(stages[4].textContent,'AppliedConfirmed in Ramp');assert.match(stages[4].className,/done confirmed/);
+  assert.doesNotMatch(text,/Uptime has made no write to Ramp/);
+  assert.ok(byText(s.root,'Open the case in Uptime'));
+  for(const status of ['NONE','APPLIED',undefined]){
+    const o={...workspace,verified_records:[{...matchedRecord('POSTED'),match:{...matchFor('POSTED'),ramp_credit:{status,amount:'2400.00'}}}]};
+    const r=demo(o);await r.ui.bill(r.root,MATCHED);assert.doesNotMatch(r.root.textContent,/Credit applied in Ramp|Confirmed in Ramp|was applied/,String(status));
+    assert.ok(r.root.textContent.includes('A service credit may apply to this bill'),String(status));
+  }
+});
+
+test('the open-bill message has one shape',()=>{
+  const app=require('./app.js');
+  assert.deepEqual(app.openBillMessage(MATCHED),{type:'uptime-open-bill',bill:MATCHED});
+  for(const b of [MATCHED.toUpperCase(),'x',null,'https://demo.ramp.com/x'])assert.equal(app.openBillMessage(b),null,String(b));
+  assert.equal(app.companionRoute('ramp-bills'),'ramp-bills');
 });

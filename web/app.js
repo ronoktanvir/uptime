@@ -47,6 +47,8 @@
     // One Ramp bill by Ramp's own id, for the panel beside Ramp; with no id, the panel's "no bill open" page.
     if (requested.startsWith('ramp-bill/')) return 'ramp-bill';
     if (requested === 'ramp-bill') return 'ramp-bill-none';
+    // A Ramp page that is not one bill: the bills Uptime is tracking.
+    if (requested === 'ramp-bills') return 'ramp-bills';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
     return ['dashboard','onboarding','lab','regression','advanced','vendors','disputes','policy','integrations'].includes(requested) || requested.startsWith('disputes/') ? requested : 'ramp';
   }
@@ -58,7 +60,7 @@
     try { return !!win && win.self !== win.top; } catch { return true; }
   }
   // The routes the panel may ask to open in a full tab. The extension enforces the same pattern on its side.
-  const PANEL_OPEN_ROUTE = /^(?:overview|records|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
+  const PANEL_OPEN_ROUTE = /^(?:overview|records|recovery|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
   const PANEL_MESSAGE_TYPE = 'uptime-open-app';
   // The extension page that frames this one, when the browser names it; the message is addressed to it alone.
   function panelParent(loc) {
@@ -72,11 +74,16 @@
   // Tells the panel whether the bill it shows is matched to an Uptime invoice, for the toolbar badge.
   const PANEL_STATUS_TYPE = 'uptime-bill-status';
   const RAMP_BILL = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  // Asks the panel to move the Ramp tab to one bill from the tracking list.
+  const PANEL_BILL_TYPE = 'uptime-open-bill';
+  function openBillMessage(bill) {
+    return typeof bill === 'string' && RAMP_BILL.test(bill) ? {type: PANEL_BILL_TYPE, bill} : null;
+  }
   function billStatusMessage(bill, state) {
     return typeof bill === 'string' && RAMP_BILL.test(bill) && (state === 'match' || state === 'none') ? {type: PANEL_STATUS_TYPE, bill, state} : null;
   }
   if (typeof module !== 'undefined' && module.exports) module.exports = {compareDecimal, money, safeURL, companionPlan, companionRoute,
-    framed, panelParent, panelMessage, PANEL_OPEN_ROUTE, PANEL_MESSAGE_TYPE, billStatusMessage, PANEL_STATUS_TYPE};
+    framed, panelParent, panelMessage, PANEL_OPEN_ROUTE, PANEL_MESSAGE_TYPE, billStatusMessage, PANEL_STATUS_TYPE, openBillMessage, PANEL_BILL_TYPE};
   if (typeof document === 'undefined') return;
   const panelMode = framed(window);
   if (panelMode) document.documentElement?.classList?.add('panel-mode');
@@ -89,6 +96,10 @@
     else window.open('/#' + route, '_blank', 'noopener');
   }
   // Only inside the panel, and only to the one extension origin the browser names as the parent.
+  function openBill(bill) {
+    const message = openBillMessage(bill), parent = panelParent(window.location);
+    if (message && parent && window.parent && window.parent !== window) window.parent.postMessage(message, parent);
+  }
   function billState(bill, state) {
     const message = billStatusMessage(bill, state), parent = panelParent(window.location);
     if (message && parent && window.parent && window.parent !== window) window.parent.postMessage(message, parent);
@@ -101,7 +112,7 @@
   let rampOrigin = 'ramp';
   let companion, companionAssets, signedPage = false, companionAccess = {};
   const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + (route === 'ramp' ? rampOrigin : route)); navigate(); },
-    ...(panelMode ? {openApp, onBillState: billState} : {})});
+    ...(panelMode ? {openApp, onBillState: billState, openBill} : {})});
   // The finance view disables actions when this page holds no signing key (for example after a reload).
   const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account,canAct:() => window.uptimeAuth?.canSign?.() !== false});
   const filters = {query: '', status: '', sort: 'value-desc'};
@@ -418,7 +429,7 @@
     const readsWorkflow = route === 'activity' || route === 'recovery' || (route === 'ramp' && !rampCase);
     // The one-bill page makes exactly one request, the saved Ramp workspace, so it does not read the workspace name.
     try { await renderRoute(); } finally {
-      if (!readsWorkflow && route !== 'ramp-bill' && route !== 'ramp-bill-none' && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
+      if (!readsWorkflow && route !== 'ramp-bill' && route !== 'ramp-bill-none' && route !== 'ramp-bills' && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
     }
     async function renderRoute() {
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
@@ -451,6 +462,12 @@
       ramp.noBill(content);
       const current = window.uptimeAuth.session();
       if (current) showAccount(current.subject);
+      return;
+    }
+    if (route === 'ramp-bills') {
+      if (!ramp) throw new Error('Ramp UI asset unavailable.');
+      await ramp.bills(content);
+      if (token === generation) { const current = window.uptimeAuth.session(); if (current) showAccount(current.subject); }
       return;
     }
     if (route === 'ramp-bill') {
@@ -516,7 +533,7 @@
     view = companionRoute(requested);
     // A page under a destination (one case under Cases) keeps that destination marked as the current one.
     // One Ramp record keeps the page it was opened from marked.
-    const marked = rampCase ? rampOrigin : view === 'ramp-bill' || view === 'ramp-bill-none' ? 'records' : view === 'recovery' ? 'ramp' : view;
+    const marked = rampCase ? rampOrigin : view === 'ramp-bill' || view === 'ramp-bill-none' || view === 'ramp-bills' ? 'records' : view === 'recovery' ? 'ramp' : view;
     document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === marked || marked.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
     // On a wide screen the group that holds the current page is opened. On a narrow one the header stays slim:
     // the group's own label is marked instead, and the list opens only when asked for.

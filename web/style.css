@@ -1051,3 +1051,24 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .match-notes:empty { display: none; }
 .match-note { display: grid; gap: 2px; padding: 10px 0; border-top: 1px solid var(--line); }
 .match-note:first-child { border-top: 0; }
+.match-read { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-top: 4px; }
+.match-read > .help { margin: 0; }
+.match-refresh { font-size: 13px; }
+.match-refresh-result:empty { display: none; }
+.match-price-figures { margin-top: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.match-price-figures dd { font-variant-numeric: tabular-nums; }
+.match-confirmed { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: var(--ok-soft); color: var(--ok); font-size: 13px; line-height: 20px; font-weight: 600; }
+.match-stage.confirmed .step-state { color: var(--ok); font-weight: 600; }
+/* Bills Uptime is tracking, for a Ramp page that is not one bill. */
+.track-panel { padding: 0; overflow: hidden; }
+.panel-mode .track-panel { padding: 0; }
+.track-list { list-style: none; margin: 0; padding: 0; }
+.track-list li + li { border-top: 1px solid var(--line); }
+.track-row { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; justify-items: stretch; align-content: start; gap: 2px; width: 100%; min-height: 0; padding: 14px 16px; border: 0; border-radius: 0; background: var(--surface); box-shadow: none; color: var(--text); text-align: left; text-decoration: none; font-weight: 400; }
+.track-row:hover { background: var(--sunken); color: var(--text); border-color: transparent; }
+.track-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.track-top strong { color: var(--ink); font-size: 14px; font-weight: 600; }
+.track-amount { font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink); white-space: nowrap; }
+.track-invoice { font-size: 12px; line-height: 18px; color: var(--muted); }
+.track-finding { font-size: 13px; line-height: 20px; color: var(--muted); }
+.track-finding.found { color: var(--accent-strong); font-weight: 600; }

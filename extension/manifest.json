@@ -8,7 +8,8 @@
     "sidePanel"
   ],
   "host_permissions": [
-    "https://demo.ramp.com/*"
+    "https://demo.ramp.com/*",
+    "http://127.0.0.1:8776/*"
   ],
   "side_panel": {
     "default_path": "panel.html"
