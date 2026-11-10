@@ -121,3 +121,11 @@ No existing test was changed for this.
 - Standard library only. HTTPS to `api.typesafe.ai` only, redirects not followed, 20 s timeout, context cut to 6,000 characters. The key is read per call and never kept, logged or put in an exception.
 - Added `tests/test_jev.py` (no network) and `scripts/jev_smoke.py` (two real calls on a made-up SLA sentence).
 - No existing test changed.
+
+## Template builder engine (`work/demo-tb-engine-20261110`)
+
+New files: `uptime/template_rules.py` (the fixed interpreter: one regular expression per term, run in a time-limited worker process), `uptime/template_builder.py` (`TemplateBuilds`: Jev classification, three Claude readers, Claude template builder with up to two repair rounds, five checks, reviewer approval by SHA-256, the post-approval read; HTTP routes), `fixtures/template_builder_demo/` (three authored Halcyon Grid addenda, `expected.json`, `README.md`), `tests/test_template_builder.py`, `scripts/template_builder_smoke.py` (one real build against the Claude Code CLI and Jev).
+
+Wiring: `uptime/server.py` registers the routes (off unless `app.state.template_builds` is set); `scripts/setup_northwind.py` gains `--template-builder` (requires `--serve`; `--claude-executable` now also applies to it) and `prepare_template_builds`.
+
+No existing test was changed.
