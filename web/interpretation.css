@@ -36,7 +36,7 @@ body.reading:has(#interpretation-root > .signin) #interpretation-root { min-heig
 .interpretation-permission pre, .interpretation-blocks pre { font-family: var(--mono); font-size: 12px; line-height: 18px; }
 .interpretation-facts { display: flex; flex-wrap: wrap; gap: 14px 40px; margin: 0; }
 .interpretation-facts dt { margin-bottom: 2px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); }
-.interpretation-facts dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.interpretation-facts dd { margin: 0; color: var(--ink); }
 .interpretation-meta { font-size: 12px; line-height: 18px; color: var(--muted); overflow-wrap: anywhere; }
 .interpretation-review details { font-size: 13px; line-height: 20px; }
 .interpretation-review details > summary { width: fit-content; max-width: 100%; color: var(--muted); font-weight: 500; }

@@ -1,6 +1,16 @@
 /* Uptime interface: one visual system for every page (docs/v4/submission/design.md).
    Presentation only. No rule here hides a state, a destination or an amount. */
 
+/* The typeface is Inter (SIL Open Font License, docs/v4/submission/THIRD-PARTY-NOTICES.md), one variable font
+   file served by the app itself. Until it has loaded nothing is drawn in another face, so text never reflows. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("/static/InterVariable.woff2") format("woff2");
+}
+
 /* 1. Tokens */
 :root {
   color-scheme: light;
@@ -28,7 +38,7 @@
   --bad-line: #f5c6c1;
   --neutral: #46506a;
   --neutral-soft: #eef1f6;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --radius: 10px;
   --radius-control: 6px;
@@ -311,13 +321,14 @@ footer { font-size: 12px; color: var(--muted); }
 .northwind-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px 24px; margin: 0; }
 .northwind-field { min-width: 0; }
 .northwind-field dt { margin-bottom: 4px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); }
-.northwind-field dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.northwind-field dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
 .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
 table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; line-height: 20px; }
 th { padding: 10px 16px; background: var(--sunken); border-bottom: 1px solid var(--line); font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); white-space: nowrap; }
 td { padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
 tbody tr:last-child td { border-bottom: 0; }
 td.empty { padding: 28px 16px; }
+/* Tabular figures only where amounts line up. In this typeface they also widen hyphens, which would space out references. */
 .num, .amount { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 td.num, td.amount { color: var(--ink); font-weight: 500; }
 td.num .pill { display: block; width: fit-content; margin: 4px 0 0 auto; font-weight: 500; }
@@ -348,7 +359,7 @@ td.num .pill { display: block; width: fit-content; margin: 4px 0 0 auto; font-we
 .source-record { margin-top: 8px; font-size: 12px; color: var(--muted); }
 dl.record { display: grid; grid-template-columns: minmax(110px, 220px) minmax(0, 1fr); gap: 8px 24px; margin: 0; font-size: 13px; line-height: 20px; }
 dl.record > dt { color: var(--muted); overflow-wrap: anywhere; }
-dl.record > dd { margin: 0; min-width: 0; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+dl.record > dd { margin: 0; min-width: 0; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
 /* A record inside a record is laid out as stacked label and value, so nesting never widens the page. */
 dl.record dl.record { display: block; padding-left: 12px; border-left: 2px solid var(--line); }
 dl.record dl.record > dd { margin-bottom: 8px; }

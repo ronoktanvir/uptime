@@ -47,7 +47,7 @@ Status colour is never the only signal: every pill carries its words, and lifecy
 
 ### Type
 
-A system font stack, because the content security policy allows no external fonts: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`. References and digests use `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`. All amounts use tabular figures so columns of money line up.
+Inter, one variable font file that the app serves itself ([notices](THIRD-PARTY-NOTICES.md)); nothing is loaded from another host and the content security policy is unchanged. It replaced the system font stack on November 9 at Ronok's request, and that stack remains the fallback: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`. References and digests use `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`. Amounts that line up in a column or a row of figures use tabular figures; references do not, because in this typeface tabular figures also widen hyphens.
 
 | Role | Size / line | Weight |
 |:---|:---|:---|
@@ -141,6 +141,8 @@ The state this branch started from is in [the earlier interface evidence](../evi
 - Unchanged: the skip link, both live regions, every route (`#overview`, `#cases`, `#cases/<id>`, `#agreements`, `#activity`, `#records` and every older hash), the order of requests on load, and the static file list (no asset file was added).
 
 - **Icons** (added after the first merge, at Ronok's request): the sidebar, tags, link arrows and four status marks use Phosphor Icons, as listed in [the notices](THIRD-PARTY-NOTICES.md). The words are unchanged.
+
+- **Typeface** (added after the first merge, at Ronok's request): Inter, bundled, in place of the system font. One file was added to what the app serves, `InterVariable.woff2`, and the two tests that list the page's own files serve it too (ledger rows 12 and 13).
 
 ### Sign-in
 
@@ -337,6 +339,8 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
 - **A second merge of the same commits was made here and not pushed.** At Ronok's direct request this session merged `a92f86c` onto `main`'s then head as `618cc8e`, before learning the coordinator had already pushed. Its first full run was cut off by this session's 30-minute limit: it had printed nothing since 14 percent, at `tests/test_contract_job_card_r4.py`, the first browser launch, with no test failed before it. The rerun, with a five-minute stall check, finished: `5400 passed, 1 warning in 431.91s`. The merge was then deleted unpushed, since it added nothing to `main`.
 - **Icons** (the commit after `main`'s `0cd60d9` on this branch): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 129`, `pass 129`, `fail 0`. The 21 files in the table above plus `tests/test_side_panel_framing.py` and `tests/test_setup_side_panel.py`, one file at a time under the same limit: 23 files, 124 passed, none failed, 204 seconds. `scripts/check_repo.py`: exit 0. Looked at on Overview, Activity, Agreements, Ramp records and Cases at 1440×900, the sign-in card, and the one-bill page at 420×900: no console message, no page wider than its window. No test changed. The full run for this change is the coordinator's, before it merges.
 
+- **Typeface** (the commit after the icons on this branch): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 129`, `pass 129`, `fail 0`. The same 23 files, one at a time under the same limit: 124 passed, none failed, 128 seconds. The font is served by the real server as `font/woff2`, 352,240 bytes. Looked at on sign-in, Overview, Activity, Cases, one case, Agreements and Ramp records at 1440×900 and the one-bill page at 420×900: Inter is the face in use on each, no console message, no failed request, no page wider than its window. One side effect was found and fixed by looking: tabular figures widened the hyphens in references, so they are now asked for only where amounts line up. Two tests changed (ledger rows 12 and 13). The full run for this change is the coordinator's, before it merges.
+
 ## 7. Known limits and open items
 
 - **Phone width is usable, not polished.** Ronok asked for the computer layout first and the phone later, since the demo does not use it. At 390×844 no page is wider than the window and every control is reachable, and the 390 px images above show the present state. Spacing, type sizes and the order of blocks at that width have not had the pass the computer layout had.
@@ -344,7 +348,7 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
 - **More tools keep the server's own codes.** Case ledger, the case inspector, Onboarding lab, Policies and Integrations were restyled and tidied, not redesigned. They show stage and eligibility as the server's words in capitals (for example `RETROSPECTIVE_REVIEW`), and the case inspector shows an evidence detail as the server's JSON text. The Onboarding lab shows both offered actions as primary buttons.
 - **Quotes keep the source's own line breaks.** A clause is shown byte for byte, so in a wide column its lines can end early. That is deliberate.
 - **Light theme only.** The page declares a light colour scheme; no dark theme was made.
-- **System fonts.** No font is loaded, so letter shapes differ between macOS and Windows. Sizes, weights and spacing are fixed.
+- **One font file.** The typeface is a 344 KB file loaded from the app itself on each page load. Until it arrives no text is drawn in another face (up to three seconds on a slow connection; a few milliseconds locally), so text never reflows.
 - **The panel beside Ramp** (`#ramp-bill/<id>`) is tested at 420×900 in Chrome, not inside the extension's side panel; the coordinator is checking it there.
 
 ### For the coordinator or Ronok
