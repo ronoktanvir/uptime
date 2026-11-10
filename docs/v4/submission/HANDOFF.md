@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 22:10 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 22:13 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -25,6 +25,7 @@ In the order they block the submission.
 | 8 | D02: put an authored Northwind bill into the Ramp sandbox | It would show an authored finding beside a Ramp bill. Role 3 recommends against it | Not done; default keeps Northwind out of Ramp |
 | 9 | D05 run 2 (sealed vendor evaluation) | Runs only on his go-ahead, in the evaluation session | Not part of this push |
 | 10 | A standing policy for the follow-up approval | Would make "approve response" automatic in one narrow case. It combines an approval gate, so it is [a written proposal only](disputes.md) for team review | Not implemented |
+| 12 | What a zero means in a claim's own record | The record sends "0.00" for stages it does not track (posted, applied) and for some amounts it does not know (an estimate with no determined outcome; a claim filed outside Uptime). Sending no value instead changes fourteen existing tests and one frozen expectation set | Open; role 2's written proposal is on its way. Not changed tonight |
 | 11 | Clearing temporary files | Free disk fell to 0.8 GiB during a Chrome update and is now about 13 GiB. Old test folders and caches are his to clear | Open; nothing was deleted |
 
 ## What changed in this push
@@ -157,7 +158,7 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 | Retake the README's three screenshots (taken before the icons and the typeface), add a README link to the third-party notices, the video link | Role 6 | Not yet requested: waiting for the look to stop changing. The storyboard re-cut, the filming checklist for `main`, the timing recheck and the README's side-panel paragraph are **done** (`7f6e9ec`). First requested at 17:50 PST. The README's and the judge guide's wording still matches the redesigned interface's labels |
 | Say how the requested log arrives | Role 6 | The narration and the README's third step say Uptime "attaches" and "verifies" the log. In the walkthrough the log and its verification record arrive as authored events through the signed intake, and Uptime matches them. The product's step names say attach and verify; its authority line says received. Requested with the item above |
 | Evidence requests are recognised only in wording the rules know | Disputes owner | Not changed in this push; the wording that overstated it is corrected |
-| A case's own claim record sends "0.00" for posted and applied, which it does not track (`uptime/correspondence.py:822`) | Role 2 | Found by the redesign session. The redesigned case page does not show those two figures; the record should send no value instead of a zero. Role 2 is assessing every consumer before any change |
+| A case's own claim record sends "0.00" for posted and applied, which it does not track (`uptime/correspondence.py:822`) | Role 2 | Found by the redesign session. Acceptance graded it P2 (A2): the case page's closed record section reads "Posted USD 0.00" and "Applied USD 0.00" after the credit is posted and applied; the Overview, the older case view and the guide are correct. Role 2 assessed it: sending no value changes what a zero means in that record, fourteen existing tests and one frozen expectation set. **A decision for Ronok and the team, not made tonight.** Meanwhile the redesign session is changing that section to say where the two stages are recorded instead of showing the zero |
 | Re-shoot the 90-second cut on the redesigned build | The video session | Told at 17:50 PST to wait for role 6's storyboard. Its command is `./remake.sh <commit>` in `~/uptime-demo/video-01/`; its selectors need editing first. The Ramp opening is footage only Ronok can record |
 | Unseen contracts: 0 of 4 | The Codex lanes ([queued work](../NEXT-WORKSTREAMS-20261109.md)) | Outside this push |
 | Responses that return before the header middleware carry no security headers | Application owners | Existing gap, found in review; not changed |
