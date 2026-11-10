@@ -88,3 +88,9 @@ No amount, stage or authority assertion was weakened.
 - **`scripts/setup_northwind.py --serve --model-jobs`** writes `<workspace>/model-jobs/` (config and exact-request approvals for the samples, three takes each, model invocation only, 12 hours) at start-up and serves with it.
 
 No existing test was changed for this.
+
+## Portfolio round four: matched Ramp bills, notes in Ramp, other vendors' estimates (November 10)
+
+- `web/portfolio.test.cjs` › "the credit row follows the credit’s own latest recorded stage; nothing is added across stages or rows": the tiles object now also carries `matched` (Ramp bills matched to an invoice); the expected object gains `matched: 0`. Amount and stage assertions are unchanged.
+- `web/portfolio.test.cjs` › "agents at work counts recorded facts: Claude readings, Uptime agent steps and reviewer decisions": the counters now also carry `notes` and `uptimeNotes`; the expected objects gain `notes: 0, uptimeNotes: 0`.
+- `web/portfolio.test.cjs` › "the portfolio page reads the agreements and the saved Ramp workspace and shows rows, tiles and counters": the credits tile line now names the vendor ("Northwind Cloud · January 2026: $2,400.00 · Estimated"), because other vendors' estimates can now appear in it.

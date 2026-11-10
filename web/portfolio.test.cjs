@@ -55,7 +55,7 @@ test('the credit row follows the credit’s own latest recorded stage; nothing i
   assert.deepEqual([row.stage, row.open, row.next], ['Applied to bill', false, null]);
   const tiles = portfolioTiles(portfolioRows(workflow, vendors, ramp), vendors, ramp);
   assert.deepEqual(tiles, {agreements: 2, claude: 1, rules: 1, opportunities: 3, byKind: [['credit', 1], ['price', 1], ['evidence', 1]],
-    credits: [{subject: 'January 2026', vendor: 'Northwind Cloud', amount: '2400.00', currency: 'USD', stage: 'Estimated'}], bills: 1, unbound: 1});
+    credits: [{subject: 'January 2026', vendor: 'Northwind Cloud', amount: '2400.00', currency: 'USD', stage: 'Estimated'}], bills: 1, matched: 0, unbound: 1});
   assert.ok(!JSON.stringify(tiles).includes('3400'), 'a price exception is never added to a credit');
 });
 
@@ -69,11 +69,11 @@ test('who acts next comes from the offered actions and the recorded pause', () =
 });
 
 test('agents at work counts recorded facts: Claude readings, Uptime agent steps and reviewer decisions', () => {
-  assert.deepEqual(agentCounters(workflow, vendors), {claudeReads: 1, models: ['Claude Opus 5.5'], agentSteps: 0, received: 0, reviewerDecisions: 0});
+  assert.deepEqual(agentCounters(workflow, vendors), {claudeReads: 1, models: ['Claude Opus 5.5'], agentSteps: 0, received: 0, reviewerDecisions: 0, notes: 0, uptimeNotes: 0});
   const ran = {...workflow, automation: {...workflow.automation, steps: [
     {seq: 1, authority: {kind: 'PERSON'}, state: 'COMPLETED'}, {seq: 2, authority: {kind: 'APPROVED_OPERATION'}, state: 'COMPLETED'},
     {seq: 3, authority: {kind: 'EVENT_INTAKE'}, state: 'COMPLETED'}, {seq: 4, authority: {kind: 'APPROVED_OPERATION'}, state: 'UNCERTAIN'}]}};
-  assert.deepEqual(agentCounters(ran, []), {claudeReads: 0, models: [], agentSteps: 1, received: 1, reviewerDecisions: 1});
+  assert.deepEqual(agentCounters(ran, []), {claudeReads: 0, models: [], agentSteps: 1, received: 1, reviewerDecisions: 1, notes: 0, uptimeNotes: 0});
 });
 
 test('needs attention covers the case’s items and every Ramp bill with no agreement on file', () => {
@@ -92,7 +92,7 @@ test('the portfolio page reads the agreements and the saved Ramp workspace and s
   assert.deepEqual(requests.sort(), ['/api/ramp/workspace', '/api/vendors', '/api/vendors/calyxquay', '/api/vendors/northwind-cloud']);
   const text = root.textContent;
   for (const words of ['Portfolio', 'Agreements on file', '1 read by Claude · 1 by fixed rules', 'Opportunities open', '1 service credit · 1 price exception · 1 awaiting usage evidence',
-    'Credits in progress', 'January 2026: $2,400.00 · Estimated', 'Ramp bills tracked', '1 with no agreement on file', 'Agents at work',
+    'Credits in progress', 'Northwind Cloud · January 2026: $2,400.00 · Estimated', 'Ramp bills tracked', '1 with no agreement on file', 'Agents at work',
     'Contracts read by Claude Opus 5.5, recorded runs', 'Steps run under an approval a reviewer recorded', 'Decisions by the signed-in reviewer account',
     'Needs attention', 'Next: Reviewer', 'Nothing waiting']) assert.ok(text.includes(words), words);
   const rows = root.all('a').filter(a => String(a.className).startsWith('portfolio-row'));
@@ -123,4 +123,67 @@ test('the case page names the vendor and the month and links back to the portfol
   assert.ok(root.all('h1').some(h => h.textContent === 'Northwind Cloud'));
   assert.ok(root.all('article').some(a => a.id === 'finance-price-exception'));
   assert.ok(root.all('section').some(s => s.id === 'finance-recovery'));
+});
+
+// Round four: the live server's saved Ramp workspace carries a `match` and `notes` on each tracked bill.
+const bill = (id, invoice, vendor, match, notes = []) => ({finding: {outcome: 'INSUFFICIENT_EVIDENCE'}, match, notes,
+  ramp_context: {object_id: id, vendor_name: vendor, invoice_number: invoice, amount: {currency: 'USD', amount: '11000'}, status: 'OPEN', agreement_binding: {status: 'NONE'}}});
+const creditMatch = (status = 'NONE') => ({kind: 'service_credit', invoice: {id: 'NW-2026-04', vendor: 'Northwind Cloud', total: '11000.00', currency: 'USD'},
+  credit: {amount: '2400.00', currency: 'USD', service_month: '2026-01', stage: 'ESTIMATED'}, ramp_credit: {status, amount: status === 'APPLIED_CONFIRMED' ? '2400.00' : null}, route: 'recovery'});
+const priceMatch = {kind: 'price_exception', invoice: {id: 'NW-2026-03', vendor: 'Northwind Cloud', total: '12000.00', currency: 'USD'},
+  exception: {amount: '1000.00', currency: 'USD', state: 'OPEN'}, route: 'recovery'};
+const live = {notes_mode: 'auto', verified_records: [
+  bill('aaaaaaaa-0000-4000-8000-000000000004', 'NW-2026-04', 'Northwind Cloud', creditMatch(), [{by: 'UPTIME', kind: 'service_credit', at: '2026-11-10T10:00:00Z'}]),
+  bill('aaaaaaaa-0000-4000-8000-000000000003', 'NW-2026-03', 'Northwind Cloud', priceMatch, [{by: 'RAMP', kind: null, at: '2026-11-09T10:00:00Z'}, {by: 'UPTIME', kind: 'price_exception', at: '2026-11-10T10:01:00Z'}]),
+  ramp.verified_records[0]]};
+
+test('a matched Ramp bill is not its own row: its facts go on the opportunity it belongs to', () => {
+  const rows = portfolioRows(workflow, vendors, live);
+  assert.equal(rows.filter(r => r.kindLabel === 'No agreement on file').length, 1);
+  assert.equal(rows.find(r => r.kindLabel === 'No agreement on file').vendor, 'DocuSign');
+  assert.equal(rows.find(r => r.kind === 'credit').ramp, 'Bill NW-2026-04 in Ramp · Uptime added a note');
+  assert.equal(rows.find(r => r.kind === 'price').ramp, 'Bill NW-2026-03 in Ramp · Uptime added a note');
+  assert.equal(rows.length, 6);
+  const quiet = {verified_records: [bill('b', 'NW-2026-04', 'Northwind Cloud', creditMatch(), [{by: 'RAMP', kind: null}])]};
+  assert.equal(portfolioRows(workflow, [], quiet).find(r => r.kind === 'credit').ramp, 'Bill NW-2026-04 in Ramp', 'a note by someone else is not Uptime’s');
+  const applied = {verified_records: [bill('b', 'NW-2026-04', 'Northwind Cloud', creditMatch('APPLIED_CONFIRMED'))]};
+  assert.equal(portfolioRows(workflow, [], applied).find(r => r.kind === 'credit').ramp, 'Bill NW-2026-04 in Ramp · Credit applied in Ramp · confirmed');
+  // A match whose opportunity is not in view still never becomes "No agreement on file".
+  const orphan = portfolioRows(null, [], {verified_records: [bill('c', 'NW-2026-04', 'Northwind Cloud', creditMatch())]});
+  assert.deepEqual(orphan.map(r => [r.kindLabel, r.stage]), [['Tracked bill', 'Matched to invoice']]);
+});
+
+test('the bills tile and needs attention read the same facts: only unmatched bills lack an agreement', () => {
+  const tiles = portfolioTiles(portfolioRows(workflow, vendors, live), vendors, live);
+  assert.deepEqual([tiles.bills, tiles.matched, tiles.unbound], [3, 2, 1]);
+  const raised = portfolioAttention(workflow, live).filter(i => i.title.startsWith('Put an agreement on file'));
+  assert.deepEqual(raised.map(i => i.title), ['Put an agreement on file for DocuSign bill DD-PREAPPROVAL']);
+  // An older server without `match` falls back to the agreement binding.
+  assert.equal(portfolioTiles([], [], ramp).unbound, 1);
+});
+
+test('notes in Ramp count only what Uptime posted, and appear only when notes exist', async () => {
+  assert.deepEqual([agentCounters(workflow, vendors, live).notes, agentCounters(workflow, vendors, live).uptimeNotes], [3, 2]);
+  const show = async ws => { const root = new Element('main');
+    const ui = create({document, storage: null, api: async path => path === '/api/ramp/workspace' ? ws : path === '/api/vendors' ? {vendors: []} : {}});
+    await ui.portfolio(root, workflow); return root.textContent; };
+  const text = await show(live);
+  for (const words of ['Notes in Ramp', 'Posted by Uptime through Ramp’s API', '3 matched to invoices'.replace('3', '2') + ' · 1 with no agreement on file',
+    'Bill NW-2026-04 in Ramp · Uptime added a note', 'Bill NW-2026-03 in Ramp · Uptime added a note']) assert.ok(text.includes(words), words);
+  assert.ok(!(await show(ramp)).includes('Notes in Ramp'));
+});
+
+test('other companies’ estimates from the workflow view become rows and count in the tiles; the field may be absent', () => {
+  const extra = {...workflow, opportunities: [{vendor: 'Corvid Ledger', period: '2026-02', kind: 'service_credit', amount: '450.00', currency: 'USD', stage: 'ESTIMATED',
+    agreement: {id: 'CL-2026-07', read_by: 'claude-opus-5-5'}, invoice: {id: 'CL-2026-02', vendor: 'Corvid Ledger', total: '4500.00', currency: 'USD'}, route: 'agreements'}]};
+  const rows = portfolioRows(extra, vendors, null);
+  const row = rows.find(r => r.vendor === 'Corvid Ledger');
+  assert.deepEqual([row.subject, row.kindLabel, row.amount, row.stage, row.next, row.href, row.detail],
+    ['February 2026', 'Service credit', '450.00', 'Estimated · not claimed', 'Reviewer', '#agreements', 'Agreement CL-2026-07']);
+  const tiles = portfolioTiles(rows, vendors, null);
+  assert.equal(tiles.opportunities, 4);
+  assert.deepEqual(tiles.byKind, [['credit', 2], ['price', 1], ['evidence', 1]]);
+  assert.ok(tiles.credits.some(c => c.vendor === 'Corvid Ledger' && c.amount === '450.00'));
+  assert.ok(!JSON.stringify(tiles).includes('2850'), 'two credits are never added together');
+  assert.equal(portfolioRows({...workflow, opportunities: null}, [], null).length, 4);
 });
