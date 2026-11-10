@@ -126,7 +126,7 @@
     function worklist(root, data) {
       const verified = verifiedPanel(data.verified_record);
       const tile = el('span', null, 'page-tile tile-ramp'); tile.setAttribute('aria-hidden', 'true');
-      const head = add(el('div', null, 'page-head'), tile, add(el('div'), el('p', 'Read from Ramp', 'eyebrow'), el('h1', 'Ramp records')));
+      const head = add(el('div', null, 'page-head'), tile, add(el('div'), el('p', 'Read from Ramp', 'eyebrow ramp-glyph'), el('h1', 'Ramp records')));
       const status = data.snapshot_status;
       const coverage = add(el('details', null, 'panel ramp-details'), el('summary', 'Record coverage'));
       add(coverage, record(status && typeof status === 'object' ? {...status, freshness: FRESHNESS[status.freshness] || status.freshness} : status));
@@ -134,7 +134,7 @@
       list(data.resources).forEach(r => resources.append(add(el('article', null, 'ramp-resource'), el('h3', RESOURCE[r.name] || r.name), el('span', listStatus(r.status), 'pill'), note(`Records kept: ${shown(r.count)} · Complete: ${r.complete === true ? 'yes' : r.complete === false ? 'no' : 'unknown'}`), record(r.issues))));
       add(coverage, resources);
       // The worklist is its own titled section, with when it was read and what is missing from it always in view.
-      const ledger = add(el('section', null, 'panel ramp-worklist'), el('h2', 'Ramp worklist'),
+      const ledger = add(el('section', null, 'panel ramp-worklist'), el('h2', 'Ramp worklist', 'ramp-glyph'),
         el('p', `Updated ${data.as_of ? when(data.as_of) : 'time not recorded'} · ${FRESHNESS[data.snapshot_status?.freshness] || shown(data.snapshot_status?.freshness)}`, 'as-of'));
       const captured = coverageText(data.capture);
       if (captured) ledger.append(el('p', captured, 'help ramp-capture'));
@@ -219,7 +219,7 @@
       const evidenceGap = v.finding?.outcome === 'INSUFFICIENT_EVIDENCE';
       add(panel, el('h3', 'What Uptime found for this bill'), fields([['Finding', evidenceGap ? 'Evidence gap: the governing agreement or usage evidence is missing' : shown(v.finding?.outcome)],
         ['Contract terms', 'No contract terms are attached to this bill']], 'ramp-finding'));
-      add(panel, el('h3','Ramp discussion'), ...discussion(ctx, 'No comments read on this bill.'),
+      add(panel, el('h3','Ramp discussion','ramp-glyph'), ...discussion(ctx, 'No comments read on this bill.'),
         note('Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
       return panel;
     }
@@ -234,7 +234,7 @@
         agreement:ctx.agreement_binding?.status === 'BOUND' ? ctx.agreement_binding.contract_id : ctx.agreement_binding?.status === 'HYPOTHETICAL' ? 'Hypothetical terms only' : 'No agreement bound to this record',
         vendor_credits:ctx.credit_links ? creditStatus(ctx.credit_links) : 'Not read for this record'}));
       const notes=list(ctx.discussion).map(d => note(`${ATTRIBUTION[d.attribution] || 'Comment in Ramp'} · ${when(d.created_at)} · Comment ID: ${shown(d.comment_id)}`));
-      add(panel, el('h3','Ramp discussion'), ...(notes.length ? notes : [note('No comments read on this record.')]),
+      add(panel, el('h3','Ramp discussion','ramp-glyph'), ...(notes.length ? notes : [note('No comments read on this record.')]),
         note('Uptime reads this record from Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
       return panel;
     }
@@ -306,7 +306,7 @@
     }
     // Amount and Ramp's own statuses, exactly as read.
     function billSummary(ctx, statement) {
-      return add(el('section', null, 'panel ramp-bill-card'), el('h2', 'In Ramp'),
+      return add(el('section', null, 'panel ramp-bill-card'), el('h2', 'In Ramp', 'ramp-glyph'),
         fields([['Amount', ctx.amount ? `${ctx.amount.currency} ${ctx.amount.amount}` : 'Amount unavailable'], ['Status', shown(ctx.status)],
           ['Ramp status', shown(ctx.status_summary)], ['Approval', shown(ctx.approval_status)]], 'ramp-bill'),
         fields([['Bill', ctx.object_id]], 'ramp-ids'), statement ? note(statement) : null);
@@ -321,7 +321,7 @@
         const missing = list(v.finding?.missing).filter(item => typeof item === 'string' && item);
         if (missing.length) add(found, add(el('ul', null, 'ramp-missing'), ...missing.map(item => el('li', item))));
         add(found, note(bindingWords(ctx)), note(attachWords(ctx)), note(creditStatus(ctx.credit_links) + '.'));
-        const talk = add(el('section', null, 'panel'), el('h2', 'Note in Ramp'), ...discussion(ctx, 'No comments read on this bill.'),
+        const talk = add(el('section', null, 'panel'), el('h2', 'Note in Ramp', 'ramp-glyph'), ...discussion(ctx, 'No comments read on this bill.'),
           note('Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.'));
         root.replaceChildren(billHead(ctx, 'Verified Ramp record'),
           billSummary(ctx, `Saved record read from Ramp ${when(v.capture?.observed_at)}${started}. Not a live read.`), found, talk,

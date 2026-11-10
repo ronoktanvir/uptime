@@ -75,9 +75,9 @@
   function signInForm(onSuccess) {
     const make = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = text; return node; };
     const form = make('form', 'panel signin');
-    // The product's own mark, served from this origin; the sign-in card is the whole page until an account is proven.
-    const mark = make('img'); mark.src = '/static/favicon.svg'; mark.alt = ''; mark.width = 32; mark.height = 32;
-    const brand = make('p', 'signin-brand'); brand.append(mark, make('span', 'signin-name', 'Uptime'), make('span', 'signin-for', 'for Ramp'));
+    // The Uptime wordmark; the sign-in card is the whole page until an account is proven.
+    const logo = make('span', 'brand-logo'); logo.setAttribute('role', 'img'); logo.setAttribute('aria-label', 'Uptime');
+    const brand = make('p', 'signin-brand'); brand.append(logo, make('span', 'signin-for', 'for Ramp'));
     const heading = make('h1', null, 'Sign in to Uptime');
     const note = make('p', null, 'Use your named account for this local workspace. Workspace setup prints the account name and where its credential file was saved.');
     const hint = make('p', 'signin-hint', 'Choose that file, or drag it onto this form. It is used only in this page to prove your identity and is never uploaded.');
