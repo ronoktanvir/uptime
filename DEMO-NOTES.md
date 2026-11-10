@@ -28,4 +28,5 @@ This branch, `demo/film-20261110`, is a separate line for the film. It was cut f
 ## How the demo line is run
 
 - No full test suite per merge. The JavaScript checks and the focused tests for what changed are run, and the pages are looked at.
+- The full suite has been run twice on this line, on November 10: on `977bd19` (05:29 to 05:36 PST) 5,539 passed and 3 failed, all three from the template builder's new files; after the fixes, on `1ac84fe` (05:38 to 05:45 PST) 5,543 passed and none failed in 421.39 s, with the 220 JavaScript checks, the progress graph check, the rehearsal and the repository check all passing. Logs: `suite-977bd19.log` and `suite-1ac84fe.log` in the coordinator's private task folder. Commits after `1ac84fe` have not had a full run.
 - Changed tests are listed in `DEMO-CHANGES.md`.
