@@ -1,11 +1,11 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 16:53 PST. It is updated as the two open branches land. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 17:02 PST. It is updated as the two open branches land. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
 - **A verified build exists and has been independently accepted.** It is `52f1a2f`, on the branch `frozen/submission-fallback-20261109`. Its full run passes on this machine (5,390 passed) and in GitHub's check workflow ([run 42720204760](https://github.com/ronoktanvir/uptime/actions/runs/42720204760)). A separate session then accepted it from a fresh clone, with the limits listed below.
-- **The default branch now has it.** At 16:42 PST, on Ronok's instruction to bring GitHub up to date for other people, `main` was fast-forwarded from `b6e93bd` to `11a6770`, with no rewrite of history. The repository is public. An anonymous clone taken afterwards checked out `11a6770`, showed the rebuilt README, and served the walkthrough with the README's own command. `main` moves forward again each time a merge is verified.
+- **The default branch now has it.** At 16:42 PST, on Ronok's instruction to bring GitHub up to date for other people, `main` was fast-forwarded from `b6e93bd` to `11a6770`, with no rewrite of history. The repository is public. An anonymous clone taken afterwards checked out `11a6770`, showed the rebuilt README, and served the walkthrough with the README's own command. `main` moves forward again each time a merge is verified; it moved a second time, to this branch's head, once the setup refusals passed a full run.
 - **Two things are still being built.** The interface redesign Ronok asked for and the Chrome side panel are each on their own branch. Each merges only after its own full run. If either does not land, the verified build stands.
 - **Nothing from Uptime has been written to Ramp**, and no real vendor was contacted.
 
@@ -15,7 +15,7 @@ In the order they block the submission.
 
 | # | Decision | What it turns on | State |
 |:--|:---|:---|:---|
-| 1 | Move `main` to the verified build | Judges clone the default branch. Independent acceptance ranked this first of its findings ([P1-A](acceptance.md)) | **Done at 16:42 PST** on his instruction: `b6e93bd` → `11a6770`, a fast-forward |
+| 1 | Move `main` to the verified build | Judges clone the default branch. Independent acceptance ranked this first of its findings ([P1-A](acceptance.md)) | **Done at 16:42 PST** on his instruction: `b6e93bd` → `11a6770`, a fast-forward. Moved again after the next verified merge |
 | 2 | Which film is the submission film | Role 6 wrote a measured two-minute storyboard and a filming checklist. Separately, the judge session started a "90-second walkthrough video" session at 15:34 PST, which the coordinator did not start | Open. The two must not contradict each other |
 | 3 | Film now on the verified build, or wait for the redesign | The [filming checklist](presentation.md#filming-checklist-for-ronok) works today on `52f1a2f`. The redesign changes every screen | Open |
 | 4 | Record the voiceover and the film; choose cut A or B after a timed read | Only a person can | Not done |
@@ -45,13 +45,13 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 
 | Branch | Commit | What it is | Verified |
 |:---|:---|:---|:---|
-| `main` | `11a6770`, moved at 16:42 PST | The default branch: the verified build plus records. It was `b6e93bd` before | Full run passes on its last merge `6848390` (second run), and the hosted checks pass on `11a6770` |
+| `main` | The integration branch's head, moved at 16:42 PST and again after `783d5ec` passed | The default branch: the verified build, the setup refusals and the records. It was `b6e93bd` before | Full run passes on `783d5ec`; the hosted checks pass on `11a6770` |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
-| `work/submission-integration-20261109` | this file's branch | `main` plus the next merge, `ea58f22`: plain one-line refusals for setup mistakes | Its focused checks pass. Two full runs on `ea58f22` stalled in a browser launch with no test failing; it reaches `main` when a full run passes |
-| `work/submission-design-20261109` | `203b252` so far | The redesign: every primary page is now in the new system. The side panel's bill page is in progress | Not merged. Hosted checks pass on its commits through `29ecdb3`; no local full run yet |
+| `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `ea58f22`: plain one-line refusals for setup mistakes | Full run passes on `783d5ec` (5,398), after two runs that stalled in a browser launch with no test failing |
+| `work/submission-design-20261109` | `c280283` so far | The redesign: every primary page is in the new system, and the side panel's bill page is written | Not merged. Hosted checks pass on its commits through `203b252`; the coordinator's review and a local full run come next |
 | `work/sidepanel-server-20261109` | `a162951` | Side-panel option, extension and setup option | Focused checks (52 Python, 5 JavaScript) and hosted checks pass; not merged, waiting for the bill page |
 | `work/submission-onboarding-20261109` | `088da4a` | Role 1, contract reading | Merged |
-| `work/submission-disputes-20261109` | `d1d0187` | Role 2, disputes, the walkthrough and the setup refusals | Merged into the integration branch; `d1d0187` is not on `main` yet |
+| `work/submission-disputes-20261109` | `d1d0187` | Role 2, disputes, the walkthrough and the setup refusals | Merged |
 | `work/submission-ramp-20261109` | `a15d987` | Role 3, Ramp | Merged |
 | `work/submission-ui-20261109` | `7ca68b2` | Role 4, interface before the redesign | Merged |
 | `work/submission-acceptance-20261109` | `e60cd60` | Role 5, acceptance, with its dated correction | Merged |
@@ -71,8 +71,9 @@ The required command is `uv run --locked pytest`, run once per merge, one run at
 | `6b93e31` | 5,390 passed | All application changes of roles 1–4 |
 | **`52f1a2f`** | **5,390 passed** | **The verified build.** 118 JavaScript checks, progress graph, rehearsal and secret scan also pass |
 | `e10067f`, `8aa8df4` | 5,390 passed each | Records only |
-| `6848390` | Aborted, then 5,390 passed | Records only. The first run stalled in a browser launch. **This is what `main` holds** |
-| `ea58f22` | Aborted twice; no result yet | The setup refusals. Both runs stalled in a browser launch, at 90 and 38 percent, with every test before that point passing |
+| `6848390` | Aborted, then 5,390 passed | Records only. The first run stalled in a browser launch |
+| `ea58f22` | Aborted twice | The setup refusals. Both runs stalled in a browser launch, at 90 and 38 percent, with every test before that point passing |
+| `783d5ec` | 5,398 passed | The same merge plus the records of its stalled runs: 5,390 and 8 new setup-refusal tests. **This is what `main` holds** |
 
 GitHub's check workflow runs the same command on a clean machine for every pushed commit. It passes on the verified build and on every integration commit through `11a6770`.
 
@@ -125,7 +126,7 @@ It builds a fresh walkthrough workspace, prints the credential file, the account
 |:---|:---|
 | Stop | Ctrl-C |
 | Resume the same workspace | The same command with `--resume` added |
-| Start over | The same command with a new folder name. A workspace is never overwritten. Running it again on an existing folder without `--resume` is refused. On `main` that refusal still prints a stack trace ending in the reason; the integration branch replaces it with one plain line (`ea58f22`) |
+| Start over | The same command with a new folder name. A workspace is never overwritten. Running it again on an existing folder without `--resume` is refused with one plain line that says what to do |
 | Use another port | Add `--origin http://127.0.0.1:PORT` when creating |
 | See all eleven steps one by one | Add `--step-by-step` when creating |
 | See the unclear-reply branch | Add `--counterparty-reply unclear` when creating |
@@ -138,7 +139,7 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 
 | Item | Owner | State |
 |:---|:---|:---|
-| Interface redesign, including the Agreements page, the Ramp bill page for the side panel, and two acceptance findings (the "$40 · Scenario only" row beside the verified bill; February's credit cell) | The redesign session | Every primary page is pushed (`203b252`); the bill page is in progress. Then: the coordinator's review, a full run, the merge, and `main` |
+| Interface redesign, including the Agreements page, the Ramp bill page for the side panel, and two acceptance findings (the "$40 · Scenario only" row beside the verified bill; February's credit cell) | The redesign session | Every primary page and the bill page are pushed (`c280283`). Next: the coordinator's review, a full run, the merge, and `main` |
 | Side panel: check inside the real extension, full run, merge | Coordinator | Waits for the bill page |
 | Setup command: its real-process tests take a port from 8821–8829 and skip if all are taken; they should take a port the system assigns | Role 2 | Not yet sent: messages are paused. The plain refusals and the `--serve` rule are done |
 | Interface-only acceptance check of the redesign | Role 5 | Waits for the redesign to merge |
