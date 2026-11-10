@@ -372,6 +372,11 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
 
 - **Company pictures** (the commit after the three above): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 132`, `pass 132`, `fail 0`. The same 23 files, one at a time under the same limit: 124 passed, none failed, 121 seconds. Looked at on the Overview and Cases at 1440×900: both pictures in their tiles, no console message, no page wider than its window. No test changed.
 
+- **Two points from the coordinator's look at the merged pages** (the commit after the company pictures):
+  - *The one-bill page at panel width.* After the second pass the narrow header had a stray rule above the account control and the workspace block squeezed into the "More tools" row. Below 760 px the header is three clean rows again: the workspace is its name alone, with no rule above the account control. Checked at 420×900 with the workspace name loaded.
+  - *The focus ring on the recovery heading.* The heading still takes focus after every action. Its ring is now drawn only when the keyboard is in use (`:focus-visible`), so it is not in the frame after a pointer click. Checked in Chrome on a fresh walkthrough: after a click the heading has focus and no ring; after Tab and Enter it has focus and a 2-pixel ring, and one Tab from the heading still reaches the next decision. The agreement headings that the jump chips focus follow the same rule.
+  - `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 132`, `pass 132`, `fail 0`. The same 23 files, one at a time under the same limit: 124 passed, none failed, 421 seconds (a slower machine, no run stalled). No test changed.
+
 ## 7. Known limits and open items
 
 - **Phone width is usable, not polished.** Ronok asked for the computer layout first and the phone later, since the demo does not use it. At 390×844 no page is wider than the window and every control is reachable, and the 390 px images above show the present state. Spacing, type sizes and the order of blocks at that width have not had the pass the computer layout had.

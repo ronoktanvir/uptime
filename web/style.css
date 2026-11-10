@@ -372,7 +372,9 @@ footer { font-size: 12px; color: var(--muted); }
 .lifecycle-head h2 { --icon: var(--i-path); }
 #finance-automation h2 { --icon: var(--i-pulse); }
 .panel > h2[tabindex], .panel-head h2[tabindex] { width: fit-content; max-width: 100%; border-radius: 4px; }
-.panel h2[tabindex]:focus { outline: 2px solid var(--accent); outline-offset: 4px; }
+/* A heading that takes focus after an action shows its ring when the keyboard is in use, not after a pointer click. */
+.panel h2[tabindex]:focus { outline: none; }
+.panel h2[tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .panel-head h2 { margin: 0; }
 .panel > h3 { margin: 20px 0 8px; }
@@ -762,7 +764,7 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
   .brand { grid-area: 1 / 1; padding: 4px 0; }
   .brand svg { width: 28px; height: 28px; }
   .brand span { display: flex; align-items: baseline; gap: 6px; font-size: 16px; }
-  .rail-foot { grid-area: 1 / 2; margin: 0; padding: 0; display: flex; align-items: center; gap: 4px; }
+  .rail-foot { grid-area: 1 / 2; margin: 0; padding: 0; border-top: 0; display: flex; align-items: center; gap: 4px; }
   .rail-foot button { min-height: 36px; }
   #refresh span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   #account { max-width: 40vw; }
@@ -775,7 +777,9 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
   .rail-more:has([aria-current]) > summary { color: var(--accent-strong); }
   .rail-more nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
   .rail-more nav a { min-height: 32px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; }
-  .rail-workspace { grid-area: 3 / 2; align-self: start; z-index: 1; margin: 0; padding: 8px 0 0; border: 0; font-size: 12px; font-weight: 500; color: var(--muted); text-align: right; pointer-events: none; }
+  .rail-workspace { grid-area: 3 / 2; align-self: start; z-index: 1; display: block; margin: 0; padding: 9px 0 0; border: 0; border-radius: 0; background: none; box-shadow: none; text-align: right; pointer-events: none; }
+  .rail-workspace .rail-avatar, .rail-workspace small { display: none; }
+  #workspace-name { display: block; max-width: 46vw; margin-left: auto; font-size: 12px; line-height: 18px; font-weight: 500; color: var(--muted); }
   main { padding-bottom: 40px; }
   .page-head { padding-top: 20px; }
   h1 { font-size: 24px; line-height: 30px; }
