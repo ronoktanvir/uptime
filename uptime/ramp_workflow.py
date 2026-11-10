@@ -218,6 +218,9 @@ DEMO_NOTE_SHAPES = {
     "credit_applied": re.compile(
         r"Uptime: the vendor awarded a [A-Z]{3} [0-9][0-9,]*\.[0-9]{2} service credit and it has been applied to this "
         r"invoice in Uptime\. Remaining balance [A-Z]{3} [0-9][0-9,]*\.[0-9]{2}\."),
+    "price_exception": re.compile(
+        r"Uptime: this bill is [A-Z]{3} [0-9][0-9,]*\.[0-9]{2} above the contracted rate \([^()\n]{1,200}\)\. "
+        r"Review it in Uptime before payment\."),
 }
 
 

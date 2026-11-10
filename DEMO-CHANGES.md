@@ -37,3 +37,10 @@ Tests changed on the demo line because the demo deliberately changes a rule. One
 No assertion about money, authority or what reached Ramp was weakened. No Python test was changed.
 
 - `web/ramp_bill.test.cjs` › `a matched bill leads with the possible credit, how it was matched, the evidence, the money and the stages`: the matched page no longer says who started the read, because on the demo line the Northwind bill was entered in Ramp and read back by an agent at the owner's direction.
+
+## Ramp demo server, round two: price exception, automatic notes, refresh, the credit as Ramp shows it (November 10)
+
+- `tests/test_ramp_demo_notes.py` › `test_several_verified_bills_load_and_the_single_record_is_unchanged`: each listed record now also carries `read`, so the comparison with `verified_record` leaves out `read` beside `match` and `notes`, and checks `read` for the saved DocuSign read.
+- `tests/test_ramp_demo_notes.py` › `test_the_northwind_sample_matches_and_the_docusign_bill_does_not`: the expected match gains `kind: service_credit` and `ramp_credit`, and its `route` is now `recovery`, because the case's workflow page moved off the Overview.
+
+No amount, stage or authority assertion was weakened.
