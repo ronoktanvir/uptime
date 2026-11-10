@@ -133,7 +133,7 @@
           const existing = latestBuild(data.builds, sample.id);
           const actions = el('div', 'actions');
           if (existing && given(existing.id)) {
-            actions.append(button('Open the run', () => onNavigate('template-build/' + encodeURIComponent(existing.id))),
+            actions.append(button('Open the run', () => onNavigate('template-build/' + encodeURIComponent(existing.id)), 'tb-primary'),
               pill(BUILD_STATES[existing.state] || String(existing.state || ''), BUILD_TONES[existing.state] || 'accent'));
           } else {
             const said = el('p', 'help tb-said'); said.setAttribute('role', 'status');
@@ -149,7 +149,7 @@
                 said.textContent = error && error.message ? error.message : 'The run could not be started.';
                 start.disabled = false;
               }
-            });
+            }, 'tb-primary');
             actions.append(start);
             card.append(actions, said);
             cards.append(card); return;
@@ -251,7 +251,7 @@
         if (!Number.isNaN(started)) view.clocks.push({node:clock, started});
         state.append(clock);
       }
-      add(card, meta, el('h3', '', given(s.label) ? s.label : s.id), state, given(s.summary) ? el('p', 'tb-summary', s.summary) : null,
+      add(card, meta, add(el('div', 'tb-step-title'), el('h3', '', given(s.label) ? s.label : s.id), state), given(s.summary) ? el('p', 'tb-summary', s.summary) : null,
         st.running ? el('div', 'tb-working') : null);
       card.setAttribute('aria-busy', st.running ? 'true' : 'false');
       return card;

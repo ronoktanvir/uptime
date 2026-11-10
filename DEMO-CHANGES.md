@@ -106,3 +106,18 @@ No existing test was changed for this.
 
 - `tests/test_ramp_demo_notes.py` › `test_the_northwind_sample_matches_and_the_docusign_bill_does_not`: the expected `agreement` gains `read_by` (`deterministic_document_parser`, the Northwind agreement's own extraction method), so a page can say who read each contract.
 - Added `tests/test_ramp_demo_round3.py`: a Ramp bill that agrees with another vendor's estimated credit (Corvid, `opportunities`) is matched with route `agreements`; auto mode posts its note once; a bill one cent off does not match. The note for such a bill ends "The estimate is waiting for review in Uptime." because no claim is being prepared for it; the fixed shapes in `uptime/ramp_workflow.py` allow that second ending.
+
+## Template builder page (November 10)
+
+Built against `docs/demo/TEMPLATE-BUILDER.md` (routes and the `sample`, `build` and `reading` shapes) with no change to that page.
+
+- New: `web/template_builder_ui.js` (the Agreements section "A contract type Uptime has not read before" and the run page
+  `#template-build/<id>`, drawn from `build` alone and polled every 700 ms until READY_FOR_REVIEW, APPROVED or FAILED;
+  polling stops when the view is left) and `web/template_builder.test.cjs` (14 tests through every build state, Jev not
+  reached, a blocking failure, approval, a reading with a term not found, a failed build and a disabled server).
+- `web/style.css`: one new block, "15c. Template builder", placed before "16. Side panel", which stays last.
+- `web/index.html`: one script tag for `/static/template_builder_ui.js`, before `app.js`.
+- `web/app.js`: `companionRoute` maps `template-build/<id>` to the view `template-build`; the view is rendered by the
+  template builder and marks Agreements in the rail; the Agreements route mounts the section after the companion page
+  renders; navigation and sign-out unmount it. Not added to the side-panel allowed routes.
+- No existing test was changed.

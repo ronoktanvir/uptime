@@ -1044,6 +1044,10 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-sample-facts { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .tb-sample-template { font-size: 13px; color: var(--ok); font-weight: 500; }
 .tb-sample .actions { margin-top: 6px; }
+/* The Agreements page styles its own buttons as secondary; this section's one action stays primary. */
+.uptime-v4 .tb-section button.tb-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.uptime-v4 .tb-section button.tb-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.uptime-v4 .tb-section button.tb-primary:disabled:hover { background: var(--accent); border-color: var(--accent); }
 .tb-said:not(:empty) { margin-top: 8px; font-size: 13px; color: var(--bad); }
 .tb-page { display: flex; flex-direction: column; gap: 16px; }
 .tb-back { display: inline-block; margin-bottom: 8px; font-size: 13px; font-weight: 500; text-decoration: none; }
@@ -1070,6 +1074,7 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-stage-cards.tb-parallel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .tb-step { position: relative; overflow: hidden; display: grid; gap: 4px; align-content: start; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); transition: border-color var(--ease), background var(--ease); }
 .tb-step h3 { font-size: 14px; line-height: 20px; }
+.tb-step-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; }
 .tb-step-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .tb-actor { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink); }
 .tb-actor::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--neutral); }
@@ -1078,7 +1083,8 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-actor-uptime .tb-actor::before { background: var(--ink); }
 .tb-actor-reviewer .tb-actor::before { background: var(--ok); border-radius: 50%; }
 .tb-model { padding: 0 6px; border-radius: 4px; background: var(--sunken); font-size: 11px; line-height: 16px; }
-.tb-step-state { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 2px; }
+.tb-step-state { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tb-running .tb-step-state .pill::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: 1px; animation: tb-pulse 1s ease-in-out infinite; }
 .tb-clock { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
 .tb-summary { font-size: 13px; line-height: 19px; color: var(--text); }
 .tb-pending { background: var(--sunken); box-shadow: none; }
@@ -1087,7 +1093,7 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-done { border-color: var(--ok-line); }
 .tb-failed { border-color: var(--bad-line); background: var(--bad-soft); }
 .tb-failed .tb-summary { color: var(--bad); }
-.tb-working { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--accent-soft); overflow: hidden; }
+.tb-working { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--accent-soft); overflow: hidden; }
 .tb-working::after { content: ""; position: absolute; top: 0; bottom: 0; width: 35%; background: var(--accent); border-radius: 2px; animation: tb-slide 1.3s ease-in-out infinite; }
 @keyframes tb-slide { from { left: -35%; } to { left: 100%; } }
 @keyframes tb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
@@ -1123,12 +1129,14 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-approval .actions { margin-top: 12px; }
 .tb-blocked { margin-top: 8px; color: var(--bad); font-weight: 500; }
 .tb-approved-line { color: var(--ok); font-weight: 600; }
-.tb-next-doc { padding: 14px 0; border-top: 1px solid var(--line); }
-.tb-next-doc:first-of-type { margin-top: 10px; }
+.tb-next > .help { margin-bottom: 4px; }
+.tb-next-doc { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--sunken); }
+.tb-next-doc h3 { font-size: 15px; line-height: 22px; }
 .tb-next-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .tb-reading { margin-top: 12px; display: grid; gap: 8px; }
 .tb-reading-line { font-weight: 600; color: var(--ink); }
-.tb-rules-mark { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--ok-soft); color: var(--ok); font-variant-numeric: tabular-nums; }
+.tb-rules-mark { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--ok-soft); color: var(--ok); }
+.tb-reading .table-scroll { background: var(--surface); }
 .tb-quote-text { font-family: var(--serif); font-size: 14px; color: var(--ink); }
 .tb-not-found td { background: var(--sunken); }
 @media (max-width: 900px) { .tb-stage-cards.tb-parallel { grid-template-columns: minmax(0, 1fr); } .tb-head-state { justify-items: start; } }
