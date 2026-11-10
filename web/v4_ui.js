@@ -342,29 +342,98 @@
       return add(n, note('A read-only summary of the replies, checks and permitted next actions. It grants no approval or closure.'), load, out);
     }
     function inspector(m, data, correspondence = false) {
-      const n = section(correspondence ? 'Correspondence case' : 'Case evidence & financial references');
+      if (correspondence) return caseView(m, data);
+      const n = section('Case evidence & financial references');
       const refs = {case_id:data.case_id ?? data.claim_id ?? data.id, receipt_id:data.receipt_id, packet_id:data.packet_id,
         memo_id:data.memo_id, credit_id:data.credit_id, bill_id:data.bill_id, application_id:data.application_id};
       add(n, record(refs), provenance(data.sources));
-      add(n, el('h3', 'Decision & unknowns'), record({outcome:data.outcome, state:data.state ?? data.stage, unknowns:data.unknowns, missing:data.missing ?? data.preflight?.missing, owner:data.owner, filing_cutoff:at(data.filing_cutoff), next_contact:at(data.next_contact), financials:data.financials}));
+      add(n, el('h3', 'Decision & unknowns'), record(decisionRecord(data)));
       // Receipts, digests and evaluator traces stay exact but collapsed, one click away.
-      for (const [title, value] of [['Event timeline', data.timeline ?? data.events], ['Evidence & receipts', {evidence:data.evidence, receipts:data.receipts, submissions:data.submissions, replies:data.replies}], ['Current and historical evaluation', {evaluation:data.evaluation ?? data.preflight, history:data.history, trace:data.trace}]]) {
-        add(n, details(title, value));
-      }
+      for (const [title, value] of caseRecords(data)) add(n, details(title, value));
       add(n, details('Complete server case record', data));
-      if (correspondence) {
-        if (typeof data.interpretation_review_url === 'string' && /^\/static\/interpretation\.html\?claim=inbox-[a-zA-Z0-9._-]+$/.test(data.interpretation_review_url)) {
-          const review = el('a', 'Review unfamiliar vendor wording'); review.href = data.interpretation_review_url;
-          n.append(review, note('The review page uses your enrolled identity. Meaning review alone cannot file, close a denial or change money.'));
-        }
-        const id = data.claim_id ?? data.id;
-        const conflicts = contradictions(data.contradicting_deliveries);
-        if (conflicts) n.append(conflicts);
-        if (typeof id === 'string' && id) n.append(actions(m, data, '/api/correspondence/claims/' + encodeURIComponent(id)));
-        if (typeof id === 'string' && id && data.trace_url === '/api/correspondence/claims/' + id + '/trace')
-          n.append(disputeRecord(m, '/api/correspondence/claims/' + encodeURIComponent(id) + '/trace'));
-      }
       return n;
+    }
+    const decisionRecord = data => ({outcome:data.outcome, state:data.state ?? data.stage, unknowns:data.unknowns, missing:data.missing ?? data.preflight?.missing,
+      owner:data.owner, filing_cutoff:at(data.filing_cutoff), next_contact:at(data.next_contact), financials:data.financials});
+    const caseRecords = data => [['Event timeline', data.timeline ?? data.events],
+      ['Evidence & receipts', {evidence:data.evidence, receipts:data.receipts, submissions:data.submissions, replies:data.replies}],
+      ['Current and historical evaluation', {evaluation:data.evaluation ?? data.preflight, history:data.history, trace:data.trace}]];
+    // Plain words for a claim's outcome, the same as on the Overview; any other code is shown as lower-case words.
+    const OUTCOME_WORDS = {ELIGIBLE:'Eligible', INELIGIBLE:'Ineligible', INSUFFICIENT_EVIDENCE:'Needs evidence', UNKNOWN:'Needs evidence'};
+    const OUTCOME_TONE = {ELIGIBLE:'ok', INSUFFICIENT_EVIDENCE:'warn', UNKNOWN:'warn'};
+    const words = value => String(value).replaceAll('_', ' ').toLowerCase();
+    const outcomePill = value => value == null ? null : el('span', OUTCOME_WORDS[value] || words(value), 'pill' + (OUTCOME_TONE[value] ? ' ' + OUTCOME_TONE[value] : ''));
+    const stagePill = value => value == null ? null : el('span', words(value), 'pill');
+    // A decimal string is shown with separators and never passes through a number. An absent amount stays absent.
+    function money(amount, currency) {
+      if (amount == null || amount === '') return null;
+      const raw = String(amount);
+      if (!/^-?\d+(\.\d+)?$/.test(raw)) return (currency ? currency + ' ' : '') + raw;
+      const [whole, fraction] = raw.split('.');
+      return (currency === 'USD' ? '$' : currency ? currency + ' ' : '') + whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fraction === undefined ? '' : '.' + fraction);
+    }
+    const LONG_MONTH = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const monthName = value => { const d = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(value)); return d ? LONG_MONTH[Number(d[2]) - 1] + ' ' + d[1] : value; };
+    // The claim's own record of what happened, in order: when, what, and the actor exactly as the server names it.
+    // A vendor reply is quoted under the event that delivered it, joined by the server's event identifier.
+    function caseTimeline(data) {
+      const rows = list(data.timeline).filter(row => row && typeof row === 'object' && (row.event != null || row.at != null));
+      if (!rows.length) return null;
+      const replies = new Map(list(data.replies).filter(r => r && typeof r === 'object' && typeof r.event_id === 'string' && typeof r.text === 'string').map(r => [r.event_id, r]));
+      const items = el('ol', undefined, 'v4-timeline');
+      rows.forEach(row => {
+        const reply = typeof row.event_id === 'string' ? replies.get(row.event_id) : null;
+        const refs = [row.event_id ? 'Event ' + row.event_id : null, row.receipt ? 'Receipt ' + row.receipt : null].filter(Boolean);
+        items.append(add(el('li', undefined, 'v4-step' + (reply ? ' v4-step-reply' : '')), el('time', shown(at(row.at))),
+          add(el('div', undefined, 'v4-step-body'),
+            add(el('p', undefined, 'v4-step-head'), el('strong', shown(row.event)), row.actor == null ? null : el('span', 'Actor: ' + row.actor, 'v4-actor')),
+            refs.length ? el('p', refs.join(' · '), 'v4-note') : null,
+            reply ? add(el('div', undefined, 'v4-reply'), el('p', 'Vendor reply, as received', 'v4-cited'), el('blockquote', reply.text)) : null)));
+      });
+      return items;
+    }
+    // One claim: where it stands, what a reviewer may do, and its correspondence in order. Receipts, digests,
+    // evaluation traces and the complete server record are one click away.
+    function caseView(m, data) {
+      const out = el('div', undefined, 'v4-case-view');
+      const id = data.claim_id ?? data.id, key = 'case:' + id;
+      const base = typeof id === 'string' && id ? '/api/correspondence/claims/' + encodeURIComponent(id) : null;
+      if (typeof data.interpretation_review_url === 'string' && /^\/static\/interpretation\.html\?claim=inbox-[a-zA-Z0-9._-]+$/.test(data.interpretation_review_url)) {
+        const review = el('a', 'Review unfamiliar vendor wording', 'v4-cta'); review.href = data.interpretation_review_url;
+        out.append(add(el('section', undefined, 'v4-panel v4-callout'), el('h2', 'Vendor wording to review'),
+          note('The review page uses your enrolled identity. Meaning review alone cannot file, close a denial or change money.'), review));
+      }
+      const conflicts = contradictions(data.contradicting_deliveries);
+      if (conflicts) out.append(add(el('section', undefined, 'v4-panel'), conflicts));
+      const scope = data.scope && typeof data.scope === 'object' ? data.scope : {};
+      const told = value => typeof value === 'string' || typeof value === 'number' ? value : null;
+      const wanted = data.requested_artifact && typeof data.requested_artifact === 'object' ? data.requested_artifact : null;
+      const standing = add(section('Where this claim stands'), facts([['Stage', stagePill(data.stage ?? data.state)], ['Outcome', outcomePill(data.outcome)],
+        ['Claim amount', money(data.amount, data.currency)], ['Filing cutoff', at(data.filing_cutoff)], ['Next contact', at(data.next_contact)],
+        ['Requested document', wanted ? [told(wanted.type) == null ? null : words(wanted.type), told(wanted.ref)].filter(value => value != null).join(' · ') : null],
+        ['Service', told(scope.service)], ['Invoice', told(scope.invoice)], ['Incident', told(scope.incident)], ['Account', told(scope.account)],
+        ['Contract', told(scope.contract)], ['Receipt', told(data.receipt_id)], ['Bill', told(data.bill_id)], ['Credit', told(data.credit_id)], ['Application', told(data.application_id)]]));
+      // Amounts this claim's correspondence establishes. This record does not post or apply credit; those two stages
+      // belong to the ledger and are shown on the Overview. The record's own six values stay exact one click away.
+      const ledger = data.ledger && typeof data.ledger === 'object' ? data.ledger : null;
+      if (ledger) {
+        const amounts = facts([['Estimated', money(ledger.estimated, data.currency)], ['Claimed', money(ledger.claimed, data.currency)],
+          ['Awarded', money(ledger.awarded, data.currency)], ['Disputed remainder', money(ledger.disputed_remainder, data.currency)]]);
+        amounts.className = 'v4-facts v4-amounts';
+        if (amounts.children.length) standing.append(amounts, note('One claim at each stage of its correspondence. The amounts are not added together.'));
+      }
+      // Only the actions the server offers for this claim; the server checks each one again when it is pressed.
+      if (base) add(standing, el('h3', 'Reviewer actions'), actions(m, data, base));
+      out.append(standing);
+      const steps = caseTimeline(data);
+      if (steps) out.append(add(section('Correspondence, in order'), note('Each step with the actor the server recorded for it. Vendor replies are quoted exactly as received.'), steps));
+      if (base && data.trace_url === '/api/correspondence/claims/' + id + '/trace') out.append(add(el('section', undefined, 'v4-panel'), disputeRecord(m, base + '/trace')));
+      const records = el('div', undefined, 'v4-fold-group');
+      add(records, fold(key + ':decision', 'Decision, unknowns and amounts as recorded', provenance(data.sources), record(decisionRecord(data))));
+      for (const [title, value] of caseRecords(data)) records.append(fold(key + ':' + title, title, record(value)));
+      records.append(fold(key + ':record', 'Complete server case record', record(data)));
+      out.append(records);
+      return out;
     }
     // A rule family's refusal summary (codes, fixed explanations, exact passages, missing terms). It is not the job
     // projection's public-refusal-diagnostic/1 record; every value renders as text. Shared by the proposal
@@ -1050,29 +1119,56 @@
         note('Public terms and private customer scope remain separate. Unsupported clauses and missing evidence must remain explicit in the server decision.'),
         note('Overlay fields: agreement, account, product, plan, effective_from, effective_until, fee_line_ref and currency. Include only customer scope supported by the governing agreement.')));
     }
+    // A table that reads as stacked rows on a narrow screen; explicit roles keep its meaning when the layout changes.
+    function sheet(titles, numeric = []) {
+      const table = el('table', undefined, 'stack'), head = el('thead'), headRow = el('tr'), body = el('tbody');
+      table.setAttribute('role', 'table'); head.setAttribute('role', 'rowgroup'); headRow.setAttribute('role', 'row'); body.setAttribute('role', 'rowgroup');
+      titles.forEach((title, index) => {
+        // A column of links has no visible heading; it is named for assistive technology.
+        const th = el('th', title || undefined, numeric.includes(index) ? 'num' : undefined); th.scope = 'col'; th.setAttribute('role', 'columnheader');
+        if (!title) th.setAttribute('aria-label', 'Open');
+        headRow.append(th);
+      });
+      add(table, add(head, headRow), body);
+      const row = (...cells) => {
+        const tr = el('tr'); tr.setAttribute('role', 'row');
+        cells.forEach((cell, index) => { cell.setAttribute('role', 'cell'); if (index && titles[index]) cell.setAttribute('data-label', titles[index]); tr.append(cell); });
+        body.append(tr);
+      };
+      return {table, row};
+    }
     function disputes(m, data) {
-      m.body.append(form(m, 'Set up a correspondence case', [ ['claim_id','Claim identifier (inbox- prefix)'], ...['account','vendor','contract','service','component','invoice','incident','currency','month','region'].map(k => [k,label(k)]) ], 'Create scoped case', v => {
+      const items = Array.isArray(data) ? data : list(data.claims);
+      if (items.length) {
+        const cases = sheet(['Case', 'Service month', 'Stage', 'Outcome', 'Claim amount', ''], [4]);
+        items.forEach(item => {
+          const id = typeof item === 'string' ? item : item.claim_id ?? item.id;
+          const claim = item && typeof item === 'object' ? item : {};
+          const scope = claim.scope && typeof claim.scope === 'object' ? claim.scope : {};
+          const usable = typeof id === 'string' && id;
+          // The case opens by route, so the address names it and Back returns to this list.
+          const link = (text, cls) => { const a = el('a', text, cls); a.href = '#cases/' + encodeURIComponent(id); return a; };
+          const name = add(el('td'), usable ? link(shown(claim.title ?? id), 'v4-case-title') : el('span', shown(claim.title ?? id)),
+            el('p', [claim.vendor, claim.title == null ? null : id].filter(value => value != null).join(' · '), 'v4-note'));
+          // An ineligible claim owes no credit: a determined outcome, not an unknown amount.
+          const amount = claim.amount == null && claim.outcome === 'INELIGIBLE' ? 'No credit' : money(claim.amount, claim.currency) ?? 'Not determined';
+          const open = el('td', undefined, 'v4-open'); if (usable) { const go = link('Open case', 'v4-open-link'); go.setAttribute('aria-label', 'Open case ' + id); open.append(go); }
+          cases.row(name, el('td', scope.month == null ? 'Not provided' : monthName(scope.month)), add(el('td', undefined, 'tag'), stagePill(claim.stage ?? claim.state) || el('span', 'Not provided')),
+            add(el('td'), outcomePill(claim.outcome) || el('span', 'Not provided')), el('td', amount, 'num'), open);
+        });
+        m.body.append(add(el('section', undefined, 'v4-panel v4-cases'), add(el('div', undefined, 'v4-scroll'), cases.table)));
+      } else m.body.append(note('No correspondence cases returned.'));
+      const tools = el('div', undefined, 'v4-fold-group');
+      tools.append(fold('cases:setup', 'Set up a correspondence case', form(m, 'Set up a correspondence case', [ ['claim_id','Claim identifier (inbox- prefix)'], ...['account','vendor','contract','service','component','invoice','incident','currency','month','region'].map(k => [k,label(k)]) ], 'Create scoped case', v => {
         // Decision D04-C: leave fields that do not apply blank; they are omitted, never sent as empty or null.
         const {claim_id, ...scope} = v; return {claim_id,scope:Object.fromEntries(Object.entries(scope).filter(([, x]) => x !== ''))};
-      }, '/api/correspondence/claims'));
-      m.body.append(note('Provisioned services deliver messages and evidence through CLI ingestion. Refresh to inspect receipts and available reviewer actions. Service credentials never belong in this browser.'));
-      const items = Array.isArray(data) ? data : list(data.claims);
-      items.forEach(item => {
-        const id = typeof item === 'string' ? item : item.claim_id ?? item.id;
-        const n = section(shown(id));
-        // A short summary first; the complete server record (hashes, trace, evaluation) stays one click away.
-        if (item && typeof item === 'object') {
-          const scope = item.scope && typeof item.scope === 'object' ? item.scope : {};
-          const summary = {title:item.title, vendor:item.vendor, month:scope.month, stage:item.stage ?? item.state, outcome:item.outcome,
-            amount:item.amount, currency:item.currency};
-          Object.keys(summary).forEach(key => { if (summary[key] === undefined) delete summary[key]; });
-          const full = add(el('details', undefined, 'v4-record'), el('summary', 'Complete case record'), provenance(item.sources), record(item));
-          add(n, record(summary), full);
-        }
-        if (typeof id === 'string' && id) n.append(button('Inspect case ' + id, () => active(m) && inspect(m.root, id)));
-        m.body.append(n);
-      });
-      if (!items.length) m.body.append(note('No correspondence cases returned.'));
+      }, '/api/correspondence/claims'),
+        note('Provisioned services deliver messages and evidence through CLI ingestion. Refresh to inspect receipts and available reviewer actions. Service credentials never belong in this browser.')));
+      // The complete server record of each case (hashes, trace, evaluation), exact and one click away.
+      const full = items.filter(item => item && typeof item === 'object');
+      if (full.length) tools.append(fold('cases:records', 'Complete record of each case (' + full.length + ')', ...full.map(item =>
+        add(el('details', undefined, 'v4-detail'), el('summary', shown(item.claim_id ?? item.id)), provenance(item.sources), record(item)))));
+      m.body.append(tools);
     }
     function portfolio(m, data) {
       m.body.append(note('Portfolio and seeded comparison are separate server-declared cohorts. A seeded scenario is not a portfolio total.'));
@@ -1135,7 +1231,9 @@
         await render(root,view);
       });
       refresh.className = 'v4-refresh'; m.body.className = 'v4-body';
-      add(wrap, add(el('div', undefined, 'page-head'), add(el('div'), eyebrow ? el('p', eyebrow, 'eyebrow') : null, el('h1', title), lead ? el('p', lead, 'lead') : null), refresh),
+      m.head = add(el('div'), eyebrow ? el('p', eyebrow, 'eyebrow') : null, el('h1', title), lead ? el('p', lead, 'lead') : null);
+      m.tools = add(el('div', undefined, 'v4-head-tools'), refresh);
+      add(wrap, add(el('div', undefined, 'page-head'), m.head, m.tools),
         readOnly() ? el('p', accessNote(), 'v4-banner') : null, m.status, m.result, m.body, identity()); root.replaceChildren(wrap);
       try {
         const data = supplied === undefined ? await request(m, view === 'vendors' ? '/api/vendors' : view === 'disputes' ? '/api/correspondence/claims' : '') : supplied;
@@ -1156,18 +1254,24 @@
     async function inspect(root, id) {
       const marker = {root};
       unmount(root); mounts.set(root,marker);
-      root.replaceChildren(note('Loading correspondence case…'));
+      // What is on screen stays, with its controls disabled, until the case is read; nothing blinks away and back.
+      if (!root.children || !root.children.length) root.replaceChildren(note('Loading correspondence case…'));
       try {
         const data = await request(marker, '/api/correspondence/claims/' + encodeURIComponent(id));
         if (mounts.get(root) !== marker) return;
         const m = await render(root,'case',data);
         if (!m || mounts.get(root) !== m) return;
         m.claimId = id;
+        // The page is titled by the claim; the way back is a route, so the address and the Back button agree.
+        const scope = data && data.scope && typeof data.scope === 'object' ? data.scope : {};
+        const back = el('a', 'All cases', 'v4-back'); back.href = '#cases';
+        const context = [data.vendor, scope.month == null ? null : monthName(scope.month)].filter(value => typeof value === 'string' && value).join(' · ');
+        m.head.replaceChildren(back, el('p', context || 'Correspondence case', 'eyebrow'), el('h1', shown(data.title ?? id)), el('p', shown(id), 'lead'));
+        m.tools.replaceChildren(button('Refresh case receipts', () => active(m) && inspect(root,id)));
         m.body.replaceChildren(inspector(m,data,true));
-        m.body.prepend(button('Back to correspondence', () => active(m) && render(root,'disputes')), button('Refresh case receipts', () => active(m) && inspect(root,id)));
         uncertain = false; sync();
       } catch (_) {
-        if (mounts.get(root) === marker) root.replaceChildren(note('Case unavailable. No changes were sent.'), button('Back to correspondence', () => active(marker) && render(root,'disputes')));
+        if (mounts.get(root) === marker) root.replaceChildren(note('Case unavailable. No changes were sent.'), button('Back to all cases', () => active(marker) && render(root,'disputes')));
       }
     }
     return Object.freeze({render, inspect, unmount, refreshAccess: sync});

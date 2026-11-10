@@ -403,7 +403,8 @@
       try { rampCase = decodeURIComponent(requested.slice(5)); } catch { rampCase = null; }
     }
     view = companionRoute(requested);
-    document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
+    // A page under a destination (one case under Cases) keeps that destination marked as the current one.
+    document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view || view.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
     const more = document.querySelector?.('.rail-more');
     if (more && more.querySelector?.('[aria-current]')) more.open = true;
     if (!content.children.length) content.append(empty('Loading server state…')); announce(''); load();
