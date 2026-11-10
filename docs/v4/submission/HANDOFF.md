@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:23 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:26 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -148,7 +148,8 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 | Item | Owner | State |
 |:---|:---|:---|
 | Setup command: its real-process tests took a port from 8821–8829 and skipped if all were taken | Role 2 | **Done** (`8addc5a`): they take a port the system assigns. Requested at 17:50 PST. The plain refusals and the `--serve` rule are done |
-| Interface-only acceptance check of the redesign and the side panel's default | Role 5 | Requested at 17:50 PST |
+| A model step inside the main case: a third authored reply the fixed rules do not recognise, read by one genuine model call and checked by the reviewer against their own reading | Role 2, then the coordinator | Approved by Ronok at about 21:30 PST, relayed by the judge session, for the variant and the one call only. The route already exists and was run without a model. The film is decided after the call |
+| Interface-only acceptance check of the redesign and the side panel's default | Role 5 | Re-asked after the restart, against `08852a6`. First requested at 17:50 PST |
 | Retake the README's three screenshots (taken before the icons and the typeface), add a README link to the third-party notices, the video link | Role 6 | Not yet requested: waiting for the look to stop changing. The storyboard re-cut, the filming checklist for `main`, the timing recheck and the README's side-panel paragraph are **done** (`7f6e9ec`). First requested at 17:50 PST. The README's and the judge guide's wording still matches the redesigned interface's labels |
 | Say how the requested log arrives | Role 6 | The narration and the README's third step say Uptime "attaches" and "verifies" the log. In the walkthrough the log and its verification record arrive as authored events through the signed intake, and Uptime matches them. The product's step names say attach and verify; its authority line says received. Requested with the item above |
 | Evidence requests are recognised only in wording the rules know | Disputes owner | Not changed in this push; the wording that overstated it is corrected |
