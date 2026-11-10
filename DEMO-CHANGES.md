@@ -101,3 +101,8 @@ No existing test was changed for this.
 - The workflow view gains `opportunities`, set after the finance summary: Corvid's October 2026 credit, evaluated read-only by the installed ACTIVE agreement (no case, claim, approval, posting or application). Fixtures and limits: `fixtures/corvid_ledger_demo/README.md`.
 - The portfolio (`web/workspace_ui.js` `portfolioRows`) shows each entry as a "Service credit" row, "Estimated · not claimed", next: Reviewer, linking to `#agreements`; the tiles count it.
 - No existing test changed. Added: `tests/test_demo_opportunities.py` and one test in `web/portfolio.test.cjs`.
+
+## Ramp demo server, round three: other vendors' estimated credits (November 10)
+
+- `tests/test_ramp_demo_notes.py` › `test_the_northwind_sample_matches_and_the_docusign_bill_does_not`: the expected `agreement` gains `read_by` (`deterministic_document_parser`, the Northwind agreement's own extraction method), so a page can say who read each contract.
+- Added `tests/test_ramp_demo_round3.py`: a Ramp bill that agrees with another vendor's estimated credit (Corvid, `opportunities`) is matched with route `agreements`; auto mode posts its note once; a bill one cent off does not match. The note for such a bill ends "The estimate is waiting for review in Uptime." because no claim is being prepared for it; the fixed shapes in `uptime/ramp_workflow.py` allow that second ending.

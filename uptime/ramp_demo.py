@@ -116,7 +116,7 @@ def ramp_credit(body, record):
     return {"status": "APPLIED_CONFIRMED", "amount": None if number is None else f"{number:.2f}"}
 
 
-def credit_match(body, record, invoice, view, agreement):
+def credit_match(body, record, invoice, view, agreement, read_by=None):
     ledger, claim = view["ledger"], view["claim"]
     month = next((m for m in view["months"] if m["month"] == claim["month"]), {})
     stage, credit = "ESTIMATED", None
@@ -141,7 +141,8 @@ def credit_match(body, record, invoice, view, agreement):
                         "currency": invoice.currency},
             "credit": {"amount": credit, "currency": ledger.get("currency") or invoice.currency,
                        "service_month": claim["month"], "stage": stage},
-            "agreement": {"id": agreement, "clause": clause.get("quote"), "citation": _cite(clause) or None},
+            "agreement": {"id": agreement, "clause": clause.get("quote"), "citation": _cite(clause) or None,
+                          "read_by": read_by},
             "inputs": _inputs(month),
             "balance": {"invoice": str(invoice.total), "credit_applied": applied, "remaining": remaining},
             "ramp_credit": ramp_credit(body, record),
@@ -149,7 +150,7 @@ def credit_match(body, record, invoice, view, agreement):
             "route": "recovery"}
 
 
-def price_match(invoice, view, agreement):
+def price_match(invoice, view, agreement, read_by=None):
     finding = view["price_finding"]
     if finding.get("invoice_id") != invoice.id:
         return None
@@ -169,12 +170,35 @@ def price_match(invoice, view, agreement):
                           "basis": clause.get("label"),
                           "state": "OPEN" if known and not _nonzero(applied) else finding.get("state"),
                           "review_stage": finding.get("state")},
-            "agreement": {"id": agreement, "clause": clause.get("quote"), "citation": _cite(clause) or None},
+            "agreement": {"id": agreement, "clause": clause.get("quote"), "citation": _cite(clause) or None,
+                          "read_by": read_by},
             "inputs": [],
             "balance": {"invoice": str(invoice.total), "credit_applied": applied,
                         "remaining": str(invoice.total) if not _nonzero(applied) else None},
             "next_action": None,
             "route": "recovery"}
+
+
+class _Invoice:
+    """An opportunity's invoice in the shape the identity check reads."""
+
+    def __init__(self, row):
+        self.id, self.vendor, self.total, self.currency = row["id"], row["vendor"], row["total"], row["currency"]
+
+
+def opportunity_match(body, record, opportunity):
+    """Another vendor's estimated credit, copied from the opportunity row; nothing filed or computed here."""
+    invoice, agreement = opportunity["invoice"], opportunity.get("agreement") or {}
+    return {"kind": "service_credit", "basis": ["vendor_name", "invoice_number", "amount"],
+            "invoice": {k: invoice[k] for k in ("id", "vendor", "total", "currency")},
+            "credit": {"amount": opportunity["amount"], "currency": opportunity["currency"],
+                       "service_month": opportunity["period"], "stage": opportunity.get("stage") or "ESTIMATED"},
+            "agreement": {k: agreement.get(k) for k in ("id", "clause", "citation", "read_by")},
+            "inputs": [dict(row) for row in opportunity.get("inputs") or []],
+            "balance": {"invoice": invoice["total"], "credit_applied": "0.00", "remaining": invoice["total"]},
+            "ramp_credit": ramp_credit(body, record),
+            "next_action": None,
+            "route": opportunity.get("route") or "agreements"}
 
 
 # --- Note text --------------------------------------------------------------------------
@@ -204,7 +228,8 @@ def note_text(kind, match):
         year, month = credit["service_month"].split("-")
         return (f"Uptime: this bill may be eligible for a {amount} service credit under agreement "
                 f"{match['agreement']['id']} ({MONTHS[int(month) - 1]} {year} availability). "
-                "A claim is being prepared in Uptime.")
+                + ("A claim is being prepared in Uptime." if match.get("route") == "recovery"
+                   else "The estimate is waiting for review in Uptime."))
     remaining = _money(match["invoice"]["currency"], balance["remaining"])
     if credit["stage"] != "APPLIED" or remaining is None:
         raise NoteRefused("The credit has not been applied to this invoice in Uptime yet.")
@@ -281,8 +306,13 @@ class RampDemo:
         workflow = getattr(self.app.state, "workflow", None)
         if workflow is None:
             return None
-        return {"view": workflow.view(principal)["workflow"], "agreement": workflow.package["overlay"]["agreement"],
-                "credit": workflow.settlement["invoice"], "price": workflow.months[workflow.bill_month]["invoice"]}
+        view = workflow.view(principal)["workflow"]
+        extraction = (workflow._vendor(principal, workflow.installation) or {}).get("extraction") or {}
+        return {"view": view, "agreement": workflow.package["overlay"]["agreement"],
+                "read_by": extraction.get("model") or extraction.get("method"),
+                "credit": workflow.settlement["invoice"], "price": workflow.months[workflow.bill_month]["invoice"],
+                "opportunities": [o for o in view.get("opportunities") or []
+                                  if o.get("kind") == "service_credit" and isinstance(o.get("invoice"), dict)]}
 
     @staticmethod
     def _match(body, record, context):
@@ -290,9 +320,12 @@ class RampDemo:
             return None
         ramp = record["ramp_context"]
         if _same_invoice(ramp, context["credit"]):
-            return credit_match(body, record, context["credit"], context["view"], context["agreement"])
+            return credit_match(body, record, context["credit"], context["view"], context["agreement"], context["read_by"])
         if _same_invoice(ramp, context["price"]):
-            return price_match(context["price"], context["view"], context["agreement"])
+            return price_match(context["price"], context["view"], context["agreement"], context["read_by"])
+        for opportunity in context["opportunities"]:
+            if _same_invoice(ramp, _Invoice(opportunity["invoice"])):
+                return opportunity_match(body, record, opportunity)
         return None
 
     def _entries(self):
