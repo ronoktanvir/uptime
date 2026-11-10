@@ -85,7 +85,8 @@ def test_several_verified_bills_load_and_the_single_record_is_unchanged(walk):
     records = first["verified_records"]
     assert len(records) == 2
     docusign, northwind = records
-    assert {k: v for k, v in docusign.items() if k not in ("match", "notes")} == verified_record()
+    assert {k: v for k, v in docusign.items() if k not in ("match", "notes", "read")} == verified_record()
+    assert docusign["read"] == {"at": verified_record()["capture"]["observed_at"], "live": False}
     assert northwind["ramp_context"]["object_id"] == NORTHWIND_BILL
     assert northwind["ramp_context"]["vendor_name"] == "Northwind Cloud"
     assert northwind["kind"] == "SAVED_VERIFIED_RECORD" and northwind["live_read"] is False
@@ -99,6 +100,7 @@ def test_the_northwind_sample_matches_and_the_docusign_bill_does_not(walk):
                                   "at": docusign["ramp_context"]["discussion"][0]["created_at"],
                                   "by": "RAMP", "kind": None}]
     assert northwind["match"] == {
+        "kind": "service_credit",
         "basis": ["vendor_name", "invoice_number", "amount"],
         "invoice": {"id": "NW-2026-04", "vendor": "Northwind Cloud", "total": "11000.00", "currency": "USD"},
         "credit": {"amount": "2400.00", "currency": "USD", "service_month": "2026-01", "stage": "ESTIMATED"},
@@ -108,8 +110,9 @@ def test_the_northwind_sample_matches_and_the_docusign_bill_does_not(walk):
                    {"label": "Credit percent", "value": "20%"},
                    {"label": "Governing monthly fee", "value": "USD 12000.00"}],
         "balance": {"invoice": "11000.00", "credit_applied": "0.00", "remaining": "11000.00"},
+        "ramp_credit": {"status": "NONE", "amount": None},
         "next_action": {"label": "Approve January claim"},
-        "route": "overview"}
+        "route": "recovery"}
     assert walk["final"]["verified_records"][2]["match"] is None  # amount differs by one cent
 
 

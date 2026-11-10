@@ -55,3 +55,10 @@ The case's figures, lifecycle, recovery card, decisions, step display, price exc
 - `web/browser-contract.test.cjs` › "configured workspace renders inside the finance shell and keeps native records accessible": the Overview now shows "Portfolio" and reads the workflow first, then `/api/vendors` and `/api/ramp/workspace`; "Northwind Cloud" and the single workflow read are now checked on `#recovery`.
 
 The Python browser tests above were edited but not run (no full suite). One headless Chrome look went through the same paths.
+
+## Ramp demo server, round two: price exception, automatic notes, refresh, the credit as Ramp shows it (November 10)
+
+- `tests/test_ramp_demo_notes.py` › `test_several_verified_bills_load_and_the_single_record_is_unchanged`: each listed record now also carries `read`, so the comparison with `verified_record` leaves out `read` beside `match` and `notes`, and checks `read` for the saved DocuSign read.
+- `tests/test_ramp_demo_notes.py` › `test_the_northwind_sample_matches_and_the_docusign_bill_does_not`: the expected match gains `kind: service_credit` and `ramp_credit`, and its `route` is now `recovery`, because the case's workflow page moved off the Overview.
+
+No amount, stage or authority assertion was weakened.

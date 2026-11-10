@@ -326,21 +326,26 @@ class RampWorkspace:
                     portfolio_note="Ramp records own financial status. Separate Uptime evidence and hypothetical findings carry their source labels.")
 
 
-def register_ramp_workspace(app,bench,auth,*,award_office=None,ramp_record_dirs=(),ramp_notes=None):
+def register_ramp_workspace(app,bench,auth,*,award_office=None,ramp_record_dirs=(),ramp_notes=None,
+                            ramp_notes_mode=None,ramp_reader=None):
     workspace=RampWorkspace(bench,award_office=award_office)
     app.state.ramp_workspace=bench.native_workspace=workspace
-    # Demo line: more verified bills, their walkthrough match and Uptime's notes. ``ramp_notes``
-    # is a provider factory (business_id -> comment provider) or None, which leaves the route unmounted.
-    from .ramp_demo import RampDemo, register_ramp_notes
-    demo=app.state.ramp_demo=RampDemo(app,bench,record_dirs=ramp_record_dirs,provider_factory=ramp_notes)
-    if ramp_notes is not None:
-        register_ramp_notes(app,demo,auth)
+    # Demo line: more verified bills, their walkthrough match, Uptime's notes and a read-only refresh.
+    # ``ramp_notes`` is a provider factory (business_id -> comment provider) or None, which leaves the
+    # notes route unmounted; ``ramp_reader`` is a read-only Ramp provider factory or None.
+    from .ramp_demo import RampDemo, register_ramp_demo
+    demo=app.state.ramp_demo=RampDemo(app,bench,record_dirs=ramp_record_dirs,provider_factory=ramp_notes,
+                                      notes_mode=ramp_notes_mode,reader_factory=ramp_reader)
+    register_ramp_demo(app,demo,auth)
 
     @app.get("/api/ramp/workspace")
     def overview(principal=Depends(auth.actor)):
         bench.require_tenant(principal)
         result=workspace.overview()
-        result["verified_records"]=demo.records(principal) if result["verified_record"] is not None else []
+        records=demo.records(principal) if result["verified_record"] is not None else []
+        if records and demo.auto_check(principal,records):
+            records=demo.records(principal)
+        result.update(verified_records=records,notes_mode=demo.notes_mode,notes_errors=demo.note_errors())
         return result
 
     @app.get("/api/ramp/records/{case_id}/workflow")
