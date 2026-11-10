@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from importlib.util import find_spec
 from ipaddress import ip_address
 from pathlib import Path
+from re import fullmatch
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -32,11 +33,26 @@ class ModeRequest(Empty):
     cap: str
 
 
+def panel_origin(value):
+    """The one browser-extension origin that may frame this app in a side panel, or None.
+
+    Framing is refused by default. An operator may name exactly one Chrome extension by its
+    origin; a web origin, a wildcard, a list or anything else is refused. This changes only who
+    may display the page. Sign-in and every action still require this app's own origin.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, str) or not fullmatch(r"chrome-extension://[a-p]{32}", value):
+        raise ValueError("The side panel option takes exactly one chrome-extension origin.")
+    return value
+
+
 def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=False, rehearsal_secret=None,
                service_credentials=None, origin=DEFAULT_ORIGIN, tenant=TENANT, native_config=None, award_office=None,
-               workflow_config=None, proposal_jobs=None, proposal_config=None):
+               workflow_config=None, proposal_jobs=None, proposal_config=None, side_panel_origin=None):
     if workflow_config is not None and (native_config is not None or mode != 'replay' or not rehearsal or tenant != TENANT):
         raise PermissionError('A configured local workflow requires its isolated rehearsal workspace, without a native connection.')
+    frame_ancestors = panel_origin(side_panel_origin) or "'none'"
     auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant)
     bench = Workbench(db_path, mode) if tenant == TENANT else Workbench(db_path, mode, tenant=tenant)
     if proposal_jobs is not None and proposal_config is not None:
@@ -96,7 +112,8 @@ def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=Fal
         response.headers.update({"Cache-Control": "no-store", "Referrer-Policy": "no-referrer",
             "X-Content-Type-Options": "nosniff", "Cross-Origin-Opener-Policy": "same-origin",
             "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; "
-                "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"})
+                "img-src 'self' data:; connect-src 'self'; frame-ancestors " + frame_ancestors
+                + "; base-uri 'none'; form-action 'none'"})
         return response
 
     auth.register(app)

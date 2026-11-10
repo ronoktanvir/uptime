@@ -57,12 +57,25 @@ def portal(tmp_path, monkeypatch):
         sock.close()
 
 
+ADD_AGREEMENT = 'Add an agreement'
+REVIEW_TOOLS = 'Review tools, version actions and the full record'
+
+
+def open_section(page, title):
+    """Forms and tools sit in closed sections, one click away; open one by its title unless it is already open."""
+    summary = page.locator('summary', has_text=title).first
+    summary.wait_for()
+    if not summary.evaluate('s => s.parentElement.open'):
+        summary.click()
+
+
 def login(page, origin, key, subject='companion-reviewer'):
     page.goto(origin + '/#vendors')
     page.get_by_label('Account name', exact=True).fill(subject)
     page.get_by_label('Credential file', exact=True).set_input_files({
         'name': 'generated-test-account.json', 'mimeType': 'application/json', 'buffer': json.dumps(key).encode()})
     page.get_by_role('button', name='Sign in', exact=True).click()
+    open_section(page, ADD_AGREEMENT)
     page.get_by_role('button', name='Stage local candidate', exact=True).wait_for()
 
 
@@ -90,10 +103,11 @@ def test_signed_wizard_refresh_routes_and_mobile(portal):
     with page.expect_response(lambda r: '/candidates' in r.url and r.request.method == 'POST') as response:
         page.get_by_role('button', name='Confirm stage local candidate', exact=True).click()
     assert response.value.status == 200
+    open_section(page, REVIEW_TOOLS)
     page.get_by_role('button', name='Submit independent tests', exact=True).wait_for()
     assert len(writes) == 1
     assert page.get_by_text('SHADOW', exact=True).count() > 0
-    for route, heading in [('advanced','Advanced companion workflows'), ('disputes','Correspondence & disputes'),
+    for route, heading in [('advanced','Advanced companion workflows'), ('disputes','Cases'),
                            ('lab','Vendor onboarding'), ('regression','Portfolio comparison'),
                            ('dashboard','Evidence ledger'), ('ramp','Ramp worklist')]:
         page.evaluate('(route) => { location.hash = route; }', route)
@@ -101,8 +115,10 @@ def test_signed_wizard_refresh_routes_and_mobile(portal):
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), route
     assert not errors
     page.evaluate("location.hash = 'vendors'")
+    open_section(page, ADD_AGREEMENT)
     page.get_by_role('button', name='Stage local candidate', exact=True).wait_for()
     page.reload()
+    open_section(page, ADD_AGREEMENT)
     page.get_by_role('button', name='Stage local candidate', exact=True).wait_for()
     assert page.get_by_role('button', name='Stage local candidate', exact=True).is_disabled()
 

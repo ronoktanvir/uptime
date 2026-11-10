@@ -1,0 +1,187 @@
+"""The walkthrough setup passes the side-panel framing option to the served app only.
+
+It is a serving option: validated before anything is written, never stored in the
+workspace and never part of the workspace digest. No browser is used.
+"""
+import json
+import subprocess
+import sys
+
+from fastapi.testclient import TestClient
+import pytest
+
+from scripts import setup_northwind as setup
+from uptime.auth import DEFAULT_ORIGIN, SCRIPT
+from uptime.auth_client import ReviewerClient
+
+PANEL = 'chrome-extension://' + 'abcdefghijklmnop' * 2
+PERSON = ['Approve January claim', 'Approve response', 'Post to Local ledger', 'Apply credit to eligible invoice']
+
+
+def frame_ancestors(app):
+    with TestClient(app, base_url=DEFAULT_ORIGIN, client=('127.0.0.1', 1234)) as client:
+        policy = client.get('/api/workspace/workflow').headers['content-security-policy']
+    return policy.split('frame-ancestors ', 1)[1].split(';', 1)[0].strip()
+
+
+def cli(directory, *extra):
+    script = setup.ROOT / 'scripts' / 'setup_northwind.py'
+    return subprocess.run([sys.executable, str(script), '--directory', str(directory), *extra],
+                          capture_output=True, text=True, timeout=300, cwd=setup.ROOT)
+
+
+def walk(app, private):
+    with TestClient(app, base_url=private['origin'], client=('127.0.0.1', 1234), raise_server_exceptions=False) as client:
+        actor = ReviewerClient(client, private['origin'], SCRIPT, private['rehearsal_secret'])
+        read = lambda: setup.checked(client.get('/api/workspace/workflow', headers=actor.headers))['workflow']
+        clicked = []
+        while (view := read())['next_actions']:
+            clicked.append(view['next_actions'][0]['label'])
+            setup.checked(actor.post('/api/workspace/workflow/actions/' + view['next_actions'][0]['id'], {}))
+        return clicked, read()['ledger']
+
+
+def test_the_option_reaches_the_policy_on_create_and_resume_and_is_never_stored(tmp_path):
+    directory = tmp_path / 'ws'
+    app, private, events = setup.prepare(directory, DEFAULT_ORIGIN, side_panel_origin=PANEL)
+    assert frame_ancestors(app) == PANEL
+    stored = (directory / 'workspace.json').read_text()
+    assert 'chrome-extension' not in stored and 'side_panel' not in stored
+    resumed, _, _ = setup.open_workspace(directory, side_panel_origin=PANEL)
+    assert frame_ancestors(resumed) == PANEL
+    plain, _, _ = setup.open_workspace(directory)
+    assert frame_ancestors(plain) == "'none'"
+
+
+def test_without_the_option_framing_stays_refused(tmp_path):
+    app, _, _ = setup.prepare(tmp_path / 'ws', DEFAULT_ORIGIN)
+    assert frame_ancestors(app) == "'none'"
+
+
+def test_digest_and_the_four_decision_walkthrough_are_identical_with_and_without_it(tmp_path):
+    results = []
+    for name, panel in (('with', PANEL), ('without', None)):
+        app, private, events = setup.prepare(tmp_path / name, DEFAULT_ORIGIN, routine_automation=True, side_panel_origin=panel)
+        with TestClient(app, base_url=private['origin'], client=('127.0.0.1', 1234)) as client:
+            setup.seed(client, app, private, events)
+        digest = app.state.workflow.package_digest
+        clicked, ledger = walk(app, private)
+        results.append((digest, clicked, ledger['applied']))
+    assert results[0] == results[1]
+    assert results[0][1] == PERSON and results[0][2] == '2400.00'
+
+
+@pytest.mark.parametrize('value', ['https://example.com', 'chrome-extension://short', 'chrome-extension://' + 'z' * 32,
+                                   PANEL + ' ' + PANEL, '*'])
+def test_a_bad_value_is_refused_before_a_workspace_exists(tmp_path, value):
+    directory = tmp_path / 'ws'
+    refused = cli(directory, '--side-panel-origin', value)
+    assert refused.returncode == 1 and 'Traceback' not in refused.stderr
+    assert refused.stderr.strip().splitlines() == ['setup_northwind: The side panel option takes exactly one chrome-extension origin.']
+    assert not directory.exists()
+    with pytest.raises(ValueError):
+        setup.prepare(tmp_path / 'api', DEFAULT_ORIGIN, side_panel_origin=value)
+    assert not (tmp_path / 'api').exists()
+
+
+def free_port():
+    import socket
+    for port in range(8821, 8830):  # the throwaway range assigned for this push
+        with socket.socket() as probe:
+            if probe.connect_ex(('127.0.0.1', port)) != 0:
+                return port
+    pytest.skip('No free throwaway port in 8821-8829.')
+
+
+def serve(directory, origin, *extra, deadline=240):
+    """Run setup with --serve as a real process; return its stderr block and the served policy, then stop it.
+
+    A created workspace is served at ``origin``; a resumed one at the origin it was created with.
+    """
+    import time
+    import urllib.error
+    import urllib.request
+    script = setup.ROOT / 'scripts' / 'setup_northwind.py'
+    process = subprocess.Popen([sys.executable, str(script), '--directory', str(directory), '--serve', *extra,
+                                *(() if '--resume' in extra else ('--origin', origin))],
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=setup.ROOT)
+    try:
+        lines, until = [], time.monotonic() + deadline
+        while time.monotonic() < until:
+            line = process.stderr.readline()
+            if not line:
+                break
+            lines.append(line.rstrip('\n'))
+            if line.strip() == origin:
+                break
+        while time.monotonic() < until:
+            try:
+                with urllib.request.urlopen(origin + '/api/workspace/workflow', timeout=2) as response:
+                    policy = response.headers['content-security-policy']
+                break
+            except urllib.error.HTTPError as answered:  # 401 without sign-in still carries the policy
+                policy = answered.headers['content-security-policy']
+                break
+            except OSError:
+                time.sleep(0.2)
+        else:
+            raise AssertionError('The served workspace did not answer: ' + '\n'.join(lines[-5:]))
+        return origin, lines, policy.split('frame-ancestors ', 1)[1].split(';', 1)[0].strip()
+    finally:
+        process.terminate()
+        process.wait(timeout=30)
+
+
+def test_without_serve_the_option_is_refused_after_its_value_is_checked(tmp_path):
+    directory = tmp_path / 'ws'
+    refused = cli(directory, '--side-panel-origin', PANEL)
+    assert refused.returncode == 2 and 'Traceback' not in refused.stderr
+    assert refused.stderr.strip().splitlines()[-1].endswith('error: --side-panel-origin requires --serve')
+    assert not directory.exists()
+
+
+def test_served_create_and_resume_frame_only_when_given_and_print_the_line_first(tmp_path):
+    directory = tmp_path / 'ws'
+    created_origin = 'http://127.0.0.1:' + str(free_port())
+    origin, lines, frame = serve(directory, created_origin, '--side-panel-origin', PANEL)
+    assert frame == PANEL
+    assert lines[-5:] == ['Only the side panel of ' + PANEL + ' may frame this served workspace.',
+                          'Sign in with the reviewer file below (private key, mode 0600; never share or commit it).',
+                          str(directory / 'scripted-reviewer.jwk'), SCRIPT, origin]
+    stored = (directory / 'workspace.json').read_bytes()
+    assert b'chrome-extension' not in stored
+    origin, lines, frame = serve(directory, created_origin, '--resume')
+    assert frame == "'none'" and not any('side panel' in line for line in lines)
+    assert lines[-4].startswith('Sign in with the reviewer file below')
+    origin, lines, frame = serve(directory, created_origin, '--resume', '--side-panel-origin', PANEL)
+    assert frame == PANEL and lines[-5].startswith('Only the side panel of ')
+    assert (directory / 'workspace.json').read_bytes() == stored
+    refused = cli(directory, '--resume', '--serve', '--side-panel-origin', 'https://example.com')
+    assert refused.returncode == 1 and 'Traceback' not in refused.stderr
+    assert (directory / 'workspace.json').read_bytes() == stored
+
+
+def test_the_public_proposal_reopen_carries_the_option(tmp_path, monkeypatch):
+    import os
+    import uptime.public_proposal_config as proposal_config
+
+    class Provider:  # stand-in: the real one runs the executable's --help on construction
+        def __init__(self, executable, **kwargs):
+            self.executable = executable
+
+    monkeypatch.setattr(proposal_config, 'SafePublicClaude', Provider)
+    directory = tmp_path / 'ws'
+    setup.prepare(directory, DEFAULT_ORIGIN)
+    private_dir = tmp_path / 'proposals'
+    private_dir.mkdir(mode=0o700)
+    approvals = private_dir / 'approvals.json'
+    approvals.write_text(json.dumps(dict(version=1, limits=dict(daily_jobs=1, daily_budget_usd='1.00'), approvals=[])))
+    os.chmod(approvals, 0o600)
+    config = private_dir / 'config.json'
+    config.write_text(json.dumps(dict(version=1, executable='/usr/bin/true', approvals_path=str(approvals),
+                                      kinds=['correspondence'])))
+    os.chmod(config, 0o600)
+    framed, _, _ = setup.open_workspace(directory, proposal_config=config, side_panel_origin=PANEL)
+    assert framed.state.public_proposal_jobs is not None and frame_ancestors(framed) == PANEL
+    plain, _, _ = setup.open_workspace(directory, proposal_config=config)
+    assert frame_ancestors(plain) == "'none'"

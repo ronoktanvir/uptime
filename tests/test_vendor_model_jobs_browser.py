@@ -22,6 +22,18 @@ BASE = '/api/vendors/' + VENDOR
 CHROME = Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 
 
+ADD_AGREEMENT = 'Add an agreement'
+REVIEW_TOOLS = 'Review tools, version actions and the full record'
+
+
+def open_section(page, title):
+    """Forms and tools sit in closed sections, one click away; open one by its title unless it is already open."""
+    summary = page.locator('summary', has_text=title).first
+    summary.wait_for()
+    if not summary.evaluate('s => s.parentElement.open'):
+        summary.click()
+
+
 def await_selected_proposal(page):
     """Family jobs may finish before or after the submit response; refresh the selection only when it is needed."""
     finished = page.get_by_text('Every family evaluation has finished.', exact=False)
@@ -149,6 +161,7 @@ def test_browser_checks_permission_generates_and_stages_separate_overlay(selecti
             page.get_by_label('Credential file', exact=True).set_input_files({
                 'name': 'scripted-runtime-account.json', 'mimeType': 'application/json', 'buffer': json.dumps(key).encode()})
             page.get_by_role('button', name='Sign in', exact=True).click()
+            open_section(page, ADD_AGREEMENT)
             page.get_by_role('button', name='Check generation access', exact=True).wait_for()
             assert page.get_by_label('Extraction profile', exact=True).count() == 0
             for label, value in [('Proposal vendor identifier', AUTO), ('Public document name', document['name']),
@@ -194,6 +207,7 @@ def test_browser_checks_permission_generates_and_stages_separate_overlay(selecti
             page.get_by_label('Private customer overlay for this proposal (JSON object; never sent for extraction)', exact=True).fill(json.dumps(overlay))
             page.get_by_role('button', name='Review shadow candidate request', exact=True).click()
             page.get_by_role('button', name='Confirm shadow candidate', exact=True).click()
+            open_section(page, REVIEW_TOOLS)
             page.get_by_role('button', name='Submit independent tests', exact=True).wait_for()
             assert page.get_by_text('SHADOW', exact=True).count() > 0
             assert len(provider.calls) == (0 if entry == 'offline' else 2)

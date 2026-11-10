@@ -1,6 +1,6 @@
 'use strict';
-// Renders a vendor card from recorded server JSON with the real web/v4_ui.js, opens "Show review requirements"
-// and prints what a reviewer would read. Usage: node render_requirements.cjs <payload.json>
+// Renders a vendor card from recorded server JSON with the real web/v4_ui.js and prints the review requirements
+// a reviewer would read on it. Usage: node render_requirements.cjs <payload.json>
 const fs = require('node:fs');
 const {Element, document} = require('./companion_dom.cjs');
 const {create} = require('../../web/v4_ui.js');
@@ -18,10 +18,12 @@ const {create} = require('../../web/v4_ui.js');
   const root = new Element('main');
   const ui = create({document, getAccess:() => ({canWrite:false}), api});
   await ui.render(root, 'vendors');
+  // A vendor whose detail carries a source manifest has its requirements read with it and shown on its card;
+  // the on-request control remains only for a vendor without one.
   const open = root.all('button').find(b => b.textContent === 'Show review requirements');
-  if (!open) throw new Error('No review requirements control');
-  await open.listeners.click();
+  if (open) await open.listeners.click();
   const card = root.all('div').find(n => String(n.className).split(' ').includes('v4-requirements-card'));
+  if (!card) throw new Error('No review requirements shown');
   process.stdout.write(JSON.stringify({text:card ? card.textContent : null, calls,
     blockquotes:card ? card.all('blockquote').map(q => q.textContent) : [],
     markup:root.all('img').length + root.all('script').length}));

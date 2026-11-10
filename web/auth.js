@@ -63,18 +63,21 @@
     return send(path, payload, current.token, headers);
   }
   function signInForm(onSuccess) {
-    const form = document.createElement('form');
-    form.className = 'panel';
-    const heading = document.createElement('h1'); heading.textContent = 'Sign in to Uptime';
-    const note = document.createElement('p');
-    note.textContent = 'Use your named account for this local workspace. Workspace setup prints the account name and where its credential file was saved. Choose that file, or drag it onto this form. It is used only in this page to prove your identity and is never uploaded.';
-    const feedback = document.createElement('p'); feedback.setAttribute('role','status');
+    const make = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = text; return node; };
+    const form = make('form', 'panel signin');
+    // The product's own mark, served from this origin; the sign-in card is the whole page until an account is proven.
+    const mark = make('img'); mark.src = '/static/favicon.svg'; mark.alt = ''; mark.width = 32; mark.height = 32;
+    const brand = make('p', 'signin-brand'); brand.append(mark, make('span', 'signin-name', 'Uptime'), make('span', 'signin-for', 'for Ramp'));
+    const heading = make('h1', null, 'Sign in to Uptime');
+    const note = make('p', null, 'Use your named account for this local workspace. Workspace setup prints the account name and where its credential file was saved.');
+    const hint = make('p', null, 'Choose that file, or drag it onto this form. It is used only in this page to prove your identity and is never uploaded.');
+    const feedback = make('p'); feedback.setAttribute('role','status');
     function field(title, type, auto) {
-      const label = document.createElement('label'); label.textContent = title;
+      const label = make('label', null, title);
       const input = document.createElement('input'); input.type = type; input.required = true; input.autocomplete = auto;
       label.append(input); form.append(label); return input;
     }
-    form.append(heading, note);
+    form.append(brand, heading, note);
     const subject = field('Account name', 'text', 'username'), credential = field('Credential file', 'file', 'off');
     credential.accept = '.json,.jwk,application/json,application/jwk+json';
     // A dropped file is held only in this form until sign-in; the account name of an expired session is prefilled.
@@ -82,15 +85,17 @@
     let dropped = null;
     const previous = session();
     if (previous && typeof previous.subject === 'string') subject.value = previous.subject;
-    form.addEventListener('dragover', event => { event.preventDefault(); });
+    const dragging = on => { if (form.classList) form.classList.toggle('dragging', on); };
+    form.addEventListener('dragover', event => { event.preventDefault(); dragging(true); });
+    form.addEventListener('dragleave', () => dragging(false));
     form.addEventListener('drop', event => {
-      event.preventDefault();
+      event.preventDefault(); dragging(false);
       const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
       if (file) { dropped = file; feedback.textContent = 'Credential file selected: ' + file.name; }
     });
     credential.addEventListener('change', () => { dropped = null; });
     const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = 'Sign in';
-    form.append(submit, feedback);
+    form.append(hint, submit, feedback);
     form.addEventListener('submit', async event => {
       event.preventDefault(); submit.disabled = true;
       try {

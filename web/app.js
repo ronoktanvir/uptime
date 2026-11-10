@@ -42,6 +42,8 @@
     if (requested.startsWith('cases/')) return 'disputes/' + requested.slice(6);
     if (requested === 'rehearsal') return 'dashboard';
     if (requested === 'records') return 'records';
+    // One Ramp bill by Ramp's own id, for the panel beside Ramp.
+    if (requested.startsWith('ramp-bill/')) return 'ramp-bill';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
     return ['dashboard','onboarding','lab','regression','advanced','vendors','disputes','policy','integrations'].includes(requested) || requested.startsWith('disputes/') ? requested : 'ramp';
   }
@@ -50,9 +52,11 @@
   const $ = selector => document.querySelector(selector);
   const content = $('#content'), notice = $('#notice'), dialog = $('#inspector');
   let view = 'ramp', generation = 0, caseGeneration = 0, activeCase = null, busy = false;
-  let rampCase = null, rampScroll = 0;
+  let rampCase = null, rampScroll = 0, rampBill = null;
+  // Which page a Ramp record was opened from: it stays the marked destination, and "Back" returns to it.
+  let rampOrigin = 'ramp';
   let companion, companionAssets, signedPage = false, companionAccess = {};
-  const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
+  const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + (route === 'ramp' ? rampOrigin : route)); navigate(); }});
   // The finance view disables actions when this page holds no signing key (for example after a reload).
   const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account,canAct:() => window.uptimeAuth?.canSign?.() !== false});
   const filters = {query: '', status: '', sort: 'value-desc'};
@@ -86,7 +90,10 @@
   let workspaceName = null, workspaceNameRead = null;
   function showWorkspaceName() {
     const name = workspaceName || 'Uptime';
-    $('#workspace-name').textContent = name;
+    const slot = $('#workspace-name');
+    slot.textContent = name;
+    // Without a workspace name the line under the brand would only repeat the product name.
+    if (slot.parentElement) slot.parentElement.hidden = !workspaceName;
     document.title = workspaceName ? workspaceName + ' · Uptime' : 'Uptime';
   }
   function companyOf(workflow) {
@@ -109,9 +116,23 @@
     content.replaceChildren(window.uptimeAuth.signInForm(() => { signedPage = true; navigate(); }));
   }
   function showError(target, error, retry) { target.replaceChildren(add(el('section', 'panel error'), el('h2', '', 'Unable to load this view'), el('p', '', error.message || 'Connection unavailable. Check that the server is running.'), button('Try again', retry, 'quiet'))); }
+  // Presentation only: an instant with an explicit offset is written as the other pages write it ("Nov 9, 2026,
+  // 23:18 UTC"); the exact server value stays on the element. Anything else is shown as sent.
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function instant(value) {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}, ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')} UTC`;
+  }
+  function moment(value) {
+    const shown = instant(value), node = el('time', '', shown || value);
+    if (shown) { node.setAttribute('datetime', value); node.title = value; }
+    return node;
+  }
   function timeline(items, history = false) {
     const node = el('ol', 'activity');
-    list(items).forEach(item => { const row = el('li'); if (typeof item === 'string') add(row, el('span', '', item), sources([])); else add(row, el('time', '', item.at), el('span', '', display(item.event)), item.case_id ? el('div', 'help', `Case ${item.case_id}`) : null, sources(item.sources)); node.append(row); });
+    list(items).forEach(item => { const row = el('li'); if (typeof item === 'string') add(row, el('span', '', item), sources([])); else add(row, moment(item.at), el('span', '', display(item.event)), item.case_id ? el('div', 'help', `Case ${item.case_id}`) : null, sources(item.sources)); node.append(row); });
     return node.children.length ? node : empty(history ? 'No history returned by the server.' : 'No events returned by the server.');
   }
   // Unknown policy/integration fields remain read-only; source arrays are never renamed or inferred.
@@ -128,7 +149,7 @@
   }
   function renderDashboard(data) {
     const head = heading('Evidence ledger', 'Unpaid invoice exposure and the current recovery case. Each figure belongs to a separate financial stage.');
-    head.append(el('div', 'as-of', `Updated ${display(data.as_of)}`));
+    head.append(el('div', 'as-of', `Updated ${instant(data.as_of) || display(data.as_of)}`));
     const metrics = el('section', 'metrics'); metrics.setAttribute('aria-label', 'Financial stages');
     list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', display(metric.label)), el('div', 'metric-value', metric.value), el('p', '', display(metric.note)), sources(metric.sources))));
     if (!metrics.children.length) metrics.append(empty('No financial metrics returned.'));
@@ -281,7 +302,7 @@
     const ramp=data.ramp, publicData=data.public_evidence, model=data.model;
     const bills=panel('Ramp Bill Pay');
     add(bills,el('p','',ramp.note),sources(ramp.sources));
-    if (ramp.observed_at) bills.append(el('p','help','Retrieved '+ramp.observed_at));
+    if (ramp.observed_at) bills.append(el('p','help','Retrieved '+(instant(ramp.observed_at) || ramp.observed_at)));
     if (ramp.ui_url) {
       const link=el('a','case-link','Open Ramp'); link.href='https://demo.ramp.com'; link.target='_blank';link.rel='noopener noreferrer';bills.append(link);
     }
@@ -341,8 +362,9 @@
     const token = ++generation; const route = view; content.setAttribute('aria-busy', 'true');
     // Overview and Activity read the workflow themselves; any other page reads the name once, after its own content.
     const readsWorkflow = route === 'activity' || (route === 'ramp' && !rampCase);
+    // The one-bill page makes exactly one request, the saved Ramp workspace, so it does not read the workspace name.
     try { await renderRoute(); } finally {
-      if (!readsWorkflow && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
+      if (!readsWorkflow && route !== 'ramp-bill' && token === generation && !workspaceNameRead) readWorkspaceName().then(() => { if (token === generation) showWorkspaceName(); });
     }
     async function renderRoute() {
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
@@ -354,6 +376,17 @@
         await workspaceWorkflow.activity(content, projection.workflow);
       } else content.replaceChildren(heading('Activity', 'What happened in this workspace, in order.'), empty('No workflow activity is recorded in this workspace.'));
       showWorkspaceName();
+      return;
+    }
+    if (route === 'ramp-bill') {
+      if (!ramp) throw new Error('Ramp UI asset unavailable.');
+      await ramp.bill(content, rampBill);
+      if (token === generation) {
+        window.scrollTo?.({top:0, behavior:'instant'});
+        showWorkspaceName();
+        const current = window.uptimeAuth.session();
+        if (current) $('#account').textContent = 'Sign out · ' + current.subject;
+      }
       return;
     }
     if (route === 'ramp' || route === 'records') {
@@ -387,28 +420,41 @@
     finally { if (token === generation) content.setAttribute('aria-busy', 'false'); }
     }
   }
+  const narrow = () => typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches;
   function navigate() {
     const requested = location.hash.slice(1);
     if (requested === 'workspace') return; // Skip link is an in-page accessibility target.
     if (view === 'ramp' && !rampCase) rampScroll = window.scrollY || 0;
+    if ((view === 'ramp' || view === 'records') && !rampCase) rampOrigin = view;
     ramp?.unmount();
     workspaceWorkflow?.unmount();
     companion?.unmount(content);
     if (dialog.open) dialog.close();
-    rampCase = null;
+    rampCase = null; rampBill = null;
     if (requested.startsWith('ramp/')) {
       try { rampCase = decodeURIComponent(requested.slice(5)); } catch { rampCase = null; }
     }
+    if (requested.startsWith('ramp-bill/')) {
+      try { rampBill = decodeURIComponent(requested.slice(10)); } catch { rampBill = null; }
+    }
     view = companionRoute(requested);
-    document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
+    // A page under a destination (one case under Cases) keeps that destination marked as the current one.
+    // One Ramp record keeps the page it was opened from marked.
+    const marked = rampCase ? rampOrigin : view === 'ramp-bill' ? 'records' : view;
+    document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === marked || marked.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
+    // On a wide screen the group that holds the current page is opened. On a narrow one the header stays slim:
+    // the group's own label is marked instead, and the list opens only when asked for.
     const more = document.querySelector?.('.rail-more');
-    if (more && more.querySelector?.('[aria-current]')) more.open = true;
+    if (more && more.querySelector?.('[aria-current]') && !narrow()) more.open = true;
     if (!content.children.length) content.append(empty('Loading server state…')); announce(''); load();
   }
   // Updating route history explicitly prevents fragment scrolling during normal navigation.
   document.querySelectorAll('.rail a[href^="#"]').forEach(link => link.addEventListener('click', event => {
     if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault(); history.pushState(null, '', link.getAttribute('href')); navigate();
+    // A choice made from the narrow header's list closes the list, so the page it opened is in view.
+    const group = link.closest?.('.rail-more');
+    if (group && narrow()) group.open = false;
   }));
   $('#close-inspector').addEventListener('click', () => dialog.close()); dialog.addEventListener('close', () => { caseGeneration++; activeCase = null; });
   $('#refresh').addEventListener('click', () => { if (view === 'ramp' && !rampCase) rampScroll = window.scrollY || 0; announce(''); load(); if (dialog.open && activeCase) openCase(activeCase); });

@@ -145,9 +145,12 @@ def source_inputs(package):
     return scopes,events
 
 
-def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None,counterparty_reply='request-log'):
+def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None,counterparty_reply='request-log',
+            side_panel_origin=None):
     directory=Path(directory).absolute()
     if directory.exists():raise WorkspaceRefused('Select a fresh directory; use --resume for an existing immutable workspace.')
+    from uptime.server import panel_origin
+    side_panel_origin=panel_origin(side_panel_origin)  # a serving option: checked first, never stored
     target=None
     if reviewer_credential is not None:
         # Checked before anything is written, so a refused path never leaves a half-created workspace.
@@ -179,10 +182,10 @@ def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None
     if target is not None:
         # A visible, operator-chosen copy (0600, exclusive create, outside the repository). Only its path is printed.
         place_credential(target,rehearsal_key(private['rehearsal_secret']))
-    return open_workspace(directory)
+    return open_workspace(directory,side_panel_origin=side_panel_origin)
 
 
-def open_workspace(directory, *, proposal_config=None):
+def open_workspace(directory, *, proposal_config=None, side_panel_origin=None):
     directory=Path(directory).resolve()
     from uptime.source_config import _protected_path,_check_file
     path=_protected_path(directory/'workspace.json')
@@ -201,7 +204,7 @@ def open_workspace(directory, *, proposal_config=None):
         routine_automation=bool(private.get('routine_automation',False)))
     app=create_app(directory/'workspace.db',mode='replay',rehearsal=True,approvals_enabled=True,
         rehearsal_secret=private['rehearsal_secret'],service_credentials=registry,origin=private['origin'],workflow_config=config,
-        proposal_config=proposal_config)
+        proposal_config=proposal_config,side_panel_origin=side_panel_origin)
     return app,private,events
 
 
@@ -308,9 +311,20 @@ def main():
                         help='Offer every routine step as its own reviewer action (the earlier behavior); default runs routine steps automatically')
     parser.add_argument('--counterparty-reply',choices=COUNTERPARTY_REPLIES,default='request-log',
                         help="Authored January reply: the package's log request, or the unclear reply for the escalation branch")
+    parser.add_argument('--side-panel-origin',metavar='chrome-extension://ID',
+                        help='Let exactly this Chrome extension frame the served workspace in its side panel (not stored)')
     parser.add_argument('--reviewer-credential',type=Path,
                         help='Also write the reviewer sign-in file to this visible absolute path outside the repository (mode 0600)')
     args=parser.parse_args()
+    from uptime.server import panel_origin
+    try:
+        # Checked before anything is written or served; a serving option, never workspace state.
+        side_panel=panel_origin(args.side_panel_origin)
+    except ValueError as refused:
+        parser.exit(1,'setup_northwind: '+str(refused)+'\n')
+    if side_panel and not args.serve:
+        # Framing only affects a served app; without --serve the option would silently do nothing.
+        parser.error('--side-panel-origin requires --serve')
     if args.public_proposal_config and not args.serve:
         parser.error('--public-proposal-config requires --serve')
     if args.resume and (args.step_by_step or args.counterparty_reply!='request-log'):
@@ -326,13 +340,14 @@ def main():
     try:
         if args.resume:
             target=credential_target(args.reviewer_credential) if args.reviewer_credential else None
-            app,private,events=open_workspace(args.directory)
+            app,private,events=open_workspace(args.directory,side_panel_origin=side_panel)
             if target is not None:
                 from uptime.auth_keys import rehearsal_key
                 copy_state=place_credential(target,rehearsal_key(private['rehearsal_secret']))
         else:
             app,private,events=prepare(args.directory,args.origin,routine_automation=not args.step_by_step,
-                                       reviewer_credential=args.reviewer_credential,counterparty_reply=args.counterparty_reply)
+                                       reviewer_credential=args.reviewer_credential,counterparty_reply=args.counterparty_reply,
+                                       side_panel_origin=side_panel)
             copy_state='WRITTEN' if args.reviewer_credential else None
     except (CredentialRefused,WorkspaceRefused) as refused:
         parser.exit(1,'setup_northwind: '+str(refused)+'\n')
@@ -346,8 +361,11 @@ def main():
                 else args.directory.absolute()/'scripted-reviewer.jwk')
     print(json.dumps(dict(directory=str(args.directory),origin=private['origin'],account=SCRIPT,
                           reviewer_credential_file=str(credential),reviewer_credential_copy=copy_state,
-                          routine_automation=bool(private.get('routine_automation',False)))),flush=True)
+                          routine_automation=bool(private.get('routine_automation',False)),
+                          **({'side_panel_origin':side_panel} if side_panel else {}))),flush=True)
     # Plain sign-in block; only the path of the private key file is ever printed.
+    if side_panel:
+        print('Only the side panel of '+side_panel+' may frame this served workspace.',file=sys.stderr)
     print("Sign in with the reviewer file below (private key, mode 0600; never share or commit it).",file=sys.stderr)
     print(str(credential),file=sys.stderr)
     print(SCRIPT,file=sys.stderr)
@@ -356,7 +374,8 @@ def main():
         if args.public_proposal_config:
             # Seeding closes its TestClient lifecycle. Construct the configured
             # job service only for the process that will serve requests.
-            app,private,events=open_workspace(args.directory,proposal_config=args.public_proposal_config)
+            app,private,events=open_workspace(args.directory,proposal_config=args.public_proposal_config,
+                                              side_panel_origin=side_panel)
         import uvicorn
         uvicorn.run(app,host='127.0.0.1',port=int(private['origin'].rsplit(':',1)[1]),log_level='warning')
 
