@@ -15,7 +15,7 @@ In the order they block the submission.
 
 | # | Decision | What it turns on | State |
 |:--|:---|:---|:---|
-| 1 | Move `main` to the verified build | Judges clone the default branch. Until `main` moves they do not see this work | Not done. A fast-forward from `b6e93bd`; the coordinator pushes it only on Ronok's word |
+| 1 | Move `main` to the verified build | Judges clone the default branch. Until `main` moves they do not see this work. Independent acceptance ranks this first of its findings ([P1-A](acceptance.md)) | Not done. A fast-forward from `b6e93bd`; the coordinator pushes it only on Ronok's word |
 | 2 | Which film is the submission film | Role 6 wrote a measured two-minute storyboard and a filming checklist. Separately, the judge session started a "90-second walkthrough video" session at 15:34 PST, which the coordinator did not start | Open. The two must not contradict each other |
 | 3 | Film now on the verified build, or wait for the redesign | The [filming checklist](presentation.md#filming-checklist-for-ronok) works today on `52f1a2f`. The redesign changes every screen | Open |
 | 4 | Record the voiceover and the film; choose cut A or B after a timed read | Only a person can | Not done |
@@ -47,14 +47,14 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 |:---|:---|:---|:---|
 | `main` | `b6e93bd` | The default branch, unchanged by this push | By its owners |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
-| `work/submission-integration-20261109` | this file's branch | The verified build plus records. Last merge `8aa8df4` | Full run passes on `8aa8df4`; outside `docs/` only `README.md` differs from `52f1a2f` |
+| `work/submission-integration-20261109` | this file's branch | The verified build plus records. Last merge `6848390` | Full run passes on `6848390` (second run); outside `docs/` only `README.md` differs from `52f1a2f` |
 | `work/submission-design-20261109` | `943151f` so far | The redesign: visual system, shell, sign-in and Overview. Other pages still to come | Not merged; no full run yet |
 | `work/sidepanel-server-20261109` | `f47c4de` | Side-panel option, extension and setup option | Focused checks only (50 Python, 5 JavaScript); not merged |
 | `work/submission-onboarding-20261109` | `088da4a` | Role 1, contract reading | Merged |
 | `work/submission-disputes-20261109` | `4b98717` | Role 2, disputes and the walkthrough | Merged |
 | `work/submission-ramp-20261109` | `a15d987` | Role 3, Ramp | Merged |
 | `work/submission-ui-20261109` | `7ca68b2` | Role 4, interface before the redesign | Merged |
-| `work/submission-acceptance-20261109` | `8b8132c` | Role 5, acceptance | Merged |
+| `work/submission-acceptance-20261109` | `e60cd60` | Role 5, acceptance, with its dated correction | Merged |
 | `work/submission-presentation-20261109` | `2bf3754` | Role 6, README, judge guide, film | Merged |
 
 ## Test results
@@ -71,6 +71,7 @@ The required command is `uv run --locked pytest`, run once per merge, one run at
 | `6b93e31` | 5,390 passed | All application changes of roles 1–4 |
 | **`52f1a2f`** | **5,390 passed** | **The verified build.** 118 JavaScript checks, progress graph, rehearsal and secret scan also pass |
 | `e10067f`, `8aa8df4` | 5,390 passed each | Records only |
+| `6848390` | Aborted, then 5,390 passed | Records only. The first run stalled in a browser launch |
 
 These are regression results. They do not measure model accuracy, and they are not evidence of a person's approval or of any effect in Ramp.
 
@@ -135,7 +136,6 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 | Interface redesign, including the Agreements page, the Ramp bill page for the side panel, and two acceptance findings (the "$40 · Scenario only" row beside the verified bill; February's credit cell) | The redesign session | In progress. First part pushed at `943151f` |
 | Side panel: check inside the real extension, full run, merge | Coordinator | Waits for the bill page |
 | Setup command: a plain message instead of a stack trace on a rerun; the side-panel option without `--serve`; one untested path | Role 2 | Requested |
-| Acceptance report: the repository is public, not private; the consequence of `main` for a judge | Role 5 | Requested |
 | Interface-only acceptance check of the redesign | Role 5 | Waits for the redesign to merge |
 | Final README screenshots, timing recheck, video link | Role 6 | Waits for the redesign |
 | Evidence requests are recognised only in wording the rules know | Disputes owner | Not changed in this push; the wording that overstated it is corrected |
@@ -146,6 +146,7 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 ## If the coordinator's session ends
 
 - **State lives in Git.** This file, the coordination record and the receipts are on `work/submission-integration-20261109`. Each role's handoff is beside this file.
+- **Messages between sessions pause** after ten sent without a message from Ronok in the coordinator's session, and resume when he types there. Anything waiting to be sent is listed at the end of the coordination record's log.
 - **To merge a finished branch:** merge it into the integration branch with `--no-ff`, run `uv run --locked pytest` once on the merge commit, then the JavaScript checks, `node scripts/test_progress_graph.cjs`, `scripts/rehearse.py` and `scripts/check_repo.py`. Write a receipt beside the others with the exact commit, command, result and log. Push only after it passes. If a run stops advancing for five minutes, abort it, keep the log and run it again.
 - **Order:** the setup fixes, then the redesign (followed by role 5's interface check and role 6's screenshots), then the side panel.
 - **Rules that do not relax:** no force-push; no write to Ramp and no retry of the refused posting action; no real vendor contact; no credential, private evaluation answer or customer capture in Git; every changed existing test recorded by exact name and reason; the scripted reviewer is never described as a person; a local credit is never described as money in Ramp.

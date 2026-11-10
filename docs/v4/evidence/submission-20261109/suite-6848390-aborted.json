@@ -1,0 +1,23 @@
+{
+  "tested_commit": "6848390347d66b18529815278853f7c252747b6e",
+  "branch": "work/submission-integration-20261109",
+  "contents": "8aa8df4 and its records (including the handoff), plus role 5 at e60cd60: a dated correction to the acceptance report and the record of an anonymous clone. Documentation and evidence only: outside docs/ the only file that differs from 52f1a2f is README.md.",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-6848390",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 134,
+  "pytest_result": "no result: the runner's watchdog aborted the run after it stopped advancing",
+  "log": "suite-6848390-aborted-pytest.log",
+  "started_at": "2026-11-10T00:06:30Z",
+  "aborted_at": "2026-11-10T00:18:11Z",
+  "what_happened": "The run reached 90 percent and stopped after the second test of tests/test_vendor_model_jobs_browser.py. The log did not grow for 317 seconds, so the runner's watchdog sent SIGABRT to print the stacks. The main thread was inside Playwright's event loop waiting on the browser; the application server thread was idle. Every test before that point had passed.",
+  "follow_up": "A second full run of the same commit is recorded in suite-6848390-run2.json. The JavaScript checks, progress graph, rehearsal and secret scan that follow pytest in the runner all passed after the abort.",
+  "likely_cause": "Environmental and unproven, the same signature as the aborted run on 96615d8: Google Chrome on this machine still has frameworks 156.0.8078.80 and 157.0.8103.40 both installed, and other sessions were driving Chrome through Playwright at the same time. No leftover automated Chrome process was found afterwards.",
+  "limits": "Not a result. Kept so the second run is not mistaken for a first attempt."
+}
