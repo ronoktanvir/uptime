@@ -907,6 +907,34 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .uptime-v4 .v4-filed-facts > .v4-filed-wide { flex: 1 0 100%; }
 .uptime-v4 .v4-filed-list { margin: 0; padding-left: 18px; }
 .uptime-v4 .v4-facts dd.v4-not-sent { color: var(--muted); font-style: italic; }
+/* Demo line (demo/film-20261110): three actors with their own icon and colour; the Overview's step feed; how a
+   contract was read. The feed's fade and the lead line's pulse are the only motion; reduced motion removes both. */
+.pill.tag-reviewer { background: var(--accent-soft); color: var(--accent); }
+.pill.tag-agent { background: var(--ok-soft); color: var(--ok); }
+.pill.tag-received { background: var(--warn-soft); color: var(--warn); }
+.tag-agent::before { content: ""; display: inline-block; flex: none; width: 1em; height: 1em; vertical-align: -0.14em; background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; --icon: var(--i-lightning); margin-right: 4px; }
+.overview-figures { display: contents; }
+.overview-replay-toggle { display: inline-flex; margin-top: 12px; font-weight: 400; }
+.overview-steps:empty { display: none; }
+.overview-steps { margin-top: 14px; padding: 14px 16px; background: var(--sunken); border: 1px solid var(--line); border-radius: var(--radius-control); }
+.overview-steps-head { margin: 0 0 10px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); }
+.overview-step-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.overview-step { padding-left: 18px; position: relative; }
+.overview-step::before { content: ""; position: absolute; left: 0; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.overview-step.by-reviewer::before { background: var(--accent); }
+.overview-step .step-head strong { font-size: 14px; line-height: 22px; color: var(--ink); }
+.overview-step > .help { margin: 2px 0 0; color: var(--text); }
+.overview-lead { padding-left: 18px; font-size: 13px; line-height: 22px; color: var(--muted); font-style: italic; animation: overview-lead 900ms ease-in-out infinite alternate; }
+@keyframes overview-lead { from { opacity: .55; } to { opacity: 1; } }
+.overview-step.replay-reveal { animation: replay-reveal 240ms ease-out both; }
+.uptime-v4 .v4-read-chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; font-size: 12px; line-height: 18px; font-weight: 500; white-space: nowrap; }
+.uptime-v4 .v4-read-chip::before { content: ""; width: 1em; height: 1em; background: currentColor; -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
+.uptime-v4 .v4-read-rules { background: var(--neutral-soft); color: var(--neutral); }
+.uptime-v4 .v4-read-rules::before { --icon: var(--i-scales); }
+.uptime-v4 .v4-read-model { background: var(--accent-soft); color: var(--accent); }
+.uptime-v4 .v4-read-model::before { --icon: var(--i-chat); }
+@media (prefers-reduced-motion: reduce) { .overview-lead, .overview-step.replay-reveal { animation: none !important; } }
 /* 16. Side panel (submission-panel-20261110). Everything in this block applies only when the page is framed by the
    one extension the server allows (app.js adds .panel-mode to <html> then), or styles the one-bill page's own parts.
    Presentation only: no state, record or word is hidden by it. The full app in an ordinary tab is unchanged. */

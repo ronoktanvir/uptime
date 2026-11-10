@@ -87,6 +87,52 @@
       server: {person_decisions: c.person_decisions == null ? null : c.person_decisions, automatic_steps: c.automatic_steps == null ? null : c.automatic_steps}};
   }
   const REPLAY_PACE_MS = 1600, REPLAY_KEY = 'uptime.steps.replay', REPLAY_SEEN_KEY = 'uptime.steps.replay.seen';
+  // Who did the work, as three plain actors. The reviewer account decides; Uptime's agent runs a step under an approval
+  // already recorded (fixed automation, not a model); a received event is named by the source the server names.
+  const SOURCE_NAMES = {vendor:'Vendor', customer:'Customer source', status:'Status source', billing:'Billing source'};
+  function actorTag(step) {
+    const authority = step && step.authority && typeof step.authority === 'object' ? step.authority : {};
+    if (authority.kind === 'PERSON') return {label:'Reviewer decision', cls:'accent tag-reviewer'};
+    if (authority.kind === 'APPROVED_OPERATION') return {label:'Uptime agent', cls:'tag-agent'};
+    if (authority.kind === 'EVENT_INTAKE') {
+      const suffix = typeof authority.source_subject === 'string' ? authority.source_subject.split('-').pop() : null;
+      return {label:SOURCE_NAMES[suffix] || 'Received event', cls:'tag-received' + (suffix === 'vendor' ? ' tag-vendor' : '')};
+    }
+    return null;
+  }
+  // The short line shown before a recorded step appears on the Overview. It names the step about to be shown.
+  const LEAD_IN = {'submit-claim':'Filing the claim with the vendor', 'receive-denial':'Receiving the vendor’s reply',
+    'receive-artifact':'Attaching the requested service log', 'receive-verification':'Matching the service log to the request',
+    'submit-response':'Sending the response to the vendor', 'receive-award':'Receiving the vendor’s credit decision',
+    'record-credit':'Posting the credit', 'receive-invoice':'Receiving the next invoice', 'apply-balance':'Applying the credit'};
+  function leadIn(step) {
+    const s = step && typeof step === 'object' ? step : {};
+    return (LEAD_IN[s.operation] || (typeof s.label === 'string' && s.label ? s.label : 'Next recorded step')) + '…';
+  }
+  // The steps a decision added: those after the last step the page held before it, in recorded order.
+  function newSteps(prior, next) {
+    const before = recordedOrder(prior && prior.automation && prior.automation.steps), after = recordedOrder(next && next.automation && next.automation.steps);
+    if (before.every(s => Number.isInteger(s.seq)) && after.every(s => Number.isInteger(s.seq))) {
+      const last = before.reduce((max, s) => Math.max(max, s.seq), 0);
+      return after.filter(s => s.seq > last);
+    }
+    return after.slice(before.length);
+  }
+  // What the Overview's figures show while a decision's steps are still being shown: the server's new projection, with
+  // each credit stage (and the bill) held at its earlier recorded value until the step that recorded it is shown, and the
+  // claim's stage held until the last one is. Display only; with nothing pending it is exactly the new projection.
+  const STAGE_BY_OPERATION = {'submit-claim':'claimed', 'receive-award':'awarded', 'record-credit':'posted', 'apply-balance':'applied'};
+  function stagedView(prior, next, pending) {
+    const waiting = list(pending).filter(s => s && typeof s === 'object');
+    if (!waiting.length || !prior || typeof prior !== 'object') return next;
+    const held = new Set(waiting.map(s => STAGE_BY_OPERATION[s.operation]).filter(Boolean));
+    const priorFinance = prior.finance && typeof prior.finance === 'object' ? prior.finance : {}, finance = next.finance && typeof next.finance === 'object' ? next.finance : {};
+    const priorRows = list(priorFinance.stages);
+    const stages = list(finance.stages).map(row => row && held.has(row.stage) ? priorRows.find(old => old && old.stage === row.stage) || row : row);
+    const billHeld = waiting.some(s => s.operation === 'apply-balance' || s.operation === 'receive-invoice');
+    return {...next, claim: prior.claim || next.claim, ledger: billHeld ? prior.ledger || next.ledger : next.ledger,
+      finance: {...finance, stages, bill: billHeld ? priorFinance.bill : finance.bill}};
+  }
   function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true,
     storage, schedule = (callback, ms) => global.setTimeout(callback, ms), reducedMotion}) {
     // The replay setting lasts for this page's session. Browser storage may be absent or refuse; memory stands in.
@@ -100,6 +146,9 @@
     // decision: a held or repeated Enter must not approve the next step. The status names what was recorded and what
     // comes next, one Tab away.
     let epoch = 0, busy = false, uncertain = false, focusNextStep = false, recordedLabel = null;
+    // The projection this page last drew, the one a pressed decision leaves behind, and the running Overview replay's stop.
+    let lastData = null, pendingReplay = null, stopReplay = null;
+    const replayOn = () => readSetting(REPLAY_KEY) !== 'off';
     const el = (tag, value, cls) => { const n = doc.createElement(tag); if (value != null) n.textContent = text(value); if (cls) n.className = cls; return n; };
     const add = (n, ...children) => { children.filter(Boolean).forEach(c => n.append(c)); return n; };
     const note = value => el('p',value,'help');
@@ -303,6 +352,10 @@
       return {table, row};
     }
     function renderData(root,data,token) {
+      // A decision pressed on this page leaves the projection it was pressed on; its new steps are shown one at a time.
+      const replay = pendingReplay; pendingReplay = null; lastData = data;
+      const plan = replay && replayOn() && data.automation && data.automation.enabled !== false
+        && newSteps(replay.prior, data).some(step => !(step.authority && step.authority.kind === 'PERSON')) ? newSteps(replay.prior, data) : null;
       const vendor = typeof data.vendor === 'object' ? data.vendor.name : data.vendor;
       const months = list(data.months);
       // The vendor's initials beside its name: decoration, hidden from assistive technology.
@@ -321,22 +374,29 @@
         note(document.effective_at ? 'Effective ' + day(document.effective_at) : 'Effective date not provided'),
         inspector('Document details', fields([['Reference',document.ref],['Version',document.version],['Effective date',document.effective_at]]), note(document.description)))));
       if (agreement.summary) contract.append(inspector('Agreement text', el('p', agreement.summary, 'help prose')));
-      let attention = null, ramp = null;
+      let attention = null, ramp = null, drawAttention = () => {};
       if (finance) {
-        const items = el('ol', null, 'attention-list');
-        list(finance.attention).forEach(item => {
+        // While a decision's steps are being shown, the list is the one the page held before it; it updates when they have all appeared.
+        const attentionFor = source => { const items = el('ol', null, 'attention-list');
+        list(source && source.attention).forEach(item => {
           const row = add(el('li', null, 'attention-item'), el('span', OWNERS[item.owner] || 'Next step', 'attention-owner' + (OWNERS[item.owner] ? ' owner-' + item.owner : '')),
             el('h3', item.title), note(instants(item.detail)));
           if (item.section) row.append(jumpButton('Show details', item.section));
           items.append(row);
         });
+        return items; };
+        const items = attentionFor(plan && replay.prior && replay.prior.finance ? replay.prior.finance : finance);
         // The heading keeps its exact name; the number of items sits beside it.
         const attentionHeading = el('h2', 'Needs attention'); attentionHeading.tabIndex = -1;
         const tally = items.children.length ? el('span', String(items.children.length), 'count') : null;
         if (tally) tally.setAttribute('aria-label', items.children.length + (items.children.length === 1 ? ' item' : ' items'));
         attention = add(el('section', null, 'panel'), add(el('div', null, 'panel-head'), attentionHeading, tally));
         attention.id = SECTION_IDS.attention;
-        attention.append(items.children.length ? items : note('Nothing in this case needs action now.'));
+        const attentionBody = el('div', null, 'attention-body');
+        attention.append(attentionBody);
+        drawAttention = () => { const now = attentionFor(finance); attentionBody.replaceChildren(now.children.length ? now : note('Nothing in this case needs action now.'));
+          if (tally) { tally.textContent = String(now.children.length); tally.setAttribute('aria-label', now.children.length + (now.children.length === 1 ? ' item' : ' items')); } };
+        attentionBody.append(items.children.length ? items : note('Nothing in this case needs action now.'));
         const rampInfo = finance.ramp || {};
         ramp = panel('Ramp record', 'ramp');
         const linked = rampInfo.linked_record && typeof rampInfo.linked_record === 'object' ? rampInfo.linked_record : null;
@@ -345,14 +405,19 @@
         const records = el('a', 'Open Ramp records', 'case-link ramp-glyph'); records.href = '#records'; ramp.append(records);
       }
       // The claim's own stage is shown as the server reports it, beside the credit's latest recorded lifecycle stage.
-      const reachedStage = serverStages(data).filter(row => row.status === 'recorded').pop();
+      const recoveryFacts = view => {
+        const reachedStage = serverStages(view).filter(row => row.status === 'recorded').pop(), shownClaim = view.claim || {};
+        return fields([['Claim stage',state(shownClaim.state)],['Credit stage',reachedStage ? reachedStage.label : null],['Destination',ledger.destination],['Claim reference',claim.id]].filter(([, value]) => value != null));
+      };
+      const factsBox = el('div', null, 'recovery-facts');
       // Who the reviewer is and of what kind, in view on this card: the name as the server sends it and its authority
       // kind in the same words the records below use. A plain field; left out when the server names no reviewer.
       if (reviewer.name != null && reviewer.name !== '') {
         const who = fields([['Reviewer', reviewer.name + (reviewer.authority_kind ? ' · ' + state(reviewer.authority_kind) : '')]]);
         who.className += ' recovery-reviewer'; recovery.append(who);
       }
-      add(recovery,fields([['Claim stage',state(claim.state)],['Credit stage',reachedStage ? reachedStage.label : null],['Destination',ledger.destination],['Claim reference',claim.id]].filter(([, value]) => value != null)),
+      factsBox.append(recoveryFacts(plan ? stagedView(replay.prior, data, plan) : data));
+      add(recovery,factsBox,
         claim.summary == null || claim.summary === '' ? null : note(claim.summary));
       const status=el('p',null,'help');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
       const controls=el('div',null,'actions');
@@ -365,11 +430,11 @@
         button.addEventListener('keydown', event => { if (event && event.repeat && (event.key === 'Enter' || event.key === ' ')) event.preventDefault(); });
         button.addEventListener('click', async()=>{
           if (busy || uncertain || token !== epoch || action.enabled === false || canAct() === false) return;
-          busy=true;Array.from(controls.children).forEach(c=>{c.disabled=true;});status.textContent='Recording action…';
+          const prior=lastData;busy=true;Array.from(controls.children).forEach(c=>{c.disabled=true;});status.textContent='Recording action…';
           try {
             await api('/api/workspace/workflow/actions/'+encodeURIComponent(action.id),{});
             if (token !== epoch) return;
-            focusNextStep=true;recordedLabel=action.label || state(action.id);try{await render(root);}finally{focusNextStep=false;recordedLabel=null;}await onRefresh();
+            focusNextStep=true;recordedLabel=action.label || state(action.id);pendingReplay={prior};try{await render(root);}finally{focusNextStep=false;recordedLabel=null;}await onRefresh();
           } catch(error) {
             if(token !== epoch) return;
             if(error.status === 401 && typeof onUnauthorized === 'function') {
@@ -391,12 +456,20 @@
       const routine = data.automation && data.automation.enabled !== false ? automationSummary(data.automation) : null;
       // Paused with nothing offered here means a reviewer is needed elsewhere (for example on the case); that state is marked.
       const stopped = !offered && data.automation && data.automation.enabled !== false && data.automation.state === 'PAUSED';
-      const decision = add(el('div', null, 'decision' + (offered ? '' : stopped ? ' idle stopped' : ' idle')), routine ? add(el('p', null, 'help automation-line'), el('span', routine)) : null, controls);
+      const routineLine = routine ? el('span', routine) : null;
+      const decision = add(el('div', null, 'decision' + (offered ? '' : stopped ? ' idle stopped' : ' idle')), routineLine ? add(el('p', null, 'help automation-line'), routineLine) : null, controls);
+      // The steps a decision added, shown one at a time under the decision bar, and the switch that turns this off.
+      const feed = el('div', null, 'overview-steps');
+      const showSteps = data.automation && data.automation.enabled !== false ? (() => {
+        const box = el('input'); box.type = 'checkbox'; box.checked = replayOn();
+        box.addEventListener('change', () => { writeSetting(REPLAY_KEY, box.checked ? 'on' : 'off'); if (!box.checked && stopReplay) stopReplay(); });
+        return add(el('label', null, 'replay-toggle overview-replay-toggle'), box, el('span', 'Show the steps one at a time after each decision'));
+      })() : null;
       const caseLink = typeof claim.id === 'string' && claim.id ? el('a', 'Open this claim’s case and correspondence', 'case-link') : null;
       if (caseLink) caseLink.href = '#cases/' + encodeURIComponent(claim.id);
       const stepsLink = routine ? el('a', 'See every step in Activity', 'case-link') : null;
       if (stepsLink) stepsLink.href = '#activity';
-      add(recovery,decision,status,caseLink || stepsLink ? add(el('p', null, 'help recovery-links'), caseLink, stepsLink) : null,
+      add(recovery,decision,status,feed,showSteps,caseLink || stepsLink ? add(el('p', null, 'help recovery-links'), caseLink, stepsLink) : null,
         inspector('Connection details', fields([['Connection destination',connection.destination],['Connection status',state(connection.status)],['Receipt status',state(connection.receipt_status)]])));
       const monthly=panel('Service credit evaluations','months'), evaluations=sheet(['Service month','Decision','Service credit','Basis'],[2]);
       months.forEach(month=>{
@@ -446,15 +519,66 @@
       const evidence = add(el('div', null, 'section-head'), el('h2', 'Evidence'));
       const records = add(el('div', null, 'fold-group'), contract, data.onboarding ? expansion : null, detail);
       const activityLink = add(el('p', null, 'help foot-link'), (() => { const a = el('a', 'See the full activity history', 'case-link'); a.href = '#activity'; return a; })());
-      root.replaceChildren(header,outcome(data, months),lifecycle(data),columns,evidence,monthly,add(el('div',null,'section-grid'),pricing,billing),records,activityLink);
+      // The outcome and the credit lifecycle: while a decision's steps are being shown they hold each stage until its step appears.
+      const figures = el('div', null, 'overview-figures');
+      const drawFigures = view => { figures.replaceChildren(outcome(view, months), lifecycle(view)); factsBox.replaceChildren(recoveryFacts(view)); if (view === data) drawAttention(); };
+      figures.replaceChildren(...(plan ? [outcome(stagedView(replay.prior, data, plan), months), lifecycle(stagedView(replay.prior, data, plan))] : [outcome(data, months), lifecycle(data)]));
+      let afterReplay = null;
+      root.replaceChildren(header,figures,columns,evidence,monthly,add(el('div',null,'section-grid'),pricing,billing),records,activityLink);
       if (focusNextStep) {
         focusNextStep=false;
         const next=Array.from(controls.children).find(c=>c.tagName==='BUTTON' && !c.disabled);
-        if (recordedLabel) status.textContent='Recorded: '+recordedLabel+'.'+(next ? ' Next: '+next.textContent+'.' : '');
+        // While the steps are shown the next decision waits out of view; it is named once they have all appeared.
+        if (recordedLabel) status.textContent='Recorded: '+recordedLabel+'.'+(next && !plan ? ' Next: '+next.textContent+'.' : '');
+        if (plan && recordedLabel) { const said = status.textContent; afterReplay = () => { status.textContent = said + (next ? ' Next: '+next.textContent+'.' : ''); }; }
         recordedLabel=null;
         const target=recovery.children[0];
         if (target && typeof target.focus==='function') target.focus();
       }
+      if (plan) playOverview({plan, prior: replay.prior, data, token, feed, controls, routineLine, routine, drawFigures, done: () => afterReplay && afterReplay()});
+    }
+    // The Overview's replay: display only. The decision has returned and every step below is already recorded; each is
+    // shown after a short line naming it, and the figures above move to the value that step recorded. No request is made.
+    const LEAD_MS = 500, STEP_MS = 900;
+    function stepRow(step) {
+      const tag = actorTag(step);
+      return add(el('li', null, 'overview-step' + (step.authority && step.authority.kind === 'PERSON' ? ' by-reviewer' : '') + (still() ? '' : ' replay-reveal')),
+        add(el('div', null, 'step-head'), el('strong', text(step.label || state(step.operation))), tag ? el('span', tag.label, 'pill ' + tag.cls) : null),
+        note(authorityText(step.authority)));
+    }
+    function playOverview({plan, prior, data, token, feed, controls, routineLine, routine, drawFigures, done}) {
+      const decision = plan[0] && plan[0].authority && plan[0].authority.kind === 'PERSON' ? plan[0] : null;
+      const key = decision ? String(decision.intent_id || decision.seq || '') : '';
+      if (key) writeSetting(REPLAY_SEEN_KEY, key);
+      const list_ = el('ol', null, 'overview-step-list');
+      const show = row => { list_.append(row); if (typeof row.scrollIntoView === 'function') row.scrollIntoView({block:'nearest', behavior: still() ? 'auto' : 'smooth'}); };
+      feed.replaceChildren(el('p', 'Steps recorded after ' + (decision ? '“' + text(decision.label || state(decision.operation)) + '”' : 'this decision') + ', shown in order', 'overview-steps-head'), list_);
+      controls.hidden = true;
+      if (routineLine) routineLine.textContent = 'Showing the steps this decision recorded, one at a time.';
+      let index = 0, stopped = false;
+      const alive = () => !stopped && token === epoch;
+      const finish = () => {
+        stopped = true; if (stopReplay === stop) stopReplay = null;
+        while (index < plan.length) list_.append(stepRow(plan[index++]));
+        Array.from(list_.children).filter(row => String(row.className).includes('overview-lead')).forEach(row => { row.hidden = true; });
+        drawFigures(data); controls.hidden = false; if (routineLine) routineLine.textContent = routine; done();
+      };
+      const stop = () => { if (!stopped && token === epoch) finish(); };
+      stopReplay = stop;
+      const next = () => {
+        if (!alive()) return;
+        if (index >= plan.length) { finish(); return; }
+        const step = plan[index];
+        if (step.authority && step.authority.kind === 'PERSON') { index++; show(stepRow(step)); drawFigures(stagedView(prior, data, plan.slice(index))); schedule(next, STEP_MS); return; }
+        const lead = el('li', leadIn(step), 'overview-lead'); show(lead);
+        schedule(() => {
+          if (!alive()) return;
+          lead.hidden = true; index++; show(stepRow(step));
+          drawFigures(stagedView(prior, data, plan.slice(index)));
+          schedule(next, STEP_MS);
+        }, LEAD_MS);
+      };
+      next();
     }
     function coverageHistory(onboarding) {
       const coverage=el('ol',null,'activity'), actors=[...new Set(list(onboarding.history).map(event=>event.actor).filter(Boolean))];
@@ -499,7 +623,6 @@
     }
     // What authorised a step, as one short tag beside the server's own sentence. A decision is attributed to the
     // reviewer account the server names, never to "a person": the account may be a scripted one.
-    const AUTHORITY_TAG = {PERSON:['Reviewer decision', 'accent tag-reviewer'], APPROVED_OPERATION:['Automatic step', 'tag-automatic'], EVENT_INTAKE:['Received event', 'tag-received']};
     const AUTOMATION_TONE = {COMPLETE:'ok', PAUSED:'warn', RUNNING:'accent'};
     function automationPanel(automation, nextActions) {
       const heading = el('h2', 'Steps in order'), head = add(el('div', null, 'panel-head'), heading), node = add(el('section', null, 'panel'), head);
@@ -510,11 +633,11 @@
       // Who did what, at a glance: a legend counted from the recorded steps, in the same tags the steps carry.
       if (steps.length) {
         const legend = stepLegend(steps, counts);
-        const figure = (kind, label, value) => add(el('div'), add(el('dt'), el('span', label, 'pill' + (AUTHORITY_TAG[kind] ? ' ' + AUTHORITY_TAG[kind][1] : ''))), el('dd', String(value)));
-        node.append(add(el('dl', null, 'tally step-legend'), figure('PERSON', 'Reviewer decisions', legend.reviewer),
-          figure('APPROVED_OPERATION', 'Automatic steps under a recorded approval', legend.approved), figure('EVENT_INTAKE', 'Received events', legend.received),
+        const figure = (cls, label, value) => add(el('div'), add(el('dt'), el('span', label, 'pill ' + cls)), el('dd', String(value)));
+        node.append(add(el('dl', null, 'tally step-legend'), figure('accent tag-reviewer', 'Reviewer decisions', legend.reviewer),
+          figure('tag-agent', 'Uptime agent', legend.approved), figure('tag-received', 'Received from the vendor and other sources', legend.received),
           legend.other ? add(el('div'), el('dt', 'Other steps, or not completed'), el('dd', String(legend.other))) : null));
-        node.append(note('Received events are counted among the automatic steps.'));
+        node.append(note('The Uptime agent runs a step only under an approval a reviewer already recorded. Its steps and the received events are the automatic steps the server counts.'));
         const counted = (n, word) => n == null ? null : n + ' ' + word + (n === 1 ? '' : 's');
         if (!legend.agrees) node.append(note('The server’s own counts differ from the steps listed: ' + [counted(legend.server.person_decisions, 'reviewer decision'),
           counted(legend.server.automatic_steps, 'automatic step')].filter(Boolean).join(' and ') + '.'));
@@ -528,7 +651,7 @@
       steps.forEach(step => {
         const timing = step.timing && typeof step.timing === 'object' ? step.timing : {};
         const authority = step.authority && typeof step.authority === 'object' ? step.authority : {};
-        const tag = AUTHORITY_TAG[authority.kind];
+        const actor = actorTag(step), tag = actor ? [actor.label, actor.cls] : null;
         const lines = [];
         if (timing.filing_cutoff) lines.push('Filing cutoff ' + when(timing.filing_cutoff));
         if (timing.not_before) lines.push('Not sent before ' + when(timing.not_before) + ', the end of the response cooldown');
@@ -541,15 +664,15 @@
             ['Approval digest', step.authority && step.authority.approval_digest], ['Event', step.authority && step.authority.event_id]].filter(([, value]) => value != null))));
         items.append(item); rows.push(item);
       });
-      return add(node, replayControls(steps, rows), items);
+      return add(node, replayControls(steps, rows, automation.enabled !== false), items);
     }
     // Replay: display only. The steps have already run and been recorded when this page shows them; the replay reveals
     // them one at a time, in recorded order, so each can be read. It sends no request, changes no record and waits on
     // nothing but its own display timer. Off unless turned on with the visible control below.
-    function replayControls(steps, rows) {
+    function replayControls(steps, rows, automatic) {
       const token = epoch, group = replayGroup(steps);
       const latest = group ? String(group.decision.intent_id || group.decision.seq || '') : '';
-      const toggle = el('input'); toggle.type = 'checkbox'; toggle.checked = readSetting(REPLAY_KEY) === 'on';
+      const toggle = el('input'); toggle.type = 'checkbox'; toggle.checked = replayOn();
       const again = el('button', 'Replay', 'quiet'); again.type = 'button';
       const skip = el('button', 'Show every step now', 'quiet link-button'); skip.type = 'button'; skip.hidden = true;
       const line = el('p', null, 'help replay-line'); line.setAttribute('role', 'status'); line.setAttribute('aria-live', 'polite'); line.hidden = true;
@@ -582,7 +705,7 @@
       const control = add(el('label', null, 'replay-toggle'), toggle, el('span', 'Show new steps one at a time'));
       const box = add(el('div', null, 'replay-controls'), control, again, skip, line);
       // A decision this page has not yet replayed is shown one step at a time, starting with the decision itself.
-      if (toggle.checked && group && latest && readSetting(REPLAY_SEEN_KEY) !== latest) {
+      if (automatic && toggle.checked && group && latest && readSetting(REPLAY_SEEN_KEY) !== latest) {
         writeSetting(REPLAY_SEEN_KEY, latest);
         play(group.before.length, 'Replay: these steps ran when the reviewer decision “' + text(group.decision.label || state(group.decision.operation)) + '” was recorded. Shown one at a time so each can be read.');
       }
@@ -623,7 +746,7 @@
     }
     return {render,activity,unmount:()=>{epoch++;}};
   }
-  const exports={create,money,when,day,rates,monthLabel,recordedOrder,replayGroup,stepLegend};
+  const exports={create,money,when,day,rates,monthLabel,recordedOrder,replayGroup,stepLegend,actorTag,leadIn,newSteps,stagedView};
   if(typeof module !== 'undefined' && module.exports) module.exports=exports;
   global.UptimeWorkspace=exports;
 })(typeof window === 'undefined' ? globalThis : window);

@@ -63,16 +63,18 @@ test('the legend counts equal the recorded steps and agree with the server’s o
   assert.deepEqual([legend.reviewer, legend.approved, legend.received, legend.other, legend.agrees], [1, 1, 2, 1, false]);
   const h = harness(); await h.ui.activity(h.root, workflow(11, {person_decisions: 4, automatic_steps: 7}));
   const figures = h.root.all('dl').find(d => String(d.className).includes('step-legend')).children.map(d => d.textContent);
-  assert.deepEqual(figures, ['Reviewer decisions4', 'Automatic steps under a recorded approval2', 'Received events5']);
-  assert.ok(h.root.textContent.includes('Received events are counted among the automatic steps.'));
+  assert.deepEqual(figures, ['Reviewer decisions4', 'Uptime agent2', 'Received from the vendor and other sources5']);
+  assert.ok(h.root.textContent.includes('The Uptime agent runs a step only under an approval a reviewer already recorded. Its steps and the received events are the automatic steps the server counts.'));
   assert.ok(h.root.textContent.includes('4 reviewer decisions and 7 automatic steps recorded.'));
   assert.doesNotMatch(h.root.textContent, /differ from the steps listed/);
   const off = harness(); await off.ui.activity(off.root, {...workflow(5, {person_decisions: 1, automatic_steps: 4}), automation: {...workflow(5).automation, steps: uncertain, counts: {person_decisions: 1, automatic_steps: 4}}});
   assert.ok(off.root.textContent.includes('The server’s own counts differ from the steps listed: 1 reviewer decision and 4 automatic steps.'));
 });
 
-test('off by default: every step shows at once, nothing is scheduled and no request is added', async () => {
-  const h = harness(); await h.ui.activity(h.root, workflow(8, {person_decisions: 2, automatic_steps: 6}));
+test('on by default on the demo line; turned off, every step shows at once, nothing is scheduled and no request is added', async () => {
+  const on = harness(); await on.ui.activity(on.root, workflow(8, {person_decisions: 2, automatic_steps: 6}));
+  assert.equal(toggle(on.root).checked, true); assert.equal(on.queue.length, 1); assert.equal(on.requests.length, 0);
+  const h = harness({stored: {'uptime.steps.replay': 'off'}}); await h.ui.activity(h.root, workflow(8, {person_decisions: 2, automatic_steps: 6}));
   assert.equal(toggle(h.root).checked, false);
   assert.ok(button(h.root, 'Replay'));
   assert.equal(stepRows(h.root).filter(n => n.hidden).length, 0);
@@ -80,7 +82,7 @@ test('off by default: every step shows at once, nothing is scheduled and no requ
 });
 
 test('turned on, the next decision’s steps are shown one at a time in recorded order, then all remain', async () => {
-  const h = harness();
+  const h = harness({stored: {'uptime.steps.replay': 'off'}});
   await h.ui.activity(h.root, workflow(5, {person_decisions: 1, automatic_steps: 4}));
   toggle(h.root).checked = true; toggle(h.root).listeners.change();
   assert.equal(h.stored['uptime.steps.replay'], 'on');
@@ -90,7 +92,9 @@ test('turned on, the next decision’s steps are shown one at a time in recorded
   assert.equal(toggle(h.root).checked, true);
   const text = line(h.root).textContent;
   assert.equal(text, 'Replay: these steps ran when the reviewer decision “Approve response” was recorded. Shown one at a time so each can be read.');
-  assert.doesNotMatch(h.root.textContent, /\bagent\b|\bAI\b|working|in progress|thinking/i);
+  // The demo line names the Uptime agent; no step is ever attributed to a model or an AI, and nothing claims live work.
+  assert.doesNotMatch(text, /\bAI\b|\bmodel\b|Claude|working|in progress|thinking/i);
+  assert.ok(stepRows(h.root).every(n => !/\bAI\b|model|Claude/i.test(n.children[1].textContent)));
   const seen = [visibleLabels(h.root).slice(5)];
   while (h.queue.length) { const {fn, ms} = h.queue.shift(); assert.equal(ms, 1600); fn(); seen.push(visibleLabels(h.root).slice(5)); }
   assert.deepEqual(seen, [['Approve response'], ['Approve response', 'Send response'], ['Approve response', 'Send response', 'Receive credit decision']]);
@@ -104,7 +108,7 @@ test('turned on, the next decision’s steps are shown one at a time in recorded
 });
 
 test('Replay shows the whole list in recorded order; skipping or turning it off shows every step at once', async () => {
-  const h = harness(); await h.ui.activity(h.root, workflow(11, {person_decisions: 4, automatic_steps: 7}));
+  const h = harness({stored: {'uptime.steps.replay': 'off'}}); await h.ui.activity(h.root, workflow(11, {person_decisions: 4, automatic_steps: 7}));
   button(h.root, 'Replay').listeners.click();
   assert.equal(line(h.root).textContent, 'Replay: every step below has already run and been recorded. Shown one at a time so each can be read.');
   const order = [visibleLabels(h.root).at(-1)];
@@ -134,7 +138,8 @@ test('browser storage that refuses leaves the setting in memory for this page', 
   const ui = create({document, storage: {getItem() { throw new Error('denied'); }, setItem() { throw new Error('denied'); }},
     reducedMotion: () => false, schedule: fn => queue.push(fn), api: async () => ({})});
   await ui.activity(root, workflow(5, {person_decisions: 1, automatic_steps: 4}));
-  toggle(root).checked = true; toggle(root).listeners.change();
+  assert.equal(queue.length, 1, 'on by default');
+  toggle(root).checked = false; toggle(root).listeners.change();
   await ui.activity(root, workflow(8, {person_decisions: 2, automatic_steps: 6}));
-  assert.equal(toggle(root).checked, true); assert.equal(queue.length, 1);
+  assert.equal(toggle(root).checked, false); assert.equal(queue.length, 1, 'turned off, nothing more is scheduled');
 });
