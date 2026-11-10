@@ -108,3 +108,4 @@ Current implementation and test boundaries appear in [engineering status](../STA
 - [97 — Automatic rule-family selection (D05 phase 1)](ADR-0097-automatic-family-selection.md)
 - [Ronok's 2a — closure-bound accept-denial mandate](../integration90/D06-ACTION-MATRIX.md)
 - [Side panel framing: one named browser extension may frame the app (2026-11-09, follow-on to the submission build)](ADR-20261109-side-panel-framing.md)
+- [A demo sign-in by name and password: built on the design branch, held off `main`, not merged (2026-11-10)](ADR-20261110-demo-sign-in-held.md)
