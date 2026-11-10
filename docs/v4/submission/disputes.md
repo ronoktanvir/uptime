@@ -330,3 +330,86 @@ Written by me (agent3) once, before any model call, in my own words. It is not t
 - That the model and the reviewer agreed, or any agreement value. No review ran, so there is none.
 - That the model misunderstood the reply. It identified the right document and type.
 - That the vendor message, the counterparty or the reviewer is real. All are authored or scripted.
+
+## Proposal, not a plan: what "0.00" means in a claim's own record (acceptance finding A2)
+
+**Status:** for Ronok and the team to decide. There is no code or test change in this push. Tonight the interface stops showing the two figures the record does not track (the redesign session owns that); the server is unchanged. All observations are on main `6130aa7`.
+
+### 1. What the claim record sends today
+
+Source: `CorrespondenceDesk._view`, `uptime/correspondence.py:816–822`, served at `GET /api/correspondence/claims/{id}` as `ledger` and repeated as `financials` rows ("USD x", line 874).
+
+| Amount | How it is set | What a "0.00" there can mean |
+|---|---|---|
+| `estimated` | The governing evaluation's amount, else `"0.00"` | **Determined zero** when the outcome is `INELIGIBLE`. **Unknown, shown as zero** when the outcome is `INSUFFICIENT_EVIDENCE` or `UNSUPPORTED_RULE`, because those evaluations carry no amount. |
+| `claimed` | The first local submission's requested amount, else `"0.00"` | **Not yet** before a local filing; true, because the desk is the record of its own filings. **Not tracked here** on the historical-receipt (filed-outside) path: a claim was filed outside Uptime and witnessed, but its amount is not recorded locally. |
+| `awarded` | `state["awarded"]`, from interpreted vendor decisions | **Not yet**, or a **determined zero** after a denial. The desk does track this. |
+| `posted` | Literal `"0.00"` | **Not tracked here.** The desk never records posting. |
+| `applied` | Literal `"0.00"` | **Not tracked here.** The desk never records application. |
+| `disputed_remainder` | `claimed − awarded` in an unresolved stage, else `"0.00"` | **Not yet disputed** before filing or while awaiting the vendor. **Determined zero** after acceptance or a full award. |
+
+After the default walkthrough on main (reproduced in-process): the claim record shows posted and applied `"0.00"` and financials "USD 0.00", while the credit was posted and applied at $2,400.00. That is A2.
+
+### 2. Who reads each value, and what each would do with no value
+
+| Reader | Reads | With a null |
+|---|---|---|
+| Case page, `web/v4_ui.js` `inspect` (line 1286, desk view) | Shows estimated, claimed, awarded and disputed remainder through `money()`. The closed record section shows the raw `ledger` and `financials` | `money(null)` returns nothing and the row is omitted; the raw record shows null ("Not provided"). The redesign is changing the closed section tonight |
+| Desk view's own `financials` rows (`correspondence.py:874`) | Builds `currency + " " + value` | **Raises on null** (the view returns 500). Any change must make these rows null-safe |
+| Dispute trace (`correspondence_disposition.py`, `ledger` = desk ledger) | Returns all six values; the panel renders only Claimed and Awarded | Null passes through; nothing renders it |
+| Workbench case view, `uptime/workbench.py` `_correspondence` (W7) | Overwrites `posted` and `applied` from the allocation records, then **rebuilds `financials`** from the overwritten ledger (line 385) with `usd()` | Unaffected by null posted or applied (overwritten first). **`usd()` raises on null** (`Decimal(None)`), so a null `estimated`, `claimed`, `awarded` or `disputed_remainder` would break this rebuild |
+| Workflow, coordinator, `finance_view`, `finance_guide`, workspace guide | The workbench overlay (real posted and applied); estimated from the claim's `amount` | Unaffected by posted or applied. A null claimed would reach `ledger.get('claimed','0.00')` in `northwind_workflow.py:387` as null |
+| Case guide, `uptime/intelligence.py:111` (W7) | Quotes the workbench `financials` rows | Correct today (rebuilt rows). It would need the rebuild to handle null if estimated or claimed went null |
+| Scripts `film_demo.py`, `rehearse.py`, `film_ramp_v4.py` | The legacy desk and Ramp cases via the workbench (rebuilt at line 325) | Unaffected |
+| Acceptance evidence | Recorded history | Unaffected; no file pins the desk view's posted 0.00 |
+
+### 3. Options
+
+**(A) The record reports only what it tracks, in two steps.**
+- **A1. `posted` and `applied` become null ("not tracked here").** Two lines in `uptime/correspondence.py` (W4): the two ledger values, and `financials` rows null-safe. No other owner's file is required: the workbench overwrites both values before it rebuilds.
+  - Measured on main with exactly that change, with the related suites run: 14 existing tests change, each from `== "0.00"` to `is None` for posted and applied. No awarded or claimed assertion moves.
+    - `tests/test_correspondence.py::test_independent_simulator_new_evidence_and_oracle` (inline at line 117)
+    - `tests/test_correspondence_disposition_89.py::test_n89_cure_endpoint_preserves_original_filing`
+    - `tests/test_correspondence_interpretation.py::test_manual_review_and_preview_are_inert_until_draft_then_existing_approval`
+    - `tests/test_correspondence_language_56.py::test_partial_credit_retains_unawarded_balance_and_never_authorizes_settlement` (3 parametrizations)
+    - `tests/test_correspondence_language_56.py::test_unknown_or_unconserved_award_text_cannot_create_money` (4 parametrizations)
+    - `tests/test_correspondence_model_jobs_75.py::test_supported_candidate_still_needs_review_preview_prepare_and_existing_approval`
+    - `tests/test_run_denial_model_job_r2.py::test_a_reading_that_is_not_the_log_request_stands_and_nothing_continues` (3 parametrizations)
+  - **Frozen expectation needing a new version, not an edit:** `fixtures/correspondence/novel-89/cases.json`, case `n89-cure-endpoint`, expects posted and applied `"0.00"`. `oracle.json` and `oracle-v2-d06.json` do not mention posted or applied.
+  - Not run: browser tests, which may pin the closed section's values (W7).
+  - One more failure appeared in that run: `scripts/prospective/test_projection.py::test_sealed_public_controls_signed_mounted_api_activation`. It fails identically on unmodified main, so it is pre-existing and not part of this option.
+- **A2. `estimated` null for outcomes without an amount; `claimed` null on the filed-outside path.**
+  - **Not measured.** It needs its own run before any decision.
+  - Known so far: five assertions pin `claimed == "0.00"` on the filed-outside path:
+    - `tests/test_correspondence_service.py:192` (`test_correct_denial_of_independently_witnessed_original_requires_actual_signed_ground`)
+    - `tests/test_correspondence_filing_refs.py:103` and `:204`
+    - `tests/test_correspondence_language_56.py:88` (`test_claim_bound_lateness_uses_actual_original_receipt`) and `:109` (`test_correct_availability_denial_comes_from_signed_measurements_not_percent_claim`)
+  - `usd()` in `uptime/workbench.py` (W7) must accept null before A2.
+  - `northwind_workflow.py` (W4) would show a null claimed in its ledger.
+
+**(B) Keep the data and label it in the interface.**
+- The record keeps its zeros; the case page omits posted and applied from the closed section, or marks them "recorded on the Overview". This is being done tonight.
+- No server or test change and no frozen-fixture change.
+- The desk view's `financials` rows keep "USD 0.00" for posted and applied. Any interface that shows those rows must handle them too. Today only the case page's closed record section does (`v4_ui.js:357`).
+
+### 4. A bug independent of the decision
+
+**None found; my earlier claim is withdrawn.** I had reported that the workbench does not rebuild `financials` after overwriting posted and applied, so the case guide and the older case page would read "Posted USD 0.00". That was wrong: `workbench.py:385` rebuilds them, and my earlier search had only read the first 25 lines of the function.
+
+Reproduced on main after the default walkthrough:
+- `GET /api/correspondence/claims/inbox-northwind-2026-01`: posted and applied `"0.00"`, financials "USD 0.00";
+- `GET /api/cases/inbox-northwind-2026-01`: posted and applied `"2400.00"`, financials "$2,400.00";
+- `POST /api/workspace/guide` ("How much credit was posted and applied?"): applied credit $2,400.00, outstanding $8,600.00.
+
+The stale zeros exist only in the claim's own record.
+
+### 5. Recommendation
+
+**Tonight: (B)**, already under way.
+
+**For the team:**
+- **Adopt (A) as a rule:** a claim record sends a value only for what it tracks, and sends null ("not tracked here", "unknown") otherwise.
+- **Land A1 first:** W4 only, 14 named tests, and a new version of the frozen `novel-89` case set.
+- **Then measure and decide A2:** estimated and claimed, which also needs `usd()` in W7 to accept null.
+
+Doing only A1 would leave the record saying "0.00" for an unknown estimate and for a claim filed outside Uptime. The rule should be stated once, so the record is consistent with itself.
