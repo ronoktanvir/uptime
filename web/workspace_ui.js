@@ -507,7 +507,7 @@
       const jobs = panel('Model jobs');
       const casesLink = el('a', 'Cases', 'case-link'); casesLink.href = '#cases';
       const agreementsLink = el('a', 'Agreements', 'case-link'); agreementsLink.href = '#agreements';
-      add(jobs, note('Each model job is shown with what it read: a vendor reply on its case, a contract on its agreement. A model proposes; a person decides.'),
+      add(jobs, note('Each model job is shown with what it read: a vendor reply on its case, a contract on its agreement. A model proposes; a reviewer decides.'),
         add(el('p', null, 'help recovery-links'), casesLink, agreementsLink));
       root.replaceChildren(header, automationPanel(data.automation, data.next_actions), history, jobs, coverage);
     }

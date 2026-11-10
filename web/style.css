@@ -215,6 +215,8 @@ main:focus-visible { box-shadow: inset 0 2px 0 var(--accent); }
 #content > * { min-width: 0; }
 #content > button { align-self: flex-start; margin-top: 24px; }
 #content > button + .page-head { padding-top: 0; }
+/* A page that opens without its header (a failed read, an empty state) keeps the header's distance from the top. */
+#content > .panel:first-child, #content > .empty:first-child { margin-top: 32px; }
 .notice:not(:empty) { margin-top: 16px; padding: 10px 14px; border: 1px solid var(--accent-line); border-radius: 8px; background: var(--accent-soft); color: var(--ink); font-size: 13px; line-height: 20px; }
 /* Before sign-in and while the first page loads there is nothing to navigate to. */
 body:has(#content > .signin), body:has(#content > .boot) { grid-template-columns: minmax(0, 1fr); }
@@ -229,7 +231,7 @@ body:has(#content > .signin) #content, body:has(#content > .boot) #content { min
 .page-head h1 + p { margin-top: 6px; max-width: 72ch; }
 .eyebrow { font-size: 13px; line-height: 20px; font-weight: 500; color: var(--accent) !important; margin-bottom: 2px; }
 .lead { max-width: 72ch; }
-.as-of { flex: none; font-size: 12px; line-height: 16px; color: var(--muted); }
+.as-of, .page-head > .as-of { flex: none; font-size: 12px; line-height: 16px; color: var(--muted); }
 .section-head { margin-top: 8px; display: grid; gap: 2px; }
 .section-head h2 { font-size: 18px; line-height: 26px; letter-spacing: -.01em; }
 .section-head p { color: var(--muted); font-size: 13px; line-height: 20px; }
@@ -309,6 +311,8 @@ dl.record dl.record > dd:last-child { margin-bottom: 0; }
 div.record, article.record { padding: 12px 0; border-top: 1px solid var(--line); }
 div.record:first-child, article.record:first-child { border-top: 0; }
 a.record, span.record { overflow-wrap: anywhere; }
+.panel > a.record { display: block; width: fit-content; max-width: 100%; margin-top: 6px; }
+div.record > strong + code { margin-left: 8px; overflow-wrap: anywhere; }
 details.record { margin-top: 12px; }
 details.record pre { margin-top: 8px; padding: 12px; border-radius: 8px; background: var(--sunken); border: 1px solid var(--line); }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -466,10 +470,12 @@ details.panel > :not(summary) { margin: 20px 24px; }
 .guide-citation code, .workflow-evidence code { overflow-wrap: anywhere; word-break: break-word; }
 .guide-related { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
 .basis { min-width: 240px; }
-.basis > .help { color: var(--text); }
+.panel td.basis > .help { max-width: none; margin-top: 0; color: var(--text); }
+.basis > .trace > li:first-child { padding-top: 0; }
 .basis .inspector { margin-top: 6px; }
 .basis .inspector[open] { margin-bottom: 12px; }
 #finance-price .northwind-fields, #finance-bill .northwind-fields { margin-bottom: 16px; }
+#finance-price .northwind-fields { display: flex; flex-wrap: wrap; gap: 16px 48px; }
 #finance-price .table-scroll + .help { margin-top: 12px; }
 .foot-link { padding-bottom: 8px; }
 
@@ -499,9 +505,12 @@ details.panel > :not(summary) { margin: 20px 24px; }
 .activity li { padding: 12px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 148px minmax(0, 1fr); column-gap: 24px; }
 .activity li:first-child { border-top: 0; padding-top: 0; }
 .activity li:last-child { padding-bottom: 0; }
-.activity li > time { grid-column: 1; grid-row: 1 / span 6; font-size: 12px; line-height: 20px; color: var(--muted); }
+.activity li > time { grid-column: 1; grid-row: 1 / span 6; font-size: 12px; line-height: 20px; color: var(--muted); overflow-wrap: anywhere; }
 .activity li > :not(time) { grid-column: 2; min-width: 0; }
 .activity li > span { color: var(--ink); overflow-wrap: anywhere; }
+.panel > .help + .activity { margin-top: 12px; }
+.panel > .pill + p { margin-top: 8px; }
+.panel > .filters { margin-top: 16px; }
 
 /* 11. Ramp records */
 .ramp-verified .panel-head { justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
@@ -548,14 +557,24 @@ td.ramp-scenario.num span { font-weight: 400; color: var(--text); }
 .case-subtitle { margin-top: 2px; font-size: 12px; line-height: 18px; color: var(--muted); max-width: 40ch; }
 
 /* 12. Advanced tools and the case inspector */
-.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-.metric { min-width: 0; padding: 18px 20px; background: var(--surface); }
+/* Figures three to a row. Each cell draws its own right and bottom hairline and the frame clips the outer ones,
+   so an incomplete last row is plain surface, not a grey block. */
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.metric { min-width: 0; margin: 0 -1px -1px 0; padding: 20px 24px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.metrics > .empty { grid-column: 1 / -1; }
 .metric h2 { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); }
 .metric-value { margin-top: 6px; font-size: 24px; line-height: 30px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.metric p { margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--muted); }
+.metric p { margin-top: 6px; max-width: 44ch; font-size: 12px; line-height: 18px; color: var(--muted); }
 .ledger { padding: 0; overflow: hidden; }
-.ledger-head { padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.ledger-head h2 { margin: 0; }
+/* The title and its filters share one line; the count sits under them across the card. */
+.ledger-head { padding: 20px 24px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px 24px; }
+.ledger-head h2 { margin: 0; padding-bottom: 6px; }
+.ledger-head .filters { flex-wrap: nowrap; }
+.ledger-head .filters label { flex: 0 0 180px; }
+.ledger-head > .help { grid-column: 1 / -1; }
+.ledger td:first-child { width: 48%; }
+.ledger td .help { max-width: none; font-family: var(--mono); font-size: 12px; line-height: 18px; }
+.ledger .case-subtitle { max-width: none; }
 .ledger .table-scroll { border: 0; border-top: 1px solid var(--line); border-radius: 0; }
 .check { padding: 14px 0; border-top: 1px solid var(--line); }
 .check:first-of-type { border-top: 0; }
@@ -568,6 +587,9 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .dialog-toolbar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
 #case-content { padding: 24px; display: grid; gap: 16px; background: var(--bg); }
 #case-content > * { min-width: 0; }
+#case-content .panel { overflow-wrap: anywhere; }
+#case-content .panel > p + p { margin-top: 6px; }
+#case-content .section-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 /* 13. Sign-in */
 .signin { width: min(100%, 440px); padding: 32px; display: grid; gap: 18px; box-shadow: 0 1px 2px rgba(15, 26, 54, .05), 0 12px 32px rgba(15, 26, 54, .06); }
@@ -588,6 +610,10 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
   .outcome { grid-template-columns: minmax(0, 1fr); }
   .overview-columns { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "recovery" "attention" "ramp" "guide"; }
   .section-grid { grid-template-columns: minmax(0, 1fr); }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ledger-head { grid-template-columns: minmax(0, 1fr); }
+  .ledger-head .filters { flex-wrap: wrap; }
+  .ledger-head .filters label { flex: 1 1 160px; }
 }
 @media (max-width: 760px) {
   :root { --gutter: 16px; }
@@ -676,7 +702,10 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
   .activity li > time, .activity li > :not(time) { grid-column: 1; grid-row: auto; }
   dl.record { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   dl.record > dd { margin-bottom: 10px; }
-  .filters label { flex: 1 1 140px; }
+  .filters label, .ledger-head .filters label { flex: 1 1 140px; }
+  .metrics { grid-template-columns: minmax(0, 1fr); }
+  .ledger td:first-child { width: auto; }
+  #case-content .section-grid { grid-template-columns: minmax(0, 1fr); }
   dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; }
   #case-content { padding: 16px; }
   .dialog-toolbar { padding: 10px 16px; }

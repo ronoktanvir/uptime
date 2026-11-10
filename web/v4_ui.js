@@ -1170,17 +1170,40 @@
         add(el('details', undefined, 'v4-detail'), el('summary', shown(item.claim_id ?? item.id)), provenance(item.sources), record(item)))));
       m.body.append(tools);
     }
+    // One figure of a cohort as the server labels it: its value and note in view, the whole record one click away.
+    function figure(metric) {
+      return add(el('div', undefined, 'v4-figure'), el('p', shown(metric.label ?? metric.key), 'v4-figure-label'),
+        el('p', shown(metric.value), 'v4-figure-value'), metric.note == null ? null : note(metric.note), details('Full record', metric));
+    }
     function portfolio(m, data) {
-      m.body.append(note('Portfolio and seeded comparison are separate server-declared cohorts. A seeded scenario is not a portfolio total.'));
-      const grid = el('div', undefined, 'v4-grid');
+      const grid = el('div', undefined, 'v4-grid v4-cohorts');
       for (const [key, title] of [['portfolio','Portfolio'],['seeded','Seeded comparison']]) {
         const cohort = data[key]; const n = section(title);
         if (!cohort) n.append(note('Cohort not provided.'));
         else {
-          add(n, note(shown(cohort.label)), provenance(cohort.sources), record(cohort.metrics));
-          list(cohort.cases).forEach(c => {
-            const row = add(el('div', undefined, 'v4-case'), record(c));
-            if (typeof c.id === 'string' && typeof options.onCase === 'function') row.append(button('Inspect ' + c.id, () => active(m) && options.onCase(c.id)));
+          add(n, note(shown(cohort.label)), provenance(cohort.sources));
+          const metrics = cohort.metrics;
+          // The server's list of labelled figures reads as a list; any other shape is shown as the record it is.
+          if (Array.isArray(metrics) && metrics.length && metrics.every(x => x && typeof x === 'object' && !Array.isArray(x) && 'value' in x)) {
+            n.append(add(el('div', undefined, 'v4-figures'), ...metrics.map(figure)));
+          } else n.append(record(metrics));
+          const cases = list(cohort.cases);
+          if (cases.length) n.append(el('h3', 'Cases in this cohort (' + cases.length + ')'));
+          cases.forEach(c => {
+            const row = el('div', undefined, 'v4-case');
+            if (c && typeof c === 'object' && !Array.isArray(c)) {
+              // Stage and outcome are the server's own words; an absent amount is not a zero.
+              add(row, add(el('div', undefined, 'v4-case-head'), el('strong', shown(c.title ?? c.id)),
+                el('span', c.amount == null ? 'Not determined' : money(c.amount, c.currency) ?? shown(c.amount), 'v4-case-amount')),
+                note([c.vendor, c.title == null ? null : c.id].filter(value => value != null).join(' · ')),
+                add(el('div', undefined, 'v4-case-tags'), c.outcome == null ? null : el('span', c.outcome, 'pill'), c.stage == null ? null : el('span', c.stage, 'pill')),
+                details('Full record', c));
+            } else row.append(record(c));
+            if (c && typeof c.id === 'string' && typeof options.onCase === 'function') {
+              // The case is named on the line above; the control says what it does and names the case for a screen reader.
+              const inspect = button('Inspect case', () => active(m) && options.onCase(c.id)); inspect.setAttribute('aria-label', 'Inspect case ' + c.id);
+              row.append(inspect);
+            }
             n.append(row);
           });
         }
@@ -1189,8 +1212,7 @@
       m.body.append(grid);
     }
     function catalog(m, data) {
-      m.body.append(note('Review vendor terms, correspondence and financial reconciliation.'));
-      const nav = el('nav', undefined, 'v4-grid'); nav.setAttribute('aria-label','Companion workflow catalog');
+      const nav = el('nav', undefined, 'v4-grid v4-catalog'); nav.setAttribute('aria-label','Companion workflow catalog');
       for (const [route,title,description] of [
         ['ramp','Matched Ramp evidence','Inspect native records, governing terms, evidence and read-only workflow plans.'],
         ['vendors','Source-grounded vendor intake','Review public source text separately from customer scope; inspect candidate tests, shadow checks and version actions.'],
@@ -1198,14 +1220,16 @@
         ['dashboard','Evidence ledger','Inspect case financial stages and clause-cited evaluation traces.'],
         ['lab','Onboarding lab','Preserved onboarding and shadow evaluation workflow.'],
         ['regression','Regression comparison','Compare the portfolio with a separate reference cohort.']]) {
-        const panel = section(title), link = el('a','Open ' + title); link.href = '#' + route;
+        const panel = section(title), link = el('a','Open ' + title, 'v4-open-link'); link.href = '#' + route;
         add(panel,note(description),link); nav.append(panel);
       }
-      m.body.append(nav,section('Observed integrity & reconciliation'));
-      m.body.append(record({as_of:data.as_of,snapshot_status:data.snapshot_status,
+      // What the server observed, inside its own card, with the limit of what it establishes stated beside it.
+      const observed = section('Observed integrity & reconciliation');
+      add(observed, note('Missing verification or quarantine counts are unknown, not zero. A checksum or source signature alone does not establish entitlement.'),
+        record({as_of:data.as_of,snapshot_status:data.snapshot_status,
         credit_sync:data.credit_sync,terms:data.terms ?? data.terms_status ?? data.terms_metrics ?? 'Terms verification metrics not returned by this backend',
         quarantine:data.quarantine ?? data.quarantine_metrics ?? 'Quarantine metrics not returned by this backend'}));
-      m.body.append(note('Missing verification or quarantine counts are unknown, not zero. A checksum or source signature alone does not establish entitlement.'));
+      m.body.append(nav, observed);
     }
     async function render(root, view, supplied) {
       if (!root || typeof root.replaceChildren !== 'function') throw new Error('A DOM root is required.');
@@ -1219,7 +1243,9 @@
       const [eyebrow, title, lead] = {
         vendors:['Vendor agreements & versions', 'Agreements', 'Each agreement Uptime reads in this workspace: whether it is in force, what its source establishes with the exact clauses, and who performed each review step.'],
         disputes:['Correspondence & disputes', 'Cases', 'Each claim filed with a vendor, its stage and its correspondence. Open a case to read every step in order.'],
-        portfolio:[null, 'Portfolio comparison', null], case:[null, 'Case inspector', null], catalog:[null, 'Advanced companion workflows', null]}[view];
+        portfolio:['Regression comparison', 'Portfolio comparison', 'Portfolio and seeded comparison are separate server-declared cohorts. A seeded scenario is not a portfolio total.'],
+        case:[null, 'Case inspector', null],
+        catalog:['More tools', 'Advanced companion workflows', 'Review vendor terms, correspondence and financial reconciliation.']}[view];
       const refresh = button('Refresh server state', async () => {
         if (busy || !active(m)) return;
         // Supplied projections must be refreshed by their owner, not reclassified as current.

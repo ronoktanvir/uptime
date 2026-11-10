@@ -116,9 +116,23 @@
     content.replaceChildren(window.uptimeAuth.signInForm(() => { signedPage = true; navigate(); }));
   }
   function showError(target, error, retry) { target.replaceChildren(add(el('section', 'panel error'), el('h2', '', 'Unable to load this view'), el('p', '', error.message || 'Connection unavailable. Check that the server is running.'), button('Try again', retry, 'quiet'))); }
+  // Presentation only: an instant with an explicit offset is written as the other pages write it ("Nov 9, 2026,
+  // 23:18 UTC"); the exact server value stays on the element. Anything else is shown as sent.
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function instant(value) {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}, ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')} UTC`;
+  }
+  function moment(value) {
+    const shown = instant(value), node = el('time', '', shown || value);
+    if (shown) { node.setAttribute('datetime', value); node.title = value; }
+    return node;
+  }
   function timeline(items, history = false) {
     const node = el('ol', 'activity');
-    list(items).forEach(item => { const row = el('li'); if (typeof item === 'string') add(row, el('span', '', item), sources([])); else add(row, el('time', '', item.at), el('span', '', display(item.event)), item.case_id ? el('div', 'help', `Case ${item.case_id}`) : null, sources(item.sources)); node.append(row); });
+    list(items).forEach(item => { const row = el('li'); if (typeof item === 'string') add(row, el('span', '', item), sources([])); else add(row, moment(item.at), el('span', '', display(item.event)), item.case_id ? el('div', 'help', `Case ${item.case_id}`) : null, sources(item.sources)); node.append(row); });
     return node.children.length ? node : empty(history ? 'No history returned by the server.' : 'No events returned by the server.');
   }
   // Unknown policy/integration fields remain read-only; source arrays are never renamed or inferred.
@@ -135,7 +149,7 @@
   }
   function renderDashboard(data) {
     const head = heading('Evidence ledger', 'Unpaid invoice exposure and the current recovery case. Each figure belongs to a separate financial stage.');
-    head.append(el('div', 'as-of', `Updated ${display(data.as_of)}`));
+    head.append(el('div', 'as-of', `Updated ${instant(data.as_of) || display(data.as_of)}`));
     const metrics = el('section', 'metrics'); metrics.setAttribute('aria-label', 'Financial stages');
     list(data.metrics).forEach(metric => metrics.append(add(el('article', 'metric'), el('h2', '', display(metric.label)), el('div', 'metric-value', metric.value), el('p', '', display(metric.note)), sources(metric.sources))));
     if (!metrics.children.length) metrics.append(empty('No financial metrics returned.'));
@@ -288,7 +302,7 @@
     const ramp=data.ramp, publicData=data.public_evidence, model=data.model;
     const bills=panel('Ramp Bill Pay');
     add(bills,el('p','',ramp.note),sources(ramp.sources));
-    if (ramp.observed_at) bills.append(el('p','help','Retrieved '+ramp.observed_at));
+    if (ramp.observed_at) bills.append(el('p','help','Retrieved '+(instant(ramp.observed_at) || ramp.observed_at)));
     if (ramp.ui_url) {
       const link=el('a','case-link','Open Ramp'); link.href='https://demo.ramp.com'; link.target='_blank';link.rel='noopener noreferrer';bills.append(link);
     }
