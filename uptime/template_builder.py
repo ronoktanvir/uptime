@@ -60,20 +60,27 @@ def now():
 # --- Samples ----------------------------------------------------------------------------
 
 def demo_samples(folder=FIXTURES):
+    """The shipped sample contracts, as the fixture folder's samples.json lists them. No vendor is named in code."""
     folder = Path(folder)
     expected = json.loads((folder / "expected.json").read_text())
+    samples = []
+    for row in json.loads((folder / "samples.json").read_text()):
+        def document(ident, row=row):
+            text = (folder / (ident + ".txt")).read_text()
+            return {"id": ident, "title": row["form"] + " · " + expected[ident]["customer"], "vendor": row["vendor"],
+                    "customer": expected[ident]["customer"], "chars": len(text),
+                    "text_url": "/fixtures/template_builder_demo/" + ident + ".txt",
+                    "_path": str(folder / (ident + ".txt")), "_expected": expected[ident]["terms"]}
+        samples.append({"id": row["id"], "title": row["title"], "vendor": row["vendor"],
+                        "document": document(row["document"]), "second_document": document(row["second_document"]),
+                        "next_documents": [document(ident) for ident in row["next_documents"]]})
+    return samples
 
-    def document(ident, title):
-        text = (folder / (ident + ".txt")).read_text()
-        return {"id": ident, "title": title, "vendor": "Halcyon Grid Services", "customer": expected[ident]["customer"],
-                "chars": len(text), "text_url": "/fixtures/template_builder_demo/" + ident + ".txt",
-                "_path": str(folder / (ident + ".txt")), "_expected": expected[ident]["terms"]}
-    title = "Platform Availability Addendum"
-    return [{"id": "halcyon-availability-addendum", "title": "Halcyon Grid: Platform Availability Addendum",
-             "vendor": "Halcyon Grid Services",
-             "document": document("halcyon-a", title + " · " + expected["halcyon-a"]["customer"]),
-             "second_document": document("halcyon-b", title + " · " + expected["halcyon-b"]["customer"]),
-             "next_documents": [document("halcyon-c", title + " · " + expected["halcyon-c"]["customer"])]}]
+
+def shipped_texts(folder=FIXTURES):
+    """File names of the sample contracts that may be served: exactly the documents samples.json lists."""
+    return {Path(d["_path"]).name for s in demo_samples(folder)
+            for d in (s["document"], s["second_document"], *s["next_documents"])}
 
 
 def public(value):
@@ -687,6 +694,6 @@ def register_template_builds(app, bench, auth):
 
     @app.get("/fixtures/template_builder_demo/{name}")
     def sample_text(name: str, p=Depends(auth.actor)):
-        if not re.fullmatch(r"halcyon-[abc]\.txt", name):
+        if name not in shipped_texts():
             return JSONResponse(off, 404)
         return FileResponse(FIXTURES / name, media_type="text/plain; charset=utf-8")

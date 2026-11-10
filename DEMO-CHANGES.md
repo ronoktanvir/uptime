@@ -151,3 +151,11 @@ Built against `docs/demo/TEMPLATE-BUILDER.md` (routes and the `sample`, `build` 
   and says Jev's check is advisory. Two tests added to `web/template_builder.test.cjs` (16 in all). Watched one real
   build (`--template-builder`) through the page: ready for review after 23.7 s, approved, next contract read by the
   template in 5.0 ms with 0 model calls.
+
+## After the first full run of the demo line (coordinator, November 10, 05:38 PST)
+
+The full suite was run once on `977bd19`: 5,539 passed and 3 failed, all three because of the template builder's new files.
+
+- `tests/test_ramp_ui_v4.py` › `test_ramp_browser_navigation_and_read_only_plan` and `tests/test_workspace_ui_v4.py` › `test_configured_workflow_keeps_evidence_money_and_original_navigation_reachable`: each test's stand-in server lists the static files the page may load; the list gains `template_builder_ui.js`, the new script `web/index.html` loads. Nothing else in either test changed.
+- `tests/test_vendor_requirements_89.py` › `test_new_vendor_name_reaches_shadow_with_useful_drafts_and_no_vendor_code` was NOT changed. It checks that no file in the `uptime` package names its made-up vendor "Halcyon", and the template builder had named its own sample vendor in code. The sample list moved to `fixtures/template_builder_demo/samples.json`; `uptime/template_builder.py` now names no vendor and serves only the documents that file lists.
+- Added `tests/test_template_builder.py` › `test_only_the_listed_sample_texts_are_served`: the sample text is served, and `expected.json` (the authored answers), `samples.json`, the README and an unlisted name are not.

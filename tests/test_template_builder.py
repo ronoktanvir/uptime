@@ -155,6 +155,13 @@ def test_happy_path_approval_and_the_template_reads_document_c(served, tmp_path)
     assert stat_mode(stored) == 0o600
 
 
+def test_only_the_listed_sample_texts_are_served(served):
+    client, actor = served[1], served[2]
+    assert client.get("/fixtures/template_builder_demo/halcyon-a.txt", headers=actor.headers).status_code == 200
+    for name in ("expected.json", "samples.json", "README.md", "halcyon-z.txt"):
+        assert client.get("/fixtures/template_builder_demo/" + name, headers=actor.headers).status_code == 404, name
+
+
 def stat_mode(path):
     return os.stat(path).st_mode & 0o777
 
