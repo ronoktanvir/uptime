@@ -118,7 +118,7 @@ def test_automation_workspace_needs_four_person_decisions_and_activity_shows_eve
         page.goto(origin + '/')
         login(page, directory)
         recovery = page.locator('#finance-recovery')
-        expect(recovery).to_contain_text('Routine steps: Paused · Waiting for a person to approve.')
+        expect(recovery).to_contain_text('Routine steps: Paused · Waiting for a reviewer to approve.')
         clicks = []
         for _ in range(12):
             buttons = recovery.locator('.actions button:not([disabled])')

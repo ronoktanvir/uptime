@@ -296,7 +296,7 @@
       if (!rows.length) return null;
       const blocking = rows.some(item => item.blocking === true);
       const n = add(el('div', undefined, 'v4-review v4-contradictions'), el('h4', blocking ? 'Review needed: conflicting source record' : 'Conflicting source records'),
-        note(blocking ? 'A source sent a record for another account or resource. A person must review it; this case offers no action until then.'
+        note(blocking ? 'A source sent a record for another account or resource. A reviewer must review it; this case offers no action until then.'
           : 'A source sent a record for another account or resource. It is recorded and does not block this case.'));
       const ul = el('ul');
       rows.forEach(item => ul.append(el('li', [shown(item.kind), shown(item.subject ?? item.source), shown(item.received_at), shown(item.reason)].join(' · ')
@@ -723,7 +723,7 @@
       CANCELLED:'Cancelled before completion. A retry needs a new attempt identifier and its own approval.',
       UNCERTAIN:'The outcome is uncertain, for example after an interrupted run. It is never retried automatically.'};
     const OUTCOMES = {
-      SELECTED:'Uptime selected one rule family from the source. It can be staged as a SHADOW candidate; independent tests and a person’s approval remain required.',
+      SELECTED:'Uptime selected one rule family from the source. It can be staged as a SHADOW candidate; independent tests and a reviewer’s approval remain required.',
       AMBIGUOUS:'More than one supported rule family fits this source. Uptime does not choose between readings, so no candidate can be staged.',
       NO_SUPPORTED_FAMILY:'No supported rule family represents this source. No candidate can be staged.',
       INCOMPLETE:'Selection is incomplete, so no candidate can be staged yet.',

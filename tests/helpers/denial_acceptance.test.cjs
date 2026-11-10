@@ -93,7 +93,7 @@ test('a blocking contradicting delivery is explained, and only offered actions r
   await s.ui.inspect(s.root, ID);
   const text = s.root.textContent;
   assert.ok(text.includes('Review needed: conflicting source record'));
-  assert.ok(text.includes('A person must review it; this case offers no action until then.'));
+  assert.ok(text.includes('A reviewer must review it; this case offers no action until then.'));
   assert.ok(text.includes('notice · other-account · 2026-10-13T02:00:00Z · Record names another account. · blocking'));
   assert.equal(button(s.root, 'Accept denial'), undefined);
 });

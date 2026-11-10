@@ -501,6 +501,11 @@ details.panel > :not(summary) { margin: 20px 24px; }
 .recovery-links { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px 24px; }
 #finance-recovery > .inspector { margin-top: 12px; }
 #finance-recovery > .northwind-fields { display: flex; flex-wrap: wrap; gap: 16px 48px; }
+/* Who the reviewer is, at the right of the card's title line: one field, label beside value, taking no height of its own. */
+#finance-recovery { position: relative; }
+#finance-recovery > .recovery-reviewer { position: absolute; top: 26px; right: 24px; max-width: calc(100% - 230px); gap: 0; }
+.recovery-reviewer .northwind-field { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 0 8px; font-size: 13px; line-height: 20px; }
+.recovery-reviewer .northwind-field dt { margin: 0; }
 .attention-list { list-style: none; margin: 0; padding: 0; }
 .attention-item { padding: 14px 0; border-top: 1px solid var(--line); }
 .attention-item:first-child { padding-top: 0; border-top: 0; }
@@ -723,6 +728,8 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
   .lifecycle-step .step-label { grid-area: 1 / 1; font-size: 13px; line-height: 20px; color: var(--ink); }
   .lifecycle-step .step-state { grid-area: 2 / 1; }
   .lifecycle-step .step-amount { grid-area: 1 / 2 / 3 / 3; align-self: center; font-size: 16px; }
+  #finance-recovery > .recovery-reviewer { position: static; max-width: none; margin: -8px 0 14px; }
+  .recovery-reviewer .northwind-field { justify-content: flex-start; }
   .decision { padding: 14px; }
   .decision .actions, .decision .actions button { width: 100%; }
   button { min-height: 44px; }

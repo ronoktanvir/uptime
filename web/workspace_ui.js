@@ -308,6 +308,12 @@
       }
       // The claim's own stage is shown as the server reports it, beside the credit's latest recorded lifecycle stage.
       const reachedStage = serverStages(data).filter(row => row.status === 'recorded').pop();
+      // Who the reviewer is and of what kind, in view on this card: the name as the server sends it and its authority
+      // kind in the same words the records below use. A plain field; left out when the server names no reviewer.
+      if (reviewer.name != null && reviewer.name !== '') {
+        const who = fields([['Reviewer', reviewer.name + (reviewer.authority_kind ? ' · ' + state(reviewer.authority_kind) : '')]]);
+        who.className += ' recovery-reviewer'; recovery.append(who);
+      }
       add(recovery,fields([['Claim stage',state(claim.state)],['Credit stage',reachedStage ? reachedStage.label : null],['Destination',ledger.destination],['Claim reference',claim.id]].filter(([, value]) => value != null)),
         claim.summary == null || claim.summary === '' ? null : note(claim.summary));
       const status=el('p',null,'help');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
@@ -345,7 +351,7 @@
       }
       // The next decision follows the heading directly: no link sits between them, so one Tab from the heading reaches it.
       const routine = data.automation && data.automation.enabled !== false ? automationSummary(data.automation) : null;
-      // Paused with nothing offered here means a person is needed elsewhere (for example on the case); that state is marked.
+      // Paused with nothing offered here means a reviewer is needed elsewhere (for example on the case); that state is marked.
       const stopped = !offered && data.automation && data.automation.enabled !== false && data.automation.state === 'PAUSED';
       const decision = add(el('div', null, 'decision' + (offered ? '' : stopped ? ' idle stopped' : ' idle')), routine ? add(el('p', null, 'help automation-line'), el('span', routine)) : null, controls);
       const caseLink = typeof claim.id === 'string' && claim.id ? el('a', 'Open this claim’s case and correspondence', 'case-link') : null;
@@ -422,10 +428,10 @@
     // Automation state is the server's persisted record. Step times are on the case's own timeline (the clock that
     // "As of" shows); the server's recording time stays in each step's details. No durations are derived from either.
     const AUTOMATION_STATE = {RUNNING:'Running', PAUSED:'Paused', COMPLETE:'Complete'};
-    const PAUSE_REASON = {APPROVAL_REQUIRED:'Waiting for a person to approve', FINANCIAL_APPROVAL_REQUIRED:'Waiting for a person to approve a ledger change',
-      JUDGMENT_REQUIRED:'Waiting for a person’s judgment', UNEXPECTED_GROUND:'Stopped for a person: the vendor gave a ground the system does not recognize',
-      CONTRADICTORY_EVIDENCE:'Stopped for a person: the evidence conflicts', MISSING_AUTHORITY:'Stopped: no current approval covers the next step',
-      UNCERTAIN_DELIVERY:'Stopped: an interrupted action must be resumed by a person', WAITING:'Waiting for the next event',
+    const PAUSE_REASON = {APPROVAL_REQUIRED:'Waiting for a reviewer to approve', FINANCIAL_APPROVAL_REQUIRED:'Waiting for a reviewer to approve a ledger change',
+      JUDGMENT_REQUIRED:'Waiting for a reviewer’s judgment', UNEXPECTED_GROUND:'Stopped for a reviewer: the vendor gave a ground the system does not recognize',
+      CONTRADICTORY_EVIDENCE:'Stopped for a reviewer: the evidence conflicts', MISSING_AUTHORITY:'Stopped: no current approval covers the next step',
+      UNCERTAIN_DELIVERY:'Stopped: an interrupted action must be resumed by a reviewer', WAITING:'Waiting for the next event',
       ROUTINE_READY:'Routine steps are ready to continue'};
     const STEP_CLASS = {INTAKE:'Intake', COMPUTATION:'Computation', DELIVERY:'Delivery', JUDGMENT:'Judgment', APPROVAL:'Approval', FINANCIAL_MUTATION:'Ledger change'};
     const STEP_STATE = {COMPLETED:'Completed', PAUSED:'Paused', UNCERTAIN:'Outcome uncertain', FAILED:'Failed'};
@@ -443,7 +449,7 @@
     }
     function automationSummary(automation) {
       if (!automation || typeof automation !== 'object') return null;
-      if (automation.enabled === false) return 'Each step runs when a person presses it in this workspace.';
+      if (automation.enabled === false) return 'Each step runs when a reviewer presses it in this workspace.';
       const counts = automation.counts || {}, pause = pauseText(automation);
       const head = (AUTOMATION_STATE[automation.state] || state(automation.state)) + (pause && automation.state !== 'COMPLETE' ? ' · ' + pause : '');
       const reason = (automation.pause || {}).reason, detail = (automation.pause || {}).detail;
