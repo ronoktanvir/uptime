@@ -1,1 +1,75 @@
-.interpretation-review{max-width:1080px;margin:24px auto;padding:24px;color:#152b2a;background:#f8faf7;font:16px/1.5 system-ui,sans-serif}.interpretation-review h1{font-size:30px;line-height:1.2}.interpretation-review h2{font-size:21px;margin-top:28px}.interpretation-review pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:20px;background:white;border:2px solid #637b72;border-radius:8px}.interpretation-review label{display:flex;flex-direction:column;gap:5px;font-weight:600;margin:12px 0}.interpretation-review input,.interpretation-review select,.interpretation-review textarea{font:inherit;padding:9px;border:1px solid #80948c;border-radius:5px;background:white;min-width:0}.interpretation-review textarea{min-height:70px}.interpretation-review button{font:inherit;padding:10px 16px;border:1px solid #23584c;background:#23584c;color:white;border-radius:5px;cursor:pointer;margin:8px 8px 8px 0}.interpretation-review button:disabled{opacity:.45;cursor:default}.interpretation-review a{color:#175547}.interpretation-review .interpretation-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 18px}.interpretation-review .interpretation-note{padding:14px;border-left:4px solid #b36a16;background:#fff4df}.interpretation-review .interpretation-check{flex-direction:row;align-items:flex-start;font-weight:400}.interpretation-review .interpretation-check input{margin-top:6px}.interpretation-review [role=status]{font-weight:600;overflow-wrap:anywhere}.interpretation-review fieldset{border:1px solid #a9bab1;padding:16px;margin:16px 0}.interpretation-review details{border-bottom:1px solid #c8d3cd;padding:12px 0}.interpretation-review summary{cursor:pointer;font-weight:600}.interpretation-review .interpretation-meta{font-size:13px;overflow-wrap:anywhere;color:#456259}@media(max-width:600px){.interpretation-review{margin:0;padding:16px}.interpretation-review h1{font-size:26px}}
+/* Reading a vendor reply. The page links style.css first: every colour, size and control here comes from the same
+   tokens and components as the rest of the product, and this file only lays the review out. */
+body.reading { display: block; }
+.reading-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px var(--gutter); background: var(--surface); border-bottom: 1px solid var(--line); }
+.reading-bar .brand { padding: 0; }
+.reading-back { font-size: 13px; font-weight: 500; text-decoration: none; }
+.reading-back::before { content: "\2190  "; }
+.reading-back:hover { text-decoration: underline; }
+#interpretation-root { max-width: 960px; margin: 0 auto; padding: 0 var(--gutter) 96px; overflow-wrap: anywhere; }
+#interpretation-root:focus { outline: none; }
+body.reading:has(#interpretation-root > .signin) .reading-bar { display: none; }
+body.reading:has(#interpretation-root > .signin) #interpretation-root { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding-block: 32px; }
+
+/* A control hidden by the review's own state stays hidden whatever its display. */
+.interpretation-review [hidden] { display: none !important; }
+.interpretation-review { display: flex; flex-direction: column; gap: 20px; }
+.interpretation-review > * { min-width: 0; }
+.interpretation-head { padding-top: 32px; }
+.interpretation-head h1 { margin: 0; }
+.interpretation-head .eyebrow { margin: 0 0 2px; }
+.interpretation-review h2 { margin: 0 0 16px; }
+.interpretation-review p { margin: 0; }
+.interpretation-note { padding: 10px 14px; border-left: 3px solid #e2a53a; border-radius: 0 6px 6px 0; background: var(--warn-soft); color: var(--warn); font-size: 13px; line-height: 20px; }
+.interpretation-head .interpretation-note { margin-top: 14px; }
+.interpretation-card { min-width: 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); display: grid; gap: 14px; }
+.interpretation-card:empty { display: none; }
+.interpretation-card > h2 { margin: 0; }
+.interpretation-card > * { min-width: 0; }
+/* The reply, exactly as signed: line breaks kept, nothing trimmed. */
+.interpretation-review pre { margin: 0; padding: 14px 16px; border-left: 3px solid var(--accent-line); border-radius: 0 6px 6px 0; background: var(--sunken); color: var(--ink); font: inherit; font-size: 15px; line-height: 24px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.interpretation-permission pre, .interpretation-blocks pre { font-family: var(--mono); font-size: 12px; line-height: 18px; }
+.interpretation-facts { display: flex; flex-wrap: wrap; gap: 14px 40px; margin: 0; }
+.interpretation-facts dt { margin-bottom: 2px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); }
+.interpretation-facts dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.interpretation-meta { font-size: 12px; line-height: 18px; color: var(--muted); overflow-wrap: anywhere; }
+.interpretation-review details { font-size: 13px; line-height: 20px; }
+.interpretation-review details > summary { width: fit-content; max-width: 100%; color: var(--muted); font-weight: 500; }
+.interpretation-review details > summary:hover, .interpretation-review details[open] > summary { color: var(--ink); }
+.interpretation-review details[open] > summary { margin-bottom: 10px; }
+.interpretation-review details > :not(summary) { margin-left: 19px; }
+.interpretation-review details > :not(summary) + :not(summary) { margin-top: 8px; }
+.interpretation-review label { display: flex; flex-direction: column; gap: 6px; }
+.interpretation-review textarea { min-height: 72px; }
+.interpretation-review fieldset { min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; display: grid; gap: 14px; }
+.interpretation-review legend { padding: 0 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.interpretation-propositions { display: grid; gap: 16px; }
+.interpretation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px 16px; align-items: end; }
+.interpretation-reading > button, .interpretation-controls > button, .interpretation-decisions > button { justify-self: start; }
+.interpretation-controls { grid-template-columns: repeat(2, max-content) minmax(0, 1fr); align-items: center; }
+.interpretation-controls > p { grid-column: 1 / -1; }
+.interpretation-job { padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunken); font-size: 13px; line-height: 20px; color: var(--text); }
+.interpretation-job:empty { display: none; }
+#interpretation-request-reason:empty { display: none; }
+/* A suggestion is a closed, bordered block until the reviewer opens it. */
+.interpretation-candidates > details { padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; }
+.interpretation-candidates > details > summary { color: var(--ink); font-size: 14px; font-weight: 600; }
+.interpretation-candidates > details[open] > summary { margin-bottom: 12px; }
+.interpretation-candidates > details > button { margin: 8px 8px 0 19px; }
+.interpretation-candidates blockquote { margin-top: 6px; margin-bottom: 6px; }
+.interpretation-alignment { font-size: 13px; line-height: 20px; }
+.interpretation-check { flex-direction: row !important; align-items: flex-start; gap: 10px !important; font-weight: 400; }
+.interpretation-check input { margin-top: 4px; }
+.interpretation-preview { display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+.interpretation-preview > h2 { margin: 0; }
+.interpretation-preview > button { justify-self: start; }
+/* What just happened, in view wherever the reviewer is on the page; it never takes a click. */
+.interpretation-review > [role=status] { position: fixed; left: 50%; bottom: 20px; z-index: 5; transform: translateX(-50%); width: max-content; max-width: min(720px, calc(100vw - 32px)); padding: 10px 16px; border-radius: 8px; background: var(--ink); color: #fff; font-size: 13px; line-height: 20px; font-weight: 500; box-shadow: var(--shadow-pop); pointer-events: none; overflow-wrap: anywhere; }
+.interpretation-review > [role=status]:empty { display: none; }
+
+@media (max-width: 760px) {
+  .interpretation-card { padding: 20px 16px; }
+  .interpretation-head { padding-top: 20px; }
+  .interpretation-controls { grid-template-columns: minmax(0, 1fr); }
+  .interpretation-review fieldset { padding: 12px; }
+}

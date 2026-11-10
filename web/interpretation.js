@@ -34,14 +34,24 @@
     root.classList.add('interpretation-review');
     const base = '/api/correspondence/claims/' + encodeURIComponent(claim) + '/interpretation';
     const el = (tag,text,cls) => { const n=document.createElement(tag); if(text!==undefined)n.textContent=text; if(cls)n.className=cls; return n; };
+    // One card per part of the review; the page reads top to bottom in the order the review is done.
+    const card = (cls,...children) => { const n=el('section',undefined,'interpretation-card'+(cls?' '+cls:'')); n.append(...children.filter(Boolean)); return n; };
     const status=el('p','',undefined); status.setAttribute('role','status');
-    root.replaceChildren(el('h1','Review the vendor’s meaning'),status);
-    const data=await api(base), context=data.context, original=context.text;
-    root.append(el('p','First record your own reading. Any requested interpretation appears only after that reading is saved. Interpretation does not authorize a filing, financial entry, waiver or denial closure.','interpretation-note'));
-    root.append(el('h2','Complete signed reply'),el('pre',data.visible_text));
-    root.append(el('p',`Claim month: ${context.scope.month} · Filed amount: ${context.requested===null?'Not recorded; procedural review only':context.currency+' '+context.requested}`));
-    root.append(el('p',`Case ${context.claim} · Vendor ${context.scope.vendor} · Service ${context.scope.service} · Region ${context.scope.region}`));
-    const provenance=el('details'); provenance.append(el('summary','Original source and governing terms'),el('p',`Reply ${context.event_digest} · Text ${context.text_sha256} · Terms ${context.contract_version} · Document ${context.contract_source_sha256}`,'interpretation-meta')); root.append(provenance);
+    const head=el('header',undefined,'interpretation-head'); head.append(el('h1','Review the vendor’s meaning'));
+    root.replaceChildren(head,status);
+    const data=await api(base), context=data.context, original=context.text, scope=context.scope||{};
+    const told=value=>value!==undefined&&value!==null&&value!=='';
+    // A service month sent as 2026-01 is shown as January 2026; anything else is shown as sent.
+    const month=value=>{const m=/^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(value));return m?['January','February','March','April','May','June','July','August','September','October','November','December'][Number(m[2])-1]+' '+m[1]:value;};
+    if(told(scope.vendor)||told(scope.month))head.prepend(el('p',[scope.vendor,told(scope.month)?month(scope.month):null].filter(told).join(' · '),'eyebrow'));
+    head.append(el('p','First record your own reading. Any requested interpretation appears only after that reading is saved. Interpretation does not authorize a filing, financial entry, waiver or denial closure.','interpretation-note'));
+    // The reply exactly as signed, then the facts of the claim it answers. A fact the server did not send is left out.
+    const facts=el('dl',undefined,'interpretation-facts');
+    for(const [name,value] of [['Claim month',told(scope.month)?month(scope.month):null],['Filed amount',context.requested===null?'Not recorded; procedural review only':context.currency+' '+context.requested],
+      ['Case',context.claim],['Vendor',scope.vendor],['Service',scope.service],['Region',scope.region]])
+      if(told(value)){const row=el('div');row.append(el('dt',name),el('dd',String(value)));facts.append(row);}
+    const provenance=el('details'); provenance.append(el('summary','Original source and governing terms'),el('p',`Reply ${context.event_digest} · Text ${context.text_sha256} · Terms ${context.contract_version} · Document ${context.contract_source_sha256}`,'interpretation-meta'));
+    root.append(card('interpretation-reply',el('h2','Complete signed reply'),el('pre',data.visible_text),facts,provenance));
     // Exact original blocks (textContent only; never normalized or rendered as markup).
     const blocks=Array.isArray(data.source_blocks)?data.source_blocks:null, ranges=[];
     if(blocks){let cursor=0;const list=el('details',undefined,'interpretation-blocks');list.append(el('summary','Original reply by line'));
@@ -57,7 +67,7 @@
       if(jobInfo.approval_request){const exportView=el('details');exportView.append(el('summary','Complete request for operator approval'),el('pre',JSON.stringify(jobInfo.approval_request,null,2)));permission.append(exportView);}}
     if(jobInfo){showPermission();(blocks?provenance.nextSibling:provenance).after(permission);}
     const MAX_PROPOSITIONS=12;
-    const form=el('div'), editorsBox=el('div',undefined,'interpretation-propositions'); form.append(el('h2','Your independent reading'),editorsBox); root.append(form);
+    const form=card('interpretation-reading'), editorsBox=el('div',undefined,'interpretation-propositions'); form.append(el('h2','Your independent reading'),editorsBox); root.append(form);
     function field(parent,label,options,multiline=false) {
       const wrap=el('label',label), node=el(options?'select':multiline?'textarea':'input'); node.setAttribute('aria-label',label);
       if(options){node.append(new Option('Choose…','')); for(const [value,title] of options)node.append(new Option(title,value));}
@@ -84,7 +94,7 @@
       e.filing=field(box,'Contractual filing items, if requested (one exact name per line)'+suffix,null,true);
       editorsBox.append(box);editors.push(e);return e;
     }
-    const add=el('button','Add another proposition'); add.type='button';
+    const add=el('button','Add another proposition','quiet'); add.type='button';
     form.append(add,el('p',`Up to ${MAX_PROPOSITIONS} separate propositions. Each exact source passage must occur once in the reply; leave it empty to use the complete reply. Together the passages must cover every non-courtesy part of the reply, exactly as before; uncovered text is rejected when saved. Only one bounded pair — a primary availability, late-filing or maintenance assertion plus a separate unconditional “no credit” statement — can reach the deterministic check; every other combination stays in human review.`,'interpretation-note'));
     if(context.filing_fields.length)form.append(el('p','Declared missing items: '+context.filing_fields.join('; ')));
     const residual=field(form,'Additional objection or unresolved meaning?', [['no','None after reviewing the complete reply'],['yes','Yes; keep this in human review']]);
@@ -132,9 +142,9 @@
     function invalidate(){preview=null;generation++;if(blind)showReview();}
     form.addEventListener('input',invalidate);form.addEventListener('change',invalidate);
     add.addEventListener('click',()=>{if(editors.length>=MAX_PROPOSITIONS)return;makeEditor();updateAdd();invalidate();status.textContent=`Added proposition ${editors.length}. Earlier decisions and previews were cleared.`;});
-    const controls=el('div'), candidates=el('section'), decisions=el('section');root.append(controls,candidates,decisions);
+    const controls=card('interpretation-controls'), candidates=card('interpretation-candidates'), decisions=card('interpretation-decisions');root.append(controls,candidates,decisions);
     async function run(button,work){button.disabled=true;status.textContent='Checking the exact source and current state…';try{const note=await work();status.textContent=note||'Saved. No financial or external action was authorized.';}catch(e){status.textContent=e.message+(STALE.test(e.message)?' Refresh the page to review the current original source.':'');}finally{button.disabled=false;if(button===model)updateRequest();}}
-    function button(label,handler){const b=el('button',label);b.type='button';b.addEventListener('click',()=>run(b,handler));return b;}
+    function button(label,handler,cls){const b=el('button',label,cls);b.type='button';b.addEventListener('click',()=>run(b,handler));return b;}
     const save=button('Save independent reading',async()=>{const interpretation=annotation();await api(base+'/blind-entry',{context_digest:context.digest,interpretation});blind=interpretation;
       if(jobInfo){const latest=await api(base);if(latest.context.digest!==context.digest)throw new Error('The original source changed. Refresh the page to review the current original source.');jobInfo=latest.model_job||jobInfo;job=jobInfo.job||job;showPermission();}
       showReview();save.hidden=true;showJob();if(job&&!job.terminal)poll();});controls.append(save);
@@ -142,15 +152,15 @@
       if(jobInfo){job=await api(base+'/model-jobs',{context_digest:context.digest});showJob();poll();return 'Request recorded. Nothing is applied until you review it.';}
       await api(base+'/candidates/model',{context_digest:context.digest});const latest=await api(base);showCandidates(latest.candidates);});
     const requestNote=el('p','','interpretation-note'); requestNote.id='interpretation-request-reason'; model.setAttribute('aria-describedby',requestNote.id);
-    const jobState=el('p',''); jobState.setAttribute('aria-live','polite');
-    const refresh=el('button','Refresh request status'); refresh.type='button'; refresh.hidden=true;
+    const jobState=el('p','',undefined); jobState.className='interpretation-job'; jobState.setAttribute('aria-live','polite');
+    const refresh=el('button','Refresh request status','quiet'); refresh.type='button'; refresh.hidden=true;
     refresh.addEventListener('click',async()=>{if(!job||polling)return;refresh.disabled=true;try{job=await api(base+'/model-jobs/'+encodeURIComponent(job.id));showJob();if(job.state==='SUCCEEDED'||job.state==='UNCERTAIN')await loadCandidates();else if(!job.terminal)poll();}catch(e){jobState.textContent=e.message+' Refresh the original source before continuing.';}finally{refresh.disabled=false;}});
     controls.append(model,requestNote,jobState,refresh);model.hidden=true;
     if(jobInfo){controls.append(button('Refresh request permission',async()=>{
       const latest=await api(base);if(latest.context.digest!==context.digest)throw new Error('The original source changed. Refresh the page.');
       jobInfo=latest.model_job;job=jobInfo?.job||job;showPermission();showJob();
       return jobInfo?.message||'Permission status unavailable.';
-    }));}
+    },'quiet'));}
     function updateRequest(){
       if(!jobInfo){model.hidden=!blind||!data.model_enabled;requestNote.hidden=true;return;}
       model.hidden=!blind;model.disabled=!jobInfo.can_request||!!job;
@@ -193,10 +203,10 @@
         if(p.scope_field)box.append(el('p','Incorrect scoped identifier: '+p.scope_field));
         if(p.filing_fields.length)box.append(el('p','Filing items: '+p.filing_fields.join('; ')));}
       for(const s of candidate.interpretation.segments){if(s.role==='unsupported')box.append(el('p','Unresolved content remains in review: '+where(s.source)));else if(s.role==='courtesy')box.append(el('p','Courtesy text: '+where(s.source)));}
-      box.append(button('Compare this suggestion',async()=>{selected=candidate;showReview();}));
+      box.append(button('Compare this suggestion',async()=>{selected=candidate;showReview();},'quiet'));
       // Explicit, reviewer-initiated copy into the editable draft. Nothing is accepted by loading.
       box.append(button('Load these propositions into your review draft',async()=>{selected=candidate;load(candidate.interpretation);invalidate();
-        return `Loaded ${candidate.interpretation.propositions.length} proposition(s) into your review draft. Nothing is accepted; decide each proposition below.`;}));
+        return `Loaded ${candidate.interpretation.propositions.length} proposition(s) into your review draft. Nothing is accepted; decide each proposition below.`;},'quiet'));
       candidates.append(box);}}
     function describe(label,p){return el('p',p?`${label}: ${p.family} · ${p.polarity} · ${p.modality} · ${p.referent} · ${where(p.source)} · “${p.source.quote}”`:`${label}: none at this position`,'interpretation-alignment');}
     function showReview(){
@@ -223,7 +233,7 @@
         if(mine!==generation)throw new Error('Your review draft changed while saving; decide each proposition again before inspecting a preview.');
         preview=shown;
         if(selected){reviewed.add(selected.id);showCandidates(rows);}
-        const result=el('section');result.append(el('h2','Deterministic preview'),el('p',preview.disposition),el('p',preview.reported_award?'Interpreted reported award: USD '+preview.reported_award+'; no ledger entry.':'No awarded, posted or applied money changes.'));
+        const result=el('section',undefined,'interpretation-preview');result.append(el('h2','Deterministic preview'),el('p',preview.disposition),el('p',preview.reported_award?'Interpreted reported award: USD '+preview.reported_award+'; no ledger entry.':'No awarded, posted or applied money changes.'));
         if('primary_proposition_index' in preview){
           const pi=preview.primary_proposition_index, reviewedProps=preview.reviewed_interpretation?.propositions||[];
           result.append(el('p',pi===null?'No proposition drives a deterministic disposition; the reply stays in human review.':`Primary proposition ${pi+1} (${reviewedProps[pi]?.family}) is the only input to the deterministic disposition.`));
@@ -246,5 +256,9 @@
   }
   global.UptimeInterpretation={mount,quoteSpan,jobTime,jobReceipt};
   const root=document.getElementById('interpretation-root');
-  if(root){const claim=new URLSearchParams(location.search).get('claim')||'';root.replaceChildren(global.uptimeAuth.signInForm(()=>mount(root,global.uptimeAPI,claim).catch(e=>{root.textContent=e.message;})));}
+  if(root){const claim=new URLSearchParams(location.search).get('claim')||'';
+    // The way back names the case this reply belongs to, when the address carries a well-formed one.
+    const back=document.querySelector('.reading-back');
+    if(back&&/^inbox-[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/.test(claim))back.href='/#cases/'+encodeURIComponent(claim);
+    root.replaceChildren(global.uptimeAuth.signInForm(()=>mount(root,global.uptimeAPI,claim).catch(e=>{root.textContent=e.message;})));}
 })(window);

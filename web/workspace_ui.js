@@ -345,7 +345,9 @@
       }
       // The next decision follows the heading directly: no link sits between them, so one Tab from the heading reaches it.
       const routine = data.automation && data.automation.enabled !== false ? automationSummary(data.automation) : null;
-      const decision = add(el('div', null, 'decision' + (offered ? '' : ' idle')), routine ? add(el('p', null, 'help automation-line'), el('span', routine)) : null, controls);
+      // Paused with nothing offered here means a person is needed elsewhere (for example on the case); that state is marked.
+      const stopped = !offered && data.automation && data.automation.enabled !== false && data.automation.state === 'PAUSED';
+      const decision = add(el('div', null, 'decision' + (offered ? '' : stopped ? ' idle stopped' : ' idle')), routine ? add(el('p', null, 'help automation-line'), el('span', routine)) : null, controls);
       const caseLink = typeof claim.id === 'string' && claim.id ? el('a', 'Open this claim’s case and correspondence', 'case-link') : null;
       if (caseLink) caseLink.href = '#cases/' + encodeURIComponent(claim.id);
       const stepsLink = routine ? el('a', 'See every step in Activity', 'case-link') : null;
