@@ -4,7 +4,7 @@ A small Chrome extension that shows your local Uptime workspace in the browser's
 
 ## What it does and does not do
 
-- **Does:** frames the real Uptime page and moves it to Uptime's page for the Ramp bill in the active tab (`#ramp-bill/<bill ID>`), using Ramp's own bill ID from the tab's address. That page is part of the interface; on a build without it, the panel shows the workspace's default page whatever bill is open.
+- **Does:** frames the real Uptime page and moves it to Uptime's page for the Ramp bill in the active tab (`#ramp-bill/<bill ID>`), using Ramp's own bill ID from the tab's address. That page is part of the interface; on a build without it, the panel shows the workspace's default page whatever bill is open. For a bill the workspace has no saved record of, the page says so.
 - **Reads:** only the address of the active tab, and Chrome shows it that address only for `https://demo.ramp.com/`. Tabs on any other site read as "No Ramp bill open".
 - **Does not:** read or change Ramp's page, hold a credential, store anything, or make a request of its own. Sign-in happens inside the framed Uptime page with the same account and credential file as in an ordinary tab.
 - **When you leave the bill:** switching to a tab that is not a Ramp bill returns the panel to the workspace's records page. You stay signed in, but anything half-typed in the panel is lost.
@@ -24,6 +24,16 @@ Loading an extension into your browser is your step; no script does it for you.
 2. If your workspace is not on `http://127.0.0.1:8776`, change `origin` in `config.js`.
 3. In Chrome open `chrome://extensions`, turn on Developer mode, choose **Load unpacked** and select this `extension/` folder. Its ID should read `kibophanbmnepbmhpampfagpjfhjfcnl`.
 4. Open a bill in Ramp's demo, click the Uptime toolbar button, and sign in inside the panel.
+
+## Check it in a real browser
+
+`scripts/check_side_panel.py` loads a copy of this folder into a throwaway Chrome profile, signs in inside the panel and moves between tabs. It never contacts Ramp: a local stub answers the Ramp-shaped addresses. Run it against a workspace started with the framing option:
+
+```sh
+uv run --locked python scripts/check_side_panel.py http://127.0.0.1:8776 scripted-test-reviewer <credential file> <folder for screenshots>
+```
+
+The last recorded run is in [the evidence folder](../docs/v4/evidence/sidepanel-20261109/real-extension-check.json). It cannot open the browser's own side-panel container; only you can, from the toolbar.
 
 ## The ID is pinned on purpose
 
