@@ -381,7 +381,7 @@
       const refresh = button('Refresh from Ramp', async () => {
         if (refresh.disabled) return;
         refresh.disabled = true; status.textContent = 'Reading the bill from Ramp…';
-        try { await api('/api/ramp/refresh', {bill_id: ctx.object_id}); status.textContent = ''; if (typeof rerender === 'function') await rerender(); }
+        try { await api('/api/ramp/refresh', {}); status.textContent = ''; if (typeof rerender === 'function') await rerender(); }
         catch (error) {
           if (error.status === 404) { refresh.hidden = true; status.textContent = ''; return; }
           status.textContent = typeof error.message === 'string' && error.message ? error.message : 'Ramp could not be read.';

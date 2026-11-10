@@ -355,13 +355,15 @@ class RampDemo:
             plan["body"] = _comment_body(plan)
             provider = self.provider_factory(record["capture"]["business_id"])
             try:
-                if row is not None:
-                    # An earlier attempt did not finish: adopt it if Ramp has it, otherwise post again.
-                    found = self._find(provider, bill_id, text, row["comment_id"])
-                    if found is not None:
-                        return self._mark_posted(bill_id, kind, found)
-                    if row["status"] == "UNCONFIRMED":
-                        raise NoteRefused("Ramp accepted the note earlier but it does not appear on the bill yet; try again shortly.")
+                # A note with exactly this text already on the bill is adopted, never posted twice: an earlier attempt
+                # that did not finish, or the same note left by an earlier workspace for the same bill.
+                found = self._find(provider, bill_id, text, row["comment_id"] if row is not None else None)
+                if found is not None:
+                    if row is None:
+                        self._save(bill_id, kind, "UNCONFIRMED", text, found["id"])
+                    return self._mark_posted(bill_id, kind, found)
+                if row is not None and row["status"] == "UNCONFIRMED":
+                    raise NoteRefused("Ramp accepted the note earlier but it does not appear on the bill yet; try again shortly.")
                 self._save(bill_id, kind, "POSTING", text)
                 try:
                     created = provider.post_comment(plan)

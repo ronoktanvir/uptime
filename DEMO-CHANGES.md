@@ -78,3 +78,5 @@ The Python browser tests above were edited but not run (no full suite). One head
 - `tests/test_ramp_demo_notes.py` › `test_the_northwind_sample_matches_and_the_docusign_bill_does_not`: the expected match gains `kind: service_credit` and `ramp_credit`, and its `route` is now `recovery`, because the case's workflow page moved off the Overview.
 
 No amount, stage or authority assertion was weakened.
+
+- `web/ramp_bill.test.cjs` › `a live read says so with its time and can be refreshed; refresh hides on 404; a saved read keeps Not a live read`: the refresh request now sends an empty body, which is what the server accepts.

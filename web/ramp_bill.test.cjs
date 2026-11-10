@@ -333,7 +333,7 @@ test('a live read says so with its time and can be refreshed; refresh hides on 4
   await ui.bill(root,MATCHED);
   assert.ok(root.textContent.includes('Read from Ramp just now · Nov 10, 2026, 18:00 UTC'));assert.doesNotMatch(root.textContent,/Not a live read/);
   await byText(root,'Refresh from Ramp').listeners.click();
-  assert.deepEqual(requests.map(r=>r[0]),['/api/ramp/workspace','/api/ramp/refresh','/api/ramp/workspace']);assert.deepEqual(requests[1][1],{bill_id:MATCHED});
+  assert.deepEqual(requests.map(r=>r[0]),['/api/ramp/workspace','/api/ramp/refresh','/api/ramp/workspace']);assert.deepEqual(requests[1][1],{});
   assert.ok(root.textContent.includes('Read from Ramp just now · Nov 10, 2026, 18:05 UTC'));
   const gone=create({document,api:async(path,payload)=>{if(payload!==undefined)throw Object.assign(new Error('Not Found'),{status:404});return live('2026-11-10T18:00:00+00:00');},onNavigate:()=>{}});
   const g=new Element('main');await gone.bill(g,MATCHED);const b=byText(g,'Refresh from Ramp');await b.listeners.click();assert.equal(b.hidden,true);
