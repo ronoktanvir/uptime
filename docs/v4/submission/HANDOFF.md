@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:15 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 21:23 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -46,10 +46,10 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 
 | Branch | Commit | What it is | Verified |
 |:---|:---|:---|:---|
-| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last merge, `15034f3` (5,452). Hosted checks passed on `main` at `11a6770`, `21eae2c`, `1fa4ab4` and `9bea5fb`, and on `15034f3` |
+| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last merge, `4c93a44` (5,452). Hosted checks passed on `main` at `11a6770`, `21eae2c`, `1fa4ab4` and `9bea5fb`, and on `15034f3` |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
-| `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `15034f3`: the film re-cut for the Ramp opening and the interface icons | Full run passes on `15034f3`, `e3dab64` and `1fa4ab4` (5,452 each) |
-| `work/submission-design-20261109` | `fb97e8d` | The redesign, then 21 Phosphor icons (MIT, [notice](THIRD-PARTY-NOTICES.md)) and a list of renamed controls | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
+| `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `4c93a44`: the interface set in Inter, after `15034f3`, the film re-cut and the icons | Full run passes on `4c93a44`, `15034f3`, `e3dab64` and `1fa4ab4` (5,452 each) |
+| `work/submission-design-20261109` | `f689e5d` | The redesign, then 21 Phosphor icons (MIT), the Inter typeface (SIL Open Font License) and a list of renamed controls; [notices](THIRD-PARTY-NOTICES.md) | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
 | `work/sidepanel-server-20261109` | `dc4ff65` | Side-panel option, extension, setup option and the real-browser check | Merged. Checked inside the real extension together with the redesign's bill page |
 | `work/submission-onboarding-20261109` | `088da4a` | Role 1, contract reading | Merged |
 | `work/submission-disputes-20261109` | `8addc5a` | Role 2, disputes, the walkthrough, the setup refusals and its test port change | Merged |
@@ -78,7 +78,8 @@ The required command is `uv run --locked pytest`, run once per merge, one run at
 | `3bbd47e` | Aborted, then 5,452 passed | The redesign and the side panel. Run on a local combination whose files are the same except two record files. 129 JavaScript checks |
 | `1fa4ab4` | 5,452 passed | The same merge with its records, run on the commit itself |
 | `e3dab64` | 5,452 passed | Role 2's test port change |
-| `15034f3` | 5,452 passed | The film re-cut, its screenshots and the interface icons. The first attempt was cut off by a restart of the Mac before any test ran. **This is what `main` holds** |
+| `15034f3` | 5,452 passed | The film re-cut, its screenshots and the interface icons. The first attempt was cut off by a restart of the Mac before any test ran |
+| `4c93a44` | 5,452 passed | The interface set in Inter. **This is what `main` holds** |
 
 GitHub's check workflow runs the same command on a clean machine for every pushed commit. It passes on the accepted build, on every integration commit through `1fa4ab4` (the redesign and side-panel merge), on the redesign's commits through `c280283` and on the side-panel branch through `a162951`.
 
@@ -148,7 +149,7 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 |:---|:---|:---|
 | Setup command: its real-process tests took a port from 8821–8829 and skipped if all were taken | Role 2 | **Done** (`8addc5a`): they take a port the system assigns. Requested at 17:50 PST. The plain refusals and the `--serve` rule are done |
 | Interface-only acceptance check of the redesign and the side panel's default | Role 5 | Requested at 17:50 PST |
-| The storyboard re-cut for the Ramp opening, a filming checklist for the new labels, README screenshots, a timing recheck, a README line for the side panel, the video link | Role 6 | Requested at 17:50 PST. The README's and the judge guide's wording still matches the redesigned interface's labels |
+| Retake the README's three screenshots (taken before the icons and the typeface), add a README link to the third-party notices, the video link | Role 6 | Not yet requested: waiting for the look to stop changing. The storyboard re-cut, the filming checklist for `main`, the timing recheck and the README's side-panel paragraph are **done** (`7f6e9ec`). First requested at 17:50 PST. The README's and the judge guide's wording still matches the redesigned interface's labels |
 | Say how the requested log arrives | Role 6 | The narration and the README's third step say Uptime "attaches" and "verifies" the log. In the walkthrough the log and its verification record arrive as authored events through the signed intake, and Uptime matches them. The product's step names say attach and verify; its authority line says received. Requested with the item above |
 | Evidence requests are recognised only in wording the rules know | Disputes owner | Not changed in this push; the wording that overstated it is corrected |
 | A case's own claim record sends "0.00" for posted and applied, which it does not track (`uptime/correspondence.py:822`) | Role 2 | Found by the redesign session. The redesigned case page does not show those two figures; the record should send no value instead of a zero. Role 2 is assessing every consumer before any change |

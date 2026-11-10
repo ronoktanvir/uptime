@@ -1,0 +1,29 @@
+{
+  "tested_commit": "4c93a44e953112fe6b2aea6fa527394f93bf4e15",
+  "branch": "work/submission-integration-20261109",
+  "role": "the interface set in Inter, on top of main",
+  "contents": "main at 7db68c6 plus the redesign session at f689e5d: web/InterVariable.woff2 (Inter 4.1, 352,240 bytes, SIL Open Font License) served by the app itself, its declaration in the stylesheet and a preload on both pages. Two existing tests add the file to their stand-in servers' lists; no assertion changed. Nothing under uptime/ or scripts/ changes.",
+  "font_provenance": "git blob id 5a8d3e72ad7ffb62af3b146e1b1f54ab5813a212 and size 352240, equal to what github.com/rsms/inter lists for docs/font-files/InterVariable.woff2 at tag v4.1. Checked by the coordinator against that repository's tree listing; the file itself was not downloaded again. SHA-256 693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3.",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-4c93a44",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5452 passed, 1 warning in 385.29s (0:06:25)",
+  "log": "suite-4c93a44-pytest.log",
+  "started_at": "2026-11-10T05:16:33Z",
+  "finished_at": "2026-11-10T05:23:00Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "129 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "also_checked": "The app serves /static/InterVariable.woff2 as font/woff2, 352,240 bytes, with the default framing policy unchanged.",
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}
