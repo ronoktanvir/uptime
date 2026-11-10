@@ -323,6 +323,9 @@ def seed(client,app,private,events):
             checked(client.post(path,content=raw,headers=headers))
     state=seed_northwind(post,state,package)
     seed_calyx(post)
+    # Demo line: install Corvid Ledger from its recorded claude-opus-5-5 reading (uptime/demo_opportunities.py).
+    from uptime.demo_opportunities import seed as seed_corvid
+    seed_corvid(post,catalog_action,scripted_literal_review)
     return actor,state
 
 

@@ -1,0 +1,17 @@
+{
+  "schema": "authored-invoice/1",
+  "authored": "Fictional invoice written for the November 10, 2026 film; no real vendor issued it.",
+  "id": "CDC-2026-10-0117",
+  "vendor": "Corvid Data Cooperative",
+  "customer": "Harborline Analytics",
+  "account": "harborline-corvid",
+  "agreement": "CDC-SLA-07",
+  "issued_on": "2026-11-01",
+  "service_month": "2026-10",
+  "currency": "USD",
+  "lines": [
+    {"ref": "corvid-ledger-archive-line", "description": "Corvid Ledger, Archive plan, monthly service fee, October 2026", "amount": "10000.00"}
+  ],
+  "tax": "0.00",
+  "total": "10000.00"
+}

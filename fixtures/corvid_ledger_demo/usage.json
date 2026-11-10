@@ -1,0 +1,15 @@
+{
+  "schema": "authored-usage/1",
+  "authored": "Fictional usage written for the November 10, 2026 film; not from any monitor, vendor or customer.",
+  "vendor": "Corvid Data Cooperative",
+  "agreement": "CDC-SLA-07",
+  "account": "harborline-corvid",
+  "product": "Corvid Ledger",
+  "plan": "Archive",
+  "month": "2026-10",
+  "monitor_ref": "CDC-STATUS-2026-10",
+  "month_complete": true,
+  "exclusions_removed": true,
+  "unavailable_minutes": 480,
+  "note": "One authored outage of 8 hours (480 minutes) on 2026-10-14 from 02:00 to 10:00 UTC; no other unavailability and no exclusions in the month."
+}

@@ -94,3 +94,10 @@ No existing test was changed for this.
 - `web/portfolio.test.cjs` › "the credit row follows the credit’s own latest recorded stage; nothing is added across stages or rows": the tiles object now also carries `matched` (Ramp bills matched to an invoice); the expected object gains `matched: 0`. Amount and stage assertions are unchanged.
 - `web/portfolio.test.cjs` › "agents at work counts recorded facts: Claude readings, Uptime agent steps and reviewer decisions": the counters now also carry `notes` and `uptimeNotes`; the expected objects gain `notes: 0, uptimeNotes: 0`.
 - `web/portfolio.test.cjs` › "the portfolio page reads the agreements and the saved Ramp workspace and shows rows, tiles and counters": the credits tile line now names the vendor ("Northwind Cloud · January 2026: $2,400.00 · Estimated"), because other vendors' estimates can now appear in it.
+
+## Second vendor: Corvid Ledger estimate
+
+- `scripts/setup_northwind.py` `seed()` gains three lines after `seed_calyx(post)`: it installs Corvid Ledger (`/api/vendors/corvid-ledger`) from the recorded `claude-opus-5-5` reading, through `uptime/demo_opportunities.py:seed`.
+- The workflow view gains `opportunities`, set after the finance summary: Corvid's October 2026 credit, evaluated read-only by the installed ACTIVE agreement (no case, claim, approval, posting or application). Fixtures and limits: `fixtures/corvid_ledger_demo/README.md`.
+- The portfolio (`web/workspace_ui.js` `portfolioRows`) shows each entry as a "Service credit" row, "Estimated · not claimed", next: Reviewer, linking to `#agreements`; the tiles count it.
+- No existing test changed. Added: `tests/test_demo_opportunities.py` and one test in `web/portfolio.test.cjs`.

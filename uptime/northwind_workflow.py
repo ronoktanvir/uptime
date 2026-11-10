@@ -393,6 +393,9 @@ class WorkspaceWorkflow:
             next_actions=self._offers(p,claim),automation=coordinator.view(self,p,claim))
         from .finance_view import summarize
         projection['finance']=summarize(projection)
+        # Demo line: other vendors' estimates, set after the finance summary so they never enter Northwind's figures.
+        from .demo_opportunities import opportunities
+        projection['opportunities']=opportunities(self.bench.path,p,governing_fees=self.governing_fees,trusted_now=self.now)
         return {'workflow':projection}
 
     def _domain_pin(self,p,claim):

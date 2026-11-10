@@ -1,0 +1,5 @@
+{
+  "schema": "authored-estimate-request/1",
+  "as_of": "2026-11-10T00:00:00Z",
+  "note": "The instant the estimate is evaluated as if a credit request were received. No request is filed; it only checks the 45-day window."
+}

@@ -198,7 +198,7 @@
         kind:'price', kindLabel:'Above contracted price', amount: price.amount, currency: price.currency || currency,
         stage: PRICE_STAGE[price.state] || state(price.state), open: OPEN_PRICE.has(price.state), next: OPEN_PRICE.has(price.state) ? 'Reviewer' : null, href:'#recovery/finance-price-exception'});
       // Estimates for other vendors the server lists in the workflow view: not claimed, so a reviewer acts next.
-      list(w.opportunities).filter(o => o && typeof o === 'object').forEach((o, index) => {
+      list(w.opportunities).filter(o => o && typeof o === 'object' && (o.kind == null || o.kind === 'service_credit')).forEach((o, index) => {
         const route = typeof o.route === 'string' && o.route ? (o.route.startsWith('#') ? o.route : '#' + o.route) : '#overview';
         const agreement = o.agreement && typeof o.agreement === 'object' ? o.agreement : {};
         rows.push({vendor: o.vendor, key:'opportunity-' + index, subject: monthLabel(o.period), month: o.period, detail: agreement.id ? 'Agreement ' + text(agreement.id) : null,

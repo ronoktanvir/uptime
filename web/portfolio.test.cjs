@@ -187,3 +187,25 @@ test('other companies’ estimates from the workflow view become rows and count 
   assert.ok(!JSON.stringify(tiles).includes('2850'), 'two credits are never added together');
   assert.equal(portfolioRows({...workflow, opportunities: null}, [], null).length, 4);
 });
+
+// Demo line: another vendor's estimated credit, in the shape the workflow view sends as `opportunities`.
+const corvid = {vendor: 'Corvid Data Cooperative', period: '2026-10', kind: 'service_credit', amount: '2000.00', currency: 'USD', stage: 'ESTIMATED',
+  agreement: {id: 'CDC-SLA-07', read_by: 'claude-opus-5-5', clause: 'Credits are calculated as a percentage of the affected monthly fees and are applied to a future invoice.', citation: 'Clauses 9 and 11 of CDC-SLA-07'},
+  inputs: [{label: 'Unavailable minutes', value: '480'}], invoice: {id: 'CDC-2026-10-0117', vendor: 'Corvid Data Cooperative', total: '10000.00', currency: 'USD'}, route: 'agreements'};
+
+test('each entry of opportunities is its own estimated row, counted in the tiles and never added to Northwind', () => {
+  const withCorvid = {...workflow, opportunities: [corvid]};
+  const corvidVendor = {vendor_id: 'corvid-ledger', vendor: 'Corvid Data Cooperative', state: 'ACTIVE', active_version: 'v1', extraction: {method: 'tool_free_model_propositions', model: 'claude-opus-5-5'}};
+  const rows = portfolioRows(withCorvid, [...vendors, corvidVendor], ramp);
+  const row = rows.find(r => r.vendor === 'Corvid Data Cooperative');
+  assert.deepEqual(view(row), ['Corvid Data Cooperative', 'October 2026', 'Service credit', '2000.00', 'Estimated · not claimed', 'Reviewer', '#agreements']);
+  assert.equal(rows.filter(r => r.vendor === 'Corvid Data Cooperative').length, 1, 'the agreement is represented by its opportunity row');
+  assert.deepEqual(view(rows[0]), view(portfolioRows(workflow, vendors, ramp)[0]), 'Northwind’s rows are unchanged');
+  const tiles = portfolioTiles(rows, [...vendors, corvidVendor], ramp);
+  assert.equal(tiles.opportunities, 4);
+  assert.deepEqual(tiles.byKind, [['credit', 2], ['price', 1], ['evidence', 1]]);
+  assert.deepEqual(tiles.credits.map(c => [c.vendor, c.amount, c.stage]), [['Northwind Cloud', '2400.00', 'Estimated'], ['Corvid Data Cooperative', '2000.00', 'Estimated · not claimed']]);
+  assert.equal(tiles.claude, 2);
+  assert.ok(!JSON.stringify(tiles).includes('4400'), 'credits from different vendors are never added');
+  assert.deepEqual(portfolioRows({...workflow, opportunities: [{...corvid, kind: 'other'}, null, 'x']}, [], null).map(view), portfolioRows(workflow, [], null).map(view));
+});
