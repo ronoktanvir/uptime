@@ -8,7 +8,7 @@
 
 Built for the **Berkeley BBS × Ramp Hackathon: Automate the Old Way**.
 
-[![Verification](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml) [![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.14-243D32?style=flat-square)](pyproject.toml) [![Edition](https://img.shields.io/badge/First_edition-for_Ramp-DDEF80?style=flat-square&labelColor=243D32)](#where-ramp-fits)
+[![Verification](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml) [![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.14-0F1A36?style=flat-square)](pyproject.toml) [![Edition](https://img.shields.io/badge/First_edition-for_Ramp-4353E0?style=flat-square&labelColor=0F1A36)](#where-ramp-fits)
 
 [Download the film (2:48)](docs/demo/film/uptime-demo.mp4?raw=true) · [Run it](#run-it) · [Where the AI is](#where-the-ai-is) · [Where Ramp fits](#where-ramp-fits) · [What works today](#what-works-today) · [Judge guide](docs/JUDGES.md)
 
