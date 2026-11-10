@@ -87,6 +87,7 @@ A system font stack, because the content security policy allows no external font
 | Buttons | Primary (accent), secondary (white with hairline), quiet text button. 36 px high, 44 px on a phone. |
 | Inputs | 36 px high, visible border, accent ring on focus, a dashed drop area for the credential file. |
 | Status line | The live region for results and errors; tinted only when it has something to say. |
+| Icons | [Phosphor Icons](THIRD-PARTY-NOTICES.md) (MIT), held in the stylesheet and the page itself. Used where they help recognition: the sidebar, the tags that say who or what acted, links that go forward, back or out to Ramp, the "as of" time, and four status marks (price exception, verified Ramp record, in force, failed read). Decoration only: no icon names an element or says more than the words beside it. |
 
 ## 3. Layout plan per page
 
@@ -138,6 +139,8 @@ The state this branch started from is in [the earlier interface evidence](../evi
 - The sidebar is hidden before sign-in and while the first page loads, because there is nothing to navigate to yet.
 - The content column is capped at 1,120 px and centred in the space beside the sidebar, so the layout is the same at 1440 and 1920.
 - Unchanged: the skip link, both live regions, every route (`#overview`, `#cases`, `#cases/<id>`, `#agreements`, `#activity`, `#records` and every older hash), the order of requests on load, and the static file list (no asset file was added).
+
+- **Icons** (added after the first merge, at Ronok's request): the sidebar, tags, link arrows and four status marks use Phosphor Icons, as listed in [the notices](THIRD-PARTY-NOTICES.md). The words are unchanged.
 
 ### Sign-in
 
@@ -205,6 +208,52 @@ Restyled through the shared components; structure and the server's own words are
 - **Advanced workflows:** says what it is in its header; the observed integrity record sits inside its own card.
 - **Portfolio comparison:** each cohort shows its figures (the server's label, value and note) and its cases (title, amount, the server's outcome and stage words). Every full record is one click away. It was a 23,774 px list of raw fields.
 - **A failed read** shows "Unable to load this view" with the reason and "Try again", with the same distance from the top as a page header.
+
+### Controls renamed or moved (for the filming checklist)
+
+Every control keeps what it does. A label not listed here is unchanged. "Closed section" means a titled row with a chevron: click the title and the content is the same as before.
+
+| Page | Control | Before | Now |
+|:---|:---|:---|:---|
+| Every page | "Refresh data" | Top bar, right | Foot of the sidebar. Same label |
+| Every page | Account control, "Sign out · account" | Top bar, centre | Foot of the sidebar, under "Refresh data". Same label |
+| Every page | Workspace name | Top bar, left | Under the brand in the sidebar |
+| Sign-in | Sentence about the credential file | In the introduction | Under the file field. "Account name", "Credential file" and "Sign in" are unchanged |
+| Overview | The decision button ("Approve January claim", "Approve response", "Post to Local ledger", "Apply credit to eligible invoice") | Its own line under the recovery fields | Right side of the routine-steps bar in the same card. Same labels |
+| Overview | "See every step in Activity" | End of the routine-steps sentence | Link row under the bar |
+| Overview | "Open this claim’s case and correspondence" | Under the decision button | The same link row |
+| Overview | "Needs attention", with "Show details" | Under the recovery card | Column to the right of the recovery card |
+| Overview | "Ramp record" with "Open Ramp records"; "Ask about this case" | Further down the page | Under the recovery card, left column |
+| Overview | "Service credit evaluations", "March price review", "Bill reconciliation" | No group heading | Under a new heading, "Evidence". Titles unchanged |
+| Overview | "Governing agreement", "CalyxQuay coverage in this workspace", "Agreement & review record" | Open panels | Closed sections at the foot |
+| Activity | Panel title | "Automation" | "Steps in order" |
+| Activity | Count sentence | "… N person decisions and N automatic steps recorded." | "… N reviewer decisions and N automatic steps recorded." |
+| Activity | Tag beside each step | None | "Reviewer decision", "Automatic step" or "Received event". "Decided by …" and "Step details" are unchanged |
+| Cases (`#cases`) | Page heading | "Correspondence & disputes" | "Cases"; the old title is the small line above it |
+| Cases | Way into a case | Button "Inspect case <id>" | Link "Open case" at the right of the row; the case title is also a link. Address `#cases/<id>` |
+| Cases | "Set up a correspondence case" | Open form at the top | Closed section of the same name under the list |
+| Cases | "Complete case record" for each case | A closed row under each case | Inside the closed section "Complete record of each case (N)", one row per case |
+| Cases, one case, Agreements | "Identity & approval gate" | Open panel at the top | Closed section "Your access on this page" at the foot. A page that is read-only says so in a line at the top |
+| Cases, Agreements, Advanced workflows, Portfolio comparison | "Refresh server state" | Under the gate | Page header, right |
+| One case (`#cases/<id>`) | Way back | Button "Back to correspondence" | Link "All cases", top left. After a failed read: "Back to all cases" |
+| One case | "Refresh case receipts" | Top of the page body | Page header, right |
+| One case | "Review unfamiliar vendor wording" | In the body of the case record | First card, "Vendor wording to review", as its main button |
+| One case | The case record | One panel, "Correspondence case" | "Where this claim stands" (facts, amounts, "Reviewer actions") and "Correspondence, in order" |
+| One case | "Show dispute record" | Inside the case panel | Its own card, "Dispute record", under the correspondence |
+| One case | "Event timeline", "Evidence & receipts", "Current and historical evaluation" | Sections of the case panel | Closed sections at the foot, with "Decision, unknowns and amounts as recorded" and "Complete server case record" |
+| Agreements (`#agreements`) | Page heading | "Vendor intake & versions" | "Agreements" |
+| Agreements | "Generate a public proposal" and "Local deterministic intake", with "Check generation access", "Generate proposals", "Refresh proposal status" and "Stage local candidate" | Open at the top of the page | Inside the closed section "Add an agreement" at the foot. Labels unchanged |
+| Agreements | "Show review requirements" | A button on every agreement | Not needed for an agreement that has a source manifest: its requirements are in view under "What the source establishes". The button remains for an agreement without one |
+| Agreements | "Review history" | Open list | "Review history (N steps)", closed, under "Review steps" |
+| Agreements | Version actions (such as "Roll back activation", "Revoke approval"), "Rules, overlay, tests and reviewer versions", and the forms "Record semantic review", "Revoke semantic binding", "Submit independent tests", "Preview candidate", "Evaluate into a case" | Open on each agreement | Inside the closed section "Review tools, version actions and the full record" on that agreement's card. Labels unchanged |
+| Agreements | Model job card | Labels "status", "model" | Title "Model proposal job"; labels "Status", "Model". "Request details" is still closed |
+| Ramp records (`#records`) | Page heading | "Ramp worklist" | "Ramp records". "Ramp worklist" is now the title of the saved worklist card |
+| Ramp records | The record table, with its search and filters | Open, titled "Financial records" | Inside "Records in this worklist", which is closed while a verified record is shown |
+| Ramp records | "Open this bill in Ramp" | In the verified panel | Right of the "Verified Ramp record" title |
+| One Ramp record | "Back to Ramp worklist" | Returned to the worklist | Same label; returns to the page the record was opened from |
+| One Ramp bill (`#ramp-bill/<id>`) | New page | None | "Open the full record" leads to `#records` |
+| Reading a vendor reply | Way back | None on the page | Bar at the top with "Back to the case" (to `#cases/<claim>`). Every button keeps its label |
+| Portfolio comparison (More tools) | Button under each case | "Inspect <case id>" | "Inspect case". Raw fields are under "Full record", closed, on each figure and case |
 
 ### Acceptance findings answered
 
@@ -281,6 +330,12 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
   21 files, 72 passed, none failed, 121 seconds in all. No run hung and none was interrupted.
 - One earlier run of the same per-file loop was invalid and is not counted: its scratch parent folder did not exist, so every test that uses `tmp_path` errored at setup within about a second. The folder was created and the loop rerun; the table is that rerun.
 - The walkthrough was also driven end to end on the final build through the ordinary pages: sign in, then "Approve January claim", "Approve response", "Post to Local ledger" and "Apply credit to eligible invoice", each recorded once, with focus on the recovery heading after each.
+
+### After the first merge (November 9, evening)
+
+- **The redesign reached `main` through the coordinator's merge** (`3bbd47e`, with the side panel), after the coordinator's own full run on that merge: 5,452 passed. Nothing below replaces that run.
+- **A second merge of the same commits was made here and not pushed.** At Ronok's direct request this session merged `a92f86c` onto `main`'s then head as `618cc8e`, before learning the coordinator had already pushed. Its first full run was cut off by this session's 30-minute limit: it had printed nothing since 14 percent, at `tests/test_contract_job_card_r4.py`, the first browser launch, with no test failed before it. The rerun, with a five-minute stall check, finished: `5400 passed, 1 warning in 431.91s`. The merge was then deleted unpushed, since it added nothing to `main`.
+- **Icons** (the commit after `main`'s `0cd60d9` on this branch): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 129`, `pass 129`, `fail 0`. The 21 files in the table above plus `tests/test_side_panel_framing.py` and `tests/test_setup_side_panel.py`, one file at a time under the same limit: 23 files, 124 passed, none failed, 204 seconds. `scripts/check_repo.py`: exit 0. Looked at on Overview, Activity, Agreements, Ramp records and Cases at 1440×900, the sign-in card, and the one-bill page at 420×900: no console message, no page wider than its window. No test changed. The full run for this change is the coordinator's, before it merges.
 
 ## 7. Known limits and open items
 

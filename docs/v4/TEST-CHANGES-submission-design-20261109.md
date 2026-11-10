@@ -35,10 +35,12 @@ The helper `open_section(page, title)` and the two section titles were added to 
   - `test_the_verified_bill_card_is_in_the_first_viewport_of_a_420_px_panel`
   - `test_an_unknown_bill_says_so_and_ramp_records_opens_without_filling_the_panel_with_navigation`
 
-The pass over every page on a computer screen (`1dca1cf`, `53f6115`) changed no test.
+The pass over every page on a computer screen (`1dca1cf`, `53f6115`) changed no test. Neither did the icons.
 
 ## Interrupted runs
 
-None. No Chrome run hung and no test run was cut off by its time limit.
+None before the first merge: no Chrome run hung and no test run was cut off by its time limit.
+
+After it, one. A full run of this session's own, unpushed merge `618cc8e` printed nothing after 14 percent (`tests/test_contract_job_card_r4.py`, the first browser launch) and was cut off by the 30-minute limit, with no test failed before that point. The rerun finished with 5,400 passed. Details are in [the design record, section 6](submission/design.md).
 
 One run of the per-file loop was invalid and is not counted: its scratch parent folder did not exist, so every test that uses `tmp_path` errored at setup within about a second. It was rerun with the folder in place; that rerun is the table in [the design record, section 6](submission/design.md).

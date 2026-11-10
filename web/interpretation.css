@@ -4,7 +4,12 @@ body.reading { display: block; }
 .reading-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px var(--gutter); background: var(--surface); border-bottom: 1px solid var(--line); }
 .reading-bar .brand { padding: 0; }
 .reading-back { font-size: 13px; font-weight: 500; text-decoration: none; }
-.reading-back::before { content: "\2190  "; content: "\2190  " / ""; }
+.reading-back::before, .interpretation-note::before {
+  content: ""; display: inline-block; flex: none; width: 1em; height: 1em; vertical-align: -0.14em; background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat;
+}
+.reading-back::before { --icon: var(--i-arrow-left); margin-right: 6px; }
+.interpretation-note::before { --icon: var(--i-info); margin-right: 6px; width: 1.1em; height: 1.1em; vertical-align: -0.18em; }
 .reading-back:hover { text-decoration: underline; }
 #interpretation-root { max-width: 960px; margin: 0 auto; padding: 0 var(--gutter) 96px; overflow-wrap: anywhere; }
 #interpretation-root:focus { outline: none; }

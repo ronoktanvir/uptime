@@ -14,7 +14,9 @@ Built for the **Berkeley BBS × Ramp Hackathon: Automate the Old Way**.
 
 <!-- VIDEO: add the two-minute film link here only once the recording exists. -->
 
-<!-- SCREENSHOT 1 (phase 2, from the frozen build): docs/assets/submission/overview.png — Overview after the four decisions: April $11,000.00 → $8,600.00, the open $1,000.00 March finding, the credit lifecycle. -->
+<p align="center">
+  <img src="docs/assets/submission/overview.png" alt="Uptime Overview for the authored Northwind Cloud agreement after the four reviewer decisions: April invoice NW-2026-04, invoice $11,000.00, credit applied $2,400.00, remaining balance $8,600.00, credit recorded in Local ledger; the separate open March price exception of $1,000.00, not included in the credit; the credit lifecycle showing one $2,400.00 credit at each stage, not added together; 4 reviewer decisions and 7 automatic steps recorded." width="100%">
+</p>
 
 ## The old way
 
@@ -25,7 +27,7 @@ A service credit is rarely automatic. Under [Twilio's API SLA](https://www.twili
 | **Know what you are owed** | Reread the SLA, the order form and every amendment. | Terms become typed rules, each linked to its clause. |
 | **Prove it** | Total the downtime in a spreadsheet. | Evidence is matched to the service month. Missing evidence gives "needs evidence", never a guess. |
 | **Claim it in time** | Remember the window, write the ticket. | The deadline is tracked; the claim packet waits for a person's approval. |
-| **Handle the reply** | Hunt for whatever the vendor asks for. | A request in wording the rules know is answered with verified evidence. Other wording goes to a reviewer. |
+| **Handle the reply** | Hunt for whatever the vendor asks for. | A request in wording the rules know is answered with evidence that arrives through a signed source and is matched to it. Other wording goes to a reviewer. |
 | **Confirm the money** | Hope the next invoice is lower. | Claimed, awarded, posted and applied are separate stages of one credit, applied once. |
 
 We do not publish a time or dollar saving: no measurement supports one, and public outage reports alone cannot establish what a particular customer is owed.
@@ -34,7 +36,7 @@ We do not publish a time or dollar saving: no measurement supports one, and publ
 
 1. **Read.** Known contract wording is parsed deterministically. For other wording, Claude Opus 5.5 proposes the terms as data, each tied to the sentence it came from. Code validates the proposal; a passing one is staged in shadow and takes effect only when a reviewer approves that exact version.
 2. **Decide.** Code computes eligibility, deadlines and money with exact decimal arithmetic. A model never decides an amount, and unknown stays unknown.
-3. **Act.** Uptime runs routine steps itself: taking in replies, attaching and verifying evidence, sending a response a person already approved. It stops for every judgment and every financial change.
+3. **Act.** Uptime runs routine steps itself: taking in replies and evidence that arrive through signed sources, matching them, and sending a response a reviewer already approved. It stops for every judgment and every financial change.
 
 ## One case, down to the clause
 
@@ -74,13 +76,15 @@ The second command installs the locked dependencies, builds a fresh walkthrough 
 
 1. Open [127.0.0.1:8776](http://127.0.0.1:8776/).
 2. Sign in with the account name and credential file the command prints. The account, `scripted-test-reviewer`, is a scripted test reviewer, not a person.
-3. On **Overview**, approve the January claim. Uptime files it, takes in the vendor's reply, attaches and verifies the requested log, and drafts a response, then stops for you. Four decisions in all (approve the claim, approve the response, post the credit, apply it) bring April's bill to $8,600.00.
+3. On **Overview**, approve the January claim. Uptime files it and takes in the vendor's reply. The requested log and its verification then arrive through a signed source, from two separate senders, and Uptime matches them, drafts a response and stops for you. Four decisions in all (approve the claim, approve the response, post the credit, apply it) bring April's bill to $8,600.00.
 
 Use a new folder name for each fresh run; add `--resume` to reopen one. [Full setup and troubleshooting](docs/v4/NORTHWIND-WORKFLOW.md)
 
 ## Where the model fits
 
-<!-- SCREENSHOT 2 (phase 2, from the frozen build): docs/assets/submission/contract-reading.png — a recorded Claude Opus 5.5 reading of an authored contract: each proposed term beside its quoted sentence, the validation result and the shadow state. -->
+<p align="center">
+  <img src="docs/assets/submission/contract-reading.png" alt="A recorded Claude Opus 5.5 proposal job on the Agreements page for the authored Corvid Ledger contract: job 26ee4e3f, status SUCCEEDED, model claude-opus-5-5, November 9, 2026, 21:17 UTC, with the note that it was validated against the exact public source and is unreviewed and not approved, and each proposed term beside the exact sentence it cites." width="100%">
+</p>
 
 Claude Opus 5.5 does two things. It proposes contract terms for wording the fixed rules do not know, and it proposes a reading of a vendor's reply, with the cited text, for a reviewer to check. Both run through the ordinary application routes. Before each call, an operator records permission for that exact request, covering the model call only. In these runs the operator was the engineering agent running the demonstration, named as such in the receipts. The model gets no tools. Its output is a proposal: it cannot approve itself, invent evidence or set an amount. Northwind's own agreement is read by fixed rules with no model call. So is its vendor's request for a log, which uses wording the rules know; a request worded differently goes to a reviewer.
 
@@ -97,11 +101,15 @@ Claude Opus 5.5 does two things. It proposes contract terms for wording the fixe
 
 ## Where Ramp fits
 
-<!-- SCREENSHOT 3 (phase 2, from the frozen build): docs/assets/submission/ramp-record.png — the verified Ramp record for sandbox bill f74ba12c: business, read time, the person-posted note and its API read-back. -->
+<p align="center">
+  <img src="docs/assets/submission/ramp-record.png" alt="The verified Ramp record for sandbox bill f74ba12c: saved record read from Ramp November 9, 2026, 22:00 UTC, started by a person, not a live read; vendor DocuSign, invoice DD-PREAPPROVAL, USD 840, open and pending approval; finding: evidence gap, no contract terms attached; the note posted by a person in Ramp and read back; and the line that Uptime has made no write to Ramp." width="100%">
+</p>
 
 The first edition is a **Ramp-focused integration that runs beside Ramp**, as a separate local application; it is not embedded in Ramp's interface. Ramp stays the system of record. It is integrated with Ramp's developer API, read-only: when a person starts a read, Uptime reads bills, vendors, transactions, purchase orders and approvals from the demo sandbox. It shows when each record was read and whether the list was complete.
 
 What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-582d-9f62-26d8057d1d37`. **A person typed it; Uptime read it back through the API.** Nothing has been written to Ramp by Uptime: an agent-run posting was refused by an automatic approval review of the agent's action and is not retried, so only a person may run that route. Ramp's published developer API has no operation to create or apply a vendor credit (checked November 9), so a credit would be recorded by a person in Ramp and read back by Uptime; that path is not demonstrated yet. Payment holds and approval-chain steps are not built. The Northwind walkthrough is deliberately kept apart from Ramp, and its agreement is never attached to an unrelated Ramp bill. [Read-back receipt](docs/v4/evidence/demo-path-87/human-ramp-note.json) · [Supported Ramp surfaces](docs/v4/RAMP-FEASIBILITY.md)
+
+**Browser side panel.** A Chrome side panel can show Uptime's page for the Ramp bill open in the active tab, beside Ramp. It is a browser side panel, not a Ramp integration: it reads only the active tab's address, nothing runs inside Ramp, and nothing is written to Ramp. It is off unless the Uptime server is started with the extension's one allowed origin. [How to load it](extension/README.md)
 
 ## What works today
 
@@ -120,7 +128,7 @@ What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-58
 
 ## Verification
 
-The badge above runs the full check suite on every push to `main`. The frozen submission build's full run is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-52f1a2f.json). These are regression results, not a measure of model accuracy or production readiness. An independent acceptance run on a fresh clone of that build followed only these published instructions; its results, limits and ranked findings are in [the acceptance report](docs/v4/submission/acceptance.md) ([summary](docs/JUDGES.md#independent-acceptance)).
+The badge above runs the full check suite on every push to `main`. The full run on `main`'s current application code is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-1fa4ab4.json). These are regression results, not a measure of model accuracy or production readiness. An independent acceptance run checked the earlier frozen build `52f1a2f` from a fresh clone, following only these published instructions; its results, limits and ranked findings are in [the acceptance report](docs/v4/submission/acceptance.md) ([summary](docs/JUDGES.md#independent-acceptance)). It has not yet assessed the redesigned interface.
 
 ```sh
 uv run --locked pytest

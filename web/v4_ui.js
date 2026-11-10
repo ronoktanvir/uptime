@@ -646,7 +646,7 @@
       if (typeof data.state === 'string' && data.state) {
         const force = data.state === 'ACTIVE' && data.active_version ? 'In force in this workspace.'
           : data.active_version ? 'An earlier version is in force; this revision is not.' : 'Not in force.';
-        n.append(add(el('p', undefined, 'v4-force'), el('strong', force), el('span', stateSentence(data))));
+        n.append(add(el('p', undefined, 'v4-force' + (force === 'In force in this workspace.' ? ' v4-in-force' : '')), el('strong', force), el('span', stateSentence(data))));
       }
       const overlay = data.overlay && typeof data.overlay === 'object' ? data.overlay : {};
       const manifest = data.manifest && typeof data.manifest === 'object' ? data.manifest : {};
