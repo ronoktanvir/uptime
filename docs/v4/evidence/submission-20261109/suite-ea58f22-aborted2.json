@@ -1,0 +1,24 @@
+{
+  "tested_commit": "ea58f228bb3cf2d2f7c79a808f0d13955f26c723",
+  "branch": "work/submission-integration-20261109",
+  "contents": "6848390 and its records, plus role 2 at d1d0187: plain one-line refusals for common setup mistakes (scripts/setup_northwind.py, tests/test_setup_refusals.py, and its test-change ledger). The first change to a script since the verified build 52f1a2f.",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-ea58f22",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 134,
+  "pytest_result": "no result: the runner's watchdog aborted the run after it stopped advancing",
+  "log": "suite-ea58f22-aborted2-pytest.log",
+  "started_at": "2026-11-10T00:41:48Z",
+  "aborted_at": "2026-11-10T00:50:29Z",
+  "what_happened": "The run reached 38 percent and stopped at the first test of tests/test_interpretation_uncertain_candidate_r4.py. The log did not grow for 307 seconds and the watchdog sent SIGABRT. Every test before that point had passed.",
+  "what_it_was_waiting_on": "Recorded before the abort in suite-ea58f22-aborted2-stall.txt (the first 62 lines of the capture, with temporary folder names removed). The test had launched Google Chrome 157.0.8103.40 five minutes earlier. That Chrome had a GPU process and two utility processes but no page process, and a two-second sample found its main thread blocked the whole time inside macOS: rbs_acquire_appnap_assertion in RunningBoardServices, waiting on its connection to the system's process-lifecycle service. A browser whose main thread is blocked answers nothing, and Playwright's protocol calls have no time limit, so the test waited without end.",
+  "cause": "A macOS-level block in a freshly launched Chrome, not a failing test and not an application defect. This replaces the earlier guess that Chrome's pending update was the cause; that was never shown. Why the system service stops answering is not established. At the time the machine had 13.8 of 14.3 GB of swap in use, a load average near 12, and two other sessions launching Chrome continuously. Six plain launches of the same Chrome two minutes later each finished in under three seconds.",
+  "follow_up": "A third run and the hosted check workflow's result for this line are recorded beside this file once they exist.",
+  "limits": "Not a result."
+}

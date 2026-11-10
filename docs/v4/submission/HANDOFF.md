@@ -1,11 +1,11 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and updated as the two open branches land. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 16:53 PST. It is updated as the two open branches land. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
 - **A verified build exists and has been independently accepted.** It is `52f1a2f`, on the branch `frozen/submission-fallback-20261109`. Its full run passes on this machine (5,390 passed) and in GitHub's check workflow ([run 42720204760](https://github.com/ronoktanvir/uptime/actions/runs/42720204760)). A separate session then accepted it from a fresh clone, with the limits listed below.
-- **The default branch does not have it.** `main` is still `b6e93bd`. The repository is public, so anyone who clones it today and follows the README runs `main`'s older build. Moving `main` is Ronok's decision. It would be a fast-forward, with no rewrite of history.
+- **The default branch now has it.** At 16:42 PST, on Ronok's instruction to bring GitHub up to date for other people, `main` was fast-forwarded from `b6e93bd` to `11a6770`, with no rewrite of history. The repository is public. An anonymous clone taken afterwards checked out `11a6770`, showed the rebuilt README, and served the walkthrough with the README's own command. `main` moves forward again each time a merge is verified.
 - **Two things are still being built.** The interface redesign Ronok asked for and the Chrome side panel are each on their own branch. Each merges only after its own full run. If either does not land, the verified build stands.
 - **Nothing from Uptime has been written to Ramp**, and no real vendor was contacted.
 
@@ -15,11 +15,11 @@ In the order they block the submission.
 
 | # | Decision | What it turns on | State |
 |:--|:---|:---|:---|
-| 1 | Move `main` to the verified build | Judges clone the default branch. Until `main` moves they do not see this work. Independent acceptance ranks this first of its findings ([P1-A](acceptance.md)) | Not done. A fast-forward from `b6e93bd`; the coordinator pushes it only on Ronok's word |
+| 1 | Move `main` to the verified build | Judges clone the default branch. Independent acceptance ranked this first of its findings ([P1-A](acceptance.md)) | **Done at 16:42 PST** on his instruction: `b6e93bd` → `11a6770`, a fast-forward |
 | 2 | Which film is the submission film | Role 6 wrote a measured two-minute storyboard and a filming checklist. Separately, the judge session started a "90-second walkthrough video" session at 15:34 PST, which the coordinator did not start | Open. The two must not contradict each other |
 | 3 | Film now on the verified build, or wait for the redesign | The [filming checklist](presentation.md#filming-checklist-for-ronok) works today on `52f1a2f`. The redesign changes every screen | Open |
 | 4 | Record the voiceover and the film; choose cut A or B after a timed read | Only a person can | Not done |
-| 5 | Relaunch Chrome | Two Chrome versions were installed mid-update. One full run hung in a browser launch and was aborted, and role 4 saw the same hang twice in focused runs. The cause is not proven; a relaunch is the cheap test | Not done |
+| 5 | Ease the load on this Mac, or restart it | Four full runs have stalled in a browser launch. The last one was captured: a freshly launched Chrome sat with its main thread blocked inside a macOS system service, so it never answered the test. Swap was almost full and three sessions were launching Chrome at once. The earlier guess, Chrome's pending update, was never shown. Fewer sessions driving Chrome at the same time, or a restart, is the likely cure | Not done; his call |
 | 6 | Load the side-panel extension into his own browser | `chrome://extensions` → Developer mode → Load unpacked → `extension/`. No script does this for him | Waits for the side panel to land |
 | 7 | Whether a person approves a model candidate on camera | The walkthrough's reviewer is a scripted test account. A person's approval needs a person | Open; the film does not need it |
 | 8 | D02: put an authored Northwind bill into the Ramp sandbox | It would show an authored finding beside a Ramp bill. Role 3 recommends against it | Not done; default keeps Northwind out of Ramp |
@@ -45,13 +45,13 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 
 | Branch | Commit | What it is | Verified |
 |:---|:---|:---|:---|
-| `main` | `b6e93bd` | The default branch, unchanged by this push | By its owners |
+| `main` | `11a6770`, moved at 16:42 PST | The default branch: the verified build plus records. It was `b6e93bd` before | Full run passes on its last merge `6848390` (second run), and the hosted checks pass on `11a6770` |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
-| `work/submission-integration-20261109` | this file's branch | The verified build plus records. Last merge `6848390` | Full run passes on `6848390` (second run); outside `docs/` only `README.md` differs from `52f1a2f` |
-| `work/submission-design-20261109` | `943151f` so far | The redesign: visual system, shell, sign-in and Overview. Other pages still to come | Not merged; no full run yet |
-| `work/sidepanel-server-20261109` | `f47c4de` | Side-panel option, extension and setup option | Focused checks only (50 Python, 5 JavaScript); not merged |
+| `work/submission-integration-20261109` | this file's branch | `main` plus the next merge, `ea58f22`: plain one-line refusals for setup mistakes | Its focused checks pass. Two full runs on `ea58f22` stalled in a browser launch with no test failing; it reaches `main` when a full run passes |
+| `work/submission-design-20261109` | `203b252` so far | The redesign: every primary page is now in the new system. The side panel's bill page is in progress | Not merged. Hosted checks pass on its commits through `29ecdb3`; no local full run yet |
+| `work/sidepanel-server-20261109` | `a162951` | Side-panel option, extension and setup option | Focused checks (52 Python, 5 JavaScript) and hosted checks pass; not merged, waiting for the bill page |
 | `work/submission-onboarding-20261109` | `088da4a` | Role 1, contract reading | Merged |
-| `work/submission-disputes-20261109` | `4b98717` | Role 2, disputes and the walkthrough | Merged |
+| `work/submission-disputes-20261109` | `d1d0187` | Role 2, disputes, the walkthrough and the setup refusals | Merged into the integration branch; `d1d0187` is not on `main` yet |
 | `work/submission-ramp-20261109` | `a15d987` | Role 3, Ramp | Merged |
 | `work/submission-ui-20261109` | `7ca68b2` | Role 4, interface before the redesign | Merged |
 | `work/submission-acceptance-20261109` | `e60cd60` | Role 5, acceptance, with its dated correction | Merged |
@@ -71,7 +71,12 @@ The required command is `uv run --locked pytest`, run once per merge, one run at
 | `6b93e31` | 5,390 passed | All application changes of roles 1–4 |
 | **`52f1a2f`** | **5,390 passed** | **The verified build.** 118 JavaScript checks, progress graph, rehearsal and secret scan also pass |
 | `e10067f`, `8aa8df4` | 5,390 passed each | Records only |
-| `6848390` | Aborted, then 5,390 passed | Records only. The first run stalled in a browser launch |
+| `6848390` | Aborted, then 5,390 passed | Records only. The first run stalled in a browser launch. **This is what `main` holds** |
+| `ea58f22` | Aborted twice; no result yet | The setup refusals. Both runs stalled in a browser launch, at 90 and 38 percent, with every test before that point passing |
+
+GitHub's check workflow runs the same command on a clean machine for every pushed commit. It passes on the verified build and on every integration commit through `11a6770`.
+
+**Why runs stall.** The stalls are in this Mac, not in the tests. In the captured case a freshly launched Chrome had no page process and its main thread was blocked inside a macOS system service ([record](../evidence/submission-20261109/suite-ea58f22-aborted2.json)). No test has failed in a stalled run.
 
 These are regression results. They do not measure model accuracy, and they are not evidence of a person's approval or of any effect in Ramp.
 
@@ -120,7 +125,7 @@ It builds a fresh walkthrough workspace, prints the credential file, the account
 |:---|:---|
 | Stop | Ctrl-C |
 | Resume the same workspace | The same command with `--resume` added |
-| Start over | The same command with a new folder name. A workspace is never overwritten. Running it again on an existing folder without `--resume` is refused; today that refusal prints a stack trace ending in the reason, and role 2 has been asked for a one-line message |
+| Start over | The same command with a new folder name. A workspace is never overwritten. Running it again on an existing folder without `--resume` is refused. On `main` that refusal still prints a stack trace ending in the reason; the integration branch replaces it with one plain line (`ea58f22`) |
 | Use another port | Add `--origin http://127.0.0.1:PORT` when creating |
 | See all eleven steps one by one | Add `--step-by-step` when creating |
 | See the unclear-reply branch | Add `--counterparty-reply unclear` when creating |
@@ -133,20 +138,32 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 
 | Item | Owner | State |
 |:---|:---|:---|
-| Interface redesign, including the Agreements page, the Ramp bill page for the side panel, and two acceptance findings (the "$40 · Scenario only" row beside the verified bill; February's credit cell) | The redesign session | In progress. First part pushed at `943151f` |
+| Interface redesign, including the Agreements page, the Ramp bill page for the side panel, and two acceptance findings (the "$40 · Scenario only" row beside the verified bill; February's credit cell) | The redesign session | Every primary page is pushed (`203b252`); the bill page is in progress. Then: the coordinator's review, a full run, the merge, and `main` |
 | Side panel: check inside the real extension, full run, merge | Coordinator | Waits for the bill page |
-| Setup command: a plain message instead of a stack trace on a rerun; the side-panel option without `--serve`; one untested path | Role 2 | Requested |
+| Setup command: its real-process tests take a port from 8821–8829 and skip if all are taken; they should take a port the system assigns | Role 2 | Not yet sent: messages are paused. The plain refusals and the `--serve` rule are done |
 | Interface-only acceptance check of the redesign | Role 5 | Waits for the redesign to merge |
 | Final README screenshots, timing recheck, video link | Role 6 | Waits for the redesign |
 | Evidence requests are recognised only in wording the rules know | Disputes owner | Not changed in this push; the wording that overstated it is corrected |
 | Unseen contracts: 0 of 4 | The Codex lanes ([queued work](../NEXT-WORKSTREAMS-20261109.md)) | Outside this push |
 | Responses that return before the header middleware carry no security headers | Application owners | Existing gap, found in review; not changed |
 | Any write to Ramp by Uptime | Ronok and the team | Needs a signed native release |
+| Nine other branches on GitHub hold commits that are not on `main` | Their owners | Left as they are; see below |
+
+## Branches left as they are
+
+Ronok asked for whatever needs merging to be merged. These nine branches hold commits that are not on `main`, and the coordinator did not merge them, because none is this push's work to merge.
+
+| Branch | What it holds | Why it stays |
+|:---|:---|:---|
+| `work/evaluation-finish-20261109`, `work/disputes-finish-20261109` | The Codex lanes' later commits, including changes to contract-term code | Their owners closed their pass at `b6e93bd` and queued this work in [NEXT-WORKSTREAMS](../NEXT-WORKSTREAMS-20261109.md). It changes application behaviour and has not been through acceptance |
+| `work/release-evaluation-gent8`, `work/dispute-evaluation-86-run`, `work/independent-corpus-84`, `work/d05-run-gent8`, `work/d05-second-gent8` | Evaluation records, frozen runners and a sealed vendor selection | Kept apart from the build on purpose, so implementers do not work beside the expected outcomes. `d05-second` waits for Ronok's go-ahead |
+| `work/ramp-identity-d03a-prep` | An earlier preparation of a change that reached `main` by another route | Superseded |
+| `work/finance-guide-90` | A commit and its revert | Nothing to merge |
 
 ## If the coordinator's session ends
 
 - **State lives in Git.** This file, the coordination record and the receipts are on `work/submission-integration-20261109`. Each role's handoff is beside this file.
 - **Messages between sessions pause** after ten sent without a message from Ronok in the coordinator's session, and resume when he types there. Anything waiting to be sent is listed at the end of the coordination record's log.
 - **To merge a finished branch:** merge it into the integration branch with `--no-ff`, run `uv run --locked pytest` once on the merge commit, then the JavaScript checks, `node scripts/test_progress_graph.cjs`, `scripts/rehearse.py` and `scripts/check_repo.py`. Write a receipt beside the others with the exact commit, command, result and log. Push only after it passes. If a run stops advancing for five minutes, abort it, keep the log and run it again.
-- **Order:** the setup fixes, then the redesign (followed by role 5's interface check and role 6's screenshots), then the side panel.
+- **Order:** the setup fixes, then the redesign (followed by role 5's interface check and role 6's screenshots), then the side panel. After each verified merge, fast-forward `main` to it: `git push origin <verified commit>:refs/heads/main`. Never force.
 - **Rules that do not relax:** no force-push; no write to Ramp and no retry of the refused posting action; no real vendor contact; no credential, private evaluation answer or customer capture in Git; every changed existing test recorded by exact name and reason; the scripted reviewer is never described as a person; a local credit is never described as money in Ramp.

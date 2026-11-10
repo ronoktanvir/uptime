@@ -1,0 +1,22 @@
+{
+  "tested_commit": "ea58f228bb3cf2d2f7c79a808f0d13955f26c723",
+  "branch": "work/submission-integration-20261109",
+  "contents": "6848390 and its records, plus role 2 at d1d0187: plain one-line refusals for common setup mistakes (scripts/setup_northwind.py, tests/test_setup_refusals.py, and its test-change ledger). The first change to a script since the verified build 52f1a2f.",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-ea58f22",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 134,
+  "pytest_result": "no result: the runner's watchdog aborted the run after it stopped advancing",
+  "log": "suite-ea58f22-aborted-pytest.log",
+  "started_at": "2026-11-10T00:27:51Z",
+  "aborted_at": "2026-11-10T00:39:32Z",
+  "what_happened": "The run reached 90 percent and stopped in the third test of tests/test_vendor_model_jobs_browser.py, the same place as the aborted run on 6848390. The log did not grow for 308 seconds and the watchdog sent SIGABRT. Every test before that point had passed, including the eight new setup-refusal tests.",
+  "follow_up": "A second run of the same commit also stalled; see suite-ea58f22-aborted2.json, which records what the run was waiting on.",
+  "limits": "Not a result."
+}
