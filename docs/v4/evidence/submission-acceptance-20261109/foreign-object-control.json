@@ -1,0 +1,12 @@
+{
+ "claim_with_docusign_invoice": {
+  "http_status": 403,
+  "detail": "The operator must bind an inbound source for this claim scope."
+ },
+ "read_unknown_claim": {
+  "http_status": 404
+ },
+ "workflow_unchanged": true,
+ "linked_record": null,
+ "ramp_bill_link_in_view": false
+}

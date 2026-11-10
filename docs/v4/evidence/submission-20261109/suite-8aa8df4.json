@@ -1,0 +1,45 @@
+{
+  "tested_commit": "8aa8df4d455afb36f87215d3af241d8b5ff5c971",
+  "branch": "work/submission-integration-20261109",
+  "role": "acceptance follow-ups merged on top of the frozen fallback build",
+  "contents": "e10067f and its receipt, plus role 6 at 2bf3754 (wording corrected after independent acceptance; acceptance summary in the judge guide), role 2 at 4b98717 (addendum to the denial model-job receipt) and role 1 at 088da4a (custody record for the preserved contract-reading workspace). Documentation and evidence only: outside docs/ the only file that differs from 52f1a2f is README.md.",
+  "application_commit": "6b93e31d4d6b57bece160603e2aa06c8d8aea844",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-8aa8df4",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5390 passed, 1 warning in 372.43s (0:06:12)",
+  "log": "suite-8aa8df4-pytest.log",
+  "started_at": "2026-11-09T23:51:18Z",
+  "finished_at": "2026-11-09T23:57:32Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "118 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "prior_runs_preserved": [
+    "suite-02d86f7.json",
+    "suite-c756853.json",
+    "suite-6c83947.json",
+    "suite-96615d8-aborted.json",
+    "suite-96615d8-run2.json",
+    "suite-ff7977c.json",
+    "suite-0fe20b4.json",
+    "suite-6b93e31.json",
+    "suite-52f1a2f.json",
+    "suite-e10067f.json"
+  ],
+  "not_in_this_build": [
+    "interface redesign on work/submission-design-20261109",
+    "side-panel framing option, extension and setup option on work/sidepanel-server-20261109",
+    "final screenshots and video link in the README"
+  ],
+  "limits": "Regression verification of a documentation and evidence merge. The application is the frozen build's. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}

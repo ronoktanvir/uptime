@@ -1,0 +1,86 @@
+[
+ {
+  "t": 1.25,
+  "step": "typed account name"
+ },
+ {
+  "t": 1.26,
+  "step": "chose credential file"
+ },
+ {
+  "t": 1.3,
+  "step": "clicked Sign in"
+ },
+ {
+  "t": 2.98,
+  "step": "visible decision buttons",
+  "n": 1,
+  "labels": [
+   "Approve January claim"
+  ]
+ },
+ {
+  "t": 2.99,
+  "step": "clicked decision",
+  "n": 1,
+  "label": "Approve January claim"
+ },
+ {
+  "t": 5.67,
+  "step": "visible decision buttons",
+  "n": 2,
+  "labels": [
+   "Approve response"
+  ]
+ },
+ {
+  "t": 5.71,
+  "step": "clicked decision",
+  "n": 2,
+  "label": "Approve response"
+ },
+ {
+  "t": 8.37,
+  "step": "visible decision buttons",
+  "n": 3,
+  "labels": [
+   "Post to Local ledger"
+  ]
+ },
+ {
+  "t": 8.41,
+  "step": "clicked decision",
+  "n": 3,
+  "label": "Post to Local ledger"
+ },
+ {
+  "t": 11.03,
+  "step": "visible decision buttons",
+  "n": 4,
+  "labels": [
+   "Apply credit to eligible invoice"
+  ]
+ },
+ {
+  "t": 11.04,
+  "step": "clicked decision",
+  "n": 4,
+  "label": "Apply credit to eligible invoice"
+ },
+ {
+  "t": 13.71,
+  "step": "visible decision buttons",
+  "n": 5,
+  "labels": []
+ },
+ {
+  "t": 13.93,
+  "step": "done",
+  "decisions": [
+   "Approve January claim",
+   "Approve response",
+   "Post to Local ledger",
+   "Apply credit to eligible invoice"
+  ]
+ }
+]

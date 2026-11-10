@@ -1,0 +1,183 @@
+Harborline Analytics
+Sign out · scripted-test-reviewer
+Refresh data
+Northwind Cloud
+
+Contract review & recovery
+
+As of Mar 1, 2026, 12:00 UTC
+
+January service credit
+$2,400.00
+
+Estimated from the governing agreement. Not yet claimed.
+
+March price exception
+$1,000.00
+
+Open · review before payment · invoice NW-2026-03
+
+Separate from the service credit and not included in it.
+
+Credit lifecycle
+
+One credit, shown at each stage. The amounts are not added together.
+
+Estimated
+$2,400.00
+Recorded
+Claimed
+$0.00
+Not yet
+Awarded
+$0.00
+Not yet
+Posted to Local ledger
+$0.00
+Not yet
+Applied to bill
+$0.00
+Not yet
+January recovery
+Claim stage
+drafted
+Credit stage
+Estimated
+Destination
+Local ledger
+Claim reference
+inbox-northwind-2026-01
+
+Routine steps: Paused · Waiting for a person to approve. See every step in Activity
+
+Approve January claim
+
+Open this claim’s case and correspondence
+
+Connection details
+Needs attention
+REVIEWER ACTION
+File the January 2026 claim before the deadline
+
+Claims must be received before Mar 3, 2026, 00:00 UTC; 1 day 12 hours remain on the workspace clock.
+
+Show details
+REVIEWER ACTION
+Approve the claim packet before it is filed
+
+The claim is at stage DRAFTED; a signed-in reviewer must approve before anything is sent.
+
+Show details
+REVIEWER ACTION
+Review invoice NW-2026-03 before payment
+
+line cloud-hosting-monthly billed $12,000.00 against $11,000.00 under amendment-v2. The $1,000.00 difference is an open finding, not an awarded credit.
+
+Show details
+EVIDENCE NEEDED
+Complete March 2026 usage evidence
+
+Eligible downtime minutes not provided by northwind-monthly-coverage-2026-03. This month is not ineligible; its credit is undetermined until the evidence is complete.
+
+Show details
+REVIEWER ACTION
+Next step: Approve January claim
+
+Run it from the recovery panel. It records one exact step; repeating it does not repeat the effect.
+
+Show details
+Ask about this case
+
+Answers come only from this case’s records and name the record behind each statement. The guide can’t take actions.
+
+Try:
+What needs my attention?
+How was the January credit calculated?
+Why is March undetermined?
+Did the credit reach Ramp?
+Question
+Ask
+Ramp record
+Connection destination
+Local ledger
+Ramp bill
+Not linked
+
+No Ramp bill is linked to this agreement. Credits in this workspace are recorded in Local ledger.
+
+Open Ramp records
+Service credit evaluations
+Service month	Decision	Service credit	Basis
+January 2026	Eligible	$2,400.00	
+2 completed shortfall increments; 20% credit after the contractual cap.
+USD 12000.00 × 20% = USD 2400.00 after final-cent rounding.
+Calculation inputs
+Cited clauses (9)
+Inspect invoice & usage
+
+February 2026	Ineligible	Not determined	
+0 completed shortfall increments; 0% credit after the contractual cap.
+Calculation inputs
+Cited clauses (9)
+Inspect invoice & usage
+
+March 2026	Needs evidence	Not determined	
+
+Scoped, exclusion-adjusted, full-month vendor measurement is required.
+
+Cited clauses (9)
+Inspect invoice & usage
+March price review
+Finding
+Price cap review
+Status
+Open · review before payment
+Invoice
+NW-2026-03
+Invoice line	Governing version	Billed	Contract amount	Difference
+cloud-hosting-monthly	amendment-v2	$12,000.00	$11,000.00	$1,000.00 · overcharge
+
+An open price finding. It is not a credit and is not included in the credit stages.
+
+Evaluator trace
+Cited clauses (15)
+Bill reconciliation
+Destination
+Local ledger
+Original bill
+Not determined
+Applied credit
+None applied
+Outstanding balance
+Not determined
+References
+Governing agreement
+Agreement
+Northwind Cloud Service Level Agreement
+Document reference
+urn:northwind:NW-2026-001:sla
+Version
+da84df1bf6…
+Order Form NW-2026-001
+
+Effective Jan 1, 2026
+
+Document details
+Amendment 1 to NW-2026-001
+
+Effective Mar 1, 2026
+
+Document details
+Agreement text
+CalyxQuay coverage in this workspace
+State in this workspace
+active
+Adapter version
+fd43faaa7c…
+Reviewer
+Dana Reyes · Scripted reviewer
+History in this workspace (14 entries)
+Inspect vendor contracts
+Agreement & review record
+
+See the full activity history

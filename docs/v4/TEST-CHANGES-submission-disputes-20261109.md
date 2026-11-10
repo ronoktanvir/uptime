@@ -57,3 +57,21 @@ Focused set (same command as section 7 of the handoff): **161 passed, 1 warning*
 `uptime/correspondence_model_jobs.py` filtered the shared job's `provider` block with its own key list (`cost_usd`, `elapsed_seconds`, …). That list did not match the shared service's `PUBLIC_RECEIPT_KEYS` (`client_reported_cost_usd`, `tool_events`, `tool_inventory`, `mcp_inventory`, `output_sha256`, `result_sha256`, plus `transport`), so the dispute view silently dropped the cost and the empty tool and MCP inventories. The block is already the shared service's bounded public subset, so it now passes through unchanged.
 
 New tests, `tests/test_correspondence_model_job_view_r2.py` (2): the view and `get` show `client_reported_cost_usd` and the two empty inventories, and a refused job still shows its receipt. **2 passed.** Mutation check: with the old filter, the first test fails.
+
+## Plain refusals for common setup mistakes (coordinator request)
+
+No existing test changed. `prepare()` still raises a `ValueError` subclass (`WorkspaceRefused`) for a non-fresh folder, so callers that expect `ValueError` are unaffected.
+
+New `tests/test_setup_refusals.py`, 8 tests: **8 passed** on the first run. Each refusal is checked for exit 1, the exact single line, no "Traceback", empty stdout, and the folder unchanged (or never created).
+
+| Mistake | Before | After |
+|---|---|---|
+| Re-run create in the same folder (README command twice) | exit 1, traceback ending `ValueError: Select a fresh directory; use --resume for an existing immutable workspace.` | exit 1: `setup_northwind: That folder already holds a workspace. Add --resume to reopen it, or choose a new folder name for a fresh run.` |
+| Create in an existing folder without a workspace | same traceback | exit 1: `setup_northwind: That folder already exists. Choose a new folder name for a fresh run.` |
+| `--resume` on a missing folder | exit 1, traceback ending `FileNotFoundError` | exit 1: `setup_northwind: That folder does not exist. Run without --resume to create a workspace there.` |
+| `--resume` on a folder without a workspace | exit 1, traceback ending `FileNotFoundError …/workspace.json` | exit 1: `setup_northwind: That folder holds no workspace. Choose a new folder name and run without --resume to create one.` |
+| `--serve` on a busy port (create) | exit 3, uvicorn `ERROR: [Errno 48] … address already in use`, **and the workspace was created anyway** | exit 1, nothing created: `setup_northwind: Port N is already in use, so <origin> cannot be served. Stop whatever is using it, or choose another port with --origin.` |
+| `--resume --serve` on a busy port | the same uvicorn error | exit 1, workspace unchanged: `…Stop whatever is using it; a resumed workspace keeps the port it was created with.` |
+| `--resume` on a workspace from a different package | traceback ending `ValueError: The verified package differs…` | exit 1: `setup_northwind: The verified package differs from this workspace; preserve it and create a new directory.` |
+
+Focused, with `tests/test_workflow_coordinator_r2.py`, `tests/test_northwind_workflow.py` and `tests/test_northwind_local_ledger.py`: **81 passed, 1 warning**. That run was before a wording change ("; or" became ", or"); `tests/test_setup_refusals.py` passed again after it.

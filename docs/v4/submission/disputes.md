@@ -183,6 +183,7 @@ Result on `2742be0`: **156 passed, 1 warning**. No existing test changed; see `d
 | Usage, cost | 418 output tokens; 0.045 USD client-reported |
 | Request | SHA-256 `1bdc9057…`, approved for one invocation by "agent3 (engineering operator, role 2)" through `scripts/public_proposals.py approve --confirm-authored-public --hours 1` |
 | Receipt | [`evidence/submission-disputes-20261109/denial-model-job.json`](../evidence/submission-disputes-20261109/denial-model-job.json) (pinned; unedited). Raw request and response stay outside Git. |
+| Addendum | [`denial-model-job-addendum.json`](../evidence/submission-disputes-20261109/denial-model-job-addendum.json). It adds what the pinned receipt omits (acceptance finding P3): the source commit at call time (`1646930`, tree `3c400ead…`, committed two seconds before the run, with the uncommitted-state statement), the transport fields from the job row, read from a copy (profile `safe-public-experimental-v2`, CLI 2.1.318, binary `677a2ea7…`, return code 0, 0 tool events, empty tool and MCP inventories, output and result digests), and how the run was driven. |
 
 **How it was driven.** `scripts/run_denial_model_job.py` builds a fresh workspace and drives the application's own signed HTTP routes through an **in-process test client** (`fastapi.testclient`):
 - the workflow action that approves the claim;
@@ -275,3 +276,6 @@ Result on this branch: **2 passed** (reply-first and notice-first).
   - gent8's restart and socket probes create workspaces through the setup command, where automation is on by default. The restart probe's eleven-action assertion therefore failed in the full suite on `02d86f7` (correct product behavior). Its owner, gent8, is moving it to `--step-by-step` and adding a real-process kill for the automated default.
 - A failed or timed-out model job shows a receipt only once role 1's shared job projection (agent2, `611efdf`) is merged. My job view passes that `provider` block through.
 - No full suite run here; the coordinator runs it after integration.
+- **From independent acceptance:**
+  - A differently worded evidence request ("please provide the request log…") is not recognized by the finite grammar and goes safely to human review. This is a narrow-recognition limit, not changed in this push.
+  - A late-filing correct denial cannot be exercised through the HTTP routes, because they refuse to file after the cutoff. Acceptance used the maintenance-with-notice case over real HTTP, which reached `DENIAL_REVIEW` and closed only on a signed acceptance.

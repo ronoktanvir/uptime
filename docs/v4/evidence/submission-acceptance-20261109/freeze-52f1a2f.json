@@ -1,0 +1,11 @@
+{
+ "commit": "52f1a2f478f414d258dc89e122c243f7f5573e0b",
+ "tree": "1bba65beb6b35a18246cf14f46481db7259fbf96",
+ "files": 342,
+ "files_digest": "d519dc1aa3460006e599dd033d263a1c1d71beabc08a4834f00272555b473e1e",
+ "cli_path": "/Users/ronoktanvir/.local/share/claude/versions/2.1.318",
+ "cli_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d",
+ "cli_version": "2.1.318 (Claude Code)",
+ "python_system": "3.11.9",
+ "node": "v25.9.0"
+}

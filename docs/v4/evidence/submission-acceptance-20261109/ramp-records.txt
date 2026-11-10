@@ -1,0 +1,154 @@
+Harborline Analytics
+Sign out · scripted-test-reviewer
+Refresh data
+Ramp worklist
+
+Review bills, contract findings and supporting evidence.
+
+Updated Nov 5, 2026, 00:36 UTC · Saved capture (not live)
+
+Saved worklist from an earlier Ramp demo installation; its Ramp business is not recorded in this capture. Read from Ramp Nov 5, 2026, 00:36 UTC. Partial capture. Card transactions: 12 kept of 40 listed, more remain in Ramp; Purchase orders: 12 kept of 40 listed, more remain in Ramp. This is not the complete account.
+
+Not every list in this read is complete. Vendors: partial list; Card transactions: partial list; Purchase orders: partial list; Approvals: partial list. Listed records are not a complete portfolio.
+
+Verified Ramp record
+
+Saved record read from Ramp Nov 9, 2026, 22:00 UTC, started by a person. Not a live read.
+
+Only this bill’s records are kept here; the full read stays private and is referenced by its checksum.
+
+Open this bill in Ramp
+
+Exact URL observed in Ramp by a person and confirmed against this bill by API read
+
+business
+1569e402-460e-4952-adad-9df27db628a0
+vendor
+DocuSign
+vendor id
+8bde54ed-22d7-4801-82b1-e32c0ddb1b49
+bill
+f74ba12c-95d0-582d-9f62-26d8057d1d37
+invoice
+DD-PREAPPROVAL
+amount
+USD 840
+status
+OPEN
+ramp status
+APPROVAL_PENDING
+approval
+PENDING
+finding
+Evidence gap: the governing agreement or usage evidence is missing
+contract terms
+No contract terms are attached to this bill
+vendor credits
+No credits applied to this bill
+Ramp discussion
+
+Posted by a person in Ramp; Uptime read it back on this bill · Nov 8, 2026, 01:46 UTC · Comment ID: 376563cf-950c-409d-b3d8-a68599c45fa0
+
+Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.
+
+Financial records
+Show
+Unpaid bills
+All bills
+Transactions
+Purchase orders
+Contract scenarios
+All records
+Search
+
+5 of 43 records · Page 1 of 1 · Up to 25 rows per page
+
+Record / native ID	Native status	Ramp amount	Contract finding	Finding amount
+Vendor name not captured
+Invoice cap review
+
+Invoice: not captured · Vendor ID: 436983ac-8c74-4512-b9af-46af645a6a83 · Native ID: ae98c421-2c70-5586-8719-4fe8acd7ceda
+
+	OPEN
+
+Approval: PENDING
+
+Ramp status: APPROVAL_PENDING
+
+	USD 840	ELIGIBLE
+
+Scenario only, not a finding
+
+	USD 40.00
+Vendor name not captured
+bills: evidence review
+
+Invoice: not captured · Vendor ID: f0d1e986-d262-427d-aaf8-9c20d0e0ceb8 · Native ID: 6a70b95b-4ef8-571a-9d47-cc8b3e5a6afb
+
+	OPEN
+
+Approval: APPROVED
+
+Ramp status: WAITING_FOR_TRANSFER_MATCH
+
+	USD 1250	INSUFFICIENT_EVIDENCE
+
+PREPAYMENT_REVIEW
+
+	Not determined
+Vendor name not captured
+bills: evidence review
+
+Invoice: not captured · Vendor ID: ea62e3fd-8a99-4d9f-bac0-28485e6f3ab9 · Native ID: 3140fb0e-d1aa-52ca-b6ec-fe2023f3b5e8
+
+	OPEN
+
+Approval: APPROVED
+
+Ramp status: WAITING_FOR_TRANSFER_MATCH
+
+	USD 650	INSUFFICIENT_EVIDENCE
+
+PREPAYMENT_REVIEW
+
+	Not determined
+Vendor name not captured
+bills: evidence review
+
+Invoice: not captured · Vendor ID: ea62e3fd-8a99-4d9f-bac0-28485e6f3ab9 · Native ID: f2db195b-b3b2-5031-9a8f-968cef5798c9
+
+	OPEN
+
+Approval: APPROVED
+
+Ramp status: WAITING_FOR_TRANSFER_MATCH
+
+	USD 350	INSUFFICIENT_EVIDENCE
+
+PREPAYMENT_REVIEW
+
+	Not determined
+Vendor name not captured
+bills: evidence review
+
+Invoice: not captured · Vendor ID: 436983ac-8c74-4512-b9af-46af645a6a83 · Native ID: ae98c421-2c70-5586-8719-4fe8acd7ceda
+
+	OPEN
+
+Approval: PENDING
+
+Ramp status: APPROVAL_PENDING
+
+	USD 840	INSUFFICIENT_EVIDENCE
+
+PREPAYMENT_REVIEW
+
+	Not determined
+Previous page
+Next page
+Record coverage
+Agreements & permission
+Credit reconciliation
+Writeback evidence
+
+Ramp records own financial status. Separate Uptime evidence and hypothetical findings carry their source labels.
