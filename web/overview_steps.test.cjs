@@ -40,9 +40,9 @@ const claimed = root => root.all('li').find(li => String(li.className).startsWit
 const feedRows = root => recovery(root).all('li').filter(li => !li.hidden && /overview-(step|lead)/.test(li.className)).map(li => li.className.includes('overview-lead') ? 'lead: ' + li.textContent : li.children[0].children[0].textContent);
 const statusText = root => recovery(root).all('p').find(p => p.attrs.role === 'status').textContent;
 
-test('three plain actors: the reviewer, the Uptime agent, and the vendor or the named source', () => {
+test('three plain actors: the reviewer, Uptime automatic steps, and the vendor or the named source', () => {
   const steps = OPS.map(step);
-  assert.deepEqual(steps.map(s => actorTag(s).label), ['Reviewer decision', 'Uptime agent', 'Vendor', 'Customer source', 'Status source']);
+  assert.deepEqual(steps.map(s => actorTag(s).label), ['Reviewer decision', 'Uptime · automatic', 'Vendor', 'Customer source', 'Status source']);
   assert.equal(actorTag({authority: {kind: 'EVENT_INTAKE', source_subject: 'northwind-2026-01-billing'}}).label, 'Billing source');
   assert.equal(actorTag({authority: {kind: 'EVENT_INTAKE'}}).label, 'Received event');
   assert.equal(actorTag({authority: {kind: 'COORDINATOR'}}), null);
@@ -84,7 +84,7 @@ test('after a decision the Overview shows each recorded step in order, the figur
   assert.equal(claimedAt[0], 'Not yet'); assert.equal(claimedAt[1], 'Recorded');
   assert.deepEqual(frames.at(-1), OPS.map(o => o[1]));
   const tags = recovery(h.root).all('li').filter(li => li.className.includes('overview-step')).map(li => li.children[0].children[1].textContent);
-  assert.deepEqual(tags, ['Reviewer decision', 'Uptime agent', 'Vendor', 'Customer source', 'Status source']);
+  assert.deepEqual(tags, ['Reviewer decision', 'Uptime · automatic', 'Vendor', 'Customer source', 'Status source']);
   assert.ok(recovery(h.root).textContent.includes('Run automatically under the approval recorded by scripted-test-reviewer'));
   assert.equal(actions(h.root).hidden, false);
   assert.deepEqual(attention(), ['Approve the response']);

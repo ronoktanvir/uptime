@@ -87,13 +87,13 @@
       server: {person_decisions: c.person_decisions == null ? null : c.person_decisions, automatic_steps: c.automatic_steps == null ? null : c.automatic_steps}};
   }
   const REPLAY_PACE_MS = 1600, REPLAY_KEY = 'uptime.steps.replay', REPLAY_SEEN_KEY = 'uptime.steps.replay.seen';
-  // Who did the work, as three plain actors. The reviewer account decides; Uptime's agent runs a step under an approval
+  // Who did the work, as three plain actors. The reviewer account decides; Uptime runs an automatic step under an approval
   // already recorded (fixed automation, not a model); a received event is named by the source the server names.
   const SOURCE_NAMES = {vendor:'Vendor', customer:'Customer source', status:'Status source', billing:'Billing source'};
   function actorTag(step) {
     const authority = step && step.authority && typeof step.authority === 'object' ? step.authority : {};
     if (authority.kind === 'PERSON') return {label:'Reviewer decision', cls:'accent tag-reviewer'};
-    if (authority.kind === 'APPROVED_OPERATION') return {label:'Uptime agent', cls:'tag-agent'};
+    if (authority.kind === 'APPROVED_OPERATION') return {label:'Uptime · automatic', cls:'tag-agent'};
     if (authority.kind === 'EVENT_INTAKE') {
       const suffix = typeof authority.source_subject === 'string' ? authority.source_subject.split('-').pop() : null;
       return {label:SOURCE_NAMES[suffix] || 'Received event', cls:'tag-received' + (suffix === 'vendor' ? ' tag-vendor' : '')};
@@ -152,7 +152,7 @@
     if (automation.state === 'COMPLETE') return null;
     if (list(w.next_actions).some(action => action && action.id && action.enabled !== false)) return 'Reviewer';
     const reason = automation.pause && automation.pause.reason;
-    if (reason === 'ROUTINE_READY') return 'Uptime agent';
+    if (reason === 'ROUTINE_READY') return 'Uptime · automatic';
     if (reason === 'WAITING') return 'Vendor';
     return reason ? 'Reviewer' : null;
   }
@@ -770,9 +770,9 @@
         const legend = stepLegend(steps, counts);
         const figure = (cls, label, value) => add(el('div'), add(el('dt'), el('span', label, 'pill ' + cls)), el('dd', String(value)));
         node.append(add(el('dl', null, 'tally step-legend'), figure('accent tag-reviewer', 'Reviewer decisions', legend.reviewer),
-          figure('tag-agent', 'Uptime agent', legend.approved), figure('tag-received', 'Received from the vendor and other sources', legend.received),
+          figure('tag-agent', 'Uptime · automatic', legend.approved), figure('tag-received', 'Received from the vendor and other sources', legend.received),
           legend.other ? add(el('div'), el('dt', 'Other steps, or not completed'), el('dd', String(legend.other))) : null));
-        node.append(note('The Uptime agent runs a step only under an approval a reviewer already recorded. Its steps and the received events are the automatic steps the server counts.'));
+        node.append(note('Uptime runs an automatic step only under an approval a reviewer already recorded. Those steps and the received events are the automatic steps the server counts.'));
         const counted = (n, word) => n == null ? null : n + ' ' + word + (n === 1 ? '' : 's');
         if (!legend.agrees) node.append(note('The server’s own counts differ from the steps listed: ' + [counted(legend.server.person_decisions, 'reviewer decision'),
           counted(legend.server.automatic_steps, 'automatic step')].filter(Boolean).join(' and ') + '.'));
@@ -890,12 +890,12 @@
       const vendors = listed.map((v, i) => details[i].ok && details[i].value && typeof details[i].value === 'object' ? {...v, ...details[i].value} : v);
       renderPortfolio(root, workflowRead.value, vendorsRead.ok ? vendors : null, rampRead.ok ? rampRead.value : null);
     }
-    const ACTOR_CLASS = {'Reviewer':'accent tag-reviewer', 'Uptime agent':'tag-agent', 'Vendor':'tag-received tag-vendor'};
+    const ACTOR_CLASS = {'Reviewer':'accent tag-reviewer', 'Uptime · automatic':'tag-agent', 'Vendor':'tag-received tag-vendor'};
     function renderPortfolio(root, workflow, vendors, ramp) {
       const company = workflow && workflow.company && typeof workflow.company === 'object' ? workflow.company.name : null;
       const tile = el('span', null, 'page-tile tile-portfolio'); tile.setAttribute('aria-hidden', 'true');
       const header = add(el('div', null, 'page-head'), tile, add(el('div'), el('p', company ? company + ' · every vendor, contract and month' : 'Every vendor, contract and month', 'eyebrow'), el('h1', 'Portfolio')),
-        workflow && workflow.as_of ? el('p', 'As of ' + when(workflow.as_of), 'as-of') : null);
+        null);
       const rows = portfolioRows(workflow, vendors, ramp), tiles = portfolioTiles(rows, vendors, ramp), agents = agentCounters(workflow, vendors, ramp);
       const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
       const KIND_WORDS = {credit:['service credit', 'service credits'], price:['price exception', 'price exceptions'], evidence:['awaiting usage evidence', 'awaiting usage evidence']};
@@ -908,10 +908,10 @@
       tilesRow.setAttribute('aria-label', 'Summary');
       // Agents at work: counted from recorded facts only.
       const counter = (cls, label, value, line) => add(el('div', null, 'agent-counter'), el('span', label, 'pill ' + cls), el('p', String(value), 'agent-counter-value'), el('p', line, 'help'));
-      const agentsPanel = add(el('section', null, 'panel agents-panel'), el('h2', 'Agents at work'),
+      const agentsPanel = add(el('section', null, 'panel agents-panel'), el('h2', 'Who is doing the work'),
         add(el('div', null, 'agent-counters'),
           counter('tag-claude', 'Claude', vendors ? agents.claudeReads : 'Unavailable', 'Contracts read by ' + (agents.models.join(', ') || 'Claude') + ', recorded runs'),
-          counter('tag-agent', 'Uptime agent', agents.agentSteps, 'Steps run under an approval a reviewer recorded'),
+          counter('tag-agent', 'Uptime · automatic', agents.agentSteps, 'Steps run by fixed rules under an approval a reviewer recorded'),
           counter('accent tag-reviewer', 'Reviewer', agents.reviewerDecisions, 'Decisions by the signed-in reviewer account'),
           agents.notes ? counter('tag-ramp-note', 'Notes in Ramp', agents.uptimeNotes, 'Posted by Uptime through Ramp’s API') : null));
       const table = el('ol', null, 'portfolio-rows');

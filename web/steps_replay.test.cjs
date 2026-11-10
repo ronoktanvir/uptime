@@ -63,8 +63,8 @@ test('the legend counts equal the recorded steps and agree with the server’s o
   assert.deepEqual([legend.reviewer, legend.approved, legend.received, legend.other, legend.agrees], [1, 1, 2, 1, false]);
   const h = harness(); await h.ui.activity(h.root, workflow(11, {person_decisions: 4, automatic_steps: 7}));
   const figures = h.root.all('dl').find(d => String(d.className).includes('step-legend')).children.map(d => d.textContent);
-  assert.deepEqual(figures, ['Reviewer decisions4', 'Uptime agent2', 'Received from the vendor and other sources5']);
-  assert.ok(h.root.textContent.includes('The Uptime agent runs a step only under an approval a reviewer already recorded. Its steps and the received events are the automatic steps the server counts.'));
+  assert.deepEqual(figures, ['Reviewer decisions4', 'Uptime · automatic2', 'Received from the vendor and other sources5']);
+  assert.ok(h.root.textContent.includes('Uptime runs an automatic step only under an approval a reviewer already recorded. Those steps and the received events are the automatic steps the server counts.'));
   assert.ok(h.root.textContent.includes('4 reviewer decisions and 7 automatic steps recorded.'));
   assert.doesNotMatch(h.root.textContent, /differ from the steps listed/);
   const off = harness(); await off.ui.activity(off.root, {...workflow(5, {person_decisions: 1, automatic_steps: 4}), automation: {...workflow(5).automation, steps: uncertain, counts: {person_decisions: 1, automatic_steps: 4}}});
@@ -92,7 +92,7 @@ test('turned on, the next decision’s steps are shown one at a time in recorded
   assert.equal(toggle(h.root).checked, true);
   const text = line(h.root).textContent;
   assert.equal(text, 'Replay: these steps ran when the reviewer decision “Approve response” was recorded. Shown one at a time so each can be read.');
-  // The demo line names the Uptime agent; no step is ever attributed to a model or an AI, and nothing claims live work.
+  // The demo line names these steps Uptime · automatic; no step is ever attributed to a model or an AI, and nothing claims live work.
   assert.doesNotMatch(text, /\bAI\b|\bmodel\b|Claude|working|in progress|thinking/i);
   assert.ok(stepRows(h.root).every(n => !/\bAI\b|model|Claude/i.test(n.children[1].textContent)));
   const seen = [visibleLabels(h.root).slice(5)];

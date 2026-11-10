@@ -61,14 +61,14 @@ test('the credit row follows the credit’s own latest recorded stage; nothing i
 
 test('who acts next comes from the offered actions and the recorded pause', () => {
   assert.equal(nextActor(workflow), 'Reviewer');
-  assert.equal(nextActor({...workflow, next_actions: [], automation: {state: 'PAUSED', pause: {reason: 'ROUTINE_READY'}}}), 'Uptime agent');
+  assert.equal(nextActor({...workflow, next_actions: [], automation: {state: 'PAUSED', pause: {reason: 'ROUTINE_READY'}}}), 'Uptime · automatic');
   assert.equal(nextActor({...workflow, next_actions: [], automation: {state: 'PAUSED', pause: {reason: 'WAITING'}}}), 'Vendor');
   assert.equal(nextActor({...workflow, next_actions: [], automation: {state: 'COMPLETE'}}), null);
   assert.deepEqual(readBy({method: 'deterministic_document_parser'}), {kind: 'rules', label: 'Read by fixed rules'});
   assert.equal(readBy({method: 'other'}), null);
 });
 
-test('agents at work counts recorded facts: Claude readings, Uptime agent steps and reviewer decisions', () => {
+test('the work counters count recorded facts: Claude readings, automatic steps and reviewer decisions', () => {
   assert.deepEqual(agentCounters(workflow, vendors), {claudeReads: 1, models: ['Claude Opus 5.5'], agentSteps: 0, received: 0, reviewerDecisions: 0, notes: 0, uptimeNotes: 0});
   const ran = {...workflow, automation: {...workflow.automation, steps: [
     {seq: 1, authority: {kind: 'PERSON'}, state: 'COMPLETED'}, {seq: 2, authority: {kind: 'APPROVED_OPERATION'}, state: 'COMPLETED'},
@@ -92,8 +92,8 @@ test('the portfolio page reads the agreements and the saved Ramp workspace and s
   assert.deepEqual(requests.sort(), ['/api/ramp/workspace', '/api/vendors', '/api/vendors/calyxquay', '/api/vendors/northwind-cloud']);
   const text = root.textContent;
   for (const words of ['Portfolio', 'Agreements on file', '1 read by Claude · 1 by fixed rules', 'Opportunities open', '1 service credit · 1 price exception · 1 awaiting usage evidence',
-    'Credits in progress', 'Northwind Cloud · January 2026: $2,400.00 · Estimated', 'Ramp bills tracked', '1 with no agreement on file', 'Agents at work',
-    'Contracts read by Claude Opus 5.5, recorded runs', 'Steps run under an approval a reviewer recorded', 'Decisions by the signed-in reviewer account',
+    'Credits in progress', 'Northwind Cloud · January 2026: $2,400.00 · Estimated', 'Ramp bills tracked', '1 with no agreement on file', 'Who is doing the work',
+    'Contracts read by Claude Opus 5.5, recorded runs', 'Steps run by fixed rules under an approval a reviewer recorded', 'Decisions by the signed-in reviewer account',
     'Needs attention', 'Next: Reviewer', 'Nothing waiting']) assert.ok(text.includes(words), words);
   const rows = root.all('a').filter(a => String(a.className).startsWith('portfolio-row'));
   assert.equal(rows.length, 6);
