@@ -1,0 +1,37 @@
+{
+  "tested_commit": "e0e689c27508f521f040cc684c512bb5f7591c9e",
+  "branch": "work/submission-integration-20261109",
+  "role": "the redesign session's two style fixes (0edac3b) merged on top of main at ac5843b",
+  "command": [
+    "UPTIME_REQUIRE_BROWSER=1",
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-e0e689c",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 134,
+  "pytest_result": "no result: the runner's watchdog aborted the run after it stopped advancing",
+  "progress_before_the_abort": "4950 of 5464 collected tests had passed; none had failed, errored or been skipped",
+  "log": "suite-e0e689c-aborted-pytest.log",
+  "capture": "suite-e0e689c-aborted-stall.txt",
+  "started_at": "2026-11-10T07:05:57Z",
+  "aborted_at": "2026-11-10T07:18:45Z",
+  "other_checks_on_the_same_commit": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "132 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "what_happened": "The run reached 90 percent in about seven and a half minutes and stopped in tests/test_vendor_model_jobs_browser.py, after that file's first two tests had passed. The Chrome launched for the third test (pid 70731, started 23:13:31 PST) had no page process, and in every one of 1606 samples its main thread was waiting inside rbs_acquire_appnap_assertion, in RBSConnection's connection set-up. After 319 seconds without output the watchdog captured this and aborted the run.",
+  "what_this_capture_adds": [
+    "The system service was not the one that hung. macOS's log shows runningboardd receiving the handshake request from pid 70731 at 23:13:34.264 and logging 'Handshake successful with 70731; sending response' one millisecond later. The browser never picked the answer up: its sample shows no thread serving the connection its main thread was waiting for.",
+    "No other browser was launching. In the two minutes around the launch, the only Chrome main process macOS began tracking was this one, and at the moment of capture the only other Chrome on the machine was Ronok's own browser, open for four hours. The earlier records had another session launching Chrome within seconds in both captured cases; that is not a necessary condition.",
+    "A restart is not a cure. This is the first stalled run since the Mac was restarted at about 18:35 PST; seven full runs completed in between, one of them with a single browser that failed to launch.",
+    "The machine was busy but calming down: load averages of 4.5, 17.1 and 14.0 over one, five and fifteen minutes just before the run began, with 5.2 of 6.1 GB of swap in use."
+  ],
+  "what_changed_afterwards": "Nothing in the repository. The runner now writes its STALLED line on a line of its own, so its closing summary shows it. This commit was not run again by itself: the redesign session had a further commit minutes away, so the next full run is on the merge that carries both.",
+  "limits": "Not a result. It neither passes nor fails the commit."
+}

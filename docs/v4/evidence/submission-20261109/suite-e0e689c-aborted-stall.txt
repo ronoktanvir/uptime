@@ -1,0 +1,178 @@
+Excerpt of the runner's capture for the aborted run on e0e689c. Kept here: the process lists and the stuck
+Chrome's own two-second sample. Left out: the samples of its three helper processes, which were idle.
+The system-log lines at the end were read afterwards with macOS's log tool.
+
+stall detected 2026-11-10T07:18:45Z after 319s without output
+--- descendants of the run (pid ppid elapsed state command)
+68646 68635 12:48 S    uv run --locked pytest --basetemp=/Users/ronoktanvir/.local/share/uptime-engineering/tasks/submission-integration-20261109/bt-e0e689c -o tmp_path_retention_policy=failed
+68649 68646 12:48 S    /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/bin/python /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/bin/pytest --basetemp=/Users/ronoktanvir/.local/share/uptime-engineering/tasks/submission-integration-20261109/bt-e0e689c -o tmp_path_retention_policy=failed
+70724 68649 05:18 S    /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/lib/python3.13/site-packages/playwright/driver/node /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/lib/python3.13/site-packages/playwright/driver/package/cli.js run-driver
+70731 70724 05:14 Ss   /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-de
+70737 70731 05:12 S    /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif GPU).app/Contents/MacOS/Google Chrome Helper (Aperitif GPU) --type=gpu-process --gpu-recent-crash-count=0 --no-sandbox --disable-breakpad --headless --enable-unsafe-swiftshader --metrics-client-id=3b9cf735-3dea-4c95-9f52-ff18826e
+70738 70731 05:12 S    /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif).app/Contents/MacOS/Google Chrome Helper (Aperitif) --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=network --no-sandbox --mute-audio --metrics-client-id=3b9cf735-3dea-4c95-9f52-
+70739 70731 05:12 S    /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif).app/Contents/MacOS/Google Chrome Helper (Aperitif) --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-US --service-sandbox-type=service --no-sandbox --mute-audio --metrics-client-id=3b9cf735-3dea-4c95-9f52-
+--- every Chrome main process on the machine
+  632     1 04:17:33 S    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+70731 70724    05:14 Ss   /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phi
+--- sample of Chrome 70731
+Sampling process 70731 for 2 seconds with 1 millisecond of run time between samples
+Sampling completed, processing symbols...
+Sample analysis of process 70731 written to file /tmp/Google_Chrome_2026-11-09_231845_hj8k.sample.txt
+
+Analysis of sampling Google Chrome (pid 70731) every 1 millisecond
+Process:         Google Chrome [70731]
+Path:            /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+Load Address:    0x100a7c000
+Identifier:      com.google.Chrome
+Version:         157.0.8103.40 (8103.40)
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  node [70724]
+
+Date/Time:       2026-11-09 23:18:45.749 -0800
+Launch Time:     2026-11-09 23:13:31.947 -0800
+OS Version:      macOS 15.1 (24B83)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         38.4M
+Physical footprint (peak):  38.5M
+Idle exit:                  untracked
+----
+
+Call graph:
+    1606 Thread_1043849   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 1606 start  (in dyld) + 2840  [0x18a83c274]
+    +   1606 main  (in Google Chrome) + 200  [0x100a7c810]
+    +     1606 ChromeMain  (in Google Chrome Framework) + 444  [0x1205bcd5c]
+    +       1606 ChromeMain  (in Google Chrome Framework) + 44747016  [0x1230694a8]
+    +         1606 ChromeMain  (in Google Chrome Framework) + 38588116  [0x122a89a74]
+    +           1606 ChromeMain  (in Google Chrome Framework) + 53727556  [0x1238f9ce4]
+    +             1606 ChromeMain  (in Google Chrome Framework) + 53727992  [0x1238f9e98]
+    +               1606 ChromeMain  (in Google Chrome Framework) + 53729436  [0x1238fa43c]
+    +                 1606 ChromeMain  (in Google Chrome Framework) + 33293144  [0x12257cef8]
+    +                   1606 ChromeMain  (in Google Chrome Framework) + 33294924  [0x12257d5ec]
+    +                     1606 ChromeMain  (in Google Chrome Framework) + 44404456  [0x123015a88]
+    +                       1606 ChromeMain  (in Google Chrome Framework) + 44404888  [0x123015c38]
+    +                         1606 -[NSApplication run]  (in AppKit) + 480  [0x18e7c2ae0]
+    +                           1606 ChromeMain  (in Google Chrome Framework) + 65978436  [0x1244a8be4]
+    +                             1606 ChromeMain  (in Google Chrome Framework) + 2968784  [0x120891870]
+    +                               1606 ChromeMain  (in Google Chrome Framework) + 72999336  [0x124b5ad48]
+    +                                 1606 -[NSApplication(NSEventRouting) _nextEventMatchingEventMask:untilDate:inMode:dequeue:]  (in AppKit) + 688  [0x18f10fe0c]
+    +                                   1606 _DPSNextEvent  (in AppKit) + 660  [0x18e7cfa08]
+    +                                     1606 _BlockUntilNextEventMatchingListInModeWithFilter  (in HIToolbox) + 76  [0x196119eb8]
+    +                                       1606 ReceiveNextEventCommon  (in HIToolbox) + 636  [0x196119d54]
+    +                                         1606 RunCurrentEventLoopInMode  (in HIToolbox) + 292  [0x196113f64]
+    +                                           1606 CFRunLoopRunSpecific  (in CoreFoundation) + 588  [0x18aca3bc4]
+    +                                             1606 __CFRunLoopRun  (in CoreFoundation) + 1996  [0x18aca4a4c]
+    +                                               1606 __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__  (in CoreFoundation) + 16  [0x18ace4e60]
+    +                                                 1606 _dispatch_main_queue_callback_4CF  (in libdispatch.dylib) + 44  [0x18aa1ab84]
+    +                                                   1606 _dispatch_main_queue_drain  (in libdispatch.dylib) + 980  [0x18aa1af68]
+    +                                                     1606 _dispatch_client_callout  (in libdispatch.dylib) + 20  [0x18aa0c658]
+    +                                                       1606 _dispatch_call_block_and_release  (in libdispatch.dylib) + 32  [0x18aa0a8f8]
+    +                                                         1606 ____CFRunLoopSetOptionsReason_block_invoke_5.134  (in CoreFoundation) + 52  [0x18ae06df0]
+    +                                                           1606 ____CFRunLoopSetOptionsReason_block_invoke_3.125  (in CoreFoundation) + 424  [0x18ae06be4]
+    +                                                             1606 rbs_acquire_appnap_assertion  (in RunningBoardServices) + 1380  [0x192159608]
+    +                                                               1606 -[RBSAssertion acquireWithError:]  (in RunningBoardServices) + 188  [0x19211c884]
+    +                                                                 1606 -[RBSConnection acquireAssertion:error:]  (in RunningBoardServices) + 276  [0x19211cc00]
+    +                                                                   1606 -[RBSConnection _connection]  (in RunningBoardServices) + 92  [0x19211cf50]
+    +                                                                     1606 _dispatch_async_and_wait_f  (in libdispatch.dylib) + 108  [0x18aa11aa0]
+    +                                                                       1606 _dispatch_async_and_wait_f_slow  (in libdispatch.dylib) + 44  [0x18aa1c4fc]
+    +                                                                         1606 __DISPATCH_WAIT_FOR_QUEUE__  (in libdispatch.dylib) + 340  [0x18aa1bfa8]
+    +                                                                           1606 _dispatch_event_loop_wait_for_ownership  (in libdispatch.dylib) + 436  [0x18aa2ffb0]
+    +                                                                             1606 _dispatch_kq_poll  (in libdispatch.dylib) + 228  [0x18aa2f5a4]
+    +                                                                               1606 kevent_id  (in libsystem_kernel.dylib) + 8  [0x18ab7fb08]
+    1606 Thread_1043875
+    + 1606 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1606 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1606 ChromeMain  (in Google Chrome Framework) + 180222800  [0x12b19c6f0]
+    +       1606 ChromeMain  (in Google Chrome Framework) + 53442796  [0x1238b448c]
+    +         1606 ChromeMain  (in Google Chrome Framework) + 53443676  [0x1238b47fc]
+    +           1606 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +             1606 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +               1606 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                 1606 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1606 Thread_1043899: HangWatcher
+    + 1606 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1606 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1606 ChromeMain  (in Google Chrome Framework) + 25162556  [0x121dbbedc]
+    +       1606 ChromeMain  (in Google Chrome Framework) + 145911112  [0x1290e38e8]
+    +         1606 ChromeMain  (in Google Chrome Framework) + 145910904  [0x1290e3818]
+    +           1606 ChromeMain  (in Google Chrome Framework) + 18516980  [0x121765794]
+    +             1606 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +               1606 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                 1606 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                   1606 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1606 Thread_1043900: PerfettoTrace
+    + 1606 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1606 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1606 ChromeMain  (in Google Chrome Framework) + 25162556  [0x121dbbedc]
+    +       1606 ChromeMain  (in Google Chrome Framework) + 34370752  [0x122684060]
+    +         1606 ChromeMain  (in Google Chrome Framework) + 34371408  [0x1226842f0]
+    +           1606 ChromeMain  (in Google Chrome Framework) + 33293144  [0x12257cef8]
+    +             1606 ChromeMain  (in Google Chrome Framework) + 33294924  [0x12257d5ec]
+    +               1606 ChromeMain  (in Google Chrome Framework) + 22918412  [0x121b980ac]
+    +                 1606 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1606 Thread_1043901: ThreadPoolServiceThread
+    + 1606 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1606 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1606 ChromeMain  (in Google Chrome Framework) + 25162556  [0x121dbbedc]
+    +       1606 ChromeMain  (in Google Chrome Framework) + 34370752  [0x122684060]
+    +         1606 ChromeMain  (in Google Chrome Framework) + 65369464  [0x124414118]
+    +           1606 ChromeMain  (in Google Chrome Framework) + 33293144  [0x12257cef8]
+    +             1606 ChromeMain  (in Google Chrome Framework) + 33294924  [0x12257d5ec]
+    +               1606 ChromeMain  (in Google Chrome Framework) + 22918412  [0x121b980ac]
+    +                 1606 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1606 Thread_1043902: ThreadPoolForegroundWorker
+    + 1606 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1606 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1606 ChromeMain  (in Google Chrome Framework) + 25162556  [0x121dbbedc]
+    +       1606 ChromeMain  (in Google Chrome Framework) + 28913824  [0x12214fc40]
+    +         1606 ChromeMain  (in Google Chrome Framework) + 28913992  [0x12214fce8]
+    +           1606 ChromeMain  (in Google Chrome Framework) + 10365276  [0x120f9f4fc]
+    +             1606 ChromeMain  (in Google Chrome Framework) + 18516980  [0x121765794]
+    +               1606 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1606 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1606 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1606 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1606 Thread_1043903: ThreadPoolForegroundWorker
+    + 1606 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1606 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1606 ChromeMain  (in Google Chrome Framework) + 25162556  [0x121dbbedc]
+    +       1606 ChromeMain  (in Google Chrome Framework) + 28913824  [0x12214fc40]
+    +         1606 ChromeMain  (in Google Chrome Framework) + 28913992  [0x12214fce8]
+    +           1606 ChromeMain  (in Google Chrome Framework) + 10365276  [0x120f9f4fc]
+    +             1606 ChromeMain  (in Google Chrome Framework) + 18516980  [0x121765794]
+    +               1606 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1606 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1606 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1606 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1606 Thread_1043904: ThreadPoolForegroundWorker
+    + 1606 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1606 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1606 ChromeMain  (in Google Chrome Framework) + 25162556  [0x121dbbedc]
+    +       1606 ChromeMain  (in Google Chrome Framework) + 28913824  [0x12214fc40]
+    +         1606 ChromeMain  (in Google Chrome Framework) + 28913992  [0x12214fce8]
+    +           1606 ChromeMain  (in Google Chrome Framework) + 10365276  [0x120f9f4fc]
+    +             1606 ChromeMain  (in Google Chrome Framework) + 18516980  [0x121765794]
+    +               1606 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1606 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1606 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1606 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1606 Thread_1043905: ThreadPoolPresentationWorker
+    + 1606 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1606 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1606 ChromeMain  (in Google Chrome Framework) + 25162556  [0x121dbbedc]
+    +       1606 ChromeMain  (in Google Chrome Framework) + 28913824  [0x12214fc40]
+    +         1606 ChromeMain  (in Google Chrome Framework) + 28913992  [0x12214fce8]
+
+--- macOS system log, runningboardd, about the stuck Chrome (pid 70731), 23:13:33 to 23:14:10 PST
+2026-11-09 23:13:33.015 Df runningboardd[398:fd398] [com.apple.runningboard:ttl] [anon<Google Chrome>(501):70731] Set darwin role to: NonUserInteractive
+2026-11-09 23:13:34.264 Df runningboardd[398:fec8f] [com.apple.runningboard:connection] Incoming connection from 70731, user 501/501
+2026-11-09 23:13:34.264 Df runningboardd[398:fec8f] [com.apple.xpc:connection] [0x644c98780] activating connection: mach=false listener=false peer=true name=com.apple.runningboard.peer[70731].0x644c98780
+2026-11-09 23:13:34.264 Df runningboardd[398:fec8e] [com.apple.runningboard:connection] Setting client for [anon<Google Chrome>(501):70731] as ready
+2026-11-09 23:13:34.264 Df runningboardd[398:fec8e] [com.apple.runningboard:connection] Received handshake request from 70731 with 0 assertion descriptors
+2026-11-09 23:13:34.265 Df runningboardd[398:fec8e] [com.apple.runningboard:connection] Handshake successful with 70731; sending response
+
+--- every Chrome main process macOS began tracking, 23:12:30 to 23:14:30 PST
+2026-11-09 23:13:32.789 Df runningboardd[398:fc615] [com.apple.runningboard:ttl] Now tracking process: [anon<Google Chrome>(501):70731]
