@@ -53,6 +53,17 @@
   // computed, no clause is inferred, and the evidence is named only by joining the packet's digests to the case's
   // own evidence records.
   const NOT_SENT = 'Not sent by the server';
+  // How an agreement's source was read, as a chip beside its name. Display only: the server's own words stay in the
+  // card's "Source read by" field. An unknown method or model gets no chip rather than a guessed one.
+  const MODEL_NAMES = {'claude-opus-5-5':'Claude Opus 5.5'};
+  function readByChip(extraction) {
+    const e = extraction && typeof extraction === 'object' ? extraction : {};
+    if (e.method === 'deterministic_document_parser') return {label:'Read by fixed rules', kind:'rules'};
+    if (e.method === 'tool_free_model_propositions' && MODEL_NAMES[e.model]) return {label:'Read by ' + MODEL_NAMES[e.model] + ' · recorded run', kind:'model'};
+    return null;
+  }
+  // The filing's destination in plain words; the exact value stays in the complete server record.
+  const DESTINATION_NAMES = {'isolated-local-simulator':'Vendor claims intake (local)'};
   const FILING_KIND = {'submit-claim':'Claim', 'submit-response':'Response'};
   const FILED_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   function filedSummary(submission, evidence) {
@@ -88,7 +99,7 @@
       ['Contract version', value(packet.version)],
       ['Cited clause', clauses.length ? clauses : NOT_SENT],
       ['Evidence references', refs.length ? refs : NOT_SENT],
-      ['Destination', value(packet.destination)],
+      ['Destination', given(packet.destination) ? DESTINATION_NAMES[packet.destination] || packet.destination : NOT_SENT],
       ['Receipt', value(s.id)],
       ['Filed', given(s.at) ? at(s.at) : NOT_SENT],
       ['Approved by', given(approval.actor) ? approval.actor + (given(approval.at) ? ', ' + at(approval.at) : '') : NOT_SENT],
@@ -463,10 +474,10 @@
       return items;
     }
     // What was filed, each filing in its recorded order, from the submissions this case record already carries.
-    function filedView(data) {
+    function filedView(data, key) {
       const filings = list(data.submissions).filter(s => s && typeof s === 'object');
       if (!filings.length) return null;
-      const n = add(section('What was filed'), note('Each filing as recorded with its receipt, from this case’s record. A field the record does not carry is marked “' + NOT_SENT + '”.'));
+      const n = add(fold(key + ':filed', 'What was filed'), note('Each filing as recorded with its receipt, from this case’s record. A field the record does not carry is marked “' + NOT_SENT + '”.'));
       filings.forEach(submission => {
         const summary = filedSummary(submission, data.evidence);
         const rows = el('dl', undefined, 'v4-facts v4-filed-facts');
@@ -514,12 +525,13 @@
       // Only the actions the server offers for this claim; the server checks each one again when it is pressed.
       if (base) add(standing, el('h3', 'Reviewer actions'), actions(m, data, base));
       out.append(standing);
-      const filed = filedView(data);
-      if (filed) out.append(filed);
       const steps = caseTimeline(data);
       if (steps) out.append(add(section('Correspondence, in order'), steps));
       if (base && data.trace_url === '/api/correspondence/claims/' + id + '/trace') out.append(add(el('section', undefined, 'v4-panel'), disputeRecord(m, base + '/trace')));
       const records = el('div', undefined, 'v4-fold-group');
+      // What was filed sits below the correspondence, first of the closed sections, until opened.
+      const filed = filedView(data, key);
+      if (filed) records.append(filed);
       const amounts = recordedAmounts(data);
       add(records, fold(key + ':decision', 'Decision, unknowns and amounts as recorded', provenance(data.sources), record({...decisionRecord(data), financials:amounts.rows}),
         amounts.untracked.length ? note('This record does not track ' + amounts.untracked.join(' or ') + '; the Overview’s credit lifecycle shows '
@@ -735,8 +747,10 @@
       const id = data.vendor_id ?? data.id;
       const n = el('section', undefined, 'v4-panel v4-vendor');
       const tone = STATE_TONE[data.state];
+      const chip = readByChip(data.extraction);
       n.append(add(el('div', undefined, 'v4-vendor-head'), avatar(data.name ?? data.vendor ?? id), el('h2', shown(data.name ?? data.vendor ?? id)),
-        typeof data.state === 'string' && data.state ? el('span', data.state, 'pill' + (tone ? ' ' + tone : '')) : null));
+        typeof data.state === 'string' && data.state ? el('span', data.state, 'pill' + (tone ? ' ' + tone : '')) : null,
+        chip ? el('span', chip.label, 'v4-read-chip v4-read-' + chip.kind) : null));
       if (typeof data.state === 'string' && data.state) {
         const force = data.state === 'ACTIVE' && data.active_version ? 'In force in this workspace.'
           : data.active_version ? 'An earlier version is in force; this revision is not.' : 'Not in force.';
@@ -1399,7 +1413,7 @@
     }
     return Object.freeze({render, inspect, unmount, refreshAccess: sync});
   }
-  const api = Object.freeze({create, parseJSON, filedSummary});
+  const api = Object.freeze({create, parseJSON, filedSummary, readByChip});
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (global) global.UptimeV4 = api;
 })(typeof window !== 'undefined' ? window : globalThis);

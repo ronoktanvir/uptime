@@ -2,7 +2,7 @@
 // What was filed, on the case page: read only from the case record the page already loads. A DOM harness.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {create, filedSummary} = require('./v4_ui.js');
+const {create, filedSummary, readByChip} = require('./v4_ui.js');
 class Element {
   constructor(tag) { this.tagName = tag; this.children = []; this.listeners = {}; this.attrs = {}; this.value = ''; this._text = ''; }
   set textContent(v) { this._text = String(v); this.children = []; }
@@ -36,7 +36,7 @@ test('a filed claim prints exactly the packet’s own fields in plain labels', (
   assert.deepEqual(summary.rows, [['Period', 'January 2026'], ['Service', 'Cloud Hosting'], ['Amount requested', '$2,400.00'], ['Agreement', 'NW-2026-001'],
     ['Contract version', D('5')], ['Cited clause', 'Not sent by the server'],
     ['Evidence references', ['invoice · northwind-invoice-2026-01 · billing', 'status · northwind-status-2026-01 · status']],
-    ['Destination', 'isolated-local-simulator'], ['Receipt', 'LOCAL-ddea5d4149401ba6eece61e7'], ['Filed', 'Mar 1, 2026, 12:00 UTC'],
+    ['Destination', 'Vendor claims intake (local)'], ['Receipt', 'LOCAL-ddea5d4149401ba6eece61e7'], ['Filed', 'Mar 1, 2026, 12:00 UTC'],
     ['Approved by', 'scripted-test-reviewer, Mar 1, 2026, 12:00 UTC'], ['Terms fingerprint', D('a')]]);
 });
 
@@ -61,7 +61,7 @@ test('a field the server does not send is printed as not sent, never guessed; am
   assert.equal(rows(filedSummary({packet: {requested: null, scope: {currency: 'USD'}}}))['Amount requested'], 'Not sent by the server');
 });
 
-test('the case page shows What was filed before the correspondence, from the record it already loaded', async () => {
+test('the case page shows What was filed below the correspondence, closed until opened, from the record it already loaded', async () => {
   const root = new Element('main'), requests = [];
   const data = {id: 'inbox-northwind-2026-01', scope, stage: 'AWARDED', currency: 'USD', evidence, submissions: [claim, response],
     timeline: [{at: '2026-03-01T12:00:00+00:00', event: 'Approved exact local packet.', actor: 'scripted-test-reviewer'}], replies: []};
@@ -69,12 +69,17 @@ test('the case page shows What was filed before the correspondence, from the rec
   await ui.inspect(root, 'inbox-northwind-2026-01');
   assert.deepEqual(requests, ['/api/correspondence/claims/inbox-northwind-2026-01']);
   const titles = root.all('h2').map(h => h.textContent);
-  assert.ok(titles.indexOf('What was filed') > titles.indexOf('Where this claim stands'));
-  assert.ok(titles.indexOf('What was filed') < titles.indexOf('Correspondence, in order'));
-  const filed = root.all('section').find(s => s.children[0] && s.children[0].textContent === 'What was filed');
+  assert.ok(titles.indexOf('Correspondence, in order') > titles.indexOf('Where this claim stands'));
+  const filed = root.all('details').find(s => s.children[0] && s.children[0].textContent === 'What was filed');
+  assert.ok(filed, 'a closed section'); assert.notEqual(filed.open, true);
+  const order = [...root.all('section'), ...root.all('details')].map(n => n.children[0] && n.children[0].textContent);
+  const flat = JSON.stringify(root, (k, v) => k === 'listeners' || k === 'attrs' ? undefined : v);
+  assert.ok(flat.indexOf('"What was filed"') > flat.indexOf('"Correspondence, in order"'), 'below the correspondence');
+  assert.ok(order.includes('What was filed'));
   assert.deepEqual(filed.all('h3').map(h => h.textContent), ['Claim', 'Response']);
   const text = filed.textContent;
-  for (const value of ['January 2026', 'Cloud Hosting', '$2,400.00', 'NW-2026-001', '5555555555…', 'Not sent by the server', 'isolated-local-simulator',
+  assert.doesNotMatch(text, /isolated-local-simulator/);
+  for (const value of ['January 2026', 'Cloud Hosting', '$2,400.00', 'NW-2026-001', '5555555555…', 'Not sent by the server', 'Vendor claims intake (local)',
     'LOCAL-ddea5d4149401ba6eece61e7', 'scripted-test-reviewer', 'northwind-invoice-2026-01', 'The amounts are not added together.']) assert.ok(text.includes(value), value);
   assert.equal(filed.all('dd').find(d => d.textContent === '5555555555…').attrs.title, D('5'));
   assert.doesNotMatch(text, /\$4,800|4800/);
@@ -82,5 +87,24 @@ test('the case page shows What was filed before the correspondence, from the rec
   const none = new Element('main');
   const empty = create({document, getAccess: () => ({}), api: async () => ({id: 'x', submissions: []})});
   await empty.inspect(none, 'x');
-  assert.ok(!none.all('h2').some(h => h.textContent === 'What was filed'));
+  assert.ok(!none.all('summary').some(h => h.textContent === 'What was filed'));
+});
+
+test('how a contract was read: two chips mapped from the server’s method and model, nothing guessed', () => {
+  assert.deepEqual(readByChip({method: 'deterministic_document_parser'}), {label: 'Read by fixed rules', kind: 'rules'});
+  assert.deepEqual(readByChip({method: 'tool_free_model_propositions', model: 'claude-opus-5-5'}), {label: 'Read by Claude Opus 5.5 · recorded run', kind: 'model'});
+  assert.equal(readByChip({method: 'tool_free_model_propositions', model: 'other-model'}), null);
+  assert.equal(readByChip({method: 'something_else'}), null);
+  assert.equal(readByChip(null), null);
+});
+
+test('an agreement card shows the chip beside its name and keeps the server’s own words in its fields', async () => {
+  const root = new Element('main');
+  const vendor = {vendor_id: 'northwind', name: 'Northwind Cloud', state: 'ACTIVE', revision: 1, active_version: 'v1', extraction: {method: 'deterministic_document_parser'}};
+  const ui = create({document, getAccess: () => ({}), api: async path => path === '/api/vendors' ? {vendors: [vendor]} : vendor});
+  await ui.render(root, 'vendors');
+  const text = root.textContent;
+  assert.ok(text.includes('Read by fixed rules'));
+  assert.ok(text.includes('deterministic document parser'));
+  assert.doesNotMatch(text, /Claude/);
 });
