@@ -35,6 +35,10 @@ The helper `open_section(page, title)` and the two section titles were added to 
   - `test_the_verified_bill_card_is_in_the_first_viewport_of_a_420_px_panel`
   - `test_an_unknown_bill_says_so_and_ramp_records_opens_without_filling_the_panel_with_navigation`
 
+The pass over every page on a computer screen (`1dca1cf`, `53f6115`) changed no test.
+
 ## Interrupted runs
 
-None yet.
+None. No Chrome run hung and no test run was cut off by its time limit.
+
+One run of the per-file loop was invalid and is not counted: its scratch parent folder did not exist, so every test that uses `tmp_path` errored at setup within about a second. It was rerun with the folder in place; that rerun is the table in [the design record, section 6](submission/design.md).
