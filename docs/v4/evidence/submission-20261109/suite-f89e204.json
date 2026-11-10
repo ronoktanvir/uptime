@@ -1,0 +1,29 @@
+{
+  "tested_commit": "f89e2049dd8a67c06567b19a4a1fc91ad692ce98",
+  "branch": "work/submission-integration-20261109",
+  "role": "role 5's recheck of its three interface findings and role 6's retaken README screenshots, on top of main",
+  "contents": "main at 6cf2b31 plus role 5 at 7c6661f (a dated addendum to the acceptance report with its evidence: A1 and A3 resolved, A2 partly resolved and lowered to P3, on main at 008c4af) and role 6 at 5081008 (the README's three screenshots retaken on 008c4af by a one-command capture script kept under docs/, its report, and corrected sentences in the README, the judge guide and the storyboard document). Documentation, evidence, three images and one script; nothing under uptime/, web/ or tests/.",
+  "command": [
+    "UPTIME_REQUIRE_BROWSER=1",
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-f89e204",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5464 passed, 1 warning in 413.70s (0:06:53)",
+  "log": "suite-f89e204-pytest.log",
+  "started_at": "2026-11-10T09:38:54Z",
+  "finished_at": "2026-11-10T09:45:50Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "132 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "note": "One merge of two branches that share no file, so one run covers it. Before merging, the coordinator read both diffs and the capture script, and compared each retaken image with its alt text.",
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}
