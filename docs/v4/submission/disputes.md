@@ -295,3 +295,38 @@ Written by me (agent3) once, before any model call, in my own words. It is not t
 - Under the fixed rules (`correspondence_reason.propose`, claimed 2400.00, month 2026-01) it reads **`unknown`**.
 - It names the document `NW-JAN-LOG-001` deliberately. A reviewer's reading can then cite the reference, so `requested_artifact` becomes `{type: resource_log, ref: NW-JAN-LOG-001}`. That matches the package supplement (`artifact_ref` NW-JAN-LOG-001, `artifact_type` resource_log). `approved_artifact` matches by type and, when given, reference.
 - The variants file's pinned SHA-256 changes from `9e0e4750…` to `1250baf3cb0f2f10b3ead8ccafc0d060349081749675e7efd64c60626812ee9f`. The `unclear` entry is byte-identical, and the authorship statement now covers both variants.
+
+## Reworded log request: the one genuine model call (Phase B, 2026-11-10 05:58 UTC)
+
+**Result in plain words.** Claude Opus 5.5 read the reworded reply as a request for the January hosting resource log `NW-JAN-LOG-001`, and cited the whole reply. It also tagged the word "January" as the claim period. Uptime's deterministic mapping refuses a period that does not name one exact month, so it refused to act on the model's proposal. Under the criterion fixed before the call, **the model's reading does not count as the log request.** The script did no review, preview or preparation. The case stays with a person (`HUMAN_REVIEW`), no money moved, and nothing was retried or reworded.
+
+| Item | Value |
+|---|---|
+| Source | Clean checkout of main `e3952576ad4a7f631ea158182ffd4d0bacf05eca` (tree `ff9a0138…`); `git status --porcelain` empty before and after the run |
+| Model job | `d42a251b-0c6e-4979-937e-a86a130cbc2e`, `SUCCEEDED` on its only attempt; submitted 05:58:48.24, finished 05:58:52.62 UTC |
+| Model, session | `claude-opus-5-5`, `5a819a56-09c2-489d-b23c-39b3bf72ac6b`; 176 output tokens |
+| Transport (job row, at run time) | Profile `safe-public-experimental-v2`; CLI `2.1.318 (Claude Code)`; binary `677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d`; return code 0; 0 tool events; tool and MCP inventories `[]`; revision `NOT_CAPTURED` (no such field) |
+| Approval | One invocation, by "agent3 (engineering operator, role 2): one model invocation on authored public text only", through `scripts/public_proposals.py approve --confirm-authored-public --hours 1`; request `28ff3702…` |
+| Reviewer's own reading | Saved first: one `artifact` proposition, `resource_log`, `artifact_ref` NW-JAN-LOG-001 (`SCRIPTED_NOT_ACTUAL_HUMAN`) |
+| Model's candidate, exactly | One proposition: family `artifact`, polarity positive, modality asserted, referent current claim, source bytes 0–231 (the whole reply), `artifact_type` `resource_log`, slots `artifact_ref` = "NW-JAN-LOG-001" (bytes 138–152) and **`period` = "January" (bytes 112–119)**. One segment, substantive, bytes 0–231 |
+| `model_reads_as` | `reason: unknown`, `mapping_error: ValueError`. The exact message, reproduced afterwards on a scratch copy with no model: "An explicit period must identify one exact month." (`_period("January")`) |
+| Criterion held | **No.** Outcome `MODEL_DID_NOT_READ_A_LOG_REQUEST`; no continuation copy was made |
+| Case after | `HUMAN_REVIEW`, no actions; estimated and claimed 2400.00; awarded, posted and applied 0.00; one filing; walkthrough paused at `UNEXPECTED_GROUND` |
+| Receipt | [`evidence/submission-disputes-20261109/reworded-model-job.json`](../evidence/submission-disputes-20261109/reworded-model-job.json) (as written by the run; sha256 `2436b2b3…`). Raw request and response stay outside Git. |
+| Preserved workspace | `~/.local/share/uptime-engineering/tasks/submission-disputes-20261109/recorded-workspace-reworded/` (0700), `workspace/workspace.db` sha256 `4ef4fccff256149cdb7dea702baaab9508ca2e437c28e7e8b81a2bc143d4d6a9`. The blind reading and the candidate are stored; there is no review row (checked on a copy). The run folder `…/tasks/role2-reworded-model-job/run-1/` is also untouched. Serve or inspect copies only. |
+
+**Analysis only, not a result.** The same candidate with its `period` slot removed maps to `artifact` / `resource_log` / `NW-JAN-LOG-001`, which would meet the criterion. This shows why it failed. It does not change the outcome, and nothing was continued on that basis.
+- I wrote the variant's phrase "the hosting resource log you kept for January", which names a month without a year. The model reasonably tagged it.
+- The product's period check is strict and stays strict.
+- Whether to call again, with this wording or any other, is not mine or the coordinator's to decide.
+
+**What a film could truthfully say:**
+- "Uptime asked Claude Opus to read a vendor reply its fixed rules did not recognise. Claude proposed that the vendor was asking for the January resource log, NW-JAN-LOG-001, and quoted the reply."
+- "Uptime's own checks would not act on that proposal, because it named the month as 'January' without a year. The claim stayed with the reviewer, and no money moved."
+- "The model proposes. Deterministic checks and a person decide."
+
+**What a film could not truthfully say:**
+- That the model's reading moved the claim on, or that the walkthrough continued or reached the credit from it.
+- That the model and the reviewer agreed, or any agreement value. No review ran, so there is none.
+- That the model misunderstood the reply. It identified the right document and type.
+- That the vendor message, the counterparty or the reviewer is real. All are authored or scripted.
