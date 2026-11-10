@@ -1,0 +1,39 @@
+Verified Ramp record
+
+DocuSign
+
+Invoice DD-PREAPPROVAL
+
+In Ramp
+Amount
+USD 840
+Status
+OPEN
+Ramp status
+APPROVAL_PENDING
+Approval
+PENDING
+Bill
+f74ba12c-95d0-582d-9f62-26d8057d1d37
+
+Saved record read from Ramp Nov 9, 2026, 22:00 UTC, started by a person. Not a live read.
+
+What Uptime found for this bill
+
+Evidence gap: the governing agreement or usage evidence is missing
+
+Record-specific governing terms and service/line evidence are not bound.
+
+No agreement on file for this bill.
+
+No contract finding is attached to this bill.
+
+No credits applied to this bill.
+
+Note in Ramp
+
+Posted by a person in Ramp; Uptime read it back on this bill · Nov 8, 2026, 01:46 UTC · Comment ID: 376563cf-950c-409d-b3d8-a68599c45fa0
+
+Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation.
+
+Open the full record

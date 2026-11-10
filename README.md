@@ -15,7 +15,7 @@ Built for the **Berkeley BBS × Ramp Hackathon: Automate the Old Way**.
 <!-- VIDEO: add the two-minute film link here only once the recording exists. -->
 
 <p align="center">
-  <img src="docs/assets/submission/overview.png" alt="Uptime Overview for the authored Northwind Cloud agreement after the four reviewer decisions: April invoice NW-2026-04, invoice $11,000.00, credit applied $2,400.00, remaining balance $8,600.00, credit recorded in Local ledger; the separate open March price exception of $1,000.00, not included in the credit; the credit lifecycle showing one $2,400.00 credit at each stage, not added together; 4 reviewer decisions and 7 automatic steps recorded." width="100%">
+  <img src="docs/assets/submission/overview.png" alt="Uptime Overview for the authored Northwind Cloud agreement after the four reviewer decisions: April invoice NW-2026-04, invoice $11,000.00, credit applied $2,400.00, remaining balance $8,600.00, credit recorded in Local ledger; the separate open March price exception of $1,000.00, not included in the credit; the credit lifecycle showing one $2,400.00 credit at each stage, not added together; the January recovery card naming the reviewer as Dana Reyes, Scripted reviewer, with 4 reviewer decisions and 7 automatic steps recorded." width="100%">
 </p>
 
 ## The old way
@@ -26,7 +26,7 @@ A service credit is rarely automatic. Under [Twilio's API SLA](https://www.twili
 |:---|:---|:---|
 | **Know what you are owed** | Reread the SLA, the order form and every amendment. | Terms become typed rules, each linked to its clause. |
 | **Prove it** | Total the downtime in a spreadsheet. | Evidence is matched to the service month. Missing evidence gives "needs evidence", never a guess. |
-| **Claim it in time** | Remember the window, write the ticket. | The deadline is tracked; the claim packet waits for a person's approval. |
+| **Claim it in time** | Remember the window, write the ticket. | The deadline is tracked; the claim packet waits for a reviewer's approval. |
 | **Handle the reply** | Hunt for whatever the vendor asks for. | A request in wording the rules know is answered with evidence that arrives through a signed source and is matched to it. Other wording goes to a reviewer. |
 | **Confirm the money** | Hope the next invoice is lower. | Claimed, awarded, posted and applied are separate stages of one credit, applied once. |
 
@@ -129,7 +129,7 @@ What has reached Ramp is one evidence-gap note on sandbox bill `f74ba12c-95d0-58
 
 ## Verification
 
-The badge above runs the full check suite on every push to `main`. The full run on `main`'s current application code is recorded with its exact commit, command and log in [this receipt](docs/v4/evidence/submission-20261109/suite-1fa4ab4.json). These are regression results, not a measure of model accuracy or production readiness. An independent acceptance run checked the earlier frozen build `52f1a2f` from a fresh clone, following only these published instructions; its results, limits and ranked findings are in [the acceptance report](docs/v4/submission/acceptance.md) ([summary](docs/JUDGES.md#independent-acceptance)). It then checked the redesigned interface on `main` at `08852a6` from an anonymous default clone: the same figures, citations and step authorities held, and its addendum lists three further findings.
+The badge above runs the full check suite on every push to `main`. Every full run on `main` is kept with its exact commit, command and log in [the receipts folder](docs/v4/evidence/submission-20261109/), including failed and aborted runs, and listed in [the integration table](docs/v4/submission/COORDINATION.md#integration-and-suites). These are regression results, not a measure of model accuracy or production readiness. An independent acceptance run checked the earlier frozen build `52f1a2f` from a fresh clone, following only these published instructions; its results, limits and ranked findings are in [the acceptance report](docs/v4/submission/acceptance.md) ([summary](docs/JUDGES.md#independent-acceptance)). It then checked the redesigned interface on `main` from an anonymous default clone, at `08852a6` and again at `008c4af`. Every sealed figure, all 58 citations and each step's authority hold on `008c4af`. Of its three findings on the redesign, two are resolved: the routine-steps line now says a reviewer approves, and the Overview names "Dana Reyes · Scripted reviewer" with nothing opened. The third is partly resolved and lowered to P3: the case page's record section now says it does not track posting or application, but a second closed section, "Complete server case record", still prints "Posted USD 0.00" and "Applied USD 0.00" as the server sends them.
 
 ```sh
 uv run --locked pytest
@@ -146,4 +146,5 @@ Everything below is engineering history: how the product was built, tested and d
 - [Current status](docs/v4/STATUS.md) · [Capability matrix](docs/v4/CAPABILITIES.md) · [Decision records](docs/v4/decisions/INDEX.md) · [Use cases and sources](docs/product/USE-CASES.md)
 - [Independent evaluation results](docs/v4/evaluation-finish-20261109/RESULTS.md) · [Remediation pass](docs/v4/FINISH-20261109.md) · [First public baseline](docs/v4/evaluation76/BASELINE.md)
 - Connected Ramp worklist: `./Open\ Uptime.command` on macOS, with the [operator guide](docs/v4/OPERATIONS.md) and [connection guide](docs/v4/RAMP-DEMO-CONNECTION.md). These are local development services, not a public deployment.
+- [Third-party notices](docs/v4/submission/THIRD-PARTY-NOTICES.md): the interface bundles Phosphor icons (MIT), three typefaces (Inter, Source Serif 4 and JetBrains Mono; SIL Open Font License 1.1) and two company pictures supplied by Ronok.
 - [Contribution workflow](CONTRIBUTING.md) · [Original specification](docs/uptime-v3/Uptime_V3_Product_Technical_Spec.md)

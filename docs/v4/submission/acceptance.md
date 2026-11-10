@@ -338,3 +338,57 @@ Requested by the coordinator. Phase B above is unchanged. **Tested:** `08852a611
 - "January recovery" and "Contract review & recovery" are unchanged since Phase B and sit beside "Local ledger"; no screen says "recovered in Ramp".
 
 **Not assessed:** the extension itself and the side-panel container; narrow widths; the recorded model workspaces' interface; pause states other than the walkthrough's (read from source only).
+
+---
+
+# Addendum, 2026-11-10: recheck of A1–A3 on `main` at `008c4af`
+
+Requested by the coordinator. Everything above is unchanged, and the sealed expectations are unchanged. **Tested:** `008c4afc66ad3ff9bdf2b276faa5bee94455a422`, from an anonymous HTTPS default clone started 07:42:39Z. No extra step was needed; `52f1a2f` and `08852a6` are ancestors. Under `uptime/`, only `server.py` still differs from `52f1a2f`.
+
+**Method:**
+- One headless system Chrome launch for the whole run, at 1440×900, under a 420 s limit. It finished in 44 s, with no stall and no retry. Swap was 7.4 of 8 GB used at the start.
+- Server values were read through the workspace's signed scripted-reviewer headers, using GET only.
+- No model call, no Ramp contact or sign-in, and nothing pushed to `main`. The clone was deleted afterwards.
+- This branch was fast-forwarded to `008c4af` before this addendum.
+- [Evidence](../evidence/submission-acceptance-20261109/main-008c4af/)
+
+## 1. A1, A2 and A3
+
+| Finding | State on `008c4af` | What I saw |
+|---|---|---|
+| **A1** (P2): "Waiting for a person to approve" | **Resolved** | The visible routine-steps line reads, without opening anything:<ul><li>"Paused · Waiting for a reviewer to approve" before the first decision and after it;</li><li>"Paused · Waiting for a reviewer to approve a ledger change" after decisions 2 and 3;</li><li>"Complete. 4 reviewer decisions and 7 automatic steps recorded" at the end.</li></ul>The rest of the pause table in `web/workspace_ui.js:431–452` now also says "a reviewer", including the states the walkthrough does not reach. The only remaining "a person" is the code comment that states the rule. ([states](../evidence/submission-acceptance-20261109/main-008c4af/decision-1-rendered.txt)) |
+| **A3** (P3): scripted label only inside closed sections | **Resolved** | The Overview shows "Reviewer · Dana Reyes · Scripted reviewer" in the "January recovery" card with nothing opened, both before the decisions and after them. ([final Overview](../evidence/submission-acceptance-20261109/main-008c4af/after-overview-rendered.txt)) |
+| **A2** (P2): "Posted USD 0.00 / Applied USD 0.00" on the case page | **Partly resolved; now P3** | <ul><li>**Fixed:** the curated closed section "Decision, unknowns and amounts as recorded" lists estimated, claimed and awarded ($2,400.00) and the disputed remainder ($0.00), then says "This record does not track posting or application; the Overview's credit lifecycle shows them for the credit it follows."</li><li>**Not fixed:** the next closed section on the same page, "Complete server case record" (`web/v4_ui.js:461`), prints the whole server record. That includes `ledger … posted 0.00 · applied 0.00` and a financials list reading "Posted USD 0.00" and "Applied USD 0.00". The server still sends the constants (`uptime/correspondence.py:822`; the correspondence ledger in the API is `posted "0.00", applied "0.00"`).</li><li>Neither section is visible with nothing opened.</li><li>**Why it drops to P3:** the explanation now sits on the same page, above the raw record. It is still a false money figure for this credit (posted and applied at $2,400.00) wherever the raw record is opened.</li><li>The root fix waits on the team decision on role 2's proposal in `docs/v4/submission/disputes.md`.</li></ul> ([excerpts](../evidence/submission-acceptance-20261109/main-008c4af/case-page-record-excerpts.txt)) |
+
+## 2. Sealed figures, citations and authority after the four decisions
+
+**All hold exactly.** The decisions were "Approve January claim", "Approve response", "Post to Local ledger" and "Apply credit to eligible invoice", the same four as before.
+
+| Check | Result |
+|---|---|
+| Invoice and credit | April $11,000.00 → $2,400.00 applied → $8,600.00 |
+| Credit stages | Estimated, claimed, awarded, posted and applied are each $2,400.00, labelled "not added together" |
+| March exception | $1,000.00, `PREPAYMENT_REVIEW`, $0.00 applied |
+| Destination | Local ledger; no Ramp record linked |
+| Months | February `INELIGIBLE` with null amount ("No credit"); March `INSUFFICIENT_EVIDENCE` with null amount ("Not determined") |
+| Authority per step | 2 approvals and 2 ledger changes are `PERSON` steps by `scripted-test-reviewer`; 2 deliveries are `APPROVED_OPERATION` with digest; 5 intakes are `EVENT_INTAKE` with event ID; no duplicate step |
+| Citations | **58/58** re-slice |
+
+[values](../evidence/submission-acceptance-20261109/main-008c4af/workflow-view-summary.json) · [run log](../evidence/submission-acceptance-20261109/main-008c4af/run-log.json)
+
+## 3. New statements: none found
+
+Searched in every captured page, both as rendered and with all sections opened: Overview, Cases, Agreements, Activity, Ramp records, the claim's case page, the saved bill page, and each decision state.
+
+- **A person where the account is scripted:** none. The remaining "a person" texts are:
+  - people's own actions in Ramp: "Posted by a person in Ramp", "started by a person", "observed in Ramp by a person";
+  - a requirement: "have a person approve before activation".
+- **A local credit as money in Ramp:** none.
+  - The bill page says "Uptime has made no write to Ramp. A local ledger entry is never shown here as a Ramp confirmation".
+  - "January recovery" and "Contract review & recovery" are unchanged since Phase B and sit beside "Local ledger". The other "recovery" words are worklist field names inside the closed Ramp worklist, plus the existing "recovery panel" instruction.
+- **An estimate as an award:** none. Before any decision, the headline reads "January service credit $2,400.00 · Estimated from the governing agreement. Not yet claimed."
+  - The lifecycle shows Estimated $2,400.00 "Recorded", and every later stage "$0.00 · Not yet", worded as in Phase B.
+  - Awarded first shows $2,400.00 after the vendor's award (decision 2). The March text calls its $1,000.00 "an open finding, not an awarded credit".
+- **Assets:** every request in the run went to `127.0.0.1:8851` only. That includes the three typefaces (`/static/InterVariable.woff2`, `JetBrainsMono-Regular.woff2`, `SourceSerif4-Regular.ttf.woff2`). The only image fetched was `/static/favicon.svg`; the company pictures load no file.
+
+**Not assessed:** the three-row header at panel width, narrow widths, the extension and side panel (not rechecked; unchanged under `uptime/`), and the recorded model workspaces.

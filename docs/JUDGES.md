@@ -62,11 +62,11 @@ A separate session checked the earlier frozen build `52f1a2f` (before the interf
 - **The model work** was verified from its receipts. It is recorded, not live.
 - **Not shown:** generalization. The independent cohort reached shadow on 0 of 4 contracts.
 - **Ramp:** nothing reaches Ramp from Uptime.
-- **The redesigned interface:** checked afterwards on `main` at `08852a6`, from an anonymous default clone with no extra step. Every sealed figure, all 58 citations and each step's authority still hold. Three further findings are open: a status line that says a person approves where the account is scripted, a case's own record that shows zeros for posted and applied, and the scripted reviewer's display name being visible only inside closed sections of the Overview.
+- **The redesigned interface:** checked afterwards on `main` from an anonymous default clone with no extra step, at `08852a6` and again at `008c4af`. Every sealed figure, all 58 citations and each step's authority hold on `008c4af`. Of its three findings on the redesign, two are resolved: the routine-steps line now says a reviewer approves, and the Overview names "Dana Reyes · Scripted reviewer" with nothing opened. The third is partly resolved and lowered to P3: the case page's record section now says it does not track posting or application, but a second closed section, "Complete server case record", still prints "Posted USD 0.00" and "Applied USD 0.00" as the server sends them.
 
-The [acceptance report](v4/submission/acceptance.md) has the evidence, the controls and its five ranked findings ("Bugs and risks, ranked by consequence"), and ends with the addendum on the redesigned interface and its three.
+The [acceptance report](v4/submission/acceptance.md) has the evidence, the controls and its five ranked findings ("Bugs and risks, ranked by consequence"). It ends with two addenda on the redesigned interface: its three findings, and their recheck on `008c4af`.
 
 ## Evidence index
 
-- [Capability matrix](v4/CAPABILITIES.md) · [Independent evaluation results](v4/evaluation-finish-20261109/RESULTS.md) · [Full test receipt for main](v4/evidence/submission-20261109/suite-1fa4ab4.json) · [for the frozen build `52f1a2f`](v4/evidence/submission-20261109/suite-52f1a2f.json)
+- [Capability matrix](v4/CAPABILITIES.md) · [Independent evaluation results](v4/evaluation-finish-20261109/RESULTS.md) · [Full test receipts](v4/evidence/submission-20261109/) ([listed by commit](v4/submission/COORDINATION.md#integration-and-suites)) · [for the frozen build `52f1a2f`](v4/evidence/submission-20261109/suite-52f1a2f.json)
 - [Presentation storyboard and script](v4/submission/presentation.md) · [Engineering map](ENGINEERING-MAP.md) · [Decision records](v4/decisions/INDEX.md)
