@@ -1,0 +1,29 @@
+{
+  "tested_commit": "03f7d273dd4717c1b3e198b85dd08eefbbd46b8d",
+  "branch": "work/submission-integration-20261109",
+  "role": "the interface's app-style pass, two company pictures, and the case page's recorded amounts, on top of main",
+  "contents": "main at 88bd23c plus the redesign session at a29e4f1: the structure and look of an established application; pictures supplied by Ronok for the two authored companies, held in the stylesheet; and, for acceptance finding A2, a case's closed record section no longer stating posting and application as zero. Interface, tests and records only. No existing test changed; three JavaScript tests added.",
+  "command": [
+    "UPTIME_REQUIRE_BROWSER=1",
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-03f7d27",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5464 passed, 1 warning in 1462.57s (0:24:22)",
+  "log": "suite-03f7d27-pytest.log",
+  "started_at": "2026-11-10T06:31:12Z",
+  "finished_at": "2026-11-10T06:55:39Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "132 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "note": "The run took 24 minutes instead of about 7. It never stopped advancing; the machine was busy with other work at the time, including an unrelated application using three processor cores and another session's browser tests.",
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}

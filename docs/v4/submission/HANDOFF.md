@@ -1,6 +1,6 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 22:13 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 22:59 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
@@ -47,10 +47,10 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 
 | Branch | Commit | What it is | Verified |
 |:---|:---|:---|:---|
-| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last code merge, `eacd182`, and on the documentation merge after it, `b04fd31` (5,464 each, none skipped). Hosted checks passed on `main` at `11a6770`, `21eae2c`, `1fa4ab4` and `9bea5fb`, and on `15034f3` |
+| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on its last merge, `03f7d27` (5,464, none skipped). Hosted checks passed on `main` at `11a6770`, `21eae2c`, `1fa4ab4` and `9bea5fb`, and on `15034f3` |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
 | `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `4c93a44`: the interface set in Inter, after `15034f3`, the film re-cut and the icons | Full run passes on `4c93a44`, `15034f3`, `e3dab64` and `1fa4ab4` (5,452 each) |
-| `work/submission-design-20261109` | `91dc42c` | The redesign, then 21 Phosphor icons (MIT), the Inter typeface (SIL Open Font License) and a list of renamed controls; [notices](THIRD-PARTY-NOTICES.md) | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
+| `work/submission-design-20261109` | `a29e4f1` | The redesign, then 21 Phosphor icons (MIT), the Inter typeface (SIL Open Font License) and a list of renamed controls; [notices](THIRD-PARTY-NOTICES.md) | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
 | `work/sidepanel-server-20261109` | `dc4ff65` | Side-panel option, extension, setup option and the real-browser check | Merged. Checked inside the real extension together with the redesign's bill page |
 | `work/submission-onboarding-20261109` | `088da4a` | Role 1, contract reading | Merged |
 | `work/submission-disputes-20261109` | `845b411` | Role 2: disputes, the walkthrough, the setup refusals, its test port change, and the authored reply variant with its driver | Merged |
@@ -82,7 +82,8 @@ The required command is `uv run --locked pytest`, run once per merge, one run at
 | `15034f3` | 5,452 passed | The film re-cut, its screenshots and the interface icons. The first attempt was cut off by a restart of the Mac before any test ran |
 | `4c93a44` | 5,452 passed | The interface set in Inter |
 | `c5629c9` | 5,451 passed, 1 skipped | Role 5's addendum and two sentences; documentation only. One browser failed to launch under load and its test skipped; that test passed alone on the same commit. |
-| `eacd182` | 5,464 passed | The authored reply variant with its driver, and the interface's "reviewer" wording. Twelve new tests; none skipped, with a browser required. **This is what `main` holds** |
+| `eacd182` | 5,464 passed | The authored reply variant with its driver, and the interface's "reviewer" wording. Twelve new tests; none skipped, with a browser required. |
+| `03f7d27` | 5,464 passed | The app-style pass, two company pictures and the case page's recorded amounts. 132 JavaScript checks. **This is what `main` holds** |
 
 GitHub's check workflow runs the same command on a clean machine for every pushed commit. It passes on the accepted build, on every integration commit through `1fa4ab4` (the redesign and side-panel merge), on the redesign's commits through `c280283` and on the side-panel branch through `a162951`.
 
@@ -158,7 +159,7 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 | Retake the README's three screenshots (taken before the icons and the typeface), add a README link to the third-party notices, the video link | Role 6 | Not yet requested: waiting for the look to stop changing. The storyboard re-cut, the filming checklist for `main`, the timing recheck and the README's side-panel paragraph are **done** (`7f6e9ec`). First requested at 17:50 PST. The README's and the judge guide's wording still matches the redesigned interface's labels |
 | Say how the requested log arrives | Role 6 | The narration and the README's third step say Uptime "attaches" and "verifies" the log. In the walkthrough the log and its verification record arrive as authored events through the signed intake, and Uptime matches them. The product's step names say attach and verify; its authority line says received. Requested with the item above |
 | Evidence requests are recognised only in wording the rules know | Disputes owner | Not changed in this push; the wording that overstated it is corrected |
-| A case's own claim record sends "0.00" for posted and applied, which it does not track (`uptime/correspondence.py:822`) | Role 2 | Found by the redesign session. Acceptance graded it P2 (A2): the case page's closed record section reads "Posted USD 0.00" and "Applied USD 0.00" after the credit is posted and applied; the Overview, the older case view and the guide are correct. Role 2 assessed it: sending no value changes what a zero means in that record, fourteen existing tests and one frozen expectation set. **A decision for Ronok and the team, not made tonight.** Meanwhile the redesign session is changing that section to say where the two stages are recorded instead of showing the zero |
+| A case's own claim record sends "0.00" for posted and applied, which it does not track (`uptime/correspondence.py:822`) | Role 2 | Found by the redesign session. Acceptance graded it P2 (A2): the case page's closed record section read "Posted USD 0.00" and "Applied USD 0.00" after the credit was posted and applied; the Overview, the older case view and the guide were correct. **The page is fixed** (`824c213`, merged): that section now says the record does not track those stages. Role 2 assessed it: sending no value changes what a zero means in that record, fourteen existing tests and one frozen expectation set. **A decision for Ronok and the team, not made tonight.** The server still sends the zeros; [the proposal](disputes.md) is written |
 | Re-shoot the 90-second cut on the redesigned build | The video session | Told at 17:50 PST to wait for role 6's storyboard. Its command is `./remake.sh <commit>` in `~/uptime-demo/video-01/`; its selectors need editing first. The Ramp opening is footage only Ronok can record |
 | Unseen contracts: 0 of 4 | The Codex lanes ([queued work](../NEXT-WORKSTREAMS-20261109.md)) | Outside this push |
 | Responses that return before the header middleware carry no security headers | Application owners | Existing gap, found in review; not changed |
