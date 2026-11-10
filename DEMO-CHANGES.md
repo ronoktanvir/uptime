@@ -143,3 +143,11 @@ Built against `docs/demo/TEMPLATE-BUILDER.md` (routes and the `sample`, `build` 
   template builder and marks Agreements in the rail; the Agreements route mounts the section after the companion page
   renders; navigation and sign-out unmount it. Not added to the side-panel allowed routes.
 - No existing test was changed.
+- After merging `demo/film-20261110`: the page also uses the engine's additions. The second-document check names
+  `sample.second_document` (or the check's `document`); an expanded term shows `rule.map`, `rule_quote` and
+  `rule_error`; a term without a Jev answer while Jev's check ran says "No answer" with no number; a refused start
+  (429, 404) shows the server's sentence. An advisory check that did not pass (Jev's) reads "For the reviewer" in
+  amber rather than a red failure, a REVIEW term's Jev figure is amber, and the approval card names the marked terms
+  and says Jev's check is advisory. Two tests added to `web/template_builder.test.cjs` (16 in all). Watched one real
+  build (`--template-builder`) through the page: ready for review after 23.7 s, approved, next contract read by the
+  template in 5.0 ms with 0 model calls.

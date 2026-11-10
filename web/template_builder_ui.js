@@ -232,7 +232,7 @@
       }
       parts.push(flow(view, build));
       if (list(build.terms).length) parts.push(termsPanel(view, build));
-      if (list(build.checks).length) parts.push(checksPanel(build));
+      if (list(build.checks).length) parts.push(checksPanel(view, build));
       if (object(build.template)) parts.push(approvalPanel(view, build));
       if (build.state === 'APPROVED' || object(build.template)?.state === 'APPROVED') parts.push(nextPanel(view, build));
       view.root.replaceChildren(add(el('div', 'tb-page'), parts));
@@ -278,6 +278,8 @@
     function termsPanel(view, build) {
       const terms = list(build.terms).filter(object);
       const showJev = jevRan(build);
+      // Jev has been asked once its check is on the build; a term without an answer then says so and shows no number.
+      const jevAsked = !!jevCheck(build);
       const review = terms.filter(t => t.status === 'REVIEW').length;
       const node = add(el('section', 'panel tb-terms'), add(el('div', 'panel-head'), el('h2', '', 'The terms'), el('span', 'count', String(terms.length)),
         review ? pill(review + (review === 1 ? ' term' : ' terms') + ' for the reviewer', 'warn') : null));
@@ -294,7 +296,8 @@
         add(row, add(el('td', 'tb-term-label'), el('strong', '', given(term.label) ? term.label : term.field)),
           el('td', 'tb-value', given(term.display) ? term.display : 'Not found'),
           el('td', 'tb-agree', agreement && Number.isInteger(agreement.agree) && Number.isInteger(agreement.of) ? agreement.agree + ' of ' + agreement.of : 'Not yet'),
-          showJev ? add(el('td', 'tb-jev'), jev ? add(el('span', ''), pill((jev.yes ? 'Yes' : 'No') + (percent(jev.probability) ? ' · ' + percent(jev.probability) : ''), jev.yes ? 'ok' : 'bad')) : el('span', 'help', 'Not yet')) : null,
+          showJev ? add(el('td', 'tb-jev'), jev ? add(el('span', ''), pill((jev.yes ? 'Yes' : 'No') + (percent(jev.probability) ? ' · ' + percent(jev.probability) : ''), !jev.yes ? 'bad' : term.status === 'REVIEW' ? 'warn' : 'ok'))
+            : el('span', 'help', jevAsked ? 'No answer' : 'Not yet')) : null,
           add(el('td', 'tb-status'), term.status === 'PASS' ? pill('Passed', 'ok') : term.status === 'REVIEW' ? pill('For the reviewer', 'warn') : pill('Checking', '')),
           add(el('td', 'tb-toggle'), toggle));
         body.append(row);
@@ -305,7 +308,10 @@
           add(cell, el('p', 'tb-detail-label', 'The sentence in the contract'), given(term.quote) ? el('blockquote', '', term.quote) : el('p', 'help', 'No sentence was recorded for this term.'),
             add(el('dl', 'record tb-detail'),
               rule && given(rule.pattern) ? [el('dt', '', 'Extraction rule'), add(el('dd'), el('code', 'tb-pattern', rule.pattern))] : null,
+              rule && object(rule.map) ? [el('dt', '', 'Phrase to option'), el('dd', '', Object.entries(rule.map).map(([k, v]) => '“' + k + '” → ' + v).join(' · '))] : null,
               given(term.rule_value) || term.rule_value === null ? [el('dt', '', 'The rule returns'), el('dd', '', term.rule_value === null ? 'Not found' : term.rule_value)] : null,
+              given(term.rule_quote) && term.rule_quote !== term.quote ? [el('dt', '', 'The rule matched'), el('dd', 'tb-quote-text', term.rule_quote)] : null,
+              given(term.rule_error) ? [el('dt', '', 'Rule error'), el('dd', 'tb-rule-error', term.rule_error)] : null,
               list(term.readers).length ? [el('dt', '', 'Each reader'), el('dd', '', list(term.readers).filter(object).map(r => 'Reader ' + r.reader + ': ' + (r.value === null || r.value === undefined ? 'Not found' : r.value) + (r.quote_found === false ? ' (quote not in the contract)' : '')).join(' · '))] : null,
               term.second_document_value !== undefined ? [el('dt', '', 'Second contract'), el('dd', '', (term.second_document_value === null ? 'Not found' : term.second_document_value) + (term.second_document_ok === true ? ' · as authored' : term.second_document_ok === false ? ' · does not match the authored value' : ''))] : null,
               showJev && jev && given(jev.model) ? [el('dt', '', 'Jev model'), el('dd', '', jev.model)] : null));
@@ -317,19 +323,24 @@
       return node;
     }
 
-    function checksPanel(build) {
+    function checksPanel(view, build) {
       const node = add(el('section', 'panel tb-checks'), add(el('div', 'panel-head'), el('h2', '', 'The checks')));
       const rows = el('ul', 'tb-check-list');
+      const second = object(view.sample)?.second_document;
       list(build.checks).filter(object).forEach(check => {
+        const named = check.id === 'second_document' ? (object(check.document) || object(second)) : null;
         const isJev = check.id === 'jev' || check.by === 'JEV';
         const notRun = isJev && check.ran === false;
-        const row = el('li', 'tb-check ' + (notRun ? 'tb-check-off' : check.ok ? 'tb-check-ok' : 'tb-check-bad'));
+        // An advisory check that did not pass marks terms for the reviewer; only a blocking failure reads as a failure.
+        const advisory = !check.ok && check.blocking !== true;
+        const row = el('li', 'tb-check ' + (notRun ? 'tb-check-off' : check.ok ? 'tb-check-ok' : advisory ? 'tb-check-advisory' : 'tb-check-bad'));
         const figures = notRun ? 'Jev could not be reached' : Number.isInteger(check.passed) && Number.isInteger(check.total) ? check.passed + ' of ' + check.total : '';
         const extra = !notRun && isJev && percent(check.lowest) && percent(check.threshold) ? 'lowest ' + percent(check.lowest) + ', threshold ' + percent(check.threshold) : null;
         add(row, add(el('div', 'tb-check-text'), el('strong', '', given(check.label) ? check.label : check.id),
+          named && given(named.title) ? el('p', 'tb-check-doc', 'Second contract: ' + named.title) : null,
           el('p', 'help', [CHECK_BY[check.by] || actorName(check.by), check.blocking ? 'blocks approval if it fails' : 'advisory'].join(' · '))),
           add(el('div', 'tb-check-figures'), el('span', 'tb-check-count', figures), extra ? el('span', 'help', extra) : null),
-          notRun ? pill('Not run', '') : check.ok ? pill('Pass', 'ok') : pill('Fail', 'bad'));
+          notRun ? pill('Not run', '') : check.ok ? pill('Pass', 'ok') : advisory ? pill('For the reviewer', 'warn') : pill('Fail', 'bad'));
         rows.append(row);
       });
       node.append(rows);
@@ -369,8 +380,10 @@
         }
       });
       approve.disabled = !!reason;
+      const marked = list(build.terms).filter(x => object(x) && x.status === 'REVIEW');
+      const markedNote = !reason && marked.length ? el('p', 'tb-review-note', 'Jev marked ' + marked.map(x => x.label || x.field).join(', ') + ' for you to read before approving. Jev’s check is advisory: open the term above, compare the value with its sentence, then approve.') : null;
       add(node, el('p', 'help', 'Approving makes this exact version (by its SHA-256) the reader for this contract type. Nothing is active before that.'),
-        add(el('div', 'actions'), approve), reason ? el('p', 'tb-blocked', reason) : null, said);
+        markedNote, add(el('div', 'actions'), approve), reason ? el('p', 'tb-blocked', reason) : null, said);
       return node;
     }
 

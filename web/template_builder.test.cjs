@@ -151,7 +151,9 @@ test('READY_FOR_REVIEW: terms with agreement, Jev percentage and a term marked f
   const checks = s.root.cls('tb-check');
   assert.equal(checks.length, 5);
   assert.match(text(checks[0]), /Every quote is in the contract, word for word Uptime’s code · blocks approval if it fails 6 of 6 Pass/);
-  assert.match(text(checks[4]), /Jev · advisory 1 of 2 lowest 87\.5%, threshold 90% Fail/);
+  assert.match(text(checks[4]), /Jev · advisory 1 of 2 lowest 87\.5%, threshold 90% For the reviewer/);
+  assert.match(text(checks[3]), /Pass/); assert.doesNotMatch(text(s.root.cls('tb-checks')[0]), /Fail/);
+  assert.match(rows[1].cls('tb-jev')[0].children[0].children[0].className, /warn/);
   const approval = s.root.cls('tb-approval')[0];
   assert.match(text(approval), /halcyon-availability-addendum\/1/); assert.match(text(approval), /a1b2c3d4e5f6\b/); assert.doesNotMatch(text(approval), /a1b2c3d4e5f60/);
   assert.equal(buttonNamed(s.root, 'Approve this template').disabled, false);
@@ -264,4 +266,36 @@ test('style: the template builder block sits before the side-panel block, which 
   assert.ok(tb > 0 && side > tb);
   const html = fs.readFileSync(__dirname + '/index.html', 'utf8');
   assert.ok(html.indexOf('/static/template_builder_ui.js') > 0 && html.indexOf('/static/template_builder_ui.js') < html.indexOf('/static/app.js'));
+});
+
+test('engine additions: second contract named, rule error and rule match shown, a term Jev did not answer says No answer', async () => {
+  const withSecond = {...LIST, samples: [{...sample, second_document: {id: 'halcyon-b', title: 'Addendum B', chars: 5001, text_url: '/fixtures/template_builder_demo/halcyon-b.txt'}}]};
+  const b = {...BUILDS.ready, terms: [{...TERMS[0], rule_quote: 'The other sentence.', rule_error: null},
+    {...TERMS[1], jev: null, status: 'PASS', rule_error: 'The rule matched nothing in this contract.', rule: {pattern: '(each calendar month)', group: 1, map: {'each calendar month': 'calendar_month'}}}],
+    checks: CHECKS.map(c => c.id === 'jev' ? {...c, passed: 1, total: 2, lowest: null} : c)};
+  const s = setup(() => ({build: b}), withSecond);
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const rows = s.root.cls('tb-term');
+  assert.match(text(rows[1]), /No answer/); assert.doesNotMatch(text(rows[1]), /%/);
+  assert.match(text(s.root.cls('tb-check')[3]), /Second contract: Addendum B/);
+  assert.doesNotMatch(text(s.root.cls('tb-check')[4]), /lowest|threshold/);
+  buttonNamed(rows[1], 'Show sentence').listeners.click();
+  const detail = text(s.root.cls('tb-term-detail')[0]);
+  assert.match(detail, /Rule error The rule matched nothing in this contract\./);
+  assert.match(detail, /“each calendar month” → calendar_month/);
+  buttonNamed(s.root.cls('tb-term')[0], 'Show sentence').listeners.click();
+  assert.match(text(s.root.cls('tb-term-detail')[0]), /The rule matched The other sentence\./);
+});
+
+test('a REVIEW term is explained beside an enabled Approve; a refused start shows the server sentence', async () => {
+  const s = setup(() => ({build: BUILDS.ready}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  assert.match(text(s.root.cls('tb-approval')[0]), /Jev marked Claim window for you to read before approving\. Jev’s check is advisory/);
+  assert.equal(buttonNamed(s.root, 'Approve this template').disabled, false);
+  const busy = setup(() => Object.assign(new Error('Six template builds have run on this server; restart it to build more.'), {status: 429}));
+  const node = await busy.ui.section(busy.root);
+  await buttonNamed(node, 'Build a reader with Claude agents').listeners.click();
+  assert.match(text(node), /Six template builds have run on this server; restart it to build more\./);
+  assert.deepEqual(busy.routes, []);
+  assert.equal(buttonNamed(node, 'Build a reader with Claude agents').disabled, false);
 });

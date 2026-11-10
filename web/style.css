@@ -1120,6 +1120,9 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-check-figures { display: grid; justify-items: end; text-align: right; }
 .tb-check-count { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
 .tb-check-bad .tb-check-count { color: var(--bad); }
+.tb-check-advisory .tb-check-count { color: var(--warn); }
+.tb-status .pill, .tb-check > .pill, .tb-jev .pill { white-space: nowrap; }
+.tb-check { grid-template-columns: minmax(0, 1fr) auto 128px; }
 .tb-check-off .tb-check-count { color: var(--warn); font-weight: 500; }
 .tb-check > .pill { justify-self: end; }
 /* Approval and the next contract */
@@ -1128,6 +1131,9 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-template-facts { margin-bottom: 14px; }
 .tb-approval .actions { margin-top: 12px; }
 .tb-blocked { margin-top: 8px; color: var(--bad); font-weight: 500; }
+.tb-review-note { margin-top: 4px; padding: 10px 14px; border-left: 3px solid #e2a53a; border-radius: 0 8px 8px 0; background: var(--warn-soft); color: var(--warn); }
+.tb-rule-error { color: var(--bad) !important; }
+.tb-check-doc { font-size: 13px; color: var(--text); }
 .tb-approved-line { color: var(--ok); font-weight: 600; }
 .tb-next > .help { margin-bottom: 4px; }
 .tb-next-doc { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--sunken); }
