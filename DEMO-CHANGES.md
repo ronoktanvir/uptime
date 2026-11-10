@@ -113,3 +113,11 @@ No existing test was changed for this.
 - The portfolio header no longer shows one case's "As of" date, because the page spans months and vendors.
 - The side panel may ask to open `agreements` (a bill matched to another vendor's estimate leads there). Changed test: `tests/helpers/side_panel_extension.test.cjs` › "only overview, records, recovery, agreements, cases and one case by a plain id may be opened, on the configured origin only" (was without "agreements"; `agreements/x` is still refused).
 - A matched bill's page shows "Contract read by" from the match's `read_by`, and for an estimate with no claim the button reads "Review the estimate in Uptime".
+
+## Jev client (`work/demo-tb-jev-20261110`)
+
+- Added `uptime/jev.py` (`JevClient`, `JevUnavailable`, `FakeJev`), the interface in `docs/demo/TEMPLATE-BUILDER.md` unchanged. One extra keyword-only constructor argument, `opener`, lets tests inject a fake transport.
+- Verified against TypeSafe's OpenAPI document (`https://api.typesafe.ai/openapi.json`) and real calls: `POST https://api.typesafe.ai/v1/systemone`, Bearer key, body `{"model": "jev-1.13.0", "state": <text>, "questions": {"q": {"type": "choice" | "noul", "instructions": ..., "criteria": {...}}}}`; answers under `answers.q` (`choice` + `probabilities`, or `noul` = probability of yes).
+- Standard library only. HTTPS to `api.typesafe.ai` only, redirects not followed, 20 s timeout, context cut to 6,000 characters. The key is read per call and never kept, logged or put in an exception.
+- Added `tests/test_jev.py` (no network) and `scripts/jev_smoke.py` (two real calls on a made-up SLA sentence).
+- No existing test changed.
