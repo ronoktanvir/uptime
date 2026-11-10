@@ -1,0 +1,319 @@
+{
+  "schema": "role2-denial-model-job/2",
+  "recorded_at": "2026-11-10T05:58:47.593678+00:00",
+  "authority": "SCRIPTED_NOT_ACTUAL_HUMAN",
+  "variant": "reworded-log-request",
+  "source": {
+    "commit": "e3952576ad4a7f631ea158182ffd4d0bacf05eca",
+    "tree": "ff9a0138904721fd03f1a2371f66a3635f860936",
+    "status_porcelain": "",
+    "clean": true,
+    "captured_at": "2026-11-10T05:58:46.317256+00:00"
+  },
+  "one_call_no_retry": true,
+  "counterparty": "authored local reply (fixtures/northwind/counterparty-variants.json, variant \"reworded-log-request\")",
+  "automation_after_person_approval": {
+    "pause": {
+      "reason": "UNEXPECTED_GROUND",
+      "detail": "The vendor reply needs the reviewer's reading and semantic review.",
+      "operation": null,
+      "since": "2026-03-01T12:10:00+00:00"
+    },
+    "steps": [
+      [
+        "approve-claim",
+        "PERSON"
+      ],
+      [
+        "submit-claim",
+        "APPROVED_OPERATION"
+      ],
+      [
+        "receive-denial",
+        "EVENT_INTAKE"
+      ]
+    ]
+  },
+  "request": {
+    "request_sha256": "28ff3702b151db6412174185c5c0f067a4189f627c6928173511faf919118d82",
+    "request_bytes": 10947,
+    "context_sha256": "7e88baf8f3b5a688ccf48420c56a7d000f9368d79134cfa624c50f87f46ca804",
+    "text_sha256": "a7dccd088968906b1045f0b16cb9de25245de2da3b856edc76f02b9fee674ac5",
+    "status_before_approval": "exact_request_not_approved"
+  },
+  "approval": {
+    "request_sha256": "28ff3702b151db6412174185c5c0f067a4189f627c6928173511faf919118d82",
+    "expires_at": "2026-11-10T06:58:48.201379+00:00",
+    "scope": "model invocation only",
+    "approved_by": "agent3 (engineering operator, role 2): one model invocation on authored public text only",
+    "cli": "scripts/public_proposals.py approve --confirm-authored-public --hours 1"
+  },
+  "job": {
+    "id": "d42a251b-0c6e-4979-937e-a86a130cbc2e",
+    "final": {
+      "id": "d42a251b-0c6e-4979-937e-a86a130cbc2e",
+      "state": "SUCCEEDED",
+      "terminal": true,
+      "kind": "correspondence",
+      "target": "inbox-northwind-2026-01",
+      "context_digest": "7e88baf8f3b5a688ccf48420c56a7d000f9368d79134cfa624c50f87f46ca804",
+      "request_sha256": "28ff3702b151db6412174185c5c0f067a4189f627c6928173511faf919118d82",
+      "reason": null,
+      "result": {
+        "candidate_id": "63a722d43093da3f8865bffb180381bbad2ae5a17f4296171016f6c078bb9a2d",
+        "claim": "inbox-northwind-2026-01",
+        "kind": "correspondence",
+        "context_digest": "7e88baf8f3b5a688ccf48420c56a7d000f9368d79134cfa624c50f87f46ca804",
+        "request_sha256": "28ff3702b151db6412174185c5c0f067a4189f627c6928173511faf919118d82",
+        "response_sha256": "2e4b8a39bf3f0ebd15367903cded42e150ce39e5ebf2791f8ac8e80647f02c04",
+        "representation": "source_blocks_v3",
+        "semantic_review_required": true,
+        "ledger_unchanged": true,
+        "external_actions": []
+      },
+      "submitted_at": "2026-11-10T05:58:48.239425+00:00",
+      "started_at": "2026-11-10T05:58:48.241256+00:00",
+      "finished_at": "2026-11-10T05:58:52.615868+00:00",
+      "provider": {
+        "model": "claude-opus-5-5",
+        "session": "5a819a56-09c2-489d-b23c-39b3bf72ac6b",
+        "client_reported_cost_usd": 0.046880000000000005,
+        "usage": {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 5419,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 5419,
+          "cache_read_input_tokens": 0,
+          "fallback_credit": null,
+          "inference_geo": "global",
+          "input_tokens": 2,
+          "iterations": [],
+          "output_tokens": 176,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_fetch_requests": 0,
+            "web_search_requests": 0
+          },
+          "service_tier": "standard",
+          "speed": "standard"
+        },
+        "returncode": 0,
+        "tool_events": 0,
+        "tool_inventory": [],
+        "mcp_inventory": [],
+        "output_sha256": "af43bc7bc071b6fdf2ddca56871e2e6f35304faf9213efba20831aefe1dd07f1",
+        "result_sha256": "2e4b8a39bf3f0ebd15367903cded42e150ce39e5ebf2791f8ac8e80647f02c04",
+        "transport": {
+          "name": "safe-public-experimental-v2",
+          "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d"
+        }
+      }
+    },
+    "poll_states": [
+      "RUNNING",
+      "SUCCEEDED"
+    ],
+    "poll_seconds": 5.1
+  },
+  "candidates": [
+    {
+      "id": "63a722d43093da3f8865bffb180381bbad2ae5a17f4296171016f6c078bb9a2d",
+      "propositions": [
+        {
+          "family": "artifact",
+          "polarity": "positive",
+          "modality": "asserted",
+          "referent": "current_claim",
+          "cited": "We can't take this any further on the numbers alone. Could your team pull the hosting resource log you kept for January, the one filed as NW-JAN-LOG-001, and send it across so our engineers can line it up against their own records?",
+          "span": [
+            0,
+            231
+          ],
+          "artifact_type": "resource_log",
+          "slots": {
+            "artifact_ref": "NW-JAN-LOG-001",
+            "period": "January"
+          },
+          "conditions": []
+        }
+      ],
+      "provenance": {
+        "model": "claude-opus-5-5",
+        "session": "5a819a56-09c2-489d-b23c-39b3bf72ac6b",
+        "request_sha256": "28ff3702b151db6412174185c5c0f067a4189f627c6928173511faf919118d82",
+        "response_sha256": "2e4b8a39bf3f0ebd15367903cded42e150ce39e5ebf2791f8ac8e80647f02c04",
+        "elapsed_seconds": null,
+        "usage": {
+          "input_tokens": 2,
+          "cache_creation_input_tokens": 5419,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 176,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 5419,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "global",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "client_reported_cost_usd": 0.046880000000000005,
+        "output_mode": "plain_profile"
+      },
+      "interpretation": {
+        "propositions": [
+          {
+            "family": "artifact",
+            "source": {
+              "start": 0,
+              "end": 231,
+              "quote": "We can't take this any further on the numbers alone. Could your team pull the hosting resource log you kept for January, the one filed as NW-JAN-LOG-001, and send it across so our engineers can line it up against their own records?"
+            },
+            "polarity": "positive",
+            "modality": "asserted",
+            "referent": "current_claim",
+            "conditions": [],
+            "slots": [
+              {
+                "name": "artifact_ref",
+                "source": {
+                  "start": 138,
+                  "end": 152,
+                  "quote": "NW-JAN-LOG-001"
+                }
+              },
+              {
+                "name": "period",
+                "source": {
+                  "start": 112,
+                  "end": 119,
+                  "quote": "January"
+                }
+              }
+            ],
+            "artifact_type": "resource_log",
+            "scope_field": null,
+            "filing_fields": []
+          }
+        ],
+        "segments": [
+          {
+            "source": {
+              "start": 0,
+              "end": 231,
+              "quote": "We can't take this any further on the numbers alone. Could your team pull the hosting resource log you kept for January, the one filed as NW-JAN-LOG-001, and send it across so our engineers can line it up against their own records?"
+            },
+            "role": "substantive"
+          }
+        ]
+      }
+    }
+  ],
+  "criterion": "model_reads_as.reason == \"artifact\" and model_reads_as.reference == \"NW-JAN-LOG-001\" and model_reads_as.artifact_type in (\"resource_log\", null); judged on the model candidate alone with proposal_for_review and the server context, before and without any reviewer input",
+  "model_reads_as": {
+    "reason": "unknown",
+    "artifact_type": null,
+    "reference": null,
+    "mapping_error": "ValueError"
+  },
+  "model_read_a_log_request": false,
+  "stopped_before": "semantic review (so copies can show a reviewer doing it)",
+  "after": {
+    "stage": "HUMAN_REVIEW",
+    "actions": [],
+    "ledger": {
+      "estimated": "2400.00",
+      "claimed": "2400.00",
+      "awarded": "0.00",
+      "posted": "0.00",
+      "applied": "0.00",
+      "disputed_remainder": "2400.00"
+    },
+    "submissions": 1,
+    "scope_sha256": "4ee09b9f80f02e35e1026928c926515c149afed6a76d1a6dee668d83eda1c17a",
+    "automation_pause": {
+      "reason": "UNEXPECTED_GROUND",
+      "detail": "The vendor reply needs the reviewer's reading and semantic review.",
+      "operation": null,
+      "since": "2026-03-01T12:10:00+00:00"
+    }
+  },
+  "provenance": {
+    "job_row": {
+      "id": "d42a251b-0c6e-4979-937e-a86a130cbc2e",
+      "status": "SUCCEEDED",
+      "reason": null,
+      "request_sha256": "28ff3702b151db6412174185c5c0f067a4189f627c6928173511faf919118d82",
+      "context_sha256": "7e88baf8f3b5a688ccf48420c56a7d000f9368d79134cfa624c50f87f46ca804",
+      "submitted_at": "2026-11-10T05:58:48.239425+00:00",
+      "started_at": "2026-11-10T05:58:48.241256+00:00",
+      "finished_at": "2026-11-10T05:58:52.615868+00:00",
+      "approved_by": "agent3 (engineering operator, role 2): one model invocation on authored public text only",
+      "approved_at": "2026-11-10T05:58:48.201379+00:00",
+      "expires_at": "2026-11-10T06:58:48.201379+00:00",
+      "budget_usd": "1.00"
+    },
+    "profile": {
+      "name": "safe-public-experimental-v2",
+      "revision": "NOT_CAPTURED",
+      "version": "2.1.318 (Claude Code)",
+      "binary_sha256": "677a2ea7bf576cedd20e191d973914ed8a41796f53a63b1923381ddc4d5b5e7d",
+      "retry_count": 0,
+      "timeout_seconds": 60,
+      "argv": [
+        "<pinned-executable>",
+        "-p",
+        "--safe-mode",
+        "--model",
+        "claude-opus-5-5",
+        "--tools",
+        "",
+        "--strict-mcp-config",
+        "--mcp-config",
+        "{\"mcpServers\":{}}",
+        "--disable-slash-commands",
+        "--no-chrome",
+        "--max-budget-usd",
+        "1.00",
+        "--system-prompt-snapshot",
+        "off",
+        "--setting-sources",
+        "",
+        "--no-session-persistence",
+        "--system-prompt",
+        "<system prompt; sha256 049a3a3b46b7a60b18f0902a439114dba945285a4b786746939d486faa83cfb2>",
+        "--output-format",
+        "stream-json",
+        "--verbose"
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "session": "5a819a56-09c2-489d-b23c-39b3bf72ac6b",
+    "returncode": 0,
+    "tool_events": 0,
+    "tool_inventory": [],
+    "mcp_inventory": [],
+    "output_sha256": "af43bc7bc071b6fdf2ddca56871e2e6f35304faf9213efba20831aefe1dd07f1",
+    "result_sha256": "2e4b8a39bf3f0ebd15367903cded42e150ce39e5ebf2791f8ac8e80647f02c04",
+    "client_reported_cost_usd": 0.046880000000000005,
+    "hard_cost_cap": false
+  },
+  "raw_artifacts_location": "run directory outside Git: /Users/ronoktanvir/.local/share/uptime-engineering/tasks/role2-reworded-model-job/run-1",
+  "continuation": {
+    "outcome": "MODEL_DID_NOT_READ_A_LOG_REQUEST",
+    "review": null,
+    "preview": null,
+    "preparation": null
+  }
+}
