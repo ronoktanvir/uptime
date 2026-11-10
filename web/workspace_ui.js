@@ -184,6 +184,11 @@
       if (price && (price.invoice_id || price.amount != null)) rows.push({vendor, key:'price-' + price.invoice_id, subject:'Invoice ' + text(price.invoice_id), month: price.month,
         kind:'price', kindLabel:'Above contracted price', amount: price.amount, currency: price.currency || currency,
         stage: PRICE_STAGE[price.state] || state(price.state), open: OPEN_PRICE.has(price.state), next: OPEN_PRICE.has(price.state) ? 'Reviewer' : null, href:'#recovery/finance-price-exception'});
+      // Other vendors' estimated credits (demo line): the server's own amount, never claimed and never added to anything.
+      list(w.opportunities).filter(o => o && typeof o === 'object' && o.kind === 'service_credit').forEach(o => rows.push({vendor: o.vendor,
+        key:'estimate-' + slug(o.vendor) + '-' + o.period, subject: monthLabel(o.period), month: o.period, kind:'credit', kindLabel:'Service credit',
+        amount: o.amount == null ? null : o.amount, currency: o.currency || 'USD', stage:'Estimated · not claimed', open:true, next:'Reviewer',
+        href:'#' + (slug(o.route) || 'agreements')}));
     }
     const covered = new Set(rows.map(r => slug(r.vendor)));
     list(vendors).filter(v => v && typeof v === 'object').forEach(v => {

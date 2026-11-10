@@ -55,3 +55,10 @@ The case's figures, lifecycle, recovery card, decisions, step display, price exc
 - `web/browser-contract.test.cjs` › "configured workspace renders inside the finance shell and keeps native records accessible": the Overview now shows "Portfolio" and reads the workflow first, then `/api/vendors` and `/api/ramp/workspace`; "Northwind Cloud" and the single workflow read are now checked on `#recovery`.
 
 The Python browser tests above were edited but not run (no full suite). One headless Chrome look went through the same paths.
+
+## Second vendor: Corvid Ledger estimate
+
+- `scripts/setup_northwind.py` `seed()` gains three lines after `seed_calyx(post)`: it installs Corvid Ledger (`/api/vendors/corvid-ledger`) from the recorded `claude-opus-5-5` reading, through `uptime/demo_opportunities.py:seed`.
+- The workflow view gains `opportunities`, set after the finance summary: Corvid's October 2026 credit, evaluated read-only by the installed ACTIVE agreement (no case, claim, approval, posting or application). Fixtures and limits: `fixtures/corvid_ledger_demo/README.md`.
+- The portfolio (`web/workspace_ui.js` `portfolioRows`) shows each entry as a "Service credit" row, "Estimated · not claimed", next: Reviewer, linking to `#agreements`; the tiles count it.
+- No existing test changed. Added: `tests/test_demo_opportunities.py` and one test in `web/portfolio.test.cjs`.
