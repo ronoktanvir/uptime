@@ -161,6 +161,19 @@
     const estimate = rows.find(r => r.stage === 'estimated'), reached = rows.filter(r => r.stage !== 'estimated' && r.status === 'recorded').pop();
     return reached || (estimate && estimate.status === 'recorded' ? estimate : null);
   }
+  // A tracked Ramp bill is matched when the server says so (its `match`); with no `match` field at all (an older server)
+  // the agreement binding decides. Only a bill with neither is "No agreement on file".
+  const billsOf = rampWorkspace => list(rampWorkspace && rampWorkspace.verified_records).filter(r => r && r.ramp_context && typeof r.ramp_context === 'object');
+  const matched = r => r.match && typeof r.match === 'object';
+  const bound = r => matched(r) || !Object.prototype.hasOwnProperty.call(r, 'match') && r.ramp_context.agreement_binding && r.ramp_context.agreement_binding.status === 'BOUND';
+  const uptimeNotes = r => list(r.notes).filter(n => n && n.by === 'UPTIME');
+  // The matched bill's facts, as one line under the opportunity it belongs to.
+  function rampLine(record) {
+    const match = record.match, parts = ['Bill ' + text(match.invoice && match.invoice.id) + ' in Ramp'];
+    if (uptimeNotes(record).length) parts.push('Uptime added a note');
+    if (match.ramp_credit && match.ramp_credit.status === 'APPLIED_CONFIRMED') parts.push('Credit applied in Ramp · confirmed');
+    return parts.join(' · ');
+  }
   function portfolioRows(workflow, vendors, rampWorkspace) {
     const w = workflow && typeof workflow === 'object' ? workflow : null, rows = [];
     if (w) {
@@ -184,7 +197,25 @@
       if (price && (price.invoice_id || price.amount != null)) rows.push({vendor, key:'price-' + price.invoice_id, subject:'Invoice ' + text(price.invoice_id), month: price.month,
         kind:'price', kindLabel:'Above contracted price', amount: price.amount, currency: price.currency || currency,
         stage: PRICE_STAGE[price.state] || state(price.state), open: OPEN_PRICE.has(price.state), next: OPEN_PRICE.has(price.state) ? 'Reviewer' : null, href:'#recovery/finance-price-exception'});
+      // Estimates for other vendors the server lists in the workflow view: not claimed, so a reviewer acts next.
+      list(w.opportunities).filter(o => o && typeof o === 'object').forEach((o, index) => {
+        const route = typeof o.route === 'string' && o.route ? (o.route.startsWith('#') ? o.route : '#' + o.route) : '#overview';
+        const agreement = o.agreement && typeof o.agreement === 'object' ? o.agreement : {};
+        rows.push({vendor: o.vendor, key:'opportunity-' + index, subject: monthLabel(o.period), month: o.period, detail: agreement.id ? 'Agreement ' + text(agreement.id) : null,
+          kind:'credit', kindLabel:'Service credit', amount: o.amount == null ? null : o.amount, currency: o.currency || currency,
+          stage: o.stage === 'ESTIMATED' ? 'Estimated · not claimed' : state(o.stage), open:true, next:'Reviewer', href: route});
+      });
     }
+    // A matched Ramp bill is not a row of its own: its facts go on the opportunity it belongs to.
+    billsOf(rampWorkspace).filter(matched).forEach(r => {
+      const m = r.match, invoice = m.invoice && m.invoice.id;
+      const target = m.kind === 'price_exception' ? rows.find(row => row.kind === 'price' && row.subject === 'Invoice ' + text(invoice))
+        : m.kind === 'service_credit' ? rows.find(row => row.kind === 'credit' && m.credit && row.month === m.credit.service_month) : null;
+      if (target) target.ramp = (target.ramp ? target.ramp + ' · ' : '') + rampLine(r);
+      else rows.push({vendor: r.ramp_context.vendor_name || (m.invoice && m.invoice.vendor), key:'bill-' + r.ramp_context.object_id, subject:'Bill ' + text(invoice), ramp: rampLine(r),
+        kind:'bill', kindLabel:'Tracked bill', amount:null, currency:null, stage:'Matched to invoice', open:false, next:null,
+        href: '#ramp-bill/' + encodeURIComponent(r.ramp_context.object_id || '')});
+    });
     const covered = new Set(rows.map(r => slug(r.vendor)));
     list(vendors).filter(v => v && typeof v === 'object').forEach(v => {
       const name = v.vendor || v.name || v.vendor_id;
@@ -193,31 +224,32 @@
       rows.push({vendor:name, key:'agreement-' + slug(name), subject: read ? read.label : 'How it was read is not recorded', kind:'agreement',
         kindLabel: active ? 'Agreement in force' : 'Agreement · ' + state(v.state), amount:null, currency:null, stage: active ? 'In force' : state(v.state), open:false, next:null, href:'#agreements'});
     });
-    list(rampWorkspace && rampWorkspace.verified_records).filter(r => r && r.ramp_context && typeof r.ramp_context === 'object').forEach(r => {
-      const ctx = r.ramp_context, binding = ctx.agreement_binding && typeof ctx.agreement_binding === 'object' ? ctx.agreement_binding : {};
-      const bound = binding.status === 'BOUND', amount = ctx.amount && typeof ctx.amount === 'object' ? ctx.amount : null;
+    billsOf(rampWorkspace).filter(r => !matched(r)).forEach(r => {
+      const ctx = r.ramp_context, onFile = bound(r), amount = ctx.amount && typeof ctx.amount === 'object' ? ctx.amount : null;
       rows.push({vendor: ctx.vendor_name || 'Vendor name not captured', key:'bill-' + ctx.object_id, subject:'Bill ' + text(ctx.invoice_number),
         detail: amount ? 'In Ramp: ' + text(amount.currency) + ' ' + text(amount.amount) + ' · ' + state(ctx.status) : null,
-        kind: bound ? 'bill' : 'no-agreement', kindLabel: bound ? 'Tracked bill' : 'No agreement on file', amount:null, currency:null,
-        stage: bound ? 'Agreement on file' : r.finding && r.finding.outcome === 'INSUFFICIENT_EVIDENCE' ? 'Evidence gap' : 'Not checked',
-        open: !bound, next: bound ? null : 'Reviewer', href: typeof ctx.object_id === 'string' && ctx.object_id ? '#ramp-bill/' + encodeURIComponent(ctx.object_id) : '#records'});
+        kind: onFile ? 'bill' : 'no-agreement', kindLabel: onFile ? 'Tracked bill' : 'No agreement on file', amount:null, currency:null,
+        stage: onFile ? 'Agreement on file' : r.finding && r.finding.outcome === 'INSUFFICIENT_EVIDENCE' ? 'Evidence gap' : 'Not checked',
+        open: !onFile, next: onFile ? null : 'Reviewer', href: typeof ctx.object_id === 'string' && ctx.object_id ? '#ramp-bill/' + encodeURIComponent(ctx.object_id) : '#records'});
     });
     return rows;
   }
   function portfolioTiles(rows, vendors, rampWorkspace) {
     const reads = list(vendors).map(v => readBy(v && v.extraction));
-    const bills = list(rampWorkspace && rampWorkspace.verified_records).filter(r => r && r.ramp_context);
+    const bills = billsOf(rampWorkspace);
     const opportunity = list(rows).filter(r => r.open && ['credit', 'evidence', 'price'].includes(r.kind));
     const credits = list(rows).filter(r => r.kind === 'credit' && r.open);
     return {agreements: list(vendors).length, claude: reads.filter(r => r && r.kind === 'claude').length, rules: reads.filter(r => r && r.kind === 'rules').length,
       opportunities: opportunity.length, byKind: ['credit', 'price', 'evidence'].map(kind => [kind, opportunity.filter(r => r.kind === kind).length]).filter(([, n]) => n),
       credits: credits.map(r => ({subject: r.subject, vendor: r.vendor, amount: r.amount, currency: r.currency, stage: r.stage})),
-      bills: bills.length, unbound: bills.filter(r => !(r.ramp_context.agreement_binding && r.ramp_context.agreement_binding.status === 'BOUND')).length};
+      bills: bills.length, matched: bills.filter(matched).length, unbound: bills.filter(r => !bound(r)).length};
   }
-  function agentCounters(workflow, vendors) {
+  function agentCounters(workflow, vendors, rampWorkspace) {
+    const notes = billsOf(rampWorkspace).flatMap(r => list(r.notes).filter(n => n && typeof n === 'object'));
     const reads = list(vendors).map(v => readBy(v && v.extraction)).filter(r => r && r.kind === 'claude');
     const legend = stepLegend(workflow && workflow.automation && workflow.automation.steps, null);
-    return {claudeReads: reads.length, models: [...new Set(reads.map(r => r.model).filter(Boolean))], agentSteps: legend.approved, received: legend.received, reviewerDecisions: legend.reviewer};
+    return {claudeReads: reads.length, models: [...new Set(reads.map(r => r.model).filter(Boolean))], agentSteps: legend.approved, received: legend.received, reviewerDecisions: legend.reviewer,
+      notes: notes.length, uptimeNotes: notes.filter(n => n.by === 'UPTIME').length};
   }
   // Needs attention across the portfolio: the case's own items, each opening its section on the case page, and every
   // tracked Ramp bill that has no agreement on file.
@@ -225,7 +257,7 @@
     const w = workflow && typeof workflow === 'object' ? workflow : {}, vendor = typeof w.vendor === 'object' && w.vendor ? w.vendor.name : w.vendor;
     const items = list(w.finance && w.finance.attention).filter(i => i && typeof i === 'object').map(i => ({vendor, owner: i.owner, title: i.title, detail: i.detail,
       href: '#recovery' + (typeof i.section === 'string' && i.section ? '/' + i.section : '')}));
-    list(rampWorkspace && rampWorkspace.verified_records).filter(r => r && r.ramp_context && !(r.ramp_context.agreement_binding && r.ramp_context.agreement_binding.status === 'BOUND')).forEach(r => {
+    billsOf(rampWorkspace).filter(r => !bound(r)).forEach(r => {
       const ctx = r.ramp_context;
       items.push({vendor: null, owner:'reviewer', title:'Put an agreement on file for ' + text(ctx.vendor_name) + ' bill ' + text(ctx.invoice_number),
         detail:'Uptime cannot check this bill against a contract until its agreement is on file.', href: '#ramp-bill/' + encodeURIComponent(ctx.object_id || '')});
@@ -864,15 +896,15 @@
       const tile = el('span', null, 'page-tile tile-portfolio'); tile.setAttribute('aria-hidden', 'true');
       const header = add(el('div', null, 'page-head'), tile, add(el('div'), el('p', company ? company + ' · every vendor, contract and month' : 'Every vendor, contract and month', 'eyebrow'), el('h1', 'Portfolio')),
         workflow && workflow.as_of ? el('p', 'As of ' + when(workflow.as_of), 'as-of') : null);
-      const rows = portfolioRows(workflow, vendors, ramp), tiles = portfolioTiles(rows, vendors, ramp), agents = agentCounters(workflow, vendors);
+      const rows = portfolioRows(workflow, vendors, ramp), tiles = portfolioTiles(rows, vendors, ramp), agents = agentCounters(workflow, vendors, ramp);
       const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
       const KIND_WORDS = {credit:['service credit', 'service credits'], price:['price exception', 'price exceptions'], evidence:['awaiting usage evidence', 'awaiting usage evidence']};
       const summary = (label, value, ...lines) => add(el('div', null, 'portfolio-tile'), el('p', label, 'portfolio-tile-label'), el('p', value, 'portfolio-tile-value'), ...lines.filter(Boolean).map(line => el('p', line, 'help')));
       const tilesRow = add(el('section', null, 'portfolio-tiles'),
         summary('Agreements on file', vendors ? String(tiles.agreements) : 'Unavailable', vendors ? tiles.claude + ' read by Claude · ' + tiles.rules + ' by fixed rules' : 'The agreements list could not be read.'),
         summary('Opportunities open', String(tiles.opportunities), tiles.byKind.map(([kind, n]) => n + ' ' + KIND_WORDS[kind][n === 1 ? 0 : 1]).join(' · ') || 'None open'),
-        summary('Credits in progress', String(tiles.credits.length), ...tiles.credits.map(c => c.subject + ': ' + money(c.amount, c.currency || 'USD') + ' · ' + text(c.stage))),
-        summary('Ramp bills tracked', ramp ? String(tiles.bills) : 'Unavailable', ramp ? plural(tiles.unbound, 'with no agreement on file', 'with no agreement on file') : 'The saved Ramp workspace could not be read.'));
+        summary('Credits in progress', String(tiles.credits.length), ...tiles.credits.map(c => (c.vendor ? c.vendor + ' · ' : '') + c.subject + ': ' + money(c.amount, c.currency || 'USD') + ' · ' + text(c.stage))),
+        summary('Ramp bills tracked', ramp ? String(tiles.bills) : 'Unavailable', ramp ? [tiles.matched ? tiles.matched + ' matched to ' + (tiles.matched === 1 ? 'an invoice' : 'invoices') : null, plural(tiles.unbound, 'with no agreement on file', 'with no agreement on file')].filter(Boolean).join(' · ') : 'The saved Ramp workspace could not be read.'));
       tilesRow.setAttribute('aria-label', 'Summary');
       // Agents at work: counted from recorded facts only.
       const counter = (cls, label, value, line) => add(el('div', null, 'agent-counter'), el('span', label, 'pill ' + cls), el('p', String(value), 'agent-counter-value'), el('p', line, 'help'));
@@ -880,13 +912,14 @@
         add(el('div', null, 'agent-counters'),
           counter('tag-claude', 'Claude', vendors ? agents.claudeReads : 'Unavailable', 'Contracts read by ' + (agents.models.join(', ') || 'Claude') + ', recorded runs'),
           counter('tag-agent', 'Uptime agent', agents.agentSteps, 'Steps run under an approval a reviewer recorded'),
-          counter('accent tag-reviewer', 'Reviewer', agents.reviewerDecisions, 'Decisions by the signed-in reviewer account')));
+          counter('accent tag-reviewer', 'Reviewer', agents.reviewerDecisions, 'Decisions by the signed-in reviewer account'),
+          agents.notes ? counter('tag-ramp-note', 'Notes in Ramp', agents.uptimeNotes, 'Posted by Uptime through Ramp’s API') : null));
       const table = el('ol', null, 'portfolio-rows');
       rows.forEach(row => {
         const initials = String(row.vendor || '').split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('');
         const avatar = el('span', initials, 'portfolio-avatar brand-' + slug(row.vendor)); avatar.setAttribute('aria-hidden', 'true');
         const link = el('a', null, 'portfolio-row kind-' + row.kind + (row.open ? ' open' : '')); link.href = row.href;
-        add(link, avatar, add(el('span', null, 'portfolio-what'), el('strong', text(row.vendor)), el('span', row.subject + (row.detail ? ' · ' + row.detail : ''), 'help')),
+        add(link, avatar, add(el('span', null, 'portfolio-what'), el('strong', text(row.vendor)), el('span', row.subject + (row.detail ? ' · ' + row.detail : ''), 'help'), row.ramp ? el('span', row.ramp, 'portfolio-ramp') : null),
           el('span', row.kindLabel, 'portfolio-kind'),
           el('span', row.amount == null ? '—' : money(row.amount, row.currency || 'USD'), 'portfolio-amount num'),
           add(el('span', null, 'portfolio-status'), el('span', row.stage, 'pill' + (row.open ? '' : ' muted')),
