@@ -32,7 +32,7 @@ Open [127.0.0.1:8776](http://127.0.0.1:8776/) and sign in with the account and c
 ## What is authored, local or recorded
 
 - **Authored:** the Northwind contract, amendment, usage records, invoices and vendor replies. Northwind Cloud and the buyer are fictional.
-- **Local:** the vendor's side of the dispute is a counterparty built into Uptime, and credits go to a local ledger. No real vendor is contacted, and no money moves in Ramp.
+- **Local:** the vendor's side of the dispute is a counterparty built into Uptime, and credits go to a local ledger. No real vendor is contacted, and no money moves in Ramp. The claim packet and the response are approved by their exact content and filed to a local outbox with a receipt; this build does not display their text on any page.
 - **Scripted:** the walkthrough's reviewer account, `scripted-test-reviewer`, is a test account, not a record of a person's approval.
 - **Recorded:** the model readings were made on November 9 through the ordinary application routes, on authored contracts and two authored vendor replies: one call per rule family, so two per contract and six for the three contracts, plus one for each reply, none retried. Their provider receipts are kept. Northwind's own contract and its vendor's log request are handled by fixed rules, with no model call. The log request uses wording the rules know; a request worded differently goes to a reviewer.
 - **Real:** the Ramp sandbox reads, and the note a person posted on sandbox bill `f74ba12c-95d0-582d-9f62-26d8057d1d37`.

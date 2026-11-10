@@ -1,0 +1,50 @@
+{
+ "build": "main fa16c71 (application unchanged since 008c4af)",
+ "method": "fresh authored walkthrough on loopback; one headless Chrome; ordinary sign-in and offered controls; quoted strings matched against rendered page text",
+ "timings_seconds": {
+  "agreements rendered": 0.01,
+  "decision: Approve January claim": 0.52,
+  "case page rendered (after approve claim)": 0.05,
+  "decision: Approve response": 0.58,
+  "case page rendered (after approve response)": 0.03,
+  "decision: Post to Local ledger": 0.4,
+  "decision: Apply credit to eligible invoice": 0.29,
+  "activity rendered": 0.13
+ },
+ "page_errors": [],
+ "quotes": {
+  "agreements": {
+   "Source read by": true,
+   "deterministic document parser": true,
+   "What the source establishes": true,
+   "For Cloud Hosting on the Business plan, the monthly uptime target is 99.9%; each completed 0.1 percentage point of shortfall below the target earns a 10% service credit, capped at 100%.": true,
+   "Claims must be received within 30 calendar days after month end.": true,
+   "tool free model propositions · claude-opus-5-5": true,
+   "scripted-test-reviewer (scripted test)": true
+  },
+  "overview_governing_agreement": {
+   "Amendment 1 to NW-2026-001": true,
+   "Effective Mar 1, 2026": true
+  },
+  "case_after_claim": {
+   "Correspondence, in order": true,
+   "Vendor reply, as received": true,
+   "Please furnish the dated service log, document NW-JAN-LOG-001.": true,
+   "A newly acquired artifact matches the requested proof and independent verification.": true,
+   "Approved exact local packet.": true,
+   "Filed approved packet in the isolated local outbox.": true
+  },
+  "case_after_response": {
+   "We have approved a service credit of USD 2400.00.": true
+  },
+  "activity": {
+   "Approved exact local packet.": true,
+   "Filed approved packet in the isolated local outbox.": true
+  }
+ },
+ "case_page_actions_after_first_decision": [
+  "Refresh case receipts",
+  "Approve Response",
+  "Show dispute record"
+ ]
+}

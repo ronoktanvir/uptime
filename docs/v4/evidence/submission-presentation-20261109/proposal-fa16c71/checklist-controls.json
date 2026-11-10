@@ -1,0 +1,105 @@
+{
+ "origin": "http://127.0.0.1:8865",
+ "steps": [
+  {
+   "step": "sidebar Agreements",
+   "seconds": 0.11,
+   "detail": "ok"
+  },
+  {
+   "step": "Northwind Cloud jump chip (heading top after click, px)",
+   "seconds": 0.64,
+   "detail": 27
+  },
+  {
+   "step": "sidebar Overview",
+   "seconds": 0.21,
+   "detail": "ok"
+  },
+  {
+   "step": "Approve January claim",
+   "seconds": 0.56,
+   "detail": "Approve January claim"
+  },
+  {
+   "step": "Open this claim's case and correspondence",
+   "seconds": 0.08,
+   "detail": "ok"
+  },
+  {
+   "step": "sidebar Overview (return)",
+   "seconds": 0.22,
+   "detail": "ok"
+  },
+  {
+   "step": "Approve response",
+   "seconds": 0.46,
+   "detail": "Approve response"
+  },
+  {
+   "step": "Open this claim's case and correspondence (second visit)",
+   "seconds": 0.07,
+   "detail": "ok"
+  },
+  {
+   "step": "sidebar Overview (return)",
+   "seconds": 0.22,
+   "detail": "ok"
+  },
+  {
+   "step": "Post to Local ledger",
+   "seconds": 0.43,
+   "detail": "Post to Local ledger"
+  },
+  {
+   "step": "Apply credit to eligible invoice",
+   "seconds": 0.33,
+   "detail": "Apply credit to eligible invoice"
+  }
+ ],
+ "sign_in_labels": {
+  "heading": "Sign in to Uptime",
+  "labels": [
+   "Account name",
+   "Credential file"
+  ],
+  "buttons": [
+   "Sign in"
+  ]
+ },
+ "sidebar": [
+  "Uptime\nfor Ramp",
+  "Overview",
+  "Cases",
+  "Agreements",
+  "Activity",
+  "Refresh data",
+  "Sign out · scripted-test-reviewer"
+ ],
+ "agreements_chips": [
+  {
+   "tag": "BUTTON",
+   "text": "CalyxQuay ACTIVE",
+   "href": null
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Northwind Cloud ACTIVE",
+   "href": null
+  }
+ ],
+ "overview_links": [
+  "Open this claim’s case and correspondence",
+  "See every step in Activity"
+ ],
+ "case_title_area": "All cases\n\nNorthwind Cloud · January 2026\n\nClaim correspondence · NW-2026-01\n\ninbox-northwind-2026-01\n\nRefresh case receipts\nWhere this claim stands\nStage\nresponse drafted\nOutcome\nNeeds evidence\nFiling cutoff\nMar 3, 2026, 00:00 UTC\nNext contact\nMar 2, 2026, 12:10 UTC\nRequested document\nresource log · NW-JAN-LOG-001\nService\nCloud Hosting\nInvoice\nNW-2026-01\nIncident\nNW-INC-2026-01-17\nAccount\nharborline-001\nContract\nNW-2026-001\nEstimated\n$2,400.00\nClaimed\n$2,400.00\nAwarded\n$0.00\nDisputed remainder\n$2,400.00\n\nOne claim at each stage of its correspondence. The amounts are not added together.\n\nRevie",
+ "case_buttons": [
+  "All cases",
+  "Refresh case receipts",
+  "Approve Response",
+  "Show dispute record"
+ ],
+ "lifecycle_after_award": "Awarded\n$2,400.00",
+ "final_routine_line": "Routine steps: Complete. 4 reviewer decisions and 7 automatic steps recorded.",
+ "page_errors": []
+}
