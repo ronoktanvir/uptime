@@ -75,3 +75,18 @@ New `tests/test_setup_refusals.py`, 8 tests: **8 passed** on the first run. Each
 | `--resume` on a workspace from a different package | traceback ending `ValueError: The verified package differs…` | exit 1: `setup_northwind: The verified package differs from this workspace; preserve it and create a new directory.` |
 
 Focused, with `tests/test_workflow_coordinator_r2.py`, `tests/test_northwind_workflow.py` and `tests/test_northwind_local_ledger.py`: **81 passed, 1 warning**. That run was before a wording change ("; or" became ", or"); `tests/test_setup_refusals.py` passed again after it.
+
+## Ports in the real-process setup tests (coordinator follow-up)
+
+These tests are on main, so each change is recorded here. **Reason:** they scanned the fixed range 8821–8829 and called `pytest.skip` when every port was taken. A skip can hide a regression, two runs on this machine could race for one port, and 8823 is in Ronok's filming checklist. They now take ports the operating system assigns (bind `127.0.0.1` port 0). There is no skip path, and no assertion changed.
+
+- `tests/test_setup_refusals.py`
+  - **Helpers:** `busy_port()` replaces `hold()` and `occupied_port()`, and `assigned_origin()` is new.
+  - The module fixture `workspace` records an assigned origin instead of fixed `:8822`, and returns `(folder, origin)`.
+  - `test_serving_on_a_busy_port_is_refused_before_a_workspace_is_created`: holds an assigned port.
+  - `test_resuming_on_a_busy_port_is_refused_and_leaves_the_workspace_unchanged`: holds the same assigned socket for the whole test, with no close-and-retake (creating without `--serve` never binds).
+  - `test_rerunning_create_in_the_same_folder_is_a_plain_refusal`, `test_a_workspace_from_a_different_package_is_refused_plainly`, `test_a_correct_resume_still_works`: they unpack the fixture's new tuple. The last one compares the final line with the recorded origin instead of the literal `:8822`.
+- `tests/test_setup_side_panel.py`
+  - `free_port()` returns an OS-assigned free port; used by `test_served_create_and_resume_frame_only_when_given_and_print_the_line_first`.
+
+Result: both files, **19 passed, 1 warning**, no skips.

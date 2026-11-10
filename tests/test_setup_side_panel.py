@@ -85,12 +85,11 @@ def test_a_bad_value_is_refused_before_a_workspace_exists(tmp_path, value):
 
 
 def free_port():
+    """A port the operating system assigns; released just before the served process binds it."""
     import socket
-    for port in range(8821, 8830):  # the throwaway range assigned for this push
-        with socket.socket() as probe:
-            if probe.connect_ex(('127.0.0.1', port)) != 0:
-                return port
-    pytest.skip('No free throwaway port in 8821-8829.')
+    with socket.socket() as probe:
+        probe.bind(('127.0.0.1', 0))
+        return probe.getsockname()[1]
 
 
 def serve(directory, origin, *extra, deadline=240):
