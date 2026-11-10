@@ -19,6 +19,8 @@ No change weakens a monetary, authority, idempotency or tenant assertion. Every 
 | 9 | `tests/test_contract_job_card_r4.py::test_job_card_keeps_digests_one_click_away_and_clauses_in_view` | Opens "Add an agreement" before using the proposal form, and expects the job card labels "Status" and "Model" instead of "status" and "model". | The proposal form is in a closed section, and the job card now uses the same capitalised labels as the rest of the interface. The closed "Request details", the absence of any 64-character value in view, every quotation and the four digests one click away are asserted as before. |
 | 10 | `tests/test_vendor_model_jobs_browser.py::test_browser_checks_permission_generates_and_stages_separate_overlay` (all three parameters) | Opens "Add an agreement" before the form and "Review tools, version actions and the full record" before waiting for "Submit independent tests". | Same as #7. Provider call counts, the staged overlay and the SHADOW state are asserted as before. |
 | 11 | `tests/test_vendor_auth83.py::test_expired_browser_session_recovers_same_job_without_resubmitting` | The same two openings, through its `login` helper and before the final wait. | Same as #7. The job identity, the single POST counts and the expired-session assertions are unchanged. |
+| 12 | `tests/test_workspace_ui_v4.py::test_configured_workflow_keeps_evidence_money_and_original_navigation_reachable` | The test's stand-in server also serves `/static/InterVariable.woff2`, read from disk as bytes with the type `font/woff2`. | The page now loads its typeface from the app itself. This test serves the page's own files from a fixed list and fails on any other request, so the font joins the list. The list of unexpected requests is still asserted empty, and every evidence, money and navigation assertion is unchanged. |
+| 13 | `tests/test_ramp_ui_v4.py::test_ramp_browser_navigation_and_read_only_plan` | The same addition to its stand-in server. | Same as #12. Its content security policy header, the single navigation, the request list and the read-only plan assertions are unchanged; the font loads under that policy. |
 
 The helper `open_section(page, title)` and the two section titles were added to `tests/test_vendor_model_jobs_browser.py` and `tests/test_advanced_companion.py`. It clicks a section's summary only when the section is closed.
 
@@ -35,7 +37,7 @@ The helper `open_section(page, title)` and the two section titles were added to 
   - `test_the_verified_bill_card_is_in_the_first_viewport_of_a_420_px_panel`
   - `test_an_unknown_bill_says_so_and_ramp_records_opens_without_filling_the_panel_with_navigation`
 
-The pass over every page on a computer screen (`1dca1cf`, `53f6115`) changed no test. Neither did the icons.
+The pass over every page on a computer screen (`1dca1cf`, `53f6115`) changed no test. Neither did the icons. The typeface changed two (rows 12 and 13).
 
 ## Interrupted runs
 
