@@ -1,0 +1,37 @@
+{
+  "tested_commit": "1fa4ab4653c9e047de4727be28c6f085b34dce5d",
+  "branch": "work/submission-integration-20261109, and main",
+  "role": "the whole push on main: the accepted build, the setup refusals, the redesign and the side panel",
+  "contents": "The merge 3bbd47e (redesign a92f86c and side panel dc4ff65) plus its records. This is the commit main was fast-forwarded to at 17:34 PST.",
+  "application_commit": "6b93e31d4d6b57bece160603e2aa06c8d8aea844 for everything under uptime/ except uptime/server.py, which gains the side-panel framing option",
+  "command": [
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-1fa4ab4",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5452 passed, 1 warning in 409.85s (0:06:49)",
+  "log": "suite-1fa4ab4-pytest.log",
+  "started_at": "2026-11-10T01:34:37Z",
+  "finished_at": "2026-11-10T01:41:29Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "129 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "earlier_runs_of_the_same_files": [
+    "suite-8561fe3-aborted.json",
+    "suite-8561fe3-run2.json"
+  ],
+  "order_of_events": "main was moved at 17:34 PST on the strength of the run recorded in suite-8561fe3-run2.json, made on a local combination with the same files. This run, on the commit itself, finished seven minutes later.",
+  "not_yet": [
+    "independent acceptance of the redesigned interface",
+    "final screenshots and video link in the README"
+  ],
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}

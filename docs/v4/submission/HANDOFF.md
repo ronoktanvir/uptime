@@ -1,10 +1,10 @@
 # Submission-readiness handoff
 
-Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 17:33 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
+Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated at 17:42 PST. It says what is true now, what is published, what was measured, and what still needs a person. Every time and decision behind it is in [the coordination record](COORDINATION.md).
 
 ## Where it stands
 
-- **`main` holds the whole push**: the accepted build, the redesigned interface and the Chrome side panel. A full run passes on that combination (5,452 passed), and the side panel was checked inside the real extension.
+- **`main` holds the whole push**: the accepted build, the redesigned interface and the Chrome side panel. A full run passes on that commit (5,452 passed), and the side panel was checked inside the real extension.
 - **Independent acceptance covers the build before the redesign.** That build is `52f1a2f`, kept on the branch `frozen/submission-fallback-20261109`. Its full run passes on this machine (5,390 passed) and in GitHub's check workflow ([run 42720204760](https://github.com/ronoktanvir/uptime/actions/runs/42720204760)), and a separate session accepted it from a fresh clone, with the limits listed below. The redesign changed the interface only, but acceptance has not yet looked at it.
 - **How `main` got there.** At 16:31 PST Ronok asked for GitHub to be brought up to date for other people. `main` was fast-forwarded from `b6e93bd` three times, never forced: at 16:42 to the accepted build with its records, at 17:03 with the setup refusals, and at about 17:33 with the redesign and the side panel. The repository is public. After the first two moves an anonymous clone was checked: it showed the rebuilt README and served the walkthrough with the README's own command.
 - **Nothing from Uptime has been written to Ramp**, and no real vendor was contacted.
@@ -46,7 +46,7 @@ All on `github.com/ronoktanvir/uptime`. Nothing was force-pushed and no history 
 
 | Branch | Commit | What it is | Verified |
 |:---|:---|:---|:---|
-| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on the merged combination (5,452). Hosted checks passed on `main` at `11a6770` and `21eae2c`; the run on the newest commit starts when it is pushed |
+| `main` | The integration branch's head | The default branch: the accepted build, the setup refusals, the redesign, the side panel and the records. It was `b6e93bd` before this push | Full run passes on the commit itself, `1fa4ab4` (5,452). Hosted checks passed on `main` at `11a6770` and `21eae2c` |
 | `frozen/submission-fallback-20261109` | `52f1a2f` | The verified build | Full run and hosted checks pass; independently accepted |
 | `work/submission-integration-20261109` | this file's branch | The same commit as `main`. Last merge `3bbd47e`: the redesign and the side panel | Full run passes on a local combination with the same files (5,452), after one run that stalled in a browser launch with no test failing |
 | `work/submission-design-20261109` | `a92f86c` | The redesign | Merged. Its owner had merged it onto `main` locally at Ronok's direct request; the coordinator read the change and every removed assertion, and looked at each page at 1440 and 420 pixels wide |
@@ -75,7 +75,8 @@ The required command is `uv run --locked pytest`, run once per merge, one run at
 | `6848390` | Aborted, then 5,390 passed | Records only. The first run stalled in a browser launch |
 | `ea58f22` | Aborted twice | The setup refusals. Both runs stalled in a browser launch, at 90 and 38 percent, with every test before that point passing |
 | `783d5ec` | 5,398 passed | The same merge plus the records of its stalled runs: 5,390 and 8 new setup-refusal tests |
-| `3bbd47e` | Aborted, then 5,452 passed | The redesign and the side panel. Run on a local combination whose files are the same except two record files. 129 JavaScript checks. **This is what `main` holds** |
+| `3bbd47e` | Aborted, then 5,452 passed | The redesign and the side panel. Run on a local combination whose files are the same except two record files. 129 JavaScript checks |
+| `1fa4ab4` | 5,452 passed | The same merge with its records, run on the commit itself. **This is what `main` holds** |
 
 GitHub's check workflow runs the same command on a clean machine for every pushed commit. It passes on the accepted build, on every integration commit through `21eae2c`, on the redesign's commits through `c280283` and on the side-panel branch through `a162951`.
 
@@ -143,7 +144,6 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 
 | Item | Owner | State |
 |:---|:---|:---|
-| A full run on the merge commit itself | Coordinator | Started after the merge; recorded beside the other receipts |
 | Setup command: its real-process tests take a port from 8821–8829 and skip if all are taken; they should take a port the system assigns | Role 2 | Not yet sent: messages are paused. The plain refusals and the `--serve` rule are done |
 | Interface-only acceptance check of the redesign | Role 5 | Not yet requested: messages are paused |
 | README screenshots, a timing recheck, a filming checklist for the new labels, the video link | Role 6 | Not yet requested: messages are paused. The README's and the judge guide's own wording still matches the redesigned interface |
