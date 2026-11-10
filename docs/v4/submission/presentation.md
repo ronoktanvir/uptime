@@ -2,16 +2,16 @@
 
 Owner `agent0`. Branch `work/submission-presentation-20261109`, from `origin/main` at `b6e93bd`. November 9, 2026. The task text is Ronok's coordination brief (12:50 PST), relayed by the coordinator. This file is the role's handoff: the storyboard, the script, the dependencies on other roles, the fallback and what only Ronok can do. It is a dated record and does not show that work is still running.
 
-**Status: phase 2, part A done on the frozen fallback build `52f1a2f`** (application `6b93e31` plus this role's documents; full suite 5,390 passed, 1 warning).
-- Done:
-  - every filmed screen timed with real latency, including both recorded model workspaces served from copies;
-  - the narration cut to fit 120 seconds;
-  - the deterministic fallback rehearsed;
-  - a fallback set of the three README screenshots;
-  - the verification link pinned to the frozen build's suite receipt;
-  - every link rechecked;
-  - [Ronok's filming checklist](#filming-checklist-for-ronok).
-- Part B waits on the redesigned interface (`work/submission-design-20261109`). If it becomes the filmed build: retake the screenshots, recheck timing, then fill the README slots. Until then the README slots stay comments.
+**Status: phase 2, part B, on `main` (`0c30f8f`: the redesigned interface and the browser side panel; full run 5,452 passed).**
+- Done in this commit:
+  - the storyboard recut for Ronok's Ramp-and-side-panel opening;
+  - the wording fix for how the log arrives (README, judge guide, narration);
+  - the side-panel line in the README and the judge guide.
+- Next on this branch:
+  - timing on `main`;
+  - the three README screenshots from `main`;
+  - the filming checklist rewritten for `main` with labels read off the redesigned pages.
+- Part A results on the frozen fallback build `52f1a2f` are kept below for reference: [timing-52f1a2f.json](../evidence/submission-presentation-20261109/timing-52f1a2f.json) and the fallback screenshots.
 
 ## What phase 1 changes
 
@@ -38,50 +38,56 @@ No test, application file or historical document is changed, moved or deleted.
 - The handoff notes of roles 1–4 on their branches, and the independent results at `docs/v4/evaluation-finish-20261109/RESULTS.md` on `main`.
 - A launch check on this branch: from a checkout with no environment, `uv run --locked python scripts/setup_northwind.py --directory <new folder>` created the environment and completed setup in 2.4 s. It printed the account and credential path. The folder was deleted afterwards.
 
-## Storyboard: six windows, 120 seconds (cut for `52f1a2f`)
+## Storyboard: Ramp opening, then one full case (120 seconds, cut for `main`)
 
-Every screen below was measured on `52f1a2f` (receipt: [timing-52f1a2f.json](../evidence/submission-presentation-20261109/timing-52f1a2f.json)). Narration is **216 words** in the recommended cut (A). "Measured" is the time from click to rendered result; every product screen settles in under 0.6 s, so speech, not software, sets the pace.
+**Ronok's decision (about 17:50 PST, November 9):** the film opens in Ramp, with Uptime's side panel beside the real sandbox bill. The Northwind case follows as a separate story, introduced by one spoken line. Only Ronok records the Ramp window; no agent signs in to Ramp.
 
-| Window | On screen | Narration | Measured on `52f1a2f` |
+**What was cut to make room, and why:**
+- **The Twilio page (old 0:00–0:15).** The Ramp bill now carries the manual-workflow sentence: a bill with no contract behind it is where the old way starts. Twilio's claim procedure stays in the README, checked against the live page.
+- **The closing Ramp beat (old 1:51–2:00).** The opening now shows the exact Ramp connection and its limit ("Uptime has made no write to Ramp"), so repeating it at the end would spend time on the same fact.
+- **Kept:** the recorded model reading, the deterministic finding and approval, the cure and review, and the credit to the balance. These are the task 8 elements. The model beat moves before the bridge line, so it answers "how does Uptime get a contract?" right after a bill without one.
+
+| Window | On screen | Narration | Measured |
 |:---|:---|:---|:---|
-| **0:00–0:15** The old way | Tab 1: Twilio's API SLA, section 3, scrolled to the claim paragraph. Caption: "Twilio API SLA §3". | "Vendor SLAs promise credits that are rarely collected. Twilio's says: open a ticket titled 'SLA Claim', list every outage, attach proof, within thirty days of month end." (27) | Page pre-loaded before recording (1.04 s to the claim text) |
-| **0:15–0:40** Model-assisted contract reading | Tab 2: the recorded workspace, **Agreements**, the **Proposal job** card for the authored **Corvid Ledger** contract: job `26ee4e3f…`, SUCCEEDED, claude-opus-5-5, finished Nov 9, 2026, 21:17 UTC, "Validated against the exact public source. The proposal is unreviewed and not approved." Three full clauses in the first view; digests behind "Request details". Caption: "Recorded run, authored contract". | "Uptime starts with the contract. Northwind's uses fixed rules, no model. For new wording, Claude proposes the terms: this recorded run read another authored contract, each term quoted from its text. Code validated it; it waits in shadow for a reviewer. A second contract was refused." (46) | Card opened before recording by the read-only access check (0.11 s). The vendor card shows Corvid Data Cooperative, SHADOW, revision 3 |
-| **0:40–1:05** Deterministic finding and approval | Tab 4: **Overview** of a fresh walkthrough: "Needs attention", January's $2,400.00 with its clause, March's $1,000.00 price exception. Press **Approve January claim**. | "Here is one full case. Northwind's contract and usage records are authored for this demo. January: 135 minutes down, two steps below target, so twenty percent of twelve thousand — a $2,400 credit, clause attached. March's invoice ignored an amendment: $1,000 over. I approve the claim." (45) | Approve January claim → settled in 0.53 s / 0.59 s (takes 1 and 2), including four automatic steps: file claim, receive reply, attach log, verify log. Claim stage becomes "response drafted" |
-| **1:05–1:35** Denial, cure and review | **See every step in Activity**: "File January claim · Delivery · Run automatically under the approval recorded by scripted-test-reviewer"; "Receive vendor response · Intake"; "Attach requested log"; "Verify supplied log". Back to **Overview**, press **Approve response**. Activity then shows "Not sent before Mar 2, 2026, 12:10 UTC, the end of the response cooldown". | "The vendor — a local counterparty, not a real vendor — asks for a log, in wording the rules know; other wording would go to a reviewer. Uptime attaches the log, verifies it against a second source and drafts the response, then stops for me. I approve; Uptime sends it after the cooling-off period." (52) | Activity 0.01 s; Approve response → 0.45 s (both takes), including the dispatch at the cooldown and the award intake. Claim stage becomes "awarded" |
-| **1:35–1:51** Credit lifecycle and balance | **Overview**: Awarded $2,400.00. Press **Post to Local ledger**, then **Apply credit to eligible invoice**. End on April invoice NW-2026-04: $11,000.00, credit applied $2,400.00, remaining $8,600.00, "Credit recorded in Local ledger"; the lifecycle "One credit, shown at each stage. The amounts are not added together." | "The vendor awards $2,400. I post the credit and apply it to April's invoice: $11,000 becomes $8,600. One credit, moving through stages, in a local ledger — not money recovered in Ramp." (31) | Post 0.39 s; Apply 0.30 s (both takes; the next invoice arrives automatically between them). Ends "4 person decisions and 7 automatic steps recorded" |
-| **1:51–2:00** Ramp | Overview's Ramp card → **Open Ramp records**: "Verified Ramp record … read from Ramp Nov 9, 2026, 22:00 UTC, started by a person. Not a live read.", vendor DocuSign, invoice DD-PREAPPROVAL, USD 840, "Uptime has made no write to Ramp." Then Tab 5: the same bill in demo.ramp.com with the person's note. | "In Ramp, Uptime reads this bill. A person posted the note; Uptime has written nothing." (15) | Open Ramp records 0.06 s; Tab 5 pre-loaded by Ronok (not measured: his Ramp sign-in) |
+| **0:00–0:26** Ramp, with the side panel | **Ronok's window.** Sandbox bill `f74ba12c-95d0-582d-9f62-26d8057d1d37` in demo.ramp.com. Click the Uptime toolbar button. The panel reads "This tab · Ramp bill f74ba12c…" and shows DocuSign, invoice DD-PREAPPROVAL, USD 840, "Saved record read from Ramp Nov 9, 2026, 22:00 UTC, started by a person. Not a live read.", "Evidence gap: the governing agreement or usage evidence is missing", "No agreement on file for this bill", the person-posted note, and "Uptime has made no write to Ramp." | "This is a vendor bill in Ramp. Checking it by hand means finding the contract, totalling outages and filing a claim in time. Uptime's side panel shows no agreement on file for this bill: an evidence gap. A person posted that note; Uptime has made no write to Ramp." (49) | Panel page timed on `main` with a local stand-in for Ramp; see the timing receipt for main. The Ramp page itself is not measured: it needs Ronok's sign-in |
+| **0:26–0:49** Model-assisted contract reading | Second Uptime tab: the recorded workspace, **Agreements**, the Corvid Ledger card with its model job directly under the facts: job `26ee4e3f…`, SUCCEEDED, claude-opus-5-5, its times, "The proposal is unreviewed and not approved", and each proposed term beside the sentence it cites. Caption: "Recorded run, authored contract". | "Contracts come in two ways. Fixed rules read wording Uptime knows. For new wording, Claude proposes the terms; this recorded run read an authored contract, each term quoted from its text. Code validated it; it waits in shadow for a reviewer. A second contract was refused." (46) | Pre-loaded before recording |
+| **0:49–1:00** The bridge | Switch to the walkthrough tab, **Overview**, untouched | "For a vendor whose contract Uptime holds, here is one full case. Its contract and records are authored for this demo." (21) | Tab switch only |
+| **1:00–1:17** Deterministic finding and approval | **Overview**: the January credit with its clause, the March price exception, "Needs attention". Press **Approve January claim**. | "January: 135 minutes down, two steps below target, so twenty percent of twelve thousand: a $2,400 credit, clause attached. March's invoice ignored an amendment: $1,000 over. I approve the claim." (30) | See the timing receipt for main |
+| **1:17–1:45** Reply, cure and review | **Activity**: "Received automatically: event …" for the vendor reply, the log export and its status verification; the step names say "Attach requested log" and "Verify supplied log", and the authority line says what arrived. Back to **Overview**; press **Approve response**. Activity then shows the dispatch held until the end of the response cooldown. | "The vendor, a local counterparty, not a real vendor, asks for a log in wording the rules know; other wording would go to a reviewer. The log and its verification arrive through a signed source, and Uptime matches them, drafts the response and stops for me. I approve; it's sent after the cooling-off period." (54) | See the timing receipt for main |
+| **1:45–2:00** Credit lifecycle and balance | **Overview**: Awarded $2,400.00 → press **Post to Local ledger**, then **Apply credit to eligible invoice**. End on the April invoice: $11,000.00, credit applied $2,400.00, remaining $8,600.00, Local ledger, the lifecycle "not added together", and "4 reviewer decisions and 7 automatic steps recorded". | "The vendor awards $2,400. I post the credit and apply it to April's invoice: $11,000 becomes $8,600. One credit, in a local ledger, not money recovered in Ramp." (28) | See the timing receipt for main |
 
-**Fit.** The speaking rate is an assumption until Ronok's timed read-through; the software adds about 2 s in all.
+**Fit.** 228 words. The speaking rate is an assumption until Ronok's timed read.
 
 | Window | Seconds | Words | Speech at 125 wpm | Speech at 150 wpm |
 |:---|---:|---:|---:|---:|
-| 0:00–0:15 | 15 | 27 | 13.0 | 10.8 |
-| 0:15–0:40 | 25 | 46 | 22.1 | 18.4 |
-| 0:40–1:05 | 25 | 45 | 21.6 | 18.0 |
-| 1:05–1:35 | 30 | 52 | 25.0 | 20.8 |
-| 1:35–1:51 | 16 | 31 | 14.9 | 12.4 |
-| 1:51–2:00 | 9 | 15 | 7.2 | 6.0 |
-| **Total** | **120** | **216** | **103.7** | **86.4** |
+| 0:00–0:26 | 26 | 49 | 23.5 | 19.6 |
+| 0:26–0:49 | 23 | 46 | 22.1 | 18.4 |
+| 0:49–1:00 | 11 | 21 | 10.1 | 8.4 |
+| 1:00–1:17 | 17 | 30 | 14.4 | 12.0 |
+| 1:17–1:45 | 28 | 54 | 25.9 | 21.6 |
+| 1:45–2:00 | 15 | 28 | 13.4 | 11.2 |
+| **Total** | **120** | **228** | **109.4** | **91.2** |
 
-**Changes from the phase 1 draft, made to fit:**
-- "Then check the next invoice" is cut from 0:00.
-- 1:35 ends at 1:51 to give the Ramp beat 9 seconds.
-- The Ramp line states the fact ("Uptime has written nothing") instead of a plan.
-- After independent acceptance: the 1:05 line says the log request uses wording the rules know and that other wording would go to a reviewer. Acceptance's differently worded request was not recognized; it went to a reviewer, safely.
+Every window has its speech at 125 wpm inside it. The slack is for the clicks: 2.5 s at the opening (the toolbar button), 2.6 s at 1:00 (Approve January claim) and 2.1 s at 1:17 (Activity, Overview, Approve response).
 
-**Optional cutaway, cut B (Ronok's call; not recommended at 125 wpm).** The recorded unclear-reply reading (job `29f371d0`) would sit at 1:20–1:30 in Tab 3: "When a reply isn't recognized, a model proposes a reading — this one was recorded — and a person must review." (17 words). It adds 8.2 s of speech at 125 wpm, bringing the 30-second window to 33.1 s, which does not fit. With three tab moves to make, it needs about 150 wpm or faster. If Ronok's timed read is that fast, use it; otherwise it stays out of the film and is in [the judge guide](../../JUDGES.md) with its receipt. Measured: the case and its dispute record render in 0.02 s and 0.07 s ("needs a reviewer · ambiguous grounds · Claimed 2400.00 · Awarded 0.00"). The interpretation page needs its own sign-in; after it, the recorded request renders in 0.08 s ("Model claude-opus-5-5. Finished Nov 9, 2026, 21:20 UTC.").
+**Wording rules for this cut:**
+- **The log.** It is not fetched or produced by Uptime. The log and its verification arrive as authored events through the signed intake (`fixtures/northwind/supplements.json`): a log export from one sender and a status verification from a second, with the same digest. Uptime matches them. The product's step names say "attach" and "verify", and their authority line says "Received automatically: event …". The narration says "arrive through a signed source … Uptime matches them".
+- **The reply.** It is recognized because its wording is one the rules know. A differently worded request goes to a reviewer, as independent acceptance found on `52f1a2f`.
+- **The side panel.** It is a browser side panel that reads only the active tab's address. It is never "in Ramp", "a Ramp app" or "Ramp-native", and nothing is written to Ramp.
+- **The stories stay separate.** Northwind is never on the Ramp bill, and the Ramp bill has no agreement. The bridge line is the only connection, and it says the contract and records are authored.
 
-**Disclosures that must be spoken** (task 10):
-- "authored for this demo" (0:40);
-- "a local counterparty, not a real vendor" (1:05);
-- "in a local ledger — not money recovered in Ramp" (1:35);
-- "a person posted the note; Uptime has written nothing" (1:51).
+**Disclosures that must be spoken:**
+- "a person posted that note; Uptime has made no write to Ramp" (0:00);
+- "this recorded run read an authored contract" (0:26);
+- "authored for this demo" (0:49);
+- "a local counterparty, not a real vendor" (1:17);
+- "in a local ledger, not money recovered in Ramp" (1:45).
 
-The scripted reviewer account stays visible in the top bar throughout.
+The reviewer account, `scripted-test-reviewer`, shows at the foot of the sidebar; keep it in frame in the walkthrough.
 
-**Recorded model work** (task 9): the 0:15 beat says "recorded", and the card shows the job's own model name and times. No beat presents a recorded result as live. A live contract call takes 11–14 s and cannot share a 25-second window with the narration.
+**Not in this cut:** the unclear-reply model reading. It no longer fits in 120 seconds with the Ramp opening. It stays in [the judge guide](../../JUDGES.md) with its receipt.
 
-**Rules for the model beats** (coordinator, November 9): the cut must not imply that the model read the Northwind contract or the cure-branch reply. Both Northwind steps are rule-based and say so.
+**Rules for the model beats** (coordinator, November 9): the cut must not imply that the model read the Northwind contract or the cure-branch reply.
 
 ## Recorded workspaces for the model beats
 
@@ -144,6 +150,8 @@ Each would be false.
 - "Uptime recognizes any evidence request." Only wording the rules know is recognized. Acceptance's differently worded request for a log went to a reviewer.
 - The $40 "Scenario only" row on the Ramp records page, or February's "Not determined" credit cell, as findings. Keep both out of frame (acceptance findings 2 and 3).
 - Any time or dollar saving. None is measured.
+- "Uptime runs inside Ramp", "a Ramp app" or "Ramp-native" about the side panel. It is a browser side panel that reads only the active tab's address, and writes nothing to Ramp.
+- "Uptime fetched the log" or "Uptime verified the log against a second source". The log and its verification arrive as authored events through a signed source, from two senders, and Uptime matches them.
 
 ## Five answers, spoken length
 
