@@ -9,6 +9,8 @@ This branch, `demo/film-20261110`, is a separate line for the film. It was cut f
   - Bill: invoice `NW-2026-04`, invoice date April 1, 2026, due May 1, 2026, one line "Cloud Hosting, 1 service-month, April 2026", USD 11,000.00, entity Save Time Inc. The payment method Ramp pre-filled was cleared, so no payment is set up. Not approved, not paid.
   - The state, the due date and the contact address are not in the walkthrough's fixtures; the form required them.
   - Ramp bill id: `b52cc017-9d2a-411d-bd81-7926a5c7e86f`.
+- **A second bill was entered the same way** at about 03:45 PST, at Ronok's request for more than one qualifying bill: invoice `NW-2026-03`, invoice date March 1, 2026, due March 31, 2026, one line "Cloud Hosting, 1 service-month, March 2026", USD 12,000.00, same vendor and entity, payment method cleared, not approved, not paid. Ramp bill id: `a779dd0e-70ce-4a7d-83cd-3c3271925e7d`. In the walkthrough this is the invoice billed USD 1,000.00 above the amended rate.
+- Ramp's sandbox has a "New credit" screen under Bill Pay, Vendor credits; none has been created. Ramp's API, as packaged here, has no call that creates a vendor credit.
 - **The read of that bill** (the two read-only commands and the packaging script) was also run by the coordinator, with the Ramp credential file on this machine, which it did not open. The packaged record says `started_by: PERSON` because the packaging code writes that; the matched page therefore does not say who started the read.
 - The credential already carries `bills:write`. No note has been posted by an agent; the note button is for Ronok to press.
 
