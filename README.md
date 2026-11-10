@@ -10,13 +10,13 @@ Built for the **Berkeley BBS × Ramp Hackathon: Automate the Old Way**.
 
 [![Verification](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml) [![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.14-243D32?style=flat-square)](pyproject.toml) [![Edition](https://img.shields.io/badge/First_edition-for_Ramp-DDEF80?style=flat-square&labelColor=243D32)](#where-ramp-fits)
 
-[Watch the film](docs/demo/film/uptime-demo.mp4) · [Run it](#run-it) · [Where the AI is](#where-the-ai-is) · [Where Ramp fits](#where-ramp-fits) · [What works today](#what-works-today) · [Judge guide](docs/JUDGES.md)
+[Download the film (2:48)](docs/demo/film/uptime-demo.mp4?raw=true) · [Run it](#run-it) · [Where the AI is](#where-the-ai-is) · [Where Ramp fits](#where-ramp-fits) · [What works today](#what-works-today) · [Judge guide](docs/JUDGES.md)
 
 <p align="center">
-  <a href="docs/demo/film/uptime-demo.mp4"><img src="docs/assets/demo/ramp-panel.png" alt="A bill in Ramp's sandbox for Northwind Cloud, with a note from Uptime in its activity saying the bill may be eligible for a USD 2,400.00 service credit under agreement NW-2026-001. Beside it, Uptime's side panel shows the matched invoice NW-2026-04, a service credit of $2,400.00 for January 2026, and the button Review and file the claim." width="100%"></a>
+  <a href="docs/demo/film/uptime-demo.mp4?raw=true"><img src="docs/assets/demo/ramp-panel.png" alt="A bill in Ramp's sandbox for Northwind Cloud, with a note from Uptime in its activity saying the bill may be eligible for a USD 2,400.00 service credit under agreement NW-2026-001. Beside it, Uptime's side panel shows the matched invoice NW-2026-04, a service credit of $2,400.00 for January 2026, and the button Review and file the claim." width="100%"></a>
 </p>
 
-<p align="center"><em>A frame from the <a href="docs/demo/film/uptime-demo.mp4">2:48 demo film</a>. The bill and Uptime's note are real records in Ramp's sandbox; the panel is Uptime's real page for that bill. The browser window around them is drawn. <a href="docs/demo/film/README.md">How the film was made</a>.</em></p>
+<p align="center"><em>A frame from the 2:48 narrated demo film (<a href="docs/demo/film/uptime-demo.mp4?raw=true">download, 10 MB</a>; GitHub does not play video files in place). The bill and Uptime's note are real records in Ramp's sandbox; the panel is Uptime's real page for that bill. The browser window around them is drawn. <a href="docs/demo/film/README.md">How the film was made</a>.</em></p>
 
 ## The old way
 
@@ -45,8 +45,10 @@ We do not publish a time or dollar saving: no measurement supports one, and publ
 **3. A contract type it has never read gets a reader built for it.** A decision model, Jev, finds no template on file that matches. Uptime starts three Claude agents to read the contract in parallel and a fourth to write a template: one extraction rule per term, stored as data. Code checks every quote and runs the template on a second contract; Jev checks each term against its sentence; a reviewer approves that exact version. From then on that contract type is read by fixed rules, with no model call. [More below.](#where-the-ai-is)
 
 <p align="center">
-  <img src="docs/assets/demo/template-run.png" alt="The template builder's run for Halcyon Grid's Platform Availability Addendum, approved. Step 1: Jev, no template on file matches, done in 0.2 seconds. Step 2: three Claude readers in parallel, each done in 5.5 seconds with 9 terms and 9 quotes found in the contract. Step 3: Claude template builder, 9 extraction rules written, done in 15.8 seconds. Step 4: Uptime's fixed rules, 4 of 5 checks passed." width="100%">
+  <img src="docs/assets/demo/template-builder.gif" alt="Eleven seconds of the template builder's run, from the film, at real speed: Jev decides in 0.2 seconds that no template on file matches; three Claude readers work in parallel with live counters and finish with 9 terms and 9 quotes each; the Claude template builder starts writing." width="100%">
 </p>
+
+<p align="center"><em>Eleven seconds of that run, from the film, at real speed.</em></p>
 
 **4. The claim takes four reviewer decisions.** Approve the claim; Uptime files it, takes in the vendor's request for a log and the log's verification, and drafts the response. Approve the response; the vendor awards the credit. Two more decisions post it and apply it: April's invoice goes from $11,000.00 to $8,600.00 in Uptime. After each decision the steps it set off are shown one at a time, tagged by who took them.
 

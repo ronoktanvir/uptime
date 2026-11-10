@@ -1,6 +1,6 @@
 # The demo film
 
-[`uptime-demo.mp4`](uptime-demo.mp4) is 2:47.8 long, 1920×1080, narrated, with no captions. It was made on November 10, 2026 from this repository's code. [`narration.md`](narration.md) has every spoken line with its times.
+[`uptime-demo.mp4`](uptime-demo.mp4?raw=true) is 2:47.8 long, 1920×1080, narrated, with no captions. GitHub does not play video files in place, so the link downloads it (10 MB). It was made on November 10, 2026 from this repository's code. [`narration.md`](narration.md) has every spoken line with its times.
 
 `walkthrough.mp4` and the stills beside it are the earlier silent cut, kept for the record. They show the interface as it was before the redesign.
 
