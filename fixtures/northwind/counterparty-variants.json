@@ -1,12 +1,19 @@
 {
   "schema": "northwind-counterparty-variants/1",
-  "authorship": "Authored by the role-2 implementer (agent3) on 2026-11-09 for the walkthrough's escalation branch. It is a local authored reply, not a real vendor message and not taken from any evaluation corpus.",
+  "authorship": "Authored by the role-2 implementer (agent3) on 2026-11-09: 'unclear' for the walkthrough's escalation branch, and 'reworded-log-request' (an evidence request in wording the fixed rules do not recognise) for the reviewed-reading branch. Each is a local authored reply, not a real vendor message, and neither is taken from any evaluation corpus or acceptance control.",
   "variants": {
     "unclear": {
       "denial": {
         "event_id": "northwind-denial-jan-unclear",
         "known_at": "2026-03-01T12:10:00Z",
         "text": "Thanks for the January claim. Our platform records do not show that period the way you describe it, and we would rather settle any credit with your account manager at renewal than as a separate claim."
+      }
+    },
+    "reworded-log-request": {
+      "denial": {
+        "event_id": "northwind-denial-jan-reworded",
+        "known_at": "2026-03-01T12:10:00Z",
+        "text": "We can't take this any further on the numbers alone. Could your team pull the hosting resource log you kept for January, the one filed as NW-JAN-LOG-001, and send it across so our engineers can line it up against their own records?"
       }
     }
   }

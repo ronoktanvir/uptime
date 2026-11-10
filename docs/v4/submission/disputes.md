@@ -279,3 +279,19 @@ Result on this branch: **2 passed** (reply-first and notice-first).
 - **From independent acceptance:**
   - A differently worded evidence request ("please provide the request log…") is not recognized by the finite grammar and goes safely to human review. This is a narrow-recognition limit, not changed in this push.
   - A late-filing correct denial cannot be exercised through the HTTP routes, because they refuse to file after the cutoff. Acceptance used the maintenance-with-notice case over real HTTP, which reached `DENIAL_REVIEW` and closed only on a signed acceptance.
+
+
+## Reworded log request variant (Phase A, Ronok's go-ahead relayed by the coordinator about 21:30 PST)
+
+Written by me (agent3) once, before any model call, in my own words. It is not taken from acceptance's sealed control or from any evaluation corpus.
+
+- Setup value: `--counterparty-reply reworded-log-request`, opt-in like `unclear`. The default walkthrough (`request-log`) is unchanged.
+- Event id `northwind-denial-jan-reworded`, known at `2026-03-01T12:10:00Z`, the same moment as the default reply.
+- Exact text:
+
+  > We can't take this any further on the numbers alone. Could your team pull the hosting resource log you kept for January, the one filed as NW-JAN-LOG-001, and send it across so our engineers can line it up against their own records?
+
+- SHA-256 of the UTF-8 text: `a7dccd088968906b1045f0b16cb9de25245de2da3b856edc76f02b9fee674ac5`.
+- Under the fixed rules (`correspondence_reason.propose`, claimed 2400.00, month 2026-01) it reads **`unknown`**.
+- It names the document `NW-JAN-LOG-001` deliberately. A reviewer's reading can then cite the reference, so `requested_artifact` becomes `{type: resource_log, ref: NW-JAN-LOG-001}`. That matches the package supplement (`artifact_ref` NW-JAN-LOG-001, `artifact_type` resource_log). `approved_artifact` matches by type and, when given, reference.
+- The variants file's pinned SHA-256 changes from `9e0e4750…` to `1250baf3cb0f2f10b3ead8ccafc0d060349081749675e7efd64c60626812ee9f`. The `unclear` entry is byte-identical, and the authorship statement now covers both variants.

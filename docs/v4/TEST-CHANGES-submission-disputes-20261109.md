@@ -90,3 +90,45 @@ These tests are on main, so each change is recorded here. **Reason:** they scann
   - `free_port()` returns an OS-assigned free port; used by `test_served_create_and_resume_frame_only_when_given_and_print_the_line_first`.
 
 Result: both files, **19 passed, 1 warning**, no skips.
+
+## Reworded log request variant, Phase A (Ronok's go-ahead, relayed by the coordinator)
+
+**Deliberate change:** `scripts/setup_northwind.py` `VARIANTS_SHA256` moves from `9e0e4750…` to `1250baf3cb0f2f10b3ead8ccafc0d060349081749675e7efd64c60626812ee9f`, and `COUNTERPARTY_REPLIES` gains `reworded-log-request`.
+- **Reason:** `fixtures/northwind/counterparty-variants.json` gains the authored `reworded-log-request` entry, and its authorship statement now covers both variants. The `unclear` entry is byte-identical.
+- **Still opens:** a copy of the preserved `unclear` workspace opens on `21b0551` and shows job `29f371d0` `SUCCEEDED`. The preserved folder's database hash is unchanged (`1a035ab2…`).
+
+`scripts/run_denial_model_job.py` is restructured around `run()`, with `--variant`. The `unclear` path keeps its earlier shape: semantic review in the same workspace, no continuation.
+
+**No existing test changed.** New tests (no real process is launched, so no ports are used):
+
+- `tests/test_reworded_log_request_r2.py` (5 tests):
+  - the variant's text hash, and that the fixed rules read it as `unknown`;
+  - the pause at `UNEXPECTED_GROUND` with no offer;
+  - the reviewer-only bridge (own reading, review, preview `NEEDS_EVIDENCE`, prepare, then "Continue routine steps" and the remaining person decisions) to the same applied credit: 2400.00 claimed, awarded, posted and applied; bill 11000.00, then 8600.00 outstanding; counts 4 and 7; the same eleven steps and authority kinds as the default;
+  - a rejected reading and a reading with an `unsupported` segment: prepare refused (409), case in review, ledger unchanged;
+  - the default and `unclear` replies unchanged.
+- `tests/test_run_denial_model_job_r2.py` (3 tests, stand-in provider as in `test_public_proposal_config.py`):
+  - the reworded run stops after the candidate (no review rows in the preserved database);
+  - transport fields come from the job row, with an absent `revision` reported as `NOT_CAPTURED`;
+  - the continuation runs on the scratch copy only and completes the walkthrough;
+  - a dirty checkout is refused before anything is written;
+  - the `unclear` run keeps its earlier shape.
+
+First runs: **5 passed**, **7 passed**. Focused set (new tests, coordinator, setup refusals, side panel, Northwind workflow, model jobs, job view and interpretation tests): **167 passed, 1 warning**.
+
+## Model reading gate in the denial driver (coordinator review of `5d69f9d`)
+
+**Problem:** the continuation's scripted review always submitted the reviewer's own reading and answered any difference with "correct". So a model reading that was not a log request would still have completed the walkthrough.
+
+**Change, fixed in code before any call:**
+- `LOG_REQUEST_CRITERION` and `CRITERION_TEXT`: the model's candidate **alone** is mapped with the product's `proposal_for_review` and the server context, with no reviewer input. The model read the reply as the log request **iff** `reason == "artifact"`, `reference == "NW-JAN-LOG-001"`, and `artifact_type` is `resource_log` or absent.
+- **If it fails:** no review, preview, preparation or copy. The outcome is `MODEL_DID_NOT_READ_A_LOG_REQUEST`, the case stays in review, and the receipt keeps the full candidate interpretation as stored.
+- **If it holds:** the review on the copy records, per proposition, accept or correct with the exact differing fields. The overall `agreement` is `IDENTICAL` or `SAME_REQUEST_DIFFERENT_FIELDS` with the list.
+
+**Tests:** these are this push's own new tests (in `tests/test_run_denial_model_job_r2.py`, not yet on main), so this is not a change to existing tests.
+- The earlier `test_reworded_run_stops_after_the_candidate_and_continues_only_on_a_copy` is replaced by:
+  - `test_identical_reading_continues_on_the_copy_and_records_identical`
+  - `test_the_same_request_with_a_different_field_continues_and_names_the_field`. The reply is a single source block, so any model proposition spans the whole reply. The field that can differ while the mapping holds is `artifact_type` (absent).
+  - `test_a_reading_that_is_not_the_log_request_stands_and_nothing_continues[unsupported, two-propositions, different-reference]`. Each asserts no copy, no review rows, the case in review, and no money moved.
+
+Result: **7 passed** on the first run. **Mutation check:** making the criterion always true makes all three "not a log request" cases fail.
