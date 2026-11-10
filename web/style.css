@@ -991,6 +991,43 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
   .portfolio-status { justify-content: flex-start; }
   .agent-counters { grid-template-columns: minmax(0, 1fr); }
 }
+/* 15b. How a contract was read (demo-ai-20261110). The Agreements page's two-column reading view (contract text beside
+   the terms read from it, each tied to its sentence, with a replay) and the "Read a contract with Claude" panel.
+   Presentation only; every word and value comes from v4_ui.js and the server record. */
+.uptime-v4 .v4-reading { margin: 16px 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.uptime-v4 .v4-reading > h3 { margin: 0 0 4px; }
+.uptime-v4 .v4-reading-lead { margin: 0 0 4px; font-size: 15px; line-height: 22px; font-weight: 600; color: var(--ink); }
+.uptime-v4 .v4-reading-model .v4-reading-lead, .uptime-v4 .v4-live-reading .v4-reading-lead { color: var(--accent); }
+.uptime-v4 .v4-reading-facts { margin: 0 0 12px; font-size: 13px; line-height: 20px; color: var(--muted); }
+.uptime-v4 .v4-replay-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 10px; }
+.uptime-v4 .v4-run-label { font-size: 12px; line-height: 18px; color: var(--muted); }
+.uptime-v4 .v4-replay-progress { font-size: 12px; line-height: 18px; font-weight: 600; color: var(--accent); }
+.uptime-v4 .v4-reading-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.uptime-v4 .v4-reading-grid h4 { margin: 0 0 6px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.uptime-v4 .v4-reading-text { margin: 0; max-height: 460px; overflow: auto; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12.5px; line-height: 20px; }
+.uptime-v4 .v4-reading-sentence { border-radius: 3px; background: var(--accent-soft); box-shadow: inset 0 -1px 0 var(--accent-line); cursor: pointer; transition: background-color 160ms ease; }
+.uptime-v4 .v4-reading-sentence.v4-lit { background: var(--warn-soft); box-shadow: 0 0 0 2px var(--warn-line); }
+.uptime-v4 .v4-reading-terms { list-style: none; margin: 0; padding: 0; max-height: 460px; overflow: auto; }
+.uptime-v4 .v4-reading-term { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; transition: background-color 160ms ease, opacity 200ms ease; }
+.uptime-v4 .v4-reading-term.v4-lit { border-color: var(--warn-line); background: var(--warn-soft); }
+.uptime-v4 .v4-reading-term.v4-replay-hidden { display: none; }
+.uptime-v4 .v4-reading-minor { opacity: .7; }
+.uptime-v4 .v4-reading-label { font-size: 13px; line-height: 18px; color: var(--ink); }
+.uptime-v4 .v4-reading-value { font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
+.uptime-v4 .v4-reading-missing { font-size: 12px; color: var(--warn); }
+.uptime-v4 .v4-live-read { border-color: var(--accent-line); }
+.uptime-v4 .v4-live-form { display: block; }
+.uptime-v4 .v4-live-form .v4-field { display: flex; flex-direction: column; gap: 4px; max-width: 520px; margin-bottom: 8px; }
+.uptime-v4 .v4-live-refusal { margin-top: 12px; }
+.uptime-v4 .v4-live-preview { max-height: 180px; overflow: auto; margin: 8px 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); white-space: pre-wrap; overflow-wrap: anywhere; }
+.uptime-v4 .v4-live-preview[hidden], .uptime-v4 .v4-live-paste[hidden] { display: none; }
+.uptime-v4 .v4-live-states { list-style: none; margin: 8px 0; padding: 0; }
+.uptime-v4 .v4-live-state { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 4px; }
+.uptime-v4 .v4-live-job { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.uptime-v4 .v4-live-family { margin-top: 12px; }
+.uptime-v4 .v4-live-family > h3 { margin: 0 0 4px; }
+@media (max-width: 760px) { .uptime-v4 .v4-reading-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .uptime-v4 .v4-reading-sentence, .uptime-v4 .v4-reading-term { transition: none; } }
 /* 16. Side panel (submission-panel-20261110). Everything in this block applies only when the page is framed by the
    one extension the server allows (app.js adds .panel-mode to <html> then), or styles the one-bill page's own parts.
    Presentation only: no state, record or word is hidden by it. The full app in an ordinary tab is unchanged. */

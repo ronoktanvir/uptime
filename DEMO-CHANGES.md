@@ -80,3 +80,11 @@ The Python browser tests above were edited but not run (no full suite). One head
 No amount, stage or authority assertion was weakened.
 
 - `web/ramp_bill.test.cjs` › `a live read says so with its time and can be refreshed; refresh hides on 404; a saved read keeps Not a live read`: the refresh request now sends an empty body, which is what the server accepts.
+
+## How a contract was read, and live Claude readings (`work/demo-ai-20261110`)
+
+- **Agreements page, "How this contract was read".** Every agreement whose record names how it was read shows its source text beside the terms read from it, each term tied to its sentence (hover, focus or press either side). One line of facts from the record: the model (or "No model was used"), how many quotes appear word for word in the source text the server sent (checked in the page), and who accepted the interpretation. "Replay the reading" steps through the terms in reading order, labelled "Recorded run · <date>" from the extraction record. Pure helpers are in `web/contract_reading.js`.
+- **"Read a contract with Claude".** Offered to an account that may stage drafts. It submits a real proposal job for an authored sample (`fixtures/submission_onboarding/`) or pasted text, shows each job's state from the server, then the proposed terms beside their sentences, labelled "Live run". Nothing is staged or approved.
+- **`scripts/setup_northwind.py --serve --model-jobs`** writes `<workspace>/model-jobs/` (config and exact-request approvals for the samples, three takes each, model invocation only, 12 hours) at start-up and serves with it.
+
+No existing test was changed for this.
