@@ -155,7 +155,7 @@ All results below are terminal. The sealed expectations are revealed in [this fi
 ## Headline
 
 The frozen build does what the film plan says for the authored walkthrough:
-- From a fresh clone, the published instructions lead to sign-in and four reviewer decisions, with seven automatic steps between them.
+- From a fresh clone, the published instructions lead to sign-in and four reviewer decisions, with seven automatic steps between them. **[Qualified 2026-11-09 23:59Z: only after `git checkout 52f1a2f`, a step the README does not contain. A default clone gets `main` at `b6e93bd`. See the Task 4 correction and finding P1-A.]**
 - The money, citations and authority records match the sealed expectations exactly.
 - Every refusal and control behaved safely: **no unsafe acceptance, invented evidence or unauthorized money movement was observed.**
 
@@ -171,9 +171,26 @@ The limits that must be stated:
 | Step | Observed |
 |---|---|
 | Commands | The README's two commands. The setup command printed the credential path, account `scripted-test-reviewer` and URL, as documented ([output](../evidence/submission-acceptance-20261109/setup-output.json)). |
-| Deviations forced by this machine | SSH clone (the repository is private); workspace under scratch instead of `$HOME/uptime-demo`; `--origin http://127.0.0.1:8851`, because 8776 is the occupied presentation port. `--origin` is documented in the linked `NORTHWIND-WORKFLOW.md`. |
+| Deviations forced by this machine | SSH clone (the repository is private); workspace under scratch instead of `$HOME/uptime-demo`; `--origin http://127.0.0.1:8851`, because 8776 is the occupied presentation port. `--origin` is documented in the linked `NORTHWIND-WORKFLOW.md`. **[Corrected 2026-11-09 23:59Z — see below.]** |
 | Person path (`BROWSER`, headless system Chrome) | Type the account, choose the credential file, Sign in, then click four decisions: "Approve January claim", "Approve response", "Post to Local ledger", "Apply credit to eligible invoice". 13.9 s of interaction. No undocumented step. [log](../evidence/submission-acceptance-20261109/person-path-log.json) |
 | Setup time | About 1 s, with the uv cache already warm. A judge's first run includes the dependency download, which this machine did not measure. |
+
+**Correction, 2026-11-09 23:59Z** (requested by the coordinator; the original row above is kept as written):
+
+- **What was done at the time (23:25Z).** Phase B cloned `git@github.com:ronoktanvir/uptime.git`, the SSH URL of this machine's existing remote. It then ran `git checkout 52f1a2f` before the README's second command.
+- **Two errors in the original row:**
+  - The reason "the repository is private" was never checked. It was assumed.
+  - The row leaves out the checkout itself. That checkout was a deviation: the README contains no such step.
+- **What happens now.** The README's first command, `git clone https://github.com/ronoktanvir/uptime.git`, was run anonymously over HTTPS: no credential helper, no git config, no prompt, no SSH.
+  - It exits 0. The repository is public (the unauthenticated API reports `visibility: public`).
+  - The clone checks out `main` at `b6e93bd`.
+  - `git checkout 52f1a2f` then succeeds; the commit is reachable as `frozen/submission-fallback-20261109`.
+  - SSH is therefore not needed. The only deviations a judge's machine needs are the workspace folder and, where 8776 is taken, `--origin`.
+- **What this changes in the verdict.** The PASS holds for the frozen build *once it is checked out*. The published instructions alone do not reach that build (finding **P1-A** below). The same qualification applies to:
+  - the first headline bullet;
+  - the "Setup readiness" row in Task 10.
+
+[Record of the anonymous clone](../evidence/submission-acceptance-20261109/anonymous-clone-20261109.txt). The clone was deleted afterwards.
 
 ## Task 5: actual model dispatch — PASS from recorded artifacts. No fresh calls were made.
 
@@ -229,12 +246,31 @@ Probe suite on the fresh clone: `uv run --locked pytest -q tests/test_release_pr
 |---|---|
 | Parser success | Northwind's contract and its request-log reply are parsed deterministically. A differently worded evidence request (T7-ME) is not recognized. |
 | Model interpretation | Recorded genuine runs: 1/2 authored positives reached SHADOW; the control was refused; the unclear reply was read as ambiguous. **Independent unseen result, by the Codex evaluation lane on `805dd1c`: 0/4 positives; dispute accuracy unmeasured.** Historical results (0/50, 0/4, 3/6, Backblaze refusal) are unchanged. |
-| Setup readiness | Fresh clone to walkthrough with the documented steps only. The held-out dispute cohorts are setup-blocked (see the register). |
+| Setup readiness | Fresh clone to walkthrough with the documented steps only. The held-out dispute cohorts are setup-blocked (see the register). **[Qualified 2026-11-09 23:59Z: the frozen build must be checked out explicitly; see finding P1-A.]** |
 | Reviewed outcome | 4 person decisions complete the walkthrough. Correct-denial acceptance works through signed routes. |
 | Automatic execution | 7 automatic steps, each under approved-operation or event-intake authority; none makes a judgment or moves money |
 | Native effects | **None by Uptime.** One person-posted note, read back. |
 
 ## Bugs and risks, ranked by consequence (reproductions in the evidence files; none fixed here)
+
+**Added 2026-11-09 23:59Z, after the report.** It ranks first. The numbering of items 1–6 below is unchanged, so earlier references to them stay valid.
+
+**P1-A: a judge who follows the README runs `main`'s build, not the frozen one.** The default branch is `main` at `b6e93bd`.
+
+*Reproduction:*
+- Anonymous `git clone https://github.com/ronoktanvir/uptime.git` checks out `main` at `b6e93bd`.
+- The repository page renders `main`'s README: blob `bf3ca57`, not the frozen `4057017`.
+- Neither README says to check out `52f1a2f` or `frozen/submission-fallback-20261109`.
+- The frozen README's second command (`setup_northwind.py --directory … --serve`) is accepted by `main`'s script without error. A judge gets no signal that the build differs.
+
+*Consequence:*
+- `main` is an ancestor of `52f1a2f`, 85 commits and 109 files behind.
+- It lacks the merges for role 2's dispute automation (`02d86f7`), role 1's contract intelligence and role 3's Ramp context (`c756853`, `ff7977c`), role 4's screens (`0fe20b4`, `6b93e31`) and role 6's README and judge guide (`52f1a2f`).
+- Every acceptance result in this report is for `52f1a2f`. None of it is evidence for what a default clone runs. `main`'s walkthrough was not run here.
+
+*Why P1 and not P0:* no unsafe behaviour or wrong money was observed. The issue is that the judged build is not the accepted one.
+
+*Not fixed by acceptance.* Moving `main` or changing the published instructions is Ronok's decision.
 
 1. **P2: evidence-request recognition is narrow.** A plain request for a request log, worded differently from the product's own phrasing, goes to human review instead of an evidence wait (T7-ME). It is safe, but the README phrase "A recognised request is answered with verified evidence" must not be presented as general recognition.
 2. **P2: a constructed scenario sits beside the real Ramp bill.** The Ramp records page lists bill `ae98c421…` (USD 840, earlier capture) with "Invoice cap review · Contract finding ELIGIBLE · USD 40.00 · Scenario only, not a finding". It is labelled, but it shows a constructed $40 eligibility figure in a findings column next to the verified bill. Earlier demo guidance (DEMO-PATH-87) warned against constructed $40/$800 figures. ([panel text](../evidence/submission-acceptance-20261109/ramp-records.txt))
