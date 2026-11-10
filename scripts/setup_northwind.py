@@ -252,6 +252,22 @@ def default_claude_executable():
     return str(Path(found).resolve()) if found else None
 
 
+def prepare_template_builds(directory,executable):
+    """Demo line: turn on the template builder for the served workspace; prints one start-up line.
+
+    Builds are stored under <workspace>/template-builds/. Only the authored Halcyon samples can be built, at most six
+    per server process. The Jev key file's presence is reported, never its contents; only JevClient reads it."""
+    if not executable or not Path(executable).is_file():
+        raise SystemExit('setup_northwind: --template-builder needs the Claude Code CLI; none was found (use --claude-executable).')
+    from uptime.template_builder import ClaudeCLI,TemplateBuilds
+    from uptime import jev as jev_module
+    key_file=Path(os.environ.get('UPTIME_JEV_KEY_FILE') or Path.home()/'.config'/'uptime'/'jev-api-key')
+    builds=TemplateBuilds(Path(directory)/'template-builds',ClaudeCLI(executable),jev_module.JevClient())
+    print('Template builder: on. Claude Code CLI: '+str(Path(executable).resolve())+'. Jev key file '
+          +('present' if key_file.is_file() else 'not found')+' at '+str(key_file)+'.',file=sys.stderr,flush=True)
+    return builds
+
+
 def prepare_model_jobs(directory,executable):
     """Demo line: let the served walkthrough run live Claude readings of the authored sample contracts.
 
@@ -408,6 +424,9 @@ def main():
                              'CLI must already be signed in for this user')
     parser.add_argument('--claude-executable',type=Path,
                         help='Absolute path of the Claude Code CLI for --model-jobs (default: claude on PATH)')
+    parser.add_argument('--template-builder',action='store_true',
+                        help='Let the served Agreements page build a template for the authored Halcyon sample with Claude '
+                             'readers (Claude Code CLI, already signed in) and Jev (key file read by the Jev client at call time)')
     parser.add_argument('--step-by-step',action='store_true',
                         help='Offer every routine step as its own reviewer action (the earlier behavior); default runs routine steps automatically')
     parser.add_argument('--counterparty-reply',choices=COUNTERPARTY_REPLIES,default='request-log',
@@ -442,8 +461,10 @@ def main():
         parser.error('--model-jobs requires --serve')
     if args.model_jobs and args.public_proposal_config:
         parser.error('--model-jobs writes its own proposal configuration; leave out --public-proposal-config')
-    if args.claude_executable and not args.model_jobs:
-        parser.error('--claude-executable applies with --model-jobs')
+    if args.template_builder and not args.serve:
+        parser.error('--template-builder requires --serve')
+    if args.claude_executable and not (args.model_jobs or args.template_builder):
+        parser.error('--claude-executable applies with --model-jobs or --template-builder')
     if args.resume and (args.step_by_step or args.counterparty_reply!='request-log'):
         parser.error('--step-by-step and --counterparty-reply apply when a workspace is created')
     try:
@@ -516,6 +537,8 @@ def main():
             done=app.state.ramp_demo.auto_sync()
             print('Uptime notes posted to Ramp at start-up: '+str(len(done['posted']))+'.'
                   +''.join(' Not posted: '+e['sentence'] for e in done['failed'][:3]),file=sys.stderr,flush=True)
+        if args.template_builder:
+            app.state.template_builds=prepare_template_builds(args.directory,str(args.claude_executable) if args.claude_executable else default_claude_executable())
         import uvicorn
         uvicorn.run(app,host='127.0.0.1',port=int(private['origin'].rsplit(':',1)[1]),log_level='warning')
 

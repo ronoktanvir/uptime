@@ -14,14 +14,16 @@ This branch, `demo/film-20261110`, is a separate line for the film. It was cut f
 - **Uptime has posted notes to Ramp through the API** since about 03:55 PST: at start-up with `--ramp-notes auto` the server posted one note on each matched Northwind bill and read each back. They appear in each bill's Activity under the author "Uptime".
 - Ramp's sandbox has a "New credit" screen under Bill Pay, Vendor credits; none has been created. Ramp's API, as packaged here, has no call that creates a vendor credit.
 - **The read of that bill** (the two read-only commands and the packaging script) was also run by the coordinator, with the Ramp credential file on this machine, which it did not open. The packaged record says `started_by: PERSON` because the packaging code writes that; the matched page therefore does not say who started the read.
-- The credential already carries `bills:write`. No note has been posted by an agent; the note button is for Ronok to press.
+- The credential already carries `bills:write`. Every note so far was posted by the server at start-up in auto mode, and the coordinator (an AI agent) started that server; nobody pressed the note button. A third note, on the Corvid bill, was posted the same way at about 04:31 PST on November 10. Checked in Ramp at about 04:32 PST: each of the three bills carries exactly one Uptime note.
 
 ## What the demo line adds to the product
 
 - The side panel is a focused one-bill view. A Ramp bill whose vendor, invoice number and amount equal the walkthrough's April invoice is shown as matched, with the credit, the clause, the inputs and a button into the full app. A badge appears on the toolbar button while a matched bill is shown.
 - `POST /api/ramp/notes` lets Uptime post one of two fixed notes on a matched bill through Ramp's API, only when the server is started with `--ramp-notes`.
 - After each reviewer decision on the Overview, the steps that decision recorded are shown one at a time. They have already run when they appear.
-- Automatic steps are tagged "Uptime agent". That means fixed automation under an approval a reviewer already recorded; no step in this walkthrough is a model's.
+- Automatic steps are tagged "Uptime · automatic" (they read "Uptime agent" until 04:31 PST on November 10). That means fixed automation under an approval a reviewer already recorded; no step in the Northwind case is a model's. "Agent" on screen is kept for Claude.
+- A Ramp bill that agrees with another vendor's estimated credit (Corvid) is matched too; its note says the estimate is waiting for review, because no claim is being prepared for it.
+- **Template builder** (asked for by Ronok at about 04:10 PST on November 10, to be built for real and shown in the film): for a contract type Uptime has not read, Jev decides no template matches, three Claude readers read it in parallel, a Claude builder writes extraction rules as data, code checks them, Jev confirms each term against its sentence, a reviewer approves that exact version, and the next contract of the type is read by fixed rules. Interface: `docs/demo/TEMPLATE-BUILDER.md`. Jev is TypeSafe AI's decision model; the client (`uptime/jev.py`) reads Ronok's key from `~/.config/uptime/jev-api-key` at each call and sends requests only to `api.typesafe.ai`. The sample contracts it sends are authored fixtures.
 
 ## How the demo line is run
 

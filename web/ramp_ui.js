@@ -356,7 +356,7 @@
     // balance and the notes. The browser formats amounts as strings (no arithmetic) and never adds stages together.
     const STAGES = [['ESTIMATED','Estimated'],['CLAIMED','Claimed'],['AWARDED','Awarded'],['POSTED','Posted'],['APPLIED','Applied']];
     const BASIS = {vendor_name:'vendor', invoice_number:'invoice number', amount:'amount'};
-    const OPEN_ROUTE = /^(?:overview|records|recovery|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
+    const OPEN_ROUTE = /^(?:overview|records|recovery|agreements|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
     const NOTE_KIND = {possible_credit:'Possible service credit', credit_applied:'Credit applied'};
     function money(amount, currency) {
       if (amount == null || amount === '') return 'Not determined';
@@ -411,7 +411,8 @@
             el('h2', confirmed ? 'A service credit was applied to this bill in Ramp' : 'A service credit may apply to this bill'),
             el('p', money(credit.amount, credit.currency || invoice.currency), 'match-amount'),
             note(`${month ? `For service in ${month}` : 'Service month not recorded'} · ${confirmed ? 'Applied in Ramp' : stage >= 0 ? STAGES[stage][1] : 'Stage not recorded'}`));
-      const primaryWords = price ? 'Review in Uptime' : stage <= 0 ? 'Review and file the claim' : 'Open the case in Uptime';
+      const estimateOnly = !price && match.route === 'agreements';
+      const primaryWords = price ? 'Review in Uptime' : estimateOnly ? 'Review the estimate in Uptime' : stage <= 0 ? 'Review and file the claim' : 'Open the case in Uptime';
       const primary = button(primaryWords, () => (typeof openApp === 'function' ? openApp(route) : onNavigate(route)), 'match-primary');
       const next = match.next_action && typeof match.next_action.label === 'string' ? note(`Next in Uptime: ${match.next_action.label}`) : null;
       const result = el('p', null, 'help match-note-result'); result.setAttribute('role', 'status');
@@ -447,7 +448,7 @@
         ...readParts(v, ctx, rerender));
       // The evidence: the agreement, its clause quoted exactly, and the inputs.
       const evidence = add(el('section', null, 'panel match-evidence'), el('h2', 'The evidence'),
-        fields([['Agreement', agreement.id || 'Not provided']]),
+        fields([['Agreement', agreement.id || 'Not provided'], ...(typeof agreement.read_by === 'string' && agreement.read_by ? [['Contract read by', /^claude/i.test(agreement.read_by) ? 'Claude (' + agreement.read_by + ')' : 'Fixed rules (' + agreement.read_by.replace(/_/g, ' ') + ')']] : [])]),
         typeof agreement.clause === 'string' && agreement.clause ? el('blockquote', agreement.clause) : note('No clause quoted.'),
         typeof agreement.citation === 'string' && agreement.citation ? el('p', agreement.citation, 'help match-citation') : null,
         list(match.inputs).length ? fields(list(match.inputs).filter(i => i && typeof i === 'object').map(i => [shown(i.label), shown(i.value)]), 'match-inputs') : null);

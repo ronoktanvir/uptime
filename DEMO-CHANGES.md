@@ -107,6 +107,28 @@ No existing test was changed for this.
 - `tests/test_ramp_demo_notes.py` › `test_the_northwind_sample_matches_and_the_docusign_bill_does_not`: the expected `agreement` gains `read_by` (`deterministic_document_parser`, the Northwind agreement's own extraction method), so a page can say who read each contract.
 - Added `tests/test_ramp_demo_round3.py`: a Ramp bill that agrees with another vendor's estimated credit (Corvid, `opportunities`) is matched with route `agreements`; auto mode posts its note once; a bill one cent off does not match. The note for such a bill ends "The estimate is waiting for review in Uptime." because no claim is being prepared for it; the fixed shapes in `uptime/ramp_workflow.py` allow that second ending.
 
+## Wording and the panel's routes (coordinator, November 10, 04:31 PST)
+
+- Rule-based steps are labelled "Uptime · automatic" (they were "Uptime agent"), and the portfolio's counters are headed "Who is doing the work" (was "Agents at work"), so that "agent" on screen always means a model. Changed tests: `web/steps_replay.test.cjs` (the legend figures and the sentence under them), `web/overview_steps.test.cjs` › "three plain actors: the reviewer, Uptime automatic steps, and the vendor or the named source" (was "... the Uptime agent ...") and its two label lists, `web/portfolio.test.cjs` › "the work counters count recorded facts: Claude readings, automatic steps and reviewer decisions" (was "agents at work counts ...") plus the `nextActor` word and the page-text list.
+- The portfolio header no longer shows one case's "As of" date, because the page spans months and vendors.
+- The side panel may ask to open `agreements` (a bill matched to another vendor's estimate leads there). Changed test: `tests/helpers/side_panel_extension.test.cjs` › "only overview, records, recovery, agreements, cases and one case by a plain id may be opened, on the configured origin only" (was without "agreements"; `agreements/x` is still refused).
+- A matched bill's page shows "Contract read by" from the match's `read_by`, and for an estimate with no claim the button reads "Review the estimate in Uptime".
+
+## Jev client (`work/demo-tb-jev-20261110`)
+
+- Added `uptime/jev.py` (`JevClient`, `JevUnavailable`, `FakeJev`), the interface in `docs/demo/TEMPLATE-BUILDER.md` unchanged. One extra keyword-only constructor argument, `opener`, lets tests inject a fake transport.
+- Verified against TypeSafe's OpenAPI document (`https://api.typesafe.ai/openapi.json`) and real calls: `POST https://api.typesafe.ai/v1/systemone`, Bearer key, body `{"model": "jev-1.13.0", "state": <text>, "questions": {"q": {"type": "choice" | "noul", "instructions": ..., "criteria": {...}}}}`; answers under `answers.q` (`choice` + `probabilities`, or `noul` = probability of yes).
+- Standard library only. HTTPS to `api.typesafe.ai` only, redirects not followed, 20 s timeout, context cut to 6,000 characters. The key is read per call and never kept, logged or put in an exception.
+- Added `tests/test_jev.py` (no network) and `scripts/jev_smoke.py` (two real calls on a made-up SLA sentence).
+- No existing test changed.
+
+## Template builder engine (`work/demo-tb-engine-20261110`)
+
+New files: `uptime/template_rules.py` (the fixed interpreter: one regular expression per term, run in a time-limited worker process), `uptime/template_builder.py` (`TemplateBuilds`: Jev classification, three Claude readers, Claude template builder with up to two repair rounds, five checks, reviewer approval by SHA-256, the post-approval read; HTTP routes), `fixtures/template_builder_demo/` (three authored Halcyon Grid addenda, `expected.json`, `README.md`), `tests/test_template_builder.py`, `scripts/template_builder_smoke.py` (one real build against the Claude Code CLI and Jev).
+
+Wiring: `uptime/server.py` registers the routes (off unless `app.state.template_builds` is set); `scripts/setup_northwind.py` gains `--template-builder` (requires `--serve`; `--claude-executable` now also applies to it) and `prepare_template_builds`.
+
+No existing test was changed.
 ## Template builder page (November 10)
 
 Built against `docs/demo/TEMPLATE-BUILDER.md` (routes and the `sample`, `build` and `reading` shapes) with no change to that page.

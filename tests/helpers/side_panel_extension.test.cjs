@@ -118,10 +118,10 @@ test('the shell accepts only {type, route} from the framed window on the configu
   assert.equal(openRequest(undefined, config, frameWindow), null);
 });
 
-test('only overview, records, recovery, cases and one case by a plain id may be opened, on the configured origin only', () => {
-  for (const route of ['overview', 'records', 'recovery', 'cases', 'cases/inbox-1', 'cases/A.b_c-9', 'cases/' + 'a'.repeat(64)])
+test('only overview, records, recovery, agreements, cases and one case by a plain id may be opened, on the configured origin only', () => {
+  for (const route of ['overview', 'records', 'recovery', 'agreements', 'cases', 'cases/inbox-1', 'cases/A.b_c-9', 'cases/' + 'a'.repeat(64)])
     assert.equal(allowedRoute(route), true, route);
-  for (const route of ['', 'activity', 'agreements', 'ramp', 'ramp/bill-1', 'ramp-bill', 'ramp-bill/x', 'cases/', 'cases/-x', 'cases/.x',
+  for (const route of ['', 'activity', 'agreements/x', 'ramp', 'ramp/bill-1', 'ramp-bill', 'ramp-bill/x', 'cases/', 'cases/-x', 'cases/.x',
     'cases/a/b', 'cases/a%2Fb', 'cases/a?b', 'cases/a#b', 'cases/' + 'a'.repeat(65), 'records ', ' records', 'RECORDS', 'records/x',
     'overview\n', '//evil.example', 'https://evil.example/#records', 'javascript:alert(1)', null, undefined, 7, ['records'], {}])
     assert.equal(allowedRoute(route), false, String(route));
@@ -129,7 +129,7 @@ test('only overview, records, recovery, cases and one case by a plain id may be 
   assert.equal(appUrl('cases/inbox-1', config), 'http://127.0.0.1:8776/#cases/inbox-1');
   assert.equal(appUrl('activity', config), null);
   // The app asks with the same pattern and the same message shape, and asks for nothing else.
-  assert.equal(String(app.PANEL_OPEN_ROUTE), String(/^(?:overview|records|recovery|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/));
+  assert.equal(String(app.PANEL_OPEN_ROUTE), String(/^(?:overview|records|recovery|agreements|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/));
   assert.equal(app.PANEL_MESSAGE_TYPE, OPEN_TYPE);
   assert.deepEqual(app.panelMessage('records'), {type: OPEN_TYPE, route: 'records'});
   assert.equal(openRequest(message(app.panelMessage('cases/inbox-1')), config, frameWindow), 'cases/inbox-1');

@@ -61,7 +61,7 @@
     try { return !!win && win.self !== win.top; } catch { return true; }
   }
   // The routes the panel may ask to open in a full tab. The extension enforces the same pattern on its side.
-  const PANEL_OPEN_ROUTE = /^(?:overview|records|recovery|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
+  const PANEL_OPEN_ROUTE = /^(?:overview|records|recovery|agreements|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
   const PANEL_MESSAGE_TYPE = 'uptime-open-app';
   // The extension page that frames this one, when the browser names it; the message is addressed to it alone.
   function panelParent(loc) {

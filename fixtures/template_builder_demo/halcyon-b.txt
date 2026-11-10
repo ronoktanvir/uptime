@@ -1,0 +1,79 @@
+HALCYON GRID SERVICES, INC.
+PLATFORM AVAILABILITY ADDENDUM
+Addendum No. HGS-PAA-2026-0388
+
+This Platform Availability Addendum (this "Addendum") is entered into as of August 18, 2026 (the "Addendum Effective Date") by and between Halcyon Grid Services, Inc., a Delaware corporation with offices at 2200 Meridian Avenue, Suite 900, Portland, Oregon 97209 ("Halcyon"), and Larkspur Analytics LLC, a Colorado limited liability company with offices at 1600 Wynkoop Street, Suite 300, Denver, Colorado 80202 ("Customer"). This Addendum supplements the Master Platform Agreement between the parties dated July 30, 2026 (the "Agreement"). Capitalized terms used but not defined in this Addendum have the meanings given to them in the Agreement.
+
+1. Definitions.
+
+1.1 "Covered Services" means the Halcyon Grid compute scheduling, object storage and managed queue services ordered by Customer under Order Form HGS-OF-76455.
+
+1.2 "Downtime" means any period of one (1) or more consecutive minutes during which the Covered Services fail to respond to properly formed requests from Customer's production environment, as measured by Halcyon's external monitoring probes.
+
+1.3 "Measurement Period" means each calendar month during the Subscription Term.
+
+1.4 "Platform Availability" means the total number of minutes in a Measurement Period, less the number of minutes of Downtime in that Measurement Period, divided by the total number of minutes in that Measurement Period, expressed as a percentage.
+
+1.5 "Monthly Fees" means the recurring fees paid by Customer for the Covered Services that are attributable to the affected Measurement Period, excluding taxes, professional services fees and pass-through charges.
+
+1.6 "Service Credit" means a percentage of the Monthly Fees credited to Customer in accordance with Section 3.
+
+2. Availability Commitment.
+
+2.1 Halcyon will use commercially reasonable efforts to make the Covered Services available with a Platform Availability of at least 99.9% during each Measurement Period (the "Availability Commitment").
+
+2.2 Platform Availability is calculated without regard to Excluded Events. Halcyon's monitoring records are the system of record for Downtime, provided that Customer may submit its own logs in support of a claim.
+
+3. Service Credits.
+
+3.1 If Platform Availability in a Measurement Period falls below the Availability Commitment, Customer will be eligible for a Service Credit calculated as follows:
+
+(a) where Platform Availability is less than 99.9% but equal to or greater than 99%, a Service Credit of 5% of the Monthly Fees; and
+
+(b) where Platform Availability is less than 99%, a Service Credit of 15% of the Monthly Fees.
+
+3.2 The aggregate Service Credits for any single Measurement Period will not exceed twenty-five percent (25%) of the Monthly Fees for that Measurement Period.
+
+3.3 Service Credits will be applied as a credit against the next invoice issued by Halcyon to Customer following approval of the claim. Service Credits have no cash value and will not be paid as a refund.
+
+3.4 Service Credits are Customer's sole and exclusive remedy for any failure to meet the Availability Commitment, without prejudice to Customer's termination right under Section 6.2.
+
+4. Claims.
+
+4.1 To receive a Service Credit, Customer must submit a written claim to support@halcyongrid.example within forty-five (45) days after the end of the Measurement Period in which the Downtime occurred. Each claim must identify the affected Covered Services, the dates and times of the Downtime and any supporting logs.
+
+4.2 Halcyon will review each claim in good faith and respond within fifteen (15) business days. Claims not submitted within the period stated in Section 4.1 are waived.
+
+5. Maintenance and Excluded Events.
+
+5.1 Halcyon may perform scheduled maintenance on the Covered Services, provided that it gives Customer at least forty-eight (48) hours' prior written notice through the Halcyon status portal and by email to Customer's designated technical contact. Scheduled maintenance performed in accordance with this Section 5.1 does not count as Downtime.
+
+5.2 Halcyon may perform emergency maintenance to address an active security threat with as much notice as is practicable, and in any event at least two (2) hours' notice where reasonably possible. Emergency maintenance counts as Downtime unless it is required to remediate a vulnerability first disclosed by a third party.
+
+5.3 "Excluded Events" means unavailability caused by: (a) scheduled maintenance under Section 5.1; (b) Customer's equipment, software or network connections; (c) Customer's breach of the Agreement; (d) suspension of the Covered Services in accordance with the Agreement; or (e) a force majeure event.
+
+6. Fees, Term and Termination.
+
+6.1 Customer will pay each invoice within forty-five (45) days of the invoice date. Service Credits do not relieve Customer of its obligation to pay undisputed amounts when due.
+
+6.2 If Platform Availability falls below 99% in any three (3) Measurement Periods within a rolling twelve (12) month period, Customer may terminate the affected Order Form upon thirty (30) days' written notice given within sixty (60) days after the third such Measurement Period, without liability for fees attributable to the remainder of the Subscription Term.
+
+6.3 This Addendum takes effect on the Addendum Effective Date and continues for as long as the Agreement remains in effect.
+
+7. General.
+
+7.1 In the event of a conflict between this Addendum and the Agreement concerning the Availability Commitment or Service Credits, this Addendum controls. In all other respects the Agreement remains in full force and effect.
+
+7.2 This Addendum may be amended only by a written instrument signed by authorized representatives of both parties.
+
+IN WITNESS WHEREOF, the parties have executed this Addendum as of the Addendum Effective Date.
+
+HALCYON GRID SERVICES, INC.
+By: ______________________
+Name: Mara Ellison
+Title: Vice President, Customer Operations
+
+LARKSPUR ANALYTICS LLC
+By: ______________________
+Name: Priya Raman
+Title: Chief Operating Officer

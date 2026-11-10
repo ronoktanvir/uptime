@@ -139,6 +139,20 @@ Rules for the shape:
 
 A term a rule does not find has `"value": null, "display": null, "quote": null`; it is never guessed.
 
+### Additions made by the engine (additive; nothing above was renamed or removed)
+
+- `sample.second_document`: the document used by the second-document check (same shape as `document`).
+- `term.rule.map`: present on `choice` terms only (`measurement_period`, `credit_application`): captured phrase
+  (lowercase) to option id. `term.rule_quote` and `term.rule_error`: the sentence the rule matched on this contract,
+  or why it failed.
+- Check `second_document` carries `document: {id, title}`. Check `jev` has `lowest: null` when Jev did not answer.
+- The disabled answer also carries `samples: [], builds: [], templates: []`.
+- `POST /api/template-builds` answers `429 {"detail": sentence}` after six builds in one server process, and `404`
+  for a sample that is not shipped.
+- The term set (9): `availability_target_percent`, `measurement_period` (choice), `tier_1_credit_percent`,
+  `tier_2_threshold_percent`, `tier_2_credit_percent`, `credit_cap_percent`, `claim_window_days` (integer, days),
+  `maintenance_notice_hours` (integer, hours), `credit_application` (choice). See `uptime/template_rules.py`.
+
 ## Page (UI agent)
 
 - Agreements page: a section "A contract type Uptime has not read before" listing each `sample`, with one button,

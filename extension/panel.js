@@ -68,7 +68,7 @@
   }
   function billUrl(bill, config) { return 'https://' + config.rampHosts[0] + '/bill-pay/bills/list/' + bill; }
   // The routes the framed page may ask to open in a full tab. The app checks the same pattern before asking.
-  const OPEN_ROUTE = /^(?:overview|records|recovery|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
+  const OPEN_ROUTE = /^(?:overview|records|recovery|agreements|cases|cases\/[A-Za-z0-9][A-Za-z0-9._-]{0,63})$/;
   const OPEN_TYPE = 'uptime-open-app';
   const allowedRoute = route => typeof route === 'string' && OPEN_ROUTE.test(route);
   // The route a message asks for, or null. It must come from the framed window, on the configured origin, and be
