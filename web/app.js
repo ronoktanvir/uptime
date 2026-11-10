@@ -51,8 +51,10 @@
   const content = $('#content'), notice = $('#notice'), dialog = $('#inspector');
   let view = 'ramp', generation = 0, caseGeneration = 0, activeCase = null, busy = false;
   let rampCase = null, rampScroll = 0;
+  // Which page a Ramp record was opened from: it stays the marked destination, and "Back" returns to it.
+  let rampOrigin = 'ramp';
   let companion, companionAssets, signedPage = false, companionAccess = {};
-  const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
+  const ramp = window.UptimeRamp?.create({api, onNavigate: route => { history.pushState(null, '', '#' + (route === 'ramp' ? rampOrigin : route)); navigate(); }});
   // The finance view disables actions when this page holds no signing key (for example after a reload).
   const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account,canAct:() => window.uptimeAuth?.canSign?.() !== false});
   const filters = {query: '', status: '', sort: 'value-desc'};
@@ -390,10 +392,12 @@
     finally { if (token === generation) content.setAttribute('aria-busy', 'false'); }
     }
   }
+  const narrow = () => typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches;
   function navigate() {
     const requested = location.hash.slice(1);
     if (requested === 'workspace') return; // Skip link is an in-page accessibility target.
     if (view === 'ramp' && !rampCase) rampScroll = window.scrollY || 0;
+    if ((view === 'ramp' || view === 'records') && !rampCase) rampOrigin = view;
     ramp?.unmount();
     workspaceWorkflow?.unmount();
     companion?.unmount(content);
@@ -404,15 +408,22 @@
     }
     view = companionRoute(requested);
     // A page under a destination (one case under Cases) keeps that destination marked as the current one.
-    document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === view || view.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
+    // One Ramp record keeps the page it was opened from marked.
+    const marked = rampCase ? rampOrigin : view;
+    document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === marked || marked.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
+    // On a wide screen the group that holds the current page is opened. On a narrow one the header stays slim:
+    // the group's own label is marked instead, and the list opens only when asked for.
     const more = document.querySelector?.('.rail-more');
-    if (more && more.querySelector?.('[aria-current]')) more.open = true;
+    if (more && more.querySelector?.('[aria-current]') && !narrow()) more.open = true;
     if (!content.children.length) content.append(empty('Loading server state…')); announce(''); load();
   }
   // Updating route history explicitly prevents fragment scrolling during normal navigation.
   document.querySelectorAll('.rail a[href^="#"]').forEach(link => link.addEventListener('click', event => {
     if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault(); history.pushState(null, '', link.getAttribute('href')); navigate();
+    // A choice made from the narrow header's list closes the list, so the page it opened is in view.
+    const group = link.closest?.('.rail-more');
+    if (group && narrow()) group.open = false;
   }));
   $('#close-inspector').addEventListener('click', () => dialog.close()); dialog.addEventListener('close', () => { caseGeneration++; activeCase = null; });
   $('#refresh').addEventListener('click', () => { if (view === 'ramp' && !rampCase) rampScroll = window.scrollY || 0; announce(''); load(); if (dialog.open && activeCase) openCase(activeCase); });

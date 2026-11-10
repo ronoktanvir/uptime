@@ -212,6 +212,8 @@ main:focus-visible { box-shadow: inset 0 2px 0 var(--accent); }
 #notice, #content { max-width: 1120px; margin-inline: auto; }
 #content { display: flex; flex-direction: column; gap: 20px; overflow-anchor: none; }
 #content > * { min-width: 0; }
+#content > button { align-self: flex-start; margin-top: 24px; }
+#content > button + .page-head { padding-top: 0; }
 .notice:not(:empty) { margin-top: 16px; padding: 10px 14px; border: 1px solid var(--accent-line); border-radius: 8px; background: var(--accent-soft); color: var(--ink); font-size: 13px; line-height: 20px; }
 /* Before sign-in and while the first page loads there is nothing to navigate to. */
 body:has(#content > .signin), body:has(#content > .boot) { grid-template-columns: minmax(0, 1fr); }
@@ -498,7 +500,32 @@ details.panel > :not(summary) { margin: 20px 24px; }
 .activity li > span { color: var(--ink); overflow-wrap: anywhere; }
 
 /* 11. Ramp records */
-.ramp-capture { flex: 1 1 100%; max-width: 100ch; }
+.ramp-verified .panel-head { justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
+.ramp-verified > .help + .help { margin-top: 2px; }
+.ramp-verified h3, .ramp-record h3 { margin: 24px 0 12px; }
+.ramp-bill { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ramp-bill dd { font-size: 15px; line-height: 22px; font-weight: 500; }
+.ramp-ids { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.ramp-ids dd { font-family: var(--mono); font-size: 12px; line-height: 18px; color: var(--text); }
+.ramp-ids + .help { margin-top: 12px; }
+.ramp-finding { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.ramp-verified h3 ~ .help { margin-top: 4px; }
+.ramp-worklist > h2 { margin-bottom: 4px; }
+.ramp-worklist > .as-of { margin-bottom: 10px; font-size: 13px; line-height: 20px; }
+.ramp-worklist > .help { max-width: 110ch; }
+.ramp-worklist > .help + .help { margin-top: 6px; }
+.ramp-list { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.ramp-list > summary { width: fit-content; font-weight: 600; color: var(--ink); }
+.ramp-list > summary:hover { color: var(--accent-strong); }
+.ramp-list[open] > summary { margin-bottom: 16px; }
+.ramp-list > .help { margin: 12px 0; }
+.ramp-list > .actions { margin-top: 16px; }
+tr.scenario, tr.scenario > td { background: var(--sunken); }
+.ramp-scenario .pill { margin-bottom: 4px; white-space: nowrap; }
+.ramp-scenario.num .help { white-space: nowrap; margin: 0 0 2px; }
+td.ramp-scenario.num span { font-weight: 400; color: var(--text); }
+.ramp-list td:nth-child(4) { min-width: 220px; }
+.ramp-capture { max-width: 110ch; }
 .ramp-resources { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 16px; }
 .ramp-resource { min-width: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; }
 .ramp-resource h3 { margin-bottom: 6px; overflow-wrap: anywhere; }
@@ -622,6 +649,11 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
   .stack td.num { text-align: right; }
   .stack td.num .pill { margin: 0; }
   .stack td.basis { display: block; min-width: 0; }
+  /* Cells that hold several lines read as blocks: the column name, then the content beneath it. */
+  .stack-blocks td, .stack-blocks td.num { display: block; text-align: left; }
+  .stack-blocks td[data-label]::before { display: block; margin: 0 0 2px; }
+  .stack-blocks td:first-child { font-weight: 400; }
+  .stack-blocks td.empty { text-align: left; }
   .northwind-citations li > span { display: block; margin-right: 0; }
   .stack td.basis::before { display: block; margin-bottom: 2px; }
   .automation-step { grid-template-columns: minmax(0, 1fr); padding-left: 28px; }
@@ -637,6 +669,10 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
   #case-content { padding: 16px; }
   .dialog-toolbar { padding: 10px 16px; }
   .signin { padding: 24px 20px; }
+  .ramp-bill { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ramp-bill dd { font-size: 14px; }
+  .ramp-list td:nth-child(4) { min-width: 0; }
+  .ramp-verified .panel-head { align-items: flex-start; flex-direction: column; gap: 4px; }
 }
 
 /* 15. Motion */
