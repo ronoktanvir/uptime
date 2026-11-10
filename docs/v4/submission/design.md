@@ -160,6 +160,16 @@ The state this branch started from is in [the earlier interface evidence](../evi
 - **Now:** one centred card: brand, "Sign in to Uptime", the account name, a dashed drop area for the credential file, one sentence that the file is used only in this page and never uploaded, and a full-width "Sign in" button. The reading page shows the same card.
 - Unchanged: the fields and their order, drag and drop onto the form, and where the key is kept (page memory only).
 
+### Demo sign-in: name and password, no file (added at Ronok's request for the recording)
+
+The credential file is the smooth part of the real security model but an awkward thing to do on camera. For the filmed walkthrough only, a demo workspace signs in with a reviewer name and **any** password, with no file. This is the first change in this work outside `web/`; it is additive, gated to a scripted rehearsal workspace, and leaves the real signing path exactly as it was.
+
+- **The server verifies the same signatures as before.** A demo workspace serves one extra, rehearsal-only route, `POST /api/auth/demo-credential`, which returns the same rehearsal key the credential file holds; the browser imports it and then proves a fresh challenge, and signs every reviewer action, exactly as the file flow does. Any password is accepted because the key, not the password, is what the server checks. The route answers `404` in every non-rehearsal deployment, so a real install is unchanged and still requires the enrolled credential file.
+- **The sign-in page asks the server first.** On a real browser it reads `GET /api/auth/context`; only when that says `demo_login` does the form show a password field in place of the file, with the reviewer name prefilled. The node sign-in harness and the request-stubbed views never reach this, so they and their tests are untouched.
+- **The presenter decides as themselves.** The demo is run with `--reviewer-name ronok-tanvir --demo-login`. The rehearsal server then recognises both the scripted account and that name: scripted **setup** stays recorded as `scripted-test-reviewer`, while the four recovery decisions the presenter makes live are recorded as `ronok-tanvir` and shown as "ronok-tanvir · Demo reviewer". A fresh workspace is used, so those four decisions are genuinely made live on camera, not scripted.
+- **The default is unchanged.** Without the flags, the walkthrough signs in with the credential file as `scripted-test-reviewer`, the workflow recognises only that account, and nothing on screen or in the records differs from before. The shipped build keeps the scripted-reviewer honesty labels; only a run started with the demo flags shows the presenter's name.
+- **What it does not do.** It never weakens a real deployment, never hands out any key outside a rehearsal workspace, and changes no money, state, destination or attribution. The key is derived from the running workspace's own secret and is never committed.
+
 ### Overview (the film's main screen)
 
 - **First screen at 1440×900:** the outcome, the lifecycle, and the recovery card with the next decision beside "Needs attention".
@@ -381,6 +391,8 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
 
 - **Serif, monospace and the light cloud** (the two commits after the header and focus fixes): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 132`, `pass 132`, `fail 0`. The same 23 files, one at a time under the same limit: 124 passed, none failed, 129 seconds. The real server sends both fonts as `font/woff2` (76,260 and 92,164 bytes). Looked at on the Overview, Cases, Agreements, one case and Ramp records at 1440×900: the faces loaded are Inter on every page, with Source Serif 4 and JetBrains Mono where a quotation or a reference is shown; no console message, no failed request. The same two tests changed again, to serve the two files (ledger rows 12 and 13).
 
+- **Demo sign-in** (the commit after the font/picture work): `node --test web/*.test.cjs tests/helpers/*.test.cjs` → `tests 132`, `pass 132`, `fail 0` (three new, for the demo login). A 32-file regression over the changed modules (authored workflow, authority, setup, sign-in, audit, release boundaries), one at a time → 417 passed, none failed; `scripts/check_repo.py` exit 0. Verified end to end in Chrome: name + any password with no file signs in as `ronok-tanvir`, the Approve button is offered, and the decision records as "Decided by ronok-tanvir". The default serve (no flags) is unchanged. The full suite is the coordinator's, before it merges.
+
 ## 7. Known limits and open items
 
 - **Phone width is usable, not polished.** Ronok asked for the computer layout first and the phone later, since the demo does not use it. At 390×844 no page is wider than the window and every control is reachable, and the 390 px images above show the present state. Spacing, type sizes and the order of blocks at that width have not had the pass the computer layout had.
@@ -391,6 +403,8 @@ Run at `53f6115`, the last commit that changes anything under `web/` or `tests/`
 - **Three font files.** The serif and the monospace are bundled in one weight each (regular). Where a reference or a quotation is marked strong, it is drawn in that same weight rather than a synthesised bold.
 - **One font file.** The typeface is a 344 KB file loaded from the app itself on each page load. Until it arrives no text is drawn in another face (up to three seconds on a slow connection; a few milliseconds locally), so text never reflows.
 - **The panel beside Ramp** (`#ramp-bill/<id>`) is tested at 420×900 in Chrome, not inside the extension's side panel; the coordinator is checking it there.
+
+- **The demo sign-in is demo-only.** It is reached only when the walkthrough is served with `--demo-login`, never in a real deployment (the route answers `404`) and never by default. If the recording is shot with it, the presenter is operating the demo reviewer under their own name; the written materials and narration should say so, as they already say the walkthrough reviewer is a local account.
 
 ### For the coordinator or Ronok
 

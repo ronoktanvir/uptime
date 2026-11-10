@@ -4,7 +4,7 @@
   const list = value => Array.isArray(value) ? value : [];
   const text = value => value == null || value === '' ? 'Not provided' : String(value);
   const names = {ELIGIBLE:'Eligible', INELIGIBLE:'Ineligible', INSUFFICIENT_EVIDENCE:'Needs evidence', UNKNOWN:'Needs evidence',
-    SCRIPTED_REVIEWER:'Scripted reviewer', SCRIPTED:'Scripted reviewer', LOCAL_LEDGER:'Local ledger'};
+    SCRIPTED_REVIEWER:'Scripted reviewer', SCRIPTED:'Scripted reviewer', DEMO_REVIEWER:'Demo reviewer', LOCAL_LEDGER:'Local ledger'};
   const reason = value => text(value).replace(/^Synthetic invoice only; no live Ramp bill bound\.;?\s*/, '').replace(/^Simulated scoped,/, 'Scoped,');
   const state = value => names[value] || text(value).replaceAll('_', ' ').toLowerCase();
   function money(value, currency = 'USD') {

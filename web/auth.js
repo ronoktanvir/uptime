@@ -44,6 +44,16 @@
     signingKey = key;
     sessionStorage.setItem(storageKey, JSON.stringify(data));
   }
+  async function loginDemo(subject, password) {
+    // Demo workspaces only: exchange a name and any password for the same rehearsal key the credential file holds,
+    // then prove it with a fresh challenge exactly as the file flow does. The server verifies every signature.
+    const data = await send('/api/auth/demo-credential', {subject, password});
+    const key = await crypto.subtle.importKey('jwk', data.credential, {name:'ECDSA', namedCurve:'P-256'}, false, ['sign']);
+    const challenge = await send('/api/auth/challenge', {subject, path:'/api/auth/login', body_sha256:''});
+    const result = await send('/api/auth/login', {challenge:challenge.challenge, proof:await sign(key, challenge)});
+    signingKey = key;
+    sessionStorage.setItem(storageKey, JSON.stringify(result));
+  }
   async function api(path, payload) {
     const current = session();
     if (!current || !current.token) {
@@ -72,17 +82,18 @@
     const note = make('p', null, 'Use your named account for this local workspace. Workspace setup prints the account name and where its credential file was saved.');
     const hint = make('p', 'signin-hint', 'Choose that file, or drag it onto this form. It is used only in this page to prove your identity and is never uploaded.');
     const feedback = make('p'); feedback.setAttribute('role','status');
-    function field(title, type, auto) {
-      const label = make('label', null, title);
-      const input = document.createElement('input'); input.type = type; input.required = true; input.autocomplete = auto;
-      label.append(input); form.append(label); return input;
-    }
-    form.append(brand, heading, note);
-    const subject = field('Account name', 'text', 'username'), credential = field('Credential file', 'file', 'off');
+    const subjectLabel = make('label', null, 'Account name');
+    const subject = document.createElement('input'); subject.type = 'text'; subject.required = true; subject.autocomplete = 'username';
+    subjectLabel.append(subject);
+    // The second field is the enrolled credential file; a demo workspace replaces it with a password.
+    const secondLabel = make('label', null, 'Credential file');
+    const credential = document.createElement('input'); credential.type = 'file'; credential.autocomplete = 'off';
     credential.accept = '.json,.jwk,application/json,application/jwk+json';
+    secondLabel.append(credential);
+    const submit = make('button'); submit.type = 'submit'; submit.textContent = 'Sign in';
+    form.append(brand, heading, note, subjectLabel, secondLabel, hint, submit, feedback);
     // A dropped file is held only in this form until sign-in; the account name of an expired session is prefilled.
-    credential.required = false;
-    let dropped = null;
+    let mode = 'file', password = null, dropped = null;
     const previous = session();
     if (previous && typeof previous.subject === 'string') subject.value = previous.subject;
     const dragging = on => { if (form.classList) form.classList.toggle('dragging', on); };
@@ -90,20 +101,37 @@
     form.addEventListener('dragleave', () => dragging(false));
     form.addEventListener('drop', event => {
       event.preventDefault(); dragging(false);
+      if (mode !== 'file') return;
       const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
       if (file) { dropped = file; feedback.textContent = 'Credential file selected: ' + file.name; }
     });
     credential.addEventListener('change', () => { dropped = null; });
-    const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = 'Sign in';
-    form.append(hint, submit, feedback);
+    // A demo workspace offers a plain name + password sign-in, no file. Only a real browser asks the server;
+    // the node sign-in harness (no document body) and the request-stubbed views never reach this.
+    if (typeof document !== 'undefined' && document.body) {
+      send('/api/auth/context').then(context => {
+        if (!context || !context.demo_login || mode !== 'file') return;
+        mode = 'demo';
+        secondLabel.textContent = 'Password';
+        password = document.createElement('input'); password.type = 'password'; password.required = true; password.autocomplete = 'off';
+        secondLabel.append(password);
+        note.textContent = 'Sign in to this demo workspace with your reviewer name and any password.';
+        hint.textContent = 'Any password works here. Your name records which reviewer is deciding; no credential file is needed.';
+        if (typeof context.subject === 'string' && context.subject && !subject.value) subject.value = context.subject;
+      }).catch(() => {});
+    }
     form.addEventListener('submit', async event => {
       event.preventDefault(); submit.disabled = true;
       try {
-        const file = (credential.files && credential.files[0]) || dropped;
-        if (!file) throw new Error('Choose the credential file named in the setup output, or drag it here.');
-        await login(subject.value, file); credential.value=''; dropped = null; onSuccess();
+        if (mode === 'demo') await loginDemo(subject.value, password ? password.value : '');
+        else {
+          const file = (credential.files && credential.files[0]) || dropped;
+          if (!file) throw new Error('Choose the credential file named in the setup output, or drag it here.');
+          await login(subject.value, file); credential.value = ''; dropped = null;
+        }
+        onSuccess();
       }
-      catch (error) { credential.value=''; dropped = null; feedback.textContent = error.message; }
+      catch (error) { if (mode !== 'demo') { credential.value = ''; dropped = null; } feedback.textContent = error.message; }
       finally { submit.disabled = false; }
     });
     return form;

@@ -127,6 +127,11 @@ class LoginProof(Strict):
     proof: str = Field(pattern=r"^[a-f0-9]{128}$")
 
 
+class DemoLogin(Strict):
+    subject: str = Field(min_length=2, max_length=64)
+    password: str = Field(default="", max_length=256)
+
+
 @dataclass(frozen=True)
 class Challenge:
     subject: str
@@ -161,7 +166,7 @@ class AuthorizedReviewer(Principal):
 
 
 class Authority:
-    def __init__(self, path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant=TENANT):
+    def __init__(self, path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant=TENANT, rehearsal_subject=None, demo_login=False):
         self.tenant = tenant
         self.origin = valid_origin(origin)
         self.instance = secrets.token_hex(24)
@@ -205,12 +210,27 @@ class Authority:
             raise ValueError("Only a scripted replay can use a private rehearsal credential")
         bind_workspace(path, mode, rehearsal, tenant)
         mandates.remember_source_keys(path, [(s.subject, s.public_key) for s in self.services.values() if isinstance(s, SourceGrant)])
+        # The scripted rehearsal reviewer's subject; a demo workspace may configure a named human (for example the
+        # presenter) in its place. The default and every non-rehearsal path keep the scripted account unchanged.
+        self.rehearsal_subject = SCRIPT
+        self.rehearsal_subjects = {SCRIPT}
+        self.demo_login = False
         if rehearsal:
-            self.script_account = ("reviewer", public_bytes(rehearsal_key(rehearsal_secret)))
+            self.rehearsal_subject = rehearsal_subject or SCRIPT
+            if not NAME.fullmatch(self.rehearsal_subject):
+                raise ValueError("A rehearsal reviewer needs a canonical subject")
+            self._demo_key = rehearsal_key(rehearsal_secret)
+            self.script_account = ("reviewer", public_bytes(self._demo_key))
+            # The scripted account is always recognised, so scripted setup stays recorded as itself; a configured
+            # demo reviewer (the presenter) is recognised alongside it, for the decisions they make live on camera.
+            self.rehearsal_subjects = {SCRIPT, self.rehearsal_subject}
+            # Demo convenience only: a name + password hands back this same rehearsal key so the browser signs
+            # exactly as the credential file does. Gated to a scripted rehearsal workspace; never a real deployment.
+            self.demo_login = bool(demo_login)
 
     def account(self, subject):
         if self.rehearsal:
-            return self.script_account if subject == SCRIPT else None
+            return self.script_account if subject in self.rehearsal_subjects else None
         with database(self.path) as db:
             row = db.execute("SELECT role,public_key FROM authority_user WHERE subject=?", (subject,)).fetchone()
         return tuple(row) if row else None
@@ -312,6 +332,16 @@ class Authority:
         return {"token": token, "subject": principal.subject, "role": principal.role,
                 "rehearsal": self.rehearsal, "approvals_enabled": self.approvals_enabled,
                 "drafts_enabled": principal.role == "reviewer"}
+
+    def demo_credential(self, request: Request, body: DemoLogin):
+        self.require_origin(request)
+        if not (self.rehearsal and self.demo_login):
+            raise HTTPException(404, "Not found")
+        if body.subject != self.rehearsal_subject:
+            raise HTTPException(403, "Unknown demo reviewer")
+        # Any password is accepted. This returns the same rehearsal key the credential file holds, for a scripted
+        # walkthrough only; the server still verifies a fresh signed proof on sign-in and on every reviewer action.
+        return {"subject": self.rehearsal_subject, "credential": self._demo_key}
 
     def logout(self, request: Request):
         with self.lock:
@@ -424,8 +454,11 @@ class Authority:
         app.add_api_route("/api/auth/challenge", self.challenge, methods=["POST"])
         app.add_api_route("/api/auth/login", self.login, methods=["POST"])
         app.add_api_route("/api/auth/logout", self.logout, methods=["POST"])
+        app.add_api_route("/api/auth/demo-credential", self.demo_credential, methods=["POST"])
         app.add_api_route("/api/auth/context", lambda: {"instance": self.instance, "origin": self.origin,
-                                                         "mode": self.mode, "tenant": self.tenant},
+                                                         "mode": self.mode, "tenant": self.tenant,
+                                                         "demo_login": self.demo_login,
+                                                         "subject": self.rehearsal_subject if self.demo_login else ""},
                           methods=["GET"])
 
 

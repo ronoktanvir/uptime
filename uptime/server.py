@@ -49,11 +49,13 @@ def panel_origin(value):
 
 def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=False, rehearsal_secret=None,
                service_credentials=None, origin=DEFAULT_ORIGIN, tenant=TENANT, native_config=None, award_office=None,
-               workflow_config=None, proposal_jobs=None, proposal_config=None, side_panel_origin=None):
+               workflow_config=None, proposal_jobs=None, proposal_config=None, side_panel_origin=None,
+               rehearsal_subject=None, demo_login=False):
     if workflow_config is not None and (native_config is not None or mode != 'replay' or not rehearsal or tenant != TENANT):
         raise PermissionError('A configured local workflow requires its isolated rehearsal workspace, without a native connection.')
     frame_ancestors = panel_origin(side_panel_origin) or "'none'"
-    auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant)
+    auth = Authority(db_path, mode, rehearsal, approvals_enabled, rehearsal_secret, service_credentials, origin, tenant,
+                     rehearsal_subject, demo_login)
     bench = Workbench(db_path, mode) if tenant == TENANT else Workbench(db_path, mode, tenant=tenant)
     if proposal_jobs is not None and proposal_config is not None:
         raise ValueError('Select one server-side proposal configuration.')

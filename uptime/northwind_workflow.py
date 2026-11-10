@@ -234,7 +234,7 @@ class WorkspaceWorkflow:
         self.bench.require_tenant(p)
         if write:
             self.bench.check_write(p)
-            if p.subject!=SCRIPT or p.role!='reviewer':
+            if p.subject not in getattr(self.auth,'rehearsal_subjects',{SCRIPT}) or p.role!='reviewer':
                 raise PermissionError('This authored workflow requires its actual scripted reviewer identity.')
         require_fixture_workspace(self.bench.path)
 
@@ -352,7 +352,12 @@ class WorkspaceWorkflow:
         posted=records['credit'] is not None
         if posted and not self.provider.verified_read(p.tenant,records['credit'],'credit'):
             raise ValueError('A posted local credit has no matching provider readback.')
-        reviewer=dict(name='Dana Reyes',role='Contract reviewer',authority_kind='SCRIPTED_REVIEWER',principal=SCRIPT)
+        demo_subject=getattr(self.auth,'rehearsal_subject',SCRIPT)
+        if getattr(self.auth,'demo_login',False) and demo_subject!=SCRIPT:
+            # A demo workspace where the presenter signs in and decides live, under their own name.
+            reviewer=dict(name=demo_subject,role='Contract reviewer',authority_kind='DEMO_REVIEWER',principal=demo_subject)
+        else:
+            reviewer=dict(name='Dana Reyes',role='Contract reviewer',authority_kind='SCRIPTED_REVIEWER',principal=SCRIPT)
         versions=[v for v in self.package['pricing_agreement'].versions if v.signed_at and v.signed_at<=self.now()]
         documents=[dict(title=v.citation.document,ref=v.citation.uri,version=v.id,effective_at=v.effective_at.isoformat(),
                         description=v.citation.section,citations=self._document_citations(v),
@@ -446,7 +451,7 @@ class WorkspaceWorkflow:
         return dict(id=identity,operation=operation,label=label,group=group,pin=pin)
 
     def _offers(self,p,claim):
-        if not self.auth.approvals_enabled or p.role!='reviewer' or p.subject!=SCRIPT or self.bench.setting(p)['mode']=='OBSERVE':return []
+        if not self.auth.approvals_enabled or p.role!='reviewer' or p.subject not in getattr(self.auth,'rehearsal_subjects',{SCRIPT}) or self.bench.setting(p)['mode']=='OBSERVE':return []
         # An interrupted exact operation remains the only offered operation.
         with database(self.bench.path) as db:
             pending=db.execute("SELECT id,operation FROM workspace_workflow_intent WHERE status='EXECUTING' ORDER BY rowid LIMIT 1").fetchone()

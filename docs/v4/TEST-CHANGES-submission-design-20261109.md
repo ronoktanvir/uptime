@@ -45,8 +45,14 @@ The helper `open_section(page, title)` and the two section titles were added to 
 - `tests/test_ramp_bill_panel.py`:
   - `test_the_verified_bill_card_is_in_the_first_viewport_of_a_420_px_panel`
   - `test_an_unknown_bill_says_so_and_ramp_records_opens_without_filling_the_panel_with_navigation`
+- `tests/test_demo_login_setup.py` (the demo name + password sign-in, added at the owner's request; see [the design record](submission/design.md)):
+  - `test_a_demo_workspace_takes_any_password_and_signs_in_the_named_reviewer`
+  - `test_without_the_demo_flag_there_is_no_demo_login`
+  - `test_a_real_deployment_never_exposes_a_credential`
 
 The pass over every page on a computer screen (`1dca1cf`, `53f6115`) changed no test. Neither did the icons. The typeface changed two (rows 12 and 13). The second pass (the application shell, page headers without introductions, tiles, card icons and the serif voice) changed none. Acceptance A2 changed none either: no existing test asserted the two zero rows in that closed section, so the fix is covered by three new tests instead.
+
+The demo sign-in is the first change in this work outside `web/`: it adds a rehearsal-only server route and two demo-only options to the setup, and relaxes the authored workflow's scripted-reviewer gate to also accept a configured demo reviewer. Every change is default-preserving — without the demo flags the server recognises only `scripted-test-reviewer`, the route answers `404`, and the workflow behaves exactly as before — so it changes no existing test; it is covered by three new tests. Verified at the subset level: `node --test web/*.test.cjs tests/helpers/*.test.cjs` → 132 pass, 0 fail; and 32 focused Python files over the changed modules (the authored workflow, authority, setup, sign-in, audit and release boundaries), one at a time under the hard limit → 417 passed, none failed (three audit files collect no pytest tests, here and on main: they are observation harnesses). The full suite is the coordinator's, before it merges.
 
 ## Interrupted runs
 
