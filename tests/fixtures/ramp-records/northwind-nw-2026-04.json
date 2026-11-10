@@ -1,0 +1,226 @@
+{
+ "association": {
+  "bill_id": "00000000-0000-0000-0000-000020260400",
+  "bill_record_sha256": "e2d8083c3d99d0e67a709fb9fac759cdf978914d4ba9ffffce34d23e45395558",
+  "browser_url": "https://demo.ramp.com/bill-pay/bills/list/00000000-0000-0000-0000-000020260400",
+  "browser_url_source": "OPERATOR_SUPPLIED_OBSERVED_URL",
+  "business_id": "1569e402-460e-4952-adad-9df27db628a0",
+  "observed_at": "2026-11-10T15:00:00+00:00",
+  "origin": "https://demo-api.ramp.com",
+  "schema": "uptime-ramp-browser-association/1",
+  "status": "ONE_BILL_READ_VERIFIED",
+  "verified_read_scopes": [
+   "business:read",
+   "bills:read"
+  ],
+  "write_attempted": false
+ },
+ "coverage": {
+  "account_complete": true,
+  "incomplete_lists": [],
+  "resources": [
+   {
+    "complete": true,
+    "detail_budget_reached": false,
+    "has_next": false,
+    "list_complete": true,
+    "listed": 1,
+    "max_pages": 1,
+    "name": "bills",
+    "page_size": 10,
+    "pages_read": 2,
+    "retained": 1,
+    "status": "COMPLETE"
+   },
+   {
+    "complete": true,
+    "detail_budget_reached": false,
+    "has_next": false,
+    "list_complete": true,
+    "listed": 3,
+    "max_pages": 1,
+    "name": "vendors",
+    "page_size": 10,
+    "pages_read": 1,
+    "retained": 2,
+    "status": "COMPLETE"
+   },
+   {
+    "complete": true,
+    "detail_budget_reached": false,
+    "has_next": false,
+    "list_complete": true,
+    "listed": 0,
+    "max_pages": 1,
+    "name": "transactions",
+    "page_size": 10,
+    "pages_read": 1,
+    "retained": 0,
+    "status": "EMPTY"
+   },
+   {
+    "complete": true,
+    "detail_budget_reached": false,
+    "has_next": false,
+    "list_complete": true,
+    "listed": 0,
+    "max_pages": 1,
+    "name": "agreements",
+    "page_size": 10,
+    "pages_read": 1,
+    "retained": 0,
+    "status": "EMPTY"
+   },
+   {
+    "complete": false,
+    "detail_budget_reached": false,
+    "has_next": false,
+    "list_complete": true,
+    "listed": 0,
+    "max_pages": null,
+    "name": "purchase_orders",
+    "page_size": null,
+    "pages_read": 0,
+    "retained": 0,
+    "status": "NOT_REQUESTED"
+   },
+   {
+    "complete": true,
+    "detail_budget_reached": false,
+    "has_next": false,
+    "list_complete": true,
+    "listed": 0,
+    "max_pages": 1,
+    "name": "credits",
+    "page_size": 10,
+    "pages_read": 1,
+    "retained": 0,
+    "status": "EMPTY"
+   },
+   {
+    "complete": true,
+    "detail_budget_reached": false,
+    "has_next": false,
+    "list_complete": true,
+    "listed": 1,
+    "max_pages": null,
+    "name": "approvals",
+    "page_size": null,
+    "pages_read": 0,
+    "retained": 0,
+    "status": "EMPTY"
+   },
+   {
+    "complete": true,
+    "detail_budget_reached": false,
+    "has_next": false,
+    "list_complete": true,
+    "listed": 1,
+    "max_pages": null,
+    "name": "comments",
+    "page_size": null,
+    "pages_read": 0,
+    "retained": 0,
+    "status": "EMPTY"
+   }
+  ]
+ },
+ "credits_status": "EMPTY",
+ "excerpt_checksum": "d66842124cfbd5a7d192e45805e46f37d88c87e06ef28578d6296a00ab5c3609",
+ "finding": {
+  "capture_digest": "e4fdf738e3c77f645cc2ff1701e2bda92436396be3c8b220032fa289148d46d1",
+  "finding_digest": "7a7deb143e4ca475428be23eb7b4a5a6959412ae91e44f72ec4405e657ad2b91",
+  "finding_kind": "UNBOUND_RECORD",
+  "missing": [
+   "Record-specific governing terms and service/line evidence are not bound."
+  ],
+  "outcome": "INSUFFICIENT_EVIDENCE",
+  "record_digest": "e2d8083c3d99d0e67a709fb9fac759cdf978914d4ba9ffffce34d23e45395558"
+ },
+ "records": {
+  "bill": {
+   "account_id": null,
+   "account_identity": "UNAVAILABLE_IN_BILL_API",
+   "accounting_date": null,
+   "amount": {
+    "amount": "11000",
+    "amount_minor": 1100000,
+    "currency": "USD",
+    "minor_unit_conversion_rate": 100
+   },
+   "applied_credits": [],
+   "approval_status": "PENDING",
+   "archived_at": null,
+   "created_at": null,
+   "deep_link_url": null,
+   "draft_bill_id": null,
+   "due_at": null,
+   "entity_id": "00000000-0000-0000-0000-000000000003",
+   "id": "00000000-0000-0000-0000-000020260400",
+   "invoice_number": "NW-2026-04",
+   "issued_at": "2026-04-01T00:00:00+00:00",
+   "item_receipt_ids": null,
+   "kind": "bill",
+   "lines": [
+    {
+     "amount": {
+      "amount": "11000",
+      "amount_minor": 1100000,
+      "currency": "USD",
+      "minor_unit_conversion_rate": 100
+     },
+     "end_date": null,
+     "id": "00000000-0000-0000-0000-0000202607e8",
+     "item_receipt_line_item_ids": null,
+     "kind": "line_items",
+     "purchase_order_line_item_id": null,
+     "quantity": null,
+     "quantity_rate_check": "UNAVAILABLE",
+     "service_date": null,
+     "sku": null,
+     "start_date": null,
+     "unit": null,
+     "unit_price": null
+    }
+   ],
+   "paid_at": null,
+   "posting_date": null,
+   "purchase_order_id": null,
+   "sources": [
+    "LIVE_RAMP_SANDBOX"
+   ],
+   "status": "OPEN",
+   "status_summary": null,
+   "sync_status": null,
+   "vendor_id": "00000000-0000-0000-0000-000000000001",
+   "vendor_name": "Northwind Cloud"
+  },
+  "comments": [],
+  "credits": [],
+  "vendor": {
+   "created_at": null,
+   "default_entity_id": null,
+   "id": "00000000-0000-0000-0000-000000000001",
+   "is_active": true,
+   "merchant_id": null,
+   "name": "Northwind Cloud",
+   "parent_vendor_id": null,
+   "sources": [
+    "LIVE_RAMP_SANDBOX"
+   ],
+   "status": "APPROVED",
+   "updated_at": null
+  }
+ },
+ "schema": "uptime-ramp-verified-excerpt/2",
+ "source_capture": {
+  "checksum": "e4fdf738e3c77f645cc2ff1701e2bda92436396be3c8b220032fa289148d46d1",
+  "completed_at": "2026-11-10T15:00:00+00:00",
+  "observed_at": "2026-11-10T15:00:00+00:00",
+  "origin": "https://demo-api.ramp.com",
+  "records_committed": false,
+  "schema": "uptime-ramp-records/1"
+ },
+ "started_by": "PERSON",
+ "statement": "Excerpt of a saved Ramp read of one demo bill, started by a person and packaged by Uptime. Not a live read. Only the records shown for this bill are included; the full capture stays private and is referenced by its checksum."
+}

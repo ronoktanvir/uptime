@@ -146,7 +146,7 @@ def source_inputs(package):
 
 
 def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None,counterparty_reply='request-log',
-            side_panel_origin=None):
+            side_panel_origin=None,ramp_records=None,ramp_notes=False):
     directory=Path(directory).absolute()
     if directory.exists():raise WorkspaceRefused('Select a fresh directory; use --resume for an existing immutable workspace.')
     from uptime.server import panel_origin
@@ -182,10 +182,23 @@ def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None
     if target is not None:
         # A visible, operator-chosen copy (0600, exclusive create, outside the repository). Only its path is printed.
         place_credential(target,rehearsal_key(private['rehearsal_secret']))
-    return open_workspace(directory,side_panel_origin=side_panel_origin)
+    return open_workspace(directory,side_panel_origin=side_panel_origin,ramp_records=ramp_records,ramp_notes=ramp_notes)
 
 
-def open_workspace(directory, *, proposal_config=None, side_panel_origin=None):
+def ramp_options(directory,ramp_records=None,ramp_notes=False):
+    """Demo line: verified Ramp bill folders (the optional one, then <workspace>/ramp/) and the note provider.
+
+    ``ramp_notes`` is False, True (the live sandbox provider, credential from this process's
+    environment only) or a provider factory supplied by a test.
+    """
+    folders=([Path(ramp_records).expanduser().absolute()] if ramp_records else [])+[Path(directory)/'ramp']
+    if ramp_notes is True:
+        from uptime.ramp_demo import sandbox_provider
+        ramp_notes=sandbox_provider
+    return dict(ramp_record_dirs=folders,ramp_notes=ramp_notes or None)
+
+
+def open_workspace(directory, *, proposal_config=None, side_panel_origin=None, ramp_records=None, ramp_notes=False):
     directory=Path(directory).resolve()
     from uptime.source_config import _protected_path,_check_file
     path=_protected_path(directory/'workspace.json')
@@ -204,7 +217,8 @@ def open_workspace(directory, *, proposal_config=None, side_panel_origin=None):
         routine_automation=bool(private.get('routine_automation',False)))
     app=create_app(directory/'workspace.db',mode='replay',rehearsal=True,approvals_enabled=True,
         rehearsal_secret=private['rehearsal_secret'],service_credentials=registry,origin=private['origin'],workflow_config=config,
-        proposal_config=proposal_config,side_panel_origin=side_panel_origin)
+        proposal_config=proposal_config,side_panel_origin=side_panel_origin,
+        **ramp_options(directory,ramp_records,ramp_notes))
     return app,private,events
 
 
@@ -314,6 +328,10 @@ def main():
                              "'reworded-log-request', the same request in wording the fixed rules do not recognise")
     parser.add_argument('--side-panel-origin',metavar='chrome-extension://ID',
                         help='Let exactly this Chrome extension frame the served workspace in its side panel (not stored)')
+    parser.add_argument('--ramp-records',type=Path,metavar='DIR',
+                        help='Also load every verified Ramp bill (*.json) in this folder; <workspace>/ramp/ is always read')
+    parser.add_argument('--ramp-notes',action='store_true',
+                        help='Mount POST /api/ramp/notes; posts use RAMP_ENV=sandbox and UPTIME_RAMP_CREDENTIAL_FILE from this shell')
     parser.add_argument('--reviewer-credential',type=Path,
                         help='Also write the reviewer sign-in file to this visible absolute path outside the repository (mode 0600)')
     args=parser.parse_args()
@@ -326,6 +344,10 @@ def main():
     if side_panel and not args.serve:
         # Framing only affects a served app; without --serve the option would silently do nothing.
         parser.error('--side-panel-origin requires --serve')
+    if args.ramp_notes and not args.serve:
+        parser.error('--ramp-notes requires --serve')
+    if args.ramp_records and not args.ramp_records.expanduser().is_dir():
+        parser.exit(1,'setup_northwind: The --ramp-records folder does not exist: '+str(args.ramp_records)+'\n')
     if args.public_proposal_config and not args.serve:
         parser.error('--public-proposal-config requires --serve')
     if args.resume and (args.step_by_step or args.counterparty_reply!='request-log'):
@@ -341,14 +363,16 @@ def main():
     try:
         if args.resume:
             target=credential_target(args.reviewer_credential) if args.reviewer_credential else None
-            app,private,events=open_workspace(args.directory,side_panel_origin=side_panel)
+            app,private,events=open_workspace(args.directory,side_panel_origin=side_panel,
+                                              ramp_records=args.ramp_records,ramp_notes=args.ramp_notes)
             if target is not None:
                 from uptime.auth_keys import rehearsal_key
                 copy_state=place_credential(target,rehearsal_key(private['rehearsal_secret']))
         else:
             app,private,events=prepare(args.directory,args.origin,routine_automation=not args.step_by_step,
                                        reviewer_credential=args.reviewer_credential,counterparty_reply=args.counterparty_reply,
-                                       side_panel_origin=side_panel)
+                                       side_panel_origin=side_panel,ramp_records=args.ramp_records,
+                                       ramp_notes=args.ramp_notes)
             copy_state='WRITTEN' if args.reviewer_credential else None
     except (CredentialRefused,WorkspaceRefused) as refused:
         parser.exit(1,'setup_northwind: '+str(refused)+'\n')
@@ -364,6 +388,12 @@ def main():
                           reviewer_credential_file=str(credential),reviewer_credential_copy=copy_state,
                           routine_automation=bool(private.get('routine_automation',False)),
                           **({'side_panel_origin':side_panel} if side_panel else {}))),flush=True)
+    if args.ramp_records or args.ramp_notes:
+        # Demo line: shown only when a Ramp option is used, so the usual output is unchanged.
+        from uptime.ramp_demo import load_verified_records
+        loaded=load_verified_records(ramp_options(args.directory,args.ramp_records)['ramp_record_dirs'])
+        print('Verified Ramp bills loaded: '+str(len(loaded))+'. Notes to Ramp: '+('on' if args.ramp_notes else 'off')+'.',
+              file=sys.stderr,flush=True)
     # Plain sign-in block; only the path of the private key file is ever printed.
     if side_panel:
         print('Only the side panel of '+side_panel+' may frame this served workspace.',file=sys.stderr)
@@ -376,7 +406,8 @@ def main():
             # Seeding closes its TestClient lifecycle. Construct the configured
             # job service only for the process that will serve requests.
             app,private,events=open_workspace(args.directory,proposal_config=args.public_proposal_config,
-                                              side_panel_origin=side_panel)
+                                              side_panel_origin=side_panel,ramp_records=args.ramp_records,
+                                              ramp_notes=args.ramp_notes)
         import uvicorn
         uvicorn.run(app,host='127.0.0.1',port=int(private['origin'].rsplit(':',1)[1]),log_level='warning')
 
