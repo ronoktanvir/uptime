@@ -66,7 +66,9 @@ def test_model_jobs_writes_private_config_and_exact_sample_approvals(workspace):
     for name in ('config.json', 'approvals.json'):
         assert stat.S_IMODE((folder / name).stat().st_mode) == 0o600
     config = json.loads((folder / 'config.json').read_text())
-    assert config == {'version': 1, 'executable': '/usr/bin/true', 'approvals_path': str(folder / 'approvals.json'), 'kinds': ['vendor']}
+    # The configuration records the resolved path; on some Linux images /usr/bin/true is a link to another file.
+    assert config == {'version': 1, 'executable': str(Path('/usr/bin/true').resolve()),
+                      'approvals_path': str(folder / 'approvals.json'), 'kinds': ['vendor']}
     approvals = json.loads((folder / 'approvals.json').read_text())
     assert prepared['approved_requests'] == len(approvals['approvals']) == 18
     assert {a['target'] for a in approvals['approvals']} == {'corvid-ledger', 'halden-relay', 'halden-relay-control'}

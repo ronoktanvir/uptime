@@ -168,3 +168,9 @@ A read-only review of everything the demo line adds found nothing that blocked p
 - `uptime/ramp_workspace.py`: the read route no longer calls the note poster. `uptime/ramp_demo.py`: `start_retries` retries a failed note from a background timer in auto mode; `ramp_credit` answers `APPLIED_CONFIRMED` only when exactly one applied credit is verified on both sides, and `UNKNOWN` otherwise.
 - `uptime/template_builder.py`: the sample text route checks the tenant. `uptime/template_rules.py`: a text over 200,000 characters is refused.
 - Notes corrected: the sentence above about writes to Ramp, the two sentences about Python tests, `docs/demo/TEMPLATE-BUILDER.md` on which routes need a reviewer, and the route list in `extension/README.md`.
+
+## After GitHub's check run (coordinator, November 10, 12:46 PST)
+
+GitHub's check workflow ran the suite on the published commits and one test failed there (5,542 passed): on its Linux image `/usr/bin/true` is a link to `/usr/bin/gnutrue`, and the configuration records the resolved path.
+
+- `tests/test_setup_model_jobs_demo.py` › `test_model_jobs_writes_private_config_and_exact_sample_approvals`: the expected `executable` is now the resolved path of `/usr/bin/true` (it was the literal string). The test came with the demo line and had only run on macOS, where the two are the same. Nothing about approvals, modes or requests changed.
