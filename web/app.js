@@ -50,6 +50,7 @@
     // A Ramp page that is not one bill: the bills Uptime is tracking.
     if (requested === 'ramp-bills') return 'ramp-bills';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
+    if (requested.startsWith('template-build/')) return 'template-build';
     return ['dashboard','onboarding','lab','regression','advanced','vendors','disputes','policy','integrations'].includes(requested) || requested.startsWith('disputes/') ? requested : 'ramp';
   }
   // ---- Panel mode ----
@@ -116,6 +117,9 @@
   // The finance view disables actions when this page holds no signing key (for example after a reload).
   const workspaceWorkflow = window.UptimeWorkspace?.create({api,onUnauthorized:account,canAct:() => window.uptimeAuth?.canSign?.() !== false});
   const filters = {query: '', status: '', sort: 'value-desc'};
+  // A run of the template builder (#template-build/<id>) and its section on the Agreements page.
+  let templateBuildId = null;
+  const templateBuilder = window.UptimeTemplateBuilder?.create({api, onUnauthorized: account, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
   function button(label, handler, className = '') { const node = el('button', className, label); node.type = 'button'; node.addEventListener('click', handler); return node; }
@@ -176,7 +180,7 @@
   function account() {
     generation++; signedPage = false; companionAccess = {}; workspaceName = null; workspaceNameRead = null;
     content.setAttribute('aria-busy', 'false');
-    ramp?.unmount(); workspaceWorkflow?.unmount(); companion?.unmount(content);
+    ramp?.unmount(); workspaceWorkflow?.unmount(); companion?.unmount(content); templateBuilder?.unmount();
     if (dialog.open) dialog.close();
     content.replaceChildren(window.uptimeAuth.signInForm(() => { signedPage = true; navigate(); }));
   }
@@ -409,7 +413,8 @@
       gate:session?.approvals_enabled === true ? 'Deployment approvals enabled; server rechecks every request' : 'Read-only deployment',
       canWrite:signedPage && policy.role === 'reviewer' && session?.approvals_enabled === true,
       canDraft:signedPage && session?.role === 'reviewer' && session?.drafts_enabled === true};
-    if (route === 'vendors' || route === 'disputes') return ui.render(content,route);
+    if (route === 'vendors') { await ui.render(content,route); if (token === generation) await templateBuilder?.section(content); return; }
+    if (route === 'disputes') return ui.render(content,route);
     if (route.startsWith('disputes/')) return ui.inspect(content,decodeURIComponent(route.slice(9)));
     if (route === 'regression') {
       const data = await api('/api/dashboard');
@@ -433,6 +438,12 @@
     }
     async function renderRoute() {
     try { if (['advanced','vendors','disputes','regression'].includes(route) || route.startsWith('disputes/')) { await loadCompanion(route, token); return; }
+    if (route === 'template-build') {
+      if (!templateBuilder) throw new Error('Template builder asset unavailable.');
+      await templateBuilder.run(content, templateBuildId);
+      if (token === generation) { const current = window.uptimeAuth.session(); if (current) showAccount(current.subject); }
+      return;
+    }
     if (route === 'recovery') {
       const projection = await api('/api/workspace/workflow');
       if (token !== generation) return;
@@ -522,6 +533,9 @@
     ramp?.unmount();
     workspaceWorkflow?.unmount();
     companion?.unmount(content);
+    templateBuilder?.unmount();
+    templateBuildId = requested.startsWith('template-build/') ? requested.slice(15) : null;
+    try { if (templateBuildId) templateBuildId = decodeURIComponent(templateBuildId); } catch { templateBuildId = null; }
     if (dialog.open) dialog.close();
     rampCase = null; rampBill = null; recoverySection = requested.startsWith('recovery/') ? requested.slice(9) : null;
     if (requested.startsWith('ramp/')) {
@@ -533,7 +547,7 @@
     view = companionRoute(requested);
     // A page under a destination (one case under Cases) keeps that destination marked as the current one.
     // One Ramp record keeps the page it was opened from marked.
-    const marked = rampCase ? rampOrigin : view === 'ramp-bill' || view === 'ramp-bill-none' || view === 'ramp-bills' ? 'records' : view === 'recovery' ? 'ramp' : view;
+    const marked = rampCase ? rampOrigin : view === 'ramp-bill' || view === 'ramp-bill-none' || view === 'ramp-bills' ? 'records' : view === 'recovery' ? 'ramp' : view === 'template-build' ? 'vendors' : view;
     document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === marked || marked.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
     // On a wide screen the group that holds the current page is opened. On a narrow one the header stays slim:
     // the group's own label is marked instead, and the list opens only when asked for.

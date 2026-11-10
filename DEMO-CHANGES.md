@@ -129,3 +129,25 @@ New files: `uptime/template_rules.py` (the fixed interpreter: one regular expres
 Wiring: `uptime/server.py` registers the routes (off unless `app.state.template_builds` is set); `scripts/setup_northwind.py` gains `--template-builder` (requires `--serve`; `--claude-executable` now also applies to it) and `prepare_template_builds`.
 
 No existing test was changed.
+## Template builder page (November 10)
+
+Built against `docs/demo/TEMPLATE-BUILDER.md` (routes and the `sample`, `build` and `reading` shapes) with no change to that page.
+
+- New: `web/template_builder_ui.js` (the Agreements section "A contract type Uptime has not read before" and the run page
+  `#template-build/<id>`, drawn from `build` alone and polled every 700 ms until READY_FOR_REVIEW, APPROVED or FAILED;
+  polling stops when the view is left) and `web/template_builder.test.cjs` (14 tests through every build state, Jev not
+  reached, a blocking failure, approval, a reading with a term not found, a failed build and a disabled server).
+- `web/style.css`: one new block, "15c. Template builder", placed before "16. Side panel", which stays last.
+- `web/index.html`: one script tag for `/static/template_builder_ui.js`, before `app.js`.
+- `web/app.js`: `companionRoute` maps `template-build/<id>` to the view `template-build`; the view is rendered by the
+  template builder and marks Agreements in the rail; the Agreements route mounts the section after the companion page
+  renders; navigation and sign-out unmount it. Not added to the side-panel allowed routes.
+- No existing test was changed.
+- After merging `demo/film-20261110`: the page also uses the engine's additions. The second-document check names
+  `sample.second_document` (or the check's `document`); an expanded term shows `rule.map`, `rule_quote` and
+  `rule_error`; a term without a Jev answer while Jev's check ran says "No answer" with no number; a refused start
+  (429, 404) shows the server's sentence. An advisory check that did not pass (Jev's) reads "For the reviewer" in
+  amber rather than a red failure, a REVIEW term's Jev figure is amber, and the approval card names the marked terms
+  and says Jev's check is advisory. Two tests added to `web/template_builder.test.cjs` (16 in all). Watched one real
+  build (`--template-builder`) through the page: ready for review after 23.7 s, approved, next contract read by the
+  template in 5.0 ms with 0 model calls.
