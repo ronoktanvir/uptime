@@ -1031,6 +1031,107 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .uptime-v4 .v4-live-family > h3 { margin: 0 0 4px; }
 @media (max-width: 760px) { .uptime-v4 .v4-reading-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .uptime-v4 .v4-reading-sentence, .uptime-v4 .v4-reading-term { transition: none; } }
+/* 15c. Template builder (demo-tb-page-20261110). The Agreements page's "A contract type Uptime has not read before"
+   section and the run page #template-build/<id> (web/template_builder_ui.js). Presentation only: every word and figure
+   comes from the server's build or reading object. A working step moves quietly; reduced motion stops it (15. Motion). */
+.tb-section { border-color: var(--accent-line); background: linear-gradient(180deg, var(--accent-soft), var(--surface) 96px); }
+.tb-section-head { display: grid; gap: 2px; margin-bottom: 14px; }
+.tb-section-head .help { max-width: 80ch; margin-top: 4px; }
+.tb-reason { padding: 10px 14px; border: 1px solid var(--warn-line); border-radius: 8px; background: var(--warn-soft); color: var(--warn); }
+.tb-samples { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 12px; }
+.tb-sample { display: grid; gap: 6px; align-content: start; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); }
+.tb-sample h3 { font-size: 15px; line-height: 22px; }
+.tb-sample-facts { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.tb-sample-template { font-size: 13px; color: var(--ok); font-weight: 500; }
+.tb-sample .actions { margin-top: 6px; }
+.tb-said:not(:empty) { margin-top: 8px; font-size: 13px; color: var(--bad); }
+.tb-page { display: flex; flex-direction: column; gap: 16px; }
+.tb-back { display: inline-block; margin-bottom: 8px; font-size: 13px; font-weight: 500; text-decoration: none; }
+.tb-back::before { content: ""; display: inline-block; width: 1em; height: 1em; margin-right: 6px; vertical-align: -0.14em; background: currentColor; -webkit-mask: var(--i-arrow-left) center / contain no-repeat; mask: var(--i-arrow-left) center / contain no-repeat; }
+.tb-orchestration { margin-top: 6px !important; color: var(--text) !important; font-size: 13.5px; }
+.tb-head-state { display: grid; justify-items: end; gap: 4px; align-self: flex-end; }
+.tb-head-state .pill { font-size: 13px; line-height: 22px; padding: 2px 12px; }
+.tb-head-state .page-ref { margin: 0; }
+.pill.tb-live::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: 1px; animation: tb-pulse 1.2s ease-in-out infinite; }
+/* The run: one numbered stage per row on a line; the three readers sit side by side. */
+.tb-stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.tb-stage { display: grid; grid-template-columns: 36px minmax(0, 1fr); column-gap: 14px; }
+.tb-stage-mark { position: relative; display: flex; justify-content: center; }
+.tb-stage-mark::after { content: ""; position: absolute; top: 30px; bottom: -2px; left: 50%; width: 2px; margin-left: -1px; background: var(--line); }
+.tb-stage:last-child .tb-stage-mark::after { display: none; }
+.tb-stage-done .tb-stage-mark::after { background: var(--ok-line); }
+.tb-stage-number { position: relative; z-index: 1; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 650; }
+.tb-stage-done .tb-stage-number { border-color: var(--ok); background: var(--ok); color: #fff; }
+.tb-stage-running .tb-stage-number { border-color: var(--accent); color: var(--accent-strong); box-shadow: 0 0 0 4px var(--accent-soft); animation: tb-ring 1.6s ease-in-out infinite; }
+.tb-stage-failed .tb-stage-number { border-color: var(--bad); background: var(--bad); color: #fff; }
+.tb-stage-body { min-width: 0; padding-bottom: 18px; }
+.tb-stage-label { margin: 4px 0 8px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.tb-stage-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.tb-stage-cards.tb-parallel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tb-step { position: relative; overflow: hidden; display: grid; gap: 4px; align-content: start; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); transition: border-color var(--ease), background var(--ease); }
+.tb-step h3 { font-size: 14px; line-height: 20px; }
+.tb-step-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.tb-actor { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink); }
+.tb-actor::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--neutral); }
+.tb-actor-claude .tb-actor::before { background: #d97757; }
+.tb-actor-jev .tb-actor::before { background: var(--accent); }
+.tb-actor-uptime .tb-actor::before { background: var(--ink); }
+.tb-actor-reviewer .tb-actor::before { background: var(--ok); border-radius: 50%; }
+.tb-model { padding: 0 6px; border-radius: 4px; background: var(--sunken); font-size: 11px; line-height: 16px; }
+.tb-step-state { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 2px; }
+.tb-clock { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.tb-summary { font-size: 13px; line-height: 19px; color: var(--text); }
+.tb-pending { background: var(--sunken); box-shadow: none; }
+.tb-pending h3, .tb-pending .tb-actor { color: var(--muted); }
+.tb-running { border-color: var(--accent-line); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+.tb-done { border-color: var(--ok-line); }
+.tb-failed { border-color: var(--bad-line); background: var(--bad-soft); }
+.tb-failed .tb-summary { color: var(--bad); }
+.tb-working { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--accent-soft); overflow: hidden; }
+.tb-working::after { content: ""; position: absolute; top: 0; bottom: 0; width: 35%; background: var(--accent); border-radius: 2px; animation: tb-slide 1.3s ease-in-out infinite; }
+@keyframes tb-slide { from { left: -35%; } to { left: 100%; } }
+@keyframes tb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes tb-ring { 0%, 100% { box-shadow: 0 0 0 3px var(--accent-soft); } 50% { box-shadow: 0 0 0 7px var(--accent-soft); } }
+/* Terms and checks */
+.tb-terms .panel-head, .tb-checks .panel-head { flex-wrap: wrap; }
+.tb-table td { vertical-align: middle; }
+.tb-value { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.tb-agree { white-space: nowrap; color: var(--ink); }
+.tb-toggle { text-align: right; white-space: nowrap; }
+.tb-term-review td { background: var(--warn-soft); }
+.tb-term-review td:first-child { box-shadow: inset 3px 0 0 #e2a53a; }
+.tb-open td { border-bottom-color: transparent; }
+.tb-term-detail { padding-top: 0; background: var(--sunken); }
+.tb-term-review + .tb-detail-row .tb-term-detail { background: var(--warn-soft); }
+.tb-detail-label { margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.tb-term-detail blockquote { background: var(--surface); }
+.tb-detail { margin-top: 8px; }
+.tb-pattern { color: var(--ink); background: var(--surface); padding: 2px 6px; border: 1px solid var(--line); border-radius: 4px; }
+.tb-jev-missing { margin-top: 10px; color: var(--warn); }
+.tb-check-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.tb-check { display: grid; grid-template-columns: minmax(0, 1fr) auto 64px; align-items: center; gap: 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.tb-check:first-child { border-top: 0; padding-top: 0; }
+.tb-check-figures { display: grid; justify-items: end; text-align: right; }
+.tb-check-count { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.tb-check-bad .tb-check-count { color: var(--bad); }
+.tb-check-off .tb-check-count { color: var(--warn); font-weight: 500; }
+.tb-check > .pill { justify-self: end; }
+/* Approval and the next contract */
+.tb-approval { border-color: var(--accent-line); }
+.tb-approval.tb-approved { border-color: var(--ok-line); background: linear-gradient(180deg, var(--ok-soft), var(--surface) 80px); }
+.tb-template-facts { margin-bottom: 14px; }
+.tb-approval .actions { margin-top: 12px; }
+.tb-blocked { margin-top: 8px; color: var(--bad); font-weight: 500; }
+.tb-approved-line { color: var(--ok); font-weight: 600; }
+.tb-next-doc { padding: 14px 0; border-top: 1px solid var(--line); }
+.tb-next-doc:first-of-type { margin-top: 10px; }
+.tb-next-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.tb-reading { margin-top: 12px; display: grid; gap: 8px; }
+.tb-reading-line { font-weight: 600; color: var(--ink); }
+.tb-rules-mark { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--ok-soft); color: var(--ok); font-variant-numeric: tabular-nums; }
+.tb-quote-text { font-family: var(--serif); font-size: 14px; color: var(--ink); }
+.tb-not-found td { background: var(--sunken); }
+@media (max-width: 900px) { .tb-stage-cards.tb-parallel { grid-template-columns: minmax(0, 1fr); } .tb-head-state { justify-items: start; } }
 /* 16. Side panel (submission-panel-20261110). Everything in this block applies only when the page is framed by the
    one extension the server allows (app.js adds .panel-mode to <html> then), or styles the one-bill page's own parts.
    Presentation only: no state, record or word is hidden by it. The full app in an ordinary tab is unchanged. */
