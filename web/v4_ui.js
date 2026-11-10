@@ -90,6 +90,26 @@
     const section = title => add(el('section', undefined, 'v4-panel'), el('h2', title));
     const note = text => el('p', text, 'v4-note');
     const button = (text, handler) => { const n = el('button', text); n.type = 'button'; n.addEventListener('click', handler); return n; };
+    // A 64-character fingerprint is shown by its first ten characters wherever the exact value sits one click away.
+    const short = value => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value) ? value.slice(0, 10) + '…' : value;
+    const MONTH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const day = value => { const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value)); return d && MONTH[Number(d[2]) - 1] ? MONTH[Number(d[2]) - 1] + ' ' + Number(d[3]) + ', ' + d[1] : value; };
+    // A closed section: forms, histories and raw records stay one click away. A section a person opened stays open
+    // when the page is drawn again after an action.
+    const opened = new Set();
+    function fold(key, title, ...children) {
+      const n = add(el('details', undefined, 'v4-fold'), el('summary', title), ...children);
+      if (opened.has(key)) n.open = true;
+      n.addEventListener('toggle', () => { if (n.open) opened.add(key); else opened.delete(key); });
+      return n;
+    }
+    // Short facts as label over value; absent values are left out, never shown as placeholders.
+    function facts(pairs) {
+      const n = el('dl', undefined, 'v4-facts');
+      pairs.filter(([, value]) => value !== undefined && value !== null && value !== '').forEach(([name, value]) =>
+        n.append(add(el('div'), el('dt', name), typeof value === 'object' ? add(el('dd'), value) : el('dd', value))));
+      return n;
+    }
     function provenance(sources) {
       const refs = list(sources).filter(s => s && typeof s === 'object' && (s.ref || s.title || s.uri));
       const n = el('div', undefined, 'v4-sources');
@@ -112,11 +132,16 @@
       return n;
     }
     function details(title, value) { return add(el('details', undefined, 'v4-detail'), el('summary', title), record(value)); }
+    // What this account may do here, as the page's access helper reports it. A read-only page says so at the top;
+    // the identity, enrollment and gate sit in a closed section at the foot.
+    function accessNote() {
+      const a = access();
+      return a.canWrite === true ? 'Reviewer requests use the authenticated API client. The server checks each action.' : a.canDraft === true ? 'Signed local draft intake, independent tests and previews are available. Promotion and financial actions require their separate authorization.' : 'Read-only. An enrolled reviewer can sign in here to stage a local draft. After a page reload, sign out and sign in again to restore signing.';
+    }
+    const readOnly = () => access().canWrite !== true && access().canDraft !== true;
     function identity() {
       const a = access();
-      const n = section('Identity & approval gate');
-      add(n, record({identity:a.identity, enrollment:a.enrollment, gate:a.gate}), note(a.canWrite === true ? 'Reviewer requests use the authenticated API client. The server checks each action.' : a.canDraft === true ? 'Signed local draft intake, independent tests and previews are available. Promotion and financial actions require their separate authorization.' : 'Read-only. An enrolled reviewer can sign in here to stage a local draft. After a page reload, sign out and sign in again to restore signing.'));
-      return n;
+      return fold('access', 'Your access on this page', record({identity:a.identity, enrollment:a.enrollment, gate:a.gate}), readOnly() ? null : note(accessNote()));
     }
     function field(form, name, title, type = 'text', required = true) {
       const input = el(Array.isArray(type) ? 'select' : type === 'textarea' ? 'textarea' : 'input');
@@ -362,29 +387,30 @@
     const lower = value => value == null ? 'Not provided' : String(value).replaceAll('_', ' ').toLowerCase();
     const cents = value => Number.isSafeInteger(value) ? (value < 0 ? '-' : '') + 'USD ' + Math.trunc(Math.abs(value) / 100) + '.'
       + String(Math.abs(value) % 100).padStart(2, '0') : 'Not provided';
-    function requirementsView(r, citations) {
+    function requirementsView(r, citations, key = 'requirements') {
       const card = r.card && typeof r.card === 'object' ? r.card : {};
       const quotes = new Map(list(citations).filter(c => c && typeof c === 'object').map(c => [c.id, c.quote]));
-      const out = el('div', undefined, 'v4-requirements-card');
-      out.append(record({family:card.family, supported:card.supported === true ? 'yes' : 'no',
-        open_requirements:card.no_open_requirements === true ? 'none' : 'see below', source_sha256:card.source_sha256}));
-      const elements = el('ul', undefined, 'v4-elements');
+      const out = add(el('div', undefined, 'v4-requirements-card'), note('Read only. These requirements grant no approval, activation or dispatch.'));
+      // What the source establishes, element by element: its status in words on the left, each cited clause on the
+      // right, in view and untrimmed. Typed values, reviewer tasks, the family choice and fingerprints are one click away.
+      const elements = el('ul', undefined, 'v4-elements'), typed = [];
       list(card.elements).filter(e => e && typeof e === 'object').forEach(e => {
         const fallback = label(String(e.element)), name = ELEMENT_NAMES[e.element] || fallback.charAt(0).toUpperCase() + fallback.slice(1);
-        const row = add(el('li'), el('strong', name + ': ' + (ELEMENT_STATUS[e.status] || lower(e.status))));
-        if (typeof e.requirement === 'string' && e.requirement) row.append(el('p', e.requirement, 'v4-requirement'));
-        const ids = list(e.citations).filter(id => id !== null && id !== undefined);
+        const term = add(el('div', undefined, 'v4-element-term'), el('strong', name + ': ' + (ELEMENT_STATUS[e.status] || lower(e.status))));
+        if (typeof e.requirement === 'string' && e.requirement) term.append(el('p', e.requirement, 'v4-requirement'));
+        const ids = list(e.citations).filter(id => id !== null && id !== undefined), cited = el('div', undefined, 'v4-element-quotes');
         if (ids.length) {
-          const cited = add(el('details', undefined, 'v4-detail'), el('summary', 'Cited clauses ' + ids.map(String).join(', ')));
+          term.append(el('p', 'Cited clauses ' + ids.map(String).join(', '), 'v4-cited'));
           ids.forEach(id => { const q = quotes.get(id); cited.append(typeof q === 'string' && q ? el('blockquote', q) : note('Clause ' + shown(id) + ' text not returned.')); });
-          row.append(cited);
         }
-        if (e.detail && typeof e.detail === 'object' && Object.keys(e.detail).length) row.append(record(e.detail));
-        elements.append(row);
+        if (e.detail && typeof e.detail === 'object' && Object.keys(e.detail).length) typed.push(add(el('div', undefined, 'v4-typed'), el('h4', name + ': typed values'), record(e.detail)));
+        elements.append(add(el('li', undefined, 'v4-element v4-is-' + String(e.status).toLowerCase().replace(/[^a-z_]/g, '')), term, ids.length ? cited : null));
       });
-      out.append(el('h4', 'Elements'), elements.children.length ? elements : note('No elements returned.'));
+      out.append(elements.children.length ? elements : note('No elements returned.'));
+      const more = [record({family:card.family, supported:card.supported === true ? 'yes' : 'no',
+        open_requirements:card.no_open_requirements === true ? 'none' : 'see below', source_sha256:card.source_sha256}), ...typed];
       const todo = list(card.review_requirements).filter(t => typeof t === 'string' && t);
-      if (todo.length) { const items = el('ul', undefined, 'v4-requirements'); todo.forEach(t => items.append(el('li', t))); out.append(el('h4', 'What a reviewer must still do'), items); }
+      if (todo.length) { const items = el('ul', undefined, 'v4-requirements'); todo.forEach(t => items.append(el('li', t))); more.push(el('h4', 'What a reviewer must still do'), items); }
       const selection = r.family_selection && typeof r.family_selection === 'object' ? r.family_selection : null;
       if (selection) {
         const box = add(el('div', undefined, 'v4-review'), el('h4', 'How the rule family was chosen'));
@@ -399,7 +425,7 @@
         }
         const why = list(selection.review_requirements).filter(t => typeof t === 'string' && t);
         if (why.length) { const items = el('ul', undefined, 'v4-requirements'); why.forEach(t => items.append(el('li', t))); box.append(items); }
-        out.append(box);
+        more.push(box);
       }
       const drafts = r.drafts && typeof r.drafts === 'object' ? r.drafts : null;
       if (drafts) {
@@ -415,18 +441,19 @@
             el('td', cents(d.placeholder_fee_cents)), el('td', list(d.citations).map(String).join(', ') || 'None'))));
           box.append(add(el('div', undefined, 'v4-scroll'), table));
         }
-        out.append(box);
+        more.push(box);
       }
       const overlap = r.draft_overlap && typeof r.draft_overlap === 'object' ? r.draft_overlap : null;
       if (overlap && typeof overlap.warning === 'string' && overlap.warning) {
         const reused = list(overlap.tests_reusing_draft_facts).filter(t => typeof t === 'string' && t);
-        out.append(add(el('div', undefined, 'v4-review v4-overlap'), el('h4', 'Draft overlap'), note(overlap.warning),
+        more.push(add(el('div', undefined, 'v4-review v4-overlap'), el('h4', 'Draft overlap'), note(overlap.warning),
           reused.length ? note('Tests reusing draft facts: ' + reused.join(', ') + '.') : null));
       }
-      out.append(note('Read only. These requirements grant no approval, activation or dispatch.'));
-      return out;
+      return add(out, fold(key, 'Typed values, reviewer tasks and how the rule family was chosen', ...more));
     }
-    function requirementsPanel(m, base, citations) {
+    // Shown on request only where a vendor's detail carries no source manifest; otherwise the requirements are read
+    // with the vendor and shown on its card.
+    function requirementsPanel(m, base, citations, key) {
       const n = add(el('div', undefined, 'v4-review'), el('h3', 'Review requirements'),
         note('What the source establishes for this adapter version, what a reviewer must still do, and how its rule family was chosen.'));
       const out = el('div'); out.setAttribute('aria-live', 'polite');
@@ -435,49 +462,168 @@
         load.disabled = true; out.replaceChildren(note('Loading review requirements…'));
         try {
           const r = await request(m, base + '/requirements');
-          if (active(m)) out.replaceChildren(r && typeof r === 'object' ? requirementsView(r, citations) : note('Review requirements unavailable. Nothing was changed.'));
+          if (active(m)) out.replaceChildren(r && typeof r === 'object' ? requirementsView(r, citations, key) : note('Review requirements unavailable. Nothing was changed.'));
         } catch (error) {
           if (active(m)) out.replaceChildren(note(error?.status === 401 ? 'Sign in again to read the review requirements.' : 'Review requirements unavailable. Nothing was changed.'));
         } finally { load.disabled = false; }
       });
       return add(n, load, out);
     }
-    // Who recorded each lifecycle revision. Preparation scripts are never presented as a person's decision.
-    function reviewHistory(data) {
+    // Who recorded each lifecycle revision, exactly as the server names the account. Preparation scripts are never
+    // presented as a person's decision. The summary stays in view; every revision is one click away.
+    const actorLabel = actor => /^scripted-/.test(String(actor)) ? 'Scripted preparation (' + actor + ')' : 'Recorded under account ' + shown(actor);
+    function reviewSteps(data, key) {
       const rows = list(data.audit).filter(row => row && typeof row === 'object');
       if (!rows.length) return null;
-      const box = add(el('div', undefined, 'v4-review'), el('h3', 'Review history'));
-      const current = data.state === 'REVOKED' && !data.active_version ? 'Rolled back. No version is active.'
-        : data.state === 'ACTIVE' && data.active_version ? 'Active version ' + shown(data.active_version) + '.'
-        : 'Current state: ' + shown(data.state) + (data.active_version ? '; active version ' + shown(data.active_version) : '') + '.';
-      box.append(note(current));
+      const box = add(el('div', undefined, 'v4-review v4-review-steps'), el('h3', 'Review steps'));
+      const actors = new Map();
+      rows.forEach(row => { const name = actorLabel(row.actor); actors.set(name, (actors.get(name) || 0) + 1); });
+      const who = el('ul', undefined, 'v4-actors');
+      actors.forEach((count, name) => who.append(add(el('li'), el('strong', name), el('span', count + (count === 1 ? ' step' : ' steps')))));
+      const last = rows[rows.length - 1];
       const items = el('ol', undefined, 'v4-history');
       rows.forEach(row => items.append(add(el('li'), el('strong', 'Revision ' + shown(row.revision) + ' · ' + shown(row.kind)),
-        note(shown(at(row.at)) + ' · ' + (/^scripted-/.test(String(row.actor)) ? 'Scripted preparation (' + row.actor + ')' : 'Recorded under account ' + shown(row.actor))))));
-      return add(box, items);
+        note(shown(at(row.at)) + ' · ' + actorLabel(row.actor)))));
+      return add(box, who, note('Latest: ' + shown(last.kind) + ' · ' + shown(at(last.at))),
+        fold(key, 'Review history (' + rows.length + (rows.length === 1 ? ' step' : ' steps') + ')', items));
     }
-    function vendor(m, data) {
+    // Whether an agreement is in force, in plain words from two server fields: the state and the active version.
+    function stateSentence(data) {
+      const version = shown(short(data.active_version));
+      return data.state === 'REVOKED' && !data.active_version ? 'Rolled back. No version is active.'
+        : data.state === 'ACTIVE' && data.active_version ? 'Active version ' + version + '.'
+        : 'Current state: ' + shown(data.state) + (data.active_version ? '; active version ' + version : '') + '.';
+    }
+    const STATE_TONE = {ACTIVE:'ok', APPROVED:'accent', SHADOW:'warn', REVIEW_REQUIRED:'warn'};
+    // ---- A proposal job as the server reports it ----
+    // In view: job id, state, reason, the model actually used and its times, each only when the server supplies it.
+    // Every digest and the session sit in one closed "Request details" disclosure, exact and one click away.
+    const compact = fields => { Object.keys(fields).forEach(key => { if (fields[key] === undefined || fields[key] === null || fields[key] === '') delete fields[key]; }); return fields; };
+    const JOB_TONE = {SUCCEEDED:'ok', REFUSED:'bad', UNCERTAIN:'warn', QUEUED:'accent', RUNNING:'accent'};
+    function jobFacts(job) {
+      const provider = job.provider && typeof job.provider === 'object' ? job.provider : {};
+      const proposal = job.status === 'SUCCEEDED' && job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
+      const n = facts([['Job', job.job_id],
+        ['Status', job.status == null ? null : el('span', job.status, 'pill' + (JOB_TONE[job.status] ? ' ' + JOB_TONE[job.status] : ''))],
+        ['Reason', job.reason], ['Model', provider.model || proposal.model],
+        ['Submitted', at(job.submitted_at)], ['Started', at(job.started_at)], ['Finished', at(job.finished_at)]]);
+      n.className = 'v4-facts v4-inline';
+      return n;
+    }
+    function requestDetails(job) {
+      const provider = job.provider && typeof job.provider === 'object' ? job.provider : {};
+      const p = job.status === 'SUCCEEDED' && job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
+      return compact({request_sha256:job.request_sha256, context_sha256:job.context_sha256, profile:p.profile,
+        attempt_nonce:p.attempt_nonce, source_sha256:p.source_sha256, proposal_sha256:p.proposal_sha256, proposal_model:p.model,
+        session:p.session || provider.session});
+    }
+    // A verified diagnostic from the server: fixed explanations, exact public passages and missing terms.
+    // Every value is rendered as text. A refusal stays a refusal; nothing here offers a candidate.
+    function refusalDiagnostic(value, heading = 'Why this proposal was refused') {
+      if (!value || typeof value !== 'object' || value.schema !== 'public-refusal-diagnostic/1') return null;
+      const box = add(el('div', undefined, 'v4-review v4-refusal'), el('h4', heading));
+      list(value.issues).filter(issue => issue && typeof issue === 'object').forEach(issue => {
+        const row = add(el('div', undefined, 'v4-refusal-issue'), el('p', shown(issue.explanation)));
+        if (typeof issue.quote === 'string' && issue.quote) {
+          row.append(el('blockquote', issue.quote),
+            note('Public source passage' + (issue.block != null ? ' · block ' + shown(issue.block) : '')
+              + (issue.start != null && issue.end != null ? ' · characters ' + shown(issue.start) + '–' + shown(issue.end) : '')
+              + (issue.block_sha256 ? ' · SHA-256 ' + shown(issue.block_sha256) : '')));
+        }
+        box.append(row);
+      });
+      const missing = list(value.missing_terms).filter(term => typeof term === 'string' && term);
+      if (missing.length) box.append(note('Required terms not established by the source: ' + missing.join(', ') + '.'));
+      const doc = value.document && typeof value.document === 'object' ? value.document : {};
+      box.append(note('Source: ' + shown(doc.name) + ' · ' + shown(doc.uri) + ' · SHA-256 ' + shown(value.source_sha256)),
+        note('This refusal created no candidate, test or approval. A new attempt needs its own approval.'));
+      return box;
+    }
+    // Each proposed term beside its exact sentence and typed value. The document name and URI are shown as sent.
+    function proposalView(job) {
+      const p = job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
+      const doc = p.document && typeof p.document === 'object' ? p.document : {};
+      const source = facts([['Document', doc.name], ['URI', doc.uri]]); source.className = 'v4-facts v4-inline';
+      const n = add(el('div', undefined, 'v4-proposal'), el('h3', 'Proposed public clauses'), source);
+      // A typed value on one line: the same JSON, with a space where pretty-printing would break the line.
+      const typed = value => value === undefined ? null : JSON.stringify(value, null, 1).replace(/\n\s*/g, ' ');
+      const rows = el('ol', undefined, 'v4-clauses');
+      list(p.clauses).forEach(clause => {
+        if (!clause || typeof clause !== 'object') return;
+        rows.append(add(el('li', undefined, 'v4-clause'),
+          el('span', typeof clause.field === 'string' ? label(clause.field) : 'unlabeled', 'v4-clause-field'),
+          el('blockquote', typeof clause.quote === 'string' ? clause.quote : null, 'v4-quote'),
+          el('pre', typed(clause.value), 'v4-value')));
+      });
+      if (!rows.children.length) rows.append(el('li', 'No validated clauses returned.'));
+      const heads = add(el('p', undefined, 'v4-clause-head'), el('span', 'Term'), el('span', 'Exact sentence in the source'), el('span', 'Proposed value'));
+      heads.setAttribute('aria-hidden', 'true');
+      return add(n, heads, rows, note('Quotes are exact slices of the public source and remain untrusted text. This proposal is unreviewed: it has no tests, approval or customer scope.'));
+    }
+    function jobView(job, heading) {
+      return add(el('div', undefined, 'v4-job'), el('h3', heading), jobFacts(job),
+        el('p', JOB_MESSAGES[job.status] || 'Unrecognized job status. No action is available.', 'v4-note v4-job-message'),
+        details('Request details', requestDetails(job)));
+    }
+    // One agreement: its name and state, whether it is in force, the proposal job behind it when there is one, what
+    // its source establishes with each cited clause, and who performed the review steps. Forms, version actions and
+    // the full record are one click away.
+    function vendor(m, data, extras = {}) {
       const id = data.vendor_id ?? data.id;
-      const n = section(shown(data.name ?? data.vendor ?? id));
-      add(n, provenance(data.sources), record({vendor_id:id, revision:data.revision, state:data.state, active_version:data.active_version, reviewer:data.reviewer}), reviewHistory(data),
-        typeof id === 'string' && id && !data.detail_unavailable && data.revision != null ? requirementsPanel(m, '/api/vendors/' + encodeURIComponent(id), data.manifest?.citations) : null,
-        details('Rules, overlay, tests and reviewer versions', data));
+      const n = el('section', undefined, 'v4-panel v4-vendor');
+      const tone = STATE_TONE[data.state];
+      n.append(add(el('div', undefined, 'v4-vendor-head'), el('h2', shown(data.name ?? data.vendor ?? id)),
+        typeof data.state === 'string' && data.state ? el('span', data.state, 'pill' + (tone ? ' ' + tone : '')) : null));
+      if (typeof data.state === 'string' && data.state) {
+        const force = data.state === 'ACTIVE' && data.active_version ? 'In force in this workspace.'
+          : data.active_version ? 'An earlier version is in force; this revision is not.' : 'Not in force.';
+        n.append(add(el('p', undefined, 'v4-force'), el('strong', force), el('span', stateSentence(data))));
+      }
+      const overlay = data.overlay && typeof data.overlay === 'object' ? data.overlay : {};
+      const manifest = data.manifest && typeof data.manifest === 'object' ? data.manifest : {};
+      const doc = manifest.document && typeof manifest.document === 'object' ? manifest.document : {};
+      const extraction = data.extraction && typeof data.extraction === 'object' ? data.extraction : {};
+      const told = value => typeof value === 'string' || typeof value === 'number' ? value : null;
+      n.append(facts([['Agreement', told(overlay.agreement) ?? told(manifest.agreement)],
+        ['Covers', [told(overlay.product), told(overlay.plan)].filter(value => value != null).join(' · ')],
+        ['Account', told(overlay.account)],
+        ['In effect', told(overlay.effective_from) == null ? null : day(overlay.effective_from) + (told(overlay.effective_until) == null ? '' : ' – ' + day(overlay.effective_until))],
+        ['Source document', told(doc.name)],
+        ['Source read by', told(extraction.method) == null ? null : lower(extraction.method) + (told(extraction.model) == null ? '' : ' · ' + extraction.model)],
+        ['Revision', told(data.revision)],
+        ['Reviewer', typeof data.reviewer === 'string' && data.reviewer ? data.reviewer + (typeof data.reviewer_kind === 'string' ? ' (' + lower(data.reviewer_kind) + ')' : '') : null]]));
       if (typeof id !== 'string' || !id) { n.append(note('Vendor ID missing; actions unavailable.')); return n; }
-      const base = '/api/vendors/' + encodeURIComponent(id);
+      const base = '/api/vendors/' + encodeURIComponent(id), key = 'vendor:' + id;
       if (data.detail_unavailable) { n.append(note('Vendor details unavailable. Refresh before reviewing or changing this version.')); return n; }
-      n.append(actions(m, data, base));
+      // The proposal job this version was staged from, directly under the vendor.
+      if (extras.job && typeof extras.job === 'object') {
+        const card = jobView(extras.job, 'Model proposal job');
+        if (extras.job.status === 'SUCCEEDED') card.append(proposalView(extras.job));
+        if (extras.job.status === 'REFUSED') { const d = refusalDiagnostic(extras.job.public_diagnostic); if (d) card.append(d); }
+        n.append(card);
+      } else if (extras.jobUnavailable) n.append(note('The proposal job behind this version could not be read with this account. Nothing was changed.'));
+      const cited = manifest.citations;
+      if (extras.requirements && typeof extras.requirements === 'object')
+        n.append(add(el('div', undefined, 'v4-establishes'), el('h3', 'What the source establishes'), requirementsView(extras.requirements, cited, key + ':requirements')));
+      else if (extras.requirementsUnavailable) n.append(note('Review requirements unavailable. Nothing was changed.'));
+      add(n, reviewSteps(data, key + ':history'));
+      const tools = [provenance(data.sources)];
+      if (!extras.requirements && !extras.requirementsUnavailable && data.revision != null) tools.push(requirementsPanel(m, base, cited, key + ':requirements'));
+      tools.push(el('h3', 'Version actions'), actions(m, data, base));
       if (data.revision !== undefined && data.revision !== null) {
         if (data.semantic_review_requirements) {
-          n.append(note('Before pricing, a named reviewer must check the complete source, conditions, overrides, exact evidence representations and customer scope. Existing tests or approvals do not supply this review.'));
-          n.append(form(m, 'Source meaning and evidence bindings', [['review','Explicit semantic review (JSON object; source pins, every block and literal selection)','textarea']], 'Record semantic review', v => ({revision:data.revision,review:parseJSON(v.review,'review')}), base + '/semantic-bindings'));
+          tools.push(note('Before pricing, a named reviewer must check the complete source, conditions, overrides, exact evidence representations and customer scope. Existing tests or approvals do not supply this review.'));
+          tools.push(form(m, 'Source meaning and evidence bindings', [['review','Explicit semantic review (JSON object; source pins, every block and literal selection)','textarea']], 'Record semantic review', v => ({revision:data.revision,review:parseJSON(v.review,'review')}), base + '/semantic-bindings'));
         }
-        if (data.semantic_binding) n.append(form(m, 'Revoke source meaning review', [], 'Revoke semantic binding', () => ({revision:data.revision}), base + '/semantic-bindings/revoke'));
-        n.append(form(m, 'Independent tests & shadow evidence', [ ['tests','Test cases (JSON array: name, facts, expected)', 'textarea'] ], 'Submit independent tests', v => ({revision:data.revision,tests:parseJSON(v.tests,'tests')}), base + '/tests', true));
-        n.append(form(m, 'Local shadow preview', [['facts','Shadow facts (JSON object)','textarea']], 'Preview candidate', v => ({revision:data.revision,facts:parseJSON(v.facts,'facts')}), base + '/shadow-preview', true));
+        if (data.semantic_binding) tools.push(form(m, 'Revoke source meaning review', [], 'Revoke semantic binding', () => ({revision:data.revision}), base + '/semantic-bindings/revoke'));
+        tools.push(form(m, 'Independent tests & shadow evidence', [ ['tests','Test cases (JSON array: name, facts, expected)', 'textarea'] ], 'Submit independent tests', v => ({revision:data.revision,tests:parseJSON(v.tests,'tests')}), base + '/tests', true));
+        tools.push(form(m, 'Local shadow preview', [['facts','Shadow facts (JSON object)','textarea']], 'Preview candidate', v => ({revision:data.revision,facts:parseJSON(v.facts,'facts')}), base + '/shadow-preview', true));
       }
-      n.append(form(m, 'Evaluate the active adapter', [['facts','Contract-scoped facts (JSON object)', 'textarea']], 'Evaluate into a case', v => ({facts:parseJSON(v.facts,'facts')}), base + '/evaluate'));
-      n.append(note('Facts require agreement, account, product, plan, month, eligible_downtime_minutes, monitor_source, month_complete, exclusions_removed, monthly_fee_cents, fee_line_ref, received_at, monitor_ref and fee_ref. Use observed values and explicit provenance.'));
-      n.append(note('Evaluation uses the current server-approved adapter. Rollback affects new dispatch; historical cases retain their recorded version.'));
+      tools.push(form(m, 'Evaluate the active adapter', [['facts','Contract-scoped facts (JSON object)', 'textarea']], 'Evaluate into a case', v => ({facts:parseJSON(v.facts,'facts')}), base + '/evaluate'));
+      tools.push(note('Facts require agreement, account, product, plan, month, eligible_downtime_minutes, monitor_source, month_complete, exclusions_removed, monthly_fee_cents, fee_line_ref, received_at, monitor_ref and fee_ref. Use observed values and explicit provenance.'));
+      tools.push(note('Evaluation uses the current server-approved adapter. Rollback affects new dispatch; historical cases retain their recorded version.'));
+      tools.push(details('Rules, overlay, tests and reviewer versions', data));
+      n.append(fold(key + ':tools', 'Review tools, version actions and the full record', ...tools));
       return n;
     }
     // ---- Public proposal generation (proposal-generator) ----
@@ -709,74 +855,20 @@
         overlay.addEventListener('input', () => { reviewed = null; preview.replaceChildren(); attach.textContent = 'Review shadow candidate request'; });
         return add(n, preview, attach);
       }
+      // The shared proposal view, plus the one control this form adds: staging the job automatic selection chose.
       function proposal(vendor, job) {
-        const p = job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
-        const doc = p.document && typeof p.document === 'object' ? p.document : {};
-        // The document name and URI exactly as the server sends them; the digests are in "Request details" above.
-        const n = add(el('div', undefined, 'v4-proposal'), el('h3', 'Proposed public clauses'), record(compact({document:doc.name, uri:doc.uri})));
-        const rows = el('ol', undefined, 'v4-clauses');
-        list(p.clauses).forEach(clause => {
-          if (!clause || typeof clause !== 'object') return;
-          rows.append(add(el('li', undefined, 'v4-clause'),
-            el('span', typeof clause.field === 'string' ? label(clause.field) : 'unlabeled', 'v4-clause-field'),
-            el('blockquote', typeof clause.quote === 'string' ? clause.quote : null, 'v4-quote'),
-            el('pre', clause.value === undefined ? null : JSON.stringify(clause.value, null, 2), 'v4-value')));
-        });
-        if (!rows.children.length) rows.append(el('li', 'No validated clauses returned.'));
-        n.append(rows, note('Quotes are exact slices of the public source and remain untrusted text. This proposal is unreviewed: it has no tests, approval or customer scope.'));
+        const n = proposalView(job);
         if (job.candidate_available === true && job.job_id === state.selectedJob) n.append(candidate(vendor, job));
         else if (job.candidate_available === true) n.append(note('Automatic selection did not choose this job, so no candidate can be staged from it.'));
         else n.append(note('A candidate cannot be created from this result: ' + reasonText(job.refusal) + '.'));
         return n;
-      }
-      // A verified diagnostic from the server: fixed explanations, exact public passages and missing terms.
-      // Every value is rendered as text. A refusal stays a refusal; nothing here offers a candidate.
-      function refusalDiagnostic(value, heading = 'Why this proposal was refused') {
-        if (!value || typeof value !== 'object' || value.schema !== 'public-refusal-diagnostic/1') return null;
-        const box = add(el('div', undefined, 'v4-review v4-refusal'), el('h4', heading));
-        list(value.issues).filter(issue => issue && typeof issue === 'object').forEach(issue => {
-          const row = add(el('div', undefined, 'v4-refusal-issue'), el('p', shown(issue.explanation)));
-          if (typeof issue.quote === 'string' && issue.quote) {
-            row.append(el('blockquote', issue.quote),
-              note('Public source passage' + (issue.block != null ? ' · block ' + shown(issue.block) : '')
-                + (issue.start != null && issue.end != null ? ' · characters ' + shown(issue.start) + '–' + shown(issue.end) : '')
-                + (issue.block_sha256 ? ' · SHA-256 ' + shown(issue.block_sha256) : '')));
-          }
-          box.append(row);
-        });
-        const missing = list(value.missing_terms).filter(term => typeof term === 'string' && term);
-        if (missing.length) box.append(note('Required terms not established by the source: ' + missing.join(', ') + '.'));
-        const doc = value.document && typeof value.document === 'object' ? value.document : {};
-        box.append(note('Source: ' + shown(doc.name) + ' · ' + shown(doc.uri) + ' · SHA-256 ' + shown(value.source_sha256)),
-          note('This refusal created no candidate, test or approval. A new attempt needs its own approval.'));
-        return box;
-      }
-      // The job as the server reports it: the model actually used and its times appear only when the server supplies them.
-      // In view: job id, state, reason, model and times. Every digest and the session sit in one closed
-      // "Request details" disclosure on the card, exact and one click away.
-      const compact = fields => { Object.keys(fields).forEach(key => { if (fields[key] === undefined || fields[key] === null || fields[key] === '') delete fields[key]; }); return fields; };
-      function jobRecord(job) {
-        const provider = job.provider && typeof job.provider === 'object' ? job.provider : {};
-        const proposal = job.status === 'SUCCEEDED' && job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
-        return compact({job_id:job.job_id, status:job.status, reason:job.reason, model:provider.model || proposal.model,
-          submitted:at(job.submitted_at), started:at(job.started_at), finished:at(job.finished_at)});
-      }
-      function requestDetails(job) {
-        const provider = job.provider && typeof job.provider === 'object' ? job.provider : {};
-        const p = job.status === 'SUCCEEDED' && job.proposal && typeof job.proposal === 'object' ? job.proposal : {};
-        return compact({request_sha256:job.request_sha256, context_sha256:job.context_sha256, profile:p.profile,
-          attempt_nonce:p.attempt_nonce, source_sha256:p.source_sha256, proposal_sha256:p.proposal_sha256, proposal_model:p.model,
-          session:p.session || provider.session});
       }
       function show(vendor, job) {
         const displayed = [job.job_id, job.status, job.candidate_available === true].join(':');
         if (state.shown === displayed) return; // Keep an overlay being typed for an already displayed result.
         state.shown = displayed;
         status(m, 'Proposal job ' + job.job_id + ' is ' + shown(job.status) + '. Status is read-only from here.');
-        const n = add(el('div', undefined, 'v4-job'), el('h3', 'Proposal job'),
-          record(jobRecord(job)),
-          note(JOB_MESSAGES[job.status] || 'Unrecognized job status. No action is available.'),
-          details('Request details', requestDetails(job)));
+        const n = jobView(job, 'Proposal job');
         if (job.status === 'SUCCEEDED') n.append(proposal(vendor, job));
         if (job.status === 'REFUSED') { const d = refusalDiagnostic(job.public_diagnostic); if (d) n.append(d); }
         disable(jobOut); jobOut.replaceChildren(n);
@@ -907,24 +999,56 @@
     }
     async function vendors(m, data) {
       const summaries = Array.isArray(data) ? data : list(data.vendors);
+      // Each agreement is read once before the page is drawn, so nothing shifts in afterwards: its detail, then its
+      // requirements when the detail carries a source manifest, then the proposal job it was staged from when it has
+      // one. All three are read-only GETs.
       const items = await Promise.all(summaries.map(async item => {
         const id = item.vendor_id ?? item.id;
-        if (Array.isArray(item.actions) || typeof id !== 'string' || !id) return item;
-        try { return await request(m, '/api/vendors/' + encodeURIComponent(id)); }
-        catch (_) { return {...item, detail_unavailable:true}; }
+        let detail = item;
+        if (!Array.isArray(item.actions) && typeof id === 'string' && id) {
+          try { detail = await request(m, '/api/vendors/' + encodeURIComponent(id)); }
+          catch (_) { return {detail:{...item, detail_unavailable:true}, extras:{}}; }
+        }
+        const extras = {};
+        if (typeof id !== 'string' || !id || !detail || typeof detail !== 'object') return {detail, extras};
+        const base = '/api/vendors/' + encodeURIComponent(id);
+        if (detail.manifest && typeof detail.manifest === 'object' && detail.revision != null) {
+          try { extras.requirements = await request(m, base + '/requirements'); } catch (_) { extras.requirementsUnavailable = true; }
+        }
+        const job = detail.extraction && typeof detail.extraction === 'object' ? detail.extraction.proposal_job : null;
+        if (job && typeof job === 'object' && typeof job.job_id === 'string' && job.job_id) {
+          try { extras.job = await request(m, base + '/proposal-jobs/' + encodeURIComponent(job.job_id)); } catch (_) { extras.jobUnavailable = true; }
+        }
+        return {detail, extras};
       }));
       if (mounts.get(m.root) !== m) return;
-      m.body.append(generator(m));
-      m.body.append(form(m, 'Local deterministic intake', [
+      const cards = items.map(item => vendor(m, item.detail, item.extras));
+      // With more than one agreement, the first lines of the page name them all; each name moves to its card.
+      if (cards.length > 1) {
+        const index = el('nav', undefined, 'v4-index'); index.setAttribute('aria-label', 'Agreements on this page');
+        cards.forEach((card, i) => {
+          const detail = items[i].detail, heading = card.children[0].children[0];
+          heading.tabIndex = -1;
+          const jump = button(shown(detail.name ?? detail.vendor ?? detail.vendor_id ?? detail.id), () => {
+            if (typeof card.scrollIntoView === 'function') card.scrollIntoView({block:'start'});
+            if (typeof heading.focus === 'function') heading.focus();
+          });
+          if (typeof detail.state === 'string' && detail.state) jump.append(el('span', detail.state, 'pill' + (STATE_TONE[detail.state] ? ' ' + STATE_TONE[detail.state] : '')));
+          index.append(jump);
+        });
+        m.body.append(index);
+      }
+      cards.forEach(card => m.body.append(card));
+      if (!items.length) m.body.append(note('No vendors returned. No example vendor has been selected.'));
+      // Adding an agreement: the model-assisted proposal form and the local deterministic intake, closed until wanted.
+      m.body.append(fold('add', 'Add an agreement', generator(m), form(m, 'Local deterministic intake', [
         ['vendor_id','Vendor identifier'], ['name','Document name'], ['uri','Public source URI','url'],
         ['classification','Document origin',['public','synthetic_public']], ['text','Public contract excerpt or full text','textarea'],
         ['overlay','Private customer overlay (JSON object)','textarea']
-      ], 'Stage local candidate', v => ({document:{name:v.name,uri:v.uri,classification:v.classification,text:v.text},overlay:parseJSON(v.overlay,'overlay')}), v => '/api/vendors/' + encodeURIComponent(v.vendor_id) + '/candidates', true));
-      m.body.append(note('Local intake validates supported wording with the built-in deterministic parser. It does not call a model.'));
-      m.body.append(note('Public terms and private customer scope remain separate. Unsupported clauses and missing evidence must remain explicit in the server decision.'));
-      m.body.append(note('Overlay fields: agreement, account, product, plan, effective_from, effective_until, fee_line_ref and currency. Include only customer scope supported by the governing agreement.'));
-      items.forEach(item => m.body.append(vendor(m, item)));
-      if (!items.length) m.body.append(note('No vendors returned. No example vendor has been selected.'));
+      ], 'Stage local candidate', v => ({document:{name:v.name,uri:v.uri,classification:v.classification,text:v.text},overlay:parseJSON(v.overlay,'overlay')}), v => '/api/vendors/' + encodeURIComponent(v.vendor_id) + '/candidates', true),
+        note('Local intake validates supported wording with the built-in deterministic parser. It does not call a model.'),
+        note('Public terms and private customer scope remain separate. Unsupported clauses and missing evidence must remain explicit in the server decision.'),
+        note('Overlay fields: agreement, account, product, plan, effective_from, effective_until, fee_line_ref and currency. Include only customer scope supported by the governing agreement.')));
     }
     function disputes(m, data) {
       m.body.append(form(m, 'Set up a correspondence case', [ ['claim_id','Claim identifier (inbox- prefix)'], ...['account','vendor','contract','service','component','invoice','incident','currency','month','region'].map(k => [k,label(k)]) ], 'Create scoped case', v => {
@@ -995,7 +1119,11 @@
       m.status.setAttribute('role','status'); m.status.setAttribute('aria-live','polite');
       unmount(root); mounts.set(root,m);
       const wrap = el('div', undefined, 'uptime-v4');
-      const title = {vendors:'Vendor intake & versions',disputes:'Correspondence & disputes',portfolio:'Portfolio comparison',case:'Case inspector',catalog:'Advanced companion workflows'}[view];
+      // Each page says what it is in its first lines: a short context line, the title and one sentence.
+      const [eyebrow, title, lead] = {
+        vendors:['Vendor agreements & versions', 'Agreements', 'Each agreement Uptime reads in this workspace: whether it is in force, what its source establishes with the exact clauses, and who performed each review step.'],
+        disputes:['Correspondence & disputes', 'Cases', 'Each claim filed with a vendor, its stage and its correspondence. Open a case to read every step in order.'],
+        portfolio:[null, 'Portfolio comparison', null], case:[null, 'Case inspector', null], catalog:[null, 'Advanced companion workflows', null]}[view];
       const refresh = button('Refresh server state', async () => {
         if (busy || !active(m)) return;
         // Supplied projections must be refreshed by their owner, not reclassified as current.
@@ -1006,7 +1134,9 @@
         }
         await render(root,view);
       });
-      add(wrap, el('h2',title), identity(), refresh, m.status, m.result, m.body); root.replaceChildren(wrap);
+      refresh.className = 'v4-refresh'; m.body.className = 'v4-body';
+      add(wrap, add(el('div', undefined, 'page-head'), add(el('div'), eyebrow ? el('p', eyebrow, 'eyebrow') : null, el('h1', title), lead ? el('p', lead, 'lead') : null), refresh),
+        readOnly() ? el('p', accessNote(), 'v4-banner') : null, m.status, m.result, m.body, identity()); root.replaceChildren(wrap);
       try {
         const data = supplied === undefined ? await request(m, view === 'vendors' ? '/api/vendors' : view === 'disputes' ? '/api/correspondence/claims' : '') : supplied;
         if (mounts.get(root) !== m) return;

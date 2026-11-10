@@ -86,7 +86,10 @@
   let workspaceName = null, workspaceNameRead = null;
   function showWorkspaceName() {
     const name = workspaceName || 'Uptime';
-    $('#workspace-name').textContent = name;
+    const slot = $('#workspace-name');
+    slot.textContent = name;
+    // Without a workspace name the line under the brand would only repeat the product name.
+    if (slot.parentElement) slot.parentElement.hidden = !workspaceName;
     document.title = workspaceName ? workspaceName + ' · Uptime' : 'Uptime';
   }
   function companyOf(workflow) {

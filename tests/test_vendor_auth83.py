@@ -18,7 +18,7 @@ from uptime import vendor_registry
 from test_vendor_model_jobs_runtime import P
 from test_vendor_family_selection_89 import (PROSE as DOC, PROSE_AS_RESOURCE, PROSE_OVERLAY as OVERLAY, PROSE_PROPOSAL,
                                              VENDOR, approve, blocks_text, selecting)  # noqa: F401 (fixture)
-from test_vendor_model_jobs_browser import CHROME, await_selected_proposal
+from test_vendor_model_jobs_browser import ADD_AGREEMENT, CHROME, REVIEW_TOOLS, await_selected_proposal, open_section
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -59,6 +59,7 @@ def test_expired_browser_session_recovers_same_job_without_resubmitting(selectin
                 page.get_by_label('Credential file',exact=True).set_input_files({
                     'name':'disposable-reviewer.json','mimeType':'application/json','buffer':json.dumps(key).encode()})
                 page.get_by_role('button',name='Sign in',exact=True).click()
+                open_section(page, ADD_AGREEMENT)
                 page.get_by_role('button',name='Check generation access',exact=True).wait_for()
             def source():
                 for label,value in [('Proposal vendor identifier',VENDOR),('Public document name',DOC['name']),
@@ -104,6 +105,7 @@ def test_expired_browser_session_recovers_same_job_without_resubmitting(selectin
             assert len([1 for method,path,_ in responses if method=='POST' and path.endswith('/proposal-jobs')])==1
             old_confirm.evaluate("button => button.dispatchEvent(new Event('click'))")
             review();page.get_by_role('button',name='Confirm shadow candidate',exact=True).click()
+            open_section(page, REVIEW_TOOLS)
             page.get_by_role('button',name='Submit independent tests',exact=True).wait_for()
             candidate=vendor_registry.get_vendor(db,P,VENDOR)
             assert candidate['state']=='SHADOW' and candidate['reviewer'] is None and candidate['active_version'] is None

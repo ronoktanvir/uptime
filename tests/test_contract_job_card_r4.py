@@ -14,7 +14,7 @@ from uptime.auth_keys import generate_reviewer_key
 from uptime.server import create_app
 from test_vendor_model_jobs_runtime import P
 from test_vendor_family_selection_89 import selecting  # noqa: F401 (fixture)
-from test_vendor_model_jobs_browser import await_selected_proposal
+from test_vendor_model_jobs_browser import ADD_AGREEMENT, await_selected_proposal, open_section
 
 CHROME = Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 HEX64 = re.compile(r'\b[0-9a-f]{64}\b')
@@ -49,6 +49,7 @@ def test_job_card_keeps_digests_one_click_away_and_clauses_in_view(selecting, tm
             page.get_by_label('Credential file', exact=True).set_input_files({
                 'name': 'scripted-runtime-account.json', 'mimeType': 'application/json', 'buffer': json.dumps(key).encode()})
             page.get_by_role('button', name='Sign in', exact=True).click()
+            open_section(page, ADD_AGREEMENT)
             page.get_by_role('button', name='Check generation access', exact=True).wait_for()
             for label, value in [('Proposal vendor identifier', AUTO), ('Public document name', PROSE['name']),
                                  ('Public document URI', PROSE['uri']),
@@ -65,7 +66,7 @@ def test_job_card_keeps_digests_one_click_away_and_clauses_in_view(selecting, tm
             assert disclosure.evaluate('d => d.open') is False
             # In view: job id, state, model and times, the validation sentence, the document and every quote.
             visible = card.inner_text()
-            for text in ('status', 'SUCCEEDED', 'model', 'Validated against the exact public source. The proposal is unreviewed and not approved.',
+            for text in ('Status', 'SUCCEEDED', 'Model', 'Validated against the exact public source. The proposal is unreviewed and not approved.',
                          PROSE['name'], PROSE['uri']):
                 assert text in visible, text
             assert not HEX64.search(visible), HEX64.search(visible)
