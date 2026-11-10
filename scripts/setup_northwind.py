@@ -27,8 +27,8 @@ from uptime.server import create_app
 
 
 VARIANTS_PATH=ROOT/'fixtures'/'northwind'/'counterparty-variants.json'
-VARIANTS_SHA256='9e0e4750b7e6e8ed560bee0a299f7ffaabc3e7f3e9f9fc57ca2672c301846f10'
-COUNTERPARTY_REPLIES=('request-log','unclear')
+VARIANTS_SHA256='1250baf3cb0f2f10b3ead8ccafc0d060349081749675e7efd64c60626812ee9f'
+COUNTERPARTY_REPLIES=('request-log','unclear','reworded-log-request')
 
 
 def correspondence_for(package,reply):
@@ -310,7 +310,8 @@ def main():
     parser.add_argument('--step-by-step',action='store_true',
                         help='Offer every routine step as its own reviewer action (the earlier behavior); default runs routine steps automatically')
     parser.add_argument('--counterparty-reply',choices=COUNTERPARTY_REPLIES,default='request-log',
-                        help="Authored January reply: the package's log request, or the unclear reply for the escalation branch")
+                        help="Authored January reply: the package's log request; 'unclear' for the escalation branch; or "
+                             "'reworded-log-request', the same request in wording the fixed rules do not recognise")
     parser.add_argument('--side-panel-origin',metavar='chrome-extension://ID',
                         help='Let exactly this Chrome extension frame the served workspace in its side panel (not stored)')
     parser.add_argument('--reviewer-credential',type=Path,
