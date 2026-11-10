@@ -1,0 +1,29 @@
+{
+  "tested_commit": "6882fd5ef3605c29eb3da33bbdba579a8af684e9",
+  "branch": "work/submission-integration-20261109",
+  "role": "the redesign session's two style fixes, its two further bundled typefaces and the replacement picture for Northwind Cloud, on top of main",
+  "contents": "main at ac5843b plus the redesign session at 0edac3b (merged as e0e689c: the header at panel width and a keyboard-only focus ring; that merge's own run stalled and is recorded beside this file) and at 1e6c1f8 (merged as 6882fd5: Source Serif 4 for quoted source text and JetBrains Mono for references, each one unmodified file served by the app, and a light cloud picture supplied by Ronok in place of the dark one). Interface, two stand-in servers in tests, and records only; nothing under uptime/. The two changed tests serve the two new files and still assert that no unexpected request was made.",
+  "command": [
+    "UPTIME_REQUIRE_BROWSER=1",
+    "uv",
+    "run",
+    "--locked",
+    "pytest",
+    "--basetemp=<private task directory>/bt-6882fd5",
+    "-o",
+    "tmp_path_retention_policy=failed"
+  ],
+  "exit_code": 0,
+  "pytest_result": "5464 passed, 1 warning in 649.21s (0:10:49)",
+  "log": "suite-6882fd5-pytest.log",
+  "started_at": "2026-11-10T07:26:53Z",
+  "finished_at": "2026-11-10T07:37:44Z",
+  "other_checks": {
+    "node --test web/*.test.cjs tests/helpers/*.test.cjs": "132 passed, 0 failed",
+    "node scripts/test_progress_graph.cjs": "exit 0",
+    "uv run --locked python scripts/rehearse.py": "exit 0",
+    "uv run --locked python scripts/check_repo.py": "exit 0"
+  },
+  "note": "This run covers both merges. Before it, each font file's git blob id was compared with its upstream at the named tag through GitHub's API and found equal, and the merged commit was served once and looked at: the four decisions end at 11,000.00, 2,400.00 and 8,600.00, the three font files answer 200, and no page overflows or logs a console message.",
+  "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect; nothing from Uptime has been written to Ramp."
+}
