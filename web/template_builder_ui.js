@@ -842,21 +842,26 @@
         ['Credit percent', given(a.credit_percent) ? a.credit_percent + '%' : null], ['Monthly fee', given(a.monthly_fee) ? money(a.monthly_fee, currency) || a.monthly_fee : null]];
       const amount = credit && given(credit.amount) ? money(credit.amount, credit.currency) || credit.amount : null;
       const stage = credit && credit.stage === 'ESTIMATED' ? 'Estimated · not claimed' : credit && given(credit.stage) ? String(credit.stage).toLowerCase() : null;
+      // Once a claim case exists for this reading, the figure, its stage and the foot follow the case (template_claim_ui.js).
+      const claimable = object(a.claim) && a.claim.available === true && given(a.claim.case);
+      const figureLabel = el('p', 'tb-detail-label', amount ? 'Estimated credit' : 'Credit'), amountNode = amount ? el('p', 'tb-money-amount', amount) : null;
+      const stageNode = amount && stage ? el('p', 'help', stage) : null;
+      const footNote = el('span', 'help', 'Computed by Uptime’s credit engine, not by a model. Nothing is posted, claimed or applied.');
+      if (claimable && amountNode && stageNode && global.UptimeTemplateClaim) global.UptimeTemplateClaim.followCard({api, caseId: a.claim.case, figureLabel, amountNode, stageNode, footNote});
       return add(el('section', 'tb-money' + (amount ? '' : ' tb-money-none')),
         add(el('div', 'tb-money-head'), add(el('div', ''), el('p', 'eyebrow', 'Agreement from this reading'), el('h3', '', given(a.agreement_id) ? a.agreement_id : 'Agreement not named')),
           pill(a.state === 'SHADOW' ? 'In shadow' : given(a.state) ? String(a.state).toLowerCase() : 'State not sent', a.state === 'SHADOW' ? 'accent' : '')),
         readByWords(a.read_by) ? el('p', 'help tb-money-readby', 'Contract read by ' + readByWords(a.read_by).replace(/^Fixed rules/, 'fixed rules')) : null,
         add(el('div', 'tb-money-body'),
-          add(el('div', 'tb-money-figure'), el('p', 'tb-detail-label', amount ? 'Estimated credit' : 'Credit'),
-            amount ? el('p', 'tb-money-amount', amount) : el('p', 'tb-money-missing', given(a.evaluation) ? a.evaluation : 'No amount'),
-            amount && stage ? el('p', 'help', stage) : null),
+          add(el('div', 'tb-money-figure'), figureLabel,
+            amountNode || el('p', 'tb-money-missing', given(a.evaluation) ? a.evaluation : 'No amount'),
+            stageNode),
           add(el('dl', 'northwind-fields tb-money-fields'), fieldsList.map(([k, v]) => add(el('div', 'northwind-field'), el('dt', '', k), el('dd', '', v || 'Not known'))))),
         list(a.inputs).filter(object).length ? add(el('dl', 'record tb-money-inputs'), list(a.inputs).filter(object).flatMap(i => [el('dt', '', given(i.label) ? i.label : ''), el('dd', '', given(i.value) ? i.value : 'Not known')])) : null,
         amount && given(a.evaluation) ? el('p', 'tb-evaluation', a.evaluation) : null,
-        add(el('p', 'tb-money-foot'), el('span', 'help', 'Computed by Uptime’s credit engine, not by a model. Nothing is posted, claimed or applied.'), portfolio,
-          // The claim for this estimate, on its own case page (uptime/template_claims.py).
+        add(el('p', 'tb-money-foot'), footNote, portfolio,
           // Only when the server marks a claim as available for this reading (uptime/template_claims.py).
-          object(a.claim) && a.claim.available === true && given(a.claim.case) ? (() => { const claim = el('a', 'tb-portfolio-link', 'Open the claim'); claim.href = '#template-claim/' + encodeURIComponent(a.claim.case); return claim; })() : null));
+          claimable ? (() => { const claim = el('a', 'tb-portfolio-link', 'Open the claim'); claim.href = '#template-claim/' + encodeURIComponent(a.claim.case); return claim; })() : null));
     }
 
     return Object.freeze({section, run, unmount});

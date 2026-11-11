@@ -418,7 +418,7 @@
       canWrite:signedPage && policy.role === 'reviewer' && session?.approvals_enabled === true,
       canDraft:signedPage && session?.role === 'reviewer' && session?.drafts_enabled === true};
     if (route === 'vendors') { await ui.render(content,route); if (token === generation) await templateBuilder?.section(content); return; }
-    if (route === 'disputes') return ui.render(content,route);
+    if (route === 'disputes') { await ui.render(content,route); if (token === generation) await templateClaim?.cases(content); return; }
     if (route.startsWith('disputes/')) return ui.inspect(content,decodeURIComponent(route.slice(9)));
     if (route === 'regression') {
       const data = await api('/api/dashboard');
@@ -478,6 +478,7 @@
       if (projection && projection.workflow && typeof projection.workflow === 'object' && workspaceWorkflow) {
         workspaceName = companyOf(projection.workflow) || workspaceName; workspaceNameRead = Promise.resolve();
         await workspaceWorkflow.activity(content, projection.workflow);
+        if (token === generation) await templateClaim?.activity(content);
       } else content.replaceChildren(heading('Activity', 'What happened in this workspace, in order.'), empty('No workflow activity is recorded in this workspace.'));
       showWorkspaceName();
       return;

@@ -250,7 +250,10 @@
   function agentCounters(workflow, vendors, rampWorkspace) {
     const notes = billsOf(rampWorkspace).flatMap(r => list(r.notes).filter(n => n && typeof n === 'object'));
     const reads = list(vendors).map(v => readBy(v && v.extraction)).filter(r => r && r.kind === 'claude');
-    const legend = stepLegend(workflow && workflow.automation && workflow.automation.steps, null);
+    // The same legend over the workspace case's steps and, read-only, each template claim case's steps (o.claim.steps):
+    // counts of recorded steps, never amounts.
+    const caseSteps = list(workflow && workflow.opportunities).flatMap(o => o && o.claim && typeof o.claim === 'object' ? list(o.claim.steps) : []);
+    const legend = stepLegend([...list(workflow && workflow.automation && workflow.automation.steps), ...caseSteps], null);
     return {claudeReads: reads.length, models: [...new Set(reads.map(r => r.model).filter(Boolean))], agentSteps: legend.approved, received: legend.received, reviewerDecisions: legend.reviewer,
       notes: notes.length, uptimeNotes: notes.filter(n => n.by === 'UPTIME').length};
   }
@@ -872,6 +875,13 @@
         add(el('p', null, 'help recovery-links'), casesLink, agreementsLink));
       root.replaceChildren(header, automationPanel(data.automation, data.next_actions), history, jobs, coverage);
     }
+    function activitySection(data, title) {
+      const node = add(el('section', null, 'case-activity'), el('h2', title, 'section-head-title'));
+      const history = panel('Workflow history'), timeline = el('ol', null, 'activity');
+      list(data.audit).forEach(event => timeline.append(add(el('li'), el('time', when(event.at)), el('span', event.event), event.ref ? el('code', shortRef(event.ref)) : null)));
+      history.append(timeline.children.length ? timeline : note('No workflow actions recorded.'));
+      return add(node, automationPanel(data.automation, data.next_actions), history);
+    }
     async function render(root, supplied, options = {}) {
       const token=++epoch;
       try {
@@ -952,7 +962,7 @@
       if (token !== epoch) return;
       renderActivity(root, data);
     }
-    return {render,activity,portfolio,unmount:()=>{epoch++;}};
+    return {render,activity,activitySection,portfolio,unmount:()=>{epoch++;}};
   }
   const exports={create,money,when,day,rates,monthLabel,recordedOrder,replayGroup,stepLegend,actorTag,leadIn,newSteps,stagedView,
     portfolioRows,portfolioTiles,agentCounters,portfolioAttention,nextActor,readBy};
