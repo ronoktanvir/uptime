@@ -32,7 +32,7 @@ TERMS = (
     {"field": "measurement_period", "label": "Measurement period", "type": "choice",
      "options": {"calendar_month": "Calendar month", "calendar_quarter": "Calendar quarter", "calendar_year": "Calendar year"},
      "describe": "the period over which availability is measured",
-     "question": "Does this sentence say availability is measured over each {display_lower}?"},
+     "question": "Does this sentence make each {display_lower} the measurement period?"},
     {"field": "tier_1_credit_percent", "label": "Credit, first tier below the commitment", "type": "percent",
      "describe": "the service credit, as a percent of fees, when availability is below the commitment but not below the second tier's threshold",
      "question": "Does this sentence give {display} of the fees as the service credit for the first, smallest credit level?"},
