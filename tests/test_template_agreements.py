@@ -118,6 +118,22 @@ def test_reading_with_no_evidence_has_no_credit():
     assert agreement['state'] == 'SHADOW' and agreement['read_by'] == 'template:halcyon-availability-addendum/1'
 
 
+def test_the_maintenance_notice_term_may_be_missing_because_the_engine_does_not_use_it():
+    # Some contracts give notice in days or business days; the template then has no hours value. The engine takes
+    # exclusion-adjusted minutes, so the estimate is unchanged: 35% x USD 12,000.00 = USD 4,200.00.
+    values = dict(EXPECTED['terms'], maintenance_notice_hours=None)
+    agreement = ta.evaluate(entry(values), evidence())
+    assert agreement['credit'] == {'amount': '4200.00', 'currency': 'USD', 'stage': 'ESTIMATED'}
+    assert {'label': 'Scheduled-maintenance notice (read by the template)',
+            'value': 'Not stated in hours in this contract (the authored usage is exclusion-adjusted)'} in agreement['inputs']
+
+
+def test_a_missing_cap_gives_no_credit():
+    # A cap may exist in another form (for example over twelve months), so the estimate is refused, not guessed.
+    agreement = ta.evaluate(entry(dict(EXPECTED['terms'], credit_cap_percent=None)), evidence())
+    assert agreement['credit'] is None and 'no value for Credit cap' in agreement['evaluation']
+
+
 def test_missing_term_gives_no_credit_and_names_the_term():
     values = dict(EXPECTED['terms'], tier_2_credit_percent=None)
     agreement = ta.evaluate(entry(values), evidence())

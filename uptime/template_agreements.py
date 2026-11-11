@@ -59,7 +59,8 @@ def _min_percent(a, b):
 
 def _restatement(values, *, vendor, document):
     """The read terms in the engine's clause grammar, one clause per line, with each clause's term fields."""
-    missing = [f for f in FIELDS if values.get(f) in (None, '')]
+    # The engine takes exclusion-adjusted minutes, so the maintenance-notice term is the one it can do without.
+    missing = [f for f in FIELDS if f != 'maintenance_notice_hours' and values.get(f) in (None, '')]
     if missing:
         raise TermsRefused('Cannot estimate a credit: the read has no value for '
                            + ', '.join(LABELS[f] + ' (' + f + ')' for f in missing) + '.')
@@ -70,6 +71,8 @@ def _restatement(values, *, vendor, document):
         raise TermsRefused('Cannot estimate a credit: the engine estimates a credit against a future invoice, and this '
                            'contract applies credits as ' + values['credit_application'].replace('_', ' ') + '.')
     for f in ('claim_window_days', 'maintenance_notice_hours'):
+        if f == 'maintenance_notice_hours' and values.get(f) in (None, ''):
+            continue
         if not str(values[f]).isdigit():
             raise TermsRefused('Cannot estimate a credit: ' + LABELS[f] + ' is not a whole number.')
     for f in ('availability_target_percent', 'tier_1_credit_percent', 'tier_2_threshold_percent',
@@ -159,6 +162,8 @@ def _term_inputs(values):
             value = value + ' days after the month'
         elif value is not None and f == 'maintenance_notice_hours':
             value = value + ' hours (governs excluded downtime; the authored usage is exclusion-adjusted)'
+        if value is None and f == 'maintenance_notice_hours':
+            value = 'Not stated in hours in this contract (the authored usage is exclusion-adjusted)'
         rows.append({'label': LABELS[f] + ' (read by the template)', 'value': value})
     return rows
 
