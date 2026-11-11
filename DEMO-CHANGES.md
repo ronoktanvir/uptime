@@ -408,3 +408,10 @@ it), `fixtures/template_builder_public/results/20261111T015844Z.json` and `docs/
 The vendors' text is not in the repository. Found and left unfixed so the published numbers stand: the
 `value_in_sentence` words for `credit_application` and `measurement_period` refuse correct values on most real pages,
 and "invoices" (plural) does not match the word "invoice".
+- After merging version 3 terms (`work/tb3-tiers-20261110`, f17bd8b): the claim flow calls the money link's conversion
+  unchanged and needed no conversion of its own. Changed in my own tests only: `tests/test_template_claims.py` ›
+  `test_a_misread_term_fails_the_controls_and_opens_nothing` misreads the second tier through `credit_schedule`
+  (the old field `tier_2_credit_percent` no longer exists), and
+  `test_nothing_is_possible_before_an_accepted_read` also checks that a claim window in business days opens nothing.
+  The case page's reading card says the read terms in the new shapes (one new test in `web/template_claim_ui.test.cjs`).
+  One real run on version 3 (build tb_482574, 7 of 7 terms) went to USD 6,000.00 outstanding on HGS-INV-2026-12-2391.
