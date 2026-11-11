@@ -238,3 +238,16 @@ Corvid's; Corvid's evaluation moved unchanged into `_corvid`), one argument in t
 `scripts/setup_northwind.py` (`template_agreements.connect(app)`: sets `on_reading` and the workflow's portfolio lister).
 
 No existing test was changed.
+
+## Held-out evaluation of the template builder (evaluation agent, November 10)
+
+No existing test, engine file, prompt, shipped sample or page file was changed. New files:
+
+- `scripts/evaluate_template_builder.py`: one command, no arguments; builds a template from each held-out form's
+  document A (B as the second contract), approves it as `evaluation-script` when every blocking check passed, reads the
+  held-out document C with it, scores C against the hand key and writes `fixtures/template_builder_heldout/results/<timestamp>.json`.
+  Uses the version 2 API when present and the version 1 API otherwise.
+- `fixtures/template_builder_heldout/author.py`, `briefs/` (the common brief, six style briefs and the exact text sent
+  for each form), `forms/form-1` to `form-6` (`response.txt` as returned, `a.txt`, `b.txt`, `c.txt`, the author's
+  `author_values.json`, `manifest.json` with SHA-256s, and the hand-written `key.json`), and `results/`.
+- `docs/demo/TEMPLATE-BUILDER-HELDOUT.md`: how the contracts were written and frozen, and the baseline result.

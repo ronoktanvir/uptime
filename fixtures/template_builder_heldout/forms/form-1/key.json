@@ -1,0 +1,56 @@
+{
+ "written_by": "the evaluating agent (Claude Opus 5.5, Claude Code), by hand, from the author's VALUES and the contract text; it had seen the builder's nine-term list (uptime/template_rules.py TERMS) when writing it",
+ "scoring_only": "The product never sees this file.",
+ "values": "canonical as uptime.template_rules.canonical writes them; not_stated when the contract does not state the term in the term's meaning or unit",
+ "a": {
+  "vendor": "Larkspire Systems, Inc.",
+  "customer": "Hollowmere Logistics LLC",
+  "title": "Service Level Addendum",
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "tier_1_credit_percent": "10",
+   "tier_2_threshold_percent": "99",
+   "tier_2_credit_percent": "25",
+   "credit_cap_percent": "30",
+   "claim_window_days": "30",
+   "maintenance_notice_hours": "72",
+   "credit_application": "next_invoice"
+  },
+  "notes": {}
+ },
+ "b": {
+  "vendor": "Larkspire Systems, Inc.",
+  "customer": "Quillfeather Dental Partners, P.C.",
+  "title": "Service Level Addendum",
+  "terms": {
+   "availability_target_percent": "99.5",
+   "measurement_period": "calendar_month",
+   "tier_1_credit_percent": "5",
+   "tier_2_threshold_percent": "98",
+   "tier_2_credit_percent": "15",
+   "credit_cap_percent": "20",
+   "claim_window_days": "15",
+   "maintenance_notice_hours": "48",
+   "credit_application": "next_invoice"
+  },
+  "notes": {}
+ },
+ "c": {
+  "vendor": "Larkspire Systems, Inc.",
+  "customer": "Tidewater Arcfield Holdings, Inc.",
+  "title": "Service Level Addendum",
+  "terms": {
+   "availability_target_percent": "99.95",
+   "measurement_period": "calendar_month",
+   "tier_1_credit_percent": "15",
+   "tier_2_threshold_percent": "99.5",
+   "tier_2_credit_percent": "35",
+   "credit_cap_percent": "50",
+   "claim_window_days": "45",
+   "maintenance_notice_hours": "96",
+   "credit_application": "next_invoice"
+  },
+  "notes": {}
+ }
+}

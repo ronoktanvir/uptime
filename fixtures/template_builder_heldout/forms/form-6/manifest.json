@@ -1,0 +1,21 @@
+{
+ "form": "6",
+ "model_requested": "claude-haiku-5-5",
+ "models_answered": [
+  "claude-haiku-5-5"
+ ],
+ "asked_at": "2026-11-11T00:59:57Z",
+ "seconds": 96.7,
+ "brief_file": "briefs/form-6.md",
+ "brief_sha256": "43ae822ead271bf85fe2d04f0c21bd18b325e7634e0355397133a65f4cf69d6b",
+ "system_prompt": "You are an experienced commercial lawyer who drafts technology contracts.",
+ "cutting": "a.txt, b.txt, c.txt are the text between the markers in response.txt, with leading and trailing newlines removed and one final newline; author_values.json is the VALUES part without a ```json fence. Nothing else is changed.",
+ "files": {
+  "response.txt": "a534f38cb5bc2014e9bc742e65cddf6dfd72413eebee035e7010e67bf8b1d040",
+  "a.txt": "3151ecafb7b86614b99199b15f7bdd054e042d7a12c150bc95ae681601088ac3",
+  "b.txt": "4972738e07e32ce34715c8184e9f0677f72e6aa225936a0320c37cd58387b8f6",
+  "c.txt": "a7f682aad8452367fb1f5fd84f1f68edf474a4d4433477dd9c739625e765f2a2",
+  "author_values.json": "b2b673da07bbff0c567f45ff747276db2b060cbcad1d5376f4f1bdbbdd225049"
+ },
+ "problems": []
+}

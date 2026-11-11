@@ -1,0 +1,47 @@
+{
+  "A": {
+    "parties": {"vendor": "Pebblework Software, Inc.", "customer": "Harbourline Provisions LLC"},
+    "effective_date": "2026-12-01",
+    "main_agreement_date": "2026-11-03",
+    "fees": "$4,200 per month",
+    "uptime_commitment_percent": 99.9,
+    "measurement": {"period": "calendar month", "method": "probes every 60 seconds from at least 3 locations; a minute is down if at least 2 locations fail; availability = (total minutes - excluded minutes - Downtime minutes) / (total minutes - excluded minutes) x 100, rounded to 2 decimals; Downtime = at least 5 consecutive minutes"},
+    "credit_tier_1": {"condition": "availability below 99.9% but at or above 99.0%", "credit_percent_of_period_fees": 5},
+    "credit_tier_2": {"condition": "availability below 99.0%", "threshold_percent": 99.0, "credit_percent_of_period_fees": 15},
+    "credit_cap_percent_of_period_fees": 20,
+    "claim_deadline": "30 days after the end of the measurement period",
+    "scheduled_maintenance_notice": "5 Business Days",
+    "credit_payment": "deducted from next invoice; if no further invoice, paid by bank transfer within 30 days of confirmation",
+    "other_numbers": {"maintenance_exclusion_limit_hours_per_month": 8, "maintenance_window": "Saturdays 02:00-06:00 UTC", "report_published_within_business_days": 5, "response_to_claim_business_days": 10, "chronic_failure": "below tier 2 threshold in 3 periods within rolling 12 months allows termination on 30 days' notice"}
+  },
+  "B": {
+    "parties": {"vendor": "Pebblework Software, Inc.", "customer": "Oddsmith Veterinary Group Ltd"},
+    "effective_date": "2027-01-01",
+    "main_agreement_date": "2026-11-18",
+    "fees": "$1,850 per month",
+    "uptime_commitment_percent": 99.5,
+    "measurement": {"period": "calendar month", "method": "probes every 60 seconds from at least 3 locations; a minute is down if at least 2 locations fail; availability = (total minutes - excluded minutes - Downtime minutes) / (total minutes - excluded minutes) x 100, rounded to 2 decimals; Downtime = at least 5 consecutive minutes"},
+    "credit_tier_1": {"condition": "availability below 99.5% but at or above 98.0%", "credit_percent_of_period_fees": 8},
+    "credit_tier_2": {"condition": "availability below 98.0%", "threshold_percent": 98.0, "credit_percent_of_period_fees": 20},
+    "credit_cap_percent_of_period_fees": 30,
+    "claim_deadline": "45 days after the end of the measurement period",
+    "scheduled_maintenance_notice": "72 hours",
+    "credit_payment": "refund by bank transfer within 30 days of confirmation",
+    "other_numbers": {"maintenance_exclusion_limit_hours_per_month": 8, "maintenance_window": "Saturdays 02:00-06:00 UTC", "report_published_within_business_days": 5, "response_to_claim_business_days": 10, "chronic_failure": "below tier 2 threshold in 3 periods within rolling 12 months allows termination on 30 days' notice"}
+  },
+  "C": {
+    "parties": {"vendor": "Pebblework Software, Inc.", "customer": "Larkspur & Wren Architects LLP"},
+    "effective_date": "2026-11-15",
+    "main_agreement_date": "2026-11-06",
+    "fees": "$18,000 per quarter",
+    "uptime_commitment_percent": 99.95,
+    "measurement": {"period": "calendar quarter", "method": "probes every 60 seconds from at least 3 locations; a minute is down if at least 2 locations fail; availability = (total minutes - excluded minutes - Downtime minutes) / (total minutes - excluded minutes) x 100, rounded to 2 decimals; Downtime = at least 5 consecutive minutes"},
+    "credit_tier_1": {"condition": "availability below 99.95% but at or above 99.5%", "credit_percent_of_period_fees": 10},
+    "credit_tier_2": {"condition": "availability below 99.5%", "threshold_percent": 99.5, "credit_percent_of_period_fees": 25},
+    "credit_cap_percent_of_period_fees": 35,
+    "claim_deadline": "14 days after the end of the measurement period",
+    "scheduled_maintenance_notice": "10 days",
+    "credit_payment": "paid back to the card or account used to pay fees within 45 days of confirmation",
+    "other_numbers": {"maintenance_exclusion_limit_hours_per_month": 8, "maintenance_window": "Saturdays 02:00-06:00 UTC", "report_published_within_business_days": 5, "response_to_claim_business_days": 10, "chronic_failure": "below tier 2 threshold in 3 periods within rolling 12 months allows termination on 30 days' notice"}
+  }
+}

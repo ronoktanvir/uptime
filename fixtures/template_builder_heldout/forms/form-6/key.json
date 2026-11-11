@@ -1,0 +1,65 @@
+{
+ "written_by": "the evaluating agent (Claude Opus 5.5, Claude Code), by hand, from the author's VALUES and the contract text; it had seen the builder's nine-term list (uptime/template_rules.py TERMS) when writing it",
+ "scoring_only": "The product never sees this file.",
+ "values": "canonical as uptime.template_rules.canonical writes them; not_stated when the contract does not state the term in the term's meaning or unit",
+ "a": {
+  "vendor": "Corvane Cloud Services Limited",
+  "customer": "Pellwick Logistics Limited",
+  "title": "Service Level Addendum",
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "tier_1_credit_percent": "5",
+   "tier_2_threshold_percent": "99.5",
+   "tier_2_credit_percent": "15",
+   "credit_cap_percent": "not_stated",
+   "claim_window_days": "30",
+   "maintenance_notice_hours": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "maintenance_notice_hours": "The contract states the notice in Business Days, which has no fixed number of hours; the term is an integer number of hours, so the key is not_stated and any number returned for it is scored wrong.",
+   "credit_cap_percent": "Clause 8.1 caps rebates per 'Measurement Period', which this form defines as each successive twelve-month period; availability is measured per 'Service Period' (a calendar month or quarter). The term means a cap per availability measurement period, which the contract does not state, so the key is not_stated and a returned number is scored wrong. Stated: 25% per 12 months."
+  }
+ },
+ "b": {
+  "vendor": "Halden Data Systems Limited",
+  "customer": "Ostrander Retail Group Limited",
+  "title": "Service Level Addendum",
+  "terms": {
+   "availability_target_percent": "99.95",
+   "measurement_period": "calendar_quarter",
+   "tier_1_credit_percent": "10",
+   "tier_2_threshold_percent": "99.8",
+   "tier_2_credit_percent": "25",
+   "credit_cap_percent": "not_stated",
+   "claim_window_days": "45",
+   "maintenance_notice_hours": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "maintenance_notice_hours": "The contract states the notice in Business Days, which has no fixed number of hours; the term is an integer number of hours, so the key is not_stated and any number returned for it is scored wrong.",
+   "credit_cap_percent": "Clause 8.1 caps rebates per 'Measurement Period', which this form defines as each successive twelve-month period; availability is measured per 'Service Period' (a calendar month or quarter). The term means a cap per availability measurement period, which the contract does not state, so the key is not_stated and a returned number is scored wrong. Stated: 40% per 12 months."
+  }
+ },
+ "c": {
+  "vendor": "Brightmere Software Solutions Limited",
+  "customer": "Tessaly Mutual Holdings Limited",
+  "title": "Service Level Addendum",
+  "terms": {
+   "availability_target_percent": "99.5",
+   "measurement_period": "calendar_month",
+   "tier_1_credit_percent": "7.5",
+   "tier_2_threshold_percent": "98.75",
+   "tier_2_credit_percent": "20",
+   "credit_cap_percent": "not_stated",
+   "claim_window_days": "14",
+   "maintenance_notice_hours": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "maintenance_notice_hours": "The contract states the notice in Business Days, which has no fixed number of hours; the term is an integer number of hours, so the key is not_stated and any number returned for it is scored wrong.",
+   "credit_cap_percent": "Clause 8.1 caps rebates per 'Measurement Period', which this form defines as each successive twelve-month period; availability is measured per 'Service Period' (a calendar month or quarter). The term means a cap per availability measurement period, which the contract does not state, so the key is not_stated and a returned number is scored wrong. Stated: 30% per 12 months."
+  }
+ }
+}

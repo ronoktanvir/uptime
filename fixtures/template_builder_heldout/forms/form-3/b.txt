@@ -1,0 +1,134 @@
+SCHEDULE 6
+SERVICE LEVEL AND AVAILABILITY ADDENDUM
+
+Reference: SLA-HDW-0932-B
+Dated: 14 June 2027
+
+Between:
+(1) HALVORAN DATA WORKS INCORPORATED, a corporation organised in Caddis Reach with its principal office at 118 Lantern Court, Caddis Reach, CR7 3QA (the "Vendor"); and
+(2) STRATHMERE MEDICAL PARTNERS LLP, a limited liability partnership registered in Vell Harbour with its office at 22 Ferrous Gate, Vell Harbour, VH5 1DM (the "Customer").
+
+This Schedule forms part of, and is subject to, the Master Software-as-a-Service Agreement between the Vendor and the Customer dated 28 May 2027 (the "Master Agreement").
+
+1. DEFINITIONS AND INTERPRETATION
+
+1.1 In this Schedule the following terms have the following meanings:
+
+"Availability" means the percentage calculated in accordance with paragraph 3.2.
+
+"Business Day" means a day other than a Saturday, Sunday or public holiday in Caddis Reach.
+
+"Commitment" means the Availability commitment set out in paragraph 2.1.
+
+"Downtime" means any period during which the Service is unavailable to the Customer's authorised users, excluding Excluded Time.
+
+"Excluded Time" has the meaning given in paragraph 10.1.
+
+"Measurement Period" means each calendar quarter during the Term.
+
+"Quarterly Fees" means the subscription fees payable under the Master Agreement for the Service in respect of the relevant Measurement Period, being USD 96,000 per quarter as at the date of this Schedule.
+
+"Scheduled Maintenance" means maintenance carried out in accordance with paragraph 8.
+
+"Service" means the hosted clinical scheduling platform described in the Master Agreement.
+
+"Service Credit" means a credit calculated in accordance with paragraph 4.
+
+1.2 Capitalised terms not defined in this Schedule have the meanings given in the Master Agreement. If there is any conflict between this Schedule and the Master Agreement regarding service levels, this Schedule prevails.
+
+2. AVAILABILITY COMMITMENT
+
+2.1 The Vendor shall make the Service available for at least 99.95% of each Measurement Period (the "Commitment").
+
+2.2 The Vendor shall maintain redundant hosting across at least two availability zones so that the failure of a single zone does not of itself cause Downtime.
+
+3. MEASUREMENT
+
+3.1 The Vendor shall measure Availability using automated synthetic transactions executed against the Service every thirty (30) seconds from at least three independent monitoring locations.
+
+3.2 Availability is calculated as follows:
+
+Availability (%) = ((Total Minutes − Downtime Minutes) ÷ Total Minutes) × 100
+
+where "Total Minutes" is the number of minutes in the Measurement Period less all Excluded Time, and "Downtime Minutes" is the number of minutes of Downtime in that Measurement Period. The result is rounded down to two decimal places.
+
+3.3 A minute is counted as Downtime if a majority of the monitoring locations record a failed transaction in that minute.
+
+4. SERVICE CREDITS
+
+4.1 If Availability in a Measurement Period falls below the Commitment, the Customer is entitled to a Service Credit calculated by reference to Table 2 below. No Service Credit is due where Availability is equal to or higher than the Commitment.
+
+Table 2: Service Credits
+
++-------------------------------------------+------------------------------+
+| Availability in the Measurement Period    | Service Credit               |
++-------------------------------------------+------------------------------+
+| Below 99.95% but not below 99.50%         | 7% of the Quarterly Fees     |
++-------------------------------------------+------------------------------+
+| Below 99.50%                              | 20% of the Quarterly Fees    |
++-------------------------------------------+------------------------------+
+
+4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 2 that corresponds to the lowest Availability achieved in that Measurement Period.
+
+5. CAP ON SERVICE CREDITS
+
+5.1 The total Service Credits payable in respect of any single Measurement Period shall not exceed 30% of the Quarterly Fees for that Measurement Period.
+
+5.2 Service Credits are without prejudice to the Customer's right to terminate under the Master Agreement where Availability falls below 99.00% in any two consecutive Measurement Periods.
+
+6. CLAIMING SERVICE CREDITS
+
+6.1 The Vendor shall publish a monthly availability report to the Customer within seven (7) Business Days after the end of each calendar month, and a quarterly statement of Availability and any Service Credit due within ten (10) Business Days after the end of each Measurement Period.
+
+6.2 The Customer must claim any Service Credit by written notice to the Vendor no later than forty-five (45) days after the end of the relevant Measurement Period. A late claim is invalid and the Customer waives the Service Credit for that Measurement Period.
+
+6.3 The Vendor shall confirm or dispute a valid claim in writing within ten (10) Business Days of receipt.
+
+7. DELIVERY OF SERVICE CREDITS
+
+7.1 The Vendor shall issue a credit note for each validated Service Credit within fifteen (15) Business Days after confirmation of the claim under paragraph 6.3.
+
+7.2 Where the Master Agreement remains in force and a further invoice is to be issued, the Customer may set off the credit note against that invoice. Otherwise the Vendor shall pay the credited sum to the Customer by electronic transfer to the account nominated by the Customer within sixty (60) days after the end of the Measurement Period.
+
+7.3 All sums in this paragraph 7 are exclusive of applicable taxes. Any VAT that is chargeable is dealt with in accordance with the Master Agreement.
+
+8. SCHEDULED MAINTENANCE
+
+8.1 Scheduled Maintenance shall be carried out between 01:00 and 04:00 Coordinated Universal Time on Sundays only, save in emergencies.
+
+8.2 The Vendor shall give the Customer at least ten (10) Business Days' written notice of any Scheduled Maintenance, specifying the start time, expected duration, and affected components. Notice shall be sent to the Customer's nominated service contact.
+
+8.3 Scheduled Maintenance notified in accordance with paragraph 8.2 and not exceeding three (3) hours in any Measurement Period is Excluded Time. Any longer period is Downtime.
+
+8.4 Emergency maintenance that is not notified in accordance with paragraph 8.2 is Downtime.
+
+9. REPORTING DOWNTIME
+
+9.1 The Customer shall report suspected Downtime to the Vendor's 24-hour support line or by written ticket through the support portal, identifying the affected functions and the time of first observation.
+
+9.2 The Vendor shall acknowledge each report within fifteen (15) minutes, provide an incident reference, and issue status updates at least every hour until service is restored.
+
+9.3 The Vendor shall deliver a written incident report within five (5) Business Days after restoration of any Downtime exceeding thirty (30) minutes.
+
+10. EXCLUSIONS
+
+10.1 Excluded Time comprises:
+(a) Scheduled Maintenance notified and performed in accordance with paragraph 8;
+(b) unavailability caused by the Customer's network, devices, or software not supplied by the Vendor;
+(c) unavailability caused by the Customer's breach of the Master Agreement or misuse of the Service;
+(d) events of force majeure as defined in the Master Agreement; and
+(e) suspension of the Service made in accordance with the Master Agreement.
+
+10.2 Where Excluded Time is disputed, the Vendor bears the burden of proof.
+
+11. RELATIONSHIP TO THE MASTER AGREEMENT
+
+11.1 This Schedule forms part of the Master Agreement. In the event of conflict, this Schedule prevails as to service levels and service credits only.
+
+11.2 The Service Credits are a price adjustment reflecting reduced value of the Service and are not a penalty.
+
+11.3 This Schedule is governed by the law and dispute procedures set out in the Master Agreement.
+
+Signed for and on behalf of HALVORAN DATA WORKS INCORPORATED: ____________________ Name: Marisol Teague, Title: Chief Commercial Officer, Date: ____________
+
+Signed for and on behalf of STRATHMERE MEDICAL PARTNERS LLP: ____________________ Name: Dorran Vesey, Title: Managing Partner, Date: ____________

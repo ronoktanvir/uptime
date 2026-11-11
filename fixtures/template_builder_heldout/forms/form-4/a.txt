@@ -1,0 +1,142 @@
+SERVICE LEVEL ADDENDUM
+
+This Service Level Addendum (the "Addendum") is between Larkspire Systems, Inc., a Delaware corporation with its principal office at 1180 Marrow Street, Suite 400, Halverton, Oregon 97399 ("Vendor"), and Hollowmere Freight Company, a Maine corporation with its principal office at 77 Dockside Row, Brennick Bay, Maine 04999 ("Customer"). It supplements the Subscription Services Agreement between them dated 3 March 2025 (the "Agreement").
+
+1. DEFINITIONS
+
+In this Addendum the following terms have the following meanings. Capitalised terms used but not defined in this Addendum have the meanings given in the Agreement.
+
+1.1 "Addendum Effective Date" means 1 April 2026.
+
+1.2 "Availability" means, for a Measurement Period, the percentage calculated under clause 3.2.
+
+1.3 "Availability Commitment" means 99.9% Availability in each Measurement Period.
+
+1.4 "Business Day" means any day other than a Saturday, a Sunday or a public holiday in the State of Oregon.
+
+1.5 "Claim Period" means the period of 30 days after the end of the Measurement Period to which a Credit Request relates.
+
+1.6 "Credit Cap" means 50% of the Monthly Fees for the relevant Measurement Period.
+
+1.7 "Credit Request" means a written request for a Service Credit that meets the requirements of clause 6.2.
+
+1.8 "Downtime" means any period, measured in whole minutes, during which the Service is Unavailable, other than Excluded Minutes.
+
+1.9 "Emergency Maintenance" means maintenance that Vendor reasonably determines must be carried out urgently to address a security vulnerability or a threat to the integrity or stability of the Service, and that cannot reasonably wait for Scheduled Maintenance.
+
+1.10 "Excluded Minutes" means minutes during which the Service is Unavailable as a result of any event described in clause 4.1.
+
+1.11 "Lower Threshold" means 99.0% Availability in a Measurement Period.
+
+1.12 "Maintenance Notice Period" means not less than 5 Business Days before the start of the relevant Scheduled Maintenance.
+
+1.13 "Maintenance Window" means the hours between 22:00 and 04:00 Coordinated Universal Time (UTC).
+
+1.14 "Measurement Period" means each calendar month during the term of the Agreement, beginning with the calendar month in which the Addendum Effective Date falls. For a partial calendar month, the Measurement Period is the part of that month that falls within the term.
+
+1.15 "Monitoring System" means Vendor's automated external monitoring tool. It sends a synthetic request to the Service's production login endpoint and core application programming interface once every 60 seconds from not fewer than three geographically separate locations.
+
+1.16 "Monthly Fees" means the recurring subscription fees payable by Customer for the Service for a Measurement Period under Order Form No. LS-2026-0117. As at the Addendum Effective Date, these are USD 18,400 per calendar month. Monthly Fees exclude taxes, one-off implementation charges, professional services fees and pass-through costs. For a partial Measurement Period, Monthly Fees are pro-rated by days.
+
+1.17 "Scheduled Maintenance" means planned maintenance that Vendor has notified in accordance with clause 5.1 and that is performed within the Maintenance Window.
+
+1.18 "Service" means the hosted software-as-a-service production environment that Vendor provides to Customer under the Agreement. It excludes any test, sandbox, staging or beta environment.
+
+1.19 "Service Credit" means a Tier 1 Credit or a Tier 2 Credit.
+
+1.20 "Status Page" means Vendor's online service status page at the address notified to Customer from time to time.
+
+1.21 "Tier 1 Credit" means a credit equal to 10% of the Monthly Fees for the relevant Measurement Period.
+
+1.22 "Tier 2 Credit" means a credit equal to 25% of the Monthly Fees for the relevant Measurement Period.
+
+1.23 "Total Minutes" means the total number of minutes in the relevant Measurement Period.
+
+1.24 "Unavailable" means that two consecutive checks by the Monitoring System, from at least two of its monitoring locations, fail to receive a successful response from the Service within 30 seconds. The Service is treated as Unavailable from the first of those failed checks until the first subsequent successful check.
+
+2. SCOPE AND RELATIONSHIP TO THE AGREEMENT
+
+2.1 This Addendum forms part of the Agreement with effect from the Addendum Effective Date and applies only to the Service.
+
+2.2 If this Addendum and the Agreement conflict concerning the availability of the Service or Service Credits, this Addendum prevails. In all other respects the Agreement prevails, and the Agreement is otherwise unchanged.
+
+2.3 This Addendum ends automatically when the Agreement ends. Clause 6.4 survives in respect of any Measurement Period ending before termination.
+
+3. AVAILABILITY COMMITMENT AND MEASUREMENT
+
+3.1 Vendor will make the Service available so that Availability in each Measurement Period is not less than the Availability Commitment.
+
+3.2 Availability is calculated for each Measurement Period as follows, rounded down to two decimal places:
+
+Availability (%) = ((Total Minutes - Excluded Minutes - Downtime) / (Total Minutes - Excluded Minutes)) x 100
+
+3.3 Availability is measured by the Monitoring System. The Monitoring System's records are the basis for calculating Downtime unless Customer demonstrates, by reasonably detailed evidence, that they are materially inaccurate.
+
+3.4 Vendor will retain Monitoring System records for each Measurement Period for not less than 13 months. Vendor will provide a monthly Availability report to Customer within 10 Business Days after the end of each Measurement Period.
+
+4. EXCLUSIONS
+
+4.1 The following do not count as Downtime and are Excluded Minutes:
+(a) Scheduled Maintenance, up to a total of 8 hours in any Measurement Period;
+(b) Emergency Maintenance, up to a total of 4 hours in any Measurement Period;
+(c) Unavailability caused by Customer, its users or its contractors, including use of the Service in breach of the Agreement or the documentation;
+(d) failures of Customer's own systems, networks or internet access, or of third-party services not provided by or on behalf of Vendor;
+(e) suspension of the Service in accordance with the Agreement;
+(f) a Force Majeure Event as defined in the Agreement; and
+(g) features labelled alpha, beta, preview or similar.
+
+4.2 The following count as Downtime:
+(a) maintenance in excess of the limits in clause 4.1(a) or 4.1(b); and
+(b) maintenance, other than Emergency Maintenance, performed outside the Maintenance Window or without the required notice.
+
+5. MAINTENANCE
+
+5.1 Vendor will give Customer notice of Scheduled Maintenance within the Maintenance Notice Period. Notice will be given by email to Customer's designated technical contact and on the Status Page. It will state the expected start time and duration and the parts of the Service affected.
+
+5.2 Vendor will give notice of Emergency Maintenance as early as reasonably practicable and, where possible, not less than 2 hours before it begins.
+
+6. DOWNTIME REPORTING AND SERVICE CREDITS
+
+6.1 Customer may report suspected Downtime through Vendor's support portal or by telephone to Vendor's support line. For a report of total Unavailability, Vendor will:
+(a) acknowledge the report within 1 hour;
+(b) post updates on the Status Page at intervals of no more than 60 minutes until the Service is restored; and
+(c) provide a written incident summary within 5 Business Days after restoration.
+
+6.2 If Availability in a Measurement Period falls below the Availability Commitment, Customer may claim a Service Credit by submitting a Credit Request within the Claim Period. A Credit Request must identify the Measurement Period and, so far as known to Customer, the dates and times of the Downtime. Vendor may reject any Credit Request received after the end of the Claim Period, in which case Customer waives its right to a Service Credit for that Measurement Period.
+
+6.3 For a valid Credit Request:
+(a) if Availability is below the Availability Commitment but at or above the Lower Threshold, Customer is entitled to a Tier 1 Credit; and
+(b) if Availability is below the Lower Threshold, Customer is entitled to a Tier 2 Credit.
+Tier 1 and Tier 2 Credits are alternatives, not cumulative, for any single Measurement Period. The total of all Service Credits for any Measurement Period will not exceed the Credit Cap.
+
+6.4 Vendor will respond to each Credit Request within 10 Business Days of receipt, confirming or disputing the claim with supporting data from the Monitoring System. Each confirmed Service Credit will be deducted from the next invoice issued to Customer for the Service after confirmation.
+
+6.5 If no further invoice is due because the Agreement has ended, Vendor will pay the amount of the Service Credit to Customer by bank transfer within 30 days after confirmation. This does not apply where Vendor terminated the Agreement for Customer's breach. Service Credits are not otherwise redeemable for cash and may not be transferred.
+
+6.6 Any dispute about a Credit Request will be resolved under the dispute resolution provisions of the Agreement.
+
+7. REMEDIES
+
+7.1 Service Credits are a price adjustment reflecting the reduced value of the Service, not a penalty.
+
+7.2 Subject to clause 7.3, Service Credits are Customer's sole and exclusive monetary remedy for failure to meet the Availability Commitment.
+
+7.3 Customer may terminate the Agreement if Availability is below the Lower Threshold in any three Measurement Periods within any rolling period of 6 consecutive Measurement Periods. Customer must give written notice of termination within 30 days after the end of the third such Measurement Period. Vendor will refund any prepaid fees for the period after termination.
+
+8. GENERAL
+
+8.1 Vendor may not reduce the Availability Commitment or the Service Credits during the current subscription term without Customer's written consent.
+
+8.2 Notices under this Addendum are given in accordance with the notices clause of the Agreement. This does not apply to maintenance notices or Downtime reports.
+
+SIGNED for and on behalf of the parties:
+
+Larkspire Systems, Inc.
+Name: Odessa Renwick
+Title: Chief Operating Officer
+Date: ____________________
+
+Hollowmere Freight Company
+Name: Thaddeus Okonjo-Pell
+Title: Director of Technology
+Date: ____________________

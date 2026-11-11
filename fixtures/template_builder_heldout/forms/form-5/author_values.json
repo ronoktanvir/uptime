@@ -1,0 +1,65 @@
+{
+  "A": {
+    "order_number": "HC-2026-0417",
+    "rider_date": "12 November 2026",
+    "vendor": "Halvorsen Cloudworks Ltd",
+    "customer": "Brindlemoor Logistics GmbH",
+    "start_date": "1 February 2027",
+    "subscription_fee": "USD 84,000 per year, invoiced annually in advance",
+    "period_fees": "USD 7,000 per month",
+    "availability_commitment_percent": 99.9,
+    "measurement": {
+      "period": "calendar month",
+      "method": "automated checks every minute from 3 locations; Downtime is 5 or more consecutive minutes; (total minutes - Downtime) / (total minutes - excluded minutes), rounded to two decimals"
+    },
+    "credit_tier_1": {"availability_below_percent": 99.9, "availability_at_least_percent": 99.0, "credit_percent_of_period_fees": 5},
+    "credit_tier_2": {"availability_below_percent": 99.0, "credit_percent_of_period_fees": 15},
+    "credit_cap_percent_of_period_fees": 25,
+    "claim_deadline": "30 days after the end of the Measurement Period",
+    "scheduled_maintenance": {"advance_notice": "5 days", "window": "22:00-04:00 UTC", "excluded_hours_per_period": 8},
+    "credit_payment": "applied against next invoice; if no further invoice is due, paid within 30 days after claim is agreed",
+    "other": {"report_within_business_days": 5, "dispute_response_business_days": 10, "chronic_failure": "below 99.0% in 3 of any 6 consecutive periods allows termination on 30 days' notice, given within 30 days"}
+  },
+  "B": {
+    "order_number": "QF-5530",
+    "rider_date": "3 December 2026",
+    "vendor": "Quillfern Systems Pty Ltd",
+    "customer": "Oakhurst Veterinary Group",
+    "start_date": "15 March 2027",
+    "subscription_fee": "USD 36,000 per year, invoiced quarterly in advance",
+    "period_fees": "USD 9,000 per quarter",
+    "availability_commitment_percent": 99.5,
+    "measurement": {
+      "period": "calendar quarter",
+      "method": "automated checks every minute from 2 locations; Downtime is 5 or more consecutive minutes; (total minutes - Downtime) / (total minutes - excluded minutes), rounded to two decimals"
+    },
+    "credit_tier_1": {"availability_below_percent": 99.5, "availability_at_least_percent": 98.0, "credit_percent_of_period_fees": 4},
+    "credit_tier_2": {"availability_below_percent": 98.0, "credit_percent_of_period_fees": 12},
+    "credit_cap_percent_of_period_fees": 20,
+    "claim_deadline": "45 days after the end of the Measurement Period",
+    "scheduled_maintenance": {"advance_notice": "7 days", "window": "22:00-04:00 UTC", "excluded_hours_per_period": 24},
+    "credit_payment": "applied against next invoice; if no further invoice is due, paid within 45 days after claim is agreed",
+    "other": {"report_within_business_days": 5, "dispute_response_business_days": 10, "chronic_failure": "below 98.0% in 2 of any 4 consecutive periods allows termination on 30 days' notice, given within 30 days"}
+  },
+  "C": {
+    "order_number": "MG-90812",
+    "rider_date": "20 October 2026",
+    "vendor": "Marrowgate Data Services LLC",
+    "customer": "Pellam & Sons Retail Ltd",
+    "start_date": "1 July 2027",
+    "subscription_fee": "GBP 210,000 per year, invoiced monthly in arrears",
+    "period_fees": "GBP 17,500 per month",
+    "availability_commitment_percent": 99.95,
+    "measurement": {
+      "period": "calendar month",
+      "method": "automated checks every minute from 4 locations; Downtime is 5 or more consecutive minutes; (total minutes - Downtime) / (total minutes - excluded minutes), rounded to two decimals"
+    },
+    "credit_tier_1": {"availability_below_percent": 99.95, "availability_at_least_percent": 99.5, "credit_percent_of_period_fees": 10},
+    "credit_tier_2": {"availability_below_percent": 99.5, "credit_percent_of_period_fees": 25},
+    "credit_cap_percent_of_period_fees": 30,
+    "claim_deadline": "20 days after the end of the Measurement Period",
+    "scheduled_maintenance": {"advance_notice": "10 days", "window": "22:00-04:00 UTC", "excluded_hours_per_period": 6},
+    "credit_payment": "applied against next invoice; if no further invoice is due, paid within 30 days after claim is agreed",
+    "other": {"report_within_business_days": 5, "dispute_response_business_days": 10, "chronic_failure": "below 99.5% in 3 of any 6 consecutive periods allows termination on 30 days' notice, given within 30 days"}
+  }
+}

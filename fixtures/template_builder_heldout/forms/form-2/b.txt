@@ -1,0 +1,79 @@
+SERVICE LEVEL ADDENDUM
+
+Between Pebblework Software, Inc. ("we", "us") and Oddsmith Veterinary Group Ltd ("you")
+
+Effective date: 1 January 2027
+Attached to: the Pebblework Subscription Agreement dated 18 November 2026 (the "Main Agreement")
+
+1. What this is
+This addendum explains how reliable we promise our service will be, how we check, and what you get if we miss. It's part of the Main Agreement.
+
+2. Key terms
+- Service: the Pebblework hosted platform you subscribe to under the Main Agreement.
+- Measurement Period: each calendar month during the term.
+- Period Fees: the fees you pay for the Service for a Measurement Period. Right now that's $1,850 per month.
+- Downtime: any period of at least 5 consecutive minutes when the Service is unavailable to you, as shown by our monitoring (see section 4).
+- Scheduled Maintenance: planned work we tell you about under section 5.
+- Business Day: Monday to Friday, other than public holidays where we're based.
+
+3. Our uptime promise
+We promise the Service will be available at least 99.5% of the time in every Measurement Period.
+
+4. How we measure
+We run automated checks on the Service every 60 seconds from at least three locations. A minute counts as down if at least two of those locations can't load the login page or get a successful response from the API.
+
+We work out availability for each calendar month like this:
+
+Availability % = (total minutes in the month minus excluded minutes minus Downtime minutes) divided by (total minutes in the month minus excluded minutes), times 100, rounded to two decimal places.
+
+"Excluded minutes" are the ones described in section 6. Our monitoring records are our starting point. If you have better evidence, send it over and we'll look at it in good faith.
+
+5. Scheduled maintenance
+We'll give you at least 72 hours' notice of Scheduled Maintenance, by email to your account administrator. We'll do it on Saturdays between 02:00 and 06:00 UTC where we can. Scheduled Maintenance doesn't count as Downtime, up to 8 hours in any calendar month. Anything beyond that does count.
+
+Emergency maintenance (for example, an urgent security fix) may happen with less notice. We'll tell you as soon as we can, and it counts as Downtime.
+
+6. What doesn't count as Downtime
+We don't count time when the Service is unavailable because of:
+- Scheduled Maintenance within the 8-hour limit;
+- your own systems, networks, devices or internet connection;
+- your misuse of the Service or breach of the Main Agreement;
+- third-party tools or services that you connect to the Service;
+- events outside our reasonable control, such as major internet outages, natural disasters or attacks we couldn't reasonably have prevented;
+- a suspension allowed under the Main Agreement; or
+- features we've labelled as beta or preview.
+
+7. Reporting downtime
+Within 5 Business Days after each month ends, we'll publish an availability report for you showing total Downtime minutes and your availability percentage. If you notice an outage we haven't recorded, email support@pebblework.example with the date, time and what you saw, and we'll investigate.
+
+8. Service credits
+If we miss our promise, you get a credit. It's a percentage of the Period Fees for the month we missed.
+
+Tier 1: availability is below 99.5% but at or above 98.0%. Credit: 8% of Period Fees.
+Tier 2: availability is below 98.0%. Credit: 20% of Period Fees.
+
+Only one tier applies in any month. You don't get both.
+
+9. Cap on credits
+The total credits for any one Measurement Period can't be more than 30% of the Period Fees for that period.
+
+10. How to claim
+Credits aren't automatic. To claim one, email support@pebblework.example within 45 days after the end of the Measurement Period you're claiming for. Tell us which month and, if you can, the outages you're relying on. We'll reply within 10 Business Days to confirm or explain why we disagree. If you don't claim within 45 days, you lose the credit for that month.
+
+11. How we pay credits
+Once we've confirmed a credit, we'll pay it to you as a refund by bank transfer within 30 days of confirming it. We won't hold it back or net it off against other amounts unless you owe us money that's overdue.
+
+12. Repeated misses
+If availability falls below 98.0% in any 3 Measurement Periods within a rolling 12-month stretch, you can end the Service by giving us 30 days' written notice. We'll refund any fees you've prepaid for the time after the Service ends.
+
+13. Credits are your main fix
+Apart from the right in section 12, service credits are your only remedy for missing the uptime promise. This doesn't limit your rights if we breach the Main Agreement in other ways.
+
+14. How this fits with the Main Agreement
+This addendum is part of the Main Agreement. If the two conflict on availability, credits or maintenance, this addendum wins. Everything else in the Main Agreement stays the same, including its limits on liability. Credits don't increase those limits.
+
+15. Changes
+Changes to this addendum only count if we both sign them.
+
+Signed for Pebblework Software, Inc.: Marguerite Oyelaran, Chief Executive Officer
+Signed for Oddsmith Veterinary Group Ltd: Philippa Drumm, Practice Manager

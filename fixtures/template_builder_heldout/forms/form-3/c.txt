@@ -1,0 +1,132 @@
+SCHEDULE 3
+SERVICE LEVEL AND AVAILABILITY ADDENDUM
+
+Reference: SLA-ILG-2291-C
+Dated: 2 September 2027
+
+Between:
+(1) ILGARRA PLATFORM SOLUTIONS S.A.S., a company registered in Corvel with its registered office at 9 Sable Passage, Corvel, CV3 8ZP (the "Vendor"); and
+(2) ALDERMOOR RETAIL GROUP PLC, a public company registered in Pendle Cross with its registered office at 60 Brindle Mews, Pendle Cross, PC1 4HK (the "Customer").
+
+This Schedule forms part of, and is subject to, the Master Software-as-a-Service Agreement between the Vendor and the Customer dated 18 August 2027 (the "Master Agreement").
+
+1. DEFINITIONS AND INTERPRETATION
+
+1.1 In this Schedule the following terms have the following meanings:
+
+"Availability" means the percentage calculated in accordance with paragraph 3.2.
+
+"Business Day" means a day other than a Saturday, Sunday or public holiday in Corvel.
+
+"Commitment" means the Availability commitment set out in paragraph 2.1.
+
+"Downtime" means any period during which the Service is unavailable to the Customer's authorised users, excluding Excluded Time.
+
+"Excluded Time" has the meaning given in paragraph 10.1.
+
+"Measurement Period" means each rolling period of thirty (30) consecutive days ending on the last day of a calendar month during the Term.
+
+"Period Fees" means one-twelfth of the annual subscription fees payable under the Master Agreement for the Service, being USD 20,000 per month as at the date of this Schedule.
+
+"Scheduled Maintenance" means maintenance carried out in accordance with paragraph 8.
+
+"Service" means the hosted merchandise-planning platform described in the Master Agreement.
+
+"Service Credit" means a credit calculated in accordance with paragraph 4.
+
+1.2 Capitalised terms not defined in this Schedule have the meanings given in the Master Agreement. If there is any conflict between this Schedule and the Master Agreement regarding service levels, this Schedule prevails.
+
+2. AVAILABILITY COMMITMENT
+
+2.1 The Vendor shall make the Service available for at least 99.50% of each Measurement Period (the "Commitment").
+
+2.2 The Vendor shall use reasonable endeavours to ensure that the Service is available at all times outside Scheduled Maintenance.
+
+3. MEASUREMENT
+
+3.1 The Vendor shall measure Availability using its automated monitoring system, which checks the Service at intervals of not more than two (2) minutes from two geographically separate locations.
+
+3.2 Availability is calculated as follows:
+
+Availability (%) = ((Total Minutes − Downtime Minutes) ÷ Total Minutes) × 100
+
+where "Total Minutes" is the number of minutes in the Measurement Period less all Excluded Time, and "Downtime Minutes" is the number of minutes of Downtime in that Measurement Period. The result is rounded down to two decimal places.
+
+3.3 Monitoring records are kept in Coordinated Universal Time and retained for twelve (12) months. The Vendor shall provide extracts to the Customer on reasonable written request.
+
+4. SERVICE CREDITS
+
+4.1 If Availability in a Measurement Period falls below the Commitment, the Customer is entitled to a Service Credit calculated by reference to Table 3 below. No Service Credit is due where Availability is equal to or higher than the Commitment.
+
+Table 3: Service Credits
+
++-------------------------------------------+------------------------------+
+| Availability in the Measurement Period    | Service Credit               |
++-------------------------------------------+------------------------------+
+| Below 99.50% but not below 98.00%         | 10% of the Period Fees       |
++-------------------------------------------+------------------------------+
+| Below 98.00%                              | 25% of the Period Fees       |
++-------------------------------------------+------------------------------+
+
+4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 3 that corresponds to the lowest Availability achieved in that Measurement Period.
+
+5. CAP ON SERVICE CREDITS
+
+5.1 The total Service Credits payable in respect of any single Measurement Period shall not exceed 40% of the Period Fees for that Measurement Period.
+
+5.2 Service Credits are the Customer's sole financial remedy for failure to meet the Commitment, save for the Customer's rights under clause 16 of the Master Agreement.
+
+6. CLAIMING SERVICE CREDITS
+
+6.1 The Vendor shall notify the Customer of the Availability achieved in each Measurement Period within five (5) Business Days after the end of that Measurement Period, identifying any Service Credit due under Table 3.
+
+6.2 The Customer must claim any Service Credit by written notice to the Vendor no later than fifteen (15) days after the end of the relevant Measurement Period. A claim received after that deadline is invalid.
+
+6.3 The Vendor shall acknowledge each valid claim within three (3) Business Days.
+
+7. DELIVERY OF SERVICE CREDITS
+
+7.1 The Vendor shall deliver each validated Service Credit to the Customer as a credit memo applied against the next invoice issued under the Master Agreement.
+
+7.2 If no further invoice is issued within sixty (60) days after the validated claim, the Vendor shall pay the value of the Service Credit to the Customer by bank transfer within fourteen (14) days after the expiry of that sixty-day period.
+
+7.3 Service Credits are exclusive of value added tax, which the Vendor shall account for on any credit memo in accordance with applicable law.
+
+8. SCHEDULED MAINTENANCE
+
+8.1 The Vendor may carry out Scheduled Maintenance between 22:00 and 05:00 Coordinated Universal Time.
+
+8.2 The Vendor shall give the Customer at least three (3) Business Days' written notice of any Scheduled Maintenance, stating its expected start and end times and the Service components affected.
+
+8.3 Scheduled Maintenance notified under paragraph 8.2 and not exceeding two (2) hours in any Measurement Period is Excluded Time. Any excess is Downtime.
+
+9. REPORTING DOWNTIME
+
+9.1 The Customer shall report suspected Downtime to the Vendor by email to the support desk or through the Vendor's incident portal, stating the time of first observation and the functions affected.
+
+9.2 The Vendor shall acknowledge each report within thirty (30) minutes and provide status updates at least every ninety (90) minutes until service is restored.
+
+9.3 The Vendor shall provide a written root cause analysis within five (5) Business Days after restoration of any Downtime lasting more than forty-five (45) minutes.
+
+10. EXCLUSIONS
+
+10.1 Excluded Time comprises:
+(a) Scheduled Maintenance notified and performed in accordance with paragraph 8;
+(b) unavailability caused by the Customer's own infrastructure or by third-party services not supplied by the Vendor;
+(c) unavailability caused by misuse of the Service or breach of the Master Agreement by the Customer;
+(d) force majeure events as described in clause 20 of the Master Agreement; and
+(e) suspension of the Service in accordance with the Master Agreement.
+
+10.2 The Vendor bears the burden of demonstrating that any period is Excluded Time.
+
+11. RELATIONSHIP TO THE MASTER AGREEMENT
+
+11.1 This Schedule is incorporated into and forms part of the Master Agreement. Save as expressly varied here, the Master Agreement continues in full effect.
+
+11.2 The Commitment and Service Credits apply only to the production environment of the Service.
+
+11.3 This Schedule is governed by the governing law and dispute resolution clauses of the Master Agreement.
+
+Signed for and on behalf of ILGARRA PLATFORM SOLUTIONS S.A.S.: ____________________ Name: Oriane Sallow, Title: Directrice Commerciale, Date: ____________
+
+Signed for and on behalf of ALDERMOOR RETAIL GROUP PLC: ____________________ Name: Piran Hollis, Title: Chief Operating Officer, Date: ____________

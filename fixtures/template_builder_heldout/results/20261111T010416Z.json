@@ -1,0 +1,5799 @@
+{
+ "started_at": "2026-11-11T01:04:16Z",
+ "api_version": 1,
+ "engine_commit": "04d9ee11c7f717e0cfb23b3a847bc642b86f603c",
+ "reviewer": "evaluation-script",
+ "reviewer_note": "Approvals in this run were made by a script named evaluation-script, not by a person.",
+ "second_check_note": "Version 1: the second-contract check is given the hand-written key for B as its answer key, because that API needs one.",
+ "forms": [
+  {
+   "form": "form-1",
+   "style_brief": "briefs/form-1.md",
+   "author_model": [
+    "claude-opus-5-5"
+   ],
+   "api_version": 1,
+   "second_check_uses_answer_key": true,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 32.0,
+     "state": "READY_FOR_REVIEW"
+    },
+    {
+     "step": "approve",
+     "by": "evaluation-script",
+     "note": "approved by a script, not a person",
+     "seconds": 0.007,
+     "state": "APPROVED"
+    },
+    {
+     "step": "read_c",
+     "seconds": 0.004,
+     "path": "service.read(document_id) with C as the sample's next document"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_3df468",
+    "sample_id": "heldout-form-1",
+    "state": "READY_FOR_REVIEW",
+    "started_at": "2026-11-11T01:04:16Z",
+    "updated_at": "2026-11-11T01:04:48Z",
+    "finished_at": "2026-11-11T01:04:48Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:16Z",
+      "finished_at": "2026-11-11T01:04:16Z",
+      "seconds": "0.1",
+      "model": "jev-1.13.0",
+      "summary": "No template on file matches",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": "0.8",
+       "options": [
+        "northwind-cloud-sla",
+        "corvid-ledger-sla",
+        "unrecognised"
+       ]
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:16Z",
+      "finished_at": "2026-11-11T01:04:31Z",
+      "seconds": "14.5",
+      "model": "claude-opus-5-5",
+      "summary": "9 terms, 9 quotes found in the contract",
+      "detail": {
+       "terms": 9,
+       "quotes_found": 9
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:16Z",
+      "finished_at": "2026-11-11T01:04:29Z",
+      "seconds": "13.2",
+      "model": "claude-opus-5-5",
+      "summary": "9 terms, 9 quotes found in the contract",
+      "detail": {
+       "terms": 9,
+       "quotes_found": 9
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:16Z",
+      "finished_at": "2026-11-11T01:04:27Z",
+      "seconds": "11.1",
+      "model": "claude-opus-5-5",
+      "summary": "9 terms, 9 quotes found in the contract",
+      "detail": {
+       "terms": 9,
+       "quotes_found": 9
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:31Z",
+      "finished_at": "2026-11-11T01:04:48Z",
+      "seconds": "17.1",
+      "model": "claude-opus-5-5",
+      "summary": "9 extraction rules written",
+      "detail": {
+       "rules": 9,
+       "repair_rounds": 0
+      }
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:48Z",
+      "finished_at": "2026-11-11T01:04:48Z",
+      "seconds": "0.3",
+      "model": null,
+      "summary": "4 of 5 checks passed",
+      "detail": {
+       "passed": 4,
+       "total": 5
+      }
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for a reviewer",
+      "detail": {}
+     }
+    ],
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.9",
+      "display": "99.9%",
+      "quote": "2.1 Vendor shall make the Covered Service available to Customer such that Availability during each Measurement Period is not less than ninety-nine and nine-tenths percent (99.9%) (the \"Availability Commitment\").",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99.9",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Availability during each Measurement Period is not less than [^(]*\\((\\d+(?:\\.\\d+)?)\\s?%\\)",
+       "group": 1
+      },
+      "rule_value": "99.9",
+      "rule_quote": "AVAILABILITY COMMITMENT 2.1 Vendor shall make the Covered Service available to Customer such that Availability during each Measurement Period is not less than ninety-nine and nine-tenths percent (99.9%) (the \"Availability Commitment\").",
+      "rule_error": null,
+      "second_document_value": "99.5",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.99",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "(f) \"Measurement Period\" means each calendar month during the Subscription Term; provided, however, that if the Subscription Term commences or ends on a day other than the first or last day of a calendar month, the resulting partial calendar month shall constitute a Measurement Period, and Availability for such partial month shall be calculated by reference only to the minutes falling within the Subscription Term.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "calendar_month",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Measurement Period[\"\u201d]? means (?:each|every) (calendar month|month|calendar quarter)",
+       "group": 1,
+       "map": {
+        "calendar month": "calendar_month",
+        "month": "calendar_month",
+        "calendar quarter": "calendar_quarter"
+       }
+      },
+      "rule_value": "calendar_month",
+      "rule_quote": "(f) \"Measurement Period\" means each calendar month during the Subscription Term;",
+      "rule_error": null,
+      "second_document_value": "calendar_month",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.97",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "10",
+      "display": "10%",
+      "quote": "Less than 99.9% but equal to or greater than 99.0%            10%",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "10",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "10",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "10",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Less than \\d+(?:\\.\\d+)?\\s?% but equal to or greater than \\d+(?:\\.\\d+)?\\s?% (\\d+(?:\\.\\d+)?)\\s?%",
+       "group": 1
+      },
+      "rule_value": "10",
+      "rule_quote": "Availability in Measurement Period Service Credit (% of Monthly Fees) ---------------------------------------------- ---------------------------------- Less than 99.9% but equal to or greater than 99.0% 10% Less than 99.0% 25% The threshold of ninety-nine percent (99.0%) set forth above is referred to herein as the \"Lower Threshold.\" 7.2 Only one (1) Service Credit tier shall apply to any Measurement Period, being the tier corresponding to the Availability actually achieved, and Service Credits under the two (2) tiers shall not be cumulative.",
+      "rule_error": null,
+      "second_document_value": "5",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.8",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99",
+      "display": "99%",
+      "quote": "The threshold of ninety-nine percent (99.0%) set forth above is referred to herein as the \"Lower Threshold.\"",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "threshold of [^(]*\\((\\d+(?:\\.\\d+)?)\\s?%\\) set forth above is referred to herein as the [\"\u201c]?Lower Threshold",
+       "group": 1
+      },
+      "rule_value": "99",
+      "rule_quote": "Availability in Measurement Period Service Credit (% of Monthly Fees) ---------------------------------------------- ---------------------------------- Less than 99.9% but equal to or greater than 99.0% 10% Less than 99.0% 25% The threshold of ninety-nine percent (99.0%) set forth above is referred to herein as the \"Lower Threshold.\" 7.2 Only one (1) Service Credit tier shall apply to any Measurement Period, being the tier corresponding to the Availability actually achieved, and Service Credits under the two (2) tiers shall not be cumulative.",
+      "rule_error": null,
+      "second_document_value": "98",
+      "second_document_ok": true,
+      "jev": {
+       "yes": false,
+       "probability": "0.07",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "25",
+      "display": "25%",
+      "quote": "Less than 99.0%                                                25%",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "25",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "25",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "25",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Less than \\d+(?:\\.\\d+)?\\s?% (\\d+(?:\\.\\d+)?)\\s?%",
+       "group": 1
+      },
+      "rule_value": "25",
+      "rule_quote": "Availability in Measurement Period Service Credit (% of Monthly Fees) ---------------------------------------------- ---------------------------------- Less than 99.9% but equal to or greater than 99.0% 10% Less than 99.0% 25% The threshold of ninety-nine percent (99.0%) set forth above is referred to herein as the \"Lower Threshold.\" 7.2 Only one (1) Service Credit tier shall apply to any Measurement Period, being the tier corresponding to the Availability actually achieved, and Service Credits under the two (2) tiers shall not be cumulative.",
+      "rule_error": null,
+      "second_document_value": "15",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.65",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "30",
+      "display": "30%",
+      "quote": "7.3 The aggregate amount of all Service Credits issued in respect of any Measurement Period shall not exceed thirty percent (30%) of the Monthly Fees for such Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "30",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "aggregate amount of all Service Credits[^.;]*?shall not exceed [^(]*\\((\\d+(?:\\.\\d+)?)\\s?%\\)",
+       "group": 1
+      },
+      "rule_value": "30",
+      "rule_quote": "7.3 The aggregate amount of all Service Credits issued in respect of any Measurement Period shall not exceed thirty percent (30%) of the Monthly Fees for such Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "20",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "30",
+      "display": "30 days",
+      "quote": "7.4 To receive a Service Credit, Customer shall submit a written claim to sla-claims@larkspire.example no later than thirty (30) days after the last day of the Measurement Period to which the claim relates, which claim shall identify the dates and times of the Downtime alleged; provided, however, that Customer's failure to submit a claim within such period shall constitute a waiver of any Service Credit for such Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "30",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "submit a written claim[^;]*?no later than [^(]*\\((\\d+)\\) days after the last day of the Measurement Period",
+       "group": 1
+      },
+      "rule_value": "30",
+      "rule_quote": "7.4 To receive a Service Credit, Customer shall submit a written claim to sla-claims@larkspire.example no later than thirty (30) days after the last day of the Measurement Period to which the claim relates, which claim shall identify the dates and times of the Downtime alleged;",
+      "rule_error": null,
+      "second_document_value": "15",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": "72",
+      "display": "72 hours",
+      "quote": "5.1 Vendor shall give Customer not less than seventy-two (72) hours' advance notice of any Scheduled Maintenance, which notice shall be delivered by email to Customer's designated administrative contact and posted on Vendor's service status page and shall specify the anticipated start time, expected duration and, to the extent known, the anticipated effect on the Covered Service.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "72",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "72",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "72",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "\\((\\d+)\\) hours[\u2019']? advance notice of any Scheduled Maintenance",
+       "group": 1
+      },
+      "rule_value": "72",
+      "rule_quote": "SCHEDULED MAINTENANCE 5.1 Vendor shall give Customer not less than seventy-two (72) hours' advance notice of any Scheduled Maintenance, which notice shall be delivered by email to Customer's designated administrative contact and posted on Vendor's service status page and shall specify the anticipated start time, expected duration and, to the extent known, the anticipated effect on the Covered Service.",
+      "rule_error": null,
+      "second_document_value": "48",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "7.6 Each Service Credit shall be applied as a credit against the next invoice for Monthly Fees issued by Vendor following Vendor's approval of the claim; provided, however, that if the Agreement expires or is terminated and no further invoice is to be issued, Vendor shall pay the amount of any approved Service Credit to Customer by refund within thirty (30) days, unless the Agreement was terminated by Vendor for Customer's uncured material breach.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "next_invoice",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Each Service Credit shall be applied as a credit against the (next invoice)",
+       "group": 1,
+       "map": {
+        "next invoice": "next_invoice"
+       }
+      },
+      "rule_value": "next_invoice",
+      "rule_quote": "7.6 Each Service Credit shall be applied as a credit against the next invoice for Monthly Fees issued by Vendor following Vendor's approval of the claim;",
+      "rule_error": null,
+      "second_document_value": "next_invoice",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     }
+    ],
+    "checks": [
+     {
+      "id": "quotes",
+      "label": "Every quote is in the contract, word for word",
+      "passed": 27,
+      "total": 27,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "agreement",
+      "label": "The three readers agree",
+      "passed": 9,
+      "total": 9,
+      "blocking": false,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "reproduce",
+      "label": "The template returns every term from this contract",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "second_document",
+      "label": "The template reads a second contract of the same form",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "document": {
+       "id": "form-1-b",
+       "title": "Service Level Addendum \u00b7 Quillfeather Dental Partners, P.C."
+      },
+      "ok": true
+     },
+     {
+      "id": "jev",
+      "label": "Jev: each term is supported by its sentence",
+      "passed": 6,
+      "total": 9,
+      "blocking": false,
+      "by": "JEV",
+      "threshold": "0.90",
+      "lowest": "0.07",
+      "ran": true,
+      "ok": false
+     }
+    ],
+    "template": {
+     "id": "heldout-form-1/1",
+     "sha256": "4beb2600976e9fb86fb397b79133e5aa311ed2ff076b5c2f2c4e762481f9bc12",
+     "rules": 9,
+     "state": "PROPOSED",
+     "approved_by": null,
+     "approved_at": null
+    },
+    "error": null
+   },
+   "template_body": {
+    "id": "heldout-form-1/1",
+    "sample_id": "heldout-form-1",
+    "vendor": "Larkspire Systems, Inc.",
+    "form": "Service Level Addendum",
+    "interpreter": "uptime.template_rules/1",
+    "rules": [
+     {
+      "field": "availability_target_percent",
+      "type": "percent",
+      "pattern": "Availability during each Measurement Period is not less than [^(]*\\((\\d+(?:\\.\\d+)?)\\s?%\\)",
+      "group": 1
+     },
+     {
+      "field": "measurement_period",
+      "type": "choice",
+      "pattern": "Measurement Period[\"\u201d]? means (?:each|every) (calendar month|month|calendar quarter)",
+      "group": 1,
+      "map": {
+       "calendar month": "calendar_month",
+       "month": "calendar_month",
+       "calendar quarter": "calendar_quarter"
+      }
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "type": "percent",
+      "pattern": "Less than \\d+(?:\\.\\d+)?\\s?% but equal to or greater than \\d+(?:\\.\\d+)?\\s?% (\\d+(?:\\.\\d+)?)\\s?%",
+      "group": 1
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "type": "percent",
+      "pattern": "threshold of [^(]*\\((\\d+(?:\\.\\d+)?)\\s?%\\) set forth above is referred to herein as the [\"\u201c]?Lower Threshold",
+      "group": 1
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "type": "percent",
+      "pattern": "Less than \\d+(?:\\.\\d+)?\\s?% (\\d+(?:\\.\\d+)?)\\s?%",
+      "group": 1
+     },
+     {
+      "field": "credit_cap_percent",
+      "type": "percent",
+      "pattern": "aggregate amount of all Service Credits[^.;]*?shall not exceed [^(]*\\((\\d+(?:\\.\\d+)?)\\s?%\\)",
+      "group": 1
+     },
+     {
+      "field": "claim_window_days",
+      "type": "integer",
+      "pattern": "submit a written claim[^;]*?no later than [^(]*\\((\\d+)\\) days after the last day of the Measurement Period",
+      "group": 1
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "type": "integer",
+      "pattern": "\\((\\d+)\\) hours[\u2019']? advance notice of any Scheduled Maintenance",
+      "group": 1
+     },
+     {
+      "field": "credit_application",
+      "type": "choice",
+      "pattern": "Each Service Credit shall be applied as a credit against the (next invoice)",
+      "group": 1,
+      "map": {
+       "next invoice": "next_invoice"
+      }
+     }
+    ]
+   },
+   "blocking_failed": [],
+   "all_blocking_passed": true,
+   "flagged_terms": [
+    "tier_1_credit_percent",
+    "tier_2_threshold_percent",
+    "tier_2_credit_percent"
+   ],
+   "approved": true,
+   "acknowledged": [],
+   "reading": {
+    "document": {
+     "id": "form-1-c",
+     "title": "Service Level Addendum \u00b7 Tidewater Arcfield Holdings, Inc.",
+     "vendor": "Larkspire Systems, Inc."
+    },
+    "read_by": "TEMPLATE",
+    "template": {
+     "id": "heldout-form-1/1",
+     "sha256": "4beb2600976e9fb86fb397b79133e5aa311ed2ff076b5c2f2c4e762481f9bc12"
+    },
+    "model_calls": 0,
+    "milliseconds": "3.0",
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.95",
+      "display": "99.95%",
+      "quote": "AVAILABILITY COMMITMENT 2.1 Vendor shall make the Covered Service available to Customer such that Availability during each Measurement Period is not less than ninety-nine and ninety-five hundredths percent (99.95%) (the \"Availability Commitment\")."
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "(f) \"Measurement Period\" means each calendar month during the Subscription Term;"
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "15",
+      "display": "15%",
+      "quote": "Availability in Measurement Period Service Credit (% of Monthly Fees) ---------------------------------------------- ---------------------------------- Less than 99.95% but equal to or greater than 99.5% 15% Less than 99.5% 35% The threshold of ninety-nine and one-half percent (99.5%) set forth above is referred to herein as the \"Lower Threshold.\" 7.2 Only one (1) Service Credit tier shall apply to any Measurement Period, being the tier corresponding to the Availability actually achieved, and Service Credits under the two (2) tiers shall not be cumulative."
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99.5",
+      "display": "99.5%",
+      "quote": "Availability in Measurement Period Service Credit (% of Monthly Fees) ---------------------------------------------- ---------------------------------- Less than 99.95% but equal to or greater than 99.5% 15% Less than 99.5% 35% The threshold of ninety-nine and one-half percent (99.5%) set forth above is referred to herein as the \"Lower Threshold.\" 7.2 Only one (1) Service Credit tier shall apply to any Measurement Period, being the tier corresponding to the Availability actually achieved, and Service Credits under the two (2) tiers shall not be cumulative."
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "35",
+      "display": "35%",
+      "quote": "Availability in Measurement Period Service Credit (% of Monthly Fees) ---------------------------------------------- ---------------------------------- Less than 99.95% but equal to or greater than 99.5% 15% Less than 99.5% 35% The threshold of ninety-nine and one-half percent (99.5%) set forth above is referred to herein as the \"Lower Threshold.\" 7.2 Only one (1) Service Credit tier shall apply to any Measurement Period, being the tier corresponding to the Availability actually achieved, and Service Credits under the two (2) tiers shall not be cumulative."
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "50",
+      "display": "50%",
+      "quote": "7.3 The aggregate amount of all Service Credits issued in respect of any Measurement Period shall not exceed fifty percent (50%) of the Monthly Fees for such Measurement Period."
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "45",
+      "display": "45 days",
+      "quote": "7.4 To receive a Service Credit, Customer shall submit a written claim to sla-claims@larkspire.example no later than forty-five (45) days after the last day of the Measurement Period to which the claim relates, which claim shall identify the dates and times of the Downtime alleged;"
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": "96",
+      "display": "96 hours",
+      "quote": "SCHEDULED MAINTENANCE 5.1 Vendor shall give Customer not less than ninety-six (96) hours' advance notice of any Scheduled Maintenance, which notice shall be delivered by email to Customer's designated administrative contact and posted on Vendor's service status page and shall specify the anticipated start time, expected duration and, to the extent known, the anticipated effect on the Covered Service."
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "7.6 Each Service Credit shall be applied as a credit against the next invoice for Monthly Fees issued by Vendor following Vendor's approval of the claim;"
+     }
+    ],
+    "found": 9,
+    "total": 9,
+    "read_at": "2026-11-11T01:04:48Z"
+   },
+   "score": {
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "key": "99.95",
+      "value": "99.95",
+      "counted_value": "99.95",
+      "outcome": "correct",
+      "quote": "AVAILABILITY COMMITMENT 2.1 Vendor shall make the Covered Service available to Customer such that Availability during each Measurement Period is not less than ninety-nine and ninety-five hundredths percent (99.95%) (the \"Availability Commitment\").",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "measurement_period",
+      "key": "calendar_month",
+      "value": "calendar_month",
+      "counted_value": "calendar_month",
+      "outcome": "correct",
+      "quote": "(f) \"Measurement Period\" means each calendar month during the Subscription Term;",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "key": "15",
+      "value": "15",
+      "counted_value": "15",
+      "outcome": "correct",
+      "quote": "Availability in Measurement Period Service Credit (% of Monthly Fees) ---------------------------------------------- ---------------------------------- Less than 99.95% but equal to or greater than 99.5% 15% Less than 99.5% 35% The threshold of ninety-nine and one-half percent (99.5%) set forth above is referred to herein as the \"Lower Threshold.\" 7.2 Only one (1) Service Credit tier shall apply to any Measurement Period, being the tier corresponding to the Availability actually achieved, and Service Credits under the two (2) tiers shall not be cumulative.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "key": "99.5",
+      "value": "99.5",
+      "counted_value": "99.5",
+      "outcome": "correct",
+      "quote": "Availability in Measurement Period Service Credit (% of Monthly Fees) ---------------------------------------------- ---------------------------------- Less than 99.95% but equal to or greater than 99.5% 15% Less than 99.5% 35% The threshold of ninety-nine and one-half percent (99.5%) set forth above is referred to herein as the \"Lower Threshold.\" 7.2 Only one (1) Service Credit tier shall apply to any Measurement Period, being the tier corresponding to the Availability actually achieved, and Service Credits under the two (2) tiers shall not be cumulative.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "key": "35",
+      "value": "35",
+      "counted_value": "35",
+      "outcome": "correct",
+      "quote": "Availability in Measurement Period Service Credit (% of Monthly Fees) ---------------------------------------------- ---------------------------------- Less than 99.95% but equal to or greater than 99.5% 15% Less than 99.5% 35% The threshold of ninety-nine and one-half percent (99.5%) set forth above is referred to herein as the \"Lower Threshold.\" 7.2 Only one (1) Service Credit tier shall apply to any Measurement Period, being the tier corresponding to the Availability actually achieved, and Service Credits under the two (2) tiers shall not be cumulative.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_cap_percent",
+      "key": "50",
+      "value": "50",
+      "counted_value": "50",
+      "outcome": "correct",
+      "quote": "7.3 The aggregate amount of all Service Credits issued in respect of any Measurement Period shall not exceed fifty percent (50%) of the Monthly Fees for such Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "claim_window_days",
+      "key": "45",
+      "value": "45",
+      "counted_value": "45",
+      "outcome": "correct",
+      "quote": "7.4 To receive a Service Credit, Customer shall submit a written claim to sla-claims@larkspire.example no later than forty-five (45) days after the last day of the Measurement Period to which the claim relates, which claim shall identify the dates and times of the Downtime alleged;",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "key": "96",
+      "value": "96",
+      "counted_value": "96",
+      "outcome": "correct",
+      "quote": "SCHEDULED MAINTENANCE 5.1 Vendor shall give Customer not less than ninety-six (96) hours' advance notice of any Scheduled Maintenance, which notice shall be delivered by email to Customer's designated administrative contact and posted on Vendor's service status page and shall specify the anticipated start time, expected duration and, to the extent known, the anticipated effect on the Covered Service.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_application",
+      "key": "next_invoice",
+      "value": "next_invoice",
+      "counted_value": "next_invoice",
+      "outcome": "correct",
+      "quote": "7.6 Each Service Credit shall be applied as a credit against the next invoice for Monthly Fees issued by Vendor following Vendor's approval of the claim;",
+      "error": null,
+      "value_on_not_stated": false
+     }
+    ],
+    "counts": {
+     "correct": 9,
+     "wrong": 0,
+     "refused": 0,
+     "not_stated": 0
+    }
+   },
+   "read_status": "no status (version 1 read is unguarded)",
+   "seconds": 32.0,
+   "claude_calls": [
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 11.1,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 13.2,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 14.5,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 17.0,
+     "ok": true
+    }
+   ],
+   "jev_calls": [
+    {
+     "method": "choice",
+     "seconds": 0.13,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.08,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.11,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.13,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.18,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.18,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.2,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "form": "form-2",
+   "style_brief": "briefs/form-2.md",
+   "author_model": [
+    "claude-sonnet-5-5"
+   ],
+   "api_version": 1,
+   "second_check_uses_answer_key": true,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 28.7,
+     "state": "READY_FOR_REVIEW"
+    },
+    {
+     "step": "approve",
+     "by": "evaluation-script",
+     "note": "approved by a script, not a person",
+     "seconds": 0.003,
+     "state": "APPROVED"
+    },
+    {
+     "step": "read_c",
+     "seconds": 0.002,
+     "path": "service.read(document_id) with C as the sample's next document"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_e9e084",
+    "sample_id": "heldout-form-2",
+    "state": "READY_FOR_REVIEW",
+    "started_at": "2026-11-11T01:04:48Z",
+    "updated_at": "2026-11-11T01:05:17Z",
+    "finished_at": "2026-11-11T01:05:17Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:48Z",
+      "finished_at": "2026-11-11T01:04:48Z",
+      "seconds": "0.1",
+      "model": "jev-1.13.0",
+      "summary": "No template on file matches",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": "0.91",
+       "options": [
+        "northwind-cloud-sla",
+        "corvid-ledger-sla",
+        "unrecognised"
+       ]
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:48Z",
+      "finished_at": "2026-11-11T01:04:56Z",
+      "seconds": "7.8",
+      "model": "claude-opus-5-5",
+      "summary": "8 terms, 8 quotes found in the contract",
+      "detail": {
+       "terms": 8,
+       "quotes_found": 8
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:48Z",
+      "finished_at": "2026-11-11T01:04:57Z",
+      "seconds": "8.4",
+      "model": "claude-opus-5-5",
+      "summary": "8 terms, 8 quotes found in the contract",
+      "detail": {
+       "terms": 8,
+       "quotes_found": 8
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:48Z",
+      "finished_at": "2026-11-11T01:04:57Z",
+      "seconds": "9.3",
+      "model": "claude-opus-5-5",
+      "summary": "8 terms, 8 quotes found in the contract",
+      "detail": {
+       "terms": 8,
+       "quotes_found": 8
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:04:57Z",
+      "finished_at": "2026-11-11T01:05:16Z",
+      "seconds": "19.0",
+      "model": "claude-opus-5-5",
+      "summary": "9 extraction rules written, 1 repair round",
+      "detail": {
+       "rules": 9,
+       "repair_rounds": 1
+      }
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:16Z",
+      "finished_at": "2026-11-11T01:05:17Z",
+      "seconds": "0.3",
+      "model": null,
+      "summary": "4 of 5 checks passed",
+      "detail": {
+       "passed": 4,
+       "total": 5
+      }
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for a reviewer",
+      "detail": {}
+     }
+    ],
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.9",
+      "display": "99.9%",
+      "quote": "We promise the Service will be available at least 99.9% of the time in every Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99.9",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "available at least (\\d+(?:\\.\\d+)?)% of the time in every Measurement Period",
+       "group": 1
+      },
+      "rule_value": "99.9",
+      "rule_quote": "Our uptime promise We promise the Service will be available at least 99.9% of the time in every Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "99.5",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.99",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "- Measurement Period: each calendar month during the term.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "calendar_month",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Measurement Period: each (calendar month|calendar quarter|calendar year|month|quarter|year)\\b",
+       "group": 1,
+       "map": {
+        "calendar month": "calendar_month",
+        "month": "calendar_month"
+       }
+      },
+      "rule_value": "calendar_month",
+      "rule_quote": "- Measurement Period: each calendar month during the term.",
+      "rule_error": null,
+      "second_document_value": "calendar_month",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "5",
+      "display": "5%",
+      "quote": "Tier 1: availability is below 99.9% but at or above 99.0%. Credit: 5% of Period Fees.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "5",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "5",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "5",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Tier 1: availability is below .*?Credit: (\\d+(?:\\.\\d+)?)% of Period Fees",
+       "group": 1
+      },
+      "rule_value": "5",
+      "rule_quote": "Tier 1: availability is below 99.9% but at or above 99.0%. Credit: 5% of Period Fees.",
+      "rule_error": null,
+      "second_document_value": "8",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.96",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99",
+      "display": "99%",
+      "quote": "Tier 2: availability is below 99.0%. Credit: 15% of Period Fees.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Tier 2: availability is below (\\d+(?:\\.\\d+)?)%",
+       "group": 1
+      },
+      "rule_value": "99",
+      "rule_quote": "Tier 2: availability is below 99.0%.",
+      "rule_error": null,
+      "second_document_value": "98",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "15",
+      "display": "15%",
+      "quote": "Tier 2: availability is below 99.0%. Credit: 15% of Period Fees.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "15",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "15",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "15",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Tier 2: availability is below .*?Credit: (\\d+(?:\\.\\d+)?)% of Period Fees",
+       "group": 1
+      },
+      "rule_value": "15",
+      "rule_quote": "Tier 2: availability is below 99.0%. Credit: 15% of Period Fees.",
+      "rule_error": null,
+      "second_document_value": "20",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.96",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "20",
+      "display": "20%",
+      "quote": "The total credits for any one Measurement Period can't be more than 20% of the Period Fees for that period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "20",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "20",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "20",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "total credits for any one Measurement Period can.t be more than (\\d+(?:\\.\\d+)?)% of the Period Fees",
+       "group": 1
+      },
+      "rule_value": "20",
+      "rule_quote": "Cap on credits The total credits for any one Measurement Period can't be more than 20% of the Period Fees for that period.",
+      "rule_error": null,
+      "second_document_value": "30",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.95",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "30",
+      "display": "30 days",
+      "quote": "To claim one, email support@pebblework.example within 30 days after the end of the Measurement Period you're claiming for.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "30",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "To claim one, email .*?within (\\d+) days after the end of the Measurement Period",
+       "group": 1
+      },
+      "rule_value": "30",
+      "rule_quote": "To claim one, email support@pebblework.example within 30 days after the end of the Measurement Period you're claiming for.",
+      "rule_error": null,
+      "second_document_value": "45",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.84",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": null,
+      "display": null,
+      "quote": null,
+      "readers": [
+       {
+        "reader": 1,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 2,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 3,
+        "value": null,
+        "quote_found": false
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "at least (\\d+) hours.? notice of Scheduled Maintenance",
+       "group": 1
+      },
+      "rule_value": null,
+      "rule_quote": null,
+      "rule_error": "The rule found nothing.",
+      "second_document_value": "72",
+      "second_document_ok": true,
+      "jev": null,
+      "status": "REVIEW"
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "Once we've confirmed a credit, we'll take it off your next invoice.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "next_invoice",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "confirmed a credit, we.ll [^.;]*?(next invoice|following invoice|refund|bank transfer|account credit)",
+       "group": 1,
+       "map": {
+        "next invoice": "next_invoice",
+        "following invoice": "next_invoice",
+        "refund": "refund",
+        "bank transfer": "refund",
+        "account credit": "account_credit"
+       }
+      },
+      "rule_value": "next_invoice",
+      "rule_quote": "How we pay credits Once we've confirmed a credit, we'll take it off your next invoice.",
+      "rule_error": null,
+      "second_document_value": "refund",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.96",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     }
+    ],
+    "checks": [
+     {
+      "id": "quotes",
+      "label": "Every quote is in the contract, word for word",
+      "passed": 24,
+      "total": 24,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "agreement",
+      "label": "The three readers agree",
+      "passed": 9,
+      "total": 9,
+      "blocking": false,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "reproduce",
+      "label": "The template returns every term from this contract",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "second_document",
+      "label": "The template reads a second contract of the same form",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "document": {
+       "id": "form-2-b",
+       "title": "Uptime terms \u00b7 Oddsmith Veterinary Group Ltd"
+      },
+      "ok": true
+     },
+     {
+      "id": "jev",
+      "label": "Jev: each term is supported by its sentence",
+      "passed": 7,
+      "total": 9,
+      "blocking": false,
+      "by": "JEV",
+      "threshold": "0.90",
+      "lowest": "0.84",
+      "ran": true,
+      "ok": false
+     }
+    ],
+    "template": {
+     "id": "heldout-form-2/1",
+     "sha256": "f6530e1654395c94aa41aaf140f46715f3d0e1aa21e5f519d3a6948e34032f90",
+     "rules": 9,
+     "state": "PROPOSED",
+     "approved_by": null,
+     "approved_at": null
+    },
+    "error": null
+   },
+   "template_body": {
+    "id": "heldout-form-2/1",
+    "sample_id": "heldout-form-2",
+    "vendor": "Pebblework Software, Inc.",
+    "form": "Uptime terms",
+    "interpreter": "uptime.template_rules/1",
+    "rules": [
+     {
+      "field": "availability_target_percent",
+      "type": "percent",
+      "pattern": "available at least (\\d+(?:\\.\\d+)?)% of the time in every Measurement Period",
+      "group": 1
+     },
+     {
+      "field": "measurement_period",
+      "type": "choice",
+      "pattern": "Measurement Period: each (calendar month|calendar quarter|calendar year|month|quarter|year)\\b",
+      "group": 1,
+      "map": {
+       "calendar month": "calendar_month",
+       "month": "calendar_month"
+      }
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "type": "percent",
+      "pattern": "Tier 1: availability is below .*?Credit: (\\d+(?:\\.\\d+)?)% of Period Fees",
+      "group": 1
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "type": "percent",
+      "pattern": "Tier 2: availability is below (\\d+(?:\\.\\d+)?)%",
+      "group": 1
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "type": "percent",
+      "pattern": "Tier 2: availability is below .*?Credit: (\\d+(?:\\.\\d+)?)% of Period Fees",
+      "group": 1
+     },
+     {
+      "field": "credit_cap_percent",
+      "type": "percent",
+      "pattern": "total credits for any one Measurement Period can.t be more than (\\d+(?:\\.\\d+)?)% of the Period Fees",
+      "group": 1
+     },
+     {
+      "field": "claim_window_days",
+      "type": "integer",
+      "pattern": "To claim one, email .*?within (\\d+) days after the end of the Measurement Period",
+      "group": 1
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "type": "integer",
+      "pattern": "at least (\\d+) hours.? notice of Scheduled Maintenance",
+      "group": 1
+     },
+     {
+      "field": "credit_application",
+      "type": "choice",
+      "pattern": "confirmed a credit, we.ll [^.;]*?(next invoice|following invoice|refund|bank transfer|account credit)",
+      "group": 1,
+      "map": {
+       "next invoice": "next_invoice",
+       "following invoice": "next_invoice",
+       "refund": "refund",
+       "bank transfer": "refund",
+       "account credit": "account_credit"
+      }
+     }
+    ]
+   },
+   "blocking_failed": [],
+   "all_blocking_passed": true,
+   "flagged_terms": [
+    "claim_window_days",
+    "maintenance_notice_hours"
+   ],
+   "approved": true,
+   "acknowledged": [],
+   "reading": {
+    "document": {
+     "id": "form-2-c",
+     "title": "Uptime terms \u00b7 Larkspur & Wren Architects LLP",
+     "vendor": "Pebblework Software, Inc."
+    },
+    "read_by": "TEMPLATE",
+    "template": {
+     "id": "heldout-form-2/1",
+     "sha256": "f6530e1654395c94aa41aaf140f46715f3d0e1aa21e5f519d3a6948e34032f90"
+    },
+    "model_calls": 0,
+    "milliseconds": "1.7",
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.95",
+      "display": "99.95%",
+      "quote": "Our uptime promise We promise the Service will be available at least 99.95% of the time in every Measurement Period."
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": null,
+      "display": null,
+      "quote": null
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "10",
+      "display": "10%",
+      "quote": "Tier 1: availability is below 99.95% but at or above 99.5%. Credit: 10% of Period Fees."
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99.5",
+      "display": "99.5%",
+      "quote": "Tier 2: availability is below 99.5%."
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "25",
+      "display": "25%",
+      "quote": "Tier 2: availability is below 99.5%. Credit: 25% of Period Fees."
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "35",
+      "display": "35%",
+      "quote": "Cap on credits The total credits for any one Measurement Period can't be more than 35% of the Period Fees for that period."
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "14",
+      "display": "14 days",
+      "quote": "To claim one, email support@pebblework.example within 14 days after the end of the Measurement Period you're claiming for."
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": null,
+      "display": null,
+      "quote": null
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": null,
+      "display": null,
+      "quote": null
+     }
+    ],
+    "found": 6,
+    "total": 9,
+    "read_at": "2026-11-11T01:05:17Z"
+   },
+   "score": {
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "key": "99.95",
+      "value": "99.95",
+      "counted_value": "99.95",
+      "outcome": "correct",
+      "quote": "Our uptime promise We promise the Service will be available at least 99.95% of the time in every Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "measurement_period",
+      "key": "calendar_quarter",
+      "value": null,
+      "counted_value": null,
+      "outcome": "refused",
+      "quote": null,
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "key": "10",
+      "value": "10",
+      "counted_value": "10",
+      "outcome": "correct",
+      "quote": "Tier 1: availability is below 99.95% but at or above 99.5%. Credit: 10% of Period Fees.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "key": "99.5",
+      "value": "99.5",
+      "counted_value": "99.5",
+      "outcome": "correct",
+      "quote": "Tier 2: availability is below 99.5%.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "key": "25",
+      "value": "25",
+      "counted_value": "25",
+      "outcome": "correct",
+      "quote": "Tier 2: availability is below 99.5%. Credit: 25% of Period Fees.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_cap_percent",
+      "key": "35",
+      "value": "35",
+      "counted_value": "35",
+      "outcome": "correct",
+      "quote": "Cap on credits The total credits for any one Measurement Period can't be more than 35% of the Period Fees for that period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "claim_window_days",
+      "key": "14",
+      "value": "14",
+      "counted_value": "14",
+      "outcome": "correct",
+      "quote": "To claim one, email support@pebblework.example within 14 days after the end of the Measurement Period you're claiming for.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "key": "240",
+      "value": null,
+      "counted_value": null,
+      "outcome": "refused",
+      "quote": null,
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_application",
+      "key": "refund",
+      "value": null,
+      "counted_value": null,
+      "outcome": "refused",
+      "quote": null,
+      "error": null,
+      "value_on_not_stated": false
+     }
+    ],
+    "counts": {
+     "correct": 6,
+     "wrong": 0,
+     "refused": 3,
+     "not_stated": 0
+    }
+   },
+   "read_status": "no status (version 1 read is unguarded)",
+   "seconds": 28.7,
+   "claude_calls": [
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 7.8,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 8.4,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 9.3,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 12.4,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 6.5,
+     "ok": true
+    }
+   ],
+   "jev_calls": [
+    {
+     "method": "choice",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.08,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.12,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.09,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.09,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.2,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.08,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "form": "form-3",
+   "style_brief": "briefs/form-3.md",
+   "author_model": [
+    "claude-haiku-5-5"
+   ],
+   "api_version": 1,
+   "second_check_uses_answer_key": true,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 37.3,
+     "state": "READY_FOR_REVIEW"
+    },
+    {
+     "step": "approve",
+     "by": "evaluation-script",
+     "note": "approved by a script, not a person",
+     "seconds": 0.001,
+     "state": "APPROVED"
+    },
+    {
+     "step": "read_c",
+     "seconds": 0.002,
+     "path": "service.read(document_id) with C as the sample's next document"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_c72c64",
+    "sample_id": "heldout-form-3",
+    "state": "READY_FOR_REVIEW",
+    "started_at": "2026-11-11T01:05:17Z",
+    "updated_at": "2026-11-11T01:05:54Z",
+    "finished_at": "2026-11-11T01:05:54Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:17Z",
+      "finished_at": "2026-11-11T01:05:17Z",
+      "seconds": "0.1",
+      "model": "jev-1.13.0",
+      "summary": "No template on file matches",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": "0.81",
+       "options": [
+        "northwind-cloud-sla",
+        "corvid-ledger-sla",
+        "unrecognised"
+       ]
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:17Z",
+      "finished_at": "2026-11-11T01:05:25Z",
+      "seconds": "7.9",
+      "model": "claude-opus-5-5",
+      "summary": "8 terms, 8 quotes found in the contract",
+      "detail": {
+       "terms": 8,
+       "quotes_found": 8
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:17Z",
+      "finished_at": "2026-11-11T01:05:23Z",
+      "seconds": "6.3",
+      "model": "claude-opus-5-5",
+      "summary": "8 terms, 8 quotes found in the contract",
+      "detail": {
+       "terms": 8,
+       "quotes_found": 8
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:17Z",
+      "finished_at": "2026-11-11T01:05:23Z",
+      "seconds": "5.9",
+      "model": "claude-opus-5-5",
+      "summary": "8 terms, 8 quotes found in the contract",
+      "detail": {
+       "terms": 8,
+       "quotes_found": 8
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:25Z",
+      "finished_at": "2026-11-11T01:05:54Z",
+      "seconds": "29.1",
+      "model": "claude-opus-5-5",
+      "summary": "9 extraction rules written, 1 repair round",
+      "detail": {
+       "rules": 9,
+       "repair_rounds": 1
+      }
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:54Z",
+      "finished_at": "2026-11-11T01:05:54Z",
+      "seconds": "0.2",
+      "model": null,
+      "summary": "4 of 5 checks passed",
+      "detail": {
+       "passed": 4,
+       "total": 5
+      }
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for a reviewer",
+      "detail": {}
+     }
+    ],
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.9",
+      "display": "99.9%",
+      "quote": "2.1 The Vendor shall make the Service Available for at least 99.90% of each Measurement Period (the \"Commitment\").",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99.9",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "make the Service Available for at least (\\d+(?:\\.\\d+)?) ?%",
+       "group": 1
+      },
+      "rule_value": "99.9",
+      "rule_quote": "AVAILABILITY COMMITMENT 2.1 The Vendor shall make the Service Available for at least 99.90% of each Measurement Period (the \"Commitment\").",
+      "rule_error": null,
+      "second_document_value": "99.95",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.95",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "\"Measurement Period\" means each calendar month during the Term.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "calendar_month",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "[\"\u201c\u201d]?Measurement Period[\"\u201c\u201d]? means (?:each|every|a) (calendar month|calendar quarter)",
+       "group": 1,
+       "map": {
+        "calendar month": "calendar_month",
+        "calendar quarter": "calendar_quarter"
+       }
+      },
+      "rule_value": "calendar_month",
+      "rule_quote": "\"Measurement Period\" means each calendar month during the Term.",
+      "rule_error": null,
+      "second_document_value": "calendar_quarter",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "5",
+      "display": "5%",
+      "quote": "| Below 99.90% but not below 99.00%         | 5% of the Monthly Fees       |",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "5",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "5",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "5",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Below \\d+(?:\\.\\d+)? ?% but not below \\d+(?:\\.\\d+)? ?% ?\\| ?(\\d+(?:\\.\\d+)?) ?% of the \\w+ Fees",
+       "group": 1
+      },
+      "rule_value": "5",
+      "rule_quote": "Service Credits +-------------------------------------------+------------------------------+ | Availability in the Measurement Period | Service Credit | +-------------------------------------------+------------------------------+ | Below 99.90% but not below 99.00% | 5% of the Monthly Fees | +-------------------------------------------+------------------------------+ | Below 99.00% | 15% of the Monthly Fees | +-------------------------------------------+------------------------------+ 4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 1 that corresponds to the lowest Availability achieved in that Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "7",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.9",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99",
+      "display": "99%",
+      "quote": "| Below 99.00%                              | 15% of the Monthly Fees      |",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "\\| ?Below (\\d+(?:\\.\\d+)?) ?% ?\\| ?\\d+(?:\\.\\d+)? ?% of the \\w+ Fees",
+       "group": 1
+      },
+      "rule_value": "99",
+      "rule_quote": "Service Credits +-------------------------------------------+------------------------------+ | Availability in the Measurement Period | Service Credit | +-------------------------------------------+------------------------------+ | Below 99.90% but not below 99.00% | 5% of the Monthly Fees | +-------------------------------------------+------------------------------+ | Below 99.00% | 15% of the Monthly Fees | +-------------------------------------------+------------------------------+ 4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 1 that corresponds to the lowest Availability achieved in that Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "99.5",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.61",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "15",
+      "display": "15%",
+      "quote": "| Below 99.00%                              | 15% of the Monthly Fees      |",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "15",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "15",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "15",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "\\| ?Below \\d+(?:\\.\\d+)? ?% ?\\| ?(\\d+(?:\\.\\d+)?) ?% of the \\w+ Fees",
+       "group": 1
+      },
+      "rule_value": "15",
+      "rule_quote": "Service Credits +-------------------------------------------+------------------------------+ | Availability in the Measurement Period | Service Credit | +-------------------------------------------+------------------------------+ | Below 99.90% but not below 99.00% | 5% of the Monthly Fees | +-------------------------------------------+------------------------------+ | Below 99.00% | 15% of the Monthly Fees | +-------------------------------------------+------------------------------+ 4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 1 that corresponds to the lowest Availability achieved in that Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "20",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.58",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "25",
+      "display": "25%",
+      "quote": "5.1 The total Service Credits payable in respect of any single Measurement Period shall not exceed 25% of the Monthly Fees for that Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "25",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "25",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "25",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "total Service Credits payable[^.;]*?shall not exceed (\\d+(?:\\.\\d+)?) ?% of the \\w+ Fees",
+       "group": 1
+      },
+      "rule_value": "25",
+      "rule_quote": "CAP ON SERVICE CREDITS 5.1 The total Service Credits payable in respect of any single Measurement Period shall not exceed 25% of the Monthly Fees for that Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "30",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "30",
+      "display": "30 days",
+      "quote": "6.2 The Customer must claim any Service Credit by written notice to the Vendor no later than thirty (30) days after the end of the relevant Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "30",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "claim any Service Credit by written notice[^.;]*?no later than (?:[a-z-]+ )?\\(?(\\d+)\\)? (?:calendar )?days after the end",
+       "group": 1
+      },
+      "rule_value": "30",
+      "rule_quote": "6.2 The Customer must claim any Service Credit by written notice to the Vendor no later than thirty (30) days after the end of the relevant Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "45",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.97",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": null,
+      "display": null,
+      "quote": null,
+      "readers": [
+       {
+        "reader": 1,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 2,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 3,
+        "value": null,
+        "quote_found": false
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "at least (?:[a-z-]+ )?\\(?(\\d+)\\)? hours'? (?:prior )?(?:written )?notice of (?:any )?Scheduled Maintenance",
+       "group": 1
+      },
+      "rule_value": null,
+      "rule_quote": null,
+      "rule_error": "The rule found nothing.",
+      "second_document_value": null,
+      "second_document_ok": true,
+      "jev": null,
+      "status": "REVIEW"
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "7.1 The Vendor shall apply each validated Service Credit as a credit against the next invoice issued under the Master Agreement.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "next_invoice",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "(?:apply each validated Service Credit as a credit|Customer may set off the credit note) against (the next invoice|that invoice)",
+       "group": 1,
+       "map": {
+        "the next invoice": "next_invoice",
+        "that invoice": "next_invoice"
+       }
+      },
+      "rule_value": "next_invoice",
+      "rule_quote": "DELIVERY OF SERVICE CREDITS 7.1 The Vendor shall apply each validated Service Credit as a credit against the next invoice issued under the Master Agreement.",
+      "rule_error": null,
+      "second_document_value": "next_invoice",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     }
+    ],
+    "checks": [
+     {
+      "id": "quotes",
+      "label": "Every quote is in the contract, word for word",
+      "passed": 24,
+      "total": 24,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "agreement",
+      "label": "The three readers agree",
+      "passed": 9,
+      "total": 9,
+      "blocking": false,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "reproduce",
+      "label": "The template returns every term from this contract",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "second_document",
+      "label": "The template reads a second contract of the same form",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "document": {
+       "id": "form-3-b",
+       "title": "Service Level Schedule \u00b7 Strathmere Medical Partners LLP"
+      },
+      "ok": true
+     },
+     {
+      "id": "jev",
+      "label": "Jev: each term is supported by its sentence",
+      "passed": 6,
+      "total": 9,
+      "blocking": false,
+      "by": "JEV",
+      "threshold": "0.90",
+      "lowest": "0.58",
+      "ran": true,
+      "ok": false
+     }
+    ],
+    "template": {
+     "id": "heldout-form-3/1",
+     "sha256": "ca4c98b022a01a7478149c5bd6c2a06222f01aba8af01a8fd6871e368b69473d",
+     "rules": 9,
+     "state": "PROPOSED",
+     "approved_by": null,
+     "approved_at": null
+    },
+    "error": null
+   },
+   "template_body": {
+    "id": "heldout-form-3/1",
+    "sample_id": "heldout-form-3",
+    "vendor": "Vantriss Cloud Limited",
+    "form": "Service Level Schedule",
+    "interpreter": "uptime.template_rules/1",
+    "rules": [
+     {
+      "field": "availability_target_percent",
+      "type": "percent",
+      "pattern": "make the Service Available for at least (\\d+(?:\\.\\d+)?) ?%",
+      "group": 1
+     },
+     {
+      "field": "measurement_period",
+      "type": "choice",
+      "pattern": "[\"\u201c\u201d]?Measurement Period[\"\u201c\u201d]? means (?:each|every|a) (calendar month|calendar quarter)",
+      "group": 1,
+      "map": {
+       "calendar month": "calendar_month",
+       "calendar quarter": "calendar_quarter"
+      }
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "type": "percent",
+      "pattern": "Below \\d+(?:\\.\\d+)? ?% but not below \\d+(?:\\.\\d+)? ?% ?\\| ?(\\d+(?:\\.\\d+)?) ?% of the \\w+ Fees",
+      "group": 1
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "type": "percent",
+      "pattern": "\\| ?Below (\\d+(?:\\.\\d+)?) ?% ?\\| ?\\d+(?:\\.\\d+)? ?% of the \\w+ Fees",
+      "group": 1
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "type": "percent",
+      "pattern": "\\| ?Below \\d+(?:\\.\\d+)? ?% ?\\| ?(\\d+(?:\\.\\d+)?) ?% of the \\w+ Fees",
+      "group": 1
+     },
+     {
+      "field": "credit_cap_percent",
+      "type": "percent",
+      "pattern": "total Service Credits payable[^.;]*?shall not exceed (\\d+(?:\\.\\d+)?) ?% of the \\w+ Fees",
+      "group": 1
+     },
+     {
+      "field": "claim_window_days",
+      "type": "integer",
+      "pattern": "claim any Service Credit by written notice[^.;]*?no later than (?:[a-z-]+ )?\\(?(\\d+)\\)? (?:calendar )?days after the end",
+      "group": 1
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "type": "integer",
+      "pattern": "at least (?:[a-z-]+ )?\\(?(\\d+)\\)? hours'? (?:prior )?(?:written )?notice of (?:any )?Scheduled Maintenance",
+      "group": 1
+     },
+     {
+      "field": "credit_application",
+      "type": "choice",
+      "pattern": "(?:apply each validated Service Credit as a credit|Customer may set off the credit note) against (the next invoice|that invoice)",
+      "group": 1,
+      "map": {
+       "the next invoice": "next_invoice",
+       "that invoice": "next_invoice"
+      }
+     }
+    ]
+   },
+   "blocking_failed": [],
+   "all_blocking_passed": true,
+   "flagged_terms": [
+    "tier_2_threshold_percent",
+    "tier_2_credit_percent",
+    "maintenance_notice_hours"
+   ],
+   "approved": true,
+   "acknowledged": [],
+   "reading": {
+    "document": {
+     "id": "form-3-c",
+     "title": "Service Level Schedule \u00b7 Aldermoor Retail Group PLC",
+     "vendor": "Ilgarra Platform Solutions S.A.S."
+    },
+    "read_by": "TEMPLATE",
+    "template": {
+     "id": "heldout-form-3/1",
+     "sha256": "ca4c98b022a01a7478149c5bd6c2a06222f01aba8af01a8fd6871e368b69473d"
+    },
+    "model_calls": 0,
+    "milliseconds": "1.4",
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.5",
+      "display": "99.5%",
+      "quote": "AVAILABILITY COMMITMENT 2.1 The Vendor shall make the Service available for at least 99.50% of each Measurement Period (the \"Commitment\")."
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": null,
+      "display": null,
+      "quote": null
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "10",
+      "display": "10%",
+      "quote": "Service Credits +-------------------------------------------+------------------------------+ | Availability in the Measurement Period | Service Credit | +-------------------------------------------+------------------------------+ | Below 99.50% but not below 98.00% | 10% of the Period Fees | +-------------------------------------------+------------------------------+ | Below 98.00% | 25% of the Period Fees | +-------------------------------------------+------------------------------+ 4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 3 that corresponds to the lowest Availability achieved in that Measurement Period."
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "98",
+      "display": "98%",
+      "quote": "Service Credits +-------------------------------------------+------------------------------+ | Availability in the Measurement Period | Service Credit | +-------------------------------------------+------------------------------+ | Below 99.50% but not below 98.00% | 10% of the Period Fees | +-------------------------------------------+------------------------------+ | Below 98.00% | 25% of the Period Fees | +-------------------------------------------+------------------------------+ 4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 3 that corresponds to the lowest Availability achieved in that Measurement Period."
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "25",
+      "display": "25%",
+      "quote": "Service Credits +-------------------------------------------+------------------------------+ | Availability in the Measurement Period | Service Credit | +-------------------------------------------+------------------------------+ | Below 99.50% but not below 98.00% | 10% of the Period Fees | +-------------------------------------------+------------------------------+ | Below 98.00% | 25% of the Period Fees | +-------------------------------------------+------------------------------+ 4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 3 that corresponds to the lowest Availability achieved in that Measurement Period."
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "40",
+      "display": "40%",
+      "quote": "CAP ON SERVICE CREDITS 5.1 The total Service Credits payable in respect of any single Measurement Period shall not exceed 40% of the Period Fees for that Measurement Period."
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "15",
+      "display": "15 days",
+      "quote": "6.2 The Customer must claim any Service Credit by written notice to the Vendor no later than fifteen (15) days after the end of the relevant Measurement Period."
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": null,
+      "display": null,
+      "quote": null
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": null,
+      "display": null,
+      "quote": null
+     }
+    ],
+    "found": 6,
+    "total": 9,
+    "read_at": "2026-11-11T01:05:54Z"
+   },
+   "score": {
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "key": "99.5",
+      "value": "99.5",
+      "counted_value": "99.5",
+      "outcome": "correct",
+      "quote": "AVAILABILITY COMMITMENT 2.1 The Vendor shall make the Service available for at least 99.50% of each Measurement Period (the \"Commitment\").",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "measurement_period",
+      "key": "not_stated",
+      "value": null,
+      "counted_value": null,
+      "outcome": "not_stated",
+      "quote": null,
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "key": "10",
+      "value": "10",
+      "counted_value": "10",
+      "outcome": "correct",
+      "quote": "Service Credits +-------------------------------------------+------------------------------+ | Availability in the Measurement Period | Service Credit | +-------------------------------------------+------------------------------+ | Below 99.50% but not below 98.00% | 10% of the Period Fees | +-------------------------------------------+------------------------------+ | Below 98.00% | 25% of the Period Fees | +-------------------------------------------+------------------------------+ 4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 3 that corresponds to the lowest Availability achieved in that Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "key": "98",
+      "value": "98",
+      "counted_value": "98",
+      "outcome": "correct",
+      "quote": "Service Credits +-------------------------------------------+------------------------------+ | Availability in the Measurement Period | Service Credit | +-------------------------------------------+------------------------------+ | Below 99.50% but not below 98.00% | 10% of the Period Fees | +-------------------------------------------+------------------------------+ | Below 98.00% | 25% of the Period Fees | +-------------------------------------------+------------------------------+ 4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 3 that corresponds to the lowest Availability achieved in that Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "key": "25",
+      "value": "25",
+      "counted_value": "25",
+      "outcome": "correct",
+      "quote": "Service Credits +-------------------------------------------+------------------------------+ | Availability in the Measurement Period | Service Credit | +-------------------------------------------+------------------------------+ | Below 99.50% but not below 98.00% | 10% of the Period Fees | +-------------------------------------------+------------------------------+ | Below 98.00% | 25% of the Period Fees | +-------------------------------------------+------------------------------+ 4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 3 that corresponds to the lowest Availability achieved in that Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_cap_percent",
+      "key": "40",
+      "value": "40",
+      "counted_value": "40",
+      "outcome": "correct",
+      "quote": "CAP ON SERVICE CREDITS 5.1 The total Service Credits payable in respect of any single Measurement Period shall not exceed 40% of the Period Fees for that Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "claim_window_days",
+      "key": "15",
+      "value": "15",
+      "counted_value": "15",
+      "outcome": "correct",
+      "quote": "6.2 The Customer must claim any Service Credit by written notice to the Vendor no later than fifteen (15) days after the end of the relevant Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "key": "not_stated",
+      "value": null,
+      "counted_value": null,
+      "outcome": "not_stated",
+      "quote": null,
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_application",
+      "key": "next_invoice",
+      "value": null,
+      "counted_value": null,
+      "outcome": "refused",
+      "quote": null,
+      "error": null,
+      "value_on_not_stated": false
+     }
+    ],
+    "counts": {
+     "correct": 6,
+     "wrong": 0,
+     "refused": 1,
+     "not_stated": 2
+    }
+   },
+   "read_status": "no status (version 1 read is unguarded)",
+   "seconds": 37.3,
+   "claude_calls": [
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 5.9,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 6.3,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 7.9,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 15.8,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 13.3,
+     "ok": true
+    }
+   ],
+   "jev_calls": [
+    {
+     "method": "choice",
+     "seconds": 0.11,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.09,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.09,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.09,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.08,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.11,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.11,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "form": "form-4",
+   "style_brief": "briefs/form-4.md",
+   "author_model": [
+    "claude-opus-5-5"
+   ],
+   "api_version": 1,
+   "second_check_uses_answer_key": true,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 31.1,
+     "state": "READY_FOR_REVIEW"
+    },
+    {
+     "step": "approve",
+     "by": "evaluation-script",
+     "note": "approved by a script, not a person",
+     "seconds": 0.002,
+     "state": "APPROVED"
+    },
+    {
+     "step": "read_c",
+     "seconds": 0.002,
+     "path": "service.read(document_id) with C as the sample's next document"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_87df72",
+    "sample_id": "heldout-form-4",
+    "state": "READY_FOR_REVIEW",
+    "started_at": "2026-11-11T01:05:54Z",
+    "updated_at": "2026-11-11T01:06:25Z",
+    "finished_at": "2026-11-11T01:06:25Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:54Z",
+      "finished_at": "2026-11-11T01:05:54Z",
+      "seconds": "0.1",
+      "model": "jev-1.13.0",
+      "summary": "No template on file matches",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": "0.83",
+       "options": [
+        "northwind-cloud-sla",
+        "corvid-ledger-sla",
+        "unrecognised"
+       ]
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:54Z",
+      "finished_at": "2026-11-11T01:06:02Z",
+      "seconds": "8.0",
+      "model": "claude-opus-5-5",
+      "summary": "8 terms, 8 quotes found in the contract",
+      "detail": {
+       "terms": 8,
+       "quotes_found": 8
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:54Z",
+      "finished_at": "2026-11-11T01:06:02Z",
+      "seconds": "7.7",
+      "model": "claude-opus-5-5",
+      "summary": "8 terms, 8 quotes found in the contract",
+      "detail": {
+       "terms": 8,
+       "quotes_found": 8
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:05:54Z",
+      "finished_at": "2026-11-11T01:06:02Z",
+      "seconds": "7.4",
+      "model": "claude-opus-5-5",
+      "summary": "8 terms, 8 quotes found in the contract",
+      "detail": {
+       "terms": 8,
+       "quotes_found": 8
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:06:02Z",
+      "finished_at": "2026-11-11T01:06:25Z",
+      "seconds": "22.6",
+      "model": "claude-opus-5-5",
+      "summary": "9 extraction rules written",
+      "detail": {
+       "rules": 9,
+       "repair_rounds": 0
+      }
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:06:25Z",
+      "finished_at": "2026-11-11T01:06:25Z",
+      "seconds": "0.4",
+      "model": null,
+      "summary": "4 of 5 checks passed",
+      "detail": {
+       "passed": 4,
+       "total": 5
+      }
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for a reviewer",
+      "detail": {}
+     }
+    ],
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.9",
+      "display": "99.9%",
+      "quote": "1.3 \"Availability Commitment\" means 99.9% Availability in each Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99.9",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Availability Commitment[\"\u201c\u201d]? means (?:not less than )?(\\d+(?:\\.\\d+)?)\\s?%",
+       "group": 1
+      },
+      "rule_value": "99.9",
+      "rule_quote": "1.3 \"Availability Commitment\" means 99.9% Availability in each Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "99.5",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.99",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "1.14 \"Measurement Period\" means each calendar month during the term of the Agreement, beginning with the calendar month in which the Addendum Effective Date falls.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "calendar_month",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Measurement Period[\"\u201c\u201d]? means (?:each )?(calendar month|calendar quarter|calendar year|month|quarter|year)",
+       "group": 1,
+       "map": {
+        "calendar month": "calendar_month",
+        "month": "calendar_month",
+        "calendar quarter": "calendar_quarter",
+        "quarter": "calendar_quarter",
+        "calendar year": "calendar_year",
+        "year": "calendar_year"
+       }
+      },
+      "rule_value": "calendar_month",
+      "rule_quote": "1.14 \"Measurement Period\" means each calendar month during the term of the Agreement, beginning with the calendar month in which the Addendum Effective Date falls.",
+      "rule_error": null,
+      "second_document_value": "calendar_month",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "10",
+      "display": "10%",
+      "quote": "1.21 \"Tier 1 Credit\" means a credit equal to 10% of the Monthly Fees for the relevant Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "10",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "10",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "10",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Tier 1 Credit[\"\u201c\u201d]? means[^.;%]*?(\\d+(?:\\.\\d+)?)\\s?% of the Monthly Fees",
+       "group": 1
+      },
+      "rule_value": "10",
+      "rule_quote": "1.21 \"Tier 1 Credit\" means a credit equal to 10% of the Monthly Fees for the relevant Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "5",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.71",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99",
+      "display": "99%",
+      "quote": "1.11 \"Lower Threshold\" means 99.0% Availability in a Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Lower Threshold[\"\u201c\u201d]? means[^;%]*?(\\d+(?:\\.\\d+)?)\\s?% Availability",
+       "group": 1
+      },
+      "rule_value": "99",
+      "rule_quote": "1.11 \"Lower Threshold\" means 99.0% Availability in a Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "98",
+      "second_document_ok": true,
+      "jev": {
+       "yes": false,
+       "probability": "0.11",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "25",
+      "display": "25%",
+      "quote": "1.22 \"Tier 2 Credit\" means a credit equal to 25% of the Monthly Fees for the relevant Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "25",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "25",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "25",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Tier (?!1\\b|One\\b|I\\b)\\w+ Credit[\"\u201c\u201d]? means[^.;%]*?(\\d+(?:\\.\\d+)?)\\s?% of the Monthly Fees",
+       "group": 1
+      },
+      "rule_value": "25",
+      "rule_quote": "1.22 \"Tier 2 Credit\" means a credit equal to 25% of the Monthly Fees for the relevant Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "15",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.92",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "50",
+      "display": "50%",
+      "quote": "1.6 \"Credit Cap\" means 50% of the Monthly Fees for the relevant Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "50",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "50",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "50",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Credit Cap[\"\u201c\u201d]? means[^.;%]*?(\\d+(?:\\.\\d+)?)\\s?% of the Monthly Fees",
+       "group": 1
+      },
+      "rule_value": "50",
+      "rule_quote": "1.6 \"Credit Cap\" means 50% of the Monthly Fees for the relevant Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "30",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.92",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "30",
+      "display": "30 days",
+      "quote": "1.5 \"Claim Period\" means the period of 30 days after the end of the Measurement Period to which a Credit Request relates.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "30",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Claim Period[\"\u201c\u201d]? means[^.;]*?(\\d+) (?:calendar )?days",
+       "group": 1
+      },
+      "rule_value": "30",
+      "rule_quote": "1.5 \"Claim Period\" means the period of 30 days after the end of the Measurement Period to which a Credit Request relates.",
+      "rule_error": null,
+      "second_document_value": "45",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.5",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": null,
+      "display": null,
+      "quote": null,
+      "readers": [
+       {
+        "reader": 1,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 2,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 3,
+        "value": null,
+        "quote_found": false
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Maintenance Notice Period[\"\u201c\u201d]? means[^.;]*?(\\d+) hours",
+       "group": 1
+      },
+      "rule_value": null,
+      "rule_quote": null,
+      "rule_error": "The rule found nothing.",
+      "second_document_value": null,
+      "second_document_ok": true,
+      "jev": null,
+      "status": "REVIEW"
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "Each confirmed Service Credit will be deducted from the next invoice issued to Customer for the Service after confirmation.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "next_invoice",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "confirmed Service Credits? will be ((?:deducted from|credited against|applied to|set off against) the next invoice)",
+       "group": 1,
+       "map": {
+        "deducted from the next invoice": "next_invoice",
+        "credited against the next invoice": "next_invoice",
+        "applied to the next invoice": "next_invoice",
+        "set off against the next invoice": "next_invoice"
+       }
+      },
+      "rule_value": "next_invoice",
+      "rule_quote": "Each confirmed Service Credit will be deducted from the next invoice issued to Customer for the Service after confirmation.",
+      "rule_error": null,
+      "second_document_value": "next_invoice",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     }
+    ],
+    "checks": [
+     {
+      "id": "quotes",
+      "label": "Every quote is in the contract, word for word",
+      "passed": 24,
+      "total": 24,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "agreement",
+      "label": "The three readers agree",
+      "passed": 9,
+      "total": 9,
+      "blocking": false,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "reproduce",
+      "label": "The template returns every term from this contract",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "second_document",
+      "label": "The template reads a second contract of the same form",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "document": {
+       "id": "form-4-b",
+       "title": "Service Level Addendum \u00b7 Quillstone Dental Partners LLC"
+      },
+      "ok": true
+     },
+     {
+      "id": "jev",
+      "label": "Jev: each term is supported by its sentence",
+      "passed": 5,
+      "total": 9,
+      "blocking": false,
+      "by": "JEV",
+      "threshold": "0.90",
+      "lowest": "0.11",
+      "ran": true,
+      "ok": false
+     }
+    ],
+    "template": {
+     "id": "heldout-form-4/1",
+     "sha256": "8c6f5ad5fb575868a1a017cf7347b0384db4fd6562e7f823fee6d710b37b94cf",
+     "rules": 9,
+     "state": "PROPOSED",
+     "approved_by": null,
+     "approved_at": null
+    },
+    "error": null
+   },
+   "template_body": {
+    "id": "heldout-form-4/1",
+    "sample_id": "heldout-form-4",
+    "vendor": "Larkspire Systems, Inc.",
+    "form": "Service Level Addendum",
+    "interpreter": "uptime.template_rules/1",
+    "rules": [
+     {
+      "field": "availability_target_percent",
+      "type": "percent",
+      "pattern": "Availability Commitment[\"\u201c\u201d]? means (?:not less than )?(\\d+(?:\\.\\d+)?)\\s?%",
+      "group": 1
+     },
+     {
+      "field": "measurement_period",
+      "type": "choice",
+      "pattern": "Measurement Period[\"\u201c\u201d]? means (?:each )?(calendar month|calendar quarter|calendar year|month|quarter|year)",
+      "group": 1,
+      "map": {
+       "calendar month": "calendar_month",
+       "month": "calendar_month",
+       "calendar quarter": "calendar_quarter",
+       "quarter": "calendar_quarter",
+       "calendar year": "calendar_year",
+       "year": "calendar_year"
+      }
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "type": "percent",
+      "pattern": "Tier 1 Credit[\"\u201c\u201d]? means[^.;%]*?(\\d+(?:\\.\\d+)?)\\s?% of the Monthly Fees",
+      "group": 1
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "type": "percent",
+      "pattern": "Lower Threshold[\"\u201c\u201d]? means[^;%]*?(\\d+(?:\\.\\d+)?)\\s?% Availability",
+      "group": 1
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "type": "percent",
+      "pattern": "Tier (?!1\\b|One\\b|I\\b)\\w+ Credit[\"\u201c\u201d]? means[^.;%]*?(\\d+(?:\\.\\d+)?)\\s?% of the Monthly Fees",
+      "group": 1
+     },
+     {
+      "field": "credit_cap_percent",
+      "type": "percent",
+      "pattern": "Credit Cap[\"\u201c\u201d]? means[^.;%]*?(\\d+(?:\\.\\d+)?)\\s?% of the Monthly Fees",
+      "group": 1
+     },
+     {
+      "field": "claim_window_days",
+      "type": "integer",
+      "pattern": "Claim Period[\"\u201c\u201d]? means[^.;]*?(\\d+) (?:calendar )?days",
+      "group": 1
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "type": "integer",
+      "pattern": "Maintenance Notice Period[\"\u201c\u201d]? means[^.;]*?(\\d+) hours",
+      "group": 1
+     },
+     {
+      "field": "credit_application",
+      "type": "choice",
+      "pattern": "confirmed Service Credits? will be ((?:deducted from|credited against|applied to|set off against) the next invoice)",
+      "group": 1,
+      "map": {
+       "deducted from the next invoice": "next_invoice",
+       "credited against the next invoice": "next_invoice",
+       "applied to the next invoice": "next_invoice",
+       "set off against the next invoice": "next_invoice"
+      }
+     }
+    ]
+   },
+   "blocking_failed": [],
+   "all_blocking_passed": true,
+   "flagged_terms": [
+    "tier_1_credit_percent",
+    "tier_2_threshold_percent",
+    "claim_window_days",
+    "maintenance_notice_hours"
+   ],
+   "approved": true,
+   "acknowledged": [],
+   "reading": {
+    "document": {
+     "id": "form-4-c",
+     "title": "Service Level Addendum \u00b7 Tamarind Ridge Credit Union",
+     "vendor": "Larkspire Systems, Inc."
+    },
+    "read_by": "TEMPLATE",
+    "template": {
+     "id": "heldout-form-4/1",
+     "sha256": "8c6f5ad5fb575868a1a017cf7347b0384db4fd6562e7f823fee6d710b37b94cf"
+    },
+    "model_calls": 0,
+    "milliseconds": "1.5",
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.95",
+      "display": "99.95%",
+      "quote": "1.3 \"Availability Commitment\" means 99.95% Availability in each Measurement Period."
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "1.14 \"Measurement Period\" means each calendar month during the term of the Agreement, beginning with the calendar month in which the Addendum Effective Date falls."
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "15",
+      "display": "15%",
+      "quote": "1.21 \"Tier 1 Credit\" means a credit equal to 15% of the Monthly Fees for the relevant Measurement Period."
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99.5",
+      "display": "99.5%",
+      "quote": "1.11 \"Lower Threshold\" means 99.5% Availability in a Measurement Period."
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "30",
+      "display": "30%",
+      "quote": "1.22 \"Tier 2 Credit\" means a credit equal to 30% of the Monthly Fees for the relevant Measurement Period."
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "40",
+      "display": "40%",
+      "quote": "1.6 \"Credit Cap\" means 40% of the Monthly Fees for the relevant Measurement Period."
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "60",
+      "display": "60 days",
+      "quote": "1.5 \"Claim Period\" means the period of 60 days after the end of the Measurement Period to which a Credit Request relates."
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": null,
+      "display": null,
+      "quote": null
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "Each confirmed Service Credit will be deducted from the next invoice issued to Customer for the Service after confirmation."
+     }
+    ],
+    "found": 8,
+    "total": 9,
+    "read_at": "2026-11-11T01:06:25Z"
+   },
+   "score": {
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "key": "99.95",
+      "value": "99.95",
+      "counted_value": "99.95",
+      "outcome": "correct",
+      "quote": "1.3 \"Availability Commitment\" means 99.95% Availability in each Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "measurement_period",
+      "key": "calendar_month",
+      "value": "calendar_month",
+      "counted_value": "calendar_month",
+      "outcome": "correct",
+      "quote": "1.14 \"Measurement Period\" means each calendar month during the term of the Agreement, beginning with the calendar month in which the Addendum Effective Date falls.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "key": "15",
+      "value": "15",
+      "counted_value": "15",
+      "outcome": "correct",
+      "quote": "1.21 \"Tier 1 Credit\" means a credit equal to 15% of the Monthly Fees for the relevant Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "key": "99.5",
+      "value": "99.5",
+      "counted_value": "99.5",
+      "outcome": "correct",
+      "quote": "1.11 \"Lower Threshold\" means 99.5% Availability in a Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "key": "30",
+      "value": "30",
+      "counted_value": "30",
+      "outcome": "correct",
+      "quote": "1.22 \"Tier 2 Credit\" means a credit equal to 30% of the Monthly Fees for the relevant Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_cap_percent",
+      "key": "40",
+      "value": "40",
+      "counted_value": "40",
+      "outcome": "correct",
+      "quote": "1.6 \"Credit Cap\" means 40% of the Monthly Fees for the relevant Measurement Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "claim_window_days",
+      "key": "60",
+      "value": "60",
+      "counted_value": "60",
+      "outcome": "correct",
+      "quote": "1.5 \"Claim Period\" means the period of 60 days after the end of the Measurement Period to which a Credit Request relates.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "key": "not_stated",
+      "value": null,
+      "counted_value": null,
+      "outcome": "not_stated",
+      "quote": null,
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_application",
+      "key": "next_invoice",
+      "value": "next_invoice",
+      "counted_value": "next_invoice",
+      "outcome": "correct",
+      "quote": "Each confirmed Service Credit will be deducted from the next invoice issued to Customer for the Service after confirmation.",
+      "error": null,
+      "value_on_not_stated": false
+     }
+    ],
+    "counts": {
+     "correct": 8,
+     "wrong": 0,
+     "refused": 0,
+     "not_stated": 1
+    }
+   },
+   "read_status": "no status (version 1 read is unguarded)",
+   "seconds": 31.1,
+   "claude_calls": [
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 7.4,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 7.7,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 8.0,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 22.5,
+     "ok": true
+    }
+   ],
+   "jev_calls": [
+    {
+     "method": "choice",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.28,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.28,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.28,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.28,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.08,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.08,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.09,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.11,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "form": "form-5",
+   "style_brief": "briefs/form-5.md",
+   "author_model": [
+    "claude-sonnet-5-5"
+   ],
+   "api_version": 1,
+   "second_check_uses_answer_key": true,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 36.5,
+     "state": "READY_FOR_REVIEW"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_692399",
+    "sample_id": "heldout-form-5",
+    "state": "READY_FOR_REVIEW",
+    "started_at": "2026-11-11T01:06:25Z",
+    "updated_at": "2026-11-11T01:07:02Z",
+    "finished_at": "2026-11-11T01:07:02Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:06:25Z",
+      "finished_at": "2026-11-11T01:06:26Z",
+      "seconds": "0.4",
+      "model": "jev-1.13.0",
+      "summary": "No template on file matches",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": "0.74",
+       "options": [
+        "northwind-cloud-sla",
+        "corvid-ledger-sla",
+        "unrecognised"
+       ]
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:06:26Z",
+      "finished_at": "2026-11-11T01:06:32Z",
+      "seconds": "6.0",
+      "model": "claude-opus-5-5",
+      "summary": "9 terms, 9 quotes found in the contract",
+      "detail": {
+       "terms": 9,
+       "quotes_found": 9
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:06:26Z",
+      "finished_at": "2026-11-11T01:06:32Z",
+      "seconds": "6.8",
+      "model": "claude-opus-5-5",
+      "summary": "9 terms, 9 quotes found in the contract",
+      "detail": {
+       "terms": 9,
+       "quotes_found": 9
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:06:26Z",
+      "finished_at": "2026-11-11T01:06:32Z",
+      "seconds": "6.9",
+      "model": "claude-opus-5-5",
+      "summary": "9 terms, 9 quotes found in the contract",
+      "detail": {
+       "terms": 9,
+       "quotes_found": 9
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:06:32Z",
+      "finished_at": "2026-11-11T01:07:01Z",
+      "seconds": "28.8",
+      "model": "claude-opus-5-5",
+      "summary": "9 extraction rules written, 2 repair rounds; 1 still fail",
+      "detail": {
+       "rules": 9,
+       "repair_rounds": 2,
+       "repair_note": "Repair round 2 failed: The builder's answer did not have exactly one rule per requested term."
+      }
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:07:01Z",
+      "finished_at": "2026-11-11T01:07:02Z",
+      "seconds": "0.3",
+      "model": null,
+      "summary": "2 of 5 checks passed; blocking: The template returns every term from this contract; The template reads a second contract of the same form",
+      "detail": {
+       "passed": 2,
+       "total": 5
+      }
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Approval is blocked until the failed checks pass",
+      "detail": {}
+     }
+    ],
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.9",
+      "display": "99.9%",
+      "quote": "3. Commitment. The Vendor will make the Service available at least 99.9% of the time in each Measurement Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99.9",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "make the Service available at least (\\d+(?:\\.\\d+)?)\\s?% of the time",
+       "group": 1
+      },
+      "rule_value": "99.9",
+      "rule_quote": "The Vendor will make the Service available at least 99.9% of the time in each Measurement Period.",
+      "rule_error": null,
+      "second_document_value": "99.5",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.99",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "Measurement Period: calendar month",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "calendar_month",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Measurement Period: (calendar month|calendar quarter|month|quarter)\\b",
+       "group": 1,
+       "map": {
+        "calendar month": "calendar_month",
+        "month": "calendar_month",
+        "calendar quarter": "calendar_quarter",
+        "quarter": "calendar_quarter"
+       }
+      },
+      "rule_value": "calendar_month",
+      "rule_quote": "USD 84,000 per year, invoiced annually in advance Measurement Period: calendar month 1.",
+      "rule_error": null,
+      "second_document_value": "calendar_quarter",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.92",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "5",
+      "display": "5%",
+      "quote": "5. Service Credits. If Availability is below 99.9% but at least 99.0%, the credit is 5% of Period Fees.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "5",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "5",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "5",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Service Credits\\. If Availability is below \\d+(?:\\.\\d+)?\\s?% but at least \\d+(?:\\.\\d+)?\\s?%, the credit is (\\d+(?:\\.\\d+)?)\\s?% of Period Fees",
+       "group": 1
+      },
+      "rule_value": "5",
+      "rule_quote": "Service Credits. If Availability is below 99.9% but at least 99.0%, the credit is 5% of Period Fees.",
+      "rule_error": null,
+      "second_document_value": "4",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.95",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99",
+      "display": "99%",
+      "quote": "If Availability is below 99.0%, the credit is 15% of Period Fees.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "of Period Fees\\. If Availability is below (\\d+(?:\\.\\d+)?)\\s?%, the credit is",
+       "group": 1
+      },
+      "rule_value": "99",
+      "rule_quote": "If Availability is below 99.9% but at least 99.0%, the credit is 5% of Period Fees. If Availability is below 99.0%, the credit is 15% of Period Fees.",
+      "rule_error": null,
+      "second_document_value": "98",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.61",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "15",
+      "display": "15%",
+      "quote": "If Availability is below 99.0%, the credit is 15% of Period Fees.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "15",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "15",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "15",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "of Period Fees\\. If Availability is below \\d+(?:\\.\\d+)?\\s?%, the credit is (\\d+(?:\\.\\d+)?)\\s?% of Period Fees",
+       "group": 1
+      },
+      "rule_value": "15",
+      "rule_quote": "If Availability is below 99.9% but at least 99.0%, the credit is 5% of Period Fees. If Availability is below 99.0%, the credit is 15% of Period Fees.",
+      "rule_error": null,
+      "second_document_value": "12",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.55",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "25",
+      "display": "25%",
+      "quote": "6. Cap. Total credits for any Measurement Period will not exceed 25% of Period Fees.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "25",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "25",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "25",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Total credits for any Measurement Period will not exceed (\\d+(?:\\.\\d+)?)\\s?% of Period Fees",
+       "group": 1
+      },
+      "rule_value": "25",
+      "rule_quote": "Total credits for any Measurement Period will not exceed 25% of Period Fees.",
+      "rule_error": null,
+      "second_document_value": "20",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.92",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "30",
+      "display": "30 days",
+      "quote": "7. Claims. The Customer must claim a credit in writing within 30 days after the end of the Measurement Period, identifying the dates and times of the Downtime.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "30",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "must claim a credit in writing within (\\d+) days",
+       "group": 1
+      },
+      "rule_value": "30",
+      "rule_quote": "The Customer must claim a credit in writing within 30 days after the end of the Measurement Period, identifying the dates and times of the Downtime.",
+      "rule_error": null,
+      "second_document_value": "45",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": "120",
+      "display": "120 hours",
+      "quote": "9. Scheduled Maintenance. The Vendor will give at least 5 days' written notice of scheduled maintenance, which will take place between 22:00 and 04:00 UTC.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "120",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "120",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "120",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "give at least (\\d+) hours?'? (?:prior )?written notice of scheduled maintenance",
+       "group": 1
+      },
+      "rule_value": null,
+      "rule_quote": null,
+      "rule_error": "The rule found nothing.",
+      "second_document_value": null,
+      "second_document_ok": false,
+      "jev": {
+       "yes": true,
+       "probability": "0.58",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "8. Delivery of Credits. The Vendor will apply an agreed credit against the next invoice issued under the Order Form.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "next_invoice",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "will apply an agreed credit against (?:the )?(next invoice)",
+       "group": 1,
+       "map": {
+        "next invoice": "next_invoice"
+       }
+      },
+      "rule_value": "next_invoice",
+      "rule_quote": "The Vendor will apply an agreed credit against the next invoice issued under the Order Form.",
+      "rule_error": null,
+      "second_document_value": "next_invoice",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.88",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     }
+    ],
+    "checks": [
+     {
+      "id": "quotes",
+      "label": "Every quote is in the contract, word for word",
+      "passed": 27,
+      "total": 27,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "agreement",
+      "label": "The three readers agree",
+      "passed": 9,
+      "total": 9,
+      "blocking": false,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "reproduce",
+      "label": "The template returns every term from this contract",
+      "passed": 8,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": false
+     },
+     {
+      "id": "second_document",
+      "label": "The template reads a second contract of the same form",
+      "passed": 8,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "document": {
+       "id": "form-5-b",
+       "title": "Service Level Rider \u00b7 Oakhurst Veterinary Group"
+      },
+      "ok": false
+     },
+     {
+      "id": "jev",
+      "label": "Jev: each term is supported by its sentence",
+      "passed": 5,
+      "total": 9,
+      "blocking": false,
+      "by": "JEV",
+      "threshold": "0.90",
+      "lowest": "0.55",
+      "ran": true,
+      "ok": false
+     }
+    ],
+    "template": {
+     "id": "heldout-form-5/1",
+     "sha256": "9692d20486ec1e7a1c72f8ec65229b1b18c4f5961d907e300998463bee35206e",
+     "rules": 9,
+     "state": "PROPOSED",
+     "approved_by": null,
+     "approved_at": null
+    },
+    "error": null
+   },
+   "template_body": {
+    "id": "heldout-form-5/1",
+    "sample_id": "heldout-form-5",
+    "vendor": "Halvorsen Cloudworks Ltd",
+    "form": "Service Level Rider",
+    "interpreter": "uptime.template_rules/1",
+    "rules": [
+     {
+      "field": "availability_target_percent",
+      "type": "percent",
+      "pattern": "make the Service available at least (\\d+(?:\\.\\d+)?)\\s?% of the time",
+      "group": 1
+     },
+     {
+      "field": "measurement_period",
+      "type": "choice",
+      "pattern": "Measurement Period: (calendar month|calendar quarter|month|quarter)\\b",
+      "group": 1,
+      "map": {
+       "calendar month": "calendar_month",
+       "month": "calendar_month",
+       "calendar quarter": "calendar_quarter",
+       "quarter": "calendar_quarter"
+      }
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "type": "percent",
+      "pattern": "Service Credits\\. If Availability is below \\d+(?:\\.\\d+)?\\s?% but at least \\d+(?:\\.\\d+)?\\s?%, the credit is (\\d+(?:\\.\\d+)?)\\s?% of Period Fees",
+      "group": 1
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "type": "percent",
+      "pattern": "of Period Fees\\. If Availability is below (\\d+(?:\\.\\d+)?)\\s?%, the credit is",
+      "group": 1
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "type": "percent",
+      "pattern": "of Period Fees\\. If Availability is below \\d+(?:\\.\\d+)?\\s?%, the credit is (\\d+(?:\\.\\d+)?)\\s?% of Period Fees",
+      "group": 1
+     },
+     {
+      "field": "credit_cap_percent",
+      "type": "percent",
+      "pattern": "Total credits for any Measurement Period will not exceed (\\d+(?:\\.\\d+)?)\\s?% of Period Fees",
+      "group": 1
+     },
+     {
+      "field": "claim_window_days",
+      "type": "integer",
+      "pattern": "must claim a credit in writing within (\\d+) days",
+      "group": 1
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "type": "integer",
+      "pattern": "give at least (\\d+) hours?'? (?:prior )?written notice of scheduled maintenance",
+      "group": 1
+     },
+     {
+      "field": "credit_application",
+      "type": "choice",
+      "pattern": "will apply an agreed credit against (?:the )?(next invoice)",
+      "group": 1,
+      "map": {
+       "next invoice": "next_invoice"
+      }
+     }
+    ]
+   },
+   "blocking_failed": [
+    "reproduce",
+    "second_document"
+   ],
+   "all_blocking_passed": false,
+   "flagged_terms": [
+    "tier_2_threshold_percent",
+    "tier_2_credit_percent",
+    "maintenance_notice_hours",
+    "credit_application"
+   ],
+   "approved": false,
+   "diagnostic_unapproved_read_of_c": {
+    "note": "Not approved, so the product would not read C. This is the proposed template run through the fixed interpreter by the script, for diagnosis only; it is not counted in the score.",
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.95",
+      "display": "99.95%",
+      "quote": "The Vendor will make the Service available at least 99.95% of the time in each Measurement Period.",
+      "error": null
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "GBP 210,000 per year, invoiced monthly in arrears Measurement Period: calendar month 1.",
+      "error": null
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "10",
+      "display": "10%",
+      "quote": "Service Credits. If Availability is below 99.95% but at least 99.5%, the credit is 10% of Period Fees.",
+      "error": null
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99.5",
+      "display": "99.5%",
+      "quote": "If Availability is below 99.95% but at least 99.5%, the credit is 10% of Period Fees. If Availability is below 99.5%, the credit is 25% of Period Fees.",
+      "error": null
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "25",
+      "display": "25%",
+      "quote": "If Availability is below 99.95% but at least 99.5%, the credit is 10% of Period Fees. If Availability is below 99.5%, the credit is 25% of Period Fees.",
+      "error": null
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": "30",
+      "display": "30%",
+      "quote": "Total credits for any Measurement Period will not exceed 30% of Period Fees.",
+      "error": null
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "20",
+      "display": "20 days",
+      "quote": "The Customer must claim a credit in writing within 20 days after the end of the Measurement Period, identifying the dates and times of the Downtime.",
+      "error": null
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": null,
+      "display": null,
+      "quote": null,
+      "error": "The rule found nothing."
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "The Vendor will apply an agreed credit against the next invoice issued under the Order Form.",
+      "error": null
+     }
+    ],
+    "score": {
+     "terms": [
+      {
+       "field": "availability_target_percent",
+       "key": "99.95",
+       "value": "99.95",
+       "counted_value": "99.95",
+       "outcome": "correct",
+       "quote": "The Vendor will make the Service available at least 99.95% of the time in each Measurement Period.",
+       "error": null,
+       "value_on_not_stated": false
+      },
+      {
+       "field": "measurement_period",
+       "key": "calendar_month",
+       "value": "calendar_month",
+       "counted_value": "calendar_month",
+       "outcome": "correct",
+       "quote": "GBP 210,000 per year, invoiced monthly in arrears Measurement Period: calendar month 1.",
+       "error": null,
+       "value_on_not_stated": false
+      },
+      {
+       "field": "tier_1_credit_percent",
+       "key": "10",
+       "value": "10",
+       "counted_value": "10",
+       "outcome": "correct",
+       "quote": "Service Credits. If Availability is below 99.95% but at least 99.5%, the credit is 10% of Period Fees.",
+       "error": null,
+       "value_on_not_stated": false
+      },
+      {
+       "field": "tier_2_threshold_percent",
+       "key": "99.5",
+       "value": "99.5",
+       "counted_value": "99.5",
+       "outcome": "correct",
+       "quote": "If Availability is below 99.95% but at least 99.5%, the credit is 10% of Period Fees. If Availability is below 99.5%, the credit is 25% of Period Fees.",
+       "error": null,
+       "value_on_not_stated": false
+      },
+      {
+       "field": "tier_2_credit_percent",
+       "key": "25",
+       "value": "25",
+       "counted_value": "25",
+       "outcome": "correct",
+       "quote": "If Availability is below 99.95% but at least 99.5%, the credit is 10% of Period Fees. If Availability is below 99.5%, the credit is 25% of Period Fees.",
+       "error": null,
+       "value_on_not_stated": false
+      },
+      {
+       "field": "credit_cap_percent",
+       "key": "30",
+       "value": "30",
+       "counted_value": "30",
+       "outcome": "correct",
+       "quote": "Total credits for any Measurement Period will not exceed 30% of Period Fees.",
+       "error": null,
+       "value_on_not_stated": false
+      },
+      {
+       "field": "claim_window_days",
+       "key": "20",
+       "value": "20",
+       "counted_value": "20",
+       "outcome": "correct",
+       "quote": "The Customer must claim a credit in writing within 20 days after the end of the Measurement Period, identifying the dates and times of the Downtime.",
+       "error": null,
+       "value_on_not_stated": false
+      },
+      {
+       "field": "maintenance_notice_hours",
+       "key": "240",
+       "value": null,
+       "counted_value": null,
+       "outcome": "refused",
+       "quote": null,
+       "error": "The rule found nothing.",
+       "value_on_not_stated": false
+      },
+      {
+       "field": "credit_application",
+       "key": "next_invoice",
+       "value": "next_invoice",
+       "counted_value": "next_invoice",
+       "outcome": "correct",
+       "quote": "The Vendor will apply an agreed credit against the next invoice issued under the Order Form.",
+       "error": null,
+       "value_on_not_stated": false
+      }
+     ],
+     "counts": {
+      "correct": 8,
+      "wrong": 0,
+      "refused": 1,
+      "not_stated": 0
+     }
+    }
+   },
+   "seconds": 36.5,
+   "claude_calls": [
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 6.0,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 6.8,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 6.9,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 11.6,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 8.8,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 8.4,
+     "ok": true
+    }
+   ],
+   "jev_calls": [
+    {
+     "method": "choice",
+     "seconds": 0.42,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.11,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.11,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.13,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.11,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.14,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.13,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.11,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "form": "form-6",
+   "style_brief": "briefs/form-6.md",
+   "author_model": [
+    "claude-haiku-5-5"
+   ],
+   "api_version": 1,
+   "second_check_uses_answer_key": true,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 34.2,
+     "state": "READY_FOR_REVIEW"
+    },
+    {
+     "step": "approve",
+     "by": "evaluation-script",
+     "note": "approved by a script, not a person",
+     "seconds": 0.002,
+     "state": "APPROVED"
+    },
+    {
+     "step": "read_c",
+     "seconds": 0.003,
+     "path": "service.read(document_id) with C as the sample's next document"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_1a2b00",
+    "sample_id": "heldout-form-6",
+    "state": "READY_FOR_REVIEW",
+    "started_at": "2026-11-11T01:07:02Z",
+    "updated_at": "2026-11-11T01:07:36Z",
+    "finished_at": "2026-11-11T01:07:36Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:07:02Z",
+      "finished_at": "2026-11-11T01:07:02Z",
+      "seconds": "0.1",
+      "model": "jev-1.13.0",
+      "summary": "No template on file matches",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": "0.78",
+       "options": [
+        "northwind-cloud-sla",
+        "corvid-ledger-sla",
+        "unrecognised"
+       ]
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:07:02Z",
+      "finished_at": "2026-11-11T01:07:14Z",
+      "seconds": "12.2",
+      "model": "claude-opus-5-5",
+      "summary": "7 terms, 7 quotes found in the contract",
+      "detail": {
+       "terms": 7,
+       "quotes_found": 7
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:07:02Z",
+      "finished_at": "2026-11-11T01:07:16Z",
+      "seconds": "14.3",
+      "model": "claude-opus-5-5",
+      "summary": "7 terms, 7 quotes found in the contract",
+      "detail": {
+       "terms": 7,
+       "quotes_found": 7
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:07:02Z",
+      "finished_at": "2026-11-11T01:07:15Z",
+      "seconds": "12.8",
+      "model": "claude-opus-5-5",
+      "summary": "7 terms, 7 quotes found in the contract",
+      "detail": {
+       "terms": 7,
+       "quotes_found": 7
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:07:16Z",
+      "finished_at": "2026-11-11T01:07:36Z",
+      "seconds": "19.5",
+      "model": "claude-opus-5-5",
+      "summary": "9 extraction rules written",
+      "detail": {
+       "rules": 9,
+       "repair_rounds": 0
+      }
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:07:36Z",
+      "finished_at": "2026-11-11T01:07:36Z",
+      "seconds": "0.2",
+      "model": null,
+      "summary": "4 of 5 checks passed",
+      "detail": {
+       "passed": 4,
+       "total": 5
+      }
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for a reviewer",
+      "detail": {}
+     }
+    ],
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.9",
+      "display": "99.9%",
+      "quote": "2.1 The Supplier shall ensure that Availability in each Service Period is not less than 99.90 per cent (the \"Availability Commitment\").",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99.9",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99.9",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "Availability in each Service Period is not less than (\\d+(?:\\.\\d+)?) per ?cent",
+       "group": 1
+      },
+      "rule_value": "99.9",
+      "rule_quote": "AVAILABILITY COMMITMENT 2.1 The Supplier shall ensure that Availability in each Service Period is not less than 99.90 per cent (the \"Availability Commitment\").",
+      "rule_error": null,
+      "second_document_value": "99.95",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.98",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "\"Service Period\" means each calendar month during the Term.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "calendar_month",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "calendar_month",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "[\"\u201c]Service Period[\"\u201d] means each (calendar month|calendar quarter|month|quarter|calendar year|contract year)",
+       "group": 1,
+       "map": {
+        "calendar month": "calendar_month",
+        "month": "calendar_month",
+        "calendar quarter": "calendar_quarter",
+        "quarter": "calendar_quarter",
+        "calendar year": "calendar_year",
+        "contract year": "contract_year"
+       }
+      },
+      "rule_value": "calendar_month",
+      "rule_quote": "\"Service Period\" means each calendar month during the Term.",
+      "rule_error": null,
+      "second_document_value": "calendar_quarter",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.97",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "5",
+      "display": "5%",
+      "quote": "7.1 If Availability in a Service Period is below the Availability Commitment but equal to or above 99.50 per cent (the \"Tier Threshold\"), the Supplier shall give the Customer a Service Level Rebate equal to five per cent (5%) of the Charges for that Service Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "5",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "5",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "5",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "equal to or above [\\d.]+ per ?cent \\(the [\"\u201c]Tier Threshold[\"\u201d]\\), the Supplier shall give the Customer a Service Level Rebate equal to [^(;]*?\\((\\d+(?:\\.\\d+)?)%\\)",
+       "group": 1
+      },
+      "rule_value": "5",
+      "rule_quote": "SERVICE LEVEL REBATES 7.1 If Availability in a Service Period is below the Availability Commitment but equal to or above 99.50 per cent (the \"Tier Threshold\"), the Supplier shall give the Customer a Service Level Rebate equal to five per cent (5%) of the Charges for that Service Period.",
+      "rule_error": null,
+      "second_document_value": "10",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.94",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "99.5",
+      "display": "99.5%",
+      "quote": "7.1 If Availability in a Service Period is below the Availability Commitment but equal to or above 99.50 per cent (the \"Tier Threshold\"), the Supplier shall give the Customer a Service Level Rebate equal to five per cent (5%) of the Charges for that Service Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "99.5",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "99.5",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "99.5",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "equal to or above (\\d+(?:\\.\\d+)?) per ?cent \\(the [\"\u201c]Tier Threshold[\"\u201d]\\)",
+       "group": 1
+      },
+      "rule_value": "99.5",
+      "rule_quote": "SERVICE LEVEL REBATES 7.1 If Availability in a Service Period is below the Availability Commitment but equal to or above 99.50 per cent (the \"Tier Threshold\"), the Supplier shall give the Customer a Service Level Rebate equal to five per cent (5%) of the Charges for that Service Period.",
+      "rule_error": null,
+      "second_document_value": "99.8",
+      "second_document_ok": true,
+      "jev": {
+       "yes": false,
+       "probability": "0.04",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "15",
+      "display": "15%",
+      "quote": "7.2 If Availability in a Service Period is below the Tier Threshold, the Supplier shall give the Customer a Service Level Rebate equal to fifteen per cent (15%) of the Charges for that Service Period.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "15",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "15",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "15",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "below the Tier Threshold, the Supplier shall give the Customer a Service Level Rebate equal to [^(;]*?\\((\\d+(?:\\.\\d+)?)%\\)",
+       "group": 1
+      },
+      "rule_value": "15",
+      "rule_quote": "7.2 If Availability in a Service Period is below the Tier Threshold, the Supplier shall give the Customer a Service Level Rebate equal to fifteen per cent (15%) of the Charges for that Service Period.",
+      "rule_error": null,
+      "second_document_value": "25",
+      "second_document_ok": true,
+      "jev": {
+       "yes": false,
+       "probability": "0.37",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": null,
+      "display": null,
+      "quote": null,
+      "readers": [
+       {
+        "reader": 1,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 2,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 3,
+        "value": null,
+        "quote_found": false
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "total of all Service Level Rebates in respect of any Service Period shall not exceed [^(;]*?\\((\\d+(?:\\.\\d+)?)%\\)",
+       "group": 1
+      },
+      "rule_value": null,
+      "rule_quote": null,
+      "rule_error": "The rule found nothing.",
+      "second_document_value": null,
+      "second_document_ok": true,
+      "jev": null,
+      "status": "REVIEW"
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "30",
+      "display": "30 days",
+      "quote": "The notice must be given no later than thirty (30) days after the end of that Service Period (the \"Claim Deadline\").",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "30",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "30",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "notice must be given no later than [^(;]*?\\((\\d+)\\) days after the end of that Service Period",
+       "group": 1
+      },
+      "rule_value": "30",
+      "rule_quote": "The notice must be given no later than thirty (30) days after the end of that Service Period (the \"Claim Deadline\").",
+      "rule_error": null,
+      "second_document_value": "45",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.66",
+       "model": "jev-1.13.0"
+      },
+      "status": "REVIEW"
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": null,
+      "display": null,
+      "quote": null,
+      "readers": [
+       {
+        "reader": 1,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 2,
+        "value": null,
+        "quote_found": false
+       },
+       {
+        "reader": 3,
+        "value": null,
+        "quote_found": false
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "give the Customer not less than [^(;.]*?\\((\\d+)\\) hours'? (?:prior )?(?:written )?notice of any Scheduled Maintenance",
+       "group": 1
+      },
+      "rule_value": null,
+      "rule_quote": null,
+      "rule_error": "The rule found nothing.",
+      "second_document_value": null,
+      "second_document_ok": true,
+      "jev": null,
+      "status": "REVIEW"
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "10.1 Where the Customer is due to be invoiced for Charges after the Supplier has confirmed a Service Level Rebate, the Supplier shall deliver that Service Level Rebate as a credit against the next invoice for Charges, shown as a separate line item.",
+      "readers": [
+       {
+        "reader": 1,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 2,
+        "value": "next_invoice",
+        "quote_found": true
+       },
+       {
+        "reader": 3,
+        "value": "next_invoice",
+        "quote_found": true
+       }
+      ],
+      "agreement": {
+       "agree": 3,
+       "of": 3
+      },
+      "rule": {
+       "pattern": "deliver that Service Level Rebate (?:as|by) (a credit against the next invoice|a credit against future invoices|a refund|payment)",
+       "group": 1,
+       "map": {
+        "a credit against the next invoice": "next_invoice",
+        "a credit against future invoices": "future_invoices",
+        "a refund": "refund",
+        "payment": "refund"
+       }
+      },
+      "rule_value": "next_invoice",
+      "rule_quote": "DELIVERY AND PAYMENT OF REBATES 10.1 Where the Customer is due to be invoiced for Charges after the Supplier has confirmed a Service Level Rebate, the Supplier shall deliver that Service Level Rebate as a credit against the next invoice for Charges, shown as a separate line item.",
+      "rule_error": null,
+      "second_document_value": "next_invoice",
+      "second_document_ok": true,
+      "jev": {
+       "yes": true,
+       "probability": "0.97",
+       "model": "jev-1.13.0"
+      },
+      "status": "PASS"
+     }
+    ],
+    "checks": [
+     {
+      "id": "quotes",
+      "label": "Every quote is in the contract, word for word",
+      "passed": 21,
+      "total": 21,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "agreement",
+      "label": "The three readers agree",
+      "passed": 9,
+      "total": 9,
+      "blocking": false,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "reproduce",
+      "label": "The template returns every term from this contract",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "ok": true
+     },
+     {
+      "id": "second_document",
+      "label": "The template reads a second contract of the same form",
+      "passed": 9,
+      "total": 9,
+      "blocking": true,
+      "by": "UPTIME",
+      "document": {
+       "id": "form-6-b",
+       "title": "Service Level Addendum \u00b7 Ostrander Retail Group Limited"
+      },
+      "ok": true
+     },
+     {
+      "id": "jev",
+      "label": "Jev: each term is supported by its sentence",
+      "passed": 4,
+      "total": 9,
+      "blocking": false,
+      "by": "JEV",
+      "threshold": "0.90",
+      "lowest": "0.04",
+      "ran": true,
+      "ok": false
+     }
+    ],
+    "template": {
+     "id": "heldout-form-6/1",
+     "sha256": "8a2ae3533587ee33b1540a0774a72b5a92f9db4f249e888e517505db25014598",
+     "rules": 9,
+     "state": "PROPOSED",
+     "approved_by": null,
+     "approved_at": null
+    },
+    "error": null
+   },
+   "template_body": {
+    "id": "heldout-form-6/1",
+    "sample_id": "heldout-form-6",
+    "vendor": "Corvane Cloud Services Limited",
+    "form": "Service Level Addendum",
+    "interpreter": "uptime.template_rules/1",
+    "rules": [
+     {
+      "field": "availability_target_percent",
+      "type": "percent",
+      "pattern": "Availability in each Service Period is not less than (\\d+(?:\\.\\d+)?) per ?cent",
+      "group": 1
+     },
+     {
+      "field": "measurement_period",
+      "type": "choice",
+      "pattern": "[\"\u201c]Service Period[\"\u201d] means each (calendar month|calendar quarter|month|quarter|calendar year|contract year)",
+      "group": 1,
+      "map": {
+       "calendar month": "calendar_month",
+       "month": "calendar_month",
+       "calendar quarter": "calendar_quarter",
+       "quarter": "calendar_quarter",
+       "calendar year": "calendar_year",
+       "contract year": "contract_year"
+      }
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "type": "percent",
+      "pattern": "equal to or above [\\d.]+ per ?cent \\(the [\"\u201c]Tier Threshold[\"\u201d]\\), the Supplier shall give the Customer a Service Level Rebate equal to [^(;]*?\\((\\d+(?:\\.\\d+)?)%\\)",
+      "group": 1
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "type": "percent",
+      "pattern": "equal to or above (\\d+(?:\\.\\d+)?) per ?cent \\(the [\"\u201c]Tier Threshold[\"\u201d]\\)",
+      "group": 1
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "type": "percent",
+      "pattern": "below the Tier Threshold, the Supplier shall give the Customer a Service Level Rebate equal to [^(;]*?\\((\\d+(?:\\.\\d+)?)%\\)",
+      "group": 1
+     },
+     {
+      "field": "credit_cap_percent",
+      "type": "percent",
+      "pattern": "total of all Service Level Rebates in respect of any Service Period shall not exceed [^(;]*?\\((\\d+(?:\\.\\d+)?)%\\)",
+      "group": 1
+     },
+     {
+      "field": "claim_window_days",
+      "type": "integer",
+      "pattern": "notice must be given no later than [^(;]*?\\((\\d+)\\) days after the end of that Service Period",
+      "group": 1
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "type": "integer",
+      "pattern": "give the Customer not less than [^(;.]*?\\((\\d+)\\) hours'? (?:prior )?(?:written )?notice of any Scheduled Maintenance",
+      "group": 1
+     },
+     {
+      "field": "credit_application",
+      "type": "choice",
+      "pattern": "deliver that Service Level Rebate (?:as|by) (a credit against the next invoice|a credit against future invoices|a refund|payment)",
+      "group": 1,
+      "map": {
+       "a credit against the next invoice": "next_invoice",
+       "a credit against future invoices": "future_invoices",
+       "a refund": "refund",
+       "payment": "refund"
+      }
+     }
+    ]
+   },
+   "blocking_failed": [],
+   "all_blocking_passed": true,
+   "flagged_terms": [
+    "tier_2_threshold_percent",
+    "tier_2_credit_percent",
+    "credit_cap_percent",
+    "claim_window_days",
+    "maintenance_notice_hours"
+   ],
+   "approved": true,
+   "acknowledged": [],
+   "reading": {
+    "document": {
+     "id": "form-6-c",
+     "title": "Service Level Addendum \u00b7 Tessaly Mutual Holdings Limited",
+     "vendor": "Brightmere Software Solutions Limited"
+    },
+    "read_by": "TEMPLATE",
+    "template": {
+     "id": "heldout-form-6/1",
+     "sha256": "8a2ae3533587ee33b1540a0774a72b5a92f9db4f249e888e517505db25014598"
+    },
+    "model_calls": 0,
+    "milliseconds": "2.1",
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "label": "Availability commitment",
+      "type": "percent",
+      "value": "99.5",
+      "display": "99.5%",
+      "quote": "AVAILABILITY COMMITMENT 2.1 The Supplier shall ensure that Availability in each Service Period is not less than 99.50 per cent (the \"Availability Commitment\")."
+     },
+     {
+      "field": "measurement_period",
+      "label": "Measurement period",
+      "type": "choice",
+      "value": "calendar_month",
+      "display": "Calendar month",
+      "quote": "\"Service Period\" means each calendar month during the Term."
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "label": "Credit, first tier below the commitment",
+      "type": "percent",
+      "value": "7.5",
+      "display": "7.5%",
+      "quote": "SERVICE LEVEL REBATES 7.1 If Availability in a Service Period is below the Availability Commitment but equal to or above 98.75 per cent (the \"Tier Threshold\"), the Supplier shall give the Customer a Service Level Rebate equal to seven and a half per cent (7.5%) of the Charges for that Service Period."
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "label": "Second tier starts below",
+      "type": "percent",
+      "value": "98.75",
+      "display": "98.75%",
+      "quote": "SERVICE LEVEL REBATES 7.1 If Availability in a Service Period is below the Availability Commitment but equal to or above 98.75 per cent (the \"Tier Threshold\"), the Supplier shall give the Customer a Service Level Rebate equal to seven and a half per cent (7.5%) of the Charges for that Service Period."
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "label": "Credit, second tier",
+      "type": "percent",
+      "value": "20",
+      "display": "20%",
+      "quote": "7.2 If Availability in a Service Period is below the Tier Threshold, the Supplier shall give the Customer a Service Level Rebate equal to twenty per cent (20%) of the Charges for that Service Period."
+     },
+     {
+      "field": "credit_cap_percent",
+      "label": "Credit cap",
+      "type": "percent",
+      "value": null,
+      "display": null,
+      "quote": null
+     },
+     {
+      "field": "claim_window_days",
+      "label": "Claim window",
+      "type": "integer",
+      "value": "14",
+      "display": "14 days",
+      "quote": "The notice must be given no later than fourteen (14) days after the end of that Service Period (the \"Claim Deadline\")."
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "label": "Scheduled-maintenance notice",
+      "type": "integer",
+      "value": null,
+      "display": null,
+      "quote": null
+     },
+     {
+      "field": "credit_application",
+      "label": "How a credit is applied",
+      "type": "choice",
+      "value": "next_invoice",
+      "display": "Against the next invoice",
+      "quote": "DELIVERY AND PAYMENT OF REBATES 10.1 Where the Customer is due to be invoiced for Charges after the Supplier has confirmed a Service Level Rebate, the Supplier shall deliver that Service Level Rebate as a credit against the next invoice for Charges, shown as a separate line item."
+     }
+    ],
+    "found": 7,
+    "total": 9,
+    "read_at": "2026-11-11T01:07:36Z"
+   },
+   "score": {
+    "terms": [
+     {
+      "field": "availability_target_percent",
+      "key": "99.5",
+      "value": "99.5",
+      "counted_value": "99.5",
+      "outcome": "correct",
+      "quote": "AVAILABILITY COMMITMENT 2.1 The Supplier shall ensure that Availability in each Service Period is not less than 99.50 per cent (the \"Availability Commitment\").",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "measurement_period",
+      "key": "calendar_month",
+      "value": "calendar_month",
+      "counted_value": "calendar_month",
+      "outcome": "correct",
+      "quote": "\"Service Period\" means each calendar month during the Term.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_1_credit_percent",
+      "key": "7.5",
+      "value": "7.5",
+      "counted_value": "7.5",
+      "outcome": "correct",
+      "quote": "SERVICE LEVEL REBATES 7.1 If Availability in a Service Period is below the Availability Commitment but equal to or above 98.75 per cent (the \"Tier Threshold\"), the Supplier shall give the Customer a Service Level Rebate equal to seven and a half per cent (7.5%) of the Charges for that Service Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_threshold_percent",
+      "key": "98.75",
+      "value": "98.75",
+      "counted_value": "98.75",
+      "outcome": "correct",
+      "quote": "SERVICE LEVEL REBATES 7.1 If Availability in a Service Period is below the Availability Commitment but equal to or above 98.75 per cent (the \"Tier Threshold\"), the Supplier shall give the Customer a Service Level Rebate equal to seven and a half per cent (7.5%) of the Charges for that Service Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "tier_2_credit_percent",
+      "key": "20",
+      "value": "20",
+      "counted_value": "20",
+      "outcome": "correct",
+      "quote": "7.2 If Availability in a Service Period is below the Tier Threshold, the Supplier shall give the Customer a Service Level Rebate equal to twenty per cent (20%) of the Charges for that Service Period.",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_cap_percent",
+      "key": "not_stated",
+      "value": null,
+      "counted_value": null,
+      "outcome": "not_stated",
+      "quote": null,
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "claim_window_days",
+      "key": "14",
+      "value": "14",
+      "counted_value": "14",
+      "outcome": "correct",
+      "quote": "The notice must be given no later than fourteen (14) days after the end of that Service Period (the \"Claim Deadline\").",
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "maintenance_notice_hours",
+      "key": "not_stated",
+      "value": null,
+      "counted_value": null,
+      "outcome": "not_stated",
+      "quote": null,
+      "error": null,
+      "value_on_not_stated": false
+     },
+     {
+      "field": "credit_application",
+      "key": "next_invoice",
+      "value": "next_invoice",
+      "counted_value": "next_invoice",
+      "outcome": "correct",
+      "quote": "DELIVERY AND PAYMENT OF REBATES 10.1 Where the Customer is due to be invoiced for Charges after the Supplier has confirmed a Service Level Rebate, the Supplier shall deliver that Service Level Rebate as a credit against the next invoice for Charges, shown as a separate line item.",
+      "error": null,
+      "value_on_not_stated": false
+     }
+    ],
+    "counts": {
+     "correct": 7,
+     "wrong": 0,
+     "refused": 0,
+     "not_stated": 2
+    }
+   },
+   "read_status": "no status (version 1 read is unguarded)",
+   "seconds": 34.2,
+   "claude_calls": [
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 12.2,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 12.8,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 14.3,
+     "ok": true
+    },
+    {
+     "model": "claude-opus-5-5",
+     "seconds": 19.5,
+     "ok": true
+    }
+   ],
+   "jev_calls": [
+    {
+     "method": "choice",
+     "seconds": 0.11,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.14,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.15,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.14,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.15,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.09,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.09,
+     "ok": true
+    },
+    {
+     "method": "yes_no",
+     "seconds": 0.1,
+     "ok": true
+    }
+   ]
+  }
+ ],
+ "summary": {
+  "forms": 6,
+  "forms_run": 6,
+  "forms_all_blocking_passed": 5,
+  "forms_approved_by_script": 5,
+  "forms_with_flagged_terms": 6,
+  "forms_with_c_read": 5,
+  "c_reads_refused": 0,
+  "c_terms": {
+   "correct": 36,
+   "wrong": 0,
+   "refused": 4,
+   "not_stated": 5
+  },
+  "c_terms_scored": 45,
+  "values_returned_for_not_stated_terms": 0,
+  "wrong": [],
+  "claude_calls": 28,
+  "jev_calls": 55,
+  "seconds": 199.8
+ },
+ "finished_at": "2026-11-11T01:07:36Z"
+}
