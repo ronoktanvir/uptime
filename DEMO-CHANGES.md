@@ -325,3 +325,86 @@ allocation ledger, the local ledger provider, the coordinator). Each such case l
   engine's assessed claim matches that estimate, not on a packet the reviewer saw on screen. (2) Because each case
   lives in its own database, its steps and agreement are not yet counted in the portfolio's "Who is doing the work",
   Activity, Cases or "Agreements on file", and the generic `/api/dashboard` does not list it.
+## Template builder version 3: a schedule of tiers, and units (November 10, night; branch `work/tb3-tiers-20261110`)
+
+Shapes: `docs/demo/TEMPLATE-BUILDER.md`, "Version 3". The three tier terms became one `credit_schedule` (one to six
+tiers); `claim_window_days` and `maintenance_notice_hours` became `claim_window` and `maintenance_notice`, each a value
+and the unit the contract writes. Changed files: `uptime/template_rules.py` (interpreter `uptime.template_rules/3`:
+schedule and duration rules, `normalize_lines`, `order_schedule`, `canonical_schedule`, `canonical_duration`,
+`row_in_sentence`), `uptime/template_builder.py` (prompts, parsing, agreement on whole values, per-tier quotes, Jev
+once per tier), `uptime/template_agreements.py` (only the value-to-engine mapping: `FIELDS`, `LABELS`, `_tiers`,
+`_restatement`, `_term_inputs`; `evaluate`'s signature and the agreement object are unchanged),
+`web/template_builder_ui.js` and its block in `web/style.css`, `fixtures/template_builder_demo/expected.json` (the new
+shape; same values), `scripts/evaluate_template_builder.py` (maps the held-out keys' old field names; see its
+docstring) and `scripts/template_builder_smoke.py` (also prints the money link's estimate).
+
+Existing tests changed, each only for the new term shape; no threshold or monetary assertion was relaxed:
+
+- `tests/test_template_builder.py` helpers `GOOD_RULES`, `FakeClaude` (and new `reader_item`, `reader_terms`): the
+  Halcyon rules and reader answers in the version 3 shapes (one schedule rule with one row pattern; durations with
+  named `value` and `unit` groups).
+- `test_happy_path_approval_and_the_template_reads_document_c`: quotes 27 -> 24 (6 terms and 2 tiers, 3 readers);
+  found and total 9 -> 7; a schedule's quote is a list of sentences, each still required to be in contract C.
+- `test_a_quote_not_in_the_contract_blocks_approval`: the invented quote is on `claim_window` with a unit; 26/27 -> 23/24.
+- `test_a_rule_that_fails_on_the_second_document_is_repaired`, `test_a_wrong_shaped_repair_answer_uses_a_round_and_the_next_round_runs`:
+  the hard-wired claim rule written with named groups.
+- `test_interpreter_guards`: the time-limit, compile and "exactly one group" cases use `credit_cap_percent` (a
+  duration rule now needs named groups, which is asserted separately); the hard-coded claim rule uses named groups.
+- `test_a_rule_matching_two_places_with_different_values_reads_nothing`: the loose claim rule uses named groups; still 3 places.
+- `test_value_in_sentence_digits_words_and_choices`: durations are {value, unit}; the "99.50%" case moves to a percent
+  term; added: a calendar-days value is not in a business-days sentence and the reverse, and hours are not in a days sentence.
+- `test_plausibility`: the two-tier cases become schedule cases (a tier above the commitment, credits that do not rise,
+  a repeated threshold); claim and notice cases use durations, plus a unit that is not one of the term's.
+- `test_a_sceptic_conflict_puts_the_term_under_review`: the conflict is on `credit_schedule` (the second-tier threshold no longer exists as a term).
+- `test_jev_unreachable_waits_for_a_reviewer_then_builds_with_every_term_flagged`: 9 -> 7 terms to acknowledge.
+- `test_approval_is_refused_until_the_flagged_terms_are_acknowledged`, `test_a_term_jev_did_not_answer_needs_acknowledgement`,
+  `test_every_reading_term_says_why_it_is_blank`, `test_readers_disagreeing_on_whether_a_term_is_stated_invent_no_value`: field names only.
+- `test_second_contract_check_passes_against_what_its_readers_agreed`, `test_second_contract_check_fails_when_its_readers_agree_on_another_value`:
+  9 -> 7 and 8 -> 6 terms; the claim window's values are {value, unit}.
+- `test_a_read_missing_a_term_is_refused`, `test_a_read_whose_value_is_not_in_its_sentence_is_refused`: "8 of 9" -> "6 of 7".
+- `test_an_implausible_read_is_refused`: the implausible edit is now a cap (20%) below the highest credit (25%),
+  because lowering the second tier's credit to 5% now makes the interpreter itself refuse the schedule, which the
+  test also asserts (the read is still REFUSED, now by `complete`).
+- `test_jev_questions_ask_what_the_sentence_literally_says`: the threshold question becomes one question per tier;
+  9 -> 8 questions (6 terms and 2 tiers).
+- `test_a_term_all_readers_say_is_not_stated_is_approvable_once_acknowledged`, `test_the_second_contract_stating_a_term_the_first_does_not_fails_second_document`,
+  `test_the_interpreter_skips_not_stated_fields`: field names; counts 8 -> 6 and 9 -> 7.
+- `test_a_reader_converting_days_to_hours_is_caught_by_value_in_sentence`: the converted value carries a unit.
+- `test_a_required_term_not_stated_blocks_approval`: the required pair is the commitment and `credit_schedule`.
+- `test_a_reader_saying_not_stated_with_a_value_is_refused`: reader answers in the new shapes; the prompt is checked for
+  "Never convert between units" and the business-days example instead of the removed hours wording.
+- `tests/test_template_agreements.py` › `test_overlay_from_halcyon_c_terms_is_the_engines_tier_family`: field name
+  `maintenance_notice`. › `test_the_maintenance_notice_term_may_be_missing_because_the_engine_does_not_use_it`: field
+  name and input wording ("Not stated in this contract"), plus notice in business days. ›
+  `test_missing_term_gives_no_credit_and_names_the_term`: the missing term is the schedule. ›
+  `test_terms_the_engine_cannot_express_are_refused`: the out-of-order case is a schedule tier above the commitment,
+  now refused before the engine with the plausibility sentence; added credits that do not rise and claim windows in
+  business days and months.
+- `web/template_builder.test.cjs`: no existing test changed.
+
+New tests: 13 in `tests/test_template_builder.py` (lines kept apart from a sentence, a three-row table, a schedule of
+one, a commitment row, three refused schedules, identical tiers merged, rule shapes, durations keeping units, reader
+schedules, agreement on the whole schedule with Jev per tier, the schedule in the hash and the reading), 1 in
+`tests/test_template_agreements.py` (schedules of one and three tiers through the engine), 2 in
+`web/template_builder.test.cjs` (schedule rows and sentences, durations; a reading's schedule). New files: none in part 1.
+
+Checks for part 1: `tests/test_template_builder.py`, `tests/test_template_agreements.py`, `tests/test_demo_opportunities.py`,
+`tests/test_jev.py`: 126 passed; `node --test web/*.test.cjs tests/helpers/*.test.cjs`: 237 tests, 237 pass. One real
+build on the shipped sample (`scripts/template_builder_smoke.py`, real Claude Code CLI and real Jev, 8 Claude calls):
+READY_FOR_REVIEW with every blocking check passing (24 of 24 quotes, 7 of 7 values in their sentences, reproduce 7 of
+7, second contract 7 of 7); Jev answered 0.72 on a tier, so the schedule needed acknowledgement; approved by the
+script `smoke-script` (not a person); halcyon-c read ACCEPTED with 7 of 7 terms and estimated USD 4,200.00 for
+October 2026; a second build of halcyon-c pasted was MATCHED by Jev (0.91) with no Claude call. The full
+`uv run --locked pytest` merge suite was not run on this branch. Held-out run 4: `docs/demo/TEMPLATE-BUILDER-HELDOUT.md`.
+
+### Real public SLAs (part 2, same branch)
+
+No engine, prompt, check or threshold was changed for this part, and no existing test was changed. New files:
+`scripts/evaluate_public_slas.py` (fetch once with urllib into `~/uptime-demo/public-slas/`, HTML to text with
+html.parser, one real build per page, script approval, guarded read, scoring in two views, every quoted sentence,
+pattern, map phrase, reader reason and interpreter message hashed), `fixtures/template_builder_public/sources.json`,
+`fixtures/template_builder_public/key.json` (values only, written by hand; one value corrected after the run, noted in
+it), `fixtures/template_builder_public/results/20261111T015844Z.json` and `docs/demo/TEMPLATE-BUILDER-PUBLIC-SLAS.md`.
+The vendors' text is not in the repository. Found and left unfixed so the published numbers stand: the
+`value_in_sentence` words for `credit_application` and `measurement_period` refuse correct values on most real pages,
+and "invoices" (plural) does not match the word "invoice".

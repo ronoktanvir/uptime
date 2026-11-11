@@ -133,3 +133,12 @@ test('a reading with an estimate but no claim available shows no claim link', as
   assert.equal(claimLinks(p.root).length, 0);
   assert.equal(named(p.root, 'Read this contract with the approved template'), undefined, 'already read: its reading is shown instead');
 });
+
+test('the read terms are said in version 3 shapes: a schedule of tiers and durations in the contract\'s unit', () => {
+  const values = {availability_target_percent: '99.95', measurement_period: 'calendar_month',
+    credit_schedule: [{below_percent: 'commitment', credit_percent: '10'}, {below_percent: '99.5', credit_percent: '25'}],
+    credit_cap_percent: '30', claim_window: {value: '30', unit: 'days'}, maintenance_notice: {value: '1', unit: 'business_days'}, credit_application: 'next_invoice'};
+  assert.equal(TC.termsLine(values), 'Terms read: commitment 99.95%; below the commitment: 10% credit; below 99.5%: 25% credit; cap 30%; claim within 30 days; maintenance notice 1 business day.');
+  assert.equal(TC.termsLine({}), null);
+  assert.match(TC.readingLines({...reading, values}).join(' '), /Terms read: commitment 99\.95%/);
+});

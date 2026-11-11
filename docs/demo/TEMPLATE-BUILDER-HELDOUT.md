@@ -6,19 +6,21 @@ that never saw the builder, one build per form, and a read of a third, held-out 
 template that build produced. The result is published as it came out. Nothing in the engine, its prompts or its
 samples was changed for this evaluation.
 
-## Three runs, side by side
+## Four runs, side by side
 
-The same six frozen forms were run three times on November 10, 2026, each time on a different state of the engine.
-The first run is the baseline described in the rest of this page. The other two were added by the coordinator after
-the engine changed. All three are kept, including the one that scored worst.
+The same six frozen forms were run four times on November 10, 2026, each time on a different state of the engine.
+The first run is the baseline described in the rest of this page. Runs 2 and 3 were added by the coordinator after
+the engine changed, and run 4 by the version 3 (credit schedule) agent. All four are kept, including the one that
+scored worst.
 
 | Run | Engine | Forms that passed every blocking check | Held-out contract C: terms scored | Correct | Wrong | Left unread | Not stated |
 |:---|:---|:---|:---|:---|:---|:---|:---|
 | 1 | Version 1. Its second-contract check was given a hand-written answer key for contract B | 5 of 6 | 45 (five forms read) | 36 | 0 | 4 | 5 |
 | 2 | Version 2, strict: no answer key (three fresh readers read B), each value must be in its sentence, all nine terms required | 1 of 6 | 9 (one form read) | 9 | 0 | 0 | 0 |
 | 3 | Version 2, with terms every reader agrees the contract does not state | 4 of 6 | 36 (four forms read; one of those reads was refused whole by the read guards) | 25 | 0 | 8 | 3 |
+| 4 | Version 3: one credit schedule of one to six tiers, claim window and notice as a value and the contract's own unit (7 terms, not 9). **Changed after seeing runs 1 to 3 on these same forms** | 4 of 6 | 28 (four forms read; two of those reads were refused whole by the read guards) | 14 | 0 | 13 | 1 |
 
-Results files, in order: `20261111T010416Z.json`, `20261111T011557Z.json`, `20261111T012703Z.json` under
+Results files, in order: `20261111T010416Z.json`, `20261111T011557Z.json`, `20261111T012703Z.json`, `20261111T015134Z.json` under
 `fixtures/template_builder_heldout/results/`. A run between the first and second measured nothing because of a fault
 in the evaluation script and is kept apart in `results/harness-fault/` with a note.
 
@@ -48,7 +50,31 @@ still be stated.
 Run 3 used 48 Claude calls and 48 Jev calls in 214.7 seconds. Every form had at least two terms the reviewer must
 acknowledge, and a script made those acknowledgements and approvals, not a person.
 
-**What these three runs do not establish.** They are one run each on six forms. The contracts were written by Claude
+**Run 4, and why it is not comparable to runs 1 to 3.** The engine for run 4 (branch `work/tb3-tiers-20261110`,
+uncommitted on top of `aef18b0` when it ran; the results file names `aef18b0`) was written after seeing all three
+earlier runs on these six forms, so it is not a held-out number for the change. It scores 7 terms per contract, not 9:
+the two tiers are one schedule, which is correct only when both tiers are, and notice and claim periods carry their
+unit. The keys keep their old nine field names; `scripts/evaluate_template_builder.py` maps them (its docstring and
+`KEY_MAPPING_NOTE` say how): the schedule is built from the commitment, the first-tier credit and the second tier's
+threshold and credit (every C states its first tier as starting below the commitment); the claim window is the old
+day count in calendar days (every C states calendar days); and maintenance notice for each C is restated from the
+contract's own sentence, because the old key converted days to hours and marked Business Days not stated. I wrote that
+restatement after writing the version 3 engine.
+
+| Form | Build | Held-out contract C |
+|:---|:---|:---|
+| 1 | Passed; the schedule flagged by Jev (0.67 and 0.82 on the two tiers) | Accepted. 7 of 7 correct |
+| 2 | Passed; the schedule flagged by Jev | **Read refused** by `complete`: the payment rule found nothing in C ("pay it back to the card"), as in run 1. 7 unread |
+| 3 | Passed; the schedule flagged by Jev | **Read refused** by `complete`: the measurement-period and payment rules found nothing in C, whose author rewrote those clauses. 6 unread, 1 not stated |
+| 4 | **Refused** at `value_in_sentence`: each tier's operative sentence names its threshold and credit by defined terms ("Lower Threshold", "Tier 1 Credit"), and a tier must have both numbers (or the commitment) in its own sentence. Run 3 built it, because each number was then its own term read from its definition | Not read |
+| 5 | Passed. Notice "5 days" is now `{5, days}`, not a conversion | Accepted. 7 of 7 correct |
+| 6 | **Refused** at `value_in_sentence`, `reproduce` and `second_document`: the second tier's threshold is the defined "Tier Threshold", and the cap is over a different period, as in run 3 | Not read |
+
+Run 4 used 46 Claude calls and 47 Jev calls in 228.5 seconds. **No wrong value** was returned. Compared with run 3,
+form 5 now builds and reads (its notice in days is kept as days), and form 4 no longer builds (tiers stated through
+definitions cannot be expressed as rows); forms 2 and 3 fail their reads on clauses the authors reworded, as before.
+
+**What these four runs do not establish.** They are one run each on six forms. The contracts were written by Claude
 models, as the readers are, from briefs the evaluation's author wrote after seeing the builder's term list. None is a
 real vendor's contract. Run 3's change was made after seeing run 2's failures, on these same six forms, so run 3 is
 not a clean held-out number for that change: a fresh set of forms would be.

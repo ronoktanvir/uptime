@@ -15,7 +15,25 @@
       + (r.model_calls === 0 ? ', with no model call.' : '.'));
     lines.push('Template built by ' + text(r.built_by || 'Claude agents') + (given(r.approved_by) ? ', approved by the reviewer account ' + r.approved_by : ', approval account not reported') + '.');
     if (given(r.reading_id)) lines.push('Reading ' + r.reading_id + (given(r.read_at) ? ' at ' + r.read_at : '') + '.');
+    const terms = termsLine(r.values);
+    if (terms) lines.push(terms);
     return lines;
+  }
+
+  // The read terms in words (version 3 shapes: a schedule of tiers, durations with the contract's own unit).
+  const UNITS = {days: ['day', 'days'], business_days: ['business day', 'business days'], months: ['month', 'months'], hours: ['hour', 'hours']};
+  const duration = d => d && typeof d === 'object' && given(d.value) && UNITS[d.unit] ? d.value + ' ' + UNITS[d.unit][d.value === '1' ? 0 : 1] : null;
+  function termsLine(values) {
+    const v = values && typeof values === 'object' ? values : null;
+    if (!v) return null;
+    const parts = [];
+    if (given(v.availability_target_percent)) parts.push('commitment ' + v.availability_target_percent + '%');
+    if (Array.isArray(v.credit_schedule)) v.credit_schedule.filter(t => t && typeof t === 'object').forEach(t =>
+      parts.push('below ' + (t.below_percent === 'commitment' ? 'the commitment' : text(t.below_percent) + '%') + ': ' + text(t.credit_percent) + '% credit'));
+    if (given(v.credit_cap_percent)) parts.push('cap ' + v.credit_cap_percent + '%');
+    if (duration(v.claim_window)) parts.push('claim within ' + duration(v.claim_window));
+    if (duration(v.maintenance_notice)) parts.push('maintenance notice ' + duration(v.maintenance_notice));
+    return parts.length ? 'Terms read: ' + parts.join('; ') + '.' : null;
   }
 
   function readingCard(data, doc) {
@@ -47,7 +65,7 @@
     return {render, unmount: () => { if (page) page.unmount(); page = null; }};
   }
 
-  const exports = {create, readingCard, readingLines};
+  const exports = {create, readingCard, readingLines, termsLine};
   if (typeof module !== 'undefined' && module.exports) module.exports = exports;
   global.UptimeTemplateClaim = exports;
 })(typeof window === 'undefined' ? globalThis : window);

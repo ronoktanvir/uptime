@@ -105,6 +105,9 @@ def test_nothing_is_possible_before_an_accepted_read(served):
     # A read that does not reach a credit (no second tier, no first tier) offers nothing either.
     app.state.template_builds.entries = [entry(dict(EXPECTED['terms'], measurement_period='calendar_quarter'))]
     assert client.get('/api/template-claims/halcyon-a', headers=actor.headers).status_code == 404
+    # Nor does a claim window the engine does not count (business days are never converted to calendar days).
+    app.state.template_builds.entries = [entry(dict(EXPECTED['terms'], claim_window={'value': '30', 'unit': 'business_days'}))]
+    assert client.get('/api/template-claims/halcyon-a', headers=actor.headers).status_code == 404
     assert not (app.state.template_claim_inputs['directory'] / 'template-claims').exists()
 
 
@@ -242,7 +245,7 @@ def test_a_misread_term_fails_the_controls_and_opens_nothing(served):
     app, client, actor = served
     # A template that read the second tier as 15% (the contract says 25%) still estimates a credit, but the controls
     # authored from the contract refuse those terms, so nothing is installed and no claim is opened.
-    connect(app, [entry(dict(EXPECTED['terms'], tier_2_credit_percent='15'))])
+    connect(app, [entry(dict(EXPECTED['terms'], credit_schedule=[{'below_percent': '99.95', 'credit_percent': '10'}, {'below_percent': '99.5', 'credit_percent': '15'}]))])
     view = read(client, actor)
     assert stages(view)['estimated'] == '1200.00'
     response = press(client, actor, view['next_actions'][0]['id'])
