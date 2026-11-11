@@ -1109,6 +1109,8 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-open td { border-bottom-color: transparent; }
 .tb-term-detail { padding-top: 0; background: var(--sunken); }
 .tb-term-review + .tb-detail-row .tb-term-detail { background: var(--warn-soft); }
+.tb-term-acked + .tb-detail-row .tb-term-detail { background: var(--ok-soft); }
+.tb-ack-recorded { font-size: 13px; font-weight: 600; color: var(--ok); }
 .tb-detail-label { margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .tb-term-detail blockquote { background: var(--surface); }
 .tb-detail { margin-top: 8px; }

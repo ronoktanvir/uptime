@@ -491,12 +491,15 @@
       // Jev has been asked once its check is on the build; a term without an answer then says so and shows no number.
       const jevAsked = !!jevCheck(build);
       const approved = build.state === 'APPROVED' || object(build.template)?.state === 'APPROVED';
+      // After approval the review step records which flagged terms the reviewer acknowledged.
+      const reviewAcked = list(object(list(build.steps).find(x => object(x) && x.id === 'review')?.detail)?.acknowledged);
       const review = terms.filter(t => t.status === 'REVIEW').length;
       const needs = terms.filter(t => t.needs_acknowledgement === true);
       const left = needs.filter(t => !view.acks.has(t.field)).length;
       const showSecond = terms.some(t => t.second_readers !== undefined);
       const showInSentence = terms.some(t => typeof t.value_in_sentence === 'boolean');
       const headPill = needs.length && !approved ? (left ? pill(left + (left === 1 ? ' term needs' : ' terms need') + ' your acknowledgement', 'warn') : pill('All ' + needs.length + ' acknowledged', 'ok'))
+        : approved && reviewAcked.length ? pill(reviewAcked.length + (reviewAcked.length === 1 ? ' term' : ' terms') + ' acknowledged at approval', 'ok')
         : review ? pill(review + (review === 1 ? ' term' : ' terms') + ' for the reviewer', 'warn') : null;
       const node = add(el('section', 'panel tb-terms'), add(el('div', 'panel-head'), el('h2', '', 'The terms'), el('span', 'count', String(terms.length)), headPill));
       const table = el('table', 'tb-table'), body = el('tbody');
@@ -506,10 +509,10 @@
       terms.forEach(term => {
         const open = view.open.has(term.field);
         const needsAck = term.needs_acknowledgement === true;
-        const acked = view.acks.has(term.field);
+        const acked = view.acks.has(term.field) || (approved && reviewAcked.includes(term.field));
         // A term every reader agrees the contract does not state: no value, no sentence, no Jev figure.
         const unstated = term.status === 'NOT_STATED' || term.stated === false;
-        const row = el('tr', 'tb-term' + (unstated ? ' tb-term-unstated' : '') + (term.status === 'REVIEW' || (needsAck && !acked) ? ' tb-term-review' : '') + (needsAck && acked ? ' tb-term-acked' : '') + (open ? ' tb-open' : ''));
+        const row = el('tr', 'tb-term' + (unstated ? ' tb-term-unstated' : '') + (!acked && (term.status === 'REVIEW' || needsAck) ? ' tb-term-review' : '') + (needsAck && acked ? ' tb-term-acked' : '') + (open ? ' tb-open' : ''));
         const agreement = object(term.agreement);
         const jev = object(term.jev);
         const second = object(term.second_readers);
@@ -561,6 +564,8 @@
             const tickBox = checkbox(unstated ? 'I have checked that the contract does not state this' : 'I have read this sentence and the value is right', acked, on => { if (on) view.acks.add(term.field); else view.acks.delete(term.field); draw(view, view.build, true); }, 'tb-ack');
             tickBox.box.setAttribute('data-field', term.field);
             cell.append(add(el('div', 'tb-ack-box' + (acked ? ' tb-ack-done' : '')), el('p', 'tb-ack-why', why), tickBox.node));
+          } else if (needsAck && acked) {
+            cell.append(add(el('div', 'tb-ack-box tb-ack-done'), el('p', 'tb-ack-recorded', 'Acknowledged by the reviewer when this version was approved.')));
           }
           body.append(add(el('tr', 'tb-detail-row' + (needsAck && !acked && !approved ? ' tb-detail-ack' : '')), cell));
         }
@@ -589,7 +594,7 @@
         add(row, add(el('div', 'tb-check-text'), el('strong', '', given(check.label) ? check.label : check.id),
           isSecond && notRun ? el('p', 'tb-check-doc tb-not-checked', 'No second contract was given, so the template was not checked on a second contract.')
             : named && given(named.title) ? el('p', 'tb-check-doc', 'Second contract: ' + named.title) : null,
-          isSecond && !notRun ? el('p', 'tb-check-doc', given(check.basis) ? check.basis : 'No answer key: three fresh Claude readers read the second contract, and the template must return what they agreed on.') : null,
+          isSecond && !notRun ? el('p', 'tb-check-doc', given(check.basis) ? check.basis.charAt(0).toUpperCase() + check.basis.slice(1) : 'No answer key: three fresh Claude readers read the second contract, and the template must return what they agreed on.') : null,
           isSecond && !notRun && list(check.readers).filter(object).length ? add(el('p', 'help tb-second-readers'), list(check.readers).filter(object).map(r => el('span', 'tb-second-reader' + (r.ok === false ? ' tb-mismatch' : ''), 'Reader ' + r.reader + (ROLES[r.role] ? ' · ' + ROLES[r.role].toLowerCase() : '') + (given(r.model) ? ' · ' + r.model : '') + (given(r.seconds) ? ' · ' + r.seconds + ' s' : '') + (r.ok === false ? ' · ' + (given(r.summary) ? r.summary : 'failed') : '')))) : null,
           el('p', 'help', [CHECK_BY[check.by] || actorName(check.by), how].join(' · '))),
           add(el('div', 'tb-check-figures'), el('span', 'tb-check-count', figures), extra ? el('span', 'help', extra) : null),
@@ -657,7 +662,8 @@
     function nextPanel(view, build) {
       const docs = list(object(view.sample)?.next_documents).filter(object);
       const served = list(build.readings).filter(object);
-      const readingFor = docId => view.readings.get(docId) || served.find(r => object(r.document)?.id === docId) || null;
+      // The latest reading of a document is the one shown; the server lists readings in the order they were made.
+      const readingFor = docId => view.readings.get(docId) || served.filter(r => object(r.document)?.id === docId).pop() || null;
       const node = add(el('section', 'panel tb-next'), add(el('div', 'panel-head'), el('h2', '', 'The next contract of this type')),
         el('p', 'help', 'Read by the approved template alone: Uptime’s fixed interpreter runs its rules with no Claude call, and every read is guarded. A refused read feeds nothing downstream.'));
       if (!docs.length) node.append(el('p', 'help', 'No further contract of this type is on file. Paste one below.'));
