@@ -615,7 +615,7 @@ def value_in_sentence(field, value, sentence, commitment=None, phrase=None):
     """True when `value` is literally in `sentence`: as digits ("99.95%", "(30)") or number words ("seventy-two")
     for a number, the number and the unit for a duration, and every tier in its own sentence for a schedule
     (`sentence` is then the list of tier sentences). For a choice, `phrase` is the contract's own words that give the
-    option ("monthly billing cycle", "future payments"), and the check is that those words are in the sentence; which
+    option (the readers copy them from the contract), and the check is that those words are in the sentence; which
     option the words give is what the readers agree on, the rule's map records and Jev is asked about. No list of
     expected words is used. Code only."""
     term = TERM.get(field)

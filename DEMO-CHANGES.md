@@ -394,3 +394,14 @@ Existing tests changed in `tests/test_template_builder.py`:
 New tests: 8 in `tests/test_template_builder.py` (four phrases the old list refused, a phrase not in its sentence,
 agreement and Jev on the phrase, a rule capturing other words, a choice without a phrase), 1 in
 `web/template_builder.test.cjs`.
+
+### Fresh public SLAs and the re-run (November 11)
+
+No engine change after `46d1968` except one docstring in `uptime/template_rules.py` (its example phrases removed so no
+vendor wording sits in `uptime/`; behaviour unchanged). No existing test changed. `scripts/evaluate_public_slas.py`
+gains `--set fresh` (a second source list), hashes choice phrases (`phrase`, `rule_phrase`) as it hashes quotes, and
+its scoring reads the key file named in the results. New files: `fixtures/template_builder_public/sources_fresh.json`,
+`key_fresh.json` (written and committed before the run; one recorded change after it),
+`results/fresh-20261111T021719Z.json` (fresh pages) and `results/20261111T022756Z.json` (re-run of the first thirteen).
+The two new results files had their choice phrases hashed after the run, before commit. Tables in
+`docs/demo/TEMPLATE-BUILDER-PUBLIC-SLAS.md`.

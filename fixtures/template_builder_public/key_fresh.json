@@ -1,7 +1,19 @@
 {
  "_about": "Second set. Written by hand by the evaluating agent (Claude Opus 5.5 in Claude Code) after fetching and reading each cached page and BEFORE any build ran on these pages, with the same conventions as key.json: the first-listed commitment is primary and others are other_service; a commitment stated only by a credit table is keyed as its top threshold; 'by the end of the (second) month/billing cycle following' is keyed as 1 (2) months; 'monthly' measurement is calendar_month. Any later change is recorded in _changes with the reason.",
  "_written_at": "2026-11-11T02:17:13Z",
- "_changes": [],
+ "_changes": [
+  {
+   "at": "2026-11-11T02:28:28Z",
+   "page": "neon",
+   "term": "maintenance_notice",
+   "from": "not_stated",
+   "to": {
+    "value": "24",
+    "unit": "hours"
+   },
+   "why": "After the build: the readers showed 24 hours, and the page's definition of Unscheduled Downtime excludes scheduled maintenance disclosed with at least 24 hours' notice. I had missed it; the builder was right and my key was wrong."
+  }
+ ],
  "civo": {
   "terms": {
    "availability_target_percent": "99.95",
@@ -260,7 +272,10 @@
     "value": "1",
     "unit": "months"
    },
-   "maintenance_notice": "not_stated",
+   "maintenance_notice": {
+    "value": "24",
+    "unit": "hours"
+   },
    "credit_application": "next_invoice"
   },
   "also_correct": {

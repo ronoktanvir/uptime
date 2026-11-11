@@ -300,7 +300,7 @@ def prepare(source):
 
 # --- Quotes out of the record ----------------------------------------------------------------
 
-QUOTE_KEYS = {"quote", "rule_quote", "conflict", "reason", "sentence", "pattern", "error", "rule_error", "detail",
+QUOTE_KEYS = {"quote", "rule_quote", "phrase", "rule_phrase", "conflict", "reason", "sentence", "pattern", "error", "rule_error", "detail",
               "reasons", "summary", "repair_note", "basis"}
 OUR_SUMMARIES = re.compile(r"^(\d+ terms, \d+ quotes found|\d+ extraction rules written|\d+ of \d+ checks passed|"
                            r"No approved template|Waiting for|Approved by|Read by the approved|Approval is blocked|"
