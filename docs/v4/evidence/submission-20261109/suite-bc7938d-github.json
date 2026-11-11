@@ -1,0 +1,29 @@
+{
+ "tested_commit": "bc7938dc48ac7f91c214c6a71908dd9446419569",
+ "branch": "work/submission-integration-20261109",
+ "role": "coordinator",
+ "contents": "integration 08dd0b7 plus documents, images and evaluation results only: the records (a3550cc), the fresh pages' second run and its write-up (8c70fe3), seven template images from one real run (2f2b7ec), and the README, judge guide, handoff and notes (bc7938d)",
+ "where": "GitHub Actions, workflow 'Verify offline workbench', job 'replay', ubuntu runner; used as the full run because full local runs stall on the development machine",
+ "run_url": "https://github.com/ronoktanvir/uptime/actions/runs/42962053002",
+ "event": "push",
+ "command": [
+  "uv",
+  "run",
+  "--locked",
+  "pytest",
+  "-q"
+ ],
+ "exit_code": 0,
+ "pytest_result": "5635 passed, 1 warning in 725.78s (0:12:05)",
+ "log": "suite-bc7938d-github-pytest.log",
+ "started_at": "2026-11-11T04:52:40Z",
+ "finished_at": "2026-11-11T05:05:30Z",
+ "other_checks": {
+  "node --test web/*.test.cjs tests/helpers/*.test.cjs": "247 passed, 0 failed",
+  "node scripts/test_progress_graph.cjs": "success",
+  "uv run --locked python scripts/rehearse.py": "success",
+  "uv run --locked python scripts/check_repo.py": "success"
+ },
+ "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect.",
+ "note": "main was fast-forwarded from fa382da to this commit at 21:06 PST on November 10, after this run passed."
+}
