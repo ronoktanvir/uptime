@@ -21,7 +21,7 @@
   // The three readers differ in their instructions (Version 2); the role is the server's `detail.role`.
   const ROLES = {clause_by_clause:'Reads clause by clause', numbers_first:'Lists every number first', sceptic:'Looks for a conflicting second statement'};
   // The checks in the interface page's order; a check the page does not know is drawn after these.
-  const CHECK_ORDER = ['quotes', 'value_in_sentence', 'agreement', 'reproduce', 'second_document', 'jev'];
+  const CHECK_ORDER = ['stated', 'quotes', 'value_in_sentence', 'agreement', 'reproduce', 'second_document', 'jev'];
   // The run's stages, in order; the server always sends these seven step ids.
   const STAGES = [['Decide the contract type', ['classify']], ['Read the contract three different ways', ['reader-1', 'reader-2', 'reader-3']],
     ['Write the template', ['build']], ['Check the template', ['checks']], ['Approve this version', ['review']]];
@@ -507,25 +507,27 @@
         const open = view.open.has(term.field);
         const needsAck = term.needs_acknowledgement === true;
         const acked = view.acks.has(term.field);
-        const row = el('tr', 'tb-term' + (term.status === 'REVIEW' || (needsAck && !acked) ? ' tb-term-review' : '') + (needsAck && acked ? ' tb-term-acked' : '') + (open ? ' tb-open' : ''));
+        // A term every reader agrees the contract does not state: no value, no sentence, no Jev figure.
+        const unstated = term.status === 'NOT_STATED' || term.stated === false;
+        const row = el('tr', 'tb-term' + (unstated ? ' tb-term-unstated' : '') + (term.status === 'REVIEW' || (needsAck && !acked) ? ' tb-term-review' : '') + (needsAck && acked ? ' tb-term-acked' : '') + (open ? ' tb-open' : ''));
         const agreement = object(term.agreement);
         const jev = object(term.jev);
         const second = object(term.second_readers);
         const shownValue = v => v !== null && v !== undefined && v === term.value && given(term.display) ? term.display : withUnit(term, v);
-        const toggle = button(open ? 'Hide sentence' : 'Show sentence', () => { if (view.open.has(term.field)) view.open.delete(term.field); else view.open.add(term.field); draw(view, view.build, true); }, 'link-button');
+        const toggle = button(open ? (unstated ? 'Hide reason' : 'Hide sentence') : (unstated ? 'Show reason' : 'Show sentence'), () => { if (view.open.has(term.field)) view.open.delete(term.field); else view.open.add(term.field); draw(view, view.build, true); }, 'link-button');
         toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         const secondCell = !showSecond ? null : add(el('td', 'tb-second-cell'), second && Number.isInteger(second.agree) && Number.isInteger(second.of)
-          ? add(el('span', term.second_document_ok === false ? 'tb-mismatch' : ''), el('span', 'tb-agree', second.agree + ' of ' + second.of), el('span', 'tb-second-value', ' · ' + (shownValue(second.value) || 'not found')))
+          ? add(el('span', term.second_document_ok === false ? 'tb-mismatch' : ''), el('span', 'tb-agree', second.agree + ' of ' + second.of), el('span', 'tb-second-value', ' · ' + (second.stated === false ? 'not stated' : shownValue(second.value) || 'not found')))
           : el('span', 'help', 'Not given'));
         const status = needsAck && !approved ? (acked ? pill('Acknowledged', 'ok') : pill('To acknowledge', 'warn'))
-          : needsAck ? pill('Acknowledged', 'ok') : term.status === 'PASS' ? pill('Passed', 'ok') : term.status === 'REVIEW' ? pill('For the reviewer', 'warn') : pill('Checking', '');
+          : needsAck ? pill('Acknowledged', 'ok') : unstated ? pill('Not stated', '') : term.status === 'PASS' ? pill('Passed', 'ok') : term.status === 'REVIEW' ? pill('For the reviewer', 'warn') : pill('Checking', '');
         add(row, add(el('td', 'tb-term-label'), el('strong', '', given(term.label) ? term.label : term.field)),
-          el('td', 'tb-value', given(term.display) ? term.display : 'Not found'),
+          unstated ? add(el('td', 'tb-value tb-value-unstated'), el('span', 'tb-unstated', 'Not stated in this contract')) : el('td', 'tb-value', given(term.display) ? term.display : 'Not found'),
           el('td', 'tb-agree', agreement && Number.isInteger(agreement.agree) && Number.isInteger(agreement.of) ? agreement.agree + ' of ' + agreement.of : 'Not yet'),
           secondCell,
-          showInSentence ? add(el('td', 'tb-in-sentence'), term.value_in_sentence === true ? pill('Yes', 'ok') : term.value_in_sentence === false ? pill('No', 'bad') : el('span', 'help', 'Not yet')) : null,
+          showInSentence ? add(el('td', 'tb-in-sentence'), unstated ? el('span', 'help', 'No value') : term.value_in_sentence === true ? pill('Yes', 'ok') : term.value_in_sentence === false ? pill('No', 'bad') : el('span', 'help', 'Not yet')) : null,
           showJev ? add(el('td', 'tb-jev'), jev ? add(el('span', ''), pill((jev.yes ? 'Yes' : 'No') + (percent(jev.probability) ? ' · ' + percent(jev.probability) : ''), !jev.yes ? 'bad' : term.status === 'REVIEW' || needsAck ? 'warn' : 'ok'))
-            : el('span', 'help', jevAsked ? 'No answer' : 'Not yet')) : null,
+            : el('span', 'help', unstated ? 'Not asked' : jevAsked ? 'No answer' : 'Not yet')) : null,
           add(el('td', 'tb-status'), status),
           add(el('td', 'tb-toggle'), toggle));
         body.append(row);
@@ -533,11 +535,13 @@
           const span = titles.length;
           const cell = el('td', 'tb-term-detail'); cell.colSpan = span;
           const rule = object(term.rule);
-          const secondLine = second ? 'Three fresh readers: ' + (shownValue(second.value) || 'not found') + (Number.isInteger(second.agree) && Number.isInteger(second.of) ? ' (' + second.agree + ' of ' + second.of + ')' : '')
+          const secondLine = second && second.stated === false ? 'Three fresh readers: not stated' + (Number.isInteger(second.agree) && Number.isInteger(second.of) ? ' (' + second.agree + ' of ' + second.of + ')' : '') + (term.second_document_ok === true ? ' · the same' : term.second_document_ok === false ? ' · different' : '')
+            : second ? 'Three fresh readers: ' + (shownValue(second.value) || 'not found') + (Number.isInteger(second.agree) && Number.isInteger(second.of) ? ' (' + second.agree + ' of ' + second.of + ')' : '')
               + ' · the template returns ' + (term.second_document_value === null || term.second_document_value === undefined ? 'nothing' : shownValue(term.second_document_value))
               + (term.second_document_ok === true ? ' · the same' : term.second_document_ok === false ? ' · different' : '')
             : term.second_readers === null ? 'No second contract was given' : null;
-          add(cell, el('p', 'tb-detail-label', 'The sentence in the contract'), given(term.quote) ? el('blockquote', '', term.quote) : el('p', 'help', 'No sentence was recorded for this term.'),
+          add(cell, unstated ? [el('p', 'tb-detail-label', 'Why it is not stated'), el('p', 'tb-unstated-reason', given(term.reason) ? term.reason : 'Every reader agrees the contract does not state this term.')]
+              : [el('p', 'tb-detail-label', 'The sentence in the contract'), given(term.quote) ? el('blockquote', '', term.quote) : el('p', 'help', 'No sentence was recorded for this term.')],
             add(el('dl', 'record tb-detail'),
               typeof term.value_in_sentence === 'boolean' ? [el('dt', '', 'Value in its sentence'), el('dd', term.value_in_sentence ? '' : 'tb-rule-error', term.value_in_sentence ? 'Yes: the value is written in this sentence' : 'No: the value is not written in this sentence')] : null,
               rule && given(rule.pattern) ? [el('dt', '', 'Extraction rule'), add(el('dd'), el('code', 'tb-pattern', rule.pattern))] : null,
@@ -545,16 +549,16 @@
               given(term.rule_value) || term.rule_value === null ? [el('dt', '', 'The rule returns'), el('dd', '', term.rule_value === null ? 'Not found' : term.rule_value)] : null,
               given(term.rule_quote) && term.rule_quote !== term.quote ? [el('dt', '', 'The rule matched'), el('dd', 'tb-quote-text', term.rule_quote)] : null,
               given(term.rule_error) ? [el('dt', '', 'Rule error'), el('dd', 'tb-rule-error', term.rule_error)] : null,
-              list(term.readers).length ? [el('dt', '', 'Each reader'), el('dd', '', list(term.readers).filter(object).map(r => 'Reader ' + r.reader + ': ' + (r.value === null || r.value === undefined ? 'Not found' : r.value) + (r.quote_found === false ? ' (quote not in the contract)' : '')).join(' · '))] : null,
+              list(term.readers).length ? [el('dt', '', 'Each reader'), el('dd', '', list(term.readers).filter(object).map(r => 'Reader ' + r.reader + ': ' + (r.stated === false ? 'not stated' : r.value === null || r.value === undefined ? 'Not found' : r.value) + (r.quote_found === false ? ' (quote not in the contract)' : '')).join(' · '))] : null,
               secondLine ? [el('dt', '', 'Second contract'), el('dd', term.second_document_ok === false ? 'tb-rule-error' : '', secondLine)]
                 : term.second_document_value !== undefined && term.second_readers === undefined ? [el('dt', '', 'Second contract'), el('dd', '', (term.second_document_value === null ? 'Not found' : term.second_document_value) + (term.second_document_ok === true ? ' · as authored' : term.second_document_ok === false ? ' · does not match the authored value' : ''))] : null,
               given(term.conflict) ? [el('dt', '', 'Reader 3 found a conflict'), el('dd', 'tb-quote-text tb-conflict', term.conflict)] : null,
               Number.isInteger(term.rule_places) && term.rule_places > 1 ? [el('dt', '', 'Places the rule matched'), el('dd', '', term.rule_places + ', all with the same value')] : null,
               showJev && jev && given(jev.model) ? [el('dt', '', 'Jev model'), el('dd', '', jev.model)] : null));
           if (needsAck && !approved) {
-            const why = !jev ? 'Jev did not answer for this term.' : !jev.yes ? 'Jev says this sentence does not support the value' + (percent(jev.probability) ? ' (' + percent(jev.probability) + ' yes)' : '') + '.'
+            const why = unstated ? 'Every reader agrees the contract does not state this, so the template has no rule for it.' : !jev ? 'Jev did not answer for this term.' : !jev.yes ? 'Jev says this sentence does not support the value' + (percent(jev.probability) ? ' (' + percent(jev.probability) + ' yes)' : '') + '.'
               : 'Jev’s answer is under its threshold' + (percent(jev.probability) ? ' (' + percent(jev.probability) + ')' : '') + '.';
-            const tickBox = checkbox('I have read this sentence and the value is right', acked, on => { if (on) view.acks.add(term.field); else view.acks.delete(term.field); draw(view, view.build, true); }, 'tb-ack');
+            const tickBox = checkbox(unstated ? 'I have checked that the contract does not state this' : 'I have read this sentence and the value is right', acked, on => { if (on) view.acks.add(term.field); else view.acks.delete(term.field); draw(view, view.build, true); }, 'tb-ack');
             tickBox.box.setAttribute('data-field', term.field);
             cell.append(add(el('div', 'tb-ack-box' + (acked ? ' tb-ack-done' : '')), el('p', 'tb-ack-why', why), tickBox.node));
           }
@@ -578,7 +582,8 @@
         // An advisory check that did not pass marks terms for the reviewer; only a blocking failure reads as a failure.
         const advisory = !check.ok && check.blocking !== true;
         const row = el('li', 'tb-check tb-check-' + String(check.id || 'other').replace(/[^a-z0-9_-]/gi, '') + ' ' + (notRun ? 'tb-check-off' : check.ok ? 'tb-check-ok' : advisory ? 'tb-check-advisory' : 'tb-check-bad'));
-        const figures = notRun ? (isJev ? 'Jev could not be reached' : '') : Number.isInteger(check.passed) && Number.isInteger(check.total) ? check.passed + ' of ' + check.total : '';
+        const figures = (notRun ? (isJev ? 'Jev could not be reached' : '') : Number.isInteger(check.passed) && Number.isInteger(check.total) ? check.passed + ' of ' + check.total : '')
+          + (!notRun && Number.isInteger(check.not_stated) && check.not_stated > 0 ? ' · ' + check.not_stated + ' not stated' : '');
         const extra = !notRun && isJev && percent(check.lowest) && percent(check.threshold) ? 'lowest ' + percent(check.lowest) + ', threshold ' + percent(check.threshold) : null;
         const how = isJev ? 'a term it does not support needs your acknowledgement' : check.blocking ? 'blocks approval if it fails' : notRun ? 'does not block approval' : 'advisory';
         add(row, add(el('div', 'tb-check-text'), el('strong', '', given(check.label) ? check.label : check.id),
@@ -640,8 +645,8 @@
       approve.disabled = !!reason || missing.length > 0;
       const marked = list(build.terms).filter(x => object(x) && x.status === 'REVIEW');
       const ackNote = !reason && needs.length ? el('p', missing.length ? 'tb-review-note' : 'tb-ack-all',
-        missing.length ? missing.length + ' of ' + needs.length + (needs.length === 1 ? ' term' : ' terms') + ' still to acknowledge: ' + missing.map(x => x.label || x.field).join(', ') + '. Jev did not support ' + (missing.length === 1 ? 'it' : 'them') + '; read each sentence above and tick its box.'
-          : 'Every term Jev did not support is acknowledged: ' + needs.map(x => x.label || x.field).join(', ') + '.') : null;
+        missing.length ? missing.length + ' of ' + needs.length + (needs.length === 1 ? ' term' : ' terms') + ' still to acknowledge: ' + missing.map(x => x.label || x.field).join(', ') + '. Open each above, read it and tick its box.'
+          : 'Every flagged term is acknowledged: ' + needs.map(x => x.label || x.field).join(', ') + '.') : null;
       const markedNote = !reason && !needs.length && marked.length ? el('p', 'tb-review-note', 'Jev marked ' + marked.map(x => x.label || x.field).join(', ') + ' for you to read before approving. Jev’s check is advisory: open the term above, compare the value with its sentence, then approve.') : null;
       const count = !reason && missing.length ? el('span', 'tb-ack-count', missing.length + ' still to acknowledge') : null;
       add(node, el('p', 'help', 'Approving makes this exact version (by its SHA-256) the reader for this contract type. Nothing is active before that.'),
@@ -755,7 +760,7 @@
       add(node, add(el('div', 'tb-reading-head'),
           refused ? pill('Refused', 'bad') : accepted ? pill('Accepted', 'ok') : null,
           add(el('p', 'tb-reading-line'), el('span', 'tb-rules-mark', readingLine(reading)))),
-        Number.isInteger(reading.found) && Number.isInteger(reading.total) ? el('p', 'help', reading.found + ' of ' + reading.total + ' terms found' + (given(reading.read_at) ? ' · ' + instant(reading.read_at) : '')) : null,
+        Number.isInteger(reading.found) && Number.isInteger(reading.total) ? el('p', 'help', reading.found + ' of ' + reading.total + ' terms found' + (list(reading.not_stated).length ? ' · ' + list(reading.not_stated).length + ' not stated' : '') + (given(reading.read_at) ? ' · ' + instant(reading.read_at) : '')) : null,
         refused ? add(el('div', 'tb-refused'), el('p', 'tb-refused-line', 'This reading was refused, so nothing from it is used: no agreement, no credit.'),
           list(reading.reasons).filter(given).length ? add(el('ul', 'tb-refused-reasons'), list(reading.reasons).filter(given).map(r => el('li', '', r)))
             : failed.length ? add(el('ul', 'tb-refused-reasons'), failed.map(g => el('li', '', (given(g.label) ? g.label : g.id) + (given(g.detail) ? ': ' + g.detail : '')))) : null) : null,
@@ -766,10 +771,15 @@
         add(table, add(el('thead'), add(el('tr'), ['Term', refused ? 'Found (not accepted)' : 'Value', 'The sentence the rule matched'].map(t => { const th = el('th', '', t); th.scope = 'col'; return th; }))), body);
         terms.forEach(term => {
           const found = term.value !== null && term.value !== undefined;
-          body.append(add(el('tr', found ? '' : 'tb-not-found'), add(el('td', 'tb-term-label'), el('strong', '', given(term.label) ? term.label : term.field)),
-            add(el('td', refused ? 'tb-value tb-value-refused' : 'tb-value'), found ? el('span', '', given(term.display) ? term.display : term.value) : pill('Not found', 'warn')),
-            add(el('td', 'tb-quote'), found && given(term.quote) ? el('span', 'tb-quote-text', term.quote) : el('span', 'help', 'No sentence matched. Nothing is guessed.'),
-            given(term.error) ? el('p', 'tb-term-error', term.error) : null)));
+          // A term the template was built without (its contract did not state it) is never called "Not found".
+          const unstated = !found && (term.stated === false || list(reading.not_stated).includes(term.field));
+          body.append(add(el('tr', found ? '' : unstated ? 'tb-unstated-row' : 'tb-not-found'), add(el('td', 'tb-term-label'), el('strong', '', given(term.label) ? term.label : term.field)),
+            add(el('td', refused ? 'tb-value tb-value-refused' : 'tb-value'), found ? el('span', '', given(term.display) ? term.display : term.value)
+              : unstated ? el('span', 'tb-unstated', 'Not stated when this template was built') : pill('Not found', 'warn')),
+            add(el('td', 'tb-quote'), found && given(term.quote) ? el('span', 'tb-quote-text', term.quote)
+              : unstated ? el('span', 'help', given(term.error) ? term.error : 'Not stated in the contract this template was built from')
+              : el('span', 'help', 'No sentence matched. Nothing is guessed.'),
+            given(term.error) && !unstated ? el('p', 'tb-term-error', term.error) : null)));
         });
         node.append(add(el('div', 'table-scroll' + (refused ? ' tb-not-accepted' : '')), refused ? el('p', 'tb-not-accepted-label', 'What the rules found · not accepted') : null, table));
       }
