@@ -63,6 +63,7 @@ WORDS = {w: i for i, w in enumerate(
     "seventeen eighteen nineteen".split())}
 TENS = {"twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90}
 MAX_MATCHES = 50
+NOT_STATED = "Not stated in the contract this template was built from"
 # For a choice term, the word a sentence must contain for the option to be "in" it.
 CHOICE_WORDS = {"calendar_month": r"\bmonth\b", "calendar_quarter": r"\bquarter\b", "calendar_year": r"\byear\b",
                 "next_invoice": r"\binvoice\b", "refund": r"\brefund", "account_balance": r"\bbalance\b"}
@@ -302,23 +303,28 @@ def run_rule(rule, text, matcher=MATCHER):
 
 
 def apply(template, text, matcher=MATCHER):
-    """Run every rule of `template` on `text`; a term a rule does not find is null, never guessed."""
+    """Run every rule of `template` on `text`; a term a rule does not find is null, never guessed. A field the
+    template lists under `not_stated` has no rule: null, `stated: false`, and not counted in `total`."""
     started = perf_counter()
     too_long = len(text) > TEXT_LIMIT
     text = "" if too_long else normalize(text)
     by_field = {r.get("field"): r for r in template.get("rules", [])}
+    not_stated = [f for f in template.get("not_stated", []) if f in TERM and f not in by_field]
     terms = []
     for term in TERMS:
         rule = by_field.get(term["field"])
-        if too_long:
+        if term["field"] in not_stated:
+            result = _empty(NOT_STATED)
+        elif too_long:
             result = _empty("The contract is too long for the interpreter.")
         else:
             result = run_rule(rule, text, matcher) if rule else _empty("The template has no rule for this term.")
         terms.append({"field": term["field"], "label": term["label"], "type": term["type"],
                       "value": result["value"], "display": display(term["field"], result["value"]),
                       "quote": result["quote"], "error": result["error"], "places": result["places"],
-                      "ambiguous": result["ambiguous"]})
-    return {"terms": terms, "found": sum(t["value"] is not None for t in terms), "total": len(terms),
+                      "ambiguous": result["ambiguous"], "stated": term["field"] not in not_stated})
+    return {"terms": terms, "found": sum(t["value"] is not None for t in terms), "total": len(terms) - len(not_stated),
+            "not_stated": not_stated,
             "milliseconds": "%.1f" % ((perf_counter() - started) * 1000)}
 
 

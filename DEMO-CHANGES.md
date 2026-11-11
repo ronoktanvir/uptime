@@ -276,3 +276,11 @@ After merging `work/submission-integration-20261109` (7babdfe), the page also sh
 - The estimate's sentence is written for a person from the engine's own results ("44,545 of 44,640 UTC minutes were available (99.787%), so the 35% credit tier applies: 35% of USD 12,000.00 is USD 4,200.00."); the engine's raw line stays among the inputs. `tests/test_template_agreements.py` › `test_authored_month_is_estimated_by_the_engine_to_the_cent` and › `test_no_unavailability_earns_no_credit_and_no_invented_amount` expect the new sentence.
 - Jev's summary on a matched run gives the probability as a percentage.
 - `scripts/evaluate_template_builder.py`: its call counter now passes through the model the version 2 engine names per call. The first run on version 2 failed every form in 0.0 seconds for that reason and measured nothing; it is kept under `fixtures/template_builder_heldout/results/harness-fault/` with a note.
+- (Engine, November 10, evening.) Not-stated terms: when every reader says the contract does not state a term in the
+  unit asked, the term is `NOT_STATED` and has no rule. The reviewer acknowledges it, and the template records it in its
+  hashed body. A new blocking check `stated` requires the commitment and the first-tier credit. Reads report not-stated
+  fields without failing `complete`. Existing tests changed in `tests/test_template_builder.py`, additive shapes only:
+  `test_happy_path_approval_and_the_template_reads_document_c` (the check list starts with `stated`),
+  `test_second_contract_check_passes_against_what_its_readers_agreed` (`second_readers` gains `stated`), and
+  `test_a_pasted_contract_without_a_second_contract_can_be_approved_unchecked` (the check gains `not_stated: 0`).
+  Seven tests added. Shapes: docs/demo/TEMPLATE-BUILDER.md, "A term every reader agrees the contract does not state".

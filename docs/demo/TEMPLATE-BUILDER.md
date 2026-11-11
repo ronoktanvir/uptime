@@ -376,3 +376,37 @@ Everything above holds, with these changes and additions. Fields below are addit
 - Stated limits: a rule only captures text, so maintenance notice stated in days, or in "Business Days", cannot
   become hours and stays unread with its reason. A choice is read only when the captured phrase is an option id or in
   the rule's map, so a measurement period other than those listed stays unread with its reason and is never guessed.
+
+### A term every reader agrees the contract does not state (engine, November 10, evening)
+
+After the held-out evaluation, a contract type is no longer refused because it does not state an optional term in
+the unit Uptime asks for, for example maintenance notice in days or business days, or no percentage cap.
+
+- Readers are told to answer only what the contract states, in the unit asked, and never to convert units. A term
+  not stated is `{"value": null, "quote": null, "stated": false, "reason": "5 days' written notice"}`, under the
+  term's field (the sceptic keeps `"conflict": null`). A reader that says `stated: false` and gives a value is refused
+  as the wrong shape.
+- When every answering reader says a term is not stated, the term is
+  `{"status": "NOT_STATED", "stated": false, "value": null, "display": null, "quote": null, "reason": <a reader's
+  reason>, "rule": null, "jev": null, "needs_acknowledgement": true}`. Its `value_in_sentence` is `null`, and Jev is
+  not asked about it. Stated terms carry `"stated": true` and `"reason": null`. If readers disagree on whether a term
+  is stated, it stays a stated term whose value is the majority. That may be `null`, which then fails
+  `value_in_sentence` and `reproduce`; no value is invented. `term.readers[]` gains `stated`.
+- A new first check: `{"id": "stated", "label": "The contract states the terms a credit needs", "blocking": true,
+  "by": "UPTIME", "required": ["availability_target_percent", "tier_1_credit_percent"]}`, counting those two (total 2).
+- `value_in_sentence`, `reproduce` and `jev` count stated terms only. `quotes` counts the quotes readers gave, which
+  are only for values. `agreement` counts all nine, because agreeing that a term is not stated is agreement. Every
+  check gains `"not_stated": <count>`. **`second_document` counts all nine**: a stated term passes as before, and a
+  not-stated term passes only if every answering reader of the second contract (at least two) also says it is not
+  stated there. If any of them finds a value, that term fails. `term.second_readers` gains `stated`: `false` when the
+  second readers all say it is not stated.
+- The builder writes rules only for stated terms. The template body records `"not_stated": [fields]`, so the list is
+  part of its SHA-256. The `template` object also shows `not_stated`, and `template.rules` counts rules.
+- Approval: `acknowledged` must name exactly the terms with `needs_acknowledgement`. That now includes the
+  not-stated ones, because the reviewer confirms the contract really does not state them.
+- Reads: `complete` is about the template's rules. A not-stated field in a reading is `{"value": null, "display": null,
+  "quote": null, "stated": false, "error": "Not stated in the contract this template was built from",
+  "failed_guards": []}`. `found` and `total` count rules only, and the reading gains `"not_stated": [fields]`. Stated
+  reading terms carry `"stated": true`. `approved_readings()` gives `None` for not-stated fields. In
+  `uptime/template_rules.py`, `apply` honours `template["not_stated"]` the same way (its `total` excludes those fields,
+  and it returns `not_stated`).

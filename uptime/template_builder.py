@@ -57,6 +57,8 @@ STEPS = (("classify", "JEV", "Which contract type is this?"), ("reader-1", "CLAU
 # Reader index -> (role, model). The sceptic runs on a different model.
 READERS = {1: ("clause_by_clause", MODEL), 2: ("numbers_first", MODEL), 3: ("sceptic", SCEPTIC_MODEL)}
 NOT_STARTED = "Not started: Jev matched an approved template"
+# A credit cannot be computed without these; a template whose contract does not state them cannot be approved.
+REQUIRED_TERMS = ("availability_target_percent", "tier_1_credit_percent")
 DISABLED = "Building templates with Claude is off on this server; start it with --template-builder."
 GUARD_LABELS = {"complete": "Every rule found a value",
                 "unambiguous": "No rule matched in two places with different values",
@@ -225,9 +227,15 @@ def reader_prompt(text, role="clause_by_clause"):
             "Your role: " + role + ". " + how + "\n\n"
             "For each term give `value` and `quote`.\n"
             "- value: for percent, the number as a string without the % sign (\"99.5\"); for integer, digits as a "
-            "string (\"30\"); for choice, one of the option ids; null if the contract does not state the term.\n"
+            "string (\"30\"); for choice, one of the option ids.\n"
             "- quote: the one sentence or list item the value comes from, copied character for character from the "
-            "contract (keep its section number if it has one); null when value is null.\n"
+            "contract (keep its section number if it has one).\n"
+            "- Answer only what the contract states, in the unit asked. Never convert units. If the contract does not "
+            "state a term in the unit asked, the term is not stated: for example, maintenance notice given in days or "
+            "business days is not stated in hours, and a credit cap that is not a percentage of the period's fees is "
+            "not a percentage cap. For a term that is not stated answer {\"value\": null, \"quote\": null, "
+            "\"stated\": false, \"reason\": \"<what the contract does state, e.g. 5 days' written notice, or that it "
+            "says nothing about it>\"} (the sceptic also keeps \"conflict\": null).\n"
             + shape + "\n\nCONTRACT\n<<<\n" + text + "\n>>>")
 
 
@@ -279,9 +287,14 @@ def parse_reader(answer, role="clause_by_clause"):
     keys = {"value", "quote", "conflict"} if role == "sceptic" else {"value", "quote"}
     out = {}
     for field, item in terms.items():
-        if not isinstance(item, dict) or set(item) != keys:
+        if not isinstance(item, dict) or not keys <= set(item) <= keys | {"stated", "reason"}:
             raise ModelFailed("The reader's answer for %s was not {%s}." % (field, ", ".join(sorted(keys))))
         raw, quote = item["value"], item["quote"]
+        stated, reason = item.get("stated"), item.get("reason")
+        if stated is not None and not isinstance(stated, bool) or reason is not None and not isinstance(reason, str):
+            raise ModelFailed("The reader's stated/reason for %s has the wrong type." % field)
+        if stated is False and raw is not None:
+            raise ModelFailed("The reader said %s is not stated but gave a value." % field)
         if raw is not None and not isinstance(raw, (str, int, Decimal)) or isinstance(raw, bool):
             raise ModelFailed("The reader's value for %s has the wrong type." % field)
         if quote is not None and not isinstance(quote, str):
@@ -292,7 +305,8 @@ def parse_reader(answer, role="clause_by_clause"):
         term = rules.TERM[field]
         value_ = rules.canonical(term["type"], raw, term.get("options")) if raw is not None else None
         out[field] = {"value": value_, "quote": quote, "invalid": raw is not None and value_ is None,
-                      "conflict": conflict or None}
+                      "conflict": conflict or None, "stated": raw is not None,
+                      "reason": ((reason or "").strip() or None) if raw is None else None}
     numbers = len(value["numbers"]) if role == "numbers_first" else None
     return out, numbers
 
@@ -723,7 +737,11 @@ class TemplateBuilds:
             value, count = max(votes.items(), key=lambda kv: (kv[1], -order.index(kv[0])))
             holders = [r[f] for _, r in succeeded if r[f]["value"] == value]
             best = next((h for h in holders if h["quote_found"]), holders[0])
-            agreed[f] = {"value": value, "quote": best["quote"], "agree": count}
+            # Not stated only when every answering reader says so; any value or unreadable answer keeps it stated.
+            silent = all(not r[f]["stated"] for _, r in succeeded)
+            reason = next((r[f]["reason"] for _, r in succeeded if r[f]["reason"]), None) if silent else None
+            agreed[f] = {"value": value, "quote": None if silent else best["quote"], "agree": count,
+                         "stated": not silent, "reason": reason or ("No reader found it in the contract." if silent else None)}
         return agreed
 
     @staticmethod
@@ -741,7 +759,9 @@ class TemplateBuilds:
                     value = None  # a tie is not agreement
             else:
                 value, count = None, 0
-            out[f] = {"agree": count, "of": len(answered), "value": value if count >= 2 else None}
+            silent = len(answered) >= 2 and all(not r[f]["stated"] for r in answered)
+            out[f] = {"agree": len(answered) if silent else count, "of": len(answered),
+                      "value": value if count >= 2 else None, "stated": not silent}
         return out
 
     def _make_template(self, build, text, jev_ok):
@@ -762,13 +782,17 @@ class TemplateBuilds:
                            % len(succeeded))
                 return
             agreed = self._agree(succeeded)
+            stated = {f: a for f, a in agreed.items() if a["stated"]}
+            if not stated:
+                self._fail(build, "Every reader says the contract states none of the terms, so there is nothing to build.")
+                return
 
             # Builder (while the second readers may still be reading), then up to two repair rounds
             self._update(build, state="BUILDING")
             self._step(build, "build", state="RUNNING")
             try:
-                answer = self.claude(SYSTEM, builder_prompt(text, agreed), model=MODEL)
-                current = parse_rules(answer, list(agreed))
+                answer = self.claude(SYSTEM, builder_prompt(text, stated), model=MODEL)
+                current = parse_rules(answer, list(stated))
             except Exception as exc:
                 self._step(build, "build", state="FAILED", model=None, summary=_sentence(exc))
                 self._fail(build, "The template builder did not return usable rules: " + _sentence(exc))
@@ -787,7 +811,7 @@ class TemplateBuilds:
             a = {t["field"]: t for t in rules.apply(body, text)["terms"]}
             b = {t["field"]: t for t in rules.apply(body, second_text)["terms"]} if second_text is not None else None
             failures = {}
-            for f in agreed:
+            for f in stated:
                 problems = []
                 if a[f]["value"] is None or a[f]["value"] != agreed[f]["value"]:
                     problems.append("On this contract the rule " + (
@@ -804,7 +828,7 @@ class TemplateBuilds:
         on_a, on_b, failures = evaluate()
         while failures and repairs < REPAIR_ROUNDS:
             self._step(build, "build", summary="%d of %d rules failed a check; repair round %d"
-                       % (len(failures), len(agreed), repairs + 1), detail={"rules": len(current), "repair_rounds": repairs})
+                       % (len(failures), len(stated), repairs + 1), detail={"rules": len(current), "repair_rounds": repairs})
             try:
                 fixed = parse_rules(self.claude(SYSTEM, repair_prompt(
                     text, second_text, agreed, {f: {k: v for k, v in current[f].items() if k in ("pattern", "map")}
@@ -818,6 +842,8 @@ class TemplateBuilds:
             repairs += 1
             on_a, on_b, failures = evaluate()
         summary = "%d extraction rules written" % len(current)
+        if len(stated) < len(agreed):
+            summary += " (%d term%s not stated in the contract)" % (len(agreed) - len(stated), "" if len(agreed) - len(stated) == 1 else "s")
         if repairs:
             summary += ", %d repair round%s" % (repairs, "" if repairs == 1 else "s")
         if failures:
@@ -831,11 +857,12 @@ class TemplateBuilds:
             vendor = build["source"]["vendor"]
             body = {"id": "%s/%d" % (form, version), "sample_id": build.get("sample_id"), "vendor": vendor,
                     "form": build["_form_title"], "interpreter": "uptime.template_rules/2",
-                    "rules": [current[t["field"]] for t in rules.TERMS if t["field"] in current]}
+                    "rules": [current[t["field"]] for t in rules.TERMS if t["field"] in current],
+                    "not_stated": [t["field"] for t in rules.TERMS if not agreed[t["field"]]["stated"]]}
             digest = rules.sha256(body)
             build["_template_body"] = body
             build["template"] = {"id": body["id"], "sha256": digest, "rules": len(body["rules"]), "state": "PROPOSED",
-                                 "approved_by": None, "approved_at": None}
+                                 "approved_by": None, "approved_at": None, "not_stated": body["not_stated"]}
         self._step(build, "build", state="DONE", model=builder_model, summary=summary, detail=detail)
         self._checks(build, text, agreed, succeeded, current, on_a, on_b, second_agreed, second_records, jev_ok)
 
@@ -848,25 +875,34 @@ class TemplateBuilds:
             f = term["field"]
             a = agreed[f]
             second = second_agreed[f] if second_agreed is not None else None
-            terms.append({"field": f, "label": term["label"], "type": term["type"], "value": a["value"],
-                          "display": rules.display(f, a["value"]), "quote": a["quote"],
-                          "readers": [{"reader": i, "value": r[f]["value"], "quote_found": r[f]["quote_found"]}
-                                      for i, r in succeeded],
-                          "agreement": {"agree": a["agree"], "of": len(succeeded)},
-                          "conflict": sceptic[f]["conflict"] if sceptic else None,
-                          "value_in_sentence": rules.value_in_sentence(f, a["value"], a["quote"]),
-                          "rule": {k: v for k, v in current[f].items() if k in ("pattern", "group", "map")} if f in current else None,
-                          "rule_value": on_a[f]["value"], "rule_quote": on_a[f]["quote"], "rule_error": on_a[f]["error"],
-                          "rule_places": on_a[f]["places"],
-                          "second_document_value": on_b[f]["value"] if on_b is not None else None,
-                          "second_readers": second,
-                          "second_document_ok": (second is not None and second["value"] is not None
-                                                 and on_b[f]["value"] == second["value"]),
-                          "jev": None, "needs_acknowledgement": True, "status": None})
+            row = {"field": f, "label": term["label"], "type": term["type"], "stated": a["stated"],
+                   "readers": [{"reader": i, "value": r[f]["value"], "quote_found": r[f]["quote_found"],
+                                "stated": r[f]["stated"]} for i, r in succeeded],
+                   "agreement": {"agree": a["agree"], "of": len(succeeded)},
+                   "second_readers": second, "jev": None, "needs_acknowledgement": True}
+            if not a["stated"]:
+                # Every reader says the contract does not state it: no value, no rule; the reviewer confirms it.
+                row.update(value=None, display=None, quote=None, reason=a["reason"], conflict=None,
+                           value_in_sentence=None, rule=None, rule_value=None, rule_quote=None, rule_error=None,
+                           rule_places=0, second_document_value=None,
+                           second_document_ok=second is not None and not second["stated"], status="NOT_STATED")
+            else:
+                row.update(value=a["value"], display=rules.display(f, a["value"]), quote=a["quote"], reason=None,
+                           conflict=sceptic[f]["conflict"] if sceptic else None,
+                           value_in_sentence=rules.value_in_sentence(f, a["value"], a["quote"]),
+                           rule={k: v for k, v in current[f].items() if k in ("pattern", "group", "map")} if f in current else None,
+                           rule_value=on_a[f]["value"], rule_quote=on_a[f]["quote"], rule_error=on_a[f]["error"],
+                           rule_places=on_a[f]["places"],
+                           second_document_value=on_b[f]["value"] if on_b is not None else None,
+                           second_document_ok=(second is not None and second["value"] is not None
+                                               and on_b[f]["value"] == second["value"]), status=None)
+            terms.append(row)
+        stated_terms = [t for t in terms if t["stated"]]
+        not_stated = len(terms) - len(stated_terms)
         jev_ran = False
         if jev_ok and self.jev is not None:
             def ask(term):
-                if term["value"] is None or not term["quote"]:
+                if not term["stated"] or term["value"] is None or not term["quote"]:
                     return None
                 shown = term["display"]
                 question = rules.TERM[term["field"]]["question"].format(display=shown, display_lower=shown.lower())
@@ -883,7 +919,7 @@ class TemplateBuilds:
         def jev_pass(t):
             p = _probability(t["jev"]["probability"]) if t["jev"] is not None else None
             return t["jev"] is not None and t["jev"]["yes"] and p is not None and p >= JEV_THRESHOLD
-        for t in terms:
+        for t in stated_terms:
             t["needs_acknowledgement"] = not jev_pass(t)
             fine = (t["agreement"]["agree"] == t["agreement"]["of"] and t["value"] is not None
                     and all(r["quote_found"] for r in t["readers"] if r["value"] is not None)
@@ -899,29 +935,37 @@ class TemplateBuilds:
                             "passed": sum(t["second_document_ok"] for t in terms), "total": len(terms),
                             "blocking": True, "by": "UPTIME", "ran": True, "document": second_doc,
                             "readers": second_records,
-                            "basis": "three fresh readers of the second contract; no answer key"}
+                            "basis": "three fresh readers of the second contract; no answer key. A term not stated in "
+                                     "this contract passes only if they all say it is not stated there either."}
         else:
             second_check = {"id": "second_document", "label": "The template reads a second contract of the same form",
                             "passed": 0, "total": 0, "blocking": False, "by": "UPTIME", "ran": False, "document": None,
                             "readers": [], "basis": "No second contract was given, so this was not checked."}
+        required = [t for t in terms if t["field"] in REQUIRED_TERMS]
         checks = [
+            {"id": "stated", "label": "The contract states the terms a credit needs",
+             "passed": sum(t["stated"] and t["value"] is not None for t in required), "total": len(required),
+             "blocking": True, "by": "UPTIME", "required": list(REQUIRED_TERMS)},
             {"id": "quotes", "label": "Every quote is in the contract, word for word",
              "passed": sum(1 for q in reader_quotes if q.get("quote_found")), "total": len(reader_quotes),
              "blocking": True, "by": "UPTIME"},
             {"id": "value_in_sentence", "label": "Each value is in its sentence, as digits or words",
-             "passed": sum(t["value_in_sentence"] for t in terms), "total": len(terms), "blocking": True, "by": "UPTIME"},
+             "passed": sum(bool(t["value_in_sentence"]) for t in stated_terms), "total": len(stated_terms),
+             "blocking": True, "by": "UPTIME"},
             {"id": "agreement", "label": "The %s readers agree" % ("three" if len(succeeded) == 3 else "two"),
              "passed": sum(t["agreement"]["agree"] == t["agreement"]["of"] for t in terms), "total": len(terms),
              "blocking": False, "by": "UPTIME"},
-            {"id": "reproduce", "label": "The template returns every term from this contract, one value per rule",
-             "passed": sum(t["value"] is not None and t["rule_value"] == t["value"] for t in terms), "total": len(terms),
-             "blocking": True, "by": "UPTIME"},
+            {"id": "reproduce", "label": "The template returns every stated term from this contract, one value per rule",
+             "passed": sum(t["value"] is not None and t["rule_value"] == t["value"] for t in stated_terms),
+             "total": len(stated_terms), "blocking": True, "by": "UPTIME"},
             second_check,
-            {"id": "jev", "label": "Jev: each term is supported by its sentence", "passed": sum(jev_pass(t) for t in terms),
-             "total": len(terms), "blocking": False, "by": "JEV", "threshold": str(JEV_THRESHOLD),
+            {"id": "jev", "label": "Jev: each term is supported by its sentence", "passed": sum(jev_pass(t) for t in stated_terms),
+             "total": len(stated_terms), "blocking": False, "by": "JEV", "threshold": str(JEV_THRESHOLD),
              "lowest": min((t["jev"]["probability"] for t in answered), key=Decimal) if answered else None,
              "ran": jev_ran, "needs_acknowledgement": flagged},
         ]
+        for c in checks:
+            c["not_stated"] = not_stated
         for c in checks:
             c["ok"] = c["passed"] == c["total"] and c["total"] > 0 and c.get("ran", True)
         passed = sum(c["ok"] for c in checks)
@@ -959,7 +1003,8 @@ class TemplateBuilds:
             given = list(acknowledged or [])
             if not all(isinstance(f, str) for f in given) or len(set(given)) != len(given) or set(given) != set(flagged):
                 raise TemplateRefused(
-                    "Approval must acknowledge exactly the terms Jev did not support: %s; nothing was approved."
+                    "Approval must acknowledge exactly the flagged terms (not supported by Jev, or not stated in the "
+                    "contract): %s; nothing was approved."
                     % (", ".join(flagged) if flagged else "none"))
             stamp = now()
             build["template"].update(state="APPROVED", approved_by=reviewer, approved_at=stamp)
@@ -994,7 +1039,7 @@ class TemplateBuilds:
              "_passed": result["found"], "_total": result["total"]},
             {"id": "unambiguous", "ok": not ambiguous,
              "detail": None if not ambiguous else "; ".join("%s: %s" % (t["field"], t["error"]) for t in terms if t["ambiguous"]),
-             "_passed": len(terms) - len(ambiguous), "_total": len(terms)},
+             "_passed": result["total"] - len(ambiguous), "_total": result["total"]},
             {"id": "value_in_sentence", "ok": len(in_sentence) == len(with_value) and bool(with_value),
              "detail": "%d of %d" % (len(in_sentence), len(with_value)), "_passed": len(in_sentence), "_total": len(with_value)},
             {"id": "plausible", "ok": not problems, "detail": " ".join(problems) or None,
@@ -1025,6 +1070,9 @@ class TemplateBuilds:
             g["label"] = GUARD_LABELS[g["id"]]
         for t in terms:  # why each term is blank or doubtful: the guards it failed, with its own error
             failed = []
+            if not t["stated"]:
+                t["failed_guards"] = []
+                continue
             if t["value"] is None:
                 failed.append("complete")
             if t["ambiguous"]:
@@ -1039,9 +1087,9 @@ class TemplateBuilds:
         return {"id": "rd_" + secrets.token_hex(3), "status": status, "reasons": refused_because,
                 "document": document, "read_by": "TEMPLATE",
                 "template": {"id": template_id, "sha256": sha}, "model_calls": 0, "milliseconds": result["milliseconds"],
-                "terms": [{k: t[k] for k in ("field", "label", "type", "value", "display", "quote", "error", "failed_guards")}
-                          for t in terms],
-                "found": result["found"], "total": result["total"], "guards": guards,
+                "terms": [{k: t[k] for k in ("field", "label", "type", "value", "display", "quote", "stated", "error",
+                                             "failed_guards")} for t in terms],
+                "found": result["found"], "total": result["total"], "not_stated": result["not_stated"], "guards": guards,
                 "jev_template": jev_template, "agreement": None, "read_at": now()}
 
     def read(self, build_id, document_id=None, document=None):
