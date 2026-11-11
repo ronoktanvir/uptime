@@ -280,3 +280,12 @@ After merging `work/submission-integration-20261109` (7babdfe), the page also sh
 ### Terms a contract does not state (page agent, November 10, evening)
 
 Built against the coordinator's shapes with mocks (the engine change lands separately). A term with `status: "NOT_STATED"` / `stated: false` reads "Not stated in this contract" with the readers' agreement, no Jev figure, its `reason` in the expanded row and the tick box "I have checked that the contract does not state this"; it counts toward the acknowledgements that gate approval and its field is sent in `acknowledged`. The new `stated` check is drawn first; a check with `not_stated` above zero reads "8 of 8 · 1 not stated". A reading's not-stated field reads "Not stated when this template was built" (never "Not found") and the count line reads "8 of 8 terms found · 1 not stated". The approval note no longer says every flagged term is one "Jev did not support". Three tests added to `web/template_builder.test.cjs`; no existing test changed.
+
+- (Engine, November 10, evening.) Not-stated terms: when every reader says the contract does not state a term in the
+  unit asked, the term is `NOT_STATED` and has no rule. The reviewer acknowledges it, and the template records it in its
+  hashed body. A new blocking check `stated` requires the commitment and the first-tier credit. Reads report not-stated
+  fields without failing `complete`. Existing tests changed in `tests/test_template_builder.py`, additive shapes only:
+  `test_happy_path_approval_and_the_template_reads_document_c` (the check list starts with `stated`),
+  `test_second_contract_check_passes_against_what_its_readers_agreed` (`second_readers` gains `stated`), and
+  `test_a_pasted_contract_without_a_second_contract_can_be_approved_unchecked` (the check gains `not_stated: 0`).
+  Seven tests added. Shapes: docs/demo/TEMPLATE-BUILDER.md, "A term every reader agrees the contract does not state".

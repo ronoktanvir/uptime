@@ -207,8 +207,10 @@ def test_happy_path_approval_and_the_template_reads_document_c(served, tmp_path)
     assert build["source"] == {"kind": "sample", "title": "Halcyon Grid: Platform Availability Addendum",
                                "vendor": "Halcyon Grid Services", "chars": len(RAW["a"])}
     assert build["second"]["provided"] is True and build["matched_template"] is None and build["readings"] == []
-    assert [c["id"] for c in build["checks"]] == ["quotes", "value_in_sentence", "agreement", "reproduce",
+    assert [c["id"] for c in build["checks"]] == ["stated", "quotes", "value_in_sentence", "agreement", "reproduce",
                                                   "second_document", "jev"]
+    assert all(c["not_stated"] == 0 for c in build["checks"]) and check(build, "stated")["passed"] == 2
+    assert all(t["stated"] for t in build["terms"]) and build["template"]["not_stated"] == []
     assert all(c["ok"] for c in build["checks"]), build["checks"]
     assert check(build, "quotes")["total"] == 27 and check(build, "jev")["ran"] is True
     assert {t["field"]: t["value"] for t in build["terms"]} == EXPECTED["halcyon-a"]["terms"]
@@ -521,7 +523,8 @@ def test_second_contract_check_passes_against_what_its_readers_agreed(tmp_path):
     assert [r["role"] for r in second["readers"]] == ["clause_by_clause", "numbers_first", "sceptic"]
     assert "no answer key" in second["basis"]
     claim = next(t for t in build["terms"] if t["field"] == "claim_window_days")
-    assert claim["second_readers"] == {"agree": 3, "of": 3, "value": "45"} and claim["second_document_value"] == "45"
+    assert claim["second_readers"] == {"agree": 3, "of": 3, "value": "45", "stated": True}
+    assert claim["second_document_value"] == "45"
 
 
 def test_second_contract_check_fails_when_its_readers_agree_on_another_value(tmp_path):
@@ -593,7 +596,8 @@ def test_a_pasted_contract_without_a_second_contract_can_be_approved_unchecked(t
     second = check(build, "second_document")
     assert second == {"id": "second_document", "label": "The template reads a second contract of the same form",
                       "passed": 0, "total": 0, "blocking": False, "by": "UPTIME", "ran": False, "document": None,
-                      "readers": [], "basis": "No second contract was given, so this was not checked.", "ok": False}
+                      "readers": [], "basis": "No second contract was given, so this was not checked.", "ok": False,
+                      "not_stated": 0}
     assert build["second"] == {"provided": False, "title": None}
     assert all(t["second_readers"] is None for t in build["terms"])
     assert builds.approve(build["id"], build["template"]["sha256"], "reviewer", [])["state"] == "APPROVED"
@@ -800,3 +804,124 @@ def test_jev_questions_ask_what_the_sentence_literally_says(tmp_path):
     assert "Does this sentence give 99.5% as an availability level at which the service credit changes, such as a " \
            "threshold or the boundary between credit levels?" in asked
     assert all(q.startswith("Does this sentence ") and q.endswith("?") and len(q) <= 1000 for q in asked) and len(asked) == 9
+
+
+# --- A term every reader agrees the contract does not state ---------------------------------------
+
+DAYS = {"value": None, "quote": None, "stated": False, "reason": "5 days' written notice"}
+
+
+def silent(field, readers=(1, 2, 3), item=DAYS):
+    return {field: {i: dict(item) for i in readers}}
+
+
+def test_a_term_all_readers_say_is_not_stated_is_approvable_once_acknowledged(tmp_path):
+    claude = FakeClaude(reader_override=silent("maintenance_notice_hours"),
+                        second_override=silent("maintenance_notice_hours"))
+    builds = engine(tmp_path, claude)
+    build = builds.start(SAMPLE)
+    term = next(t for t in build["terms"] if t["field"] == "maintenance_notice_hours")
+    assert {k: term[k] for k in ("status", "stated", "value", "display", "quote", "reason", "rule", "jev",
+                                 "needs_acknowledgement")} == {
+        "status": "NOT_STATED", "stated": False, "value": None, "display": None, "quote": None,
+        "reason": "5 days' written notice", "rule": None, "jev": None, "needs_acknowledgement": True}
+    assert term["second_document_ok"] is True and term["second_readers"]["stated"] is False
+    assert all(t["stated"] for t in build["terms"] if t["field"] != "maintenance_notice_hours")
+    assert all(c["not_stated"] == 1 for c in build["checks"])
+    assert check(build, "value_in_sentence")["total"] == 8 and check(build, "reproduce")["total"] == 8
+    assert check(build, "jev")["total"] == 8 and check(build, "second_document")["total"] == 9
+    assert all(c["ok"] for c in build["checks"] if c["blocking"]), build["checks"]
+    builder = next(p for p in claude.prompts if p.startswith("Write one extraction rule"))
+    assert "maintenance_notice_hours" not in builder.split("with exactly these fields:")[1].split(".")[0]
+    body = builds.builds[build["id"]]["_template_body"]
+    assert body["not_stated"] == ["maintenance_notice_hours"] and len(body["rules"]) == 8
+    assert build["template"]["rules"] == 8 and build["template"]["not_stated"] == ["maintenance_notice_hours"]
+    assert rules.sha256(body) == build["template"]["sha256"]
+    assert not [c for c in builds.jev.calls if c[0] == "yes_no" and "maintenance" in c[1]]
+    sha = build["template"]["sha256"]
+    with pytest.raises(TemplateRefused, match="acknowledge exactly"):
+        builds.approve(build["id"], sha, "reviewer", [])
+    done = builds.approve(build["id"], sha, "reviewer", ["maintenance_notice_hours"])
+    assert done["state"] == "APPROVED" and done["steps"][-1]["detail"]["acknowledged"] == ["maintenance_notice_hours"]
+
+    # A read reports the not-stated field without failing `complete`.
+    builds.on_reading = lambda entry: {"values": entry["values"]}
+    reading = builds.read(build["id"], document_id="halcyon-c")
+    assert reading["status"] == "ACCEPTED" and guard(reading, "complete")["ok"]
+    assert reading["found"] == reading["total"] == 8 and reading["not_stated"] == ["maintenance_notice_hours"]
+    assert guard(reading, "complete")["detail"] == "8 of 8" and guard(reading, "unambiguous")["ok"]
+    notice = next(t for t in reading["terms"] if t["field"] == "maintenance_notice_hours")
+    assert {k: notice[k] for k in ("value", "display", "quote", "stated", "error")} == {
+        "value": None, "display": None, "quote": None, "stated": False,
+        "error": "Not stated in the contract this template was built from"}
+    assert notice["failed_guards"] == []
+    entry = builds.approved_readings()[0]
+    assert entry["values"]["maintenance_notice_hours"] is None and entry["values"]["claim_window_days"] == "60"
+    assert reading["agreement"]["values"]["maintenance_notice_hours"] is None
+
+
+def test_a_reader_converting_days_to_hours_is_caught_by_value_in_sentence(tmp_path):
+    sentence = quote_for("maintenance_notice_hours")  # states seventy-two (72) hours
+    converted = {"maintenance_notice_hours": {1: {"value": "120", "quote": sentence},
+                                              2: {"value": "120", "quote": sentence}}}
+    builds = engine(tmp_path, FakeClaude(reader_override=converted))
+    build = builds.start(SAMPLE)
+    term = next(t for t in build["terms"] if t["field"] == "maintenance_notice_hours")
+    assert term["stated"] is True and term["value"] == "120" and term["value_in_sentence"] is False
+    assert term["status"] == "REVIEW" and check(build, "value_in_sentence")["ok"] is False
+    assert check(build, "reproduce")["ok"] is False
+    with pytest.raises(TemplateRefused, match="blocking check"):
+        builds.approve(build["id"], build["template"]["sha256"], "reviewer",
+                       [t["field"] for t in build["terms"] if t["needs_acknowledgement"]])
+
+
+def test_readers_disagreeing_on_whether_a_term_is_stated_invent_no_value(tmp_path):
+    mixed = silent("maintenance_notice_hours", readers=(1, 2))
+    build = engine(tmp_path, FakeClaude(reader_override=mixed)).start(SAMPLE)
+    term = next(t for t in build["terms"] if t["field"] == "maintenance_notice_hours")
+    assert term["stated"] is True and term["status"] == "REVIEW" and term["value"] is None
+    assert term["agreement"] == {"agree": 2, "of": 3}
+    assert check(build, "value_in_sentence")["ok"] is False and check(build, "reproduce")["ok"] is False
+
+
+def test_a_required_term_not_stated_blocks_approval(tmp_path):
+    item = {"value": None, "quote": None, "stated": False, "reason": "Credits are a fixed fee, not a percentage."}
+    claude = FakeClaude(reader_override=silent("tier_1_credit_percent", item=item),
+                        second_override=silent("tier_1_credit_percent", item=item))
+    builds = engine(tmp_path, claude)
+    build = builds.start(SAMPLE)
+    stated = check(build, "stated")
+    assert stated["ok"] is False and stated["passed"] == 1 and stated["total"] == 2 and stated["blocking"] is True
+    assert stated["required"] == ["availability_target_percent", "tier_1_credit_percent"]
+    assert next(t for t in build["terms"] if t["field"] == "tier_1_credit_percent")["status"] == "NOT_STATED"
+    with pytest.raises(TemplateRefused, match="blocking check failed.*credit needs"):
+        builds.approve(build["id"], build["template"]["sha256"], "reviewer",
+                       [t["field"] for t in build["terms"] if t["needs_acknowledgement"]])
+
+
+def test_the_second_contract_stating_a_term_the_first_does_not_fails_second_document(tmp_path):
+    build = engine(tmp_path, FakeClaude(reader_override=silent("maintenance_notice_hours"))).start(SAMPLE)
+    term = next(t for t in build["terms"] if t["field"] == "maintenance_notice_hours")
+    assert term["status"] == "NOT_STATED" and term["second_readers"]["stated"] is True
+    assert term["second_document_ok"] is False
+    second = check(build, "second_document")
+    assert second["ok"] is False and second["passed"] == 8 and second["total"] == 9 and second["not_stated"] == 1
+
+
+def test_a_reader_saying_not_stated_with_a_value_is_refused():
+    with pytest.raises(tb.ModelFailed, match="not stated but gave a value"):
+        bad = {f: {"value": v, "quote": "q"} for f, v in EXPECTED["halcyon-a"]["terms"].items()}
+        bad["maintenance_notice_hours"] = {"value": "72", "quote": "q", "stated": False, "reason": "x"}
+        tb.parse_reader(json.dumps({"terms": bad}))
+    prompt = tb.reader_prompt("x", "sceptic")
+    assert "Never convert units" in prompt and "business days is not stated in hours" in prompt
+
+
+def test_the_interpreter_skips_not_stated_fields():
+    body = {"rules": [{"field": f, "type": rules.TERM[f]["type"], **r} for f, r in GOOD_RULES.items()
+                      if f != "credit_cap_percent"], "not_stated": ["credit_cap_percent"]}
+    out = rules.apply(body, RAW["a"])
+    cap = next(t for t in out["terms"] if t["field"] == "credit_cap_percent")
+    assert out["found"] == out["total"] == 8 and out["not_stated"] == ["credit_cap_percent"]
+    assert cap["stated"] is False and cap["value"] is None and cap["error"] == rules.NOT_STATED
+    assert rules.plausibility({t["field"]: t["value"] for t in out["terms"]}) == []
