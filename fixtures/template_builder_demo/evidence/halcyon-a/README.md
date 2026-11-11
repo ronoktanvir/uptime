@@ -8,7 +8,7 @@ supplied any of it, and none of it goes to Ramp.
 
 | File | What it is |
 |---|---|
-| `overlay.json` | The account binding the nine read terms do not carry: agreement `HGS-PAA-2026-0412` (the addendum number in `halcyon-a.txt`), account, covered service (Order Form HGS-OF-77120 named in clause 1.1), USD, fee line, and the addendum's effective date, October 1, 2026. |
+| `overlay.json` | The account binding the seven read terms do not carry: agreement `HGS-PAA-2026-0412` (the addendum number in `halcyon-a.txt`), account, covered service (Order Form HGS-OF-77120 named in clause 1.1), USD, fee line, and the addendum's effective date, October 1, 2026. |
 | `usage.json`, `invoice.json`, `estimate.json` | The money link's month, in the shapes of `../halcyon-c/`: October 2026, 263 unavailable minutes, USD 8,000.00 monthly fees, evaluated as of 2026-11-03 12:00 UTC (the day the claim opens). |
 | `lifecycle.json` | The same month in the claim workflow's shapes (as `fixtures/northwind/usage.json`, `invoices.json` and `supplements.json`): the claim scope, the one outage interval, the October invoice, the requested service log and its separate status verification, and the case clock's start. |
 | `service-log.txt` | The service log `HGS-OCT-LOG-001` the counterparty asks for; its SHA-256 is pinned in `lifecycle.json`. |
