@@ -1,6 +1,8 @@
 # Uptime: a guide for judges
 
 > **November 10 update.** After this guide was written, three things were added: Uptime's notes on matched bills in Ramp's sandbox (posted through Ramp's API and read back), a portfolio page with a second vendor, and a template builder in which Claude agents and the decision model Jev build a reader for a new contract type, behind code checks and a reviewer's approval. Where this guide says Uptime writes nothing to Ramp, read "nothing except those fixed notes". The [README](../README.md#where-ramp-fits) and [the day's notes](../DEMO-NOTES.md) are current; [the film](demo/film/README.md) shows all three.
+>
+> **Later on November 10**, in answer to a review of that template builder: Jev's decision now routes the run (a contract matching an approved template starts no agent), a term Jev does not support must be acknowledged before approval, every read by a template is guarded, an accepted read produces an agreement in shadow and a credit computed by the existing engine, and a held-out evaluation on six contract forms written blind is [published as it scored](demo/TEMPLATE-BUILDER-HELDOUT.md), including its worst run. The film predates this and shows the first version of that scene.
 
 
 [Uptime](../README.md) / Judge guide

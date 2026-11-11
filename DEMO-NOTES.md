@@ -28,6 +28,17 @@ This branch, `demo/film-20261110`, is a separate line for the film. It was cut f
 - A Ramp bill that agrees with another vendor's estimated credit (Corvid) is matched too; its note says the estimate is waiting for review, because no claim is being prepared for it.
 - **Template builder** (asked for by Ronok at about 04:10 PST on November 10, to be built for real and shown in the film): for a contract type Uptime has not read, Jev decides no template matches, three Claude readers read it in parallel, a Claude builder writes extraction rules as data, code checks them, Jev confirms each term against its sentence, a reviewer approves that exact version, and the next contract of the type is read by fixed rules. Interface: `docs/demo/TEMPLATE-BUILDER.md`. Jev is TypeSafe AI's decision model; the client (`uptime/jev.py`) reads Ronok's key from `~/.config/uptime/jev-api-key` at each call and sends requests only to `api.typesafe.ai`. The sample contracts it sends are authored fixtures.
 
+## The afternoon of November 10: version 2 of the template builder
+
+At about 16:55 PST Ronok pasted a review that marked the template builder down on four points and asked for agents to fix them. Four Claude Opus 5.5 agents worked in separate worktrees from one interface page (`docs/demo/TEMPLATE-BUILDER.md`, "Version 2"), and the coordinator joined their work.
+
+- **"The AI and the money never meet."** An accepted read by an approved template now produces an agreement in shadow and a credit computed by the existing engine's tier family, from an authored usage month and invoice. In the shipped sample: October 2026, 44,545 of 44,640 minutes available, the 35% tier, USD 4,200.00, estimated and not claimed. No claim is filed from such an agreement yet; the filmed claim is still Northwind's.
+- **"Jev changes what the reviewer sees, never what the system does."** Jev's decision routes the run: a contract matching an approved template at 0.80 or more is read by fixed rules and no reader starts. A term Jev does not support must be acknowledged by the reviewer or approval is refused. With no approved template on file Jev is not asked.
+- **"It has not read a contract it wasn't written for."** A pasted contract is accepted. The second-contract check uses three fresh readers and no answer key. A held-out evaluation on six forms written blind by other Claude calls was run three times and is published with all three results: `docs/demo/TEMPLATE-BUILDER-HELDOUT.md`.
+- **"Reads after approval are the unguarded part."** A rule that matches in two places with different values is refused; every read runs five guards and a failed read is refused whole; the three readers have different instructions and one runs on Claude Sonnet 5.5; each value must be literally in its sentence.
+- After the strict version refused five of six held-out forms, mostly over one term stated in days where hours were asked, a term every reader agrees the contract does not state is now recorded as not stated and must be acknowledged. No unit is converted and no threshold was changed.
+- Real calls that afternoon went to Claude through the local Claude Code CLI and to Jev at `api.typesafe.ai`. The texts sent were the authored sample contracts and the six held-out forms, which are also authored. Nothing was sent to Ramp.
+
 ## How the demo line is run
 
 - No full test suite per merge. The JavaScript checks and the focused tests for what changed are run, and the pages are looked at.

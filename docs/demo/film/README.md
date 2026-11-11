@@ -4,6 +4,8 @@
 
 `walkthrough.mp4` and the stills beside it are the earlier silent cut, kept for the record. They show the interface as it was before the redesign.
 
+**The template-builder scene shows the first version.** The film was made on the morning of November 10. That afternoon the template builder changed in answer to a review: Jev's decision now routes the run, the three readers differ, a term Jev does not support must be acknowledged before approval, every later read is guarded, and an accepted read produces an estimated credit. The film shows none of that: in it the three readers are identical, approval needs no acknowledgement, and the next contract's read stops at nine terms. Its narration line "So Uptime starts three Claude agents" describes a sequence that the code of the time did not make conditional on Jev. The rest of the film is unaffected. [What changed and why](../TEMPLATE-BUILDER.md#version-2-answering-four-criticisms-november-10-afternoon)
+
 ## What is captured live, what is composited, what is synthesized
 
 **Captured live from the running app, in real time**
