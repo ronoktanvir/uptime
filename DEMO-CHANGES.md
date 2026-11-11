@@ -423,3 +423,10 @@ and "invoices" (plural) does not match the word "invoice".
   `test_nothing_is_possible_before_an_accepted_read` also checks that a claim window in business days opens nothing.
   The case page's reading card says the read terms in the new shapes (one new test in `web/template_claim_ui.test.cjs`).
   One real run on version 3 (build tb_482574, 7 of 7 terms) went to USD 6,000.00 outstanding on HGS-INV-2026-12-2391.
+- No vendor named in package code (GitHub run 42945120731: `tests/test_vendor_requirements_89.py` ›
+  `test_new_vendor_name_reaches_shadow_with_useful_drafts_and_no_vendor_code`). The case workspace's catalog
+  installation id and its authored engine controls moved from `uptime/template_claims.py` into data:
+  `fixtures/template_builder_demo/evidence/halcyon-a/catalog.json` (`vendor_id`, `controls`, `control_base`, validated
+  at load). It is outside the inputs' SHA-256 set, so case workspaces made before it reopen with `--resume` unchanged
+  (checked on the last real run's workspace: same installation id, same applied credit). One docstring line in
+  `uptime/template_agreements.py` no longer names the sample's form. The test itself is unchanged.

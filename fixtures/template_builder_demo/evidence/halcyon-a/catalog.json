@@ -1,0 +1,13 @@
+{
+  "schema": "authored-claim-catalog/1",
+  "note": "How the case workspace installs this document's read terms. The vendor id is the catalog installation id the claim's case workspace uses (unchanged from the first workspaces, so they reopen as before). The controls are authored from the contract text (99.95% commitment; below it 10%, below 99.5% 25%; 30 calendar days to claim), never from the read: a misread term fails one and nothing is installed. Each control's facts are added to the account binding in overlay.json.",
+  "vendor_id": "halcyon-grid",
+  "controls": [
+    {"name": "60 of 43,200 minutes unavailable (99.861%); 10 percent of USD 100", "facts": {"eligible_downtime_minutes": 60}, "expected": {"outcome": "ELIGIBLE", "amount": "10.00"}},
+    {"name": "300 of 43,200 minutes unavailable (99.305%); 25 percent of USD 100", "facts": {"eligible_downtime_minutes": 300}, "expected": {"outcome": "ELIGIBLE", "amount": "25.00"}},
+    {"name": "no unavailability earns no credit", "facts": {"eligible_downtime_minutes": 0}, "expected": {"outcome": "INELIGIBLE"}},
+    {"name": "a request at the exclusive 30-day cutoff is refused", "facts": {"eligible_downtime_minutes": 60, "received_at": "2026-12-31T00:00:00Z"}, "expected": {"outcome": "INELIGIBLE"}}
+  ],
+  "control_base": {"month": "2026-11", "monitor_source": "simulated_vendor", "monitor_ref": "control-status", "month_complete": true,
+                   "exclusions_removed": true, "monthly_fee_cents": 10000, "fee_ref": "control-invoice", "received_at": "2026-12-02T00:00:00Z"}
+}
