@@ -174,3 +174,50 @@ A read-only review of everything the demo line adds found nothing that blocked p
 GitHub's check workflow ran the suite on the published commits and one test failed there (5,542 passed): on its Linux image `/usr/bin/true` is a link to `/usr/bin/gnutrue`, and the configuration records the resolved path.
 
 - `tests/test_setup_model_jobs_demo.py` › `test_model_jobs_writes_private_config_and_exact_sample_approvals`: the expected `executable` is now the resolved path of `/usr/bin/true` (it was the literal string). The test came with the demo line and had only run on macOS, where the two are the same. Nothing about approvals, modes or requests changed.
+
+## Template builder version 2: the engine (engine agent, November 10, afternoon)
+
+Answers the judge's criticisms 2, 3 (in part) and 4. The contract is "Version 2" in `docs/demo/TEMPLATE-BUILDER.md`.
+The section "Version 2 as the engine built it" there records the shapes left open, two deliberate changes and the
+blocker in `uptime/server.py`.
+
+- `uptime/template_rules.py`: every match of a rule is found. Different values in more than one place read nothing
+  and the error says how many places matched; identical values are accepted. New: `value_in_sentence`,
+  `plausibility`, map validation for choice terms, and per-term `places` / `ambiguous`. Jev's per-term questions
+  now ask what the sentence literally says.
+- `uptime/template_builder.py`:
+  - Jev routes the run (`MATCHED`, `NEEDS_REVIEWER` and `continue_without_jev`).
+  - The three readers differ: clause by clause, numbers first, and a sceptic on `claude-sonnet-5-5`. `ClaudeCLI`
+    takes the model per call and verifies it from the envelope.
+  - The new check `value_in_sentence`. The `second_document` check has no answer key: three fresh readers read the
+    second contract in parallel with the first three.
+  - Approval requires acknowledging the terms Jev did not support.
+  - Reads are guarded with five guards and persisted. Each term says why it is blank.
+  - Contracts can be pasted, with consent; the per-process build limit is 12.
+  - `approved_readings`, `set_agreement` and `on_reading` for the money link.
+  - A repair answer in the wrong shape uses its round and the next round is tried.
+- `scripts/template_builder_smoke.py` was rewritten: a real build, an approval by a script in a throwaway folder
+  (said plainly), a guarded read, and a second build that Jev routes to the approved template.
+
+Existing tests changed in `tests/test_template_builder.py`, each for the reason given:
+- The `FakeClaude` and `FakeJev` helpers: Claude is now called with `model=`; readers answer in their role's shape
+  and on either contract; Jev's per-term questions changed wording. The fakes' answers are still the authored values.
+- `test_happy_path_approval_and_the_template_reads_document_c`: six reader calls instead of three (the second
+  contract is read by readers, not checked against an answer key); six checks; the approval body carries
+  `acknowledged: []`; the reading is asserted ACCEPTED with every guard passing. The value assertions are unchanged.
+- `test_a_quote_not_in_the_contract_blocks_approval` and `test_a_rule_that_fails_on_the_second_document_is_repaired`:
+  the approval body gains `acknowledged`; the repair prompt is read from the fake's prompt list. Assertions unchanged.
+- `test_two_readers_failing_fails_the_build`: unchanged text. The fake now fails readers by role on the first
+  contract, because six readers run at once.
+- `test_jev_unreachable_still_reaches_review` was replaced by
+  `test_jev_unreachable_waits_for_a_reviewer_then_builds_with_every_term_flagged`. Version 2 changes the behaviour:
+  with Jev unreachable nothing starts until a reviewer continues, and then every term needs acknowledgement.
+
+New tests (same file) cover: ambiguity refusal; acceptance of identical repeats; `value_in_sentence`;
+`plausibility`; differing readers and models; the sceptic's conflict; the CLI's model verification; MATCHED with no
+Claude call; a match under 0.80; unrecognised; Jev not asked with nothing on file; acknowledgement gating, including
+an unanswered term; the keyless second check passing, failing and with no majority; consent and the paste limits;
+a paste with and without a second contract; the build limit of 12; each read guard refusing; the advisory
+template-match guard; the read body shapes; `on_reading`, `approved_readings` and `set_agreement`; the money link on
+a MATCHED build; the choice map validation; a repair round in the wrong shape; per-term reasons on a reading; and the
+Jev question wording. No new files.
