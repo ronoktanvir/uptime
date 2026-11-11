@@ -94,7 +94,7 @@ test('the first answer draws all seven steps waiting, polls again, and names who
   assert.equal(stepCards(s.root).length, 7);
   assert.equal(s.root.cls('tb-parallel').length, 1);
   assert.equal(s.root.cls('tb-parallel')[0].cls('tb-step').length, 3);
-  assert.match(t, /Uptime started one Jev decision, three Claude readers in parallel and one Claude template builder\./);
+  assert.match(t, /so Uptime started three Claude readers on this contract, (three more on the second contract, )?and one Claude template builder\./);
   assert.match(t, /Halcyon Grid Services/); assert.match(t, /Halcyon Grid: Platform Availability Addendum/);
   for (const actor of ['Jev', 'Claude', 'Uptime · fixed rules', 'Reviewer']) assert.ok(s.root.cls('tb-actor').some(a => a._text === actor), actor);
   assert.equal(stepCards(s.root).filter(c => /Waiting/.test(text(c))).length, 7);

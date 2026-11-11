@@ -1,0 +1,932 @@
+{
+ "started_at": "2026-11-11T01:15:03Z",
+ "api_version": 2,
+ "engine_commit": "7babdfebbd4ff8dcc166e1d64c5149bcddf5457a",
+ "reviewer": "evaluation-script",
+ "reviewer_note": "Approvals in this run were made by a script named evaluation-script, not by a person.",
+ "second_check_note": "Version 2: the second-contract check runs without an answer key.",
+ "forms": [
+  {
+   "form": "form-1",
+   "style_brief": "briefs/form-1.md",
+   "author_model": [
+    "claude-opus-5-5"
+   ],
+   "api_version": 2,
+   "second_check_uses_answer_key": false,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 0.0,
+     "state": "FAILED"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_43497a",
+    "sample_id": null,
+    "state": "FAILED",
+    "source": {
+     "kind": "pasted",
+     "title": "Service Level Addendum",
+     "vendor": "Larkspire Systems, Inc.",
+     "chars": 13137
+    },
+    "second": {
+     "provided": true,
+     "title": "Service Level Addendum"
+    },
+    "started_at": "2026-11-11T01:15:03Z",
+    "updated_at": "2026-11-11T01:15:03Z",
+    "finished_at": "2026-11-11T01:15:03Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "No approved template is on file, so there was nothing for Jev to match; reading the contract",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": null,
+       "options": [
+        "unrecognised"
+       ],
+       "asked": false
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "clause_by_clause"
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "numbers_first"
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "sceptic"
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": "claude-opus-5-5",
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for the template",
+      "detail": {}
+     }
+    ],
+    "terms": [],
+    "checks": [],
+    "template": null,
+    "matched_template": null,
+    "readings": [],
+    "error": {
+     "sentence": "Only 0 of 3 Claude readers answered in the expected shape; at least 2 are needed."
+    }
+   },
+   "template_body": null,
+   "blocking_failed": [],
+   "all_blocking_passed": false,
+   "flagged_terms": [],
+   "approved": false,
+   "seconds": 0.0,
+   "claude_calls": [],
+   "jev_calls": []
+  },
+  {
+   "form": "form-2",
+   "style_brief": "briefs/form-2.md",
+   "author_model": [
+    "claude-sonnet-5-5"
+   ],
+   "api_version": 2,
+   "second_check_uses_answer_key": false,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 0.0,
+     "state": "FAILED"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_78e0f0",
+    "sample_id": null,
+    "state": "FAILED",
+    "source": {
+     "kind": "pasted",
+     "title": "Uptime terms",
+     "vendor": "Pebblework Software, Inc.",
+     "chars": 5221
+    },
+    "second": {
+     "provided": true,
+     "title": "Uptime terms"
+    },
+    "started_at": "2026-11-11T01:15:03Z",
+    "updated_at": "2026-11-11T01:15:03Z",
+    "finished_at": "2026-11-11T01:15:03Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "No approved template is on file, so there was nothing for Jev to match; reading the contract",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": null,
+       "options": [
+        "unrecognised"
+       ],
+       "asked": false
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "clause_by_clause"
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "numbers_first"
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "sceptic"
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": "claude-opus-5-5",
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for the template",
+      "detail": {}
+     }
+    ],
+    "terms": [],
+    "checks": [],
+    "template": null,
+    "matched_template": null,
+    "readings": [],
+    "error": {
+     "sentence": "Only 0 of 3 Claude readers answered in the expected shape; at least 2 are needed."
+    }
+   },
+   "template_body": null,
+   "blocking_failed": [],
+   "all_blocking_passed": false,
+   "flagged_terms": [],
+   "approved": false,
+   "seconds": 0.0,
+   "claude_calls": [],
+   "jev_calls": []
+  },
+  {
+   "form": "form-3",
+   "style_brief": "briefs/form-3.md",
+   "author_model": [
+    "claude-haiku-5-5"
+   ],
+   "api_version": 2,
+   "second_check_uses_answer_key": false,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 0.0,
+     "state": "FAILED"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_64962f",
+    "sample_id": null,
+    "state": "FAILED",
+    "source": {
+     "kind": "pasted",
+     "title": "Service Level Schedule",
+     "vendor": "Vantriss Cloud Limited",
+     "chars": 8099
+    },
+    "second": {
+     "provided": true,
+     "title": "Service Level Schedule"
+    },
+    "started_at": "2026-11-11T01:15:03Z",
+    "updated_at": "2026-11-11T01:15:03Z",
+    "finished_at": "2026-11-11T01:15:03Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "No approved template is on file, so there was nothing for Jev to match; reading the contract",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": null,
+       "options": [
+        "unrecognised"
+       ],
+       "asked": false
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "clause_by_clause"
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "numbers_first"
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "sceptic"
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": "claude-opus-5-5",
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for the template",
+      "detail": {}
+     }
+    ],
+    "terms": [],
+    "checks": [],
+    "template": null,
+    "matched_template": null,
+    "readings": [],
+    "error": {
+     "sentence": "Only 0 of 3 Claude readers answered in the expected shape; at least 2 are needed."
+    }
+   },
+   "template_body": null,
+   "blocking_failed": [],
+   "all_blocking_passed": false,
+   "flagged_terms": [],
+   "approved": false,
+   "seconds": 0.0,
+   "claude_calls": [],
+   "jev_calls": []
+  },
+  {
+   "form": "form-4",
+   "style_brief": "briefs/form-4.md",
+   "author_model": [
+    "claude-opus-5-5"
+   ],
+   "api_version": 2,
+   "second_check_uses_answer_key": false,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 0.0,
+     "state": "FAILED"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_736a9e",
+    "sample_id": null,
+    "state": "FAILED",
+    "source": {
+     "kind": "pasted",
+     "title": "Service Level Addendum",
+     "vendor": "Larkspire Systems, Inc.",
+     "chars": 10381
+    },
+    "second": {
+     "provided": true,
+     "title": "Service Level Addendum"
+    },
+    "started_at": "2026-11-11T01:15:03Z",
+    "updated_at": "2026-11-11T01:15:03Z",
+    "finished_at": "2026-11-11T01:15:03Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "No approved template is on file, so there was nothing for Jev to match; reading the contract",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": null,
+       "options": [
+        "unrecognised"
+       ],
+       "asked": false
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "clause_by_clause"
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "numbers_first"
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "sceptic"
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": "claude-opus-5-5",
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for the template",
+      "detail": {}
+     }
+    ],
+    "terms": [],
+    "checks": [],
+    "template": null,
+    "matched_template": null,
+    "readings": [],
+    "error": {
+     "sentence": "Only 0 of 3 Claude readers answered in the expected shape; at least 2 are needed."
+    }
+   },
+   "template_body": null,
+   "blocking_failed": [],
+   "all_blocking_passed": false,
+   "flagged_terms": [],
+   "approved": false,
+   "seconds": 0.0,
+   "claude_calls": [],
+   "jev_calls": []
+  },
+  {
+   "form": "form-5",
+   "style_brief": "briefs/form-5.md",
+   "author_model": [
+    "claude-sonnet-5-5"
+   ],
+   "api_version": 2,
+   "second_check_uses_answer_key": false,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 0.0,
+     "state": "FAILED"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_bac742",
+    "sample_id": null,
+    "state": "FAILED",
+    "source": {
+     "kind": "pasted",
+     "title": "Service Level Rider",
+     "vendor": "Halvorsen Cloudworks Ltd",
+     "chars": 3431
+    },
+    "second": {
+     "provided": true,
+     "title": "Service Level Rider"
+    },
+    "started_at": "2026-11-11T01:15:03Z",
+    "updated_at": "2026-11-11T01:15:03Z",
+    "finished_at": "2026-11-11T01:15:03Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "No approved template is on file, so there was nothing for Jev to match; reading the contract",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": null,
+       "options": [
+        "unrecognised"
+       ],
+       "asked": false
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "clause_by_clause"
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "numbers_first"
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "sceptic"
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": "claude-opus-5-5",
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for the template",
+      "detail": {}
+     }
+    ],
+    "terms": [],
+    "checks": [],
+    "template": null,
+    "matched_template": null,
+    "readings": [],
+    "error": {
+     "sentence": "Only 0 of 3 Claude readers answered in the expected shape; at least 2 are needed."
+    }
+   },
+   "template_body": null,
+   "blocking_failed": [],
+   "all_blocking_passed": false,
+   "flagged_terms": [],
+   "approved": false,
+   "seconds": 0.0,
+   "claude_calls": [],
+   "jev_calls": []
+  },
+  {
+   "form": "form-6",
+   "style_brief": "briefs/form-6.md",
+   "author_model": [
+    "claude-haiku-5-5"
+   ],
+   "api_version": 2,
+   "second_check_uses_answer_key": false,
+   "steps": [
+    {
+     "step": "build",
+     "seconds": 0.0,
+     "state": "FAILED"
+    }
+   ],
+   "error": null,
+   "build": {
+    "id": "tb_a9fe2a",
+    "sample_id": null,
+    "state": "FAILED",
+    "source": {
+     "kind": "pasted",
+     "title": "Service Level Addendum",
+     "vendor": "Corvane Cloud Services Limited",
+     "chars": 10606
+    },
+    "second": {
+     "provided": true,
+     "title": "Service Level Addendum"
+    },
+    "started_at": "2026-11-11T01:15:03Z",
+    "updated_at": "2026-11-11T01:15:03Z",
+    "finished_at": "2026-11-11T01:15:03Z",
+    "steps": [
+     {
+      "id": "classify",
+      "actor": "JEV",
+      "label": "Which contract type is this?",
+      "state": "DONE",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "No approved template is on file, so there was nothing for Jev to match; reading the contract",
+      "detail": {
+       "choice": "unrecognised",
+       "probability": null,
+       "options": [
+        "unrecognised"
+       ],
+       "asked": false
+      }
+     },
+     {
+      "id": "reader-1",
+      "actor": "CLAUDE",
+      "label": "Reader 1",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "clause_by_clause"
+      }
+     },
+     {
+      "id": "reader-2",
+      "actor": "CLAUDE",
+      "label": "Reader 2",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "numbers_first"
+      }
+     },
+     {
+      "id": "reader-3",
+      "actor": "CLAUDE",
+      "label": "Reader 3",
+      "state": "FAILED",
+      "started_at": "2026-11-11T01:15:03Z",
+      "finished_at": "2026-11-11T01:15:03Z",
+      "seconds": "0.0",
+      "model": null,
+      "summary": "the call failed (TypeError).",
+      "detail": {
+       "role": "sceptic"
+      }
+     },
+     {
+      "id": "build",
+      "actor": "CLAUDE",
+      "label": "Template builder",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": "claude-opus-5-5",
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "checks",
+      "actor": "UPTIME",
+      "label": "Checks",
+      "state": "SKIPPED",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": null,
+      "detail": {}
+     },
+     {
+      "id": "review",
+      "actor": "REVIEWER",
+      "label": "Reviewer approval",
+      "state": "PENDING",
+      "started_at": null,
+      "finished_at": null,
+      "seconds": null,
+      "model": null,
+      "summary": "Waiting for the template",
+      "detail": {}
+     }
+    ],
+    "terms": [],
+    "checks": [],
+    "template": null,
+    "matched_template": null,
+    "readings": [],
+    "error": {
+     "sentence": "Only 0 of 3 Claude readers answered in the expected shape; at least 2 are needed."
+    }
+   },
+   "template_body": null,
+   "blocking_failed": [],
+   "all_blocking_passed": false,
+   "flagged_terms": [],
+   "approved": false,
+   "seconds": 0.0,
+   "claude_calls": [],
+   "jev_calls": []
+  }
+ ],
+ "summary": {
+  "forms": 6,
+  "forms_run": 6,
+  "forms_all_blocking_passed": 0,
+  "forms_approved_by_script": 0,
+  "forms_with_flagged_terms": 0,
+  "forms_with_c_read": 0,
+  "c_reads_refused": 0,
+  "c_terms": {
+   "correct": 0,
+   "wrong": 0,
+   "refused": 0,
+   "not_stated": 0
+  },
+  "c_terms_scored": 0,
+  "values_returned_for_not_stated_terms": 0,
+  "wrong": [],
+  "claude_calls": 0,
+  "jev_calls": 0,
+  "seconds": 0.0
+ },
+ "finished_at": "2026-11-11T01:15:03Z"
+}

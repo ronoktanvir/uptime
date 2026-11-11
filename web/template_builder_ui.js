@@ -364,7 +364,11 @@
       const title = given(source.title) ? source.title : given(sample.title) ? sample.title : given(build.sample_id) ? build.sample_id : 'Template build';
       const orchestration = build.state === 'MATCHED' ? 'Jev recognised an approved template, so no Claude agent ran: the template read this contract under Uptime’s guards.'
         : build.state === 'NEEDS_REVIEWER' ? 'Jev could not be reached, so nothing has started. A reviewer decides whether to build without Jev.'
-        : 'Uptime started one Jev decision, three Claude readers in parallel and one Claude template builder.';
+        : (object((list(build.steps).find(s => s && s.id === 'classify') || {}).detail)?.asked === false
+            ? 'No approved template is on file, so Jev had nothing to match. Uptime started '
+            : 'Jev found no approved template that matches, so Uptime started ')
+          + 'three Claude readers on this contract, ' + (object(build.second)?.provided ? 'three more on the second contract, ' : '')
+          + 'and one Claude template builder.';
       const facts = [source.kind === 'pasted' ? 'Pasted contract' : source.kind === 'sample' ? 'Shipped sample' : null,
         Number.isInteger(source.chars) ? thousands(source.chars) + ' characters' : null,
         object(build.second) ? (build.second.provided ? 'Second contract: ' + (given(build.second.title) ? build.second.title : 'untitled') : 'No second contract given') : null].filter(Boolean);

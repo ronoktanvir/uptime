@@ -209,6 +209,10 @@ def _run(entry, evidence, tenant='template-reading'):
         {'label': 'Claim window closes (exclusive)', 'value': result.get('claim_cutoff_exclusive')},
     ]
     eligible = result['outcome'] == 'ELIGIBLE' and result.get('amount') is not None
+    trace = result['trace'][0] if result.get('trace') else None
+    availability = _availability(*minutes) if minutes else None
+    percent = _display_percent(result['rate_units']) if 'rate_units' in result else None
+    inputs = inputs + [{'label': "The credit engine's own line", 'value': trace}]
     agreement = {
         'agreement_id': agreement_id, 'state': 'SHADOW', 'read_by': 'template:' + entry['template']['id'],
         'month': usage['month'], 'availability_percent': _availability(*minutes) if minutes else None,
@@ -216,8 +220,24 @@ def _run(entry, evidence, tenant='template-reading'):
             '0' if result['outcome'] == 'INELIGIBLE' and minutes else None),
         'monthly_fee': line['amount'],
         'credit': {'amount': result['amount'], 'currency': result['currency'], 'stage': 'ESTIMATED'} if eligible else None,
-        'inputs': inputs, 'evaluation': result['trace'][0] if result.get('trace') else None}
+        'inputs': inputs, 'evaluation': _sentence(minutes, availability, percent, line['amount'], result, trace)}
     return agreement, result, evidence
+
+
+def _money(amount):
+    return '{:,.2f}'.format(Decimal(amount))
+
+
+def _sentence(minutes, availability, percent, fee, result, trace):
+    """One sentence for a person. Every figure in it is the engine's result or an input; nothing is computed here."""
+    if not minutes or availability is None:
+        return trace
+    head = '{:,} of {:,} UTC minutes were available ({}%)'.format(minutes[0], minutes[1], availability)
+    if result['outcome'] == 'ELIGIBLE' and result.get('amount') is not None and percent is not None:
+        currency = result['currency']
+        return head + ', so the {p}% credit tier applies: {p}% of {c} {fee} is {c} {amount}.'.format(
+            p=percent, c=currency, fee=_money(fee), amount=_money(result['amount']))
+    return head + ', so no credit tier applies.'
 
 
 def evaluate(entry, evidence):

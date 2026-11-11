@@ -623,7 +623,7 @@ class TemplateBuilds:
         detail = {"choice": choice, "probability": str(answer["probability"]), "options": ids, "asked": True}
         if matched is not None and probability is not None and probability >= MATCH_THRESHOLD:
             self._step(build, "classify", state="DONE", model=answer.get("model"), detail=detail,
-                       summary="Jev matched the approved template %s (%s)" % (choice, answer["probability"]))
+                       summary="Jev matched the approved template %s (%d%%)" % (choice, int(probability * 100)))
             self._matched(build, text, matched, answer)
             return
         if matched is not None:

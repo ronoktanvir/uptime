@@ -79,15 +79,17 @@ class CountingClaudeFactory:
         self.original = tb.ClaudeCLI.__call__
         factory = self
 
-        def counted(cli, system, prompt):
+        def counted(cli, system, prompt, *args, **kwargs):
+            # Version 2 passes the model per call (one reader runs on a different model); pass it through and record it.
+            model = kwargs.get("model") or (args[0] if args else None) or cli.model
             started = perf_counter()
             try:
-                answer = factory.original(cli, system, prompt)
+                answer = factory.original(cli, system, prompt, *args, **kwargs)
             except Exception as exc:
-                factory.calls.append({"model": cli.model, "seconds": round(perf_counter() - started, 1), "ok": False,
+                factory.calls.append({"model": model, "seconds": round(perf_counter() - started, 1), "ok": False,
                                       "error": str(exc) or type(exc).__name__})
                 raise
-            factory.calls.append({"model": cli.model, "seconds": round(perf_counter() - started, 1), "ok": True})
+            factory.calls.append({"model": model, "seconds": round(perf_counter() - started, 1), "ok": True})
             return answer
         tb.ClaudeCLI.__call__ = counted
 

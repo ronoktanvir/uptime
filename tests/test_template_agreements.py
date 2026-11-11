@@ -64,7 +64,10 @@ def test_authored_month_is_estimated_by_the_engine_to_the_cent():
                              read_by='template:halcyon-availability-addendum/1', month='2026-10',
                              availability_percent='99.787', credit_percent='35', monthly_fee='12000.00',
                              credit={'amount': '4200.00', 'currency': 'USD', 'stage': 'ESTIMATED'})
-    assert agreement['evaluation'] == '44545/44640 UTC minutes available. Exact comparison gives 35000000/1000000% credit.'
+    assert agreement['evaluation'] == ('44,545 of 44,640 UTC minutes were available (99.787%), so the 35% credit tier applies: '
+                                       '35% of USD 12,000.00 is USD 4,200.00.')
+    assert {'label': "The credit engine's own line", 'value': '44545/44640 UTC minutes available. Exact comparison gives '
+            '35000000/1000000% credit.'} in agreement['inputs']
     assert set(agreement) == {'agreement_id', 'state', 'read_by', 'month', 'availability_percent', 'credit_percent',
                               'monthly_fee', 'credit', 'inputs', 'evaluation'}
     assert all(set(row) == {'label', 'value'} for row in agreement['inputs'])
@@ -88,7 +91,7 @@ def test_no_unavailability_earns_no_credit_and_no_invented_amount():
     package['usage']['unavailable_minutes'] = 0
     agreement = ta.evaluate(entry(), package)
     assert agreement['credit'] is None and agreement['credit_percent'] == '0'
-    assert agreement['evaluation'].startswith('44640/44640 UTC minutes available.')
+    assert agreement['evaluation'] == '44,640 of 44,640 UTC minutes were available (100.000%), so no credit tier applies.'
 
 
 @pytest.mark.parametrize('cap, rates, amount', [
