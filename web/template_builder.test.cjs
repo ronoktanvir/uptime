@@ -471,6 +471,12 @@ test('terms show the second contract’s readers and the value in its sentence; 
   assert.deepEqual(s.requests[2], ['/api/template-builds/tb_3f9a2c/approve', {template_sha256: TEMPLATE.sha256, acknowledged: ['claim_window_days', 'maintenance_notice_hours']}]);
   assert.match(text(s.root.cls('tb-approval')[0]), /The reviewer acknowledged Claim window, Maintenance notice\./);
   assert.equal(checkboxes(s.root.cls('tb-terms')[0]).length, 0);
+  const ackedRows = s.root.cls('tb-term').filter(r => /tb-term-acked/.test(r.className));
+  assert.equal(ackedRows.length, 2, 'after approval the acknowledged terms stay marked');
+  assert.ok(ackedRows.every(r => !/tb-term-review/.test(r.className)), 'an acknowledged row is not also drawn as waiting for review');
+  assert.match(text(s.root.cls('tb-terms')[0]), /Acknowledged by the reviewer when this version was approved\./);
+  assert.match(text(s.root.cls('tb-terms')[0]), /2 terms acknowledged at approval/);
+  assert.doesNotMatch(text(s.root.cls('tb-terms')[0]), /for the reviewer/);
   const refused = setup(path => path.endsWith('/approve') ? Object.assign(new Error('Acknowledge exactly the terms Jev did not support.'), {status: 409}) : {build: v2Ready});
   await refused.ui.run(refused.root, 'tb_3f9a2c');
   checkboxes(refused.root).forEach((b, i) => { checkboxes(refused.root)[i].checked = true; checkboxes(refused.root)[i].listeners.change(); });
@@ -504,6 +510,10 @@ test('an accepted reading with an agreement shows the money link exactly as sent
   const s = setup(() => ({build: {...approved, sample_id: sample.id}}));
   await s.ui.run(s.root, 'tb_3f9a2c');
   assert.equal(s.root.cls('tb-next-doc')[0].cls('tb-money').length, 1, 'the server’s reading is drawn under its listed document');
+  const twice = setup(() => ({build: {...approved, sample_id: sample.id, readings: [{...V2_READING, id: 'rd_old', agreement: {...AGREEMENT, agreement_id: 'OLD-1'}}, V2_READING]}}));
+  await twice.ui.run(twice.root, 'tb_3f9a2c');
+  assert.match(text(twice.root.cls('tb-next-doc')[0]), /HGS-PAA-2026-0518/, 'the latest reading of a document is shown');
+  assert.doesNotMatch(text(twice.root.cls('tb-next-doc')[0]), /OLD-1/);
   const money = s.root.cls('tb-money')[0];
   assert.ok(money, 'the reading from the server is drawn under its document');
   const t = text(money);
@@ -617,6 +627,9 @@ test('as the engine built it: Jev not asked with no template on file, the scepti
   assert.match(detail, /Places the rule matched 2, all with the same value/);
   const second = text(s.root.cls('tb-check-second_document')[0]);
   assert.match(second, /a value counts when two agree/);
+  const lower = setup(() => ({build: {...notAsked, checks: notAsked.checks.map(c => c.id === 'second_document' ? {...c, basis: 'three fresh readers; no answer key.'} : c)}}));
+  await lower.ui.run(lower.root, 'tb_3f9a2c');
+  assert.match(text(lower.root.cls('tb-check-second_document')[0]), /Three fresh readers; no answer key\./);
   assert.match(second, /Reader 1 · reads clause by clause · claude-opus-5-5 · 9\.1 s/);
   assert.match(second, /Reader 3 · looks for a conflicting second statement · claude-sonnet-5-5 · 8\.0 s · No answer in time/);
   const approved = {...v2Ready, sample_id: sample.id, state: 'APPROVED', template: {...TEMPLATE, state: 'APPROVED'}, terms: V2_TERMS.map(t => ({...t, needs_acknowledgement: false})),

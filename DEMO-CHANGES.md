@@ -289,3 +289,11 @@ Built against the coordinator's shapes with mocks (the engine change lands separ
   `test_second_contract_check_passes_against_what_its_readers_agreed` (`second_readers` gains `stated`), and
   `test_a_pasted_contract_without_a_second_contract_can_be_approved_unchecked` (the check gains `not_stated: 0`).
   Seven tests added. Shapes: docs/demo/TEMPLATE-BUILDER.md, "A term every reader agrees the contract does not state".
+
+### Acknowledged terms after approval; three README images retaken (page agent, November 10, night)
+
+- An acknowledged term's open detail takes the row's green (`.tb-term-acked + .tb-detail-row`). An acknowledged row is no longer also drawn as waiting for review. After approval, the terms the review step records in `acknowledged` stay marked, with the line "Acknowledged by the reviewer when this version was approved.", and the header pill reads "N terms acknowledged at approval".
+- The second-contract check capitalises the first letter of the server's `basis` sentence, because builds saved before the server fix keep the lowercase sentence.
+- When a document has been read more than once, the latest reading is shown.
+- `docs/assets/demo/template-terms.png`, `template-checks.png` and `template-credit.png` are retaken from the resumed workspace of the last real run (`--resume --template-builder`, no Claude call). The credit image comes from a fresh `read` of the next contract (template only, 45.4 ms, 0 model calls), so the agreement's inputs no longer carry the engine's raw line.
+- Tests: one existing test extended in `web/template_builder.test.cjs` (`terms show the second contract’s readers and the value in its sentence; approval waits for every acknowledgement and sends them`) with assertions for the state after approval. Its existing assertions are unchanged. Two further assertions were added to existing tests: the capitalised basis, and the latest reading of a document.
