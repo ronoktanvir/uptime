@@ -750,3 +750,15 @@ test('version 3: a reading draws the schedule as rows and each tier’s sentence
   assert.equal(view.cls('tb-tier-sentences')[0].tag('li').length, 2);
   assert.match(text(view), /60 days within sixty \(60\) days/);
 });
+
+test('version 3.1: a choice term shows the contract’s own words and each reader’s phrase', async () => {
+  const choice = {...v2Term('credit_application', 'How a credit is applied', 'next_invoice', 'Against the next invoice'), type: 'choice',
+    phrase: 'against future payments', rule_phrase: 'against future payments',
+    readers: [1, 2, 3].map(r => ({reader: r, value: 'next_invoice', quote_found: true, phrase: 'against future payments'}))};
+  const s = setup(() => ({build: {...v2Ready, terms: [V2_TERMS[0], choice]}}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  buttonNamed(s.root.cls('tb-term')[1], 'Show sentence').listeners.click();
+  const detail = text(s.root.cls('tb-detail-row')[0]);
+  assert.match(detail, /The contract’s words for this option “against future payments”/);
+  assert.match(detail, /Reader 1: next_invoice \(“against future payments”\)/);
+});

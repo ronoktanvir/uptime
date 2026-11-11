@@ -97,6 +97,43 @@ SOURCES = [
      "url": "https://www.cloudflare.com/business-sla/"},
 ]
 
+# The second set (November 11): vendors none of which was among the first thirteen (nor Linode, Zendesk or Slack),
+# chosen with a web search for each vendor's own SLA page. The key for each was written after fetching and reading the
+# page and BEFORE any build ran on it (key_fresh.json records when).
+SOURCES_FRESH = [
+    {"id": "vultr", "vendor": "Vultr", "service": "Service Level Agreement", "category": "cloud compute",
+     "url": "https://www.vultr.com/company/sla/"},
+    {"id": "civo", "vendor": "Civo", "service": "Service Level Agreement", "category": "cloud compute",
+     "url": "https://www.civo.com/legal/sla"},
+    {"id": "virtua", "vendor": "Virtua Cloud", "service": "Service Level Agreement", "category": "cloud compute",
+     "url": "https://www.virtua.cloud/legal/service-level-agreement"},
+    {"id": "shockbyte", "vendor": "Shockbyte", "service": "Service Level Agreement", "category": "game server hosting",
+     "url": "https://shockbyte.com/legal/service-level-agreement"},
+    {"id": "wasabi", "vendor": "Wasabi", "service": "Service Level Agreement", "category": "cloud storage",
+     "url": "https://wasabi.com/legal/sla"},
+    {"id": "ably", "vendor": "Ably", "service": "Support and Service Level Policy Addendum", "category": "realtime API",
+     "url": "https://ably.com/service-level-addendum"},
+    {"id": "sinch", "vendor": "Sinch", "service": "Messaging Service Level Agreement", "category": "communications API",
+     "url": "https://sinch.com/legal/terms-and-conditions/other-sinch-terms-conditions/messaging-service-level-agreement-sla/"},
+    {"id": "plivo", "vendor": "Plivo", "service": "Service Level Agreement", "category": "communications API",
+     "url": "https://plivo.com/legal/sla/"},
+    {"id": "gitlab", "vendor": "GitLab", "service": "SaaS Service Level Agreement", "category": "developer tools",
+     "url": "https://handbook.gitlab.com/handbook/engineering/infrastructure-platforms/service-level-agreement/"},
+    {"id": "oneuptime", "vendor": "OneUptime", "service": "Service Level Agreement", "category": "developer tools",
+     "url": "https://oneuptime.com/legal/sla"},
+    {"id": "supabase", "vendor": "Supabase", "service": "Service Level Agreement", "category": "database",
+     "url": "https://supabase.com/docs/company/sla"},
+    {"id": "neon", "vendor": "Neon", "service": "Service Level Agreement", "category": "database",
+     "url": "https://neon.com/sla"},
+    {"id": "upstash", "vendor": "Upstash", "service": "Service Level Agreement", "category": "database",
+     "url": "https://upstash.com/docs/common/help/sla"},
+    {"id": "clickhouse", "vendor": "ClickHouse", "service": "ClickHouse Cloud Service Level Agreement", "category": "database",
+     "url": "https://clickhouse.com/legal/agreements/service-level-agreement"},
+    {"id": "aerospike", "vendor": "Aerospike", "service": "Aerospike Cloud Service Level Agreement", "category": "database",
+     "url": "https://aerospike.com/legal/aerospike-cloud-service-level-agreement/"},
+]
+SETS = {"first": (SOURCES, "sources.json", "key.json", ""), "fresh": (SOURCES_FRESH, "sources_fresh.json", "key_fresh.json", "fresh-")}
+
 
 def now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -263,7 +300,7 @@ def prepare(source):
 
 # --- Quotes out of the record ----------------------------------------------------------------
 
-QUOTE_KEYS = {"quote", "rule_quote", "conflict", "reason", "sentence", "pattern", "error", "rule_error", "detail",
+QUOTE_KEYS = {"quote", "rule_quote", "phrase", "rule_phrase", "conflict", "reason", "sentence", "pattern", "error", "rule_error", "detail",
               "reasons", "summary", "repair_note", "basis"}
 OUR_SUMMARIES = re.compile(r"^(\d+ terms, \d+ quotes found|\d+ extraction rules written|\d+ of \d+ checks passed|"
                            r"No approved template|Waiting for|Approved by|Read by the approved|Approval is blocked|"
@@ -467,11 +504,14 @@ def main():
     parser.add_argument("--fetch", action="store_true")
     parser.add_argument("--build", action="store_true")
     parser.add_argument("--score", default=None)
+    parser.add_argument("--set", default="first", choices=sorted(SETS),
+                        help="first: the thirteen pages of the first run; fresh: the second set")
     args = parser.parse_args()
+    sources, sources_file, key_file, prefix = SETS[args.set]
     OUT.mkdir(parents=True, exist_ok=True)
     if args.score:
         run = json.loads(Path(args.score).read_text())
-        key = {k: v for k, v in json.loads((OUT / "key.json").read_text()).items() if not k.startswith("_")}
+        key = {k: v for k, v in json.loads((OUT / (run.get("key_file") or key_file)).read_text()).items() if not k.startswith("_")}
         for r in run["pages"]:
             if r.get("built"):
                 r["score"] = score(r, key[r["id"]])
@@ -482,14 +522,14 @@ def main():
         print(text)
         return
     rows, texts = [], {}
-    for source in SOURCES:
+    for source in sources:
         row, text = prepare(source)
         rows.append(row)
         if text is not None:
             texts[source["id"]] = text
         print("%-14s %-6s %8s bytes %8s chars %s" % (source["id"], row.get("status"), row.get("bytes"), row.get("text_chars"),
                                                      "used" if row["used"] else "NOT USED: " + str(row["why_not_used"])))
-    (OUT / "sources.json").write_text(json.dumps({"fetched_with": "urllib.request GET, User-Agent %r" % USER_AGENT,
+    (OUT / sources_file).write_text(json.dumps({"fetched_with": "urllib.request GET, User-Agent %r" % USER_AGENT,
                                                   "cache": "~/uptime-demo/public-slas (outside the repository)",
                                                   "limit_chars": LIMIT, "sources": rows}, indent=1) + "\n")
     if not args.build:
@@ -498,18 +538,18 @@ def main():
     if not executable:
         sys.exit("No Claude Code CLI found on PATH.")
     from uptime.jev import JevClient
-    key_path = OUT / "key.json"
+    key_path = OUT / key_file
     key = {k: v for k, v in json.loads(key_path.read_text()).items() if not k.startswith("_")} if key_path.exists() else {}
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     (OUT / "results").mkdir(exist_ok=True)
-    out = OUT / "results" / (stamp + ".json")
+    out = OUT / "results" / (prefix + stamp + ".json")
     commit = None
     try:
         import subprocess
         commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
     except OSError:
         pass
-    run = {"started_at": now(), "engine_commit": commit, "reviewer": REVIEWER,
+    run = {"started_at": now(), "engine_commit": commit, "reviewer": REVIEWER, "set": args.set, "key_file": key_file,
            "reviewer_note": "Approvals were made by a script named evaluation-script, not by a person.",
            "quotes_note": "Every quoted sentence, rule pattern, reader reason and interpreter message is replaced by its "
                           "SHA-256 (with character offsets in the normalized text where it is found there).",
@@ -530,7 +570,7 @@ def main():
                 continue
             print("%s: building ..." % row["id"], flush=True)
             text = texts[row["id"]]
-            record = build_one(next(s for s in SOURCES if s["id"] == row["id"]), text, executable, jev_client, work, counter)
+            record = build_one(next(s for s in sources if s["id"] == row["id"]), text, executable, jev_client, work, counter)
             normalized = rules.normalize(text)
             page.update(scrub(record, normalized), built=True)
             if row["id"] in key:

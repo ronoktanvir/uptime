@@ -502,3 +502,27 @@ claim window not in calendar days is refused with a sentence ("the claim window 
 counts calendar days after the month; it is not converted."), and so is a cap the contract does not state ("no value
 for Credit cap"). The maintenance notice is shown in its own unit and, as before, does not change the estimate. The
 Halcyon sample still estimates USD 4,200.00 for October 2026.
+
+## Version 3.1: a choice rests on the contract's own phrase (November 11)
+
+The first public-SLA run (`TEMPLATE-BUILDER-PUBLIC-SLAS.md`) showed `value_in_sentence` refusing correct choice values
+because it looked for words Uptime expected ("month", "invoice"; and "invoices" did not match). That word list is gone.
+
+- A reader answers a choice term with `"phrase"`: the exact words of the contract that give the option, copied from
+  inside its quote (`{"value": "next_invoice", "phrase": "against future payments", "quote": "…"}`).
+- `value_in_sentence` for a choice: the option is one of the term's options and the phrase is literally in the quoted
+  sentence (whitespace, quote marks and letter case normalized). Nothing else. Numeric, duration and schedule checks
+  are unchanged, and so is every threshold.
+- The readers must agree on the link: a choice's agreement key is (option, phrase), not the option alone.
+- The rule captures the readers' phrase and its `map` sends it to the option. **The map keeps only phrases the readers
+  vouched for** (the first contract's agreed phrase, and any phrase at least two second-contract readers gave for the
+  same option); a phrase the builder added that no reader gave is dropped before the template is hashed.
+- `reproduce` for a choice: the rule returns the option by capturing the readers' phrase (normalized). A mismatch is
+  sent to the repair round as "captured …, not the readers' phrase …".
+- Jev is asked about the phrase: "Does this sentence, in the words "against future payments", say that a service credit
+  reaches the customer against the next invoice?" A choice without a phrase is not asked and needs acknowledgement.
+- Guarded reads: the read guard checks the phrase the rule captured is in the sentence it matched; the option comes
+  from the approved map.
+- Shapes, additive only: a build `term` for a choice gains `phrase` and `rule_phrase`, and `term.readers[]` gains
+  `phrase`. A reading's terms, `approved_readings()`, `reading.agreement` and `template_agreements.evaluate` are
+  unchanged.

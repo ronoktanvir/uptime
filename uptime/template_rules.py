@@ -46,7 +46,7 @@ TERMS = (
     {"field": "measurement_period", "label": "Measurement period", "type": "choice",
      "options": {"calendar_month": "Calendar month", "calendar_quarter": "Calendar quarter", "calendar_year": "Calendar year"},
      "describe": "the period over which availability is measured",
-     "question": "Does this sentence make each {display_lower} the measurement period?"},
+     "question": "Does this sentence, in the words \"{phrase}\", make each {display_lower} the measurement period?"},
     {"field": "credit_schedule", "label": "Credit schedule", "type": "schedule",
      "describe": "every service-credit tier: for each, the availability percentage below which it applies and the "
                  "credit it earns as a percent of fees (one to six tiers; a single flat credit is one tier)",
@@ -67,7 +67,7 @@ TERMS = (
      "options": {"next_invoice": "Against the next invoice", "refund": "Paid as a refund",
                  "account_balance": "Held as an account balance"},
      "describe": "how an awarded service credit reaches the customer",
-     "question": "Does this sentence say how a service credit reaches the customer, namely {display_lower}?"},
+     "question": "Does this sentence, in the words \"{phrase}\", say that a service credit reaches the customer {display_lower}?"},
 )
 TERM = {t["field"]: t for t in TERMS}
 WORDS = {w: i for i, w in enumerate(
@@ -76,9 +76,6 @@ WORDS = {w: i for i, w in enumerate(
 TENS = {"twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90}
 MAX_MATCHES = 50
 NOT_STATED = "Not stated in the contract this template was built from"
-# For a choice term, the word a sentence must contain for the option to be "in" it.
-CHOICE_WORDS = {"calendar_month": r"\bmonth\b", "calendar_quarter": r"\bquarter\b", "calendar_year": r"\byear\b",
-                "next_invoice": r"\binvoice\b", "refund": r"\brefund", "account_balance": r"\bbalance\b"}
 PERCENT_FIELDS = tuple(t["field"] for t in TERMS if t["type"] == "percent")
 DURATION_FIELDS = tuple(t["field"] for t in TERMS if t["type"] == "duration")
 # The unit phrases a duration may capture, as the contract writes them. Nothing else is a unit; nothing is converted.
@@ -558,7 +555,9 @@ def apply(template, text, matcher=MATCHER):
         terms.append({"field": term["field"], "label": term["label"], "type": term["type"],
                       "value": result["value"], "display": display(term["field"], result["value"]),
                       "quote": result["quote"], "error": result["error"], "places": result["places"],
-                      "ambiguous": result["ambiguous"], "stated": term["field"] not in not_stated})
+                      "ambiguous": result["ambiguous"], "stated": term["field"] not in not_stated,
+                      **({"phrase": result["raw"] if result["value"] is not None else None}
+                         if term["type"] == "choice" else {})})
     return {"terms": terms, "found": sum(t["value"] is not None for t in terms), "total": len(terms) - len(not_stated),
             "not_stated": not_stated,
             "milliseconds": "%.1f" % ((perf_counter() - started) * 1000)}
@@ -604,10 +603,21 @@ def row_in_sentence(row, sentence, commitment=None):
             and bool(re.search(COMMITMENT_WORDS, text, re.IGNORECASE)))
 
 
-def value_in_sentence(field, value, sentence, commitment=None):
+def phrase_in(phrase, sentence):
+    """True when the contract's own phrase is literally in the sentence (whitespace and quote marks normalized,
+    letter case ignored)."""
+    if not isinstance(phrase, str) or not phrase.strip() or not isinstance(sentence, str):
+        return False
+    return normalize(phrase).lower() in normalize(sentence).lower()
+
+
+def value_in_sentence(field, value, sentence, commitment=None, phrase=None):
     """True when `value` is literally in `sentence`: as digits ("99.95%", "(30)") or number words ("seventy-two")
-    for a number, the option's own word ("month", "invoice") for a choice, the number and the unit for a duration,
-    and every tier in its own sentence for a schedule (`sentence` is then the list of tier sentences). Code only."""
+    for a number, the number and the unit for a duration, and every tier in its own sentence for a schedule
+    (`sentence` is then the list of tier sentences). For a choice, `phrase` is the contract's own words that give the
+    option (the readers copy them from the contract), and the check is that those words are in the sentence; which
+    option the words give is what the readers agree on, the rule's map records and Jev is asked about. No list of
+    expected words is used. Code only."""
     term = TERM.get(field)
     if term is None or value is None:
         return False
@@ -618,8 +628,7 @@ def value_in_sentence(field, value, sentence, commitment=None):
         return False
     text = normalize(sentence)
     if term["type"] == "choice":
-        word = CHOICE_WORDS.get(value)
-        return bool(word and re.search(word, text, re.IGNORECASE))
+        return value in term["options"] and phrase_in(phrase, text)
     if term["type"] == "duration":
         return (isinstance(value, dict) and value.get("unit") in UNIT_IN_SENTENCE
                 and _number_in(value.get("value"), text)

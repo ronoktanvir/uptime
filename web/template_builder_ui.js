@@ -578,6 +578,7 @@
               : [el('p', 'tb-detail-label', Array.isArray(term.quote) ? 'The sentence of each tier in the contract' : 'The sentence in the contract'),
                 sentenceBlock(term.quote) || el('p', 'help', 'No sentence was recorded for this term.')],
             add(el('dl', 'record tb-detail'),
+              given(term.phrase) ? [el('dt', '', 'The contract’s words for this option'), el('dd', 'tb-quote-text tb-phrase', '“' + term.phrase + '”' + (given(term.rule_phrase) && term.rule_phrase !== term.phrase ? ' · the rule captured “' + term.rule_phrase + '”' : ''))] : null,
               typeof term.value_in_sentence === 'boolean' ? [el('dt', '', 'Value in its sentence'), el('dd', term.value_in_sentence ? '' : 'tb-rule-error', term.value_in_sentence ? 'Yes: the value is written in this sentence' : 'No: the value is not written in this sentence')] : null,
               rule && given(rule.pattern) ? [el('dt', '', 'Extraction rule'), add(el('dd'), el('code', 'tb-pattern', rule.pattern))] : null,
               rule && Array.isArray(rule.rows) ? [el('dt', '', 'Extraction rule, one pattern per kind of tier'), add(el('dd'), list(rule.rows).filter(object).map(r =>
@@ -586,7 +587,7 @@
               given(term.rule_value) || term.rule_value === null || object(term.rule_value) || Array.isArray(term.rule_value) ? [el('dt', '', 'The rule returns'), el('dd', '', term.rule_value === null ? 'Not found' : plainValue(term, term.rule_value))] : null,
               sentences(term.rule_quote).length && JSON.stringify(term.rule_quote) !== JSON.stringify(term.quote) ? [el('dt', '', 'The rule matched'), add(el('dd', 'tb-quote-text'), sentenceBlock(term.rule_quote, 'span'))] : null,
               given(term.rule_error) ? [el('dt', '', 'Rule error'), el('dd', 'tb-rule-error', term.rule_error)] : null,
-              list(term.readers).length ? [el('dt', '', 'Each reader'), el('dd', '', list(term.readers).filter(object).map(r => 'Reader ' + r.reader + ': ' + (r.stated === false ? 'not stated' : r.value === null || r.value === undefined ? 'Not found' : plainValue(term, r.value)) + (r.quote_found === false ? ' (quote not in the contract)' : '')).join(' · '))] : null,
+              list(term.readers).length ? [el('dt', '', 'Each reader'), el('dd', '', list(term.readers).filter(object).map(r => 'Reader ' + r.reader + ': ' + (r.stated === false ? 'not stated' : r.value === null || r.value === undefined ? 'Not found' : plainValue(term, r.value) + (given(r.phrase) ? ' (“' + r.phrase + '”)' : '')) + (r.quote_found === false ? ' (quote not in the contract)' : '')).join(' · '))] : null,
               secondLine ? [el('dt', '', 'Second contract'), el('dd', term.second_document_ok === false ? 'tb-rule-error' : '', secondLine)]
                 : term.second_document_value !== undefined && term.second_readers === undefined ? [el('dt', '', 'Second contract'), el('dd', '', (term.second_document_value === null ? 'Not found' : plainValue(term, term.second_document_value)) + (term.second_document_ok === true ? ' · as authored' : term.second_document_ok === false ? ' · does not match the authored value' : ''))] : null,
               given(term.conflict) ? [el('dt', '', 'Reader 3 found a conflict'), el('dd', 'tb-quote-text tb-conflict', term.conflict)] : null,

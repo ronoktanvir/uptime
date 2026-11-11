@@ -1,0 +1,394 @@
+{
+ "_about": "Second set. Written by hand by the evaluating agent (Claude Opus 5.5 in Claude Code) after fetching and reading each cached page and BEFORE any build ran on these pages, with the same conventions as key.json: the first-listed commitment is primary and others are other_service; a commitment stated only by a credit table is keyed as its top threshold; 'by the end of the (second) month/billing cycle following' is keyed as 1 (2) months; 'monthly' measurement is calendar_month. Any later change is recorded in _changes with the reason.",
+ "_written_at": "2026-11-11T02:17:13Z",
+ "_changes": [
+  {
+   "at": "2026-11-11T02:28:28Z",
+   "page": "neon",
+   "term": "maintenance_notice",
+   "from": "not_stated",
+   "to": {
+    "value": "24",
+    "unit": "hours"
+   },
+   "why": "After the build: the readers showed 24 hours, and the page's definition of Unscheduled Downtime excludes scheduled maintenance disclosed with at least 24 hours' notice. I had missed it; the builder was right and my key was wrong."
+  }
+ ],
+ "civo": {
+  "terms": {
+   "availability_target_percent": "99.95",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.95",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "40"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "100"
+    }
+   ],
+   "credit_cap_percent": "100",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": {
+    "value": "1",
+    "unit": "business_days"
+   },
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "claim_window": "30 days from the date of the outage"
+  }
+ },
+ "virtua": {
+  "terms": {
+   "availability_target_percent": "99.99",
+   "measurement_period": "not_stated",
+   "credit_schedule": "not_stated",
+   "credit_cap_percent": "not_stated",
+   "claim_window": "not_stated",
+   "maintenance_notice": "not_stated",
+   "credit_application": "not_stated"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "100"
+   ]
+  },
+  "notes": {
+   "credit_schedule": "credits in hours of service by outage length",
+   "availability_target_percent": "also states 100% node and network uptime"
+  }
+ },
+ "shockbyte": {
+  "terms": {
+   "availability_target_percent": "99.99",
+   "measurement_period": "calendar_month",
+   "credit_schedule": "not_stated",
+   "credit_cap_percent": "100",
+   "claim_window": {
+    "value": "7",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "not_stated"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "99.95"
+   ]
+  },
+  "notes": {
+   "credit_schedule": "day-for-day service credit for downtime, not tiers"
+  }
+ },
+ "ably": {
+  "terms": {
+   "availability_target_percent": "99.999",
+   "measurement_period": "calendar_month",
+   "credit_schedule": "not_stated",
+   "credit_cap_percent": "100",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "credit_schedule": "a formula (fee x outage minutes x accelerator x affected ratio over minutes in the month)"
+  }
+ },
+ "sinch": {
+  "terms": {
+   "availability_target_percent": "99.95",
+   "measurement_period": "calendar_month",
+   "credit_schedule": "not_stated",
+   "credit_cap_percent": "not_stated",
+   "claim_window": "not_stated",
+   "maintenance_notice": {
+    "value": "10",
+    "unit": "business_days"
+   },
+   "credit_application": "not_stated"
+  },
+  "notes": {
+   "credit_schedule": "no service credits stated"
+  }
+ },
+ "plivo": {
+  "terms": {
+   "availability_target_percent": "not_stated",
+   "measurement_period": "not_stated",
+   "credit_schedule": "not_stated",
+   "credit_cap_percent": "not_stated",
+   "claim_window": "not_stated",
+   "maintenance_notice": "not_stated",
+   "credit_application": "not_stated"
+  },
+  "notes": {
+   "_": "support response levels only; no uptime commitment or credits"
+  }
+ },
+ "gitlab": {
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.9",
+     "credit_percent": "5"
+    },
+    {
+     "below_percent": "99.5",
+     "credit_percent": "10"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  }
+ },
+ "oneuptime": {
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.9",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "25"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "50"
+    }
+   ],
+   "credit_cap_percent": "50",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": {
+    "value": "48",
+    "unit": "hours"
+   },
+   "credit_application": "next_invoice"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "99.95"
+   ],
+   "credit_schedule": [
+    [
+     {
+      "below_percent": "99.95",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "99",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "50"
+     }
+    ]
+   ]
+  }
+ },
+ "supabase": {
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.9",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "15"
+    },
+    {
+     "below_percent": "98",
+     "credit_percent": "20"
+    },
+    {
+     "below_percent": "96",
+     "credit_percent": "30"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "credit_cap_percent": "20% of fees paid over a preceding period under the Order Form, not of the month"
+  }
+ },
+ "neon": {
+  "terms": {
+   "availability_target_percent": "99.95",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.95",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "15"
+    },
+    {
+     "below_percent": "98",
+     "credit_percent": "20"
+    },
+    {
+     "below_percent": "96",
+     "credit_percent": "80"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "1",
+    "unit": "months"
+   },
+   "maintenance_notice": {
+    "value": "24",
+    "unit": "hours"
+   },
+   "credit_application": "next_invoice"
+  },
+  "also_correct": {
+   "claim_window": [
+    {
+     "value": "21",
+     "unit": "days"
+    }
+   ]
+  },
+  "notes": {
+   "claim_window": "states both a support ticket within 21 days (and elsewhere 24 hours) and a claim by the end of the following month; both 1 month and 21 days accepted"
+  }
+ },
+ "upstash": {
+  "terms": {
+   "availability_target_percent": "99.99",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.99",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "30"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "60"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "2",
+    "unit": "months"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  }
+ },
+ "clickhouse": {
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.9",
+     "credit_percent": "5"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "25"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "1",
+    "unit": "months"
+   },
+   "maintenance_notice": {
+    "value": "72",
+    "unit": "hours"
+   },
+   "credit_application": "account_balance"
+  },
+  "notes": {
+   "credit_application": "issued as cloud credits provisioned to the organization",
+   "maintenance_notice": "planned downtime communicated with at least 72 hours' prior warning"
+  }
+ },
+ "aerospike": {
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.9",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "25"
+    }
+   ],
+   "credit_cap_percent": "25",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "99.99"
+   ],
+   "credit_schedule": [
+    [
+     {
+      "below_percent": "99.99",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "99",
+      "credit_percent": "25"
+     }
+    ]
+   ]
+  }
+ }
+}
