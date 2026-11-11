@@ -1178,3 +1178,23 @@ def test_a_reader_choice_without_a_phrase_fails_value_in_sentence(tmp_path):
     term = next(t for t in build["terms"] if t["field"] == "measurement_period")
     assert term["phrase"] is None and term["value_in_sentence"] is False and term["jev"] is None
     assert check(build, "value_in_sentence")["ok"] is False
+
+
+def test_the_reader_prompt_examples_are_in_no_sample_or_held_out_contract():
+    """The example phrases only show the shape of an answer. One that is literally in a contract the builder is shown
+    or measured on would hand a reader that contract's answer."""
+    import re
+    from pathlib import Path
+    prompt = tb.reader_prompt("x")
+    listed = re.search(r'for example ((?:"[^"]+"(?:, )?)+)\)', prompt)
+    assert listed, "the reader prompt no longer lists example phrases"
+    examples = re.findall(r'"([^"]+)"', listed.group(1))
+    assert len(examples) == 3
+    root = Path(__file__).resolve().parents[1] / "fixtures"
+    texts = [p for folder in ("template_builder_demo", "template_builder_heldout")
+             for p in (root / folder).rglob("*.txt")]
+    assert len(texts) >= 3
+    for path in texts:
+        text = " ".join(path.read_text(encoding="utf-8").split()).casefold()
+        for example in examples:
+            assert example.casefold() not in text, (example, path.name)

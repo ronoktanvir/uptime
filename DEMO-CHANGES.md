@@ -481,3 +481,22 @@ The two new results files had their choice phrases hashed after the run, before 
   takes `model_calls` and `jev_template` from the stand-in's reading record (the stand-in's `get` now returns one) and
   checks the listing. New tests: two in `web/template_claim_ui.test.cjs` (the card following the case; counters and
   Cases).
+
+### The reader prompt's example phrases (coordinator, November 10, 20:35 PST)
+
+The choice-phrase fix (`46d1968`) gave the readers three example phrases. Two, "monthly billing cycle" and "against
+future payments", were AWS's wording from the first set of public pages. The fix was committed before the fresh pages
+were searched for (the agent's own record: commit at 02:15:40 UTC, first search at 02:15:47 UTC), but three of the
+fresh pages (Ably, Neon, Upstash) use the same words, as SLAs often copy AWS's, so those examples handed a reader
+part of those pages' answers. They are replaced with three invented phrases that are in none of the 26 cached pages
+and none of the sample or held-out contracts: "in any one calendar quarter", "returned to you as a refund", "kept as
+a balance on your account". Nothing else in the prompt, the checks or the thresholds changed.
+
+- New test: `tests/test_template_builder.py` ›
+  `test_the_reader_prompt_examples_are_in_no_sample_or_held_out_contract` (the cached public pages are outside the
+  repository, so the test covers the 29 contract texts under `fixtures/template_builder_demo/` and
+  `fixtures/template_builder_heldout/`).
+- No existing test changed.
+- One docstring sentence in `uptime/template_agreements.py` reworded (the template reads no time zone).
+- The fresh-pages table in `docs/demo/TEMPLATE-BUILDER-PUBLIC-SLAS.md` was measured with the old examples; a re-run
+  with the new ones is labelled as such there.

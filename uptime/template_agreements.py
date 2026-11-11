@@ -20,8 +20,8 @@ tier, tiers never summed). Version 3 terms (docs/demo/TEMPLATE-BUILDER.md, "Vers
   not state means no estimate: a cap may exist in another form, so it is never assumed absent;
 - claim_window {value, unit} -> the engine's filing window in calendar days after the month. Only a window in
   calendar days is stated to the engine; business days or months are refused with a sentence, never converted;
-- measurement_period must be `calendar_month` (stated to the engine as the UTC calendar month; a contract that
-  names no time zone, so that is an assumption shown in the inputs); other periods are refused;
+- measurement_period must be `calendar_month` (stated to the engine as the UTC calendar month; the template
+  reads no time zone, so that is an assumption shown in the inputs); other periods are refused;
 - credit_application must be `next_invoice` (the engine's only remedy, a future-invoice credit on the affected
   monthly fee); a refund or account balance is refused;
 - maintenance_notice_hours: governs which downtime is excluded; the engine takes exclusion-adjusted minutes, so it
