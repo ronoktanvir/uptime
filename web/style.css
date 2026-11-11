@@ -1241,6 +1241,13 @@ dl.record.tb-money-inputs { margin: 0; grid-template-columns: minmax(240px, max-
 .tb-term-error { margin-top: 4px; font-size: 12.5px; line-height: 18px; color: var(--warn); }
 .tb-second-readers { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px; }
 .tb-conflict { color: var(--warn); }
+.tb-unstated { display: inline-block; padding: 1px 8px; border: 1px dashed var(--line-strong); border-radius: 999px; font-size: 12.5px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+.tb-term-unstated .tb-term-label strong { color: var(--text); }
+.tb-terms .tb-unstated { white-space: normal; border-radius: 8px; }
+.tb-terms .tb-second-cell { white-space: normal; min-width: 110px; }
+.tb-terms .tb-toggle .link-button { white-space: nowrap; }
+.tb-unstated-reason { margin: 4px 0 2px; padding: 10px 14px; border-left: 3px solid var(--line-strong); border-radius: 0 8px 8px 0; background: var(--surface); color: var(--ink); }
+.tb-unstated-row td { background: var(--sunken); }
 .tb-evaluation { font-family: var(--serif); font-size: 14.5px; line-height: 22px; color: var(--ink); }
 .tb-money-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .tb-portfolio-link { font-weight: 600; text-decoration: none; }

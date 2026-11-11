@@ -631,3 +631,61 @@ test('as the engine built it: Jev not asked with no template on file, the scepti
   await noted.ui.run(noted.root, 'tb_3f9a2c');
   assert.match(text(noted.root.cls('tb-reading')[0]), /No usage evidence is on file for this vendor\./);
 });
+
+// ---- A term every reader agrees the contract does not state (engine, November 10 evening) ----
+const UNSTATED = {field: 'maintenance_notice_hours', label: 'Maintenance notice', type: 'hours', status: 'NOT_STATED', stated: false, value: null, display: null, quote: null,
+  reason: 'The contract gives 5 Business Days’ notice, not hours', rule: null, jev: null, needs_acknowledgement: true,
+  readers: [1, 2, 3].map(r => ({reader: r, value: null, stated: false})), agreement: {agree: 3, of: 3},
+  second_readers: {agree: 3, of: 3, value: null, stated: false}, second_document_ok: true};
+const withUnstated = {...v2Ready, terms: [V2_TERMS[0], {...V2_TERMS[1]}, UNSTATED].map(t => t.stated === false ? t : {...t, stated: true}),
+  checks: [{id: 'stated', label: 'The contract states the terms a credit needs', passed: 2, total: 2, ok: true, blocking: true, by: 'UPTIME', not_stated: 1},
+    ...V2_CHECKS.map(c => ({...c, not_stated: c.id === 'reproduce' ? 1 : 0, ...(c.id === 'reproduce' ? {passed: 8, total: 8} : {})}))]};
+
+test('a not-stated term reads "Not stated in this contract", shows no Jev figure, gives its reason and gates approval through its own tick box', async () => {
+  const s = setup(() => ({build: withUnstated}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const row = s.root.cls('tb-term')[2];
+  const t = text(row);
+  assert.match(t, /Maintenance notice Not stated in this contract 3 of 3 3 of 3 · not stated No value Not asked To acknowledge/);
+  assert.doesNotMatch(t, /Not found|%|Yes ·|No ·/);
+  const detail = text(s.root.cls('tb-term-detail')[1]);
+  assert.match(detail, /Why it is not stated The contract gives 5 Business Days’ notice, not hours/);
+  assert.match(detail, /Reader 1: not stated · Reader 2: not stated · Reader 3: not stated/);
+  assert.match(detail, /Three fresh readers: not stated \(3 of 3\) · the same/);
+  assert.match(detail, /Every reader agrees the contract does not state this/);
+  assert.match(detail, /I have checked that the contract does not state this/);
+  assert.doesNotMatch(detail, /The sentence in the contract|I have read this sentence/);
+  assert.match(text(s.root.cls('tb-approval')[0]), /2 of 2 terms still to acknowledge: Claim window, Maintenance notice/);
+  const boxes = () => checkboxes(s.root);
+  boxes()[0].checked = true; boxes()[0].listeners.change();
+  assert.equal(buttonNamed(s.root, 'Approve this template').disabled, true, 'the not-stated term still waits');
+  boxes()[1].checked = true; boxes()[1].listeners.change();
+  assert.equal(buttonNamed(s.root, 'Approve this template').disabled, false);
+  await buttonNamed(s.root, 'Approve this template').listeners.click();
+  assert.deepEqual(s.requests[2][1].acknowledged, ['claim_window_days', 'maintenance_notice_hours']);
+});
+
+test('checks: the stated check comes first and every check shows its not-stated count when above zero', async () => {
+  const s = setup(() => ({build: withUnstated}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const checks = s.root.cls('tb-check');
+  assert.equal(checks.length, 7);
+  assert.match(text(checks[0]), /The contract states the terms a credit needs Uptime’s code · blocks approval if it fails 2 of 2 · 1 not stated Pass/);
+  assert.match(text(checks[4]), /The template returns every term from this contract .* 8 of 8 · 1 not stated Pass/);
+  assert.doesNotMatch(text(checks[1]), /not stated/);
+});
+
+test('a reading names a not-stated field as not stated when the template was built, never as not found, and counts rules only', async () => {
+  const approved = {...withUnstated, sample_id: sample.id, state: 'APPROVED', template: {...TEMPLATE, state: 'APPROVED'}, terms: withUnstated.terms.map(t => ({...t, needs_acknowledgement: false})),
+    readings: [{...V2_READING, found: 8, total: 8, not_stated: ['maintenance_notice_hours'],
+      terms: [READING.terms[0], {field: 'maintenance_notice_hours', label: 'Maintenance notice', type: 'hours', value: null, display: null, quote: null, stated: false,
+        error: 'Not stated in the contract this template was built from'}]}]};
+  const s = setup(() => ({build: approved}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const reading = s.root.cls('tb-reading')[0];
+  assert.match(text(reading), /8 of 8 terms found · 1 not stated/);
+  const row = reading.cls('tb-unstated-row')[0];
+  assert.match(text(row), /Maintenance notice Not stated when this template was built Not stated in the contract this template was built from/);
+  assert.equal(reading.cls('tb-not-found').length, 0);
+  assert.doesNotMatch(text(reading), /Not found|Nothing is guessed/);
+});
