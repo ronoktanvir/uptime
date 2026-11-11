@@ -1,0 +1,16 @@
+{
+  "schema": "authored-usage/1",
+  "authored": "Fictional usage written for the November 10, 2026 template-builder demo; not from any monitor, vendor or customer.",
+  "vendor": "Halcyon Grid Services",
+  "customer": "Brightwater Freight Co.",
+  "agreement": "HGS-PAA-2026-0457",
+  "account": "brightwater-halcyon",
+  "product": "Halcyon Grid Covered Services",
+  "plan": "Order Form HGS-OF-78031",
+  "month": "2026-12",
+  "monitor_ref": "HGS-PROBES-2026-12",
+  "month_complete": true,
+  "exclusions_removed": true,
+  "unavailable_minutes": 95,
+  "note": "A scenario month: one authored outage of 95 minutes on 2026-12-09 from 14:20 to 15:55 UTC; no scheduled maintenance or other Excluded Events in the month. December 2026 is the first full calendar month the addendum (effective 2026-11-03) governs."
+}
