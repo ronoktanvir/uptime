@@ -39,6 +39,13 @@ At about 16:55 PST Ronok pasted a review that marked the template builder down o
 - After the strict version refused five of six held-out forms, mostly over one term stated in days where hours were asked, a term every reader agrees the contract does not state is now recorded as not stated and must be acknowledged. No unit is converted and no threshold was changed.
 - Real calls that afternoon went to Claude through the local Claude Code CLI and to Jev at `api.typesafe.ai`. The texts sent were the authored sample contracts and the six held-out forms, which are also authored. Nothing was sent to Ramp.
 
+## Added on the evening of November 10, on the integration branch
+
+- **A claim from a contract the template builder read.** The credit an approved template's read produced goes through the same four reviewer decisions as the Northwind case, in a case database of its own. The vendor is the same kind of simulated local counterparty; the usage, the invoices and the replies are authored (`fixtures/template_builder_demo/evidence/halcyon-a/`). Nothing from it goes to Ramp.
+- **A credit schedule and units.** A template holds seven terms; the credit schedule is one of them, with one to six tiers, and a claim window or a maintenance notice keeps the unit the contract writes.
+- **Real public SLA pages.** Twenty-six public SLA pages from 24 vendors were each fetched once with a plain web request and kept outside the repository (`~/uptime-demo/public-slas/`). Five more were tried and not built: two answered 404, two are drawn by script, and one failed on a certificate error. Their text is not committed; the results files store a hash in place of every quoted sentence and phrase. No vendor was contacted beyond that request for a public page.
+- **How it was tested.** GitHub's check workflow on the pushed integration branch is the full run from `903ada1` on; `main` moves only after it passes.
+
 ## How the demo line is run
 
 - No full test suite per merge. The JavaScript checks and the focused tests for what changed are run, and the pages are looked at.

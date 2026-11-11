@@ -1,0 +1,29 @@
+{
+ "tested_commit": "5e53e269903560d7f706fdca31eeb9e112d254a3",
+ "branch": "work/submission-integration-20261109",
+ "role": "coordinator",
+ "contents": "integration 2ff8841 plus work/tb3-tiers-20261110 (46d1968, 20e68f6, 54dc036: a choice term rests on the contract's own phrase; a fresh set of public SLA pages; a re-run of the first thirteen), merged as 5e53e26",
+ "where": "GitHub Actions, workflow 'Verify offline workbench', job 'replay', ubuntu runner; used as the full run because full local runs stall on the development machine",
+ "run_url": "https://github.com/ronoktanvir/uptime/actions/runs/42959609265",
+ "event": "push",
+ "command": [
+  "uv",
+  "run",
+  "--locked",
+  "pytest",
+  "-q"
+ ],
+ "exit_code": 0,
+ "pytest_result": "5634 passed, 1 warning in 716.56s (0:11:56)",
+ "log": "suite-5e53e26-github-pytest.log",
+ "started_at": "2026-11-11T04:29:59Z",
+ "finished_at": "2026-11-11T04:42:42Z",
+ "other_checks": {
+  "node --test web/*.test.cjs tests/helpers/*.test.cjs": "245 passed, 0 failed",
+  "node scripts/test_progress_graph.cjs": "success",
+  "uv run --locked python scripts/rehearse.py": "success",
+  "uv run --locked python scripts/check_repo.py": "success"
+ },
+ "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect.",
+ "note": "The claim agent's later work (a639bbc) and the prompt change (08dd0b7) came after this commit and have their own run."
+}

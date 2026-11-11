@@ -10,6 +10,7 @@ Written by the coordinator on November 9, 2026, at 16:05 PST, and last updated o
 - **One thing is held off `main`.** At Ronok's direct request the redesign session built a demo sign-in by name and password, with any password accepted (`5f6c90c`, then `530362c`, on its own branch). The coordinator and an independent Claude Opus 5.5 reviewer both found it cannot merge as built: a start-up option relabels recorded scripted work as the named presenter's, and the record cannot tell a rehearsal key from a person. [The record](../decisions/ADR-20261110-demo-sign-in-held.md) has the findings and the alternatives. He chose a rework with a real password (decision 14); role 2 is building it, and it is not on `main` yet.
 - **What has reached Ramp's sandbox, as of November 10.** Uptime has posted four fixed notes on three sandbox bills through Ramp's API and read each back. Those bills, their two vendors and one vendor credit were entered in the sandbox by the coordinator, an AI agent, at Ronok's instruction; the credit is not applied, because Ramp will not apply it before the bill has a payment method and none was set. No payment was set up, approved or sent, and no real vendor was contacted. [The full record](../../../DEMO-NOTES.md)
 - **The demo line is on `main`.** On November 10 Ronok lifted the standing rules for 24 hours of demo preparation; the work was done on `demo/film-20261110` and merged at his request at about 12:30 PST. It adds the notes to Ramp, the portfolio, the step-by-step display, a second vendor, and the template builder (Jev, three Claude readers, a Claude-written template stored as data, code checks, a reviewer's approval). The narrated film is [in the repository](../../demo/film/README.md).
+- **The template builder now reaches the money, and has been measured on real SLA pages (November 10, evening).** After a review Ronok pasted, four Claude Opus 5.5 agents rebuilt it: Jev routes the run, the three readers differ, every read by a template is guarded, and an accepted read gives an agreement in shadow with an estimate computed by the credit engine. Then, at his request, two separate agents added a claim from a contract the template read (USD 2,000.00 applied to a December invoice of USD 8,000.00 in the recorded run; the vendor is simulated and the usage is authored) and a credit schedule of one to six tiers. On 13 fresh public SLA pages, with the answer key committed before any build, 3 were read back with 18 values returned and none wrong. Every table, including the runs that scored worst and one value that disagrees with the key in a later check run, is in [the write-up](../../demo/TEMPLATE-BUILDER-PUBLIC-SLAS.md). The application code is `08dd0b7`; GitHub's full run on it passed with 5,635 tests.
 
 ## Decisions that are Ronok's
 
@@ -17,6 +18,9 @@ In the order they block the submission.
 
 | # | Decision | What it turns on | State |
 |:--|:---|:---|:---|
+| 21 | Whether a template should read where a claim window starts | Real SLAs differ: 30 days from the outage (Civo's page) or from the end of the month (the sample). A template reads the number and the unit, and the credit engine counts from the end of the month for every template, which would give a later deadline than such a page states. No estimate was run on a real page. The tiers agent's proposal: the claim window also carries the contract's own words for its starting point, and the estimate is refused unless that is the end of the month. It changes a template's shape, so approved templates would be rebuilt | **Open.** Not built; stated as a limit in the README and the write-up |
+| 20 | A person approving a template built from a real vendor's page | Every approval in the evaluations was made by a script, and the walkthrough's reviewer is the scripted test account. Only a person can make a person's approval | **Open** |
+| 19 | Re-shoot the film's template-builder scene | The film shows the first version of that scene: no routing by Jev, and no claim from the contract the template read. The README says so beside the film | **Open** |
 | 18 | Rotate the Jev key | At about 04:35 PST the coordinator captured a Chrome window to get a Ramp still; it was Ronok's own window with TypeSafe's "API key created" box showing. The image files were deleted at once and the key was written nowhere, but it passed through that session's stored transcript | **Open**: create a new key, save it over `~/.config/uptime/jev-api-key`, delete the old one |
 | 17 | The film's voice | The film's narration is a built-in synthetic voice, a stand-in. `docs/demo/film/narration.md` has every line with its times | **Open**: record the lines, or approve another voice |
 | 16 | Whether Uptime keeps posting notes to Ramp after the demo | The lift of the standing rules was for 24 hours, to about 03:10 PST on November 11. The code posts only when a server is started with `--ramp-notes` | **Open** |
@@ -97,7 +101,13 @@ The required command is `uv run --locked pytest`, run once per merge, one run at
 | `6882fd5` | 5,464 passed | The two further typefaces and the light cloud picture, on top of `e0e689c`. 132 JavaScript checks. **The application code `main` holds** |
 | `f89e204` | 5,464 passed | Role 5's recheck and role 6's retaken README screenshots; documentation, evidence and images only |
 | `9f482d4` | 5,464 passed | The revised storyboard, its filming checklist and the judge guide's sentence on the claim text; documentation only |
-| `bc7e8e0` | 5,464 passed | The Uptime wordmark and favicon, and Ramp's mark beside labels that name Ramp's service. **This is what `main` holds** |
+| `bc7e8e0` | 5,464 passed | The Uptime wordmark and favicon, and Ramp's mark beside labels that name Ramp's service. What `main` held before the demo line |
+| `f30baac` | 5,543 passed | The demo line: notes to Ramp, the portfolio, the step display, a second vendor, the first template builder |
+| `e9b0e46` | GitHub: 5,543 passed | One test had only ever run on macOS and failed on GitHub's Linux machine; the test was corrected |
+| `903ada1` | Aborted twice | Template builder version 2. Both local runs stalled, at 81 and 75 percent, with no failure before the stall |
+| `2358785` | GitHub: 1 failed, 5,625 passed | The claim from a template-read agreement and the credit schedule. A package file named the sample vendor, which an existing test forbids; both stalled runs had stopped short of that test |
+| `2ff8841`, `5e53e26` | GitHub: 5,626 and 5,634 passed | The fix, then the choice terms resting on the contract's own phrase and the fresh SLA pages |
+| **`08dd0b7`** | **GitHub: 5,635 passed** | **The application code `main` holds after the evening of November 10.** 247 JavaScript checks, progress graph, rehearsal and repository check also pass. From `903ada1` on, GitHub's check workflow on the pushed integration branch is the full run |
 
 GitHub's check workflow runs the same command on a clean machine for every pushed commit. It passes on the accepted build, on every `main` commit it has finished through `88bd23c` (the app-style pass), on the redesign's commits through `0edac3b` and on the side-panel branch through `a162951`. Role 5's branch failed there by itself (2 failed, 5,297 passed) while it carried a restart probe that used an option the branch did not have; it has passed since it was brought up to `main` (`7c6661f`).
 
@@ -115,8 +125,10 @@ These are regression results. They do not measure model accuracy, and they are n
 | The accepted build `52f1a2f`, from a fresh clone, before the redesign | Passed: the published steps work once that build is checked out; the money, 58 of 58 citations and each step's authority match the sealed expectations; no unsafe acceptance, invented evidence or unauthorised money movement ([report](acceptance.md)) | Role 5 |
 | The redesigned interface on `main` at `08852a6`, from an anonymous default clone | Passed: every sealed figure, 58 of 58 citations and each step's authority hold; earlier findings 2 and 3 are resolved; the side panel's default, the one-bill page and the bundled font were checked. Three further findings were listed ([addendum](acceptance.md)) | Role 5 |
 | The same three findings, rechecked on `main` at `008c4af` from an anonymous default clone | A1 and A3 resolved. A2 partly resolved and lowered to P3. Every sealed figure, 58 of 58 citations and each step's authority hold after the four decisions; nothing new states a person for the scripted account, a local credit as money in Ramp, or an estimate as an award. Not rechecked: narrow widths and the side panel ([second addendum](acceptance.md)) | Role 5 |
+| The template builder on six contract forms written blind by Claude, four runs as the engine changed (November 10) | Forms that passed every blocking check: 5, 1, 4 and 4 of 6. No run returned a wrong value; every miss was a blank or a refusal. Runs 3 and 4 were each changed after seeing earlier runs on the same forms, so neither is a clean number ([write-up](../../demo/TEMPLATE-BUILDER-HELDOUT.md)) | A Claude Opus 5.5 agent wrote the forms and the first run; the coordinator ran the second and third, the tiers agent the fourth |
+| The template builder on real public SLA pages (November 10) | First 13 pages: 1 read back, 4 values returned, none wrong. After one fix, 13 fresh pages from other vendors, keyed before any build: 3 read back, 18 values returned, none wrong, and one value shown to a reviewer disagrees with the key. The same fresh pages a second time, as a check: 7 read back, 38 values agree with the key and 1 does not, a payment term the page words two ways ([write-up](../../demo/TEMPLATE-BUILDER-PUBLIC-SLAS.md)) | The tiers agent (Claude Opus 5.5), which also wrote both keys. The coordinator re-scored the last table from its results file and checked the 18 values against the pages' text |
 
-This push did not improve the unseen-contract result and must not be presented as if it did. Acceptance also found that a differently worded evidence request is not recognised (it goes safely to a reviewer), and that a correct denial with a genuinely late filing cannot be driven through the product's routes.
+This push did not improve the unseen-contract result for single readings and must not be presented as if it did. The template builder's rows above are a different route (a reader built once, behind checks and an approval) and are one run each. Acceptance also found that a differently worded evidence request is not recognised (it goes safely to a reviewer), and that a correct denial with a genuinely late filing cannot be driven through the product's routes.
 
 ## Model work
 
@@ -127,9 +139,15 @@ This push did not improve the unseen-contract result and must not be presented a
 - Each call ran with no tools, after an operator recorded permission for that exact request. The operator was the engineering agent, named as such; no approval names Ronok. A model's output is a proposal only.
 - Northwind's own contract and its vendor's log request use fixed rules, with no model call.
 
+**In the product, live when a reviewer starts a template build (added November 10):**
+- Three Claude readers that differ (two `claude-opus-5-5`, one `claude-sonnet-5-5`), one `claude-opus-5-5` template builder, and three more readers for the second contract, all with tools off. Jev (`jev-1.13.0`, TypeSafe AI's decision model) is asked per term and per tier, to route a contract to an approved template, and as one guard on each read.
+- A model's output is a proposal: code checks it, a reviewer approves the exact version, and after that fixed rules read the contract. No model reads or computes a value in a read, and no model computes money.
+- In the recorded run (build `tb_a4cad0`, November 11, 04:41 UTC) the reviewer was the scripted test account.
+
 **In the engineering:**
 - The six role sessions report `claude-opus-5-5`. The coordinator and the video session report `claude-fable-5-2`. The redesign session reported `claude-fable-5-2` for its commits through `1e6c1f8` and `claude-opus-4-8` for the two demo sign-in commits.
 - One separate `claude-opus-5-5` session criticised the side-panel decision, and another the demo sign-in. Each one's findings and what was done about them are in that decision's record.
+- The template builder was built by Claude Opus 5.5 agents the coordinator started: three for the first version, four for the second, two for the claim and the credit schedule. Each worked in its own worktree and did not push; the coordinator read each patch, merged and ran the tests.
 - These are the sessions' own model names as the app reports them, not provider receipts.
 
 ## What reached Ramp
@@ -185,6 +203,10 @@ The two recorded model workspaces are preserved outside Git. Serve only a copy o
 | Responses that return before the header middleware carry no security headers | Application owners | Existing gap, found in review; not changed |
 | Server messages that say "a person" or "human" where the interface now says "reviewer" | Application owners | Listed in the coordination record. Left as they are: they state what a step requires, not who acted |
 | Any write to Ramp by Uptime | Ronok and the team | Needs a signed native release |
+| A template builder answer in the wrong shape ends the build | Engine owner | Found on real pages: three builds across the runs. There is no second try for a malformed first answer. Not changed |
+| A reader that does not answer within 90 seconds ends the build | Engine owner | Two long pages in one run. Not changed |
+| Jev did not recognise a page as following its own template | Engine owner | One page (0.66 against a bar of 0.80) in the first fresh run; the read was refused, which is the safe side. Not changed |
+| What a template cannot hold: several commitments in one document, a credit that is a rate or a formula, a deadline given as a calendar point, where a claim window starts | Engine owner | 10, 5 and 8 of the 26 real pages for the first three; decision 21 for the last. Not built |
 | Nine other branches on GitHub hold commits that are not on `main` | Their owners | Left as they are; see below |
 
 ## Branches left as they are

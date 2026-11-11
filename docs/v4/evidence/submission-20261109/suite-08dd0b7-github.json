@@ -1,0 +1,29 @@
+{
+ "tested_commit": "08dd0b71bf0805a3a246760fb945ff314c5265df",
+ "branch": "work/submission-integration-20261109",
+ "role": "coordinator",
+ "contents": "integration 5e53e26 plus work/tb3-claims-20261110 (e6b14c1: exact wording on Jev's part in a read; the agreement card, counters, Cases and Activity follow the template claim), merged as a639bbc, and the reader prompt's invented example phrases, 08dd0b7",
+ "where": "GitHub Actions, workflow 'Verify offline workbench', job 'replay', ubuntu runner; used as the full run because full local runs stall on the development machine",
+ "run_url": "https://github.com/ronoktanvir/uptime/actions/runs/42959959980",
+ "event": "push",
+ "command": [
+  "uv",
+  "run",
+  "--locked",
+  "pytest",
+  "-q"
+ ],
+ "exit_code": 0,
+ "pytest_result": "5635 passed, 1 warning in 742.52s (0:12:22)",
+ "log": "suite-08dd0b7-github-pytest.log",
+ "started_at": "2026-11-11T04:33:04Z",
+ "finished_at": "2026-11-11T04:46:11Z",
+ "other_checks": {
+  "node --test web/*.test.cjs tests/helpers/*.test.cjs": "247 passed, 0 failed",
+  "node scripts/test_progress_graph.cjs": "success",
+  "uv run --locked python scripts/rehearse.py": "success",
+  "uv run --locked python scripts/check_repo.py": "success"
+ },
+ "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect.",
+ "note": "This is the tested commit for the publication of November 10, evening. The commits after it on the branch change documents, images and evaluation results only."
+}
