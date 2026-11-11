@@ -1,0 +1,5 @@
+{
+  "schema": "authored-estimate-request/1",
+  "as_of": "2026-11-03T12:00:00Z",
+  "note": "The instant the estimate is evaluated as if a credit claim were received: the day the claim is opened in the claim demo, inside the 30-day window after October 2026."
+}

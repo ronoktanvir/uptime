@@ -408,8 +408,9 @@ class WorkspaceWorkflow:
     def _next(self,p,claim):
         if not claim:return None
         offered={a['id'] for a in claim['actions']}
-        for op,label in (('approve-claim','Approve January claim'),('submit-claim','File January claim')):
-            if op in offered:return op,label,'claim'
+        for op in ('approve-claim','submit-claim'):
+            # The case's own labels name its month (LABELS for Northwind's January claim).
+            if op in offered:return op,self.labels[op],'claim'
         if claim['submissions'] and not claim['replies']:
             return 'receive-denial','Receive vendor response','evidence'
         if claim['stage'] in {'NEEDS_EVIDENCE','RESPONSE_DRAFTED','RESPONSE_APPROVED'}:

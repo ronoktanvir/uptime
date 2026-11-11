@@ -783,13 +783,13 @@
         });
         node.append(add(el('div', 'table-scroll' + (refused ? ' tb-not-accepted' : '')), refused ? el('p', 'tb-not-accepted-label', 'What the rules found · not accepted') : null, table));
       }
-      if (!refused && object(reading.agreement)) node.append(agreementCard(reading.agreement));
+      if (!refused && object(reading.agreement)) node.append(agreementCard(reading.agreement, reading));
       else if (!refused && given(reading.agreement_note)) node.append(el('p', 'help tb-agreement-note', reading.agreement_note));
       return node;
     }
 
     // The money link: the agreement the server made from an accepted read, and the engine's estimate. Shown as sent.
-    function agreementCard(a) {
+    function agreementCard(a, reading) {
       const credit = object(a.credit);
       const currency = credit && given(credit.currency) ? credit.currency : given(a.currency) ? a.currency : null;
       const portfolio = el('a', 'tb-portfolio-link', 'Open the portfolio'); portfolio.href = '#overview';
@@ -809,7 +809,9 @@
           add(el('dl', 'northwind-fields tb-money-fields'), fieldsList.map(([k, v]) => add(el('div', 'northwind-field'), el('dt', '', k), el('dd', '', v || 'Not known'))))),
         list(a.inputs).filter(object).length ? add(el('dl', 'record tb-money-inputs'), list(a.inputs).filter(object).flatMap(i => [el('dt', '', given(i.label) ? i.label : ''), el('dd', '', given(i.value) ? i.value : 'Not known')])) : null,
         amount && given(a.evaluation) ? el('p', 'tb-evaluation', a.evaluation) : null,
-        add(el('p', 'tb-money-foot'), el('span', 'help', 'Computed by Uptime’s credit engine, not by a model. Nothing is posted, claimed or applied.'), portfolio));
+        add(el('p', 'tb-money-foot'), el('span', 'help', 'Computed by Uptime’s credit engine, not by a model. Nothing is posted, claimed or applied.'), portfolio,
+          // The claim for this estimate, on its own case page (uptime/template_claims.py).
+          amount && object(reading) && object(reading.document) && given(reading.document.id) ? (() => { const claim = el('a', 'tb-portfolio-link', 'Open the claim'); claim.href = '#template-claim/' + encodeURIComponent(reading.document.id); return claim; })() : null));
     }
 
     return Object.freeze({section, run, unmount});

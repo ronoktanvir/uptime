@@ -289,3 +289,27 @@ Built against the coordinator's shapes with mocks (the engine change lands separ
   `test_second_contract_check_passes_against_what_its_readers_agreed` (`second_readers` gains `stated`), and
   `test_a_pasted_contract_without_a_second_contract_can_be_approved_unchecked` (the check gains `not_stated: 0`).
   Seven tests added. Shapes: docs/demo/TEMPLATE-BUILDER.md, "A term every reader agrees the contract does not state".
+
+## Template claims: the credit an approved template read goes through the claim lifecycle (November 10, evening)
+
+An accepted read of `halcyon-a` by an approved template now carries its ESTIMATED credit through the Northwind case's
+stages and four reviewer decisions, with the same machinery (`WorkspaceWorkflow`, the correspondence inbox, the
+allocation ledger, the local ledger provider, the coordinator). Each such case lives in its own case database under
+`<workspace>/template-claims/<document id>/`, so it has its own clock, intents, steps, inbox and ledger.
+
+- Hooks in existing files: `uptime/northwind_workflow.py` (`_next` takes the claim labels from `self.labels`; same
+  strings for Northwind); `uptime/server.py` (registers `/api/template-claims/...`); `scripts/setup_northwind.py`
+  (enrols the four signed sources for each authored template claim's two months; keeps `senders` on `app.state`;
+  connects claims with `--template-builder`); `web/workspace_ui.js` (`create()` takes `viewPath`, `actionPath`, `guide`,
+  `caseLinks`, `decorate`; a null `price_finding` hides the price card; a template estimate with a `claim` shows the
+  claim's stage, amount, next actor and link on the portfolio); `web/app.js` (`#template-claim/<id>`); `web/index.html`
+  (one script tag); `web/template_builder_ui.js` (one "Open the claim" link on the agreement card).
+- Changed existing tests: `tests/test_ramp_ui_v4.py` › `test_ramp_browser_navigation_and_read_only_plan` and
+  `tests/test_workspace_ui_v4.py` (its static-file allow-list used by
+  `test_configured_workflow_keeps_evidence_money_and_original_navigation_reachable`,
+  `test_workflow_action_uses_real_dom_collection_and_refreshes_server_state` and
+  `test_result_quotes_and_decimal_equations_render_as_server_text_without_html_execution`): `template_claim_ui.js`
+  added to the scripts a page may load, because `web/index.html` now loads it. No assertion changed.
+- New files: `uptime/template_claims.py`, `web/template_claim_ui.js`, `web/template_claim_ui.test.cjs` (4 tests),
+  `tests/test_template_claims.py` (6 tests), `fixtures/template_builder_demo/evidence/halcyon-a/` (README, overlay,
+  usage, invoice, estimate, lifecycle, correspondence, next_invoice, agreement, order-monthly-rate.txt, service-log.txt).

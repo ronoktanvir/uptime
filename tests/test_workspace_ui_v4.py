@@ -30,7 +30,7 @@ def test_configured_workflow_keeps_evidence_money_and_original_navigation_reacha
             route.fulfill(body=(ROOT / "web/index.html").read_text(), content_type="text/html")
         elif path in {"/static/InterVariable.woff2", "/static/SourceSerif4-Regular.ttf.woff2", "/static/JetBrainsMono-Regular.woff2"}:
             route.fulfill(body=(ROOT / "web" / path.rsplit("/", 1)[-1]).read_bytes(), content_type="font/woff2")
-        elif path.startswith("/static/") and path.rsplit("/", 1)[-1] in {"auth.js", "ramp_ui.js", "workspace_ui.js", "template_builder_ui.js", "app.js", "style.css", "v4_style.css", "v4_ui.js", "favicon.svg"}:
+        elif path.startswith("/static/") and path.rsplit("/", 1)[-1] in {"auth.js", "ramp_ui.js", "workspace_ui.js", "template_builder_ui.js", "template_claim_ui.js", "app.js", "style.css", "v4_style.css", "v4_ui.js", "favicon.svg"}:
             file = ROOT / "web" / path.rsplit("/", 1)[-1]
             route.fulfill(body=file.read_text(), content_type="text/javascript" if file.suffix == ".js" else "text/css" if file.suffix == ".css" else "image/svg+xml")
         elif path == "/api/workspace/workflow":

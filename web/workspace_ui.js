@@ -201,9 +201,12 @@
       list(w.opportunities).filter(o => o && typeof o === 'object' && (o.kind == null || o.kind === 'service_credit')).forEach((o, index) => {
         const route = typeof o.route === 'string' && o.route ? (o.route.startsWith('#') ? o.route : '#' + o.route) : '#overview';
         const agreement = o.agreement && typeof o.agreement === 'object' ? o.agreement : {};
+        const claimed = o.claim && typeof o.claim === 'object' && typeof o.claim.href === 'string' ? o.claim : null;
         rows.push({vendor: o.vendor, key:'opportunity-' + index, subject: monthLabel(o.period), month: o.period, detail: agreement.id ? 'Agreement ' + text(agreement.id) + (typeof agreement.read_by === 'string' && agreement.read_by.startsWith('template:') ? ' · Fixed rules · template ' + agreement.read_by.slice(9) : '') : null,
-          kind:'credit', kindLabel:'Service credit', amount: o.amount == null ? null : o.amount, currency: o.currency || currency,
-          stage: o.stage === 'ESTIMATED' ? 'Estimated · not claimed' : state(o.stage), open:true, next:'Reviewer', href: route});
+          kind:'credit', kindLabel:'Service credit', amount: claimed ? claimed.amount : o.amount == null ? null : o.amount, currency: o.currency || currency,
+          // A template estimate with a claim carries the claim's own recorded stage and who acts next, from the server.
+          stage: claimed ? text(claimed.label) : o.stage === 'ESTIMATED' ? 'Estimated · not claimed' : state(o.stage),
+          open: claimed ? claimed.stage !== 'applied' : true, next: claimed ? claimed.next || null : 'Reviewer', href: claimed ? claimed.href : route});
       });
     }
     // A matched Ramp bill is not a row of its own: its facts go on the opportunity it belongs to.
@@ -264,8 +267,10 @@
     });
     return items;
   }
+  // viewPath/actionPath, guide, caseLinks and decorate let another case (a template claim) reuse this page as it is.
   function create({api, document:doc = global.document, onRefresh = () => {}, onUnauthorized, canAct = () => true,
-    storage, schedule = (callback, ms) => global.setTimeout(callback, ms), reducedMotion}) {
+    storage, schedule = (callback, ms) => global.setTimeout(callback, ms), reducedMotion,
+    viewPath = '/api/workspace/workflow', actionPath = '/api/workspace/workflow/actions/', guide: withGuide = true, caseLinks = true, decorate = null}) {
     // The replay setting lasts for this page's session. Browser storage may be absent or refuse; memory stands in.
     const memory = {};
     const session = (() => { if (storage !== undefined) return storage; try { return global.sessionStorage || null; } catch (_) { return null; } })();
@@ -567,7 +572,7 @@
           if (busy || uncertain || token !== epoch || action.enabled === false || canAct() === false) return;
           const prior=lastData;busy=true;Array.from(controls.children).forEach(c=>{c.disabled=true;});status.textContent='Recording action…';
           try {
-            await api('/api/workspace/workflow/actions/'+encodeURIComponent(action.id),{});
+            await api(actionPath+encodeURIComponent(action.id),{});
             if (token !== epoch) return;
             focusNextStep=true;recordedLabel=action.label || state(action.id);pendingReplay={prior};try{await render(root);}finally{focusNextStep=false;recordedLabel=null;}await onRefresh();
           } catch(error) {
@@ -600,9 +605,9 @@
         box.addEventListener('change', () => { writeSetting(REPLAY_KEY, box.checked ? 'on' : 'off'); if (!box.checked && stopReplay) stopReplay(); });
         return add(el('label', null, 'replay-toggle overview-replay-toggle'), box, el('span', 'Show the steps one at a time after each decision'));
       })() : null;
-      const caseLink = typeof claim.id === 'string' && claim.id ? el('a', 'Open this claim’s case and correspondence', 'case-link') : null;
+      const caseLink = caseLinks && typeof claim.id === 'string' && claim.id ? el('a', 'Open this claim’s case and correspondence', 'case-link') : null;
       if (caseLink) caseLink.href = '#cases/' + encodeURIComponent(claim.id);
-      const stepsLink = routine ? el('a', 'See every step in Activity', 'case-link') : null;
+      const stepsLink = routine && caseLinks ? el('a', 'See every step in Activity', 'case-link') : null;
       if (stepsLink) stepsLink.href = '#activity';
       add(recovery,decision,status,feed,showSteps,caseLink || stepsLink ? add(el('p', null, 'help recovery-links'), caseLink, stepsLink) : null,
         inspector('Connection details', fields([['Connection destination',connection.destination],['Connection status',state(connection.status)],['Receipt status',state(connection.receipt_status)]])));
@@ -618,6 +623,7 @@
       add(monthly,add(el('div',null,'table-scroll'),evaluations.table));
       const price=data.price_finding || {}, priceMonth = monthFor(price.invoice_id, months);
       const pricing=panel(priceMonth ? priceMonth + ' price review' : 'Price review','price');
+      const priced = data.price_finding !== null;  // a case with no price review sends null and shows no price card
       add(pricing,fields([['Finding','Price cap review'],['Status',PRICE_STATUS[price.state] || state(price.state)],['Invoice',price.invoice_id]].filter(([,value]) => value != null)));
       if (list(price.lines).length) {
         const lines = sheet(['Invoice line','Governing version','Billed','Contract amount','Difference'],[2,3,4]);
@@ -648,18 +654,19 @@
       else if (finance) expansion.append(add(el('details',null,'workflow-evidence inspector'),el('summary','History in this workspace ('+coverage.children.length+' entries)'),actors.length===1 ? note('Every entry is recorded by '+actors[0]+'.') : null,coverage));
       else expansion.append(coverage);
       const vendorLink=el('a','Inspect vendor contracts','case-link');vendorLink.href='#vendors';expansion.append(add(el('p', null, 'help'), vendorLink));
-      const guide=finance ? guidePanel(token) : null;
+      const guide=finance && withGuide ? guidePanel(token) : null;
       // One reading order at every width: the recovery card, what needs attention beside it, then the Ramp record and the guide.
       const columns = add(el('div', null, 'overview-columns' + (attention ? '' : ' single')), recovery, attention, ramp, guide);
       const evidence = add(el('div', null, 'section-head'), el('h2', 'Evidence'));
       const records = add(el('div', null, 'fold-group'), contract, data.onboarding ? expansion : null, detail);
-      const activityLink = add(el('p', null, 'help foot-link'), (() => { const a = el('a', 'See the full activity history', 'case-link'); a.href = '#activity'; return a; })());
+      const activityLink = caseLinks ? add(el('p', null, 'help foot-link'), (() => { const a = el('a', 'See the full activity history', 'case-link'); a.href = '#activity'; return a; })()) : null;
       // The outcome and the credit lifecycle: while a decision's steps are being shown they hold each stage until its step appears.
       const figures = el('div', null, 'overview-figures');
       const drawFigures = view => { figures.replaceChildren(outcome(view, months), lifecycle(view)); factsBox.replaceChildren(recoveryFacts(view)); if (view === data) drawAttention(); };
       figures.replaceChildren(...(plan ? [outcome(stagedView(replay.prior, data, plan), months), lifecycle(stagedView(replay.prior, data, plan))] : [outcome(data, months), lifecycle(data)]));
       let afterReplay = null;
-      root.replaceChildren(header,figures,columns,evidence,monthly,add(el('div',null,'section-grid'),pricing,billing),records,activityLink);
+      const extra = typeof decorate === 'function' ? decorate(data) : null;
+      root.replaceChildren(...[header,extra,figures,columns,evidence,monthly,add(el('div',null,'section-grid'),priced ? pricing : null,billing),records,activityLink].filter(Boolean));
       if (focusNextStep) {
         focusNextStep=false;
         const next=Array.from(controls.children).find(c=>c.tagName==='BUTTON' && !c.disabled);
@@ -868,7 +875,7 @@
     async function render(root, supplied, options = {}) {
       const token=++epoch;
       try {
-        const data=supplied || (await api('/api/workspace/workflow')).workflow;
+        const data=supplied || (await api(viewPath)).workflow;
         if(token !== epoch) return;
         uncertain=false;busy=false;renderData(root,data,token);
         // Opened at one card (for example the price exception from the portfolio): that card is brought into view.

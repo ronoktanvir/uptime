@@ -1,0 +1,17 @@
+{
+  "schema": "authored-invoice/1",
+  "authored": "Fictional invoice written for the November 10, 2026 claim demo; no real vendor issued it.",
+  "id": "HGS-INV-2026-10-2207",
+  "vendor": "Halcyon Grid Services",
+  "customer": "Save Time Inc",
+  "account": "savetime-halcyon",
+  "agreement": "HGS-PAA-2026-0412",
+  "issued_on": "2026-10-01",
+  "service_month": "2026-10",
+  "currency": "USD",
+  "lines": [
+    {"ref": "halcyon-covered-services-line", "description": "Halcyon Grid Covered Services (Order Form HGS-OF-77120), monthly fees, October 2026", "amount": "8000.00"}
+  ],
+  "tax": "0.00",
+  "total": "8000.00"
+}
