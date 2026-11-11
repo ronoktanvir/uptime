@@ -170,3 +170,144 @@ A term a rule does not find has `"value": null, "display": null, "quote": null`;
 | Page | `web/template_builder_ui.js`, `web/template_builder.test.cjs`, one new block at the end of `web/style.css` (before the side-panel block, which must stay last), the script tag in `web/index.html`, and the route and mount lines in `web/app.js` and the Agreements page |
 
 Each agent appends its own section to `DEMO-CHANGES.md` (changed existing tests by exact name and reason; new files).
+
+# Version 2: answering four criticisms (November 10, afternoon)
+
+A judge's review marked the first version down on four points. This section is the contract for the four agents
+fixing them in parallel. Where it differs from the text above, this section wins. Everything not mentioned stays.
+
+| # | Criticism | What changes |
+|:--|:---|:---|
+| 1 | "The AI and the money never meet": an approved template's read returns nine terms and stops | An accepted read creates an agreement and an estimated credit computed by the existing deterministic engine, listed on the portfolio |
+| 2 | "Jev changes what the reviewer sees, never what the system does" | Jev's decision routes the run, and a term Jev does not support blocks approval until the reviewer acknowledges it |
+| 3 | "It has not read a contract it wasn't written for": shipped samples only, one form, an answer key | A pasted contract is accepted; the second-contract check needs no answer key; a held-out evaluation on contracts written blind is run and published whatever it scores |
+| 4 | "Reads after approval are the unguarded part"; same model and prompt show consistency, not correctness | Ambiguous matches are refused; every read is guarded; readers differ in instructions and model; each value must be in its sentence |
+
+## The run, version 2
+
+1. **Jev routes.** The `choice` is among the APPROVED templates in this workspace plus `unrecognised`.
+   - Jev picks an approved template with probability at least `0.80`: **no reader starts.** The contract is read by that
+     template under the read guards below. Build state `MATCHED`; steps `reader-1..3` and `build` are `SKIPPED` with the
+     summary "Not started: Jev matched an approved template"; `checks` holds the read guards; `review` is `SKIPPED`.
+   - Jev answers `unrecognised`, or anything under `0.80`: the readers start, as before.
+   - Jev cannot be reached: **nothing starts.** Build state `NEEDS_REVIEWER`. A reviewer may press "Build without Jev"
+     (`POST /api/template-builds/{id}/continue`, body `{}`), which is recorded on the `classify` step as a reviewer decision.
+2. **Three readers that differ.** `reader-1` reads clause by clause (claude-opus-5-5). `reader-2` lists every number in the
+   contract and what it governs, then the terms (claude-opus-5-5). `reader-3` is the sceptic: for each term it looks for a
+   second place that states it and reports a conflict (claude-sonnet-5-5, a different model). Each step's `model` is the
+   model that really answered, and `detail.role` is one of `clause_by_clause`, `numbers_first`, `sceptic`.
+3. **The builder**, as before.
+4. **Checks.** Ids in this order:
+   - `quotes` (blocking): every quote is in the contract, word for word.
+   - `value_in_sentence` (blocking, new): each term's value is literally in its quoted sentence, as digits or as number
+     words. Code, no model.
+   - `agreement` (advisory): the three readers agree.
+   - `reproduce` (blocking): the template returns every term from this contract, each matched exactly once.
+   - `second_document` (blocking when a second contract was given): **no answer key.** Three fresh readers read the second
+     contract; the template's value for each term there must equal what those readers agreed on. With no second contract
+     the check has `"ran": false, "ok": false, "blocking": false` and the template can still be approved; the page says it
+     was not checked on a second contract.
+   - `jev` (now gating): a term Jev answers "no" to, or under `0.90`, or does not answer, gets `"needs_acknowledgement": true`.
+5. **Approval.** `POST .../approve` body is `{"template_sha256": str, "acknowledged": [field, ...]}`. It answers `409` unless
+   `acknowledged` names exactly the terms with `needs_acknowledgement`. The `review` step's detail records them.
+6. **Reads are guarded.** `POST .../read`, and the `MATCHED` route, run these guards; a read that fails any has
+   `"status": "REFUSED"`, lists why, and feeds nothing downstream:
+   - `complete`: every rule found a value.
+   - `unambiguous`: no rule matched in more than one place with different values. (The interpreter itself refuses these.)
+   - `value_in_sentence`: each value is in the sentence its rule matched.
+   - `plausible`: percentages within 0 to 100, the second tier's threshold below the commitment, the second tier's credit
+     above the first, the cap not below the highest credit, days and hours positive.
+   - `template_match` (advisory when Jev cannot be reached): Jev chooses this template for the document at `0.80` or more.
+
+## Shapes, version 2
+
+`POST /api/template-builds` accepts either `{"sample_id": str}` or a pasted contract:
+
+```json
+{"contract": {"title": "…", "vendor": "…", "text": "… up to 60,000 characters …"},
+ "second_contract": {"title": "…", "text": "…"},
+ "consent": true}
+```
+
+`second_contract` may be `null`. `consent` must be `true`: the page says the text will be sent to Claude and to Jev.
+A pasted contract is stored only in the workspace's `template-builds/` folder.
+
+`build` gains:
+
+```json
+{"state": "… | MATCHED | NEEDS_REVIEWER",
+ "source": {"kind": "sample | pasted", "title": "…", "vendor": "…", "chars": 6077},
+ "second": {"provided": true, "title": "…"},
+ "matched_template": {"id": "…", "sha256": "…", "probability": "0.93"},
+ "readings": [reading]}
+```
+
+`sample_id` is `null` for a pasted contract. `matched_template` is `null` unless the state is `MATCHED`.
+
+A `term` gains `"value_in_sentence": true`, `"needs_acknowledgement": false`, and
+`"second_readers": {"agree": 3, "of": 3, "value": "99.9"}` (or `null` with no second contract). `second_document_ok` now
+means the template's value there equals `second_readers.value`.
+
+A `reading` gains:
+
+```json
+{"id": "rd_4be1", "status": "ACCEPTED | REFUSED",
+ "guards": [{"id": "complete", "label": "Every rule found a value", "ok": true, "detail": "9 of 9"},
+            {"id": "unambiguous", "label": "…", "ok": true, "detail": null},
+            {"id": "value_in_sentence", "label": "…", "ok": true, "detail": "9 of 9"},
+            {"id": "plausible", "label": "…", "ok": true, "detail": null},
+            {"id": "template_match", "label": "Jev: this document follows the template", "ok": true, "detail": "0.94", "advisory": false}],
+ "jev_template": {"choice": "…", "probability": "0.94", "model": "jev-1.13.0"},
+ "agreement": null}
+```
+
+`model_calls` stays the number of calls that produced the values, which is `0`; a Jev guard call is reported under
+`jev_template`, and the page says "values by fixed rules; Jev checked the document type".
+
+`reading.agreement` is filled by the money link (below), or stays `null`.
+
+## Python, version 2
+
+- `uptime/template_rules.py`: `apply` finds every match of a rule. More than one match with different values gives
+  `value: null` and an `error` naming how many places matched; identical values in several places are accepted.
+  New: `value_in_sentence(field, value, sentence) -> bool`, `plausibility(values: dict) -> list[str]` (empty when plausible).
+- `uptime/template_builder.py`: `TemplateBuilds.approved_readings()` returns, for every ACCEPTED reading under an APPROVED
+  template in this workspace:
+
+```python
+{"build_id": str, "reading_id": str, "template": {"id": str, "sha256": str},
+ "vendor": str, "document": {"id": str, "title": str, "customer": str | None},
+ "values": {field: value_string_or_None}, "read_at": iso}
+```
+
+  It also exposes `set_agreement(build_id, reading_id, agreement: dict)` so the money link can attach its result, which
+  the page shows.
+
+## The money link (criticism 1)
+
+`uptime/template_agreements.py` (new) turns one entry of `approved_readings()` into an agreement in the shape the existing
+credit engine evaluates, and evaluates one authored service month for it. The model is not involved: terms came from the
+approved template's read, and the arithmetic is the engine's. The result is attached to the reading:
+
+```json
+{"agreement_id": "HGS-PAA-2026-0518", "state": "SHADOW", "read_by": "template:halcyon-availability-addendum/1",
+ "month": "2026-10", "availability_percent": "99.41", "credit_percent": "25", "monthly_fee": "8000.00",
+ "credit": {"amount": "2000.00", "currency": "USD", "stage": "ESTIMATED"},
+ "inputs": [{"label": "…", "value": "…"}], "evaluation": "…one sentence, the engine's own…"}
+```
+
+and listed in the workflow view's `opportunities` in the same shape Corvid's entry has, with
+`"agreement": {"id": …, "read_by": "template:<template id>", …}` and `"source": "template"`. A read with no usage evidence on
+file (a pasted contract) gets an agreement with `"credit": null` and `"evaluation": "Needs usage evidence"`.
+Unknown stays null. Nothing here is posted, claimed or applied.
+
+## Who owns which files, version 2
+
+| Agent | Files |
+|:---|:---|
+| Engine | `uptime/template_builder.py`, `uptime/template_rules.py`, `tests/test_template_builder*.py`, `scripts/template_builder_smoke.py` |
+| Money link | `uptime/template_agreements.py` (new), `uptime/demo_opportunities.py`, `fixtures/template_builder_demo/evidence/**` (new), `tests/test_template_agreements.py` (new) |
+| Held-out evaluation | `scripts/evaluate_template_builder.py` (new), `fixtures/template_builder_heldout/**` (new), `docs/demo/TEMPLATE-BUILDER-HELDOUT.md` (new) |
+| Page | `web/template_builder_ui.js`, `web/template_builder.test.cjs`, its block in `web/style.css`, and the one line in `web/workspace_ui.js` or `web/ramp_ui.js` that words `read_by` when it starts with `template:` |
+
+Each agent appends its own section to `DEMO-CHANGES.md`: changed existing tests by exact name and reason, and new files.
