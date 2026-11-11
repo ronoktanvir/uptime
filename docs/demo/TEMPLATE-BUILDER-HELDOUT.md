@@ -6,6 +6,53 @@ that never saw the builder, one build per form, and a read of a third, held-out 
 template that build produced. The result is published as it came out. Nothing in the engine, its prompts or its
 samples was changed for this evaluation.
 
+## Three runs, side by side
+
+The same six frozen forms were run three times on November 10, 2026, each time on a different state of the engine.
+The first run is the baseline described in the rest of this page. The other two were added by the coordinator after
+the engine changed. All three are kept, including the one that scored worst.
+
+| Run | Engine | Forms that passed every blocking check | Held-out contract C: terms scored | Correct | Wrong | Left unread | Not stated |
+|:---|:---|:---|:---|:---|:---|:---|:---|
+| 1 | Version 1. Its second-contract check was given a hand-written answer key for contract B | 5 of 6 | 45 (five forms read) | 36 | 0 | 4 | 5 |
+| 2 | Version 2, strict: no answer key (three fresh readers read B), each value must be in its sentence, all nine terms required | 1 of 6 | 9 (one form read) | 9 | 0 | 0 | 0 |
+| 3 | Version 2, with terms every reader agrees the contract does not state | 4 of 6 | 36 (four forms read; one of those reads was refused whole by the read guards) | 25 | 0 | 8 | 3 |
+
+Results files, in order: `20261111T010416Z.json`, `20261111T011557Z.json`, `20261111T012703Z.json` under
+`fixtures/template_builder_heldout/results/`. A run between the first and second measured nothing because of a fault
+in the evaluation script and is kept apart in `results/harness-fault/` with a note.
+
+**No run returned a wrong value.** Every miss was a blank or a refusal.
+
+**Why run 2 fell to 1 of 6.** Version 2 required all nine terms and required each value to be literally in its
+sentence. Five of the six forms state scheduled-maintenance notice in days or Business Days, not hours. Their readers
+returned nothing for that term (or, on one form, 120 converted from "5 days"), and that one term blocked the whole
+template. Three forms failed on that term alone, one on it and one other term, and one on it and two others.
+
+**What changed for run 3.** A term that every reader agrees the contract does not state, in the unit asked, is
+recorded as not stated. It gets no rule, the reviewer must acknowledge it before approval, and no unit is converted.
+Checks and thresholds for stated terms were not changed. The availability commitment and the first-tier credit must
+still be stated.
+
+**Run 3, form by form.**
+
+| Form | Author model | Build | Held-out contract C |
+|:---|:---|:---|:---|
+| 1 | Opus 5.5 | Passed. 3 terms flagged by Jev for the reviewer | Accepted. 9 of 9 correct |
+| 2 | Sonnet 5.5 | **Refused** at `second_document`: contract A gives notice in Business Days, so the term is not stated in hours, but contract B states 72 hours. The author changed units between documents | Not read |
+| 3 | Haiku 5.5 | Passed. 4 terms to acknowledge | **Read refused** by the `complete` guard: 6 of 8 rules found a value. The author rewrote clauses between documents. Scored as 7 unread, 2 not stated |
+| 4 | Opus 5.5 | Passed. 2 terms to acknowledge | Accepted. 8 of 8 correct, 1 not stated |
+| 5 | Sonnet 5.5 | Passed. 3 terms to acknowledge | Accepted. 8 correct, 1 unread: the key counts "5 days" as 120 hours, and the template does not convert units |
+| 6 | Haiku 5.5 | **Refused** at `value_in_sentence`, `reproduce` and `second_document`: the measurement period is defined by reference ("Service Period"), and the cap runs over twelve months, not as a percentage of the month | Not read |
+
+Run 3 used 48 Claude calls and 48 Jev calls in 214.7 seconds. Every form had at least two terms the reviewer must
+acknowledge, and a script made those acknowledgements and approvals, not a person.
+
+**What these three runs do not establish.** They are one run each on six forms. The contracts were written by Claude
+models, as the readers are, from briefs the evaluation's author wrote after seeing the builder's term list. None is a
+real vendor's contract. Run 3's change was made after seeing run 2's failures, on these same six forms, so run 3 is
+not a clean held-out number for that change: a fresh set of forms would be.
+
 Rerun with one command and no arguments:
 
 ```
@@ -80,7 +127,7 @@ is the version 1 engine described in the first part of `docs/demo/TEMPLATE-BUILD
   The builder never sees that key, but when a rule fails on B the repair prompt says so, so the key steers the repair
   rounds. Forms 2, 3 and 5 used repair rounds.
 
-## Baseline result (version 1 engine, one run)
+## Run 1 in detail: the baseline (version 1 engine)
 
 As printed by the script:
 
