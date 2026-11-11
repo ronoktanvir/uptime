@@ -10,13 +10,13 @@ Built for the **Berkeley BBS × Ramp Hackathon: Automate the Old Way**.
 
 [![Verification](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/ronoktanvir/uptime/actions/workflows/check.yml) [![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.14-0F1A36?style=flat-square)](pyproject.toml) [![Edition](https://img.shields.io/badge/First_edition-for_Ramp-4353E0?style=flat-square&labelColor=0F1A36)](#where-ramp-fits)
 
-[Download the film (2:48)](docs/demo/film/uptime-demo.mp4?raw=true) · [Run it](#run-it) · [Where the AI is](#where-the-ai-is) · [Where Ramp fits](#where-ramp-fits) · [What works today](#what-works-today) · [Judge guide](docs/JUDGES.md)
+[Run it](#run-it) · [Where the AI is](#where-the-ai-is) · [Where Ramp fits](#where-ramp-fits) · [What works today](#what-works-today) · [Judge guide](docs/JUDGES.md)
 
 <p align="center">
-  <a href="docs/demo/film/uptime-demo.mp4?raw=true"><img src="docs/assets/demo/ramp-panel.png" alt="A bill in Ramp's sandbox for Northwind Cloud, with a note from Uptime in its activity saying the bill may be eligible for a USD 2,400.00 service credit under agreement NW-2026-001. Beside it, Uptime's side panel shows the matched invoice NW-2026-04, a service credit of $2,400.00 for January 2026, and the button Review and file the claim." width="100%"></a>
+  <img src="docs/assets/demo/ramp-panel.png" alt="A bill in Ramp's sandbox for Northwind Cloud, with a note from Uptime in its activity saying the bill may be eligible for a USD 2,400.00 service credit under agreement NW-2026-001. Beside it, Uptime's side panel shows the matched invoice NW-2026-04, a service credit of $2,400.00 for January 2026, and the button Review and file the claim." width="100%">
 </p>
 
-<p align="center"><em>A frame from the 2:48 narrated demo film (<a href="docs/demo/film/uptime-demo.mp4?raw=true">download, 10 MB</a>; GitHub does not play video files in place). The bill and Uptime's note are real records in Ramp's sandbox; the panel is Uptime's real page for that bill. The browser window around them is drawn. <a href="docs/demo/film/README.md">How the film was made</a>. Its template-builder scene shows the first version of that feature; the screenshots below are the current one.</em></p>
+<p align="center"><em>A bill in Ramp's sandbox with Uptime's side panel beside it. The bill and Uptime's note are real records in Ramp's sandbox; the panel is Uptime's real page for that bill. The browser window around them is drawn. The screenshots below are of the application itself.</em></p>
 
 ## The old way
 
@@ -252,7 +252,7 @@ Uptime runs **beside Ramp**, as a separate local application with a Chrome side 
 **What was set up by hand for the demo.** The Northwind and Corvid vendors and their three bills were entered in the sandbox by the engineering agent, at Ronok's instruction, in a browser he had signed in to; Uptime then read them back through the API. No payment was set up, approved or sent. [The full record](DEMO-NOTES.md)
 
 **What Uptime does not do in Ramp.**
-- It does not create or apply a vendor credit. Ramp's published API has no operation for it. For the film, the vendor's credit (`NW-CM-2026-01`, $2,400.00) was entered by hand in the sandbox. Ramp will not apply it to the bill until the bill has a payment method, and none was set, so Ramp shows it as "Not applied".
+- It does not create or apply a vendor credit. Ramp's published API has no operation for it. For the demonstration, the vendor's credit (`NW-CM-2026-01`, $2,400.00) was entered by hand in the sandbox. Ramp will not apply it to the bill until the bill has a payment method, and none was set, so Ramp shows it as "Not applied".
 - So the $8,600.00 is April's balance in Uptime's own ledger. The bill in Ramp is unchanged apart from Uptime's notes.
 - Payment holds and approval-chain steps are not built.
 - The Northwind agreement is never attached to an unrelated bill: the DocuSign bill in the sandbox shows "no agreement on file".
@@ -290,7 +290,6 @@ An independent acceptance run checked the earlier frozen build `52f1a2f` from a 
 
 Everything below is engineering history: how the product was built, tested and decided. None of it is needed to run the walkthrough.
 
-- [The film: what is live, composited and synthesized](docs/demo/film/README.md) · [its narration](docs/demo/film/narration.md)
 - [November 10 notes](DEMO-NOTES.md): what was entered in Ramp's sandbox and by whom, and what the template builder is. [Tests changed that day](DEMO-CHANGES.md)
 - [Engineering map](docs/ENGINEERING-MAP.md): what is demonstrated and what is still open. The interactive dependency map runs locally with `python3 scripts/serve_progress.py --port 8780`, then [127.0.0.1:8780](http://127.0.0.1:8780/) ([access and updates](progress/README.md)).
 - [Current status](docs/v4/STATUS.md) · [Capability matrix](docs/v4/CAPABILITIES.md) · [Decision records](docs/v4/decisions/INDEX.md) · [Use cases and sources](docs/product/USE-CASES.md)
