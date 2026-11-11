@@ -1206,10 +1206,12 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-reading-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .tb-guards-box { padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
 .tb-guards-box .tb-detail-label { margin: 0 0 6px; }
-.tb-guards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px 18px; }
-.tb-guard { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13px; line-height: 20px; color: var(--ink); }
-.tb-guard .pill { min-width: 64px; justify-content: center; text-align: center; }
+.tb-guards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 28px; }
+.tb-guard { display: grid; grid-template-columns: 66px minmax(0, 1fr); align-items: start; gap: 10px; font-size: 13px; line-height: 20px; color: var(--ink); }
+.tb-guard .pill { justify-self: start; white-space: nowrap; }
+.tb-guard-text { display: flex; flex-wrap: wrap; gap: 0 8px; }
 .tb-guard-detail { font-variant-numeric: tabular-nums; }
+.tb-guard-bad .tb-guard-detail { color: var(--bad); }
 .tb-reading-refused { padding: 12px 14px; border: 1px solid var(--bad-line); border-radius: 10px; background: var(--bad-soft); }
 .tb-refused-line { font-weight: 600; color: var(--bad); }
 .tb-refused-reasons { margin: 6px 0 0 18px; padding: 0; color: var(--bad); font-size: 13px; line-height: 20px; }
@@ -1228,7 +1230,14 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-money-amount { font-size: 34px; line-height: 40px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 .tb-money-missing { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--warn); }
 .tb-money-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
-.tb-money-inputs { margin: 0; }
+dl.record.tb-money-inputs { margin: 0; grid-template-columns: minmax(240px, max-content) minmax(0, 1fr); gap: 4px 16px; }
+.tb-money-inputs dt, .tb-money-inputs dd { margin: 0; }
+.tb-terms .tb-term-label { min-width: 150px; }
+.tb-terms th { white-space: normal; padding: 9px 10px; vertical-align: bottom; }
+.tb-terms td { padding-left: 10px; padding-right: 10px; }
+.tb-terms th:first-child, .tb-terms td:first-child { padding-left: 16px; }
+.tb-terms .tb-value { min-width: 96px; }
+.tb-pasted .link-button { color: var(--accent-strong); }
 .tb-evaluation { font-family: var(--serif); font-size: 14.5px; line-height: 22px; color: var(--ink); }
 .tb-money-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .tb-portfolio-link { font-weight: 600; text-decoration: none; }
@@ -1237,7 +1246,7 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-next-paste[open] { display: grid; gap: 10px; }
 .tb-next-paste summary { cursor: pointer; font-weight: 600; color: var(--accent-strong); }
 @media (max-width: 900px) { .tb-stage-cards.tb-parallel { grid-template-columns: minmax(0, 1fr); } .tb-head-state { justify-items: start; }
-  .tb-paste-names, .tb-money-body { grid-template-columns: minmax(0, 1fr); } .tb-money-figure { border-right: 0; padding-right: 0; } }
+  .tb-paste-names, .tb-money-body, .tb-guards, .tb-money-inputs { grid-template-columns: minmax(0, 1fr); } .tb-money-figure { border-right: 0; padding-right: 0; } }
 /* 16. Side panel (submission-panel-20261110). Everything in this block applies only when the page is framed by the
    one extension the server allows (app.js adds .panel-mode to <html> then), or styles the one-bill page's own parts.
    Presentation only: no state, record or word is hidden by it. The full app in an ordinary tab is unchanged. */

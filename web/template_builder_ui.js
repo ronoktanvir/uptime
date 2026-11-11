@@ -113,7 +113,7 @@
       const m = object(b.matched_template) || {};
       return 'Matched approved template ' + (given(m.id) ? m.id : 'on file') + (percent(m.probability) ? ' (' + percent(m.probability) + ')' : '') + ', so no reader started.';
     }
-    if (b.state === 'NEEDS_REVIEWER') return 'Jev could not be reached, so nothing has started.';
+    if (b.state === 'NEEDS_REVIEWER') return null;
     if (!started) return null;
     if (classify.state === 'FAILED') {
       const decision = object(detail.reviewer_decision) || object(detail.decision);
@@ -504,12 +504,13 @@
         const agreement = object(term.agreement);
         const jev = object(term.jev);
         const second = object(term.second_readers);
+        const shownValue = v => v !== null && v !== undefined && v === term.value && given(term.display) ? term.display : withUnit(term, v);
         const toggle = button(open ? 'Hide sentence' : 'Show sentence', () => { if (view.open.has(term.field)) view.open.delete(term.field); else view.open.add(term.field); draw(view, view.build, true); }, 'link-button');
         toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         const secondCell = !showSecond ? null : add(el('td', 'tb-second-cell'), second && Number.isInteger(second.agree) && Number.isInteger(second.of)
-          ? add(el('span', term.second_document_ok === false ? 'tb-mismatch' : ''), el('span', 'tb-agree', second.agree + ' of ' + second.of), el('span', 'tb-second-value', ' · ' + (withUnit(term, second.value) || 'not found')))
+          ? add(el('span', term.second_document_ok === false ? 'tb-mismatch' : ''), el('span', 'tb-agree', second.agree + ' of ' + second.of), el('span', 'tb-second-value', ' · ' + (shownValue(second.value) || 'not found')))
           : el('span', 'help', 'Not given'));
-        const status = needsAck && !approved ? (acked ? pill('Acknowledged', 'ok') : pill('Needs your acknowledgement', 'warn'))
+        const status = needsAck && !approved ? (acked ? pill('Acknowledged', 'ok') : pill('To acknowledge', 'warn'))
           : needsAck ? pill('Acknowledged', 'ok') : term.status === 'PASS' ? pill('Passed', 'ok') : term.status === 'REVIEW' ? pill('For the reviewer', 'warn') : pill('Checking', '');
         add(row, add(el('td', 'tb-term-label'), el('strong', '', given(term.label) ? term.label : term.field)),
           el('td', 'tb-value', given(term.display) ? term.display : 'Not found'),
@@ -525,8 +526,8 @@
           const span = titles.length;
           const cell = el('td', 'tb-term-detail'); cell.colSpan = span;
           const rule = object(term.rule);
-          const secondLine = second ? 'Three fresh readers: ' + (withUnit(term, second.value) || 'not found') + (Number.isInteger(second.agree) && Number.isInteger(second.of) ? ' (' + second.agree + ' of ' + second.of + ')' : '')
-              + ' · the template returns ' + (term.second_document_value === null || term.second_document_value === undefined ? 'nothing' : withUnit(term, term.second_document_value))
+          const secondLine = second ? 'Three fresh readers: ' + (shownValue(second.value) || 'not found') + (Number.isInteger(second.agree) && Number.isInteger(second.of) ? ' (' + second.agree + ' of ' + second.of + ')' : '')
+              + ' · the template returns ' + (term.second_document_value === null || term.second_document_value === undefined ? 'nothing' : shownValue(term.second_document_value))
               + (term.second_document_ok === true ? ' · the same' : term.second_document_ok === false ? ' · different' : '')
             : term.second_readers === null ? 'No second contract was given' : null;
           add(cell, el('p', 'tb-detail-label', 'The sentence in the contract'), given(term.quote) ? el('blockquote', '', term.quote) : el('p', 'help', 'No sentence was recorded for this term.'),
@@ -732,7 +733,7 @@
           : given(g.detail) ? String(g.detail) : null;
         const tone = g.ok === true ? 'ok' : advisory ? 'warn' : 'bad';
         return add(el('li', 'tb-guard tb-guard-' + tone), pill(g.ok === true ? 'Pass' : advisory ? 'Advisory' : 'Fail', tone),
-          el('span', 'tb-guard-label', given(g.label) ? g.label : g.id), detail ? el('span', 'help tb-guard-detail', detail) : null);
+          add(el('span', 'tb-guard-text'), el('span', 'tb-guard-label', given(g.label) ? g.label : g.id), detail ? el('span', 'help tb-guard-detail', detail) : null));
       }));
     }
 
@@ -777,7 +778,7 @@
       return add(el('section', 'tb-money' + (amount ? '' : ' tb-money-none')),
         add(el('div', 'tb-money-head'), add(el('div', ''), el('p', 'eyebrow', 'Agreement from this reading'), el('h3', '', given(a.agreement_id) ? a.agreement_id : 'Agreement not named')),
           pill(a.state === 'SHADOW' ? 'In shadow' : given(a.state) ? String(a.state).toLowerCase() : 'State not sent', a.state === 'SHADOW' ? 'accent' : '')),
-        readByWords(a.read_by) ? el('p', 'help tb-money-readby', 'Contract read by ' + readByWords(a.read_by)) : null,
+        readByWords(a.read_by) ? el('p', 'help tb-money-readby', 'Contract read by ' + readByWords(a.read_by).replace(/^Fixed rules/, 'fixed rules')) : null,
         add(el('div', 'tb-money-body'),
           add(el('div', 'tb-money-figure'), el('p', 'tb-detail-label', amount ? 'Estimated credit' : 'Credit'),
             amount ? el('p', 'tb-money-amount', amount) : el('p', 'tb-money-missing', given(a.evaluation) ? a.evaluation : 'No amount'),

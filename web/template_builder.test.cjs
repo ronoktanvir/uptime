@@ -447,7 +447,7 @@ test('terms show the second contract’s readers and the value in its sentence; 
   await s.ui.run(s.root, 'tb_3f9a2c');
   const rows = s.root.cls('tb-term');
   assert.match(text(rows[0]), /Availability commitment 99\.95% 3 of 3 3 of 3 · 99\.9% Yes Yes · 98% Passed/);
-  assert.match(text(rows[1]), /Needs your acknowledgement/);
+  assert.match(text(rows[1]), /To acknowledge/);
   assert.match(text(s.root.cls('tb-terms')[0]), /2 terms need your acknowledgement/);
   assert.equal(s.root.cls('tb-detail-row').length, 2, 'terms to acknowledge open by themselves');
   const approve = () => buttonNamed(s.root, 'Approve this template');
@@ -508,7 +508,7 @@ test('an accepted reading with an agreement shows the money link exactly as sent
   assert.ok(money, 'the reading from the server is drawn under its document');
   const t = text(money);
   assert.match(t, /HGS-PAA-2026-0518/); assert.match(t, /In shadow/);
-  assert.match(t, /Contract read by Fixed rules · template halcyon-availability-addendum\/1/);
+  assert.match(t, /Contract read by fixed rules · template halcyon-availability-addendum\/1/);
   assert.equal(money.cls('tb-money-amount')[0]._text, '$2,000.00');
   assert.match(t, /Estimated · not claimed/);
   assert.match(t, /Service month October 2026/); assert.match(t, /Availability 99\.41%/); assert.match(t, /Credit percent 25%/); assert.match(t, /Monthly fee \$8,000\.00/);
