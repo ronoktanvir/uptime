@@ -1,0 +1,533 @@
+commit 903ada17330be031b57668236c1b6488ff29b926
+started 2026-11-11T01:58:45Z
+command: UPTIME_REQUIRE_BROWSER=1 uv run --locked pytest --basetemp=<private> -o tmp_path_retention_policy=failed
+chrome 156.0.8078.80 157.0.8103.40 
+============================= test session starts ==============================
+platform darwin -- Python 3.13.12, pytest-9.2.0, pluggy-1.7.0
+rootdir: /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109
+configfile: pyproject.toml
+testpaths: tests
+plugins: hypothesis-6.170.14, anyio-4.16.0
+collected 5602 items
+
+tests/auth_refusal_finish_20261109/test_signed_refusal_hook.py ......... [  0%]
+....                                                                     [  0%]
+tests/disputes_finish_20261109/test_refusal_journal.py ................. [  0%]
+....................................                                     [  1%]
+tests/monthly_finish_20261109/test_mf1109_evaluator.py ......            [  1%]
+tests/monthly_finish_20261109/test_mf1109_observation.py ............... [  1%]
+........................................................................ [  2%]
+......................                                                   [  3%]
+tests/monthly_finish_20261109/test_mf1109_route.py ........              [  3%]
+tests/monthly_finish_20261109/test_mf1109_scope_marker.py .............. [  3%]
+...........................                                              [  4%]
+tests/monthly_finish_20261109/test_mf1109_types.py ..................... [  4%]
+.............                                                            [  4%]
+tests/monthly_finish_20261109/test_monthly_temporal_parent.py .......... [  4%]
+.........                                                                [  5%]
+tests/monthly_finish_20261109/test_parent_monthly_controls.py .......... [  5%]
+...............                                                          [  5%]
+tests/monthly_finish_20261109/test_scope_effective_periods.py .......... [  5%]
+..........                                                               [  5%]
+tests/onboarding79/test_public_proposal_export_79.py ............        [  6%]
+tests/onboarding79/test_public_proposal_export_auto_89.py ..             [  6%]
+tests/onboarding_finish20261109/test_monthly_basis_compilation.py ...... [  6%]
+..........                                                               [  6%]
+tests/onboarding_finish20261109/test_monthly_basis_helper.py ........... [  6%]
+.............                                                            [  6%]
+tests/onboarding_finish20261109/test_parent_financial_controls.py ...... [  6%]
+................                                                         [  7%]
+tests/onboarding_finish20261109/test_strict_diagnostics_remediation_parity_20261109.py . [  7%]
+.........................                                                [  7%]
+tests/onboarding_finish20261109/test_strict_template_remediation_20261109.py . [  7%]
+........................................................................ [  8%]
+.........................................................                [  9%]
+tests/test_adequate_holdout.py .........................                 [ 10%]
+tests/test_advanced_companion.py ....                                    [ 10%]
+tests/test_agreement_binding_f5.py ............                          [ 10%]
+tests/test_allocation_ledger.py ........................................ [ 11%]
+.........                                                                [ 11%]
+tests/test_blind_acceptance.py .....................................     [ 12%]
+tests/test_bootstrap.py .                                                [ 12%]
+tests/test_case_revision_v4.py ...                                       [ 12%]
+tests/test_claim_identity.py ...                                         [ 12%]
+tests/test_claim_identity_historical.py .......................          [ 12%]
+tests/test_claim_identity_migration.py ................................  [ 13%]
+tests/test_claim_route_filing_override_f4.py ....                        [ 13%]
+tests/test_claim_scope_89.py ..................                          [ 13%]
+tests/test_contract_job_card_r4.py .                                     [ 13%]
+tests/test_contracts.py ....                                             [ 13%]
+tests/test_correspondence.py ........................................... [ 14%]
+.............                                                            [ 14%]
+tests/test_correspondence_adversarial_http_89h.py ..............         [ 15%]
+tests/test_correspondence_api.py .                                       [ 15%]
+tests/test_correspondence_artifact_category_81.py ....................   [ 15%]
+tests/test_correspondence_artifact_category_ui_81.py ..                  [ 15%]
+tests/test_correspondence_blocks_71.py ................................. [ 16%]
+........                                                                 [ 16%]
+tests/test_correspondence_denial_bundle_78.py .......................... [ 16%]
+........................................................................ [ 17%]
+..........................................                               [ 18%]
+tests/test_correspondence_denial_bundle_ui_78.py ....                    [ 18%]
+tests/test_correspondence_disposition_89.py ............................ [ 19%]
+..........                                                               [ 19%]
+tests/test_correspondence_filing_refs.py ............................... [ 20%]
+..                                                                       [ 20%]
+tests/test_correspondence_intake_scope_89b.py .......                    [ 20%]
+tests/test_correspondence_interpretation.py ............................ [ 20%]
+....................................                                     [ 21%]
+tests/test_correspondence_interpretation_ui.py .                         [ 21%]
+tests/test_correspondence_language_56.py ............................... [ 21%]
+........................................................................ [ 23%]
+...........                                                              [ 23%]
+tests/test_correspondence_literal_71.py ...........                      [ 23%]
+tests/test_correspondence_model_job_view_r2.py ..                        [ 23%]
+tests/test_correspondence_model_jobs_75.py .....................         [ 24%]
+tests/test_correspondence_model_jobs_ui_75.py ......                     [ 24%]
+tests/test_correspondence_model_transport.py ........................... [ 24%]
+.......                                                                  [ 24%]
+tests/test_correspondence_month_coverage_89d.py ....                     [ 24%]
+tests/test_correspondence_plan_refs.py ................................. [ 25%]
+.                                                                        [ 25%]
+tests/test_correspondence_public_queue_75.py ..                          [ 25%]
+tests/test_correspondence_receipt_version.py ..                          [ 25%]
+tests/test_correspondence_regional.py ............                       [ 25%]
+tests/test_correspondence_resource.py .................................. [ 26%]
+...                                                                      [ 26%]
+tests/test_correspondence_scoped_filing_77.py ..                         [ 26%]
+tests/test_correspondence_service.py ......................              [ 26%]
+tests/test_credit_steps.py ..............................                [ 27%]
+tests/test_cross_claims.py ........                                      [ 27%]
+tests/test_demo_opportunities.py ...                                     [ 27%]
+tests/test_disputes.py ................................................. [ 28%]
+..                                                                       [ 28%]
+tests/test_disputes_identity_89c.py .....................                [ 28%]
+tests/test_disputes_v4.py .............................................. [ 29%]
+................                                                         [ 29%]
+tests/test_economic_scope_delimiters.py .....................            [ 30%]
+tests/test_evaluation_disputes_finish.py .........                       [ 30%]
+tests/test_evaluation_onboarding_finish.py .....                         [ 30%]
+tests/test_evidence.py ...............                                   [ 30%]
+tests/test_evidence_acceptance_91.py .......                             [ 30%]
+tests/test_evidence_applicability_91.py .......................          [ 31%]
+tests/test_evidence_custody_91.py .........                              [ 31%]
+tests/test_evidence_refresh.py ............                              [ 31%]
+tests/test_evidence_status_source_91a.py .................               [ 32%]
+tests/test_film_ramp_v4.py ...                                           [ 32%]
+tests/test_finance_browser_90.py ..                                      [ 32%]
+tests/test_finance_guide_90.py ......................................... [ 32%]
+....                                                                     [ 32%]
+tests/test_finance_keyboard_95.py ..                                     [ 32%]
+tests/test_finance_view_90.py .......................                    [ 33%]
+tests/test_financial_coverage_89.py ........................             [ 33%]
+tests/test_financial_v4.py ...........................................   [ 34%]
+tests/test_governing_fee_current_authority.py .......                    [ 34%]
+tests/test_governing_fees.py .........................                   [ 35%]
+tests/test_guide_suggestions_browser_95.py .                             [ 35%]
+tests/test_guide_unmodeled_terms_sub.py ....................             [ 35%]
+tests/test_identity_domain_89.py ....................................... [ 36%]
+..............................................                           [ 37%]
+tests/test_intelligence.py ......                                        [ 37%]
+tests/test_intelligence_abstain_95.py ...........                        [ 37%]
+tests/test_interpretation_denial_label_95.py .                           [ 37%]
+tests/test_interpretation_uncertain_candidate_r4.py ...                  [ 37%]
+tests/test_jev.py ....................................                   [ 38%]
+tests/test_journey_api.py .............................................. [ 38%]
+..........                                                               [ 39%]
+tests/test_journey_browser.py ..............                             [ 39%]
+tests/test_live_reviewer_setup.py ...............                        [ 39%]
+tests/test_local_review_exception.py ...............                     [ 39%]
+tests/test_local_review_exception_disputes.py .......................... [ 40%]
+...........................................                              [ 41%]
+tests/test_mandate_claim_closure_2a.py .........                         [ 41%]
+tests/test_monthly_semantics_finish.py .                                 [ 41%]
+tests/test_northwind_financial.py ...................................... [ 41%]
+........                                                                 [ 42%]
+tests/test_northwind_inputs.py .....                                     [ 42%]
+tests/test_northwind_local_ledger.py ....................                [ 42%]
+tests/test_northwind_workflow.py ...................................     [ 43%]
+tests/test_onboarding_lifecycle.py ................                      [ 43%]
+tests/test_onboarding_rules.py ......................................... [ 44%]
+.........                                                                [ 44%]
+tests/test_operations_recovery_90.py ................................... [ 44%]
+.....                                                                    [ 45%]
+tests/test_opus46_security.py ...........                                [ 45%]
+tests/test_other_obligations.py ................................         [ 45%]
+tests/test_portfolio_v4.py .....................                         [ 46%]
+tests/test_preflight_scope_finish.py ................................... [ 46%]
+..............                                                           [ 47%]
+tests/test_pricing.py .................................................. [ 47%]
+..................                                                       [ 48%]
+tests/test_pricing_advance.py ....................                       [ 48%]
+tests/test_pricing_binding.py ..........................                 [ 49%]
+tests/test_pricing_invariants.py .....                                   [ 49%]
+tests/test_progress_server.py ...........                                [ 49%]
+tests/test_public_proposal_config.py .....................               [ 49%]
+tests/test_public_proposal_jobs.py ...................................   [ 50%]
+tests/test_ramp.py ..........                                            [ 50%]
+tests/test_ramp_award_attribution.py ................................... [ 51%]
+.........................................                                [ 51%]
+tests/test_ramp_award_claim_integration.py ............................. [ 52%]
+......                                                                   [ 52%]
+tests/test_ramp_award_procedural.py ......                               [ 52%]
+tests/test_ramp_bill_panel.py ..                                         [ 52%]
+tests/test_ramp_cap_v4.py .............................................. [ 53%]
+...................................                                      [ 54%]
+tests/test_ramp_case_lineage.py ........................................ [ 54%]
+...................                                                      [ 55%]
+tests/test_ramp_comment_readback.py .................................... [ 55%]
+....................................................................     [ 56%]
+tests/test_ramp_context.py ...............................               [ 57%]
+tests/test_ramp_credentials.py ......................................... [ 58%]
+.                                                                        [ 58%]
+tests/test_ramp_credit_readback.py .............                         [ 58%]
+tests/test_ramp_credit_scope_v72.py ................................     [ 59%]
+tests/test_ramp_credit_sync_v4.py ...................................... [ 59%]
+...............                                                          [ 60%]
+tests/test_ramp_demo_notes.py .........                                  [ 60%]
+tests/test_ramp_demo_round2.py .........                                 [ 60%]
+tests/test_ramp_demo_round3.py .....                                     [ 60%]
+tests/test_ramp_findings_v4.py ......................................... [ 61%]
+......................................                                   [ 61%]
+tests/test_ramp_native_binding.py ...................................... [ 62%]
+.......................                                                  [ 62%]
+tests/test_ramp_native_reason.py ....................................... [ 63%]
+......................                                                   [ 64%]
+tests/test_ramp_prefilm_check.py ............                            [ 64%]
+tests/test_ramp_records_v4.py .......................................... [ 65%]
+...............................................................          [ 66%]
+tests/test_ramp_terms_store.py ............................              [ 66%]
+tests/test_ramp_ui_v4.py .                                               [ 66%]
+tests/test_ramp_v4.py .................................................. [ 67%]
+...........                                                              [ 67%]
+tests/test_ramp_workflow.py ............................................ [ 68%]
+.....                                                                    [ 68%]
+tests/test_ramp_workflow_http.py .........................               [ 69%]
+tests/test_ramp_workflow_webhooks.py ............................        [ 69%]
+tests/test_ramp_workspace_installation.py ...                            [ 69%]
+tests/test_reconciliation.py ...............................             [ 70%]
+tests/test_reconciliation_identity_d03.py ................               [ 70%]
+tests/test_release_boundaries.py ...........                             [ 70%]
+tests/test_release_gate_v4.py ...................................        [ 71%]
+tests/test_release_probes_gent8.py .......                               [ 71%]
+tests/test_requirements_card_ui_95.py .                                  [ 71%]
+tests/test_requirements_traceability.py ......                           [ 71%]
+tests/test_reworded_log_request_r2.py .....                              [ 71%]
+tests/test_run_denial_model_job_r2.py .......                            [ 71%]
+tests/test_semantic_current_projection.py .........                      [ 71%]
+tests/test_semantic_schema_epoch.py ..                                   [ 71%]
+tests/test_setup_model_jobs_demo.py ......                               [ 72%]
+tests/test_setup_refusals.py ........                                    [ 72%]
+tests/test_setup_side_panel.py ...........                               [ 72%]
+tests/test_side_panel_framing.py ....................................... [ 73%]
+..                                                                       [ 73%]
+tests/test_signed_mandates.py .........................................  [ 73%]
+tests/test_source_config_d04c.py ........                                [ 73%]
+tests/test_source_config_v4.py ..........                                [ 74%]
+tests/test_source_identity_89.py .....................................   [ 74%]
+tests/test_storage.py ...                                                [ 74%]
+tests/test_submission_onboarding_jobs.py ....                            [ 74%]
+tests/test_submission_refusal_location.py ....                           [ 75%]
+tests/test_submission_ui_browser.py ...
+STALLED: no output for 307s; aborting to capture stacks (process list in suite-903ada1-run2-stall.txt)
+Fatal Python error: Aborted
+
+Thread 0x000000016f7b7000 (most recent call first):
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/unix_events.py", line 1443 in _do_waitpid
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 995 in run
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 1044 in _bootstrap_inner
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 1015 in _bootstrap
+
+Thread 0x000000016e7ab000 (most recent call first):
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/selectors.py", line 548 in select
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 2012 in _run_once
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 683 in run_forever
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 712 in run_until_complete
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/runners.py", line 118 in run
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/runners.py", line 195 in run
+  File "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/lib/python3.13/site-packages/uvicorn/server.py", line 86 in run
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 995 in run
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 1044 in _bootstrap_inner
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py", line 1015 in _bootstrap
+
+Current thread 0x00000001efcd3840 (most recent call first):
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/selectors.py", line 548 in select
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 2012 in _run_once
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 683 in run_forever
+  File "/Users/ronoktanvir/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 712 in run_until_complete
+  File "/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/lib/python3.13/site-packages/playwright/sync_api/_context_manager.py", line 60 in greenlet_main
+
+Extension modules: _cffi_backend, greenlet._greenlet (total: 2)
+pytest_exit 134
+finished 2026-11-11T02:15:45Z
+=== node --test web/*.test.cjs tests/helpers/*.test.cjs ===
+✔ wizard reviews exact bytes, invalidates edits and posts only after confirmation (5.342958ms)
+✔ successful mutation reloads state; a lost response does not erase uncertainty (1.098917ms)
+✔ catalog preserves observed quarantine and credit states without inventing metrics (0.889875ms)
+✔ receipt actions reload the same correspondence case (0.846875ms)
+✔ explicit V3 and companion routes preserve primary Ramp fallback (3.203834ms)
+✔ provider plan never advertises unsupported writes or invents delivery (0.1345ms)
+✔ a zero for posting and application is not stated as an amount; the other four and the complete record are exact (7.317708ms)
+✔ a non-zero posted or applied amount on the record is shown like the others (0.787542ms)
+✔ a record without amounts states none and adds no sentence (1.865125ms)
+✔ the sample contracts are the authored fixtures, byte for byte (2.898917ms)
+✔ a term is tied to its sentence at its recorded position, or found word for word, or named as missing (0.179ms)
+✔ segments cover the text exactly and name the terms over each piece (0.153458ms)
+✔ replay goes through the found terms in reading order and skips missing ones (13.460125ms)
+✔ job states read as submitted, started, finished, or failed with the reason (0.175959ms)
+✔ a take is fresh, running, used, not approved, unconfigured or read by fixed rules (0.080875ms)
+✔ terms of an installed agreement carry their labels and the values the server sent (0.230625ms)
+✔ a model-read agreement shows its text beside its terms, the record’s facts and a recorded replay (7.69225ms)
+✔ a rules-read agreement says fixed rules read it and names no model (2.520208ms)
+✔ when the server sends no source text, the view says exactly what is missing (0.497917ms)
+✔ the live panel is offered only to an account that may stage drafts (0.407667ms)
+✔ a live reading submits one real job request, shows each job state as it changes, then the terms beside their sentences, unreviewed (14.379709ms)
+✔ used takes are never resent: the latest one is shown as an earlier run, not a live one (2.652459ms)
+✔ without an approval or a configured model nothing is sent, and the page says why (5.743791ms)
+✔ accept denial posts only the offered basis digest to the dedicated route, then reloads (9.062041ms)
+✔ a stale basis (409) accepts nothing, reloads and offers the new basis without blocking (0.867584ms)
+✔ a malformed offer or a read-only session cannot accept (4.497208ms)
+✔ the dispute record is read-only, uses plain labels and keeps vendor text inert (0.736583ms)
+✔ a blocking contradicting delivery is explained, and only offered actions render (89b) (0.617584ms)
+✔ the dispute record words the 89b checks by meaning, not as pass/fail (0.689666ms)
+✔ a refused family shows its verified diagnostic; a family without one shows the summary (7.401792ms)
+✔ a foreign or malformed diagnostic falls back to the summary; no refusal shows nothing extra (0.812708ms)
+✔ elements, reviewer tasks, family choice, missing drafts and overlap render as text only (9.247416ms)
+✔ a non-automatic version, a 401 and a failed read each say so without inventing content (0.849333ms)
+✔ no requirements control without a readable revision (0.2035ms)
+✔ a submission channel element renders generically, and a null family selection adds no section (0.369334ms)
+✔ a Ramp bill address gives Ramp's own bill ID, lower-cased, and nothing else does (2.554ms)
+✔ the panel opens the bill page for a bill and the home page otherwise, only on the configured origin (0.713959ms)
+✔ when tab lookups finish out of order, only the most recent one moves the panel (42.854875ms)
+✔ the manifest asks for the side panel, Ramp tab addresses and the Uptime app's own tab addresses only, and its key pins one ID (1.809666ms)
+✔ the extension is a thin shell: no requests, storage, scripting of other pages or injected markup (1.048459ms)
+✔ the shell accepts only {type, route} from the framed window on the configured origin (0.235792ms)
+✔ only overview, records, recovery, agreements, cases and one case by a plain id may be opened, on the configured origin only (0.127625ms)
+✔ the first press opens one tab; later presses focus that same tab and set the route; a closed tab is replaced (0.282625ms)
+✔ the shell listens for messages only through its one handler and never sends one (0.955584ms)
+✔ the shell accepts the bill-status message only in its one shape, from its own frame on the configured origin (0.237417ms)
+✔ the badge is set for one tab on a match and cleared otherwise, and needs no permission (0.194708ms)
+✔ the active tab decides the panel: one bill, the tracking list on any other Ramp page, nothing elsewhere, and Uptime itself (0.240625ms)
+✔ the panel page has a quiet You're in Uptime state, hidden until the active tab is Uptime (0.16575ms)
+✔ the open-bill message moves only to Ramp's own bill address, from the framed app in its one shape (0.142291ms)
+✔ vendors initial read401 requests sign-in once (1.658875ms)
+✔ disputes initial read401 requests sign-in once (0.149459ms)
+✔ case initial read401 requests sign-in once (0.123792ms)
+✔ vendor detail401 cannot become a partial read-only vendor card (0.296875ms)
+✔ action401 revokes detached controls and never retries a POST (3.067083ms)
+✔ access401 revokes detached controls and never retries a POST (1.173625ms)
+✔ submit401 revokes detached controls and never retries a POST (0.920167ms)
+✔ poll401 revokes detached controls and never retries a POST (1.119916ms)
+✔ candidate401 revokes detached controls and never retries a POST (0.825792ms)
+✔ terminal polling updates live status but preserves later overlay review (1.250542ms)
+✔ late401 from a detached view cannot replace the current screen (0.793084ms)
+✔ parallel401 requests redirect once and old refresh cannot overwrite sign-in (5.026709ms)
+✔ an older overlapping status read cannot undo a newer terminal result or overlay review (1.29875ms)
+✔ the client never names a rule family (5.195792ms)
+✔ generation controls stay disabled without draft access and send nothing (0.543084ms)
+✔ access check posts exact untrimmed public fields only; unapproved families keep generation disabled (1.312625ms)
+✔ any edit invalidates access confirmation, including programmatic edits (0.981375ms)
+✔ explicit generation, GET-only polling, explicit refresh, safe text and staging only the selected job (1.802667ms)
+✔ offline selection stages the exact source through the deterministic candidate route with no job (0.518625ms)
+✔ non-selected outcomes and non-selected jobs offer no staging control (2.744083ms)
+✔ a lost reservation response is recovered by an explicit access recheck, never a second POST (0.5205ms)
+✔ superseded or unmounted asynchronous responses are ignored (0.461667ms)
+✔ local deterministic intake stays a separate, labeled local validation form (0.18875ms)
+✔ the rule family is selected by the server; any source edit revokes exact request confirmation (9.264917ms)
+✔ decimal ordering preserves balances beyond floating point precision (1.686ms)
+✔ financial display preserves server precision and unknown state (0.333916ms)
+✔ clause links reject executable and local schemes (0.644458ms)
+✔ ledger consumes API data, keeps sources exact and treats markup as text (18.123583ms)
+✔ inspector action uses encoded route, empty POST and no client identity (3.946ms)
+✔ onboarding keeps unproven event provenance explicit (4.8855ms)
+✔ unauthorized session offers named account login (3.017417ms)
+✔ default landing is Ramp, deep links encode opaque IDs, explicit rehearsal retains dashboard (7.431ms)
+✔ Ramp authentication failures reuse named sign-in and skip link does not change route (4.805125ms)
+✔ configured workspace renders inside the finance shell and keeps native records accessible (6.474459ms)
+✔ workflow authorization and server errors never silently fall back to native records (5.019958ms)
+✔ stale reviewer authority keeps recorded checks separate from current verification (1.539458ms)
+✔ server stage labels render as sent; the browser never renames a state to hide its destination (5.201959ms)
+✔ the one-bill route makes one request, the saved Ramp workspace, and never reads the workflow projection (5.8615ms)
+✔ a filed claim prints exactly the packet’s own fields in plain labels (5.078041ms)
+✔ the response adds only what its packet carries; an unmatched evidence digest is shown as its digest (0.500584ms)
+✔ a field the server does not send is printed as not sent, never guessed; amounts stay exact (0.353041ms)
+✔ the case page shows What was filed below the correspondence, closed until opened, from the record it already loaded (10.922667ms)
+✔ how a contract was read: two chips mapped from the server’s method and model, nothing guessed (0.25725ms)
+✔ an agreement card shows the chip beside its name and keeps the server’s own words in its fields (3.574375ms)
+✔ after a recorded action, focus moves to the recovery heading and never onto the next decision (11.21875ms)
+✔ a repeated Enter or Space key event on a decision is suppressed; a fresh press is not (1.233833ms)
+✔ when no step remains, focus moves to the recovery heading (0.795583ms)
+✔ a failed action does not move focus, and a later refresh does not steal it (1.452583ms)
+✔ attention items, destination and calculation inputs render from the server summary only (10.984708ms)
+✔ guide posts only the question, renders cited sentences and states it changed nothing (3.078541ms)
+✔ abstention and failure messages; empty questions are not sent (0.9555ms)
+✔ an expired session on a guide question returns to sign-in and stales the form (20.343458ms)
+✔ without a server summary the view keeps its previous layout and offers no guide (3.5475ms)
+✔ suggested questions are offered as a labelled group of ordinary buttons (9.871958ms)
+✔ a suggestion fills the question, asks once through the read-only route and shows the cited answer (3.695209ms)
+✔ suggestions are not offered without the server summary (0.570416ms)
+✔ a denial model job shows the model the server reports and its latest time, in UTC, and nothing it does not report (2.772875ms)
+✔ the denial job receipt shows only reported fields: return code, tool events, empty inventories, cost and session (0.511959ms)
+✔ three plain actors: the reviewer, Uptime automatic steps, and the vendor or the named source (3.089ms)
+✔ a decision’s new steps are those after the last one already shown; held stages wait for the step that recorded them (0.804083ms)
+✔ after a decision the Overview shows each recorded step in order, the figures move with them, and the next decision waits (12.949917ms)
+✔ turned off, or in a step-by-step workspace, the Overview shows the result at once (1.76325ms)
+✔ turning the control off mid-way shows every step and the next decision at once (0.597834ms)
+✔ a fresh walkthrough gives one row per item across vendors, months, agreements and Ramp bills (2.349917ms)
+✔ the credit row follows the credit’s own latest recorded stage; nothing is added across stages or rows (0.340417ms)
+✔ who acts next comes from the offered actions and the recorded pause (0.081417ms)
+✔ the work counters count recorded facts: Claude readings, automatic steps and reviewer decisions (0.216625ms)
+✔ needs attention covers the case’s items and every Ramp bill with no agreement on file (0.118417ms)
+✔ the portfolio page reads the agreements and the saved Ramp workspace and shows rows, tiles and counters (2.214791ms)
+✔ a failed read of the agreements or Ramp leaves that part unavailable, never filled in (0.373916ms)
+✔ the case page names the vendor and the month and links back to the portfolio; its price card has its own id (5.976292ms)
+✔ a matched Ramp bill is not its own row: its facts go on the opportunity it belongs to (0.319708ms)
+✔ the bills tile and needs attention read the same facts: only unmatched bills lack an agreement (0.168417ms)
+✔ notes in Ramp count only what Uptime posted, and appear only when notes exist (0.428416ms)
+✔ other companies’ estimates from the workflow view become rows and count in the tiles; the field may be absent (0.261917ms)
+✔ each entry of opportunities is its own estimated row, counted in the tiles and never added to Northwind (0.516208ms)
+✔ the verified bill shows what Ramp holds, what Uptime found and the person-posted note, from one read (5.04925ms)
+✔ a bill found only in the saved worklist shows that worklist’s own statement, no outcome and no scenario beside it (2.311959ms)
+✔ an unknown, empty or malformed bill id says so in one sentence and offers Ramp records (0.933458ms)
+✔ a bound agreement and an attachable finding are stated as such; other bindings are never called bound (0.699041ms)
+✔ a failed read shows no bill and an expired session propagates to sign-in (0.535208ms)
+✔ in the panel each state has one primary button, Open Uptime, that asks for one allowed route and is not a link (0.393834ms)
+✔ in the panel the verified bill keeps every statement word for word (0.157375ms)
+✔ with no Ramp bill open the page reads nothing and says so calmly (0.17ms)
+✔ outside the panel no state shows the panel button (0.1715ms)
+✔ panel mode is on only when the page is framed, and its message is addressed to one extension origin (3.17575ms)
+✔ a matched bill leads with the possible credit, how it was matched, the evidence, the money and the stages (2.702958ms)
+✔ after the claim is approved the primary button opens the case; an unknown route falls back to overview (1.672166ms)
+✔ the note button posts possible_credit before the credit is applied and credit_applied after, and shows the result (1.310709ms)
+✔ the note button shows the server sentence on a refusal, says nothing was posted without POSTED, and hides on 404 (0.525291ms)
+✔ notes are marked by who posted them, and an Uptime note removes the no-write statement (0.127291ms)
+✔ a missing verified_records, match or notes falls back to the present pages (0.354083ms)
+✔ the bill-status message has one shape and goes only to the extension parent (0.152917ms)
+✔ a price exception leads with the amount above the contracted price, billed against expected, and Review in Uptime (0.166916ms)
+✔ Bills Uptime is tracking lists every verified record, matched first, with one line each and a count (0.447167ms)
+✔ notes_mode: auto hides the button and states Uptime’s notes as posted; off hides it; manual keeps it (0.217208ms)
+✔ a live read says so with its time and can be refreshed; refresh hides on 404; a saved read keeps Not a live read (0.417084ms)
+✔ a credit confirmed in Ramp closes the money card and marks the last stage; anything else does not (0.352792ms)
+✔ the open-bill message has one shape (0.06675ms)
+✔ native links accept only an exact HTTPS sandbox provider destination (1.199209ms)
+✔ default unpaid filter excludes paid, unknown and non-bill records; all remain accessible (0.19ms)
+✔ pagination bounds 1000 records while all types are selectable; source and money stay exact (8.527041ms)
+✔ detail and plan are encoded GETs, never POST; receipt is scoped and unsafe link stays absent (3.668959ms)
+✔ detail envelope preserves evidence, native projection and provider destination (0.758458ms)
+✔ unmount invalidates late reads and detached plan buttons (0.249709ms)
+✔ errors hide transport internals and unauthorized reads propagate to existing sign-in (0.454083ms)
+✔ client uses injected auth, text nodes and no embedded provider or direct transport (0.369125ms)
+✔ a partial capture says what is missing and is never presented as the complete account (2.2865ms)
+✔ rows show vendor name, invoice and a verified link; a missing name is stated, never inferred (1.091791ms)
+✔ a finding amount is withheld on a Ramp record without an exact agreement binding (0.449292ms)
+✔ record page shows exact Ramp identity, freshness, link basis and person attribution; no local confirmation (2.694541ms)
+✔ the verified Ramp record panel is a dated saved record with its own business, beside an attributed worklist (1.7725ms)
+✔ instants and read-status codes render as exact plain words; server values stay unchanged (0.668833ms)
+✔ worklist codes read as ordinary, meaning-preserving wording; other codes stay exact (2.363542ms)
+✔ a record page leads with its native Ramp route; an unverified URL offers none (2.528542ms)
+✔ recorded order is the server sequence; the replay group is the latest reviewer decision and the steps after it (1.475459ms)
+✔ the legend counts equal the recorded steps and agree with the server’s own counts (5.144333ms)
+✔ on by default on the demo line; turned off, every step shows at once, nothing is scheduled and no request is added (0.568666ms)
+✔ turned on, the next decision’s steps are shown one at a time in recorded order, then all remain (1.589042ms)
+✔ Replay shows the whole list in recorded order; skipping or turning it off shows every step at once (0.700416ms)
+✔ reduced motion: the replay still goes one step at a time but adds no animation class (0.191041ms)
+✔ browser storage that refuses leaves the setting in memory for this page (0.274083ms)
+✔ the first answer draws all seven steps waiting, polls again, and names who is orchestrating (9.664375ms)
+✔ working readers count up from their own start; a finished step shows its seconds and summary (0.611333ms)
+✔ one failed reader shows its sentence while the others carry on (0.244708ms)
+✔ polling follows the run, stops at READY_FOR_REVIEW and stops when the view is left (3.588792ms)
+✔ READY_FOR_REVIEW: terms with agreement, Jev percentage and a term marked for the reviewer; rows open to the sentence and rule (2.24275ms)
+✔ a failed blocking check disables approval and says why in words (0.7835ms)
+✔ when Jev did not run, no Jev figure is shown anywhere and the page says Jev could not be reached (1.300291ms)
+✔ approving POSTs the exact SHA-256, then shows who approved it and offers the next contract; the reading never guesses (2.658792ms)
+✔ a refused approval shows the server sentence and keeps the button (1.641708ms)
+✔ a FAILED build shows its sentence and a way back to Agreements, and polling stops (0.899375ms)
+✔ Agreements section: one card per sample, a start button that POSTs and opens the run (0.584542ms)
+✔ Agreements section: an existing build is opened instead of started; a disabled server shows its reason and no button (0.18525ms)
+✔ helpers: percentages shift decimal text, step states read plainly, and the page wording has no forbidden labels (0.590875ms)
+✔ style: the template builder block sits before the side-panel block, which stays last (0.563709ms)
+✔ engine additions: second contract named, rule error and rule match shown, a term Jev did not answer says No answer (0.649ms)
+✔ a REVIEW term is explained beside an enabled Approve; a refused start shows the server sentence (0.3445ms)
+✔ MATCHED: no reader starts, the page leads with the reading and its guards, and says no Claude agent ran (0.950791ms)
+✔ NEEDS_REVIEWER: nothing has started; "Build without Jev" POSTs /continue with {} and polling resumes (1.252125ms)
+✔ readers differ: each card shows its role in words and the model that answered; the Jev step says why they started (0.539208ms)
+✔ checks: six in the interface page order; a failing value-in-sentence check blocks approval (0.537875ms)
+✔ the second-contract check that did not run is neither a pass nor a failure, and approval stays possible (0.440334ms)
+✔ terms show the second contract’s readers and the value in its sentence; approval waits for every acknowledgement and sends them (4.822583ms)
+✔ a REFUSED reading says so with each failed guard’s reason, marks what was found as not accepted, and shows no agreement (1.268584ms)
+✔ an accepted reading with an agreement shows the money link exactly as sent; credit null shows the evaluation and no amount (1.218791ms)
+✔ after approval a next contract can be pasted and read; its body carries the text and consent (0.56975ms)
+✔ Paste a contract: disabled until the text is there and consent is ticked; POSTs the pasted shape; shows the server sentence (1.731833ms)
+✔ read_by is worded for a person: a template read is "Fixed rules · template <id>" (0.362375ms)
+✔ as the engine built it: Jev not asked with no template on file, the sceptic’s conflict, second readers, reasons and blank-term errors (1.3525ms)
+✔ a not-stated term reads "Not stated in this contract", shows no Jev figure, gives its reason and gates approval through its own tick box (0.843541ms)
+✔ checks: the stated check comes first and every check shows its not-stated count when above zero (0.241291ms)
+✔ a reading names a not-stated field as not stated when the template was built, never as not found, and counts rules only (0.502375ms)
+✔ starts read-only even with returned actions; fields contain no sample values (3.363167ms)
+✔ vendor intake sends exact separate public document and overlay through injected client (1.286875ms)
+✔ invalid JSON never sends a request and leaves form data intact (0.485958ms)
+✔ test revision is server supplied; money strings remain exact (0.596833ms)
+✔ active evaluation uses provided facts without invented vendor, outcome or award (1.141875ms)
+✔ returned action IDs are encoded and POST has no client authority (0.410458ms)
+✔ write guard rechecks revoked access even for previously rendered buttons (0.404167ms)
+✔ inflight mutations suppress duplicates; lost responses require successful refresh (0.561875ms)
+✔ stale navigation results cannot replace a later view and unmounted actions cannot send (0.441625ms)
+✔ correspondence setup sends scoped identity only and has no event/service credential form (0.473459ms)
+✔ case inspector shows receipt timeline, exact source, IDs, unknowns and safe text (0.7555ms)
+✔ portfolio comparison preserves exact decimals, zero, unknown and server cohorts (0.111666ms)
+✔ failed reads expose no writable intake, no error details, and unknown provenance is explicit (0.208958ms)
+✔ extension uses no transport, browser storage, HTML injection or inline styles (0.691959ms)
+✔ catalog summary loads reviewer-bound detail before rendering version actions (0.2515ms)
+✔ failed vendor detail keeps that vendor read-only without hiding intake (0.176209ms)
+✔ unsupported projection requests never fall through to an empty API route (0.094958ms)
+✔ document origin copy preserves exact wire classifications without rendering source labels (0.135583ms)
+✔ a rolled-back adapter says nothing is active and separates scripted preparation from account actions (4.518ms)
+✔ an active adapter names its version; other states are stated plainly (0.753417ms)
+✔ Northwind renders separate exact stages, uncertainty and cited source records without classification chrome (4.741042ms)
+✔ actions use signed injected transport, encoded server IDs and suppress duplicate dispatch (1.243375ms)
+✔ lost action response blocks repeat until explicit server refresh and stale buttons cannot act (0.594875ms)
+✔ expired signing authority returns to account login and invalidates stale action controls (1.051041ms)
+✔ decimal display never rounds through Number and missing monetary observations remain unknown (0.067459ms)
+✔ agreement amendments and adapter history retain actual references and scripted principal detail (1.818417ms)
+✔ invoice periods and source usage details preserve server observations and null without arithmetic (0.4605ms)
+✔ application invoice comes only from current projection and pricing failures remain visible without classification prefix (0.8395ms)
+✔ missing measurement diagnostic stays visible in summary and detail without generated source prefix (0.525875ms)
+✔ credit lifecycle and headline come only from the server finance projection, never from ledger fields (0.746209ms)
+✔ activity shows the server automation record: state, pause, counts, authority and case-timeline times without durations (1.456917ms)
+✔ the recovery card labels the claim’s own stage and shows the credit’s latest recorded stage beside it (0.328792ms)
+✔ a stop for a person shows the server’s reason and detail, and the recovery panel links to the claim’s case (0.42125ms)
+ℹ tests 235
+ℹ suites 0
+ℹ pass 235
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3765.660916
+node_exit 0
+=== node scripts/test_progress_graph.cjs ===
+Progress graph: dependency ordering, invalid graphs, and link safety passed.
+graph_exit 0
+=== uv run --locked python scripts/rehearse.py ===
+/Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{
+  "mode": "DETERMINISTIC_REPLAY",
+  "identity": "scripted-test-reviewer",
+  "price_exposure": "7500.00",
+  "confirmed_simulated_award": "100.00",
+  "recorded": "100.00",
+  "applied": "50.00",
+  "disputed": "20.00",
+  "onboarding": [
+    "SHADOW",
+    "APPROVED",
+    "ACTIVE",
+    "REVOKED"
+  ],
+  "actual_customer_recovery": null
+}
+rehearse_exit 0
+=== uv run --locked python scripts/check_repo.py ===
+Secret check passed for 4093 versioned text objects.
+check_repo_exit 0

@@ -1,0 +1,29 @@
+{
+ "tested_commit": "903ada17330be031b57668236c1b6488ff29b926",
+ "branch": "work/submission-integration-20261109",
+ "role": "template builder version 2 joined on the integration branch, before publishing",
+ "command": [
+  "UPTIME_REQUIRE_BROWSER=1",
+  "uv",
+  "run",
+  "--locked",
+  "pytest",
+  "--basetemp=<private task directory>/bt-903ada1",
+  "-o",
+  "tmp_path_retention_policy=failed"
+ ],
+ "exit_code": 134,
+ "pytest_result": "no result: the runner's watchdog aborted the run after it stopped advancing",
+ "progress_before_the_abort": "reached 75% of 5602 collected tests; no test had failed, errored or been skipped",
+ "log": "suite-903ada1-run2-aborted-pytest.log",
+ "capture": "suite-903ada1-run2-aborted-stall.txt",
+ "started_at": "2026-11-11T01:58:45Z",
+ "aborted_at": "2026-11-11T02:15:45Z",
+ "other_checks_on_the_same_commit": {
+  "node --test web/*.test.cjs tests/helpers/*.test.cjs": "235 passed, 0 failed",
+  "node scripts/test_progress_graph.cjs": "exit 0",
+  "uv run --locked python scripts/rehearse.py": "exit 0",
+  "uv run --locked python scripts/check_repo.py": "exit 0"
+ },
+ "note": "A freshly launched headless Chrome did not answer, the stall seen before on this machine. Two agents were running real builds and a browser at the time. The full run for this work was then taken from GitHub's check workflow on the pushed integration branch."
+}

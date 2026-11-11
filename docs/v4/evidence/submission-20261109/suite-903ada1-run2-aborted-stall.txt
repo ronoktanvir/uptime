@@ -1,0 +1,617 @@
+stall detected 2026-11-11T02:15:27Z after 307s without output
+--- descendants of the run (pid ppid elapsed state command)
+79367 79355 16:42 S    uv run --locked pytest --basetemp=/Users/ronoktanvir/.local/share/uptime-engineering/tasks/submission-integration-20261109/bt-903ada1 -o tmp_path_retention_policy=failed
+79370 79367 16:42 S    /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/bin/python /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/bin/pytest --basetemp=/Users/ronoktanvir/.local/share/uptime-engineering/tasks/submission-integration-20261109/bt-903ada1 -o tmp_path_retention_policy=failed
+82179 79370 05:06 S    /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/lib/python3.13/site-packages/playwright/driver/node /Users/ronoktanvir/.local/share/uptime-engineering/worktrees/submission-integration-20261109/.venv/lib/python3.13/site-packages/playwright/driver/package/cli.js run-driver
+82180 82179 05:06 Ss   /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-de
+82184 82180 05:06 S    /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif GPU).app/Contents/MacOS/Google Chrome Helper (Aperitif GPU) --type=gpu-process --gpu-recent-crash-count=0 --no-sandbox --disable-breakpad --headless --enable-unsafe-swiftshader --metrics-client-id=3b9cf735-3dea-4c95-9f52-ff18826e
+82185 82180 05:06 S    /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif).app/Contents/MacOS/Google Chrome Helper (Aperitif) --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=network --no-sandbox --mute-audio --metrics-client-id=3b9cf735-3dea-4c95-9f52-
+82186 82180 05:06 S    /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif).app/Contents/MacOS/Google Chrome Helper (Aperitif) --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-US --service-sandbox-type=service --no-sandbox --mute-audio --metrics-client-id=3b9cf735-3dea-4c95-9f52-
+--- every Chrome main process on the machine
+  632     1 23:14:15 S    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+82180 82179    05:06 Ss   /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phi
+82573 82571    02:04 Ss   /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phi
+--- sample of Chrome 82180
+Sampling process 82180 for 2 seconds with 1 millisecond of run time between samples
+Sampling completed, processing symbols...
+Sample analysis of process 82180 written to file /tmp/Google_Chrome_2026-11-10_181527_AZMT.sample.txt
+
+Analysis of sampling Google Chrome (pid 82180) every 1 millisecond
+Process:         Google Chrome [82180]
+Path:            /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+Load Address:    0x104aec000
+Identifier:      com.google.Chrome
+Version:         157.0.8103.40 (8103.40)
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  node [82179]
+
+Date/Time:       2026-11-10 18:15:27.312 -0800
+Launch Time:     2026-11-10 18:10:21.423 -0800
+OS Version:      macOS 15.1 (24B83)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         39.9M
+Physical footprint (peak):  41.1M
+Idle exit:                  untracked
+----
+
+Call graph:
+    1747 Thread_3784756   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 1747 start  (in dyld) + 2840  [0x18a83c274]
+    +   1747 main  (in Google Chrome) + 200  [0x104aec810]
+    +     1747 ChromeMain  (in Google Chrome Framework) + 444  [0x12462cd5c]
+    +       1747 ChromeMain  (in Google Chrome Framework) + 44747016  [0x1270d94a8]
+    +         1747 ChromeMain  (in Google Chrome Framework) + 38588116  [0x126af9a74]
+    +           1747 ChromeMain  (in Google Chrome Framework) + 53727556  [0x127969ce4]
+    +             1747 ChromeMain  (in Google Chrome Framework) + 53727992  [0x127969e98]
+    +               1747 ChromeMain  (in Google Chrome Framework) + 53729436  [0x12796a43c]
+    +                 1747 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1265ecef8]
+    +                   1747 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1265ed5ec]
+    +                     1747 ChromeMain  (in Google Chrome Framework) + 44404456  [0x127085a88]
+    +                       1747 ChromeMain  (in Google Chrome Framework) + 44404888  [0x127085c38]
+    +                         1747 -[NSApplication run]  (in AppKit) + 480  [0x18e7c2ae0]
+    +                           1747 ChromeMain  (in Google Chrome Framework) + 65978436  [0x128518be4]
+    +                             1747 ChromeMain  (in Google Chrome Framework) + 2968784  [0x124901870]
+    +                               1747 ChromeMain  (in Google Chrome Framework) + 72999336  [0x128bcad48]
+    +                                 1747 -[NSApplication(NSEventRouting) _nextEventMatchingEventMask:untilDate:inMode:dequeue:]  (in AppKit) + 688  [0x18f10fe0c]
+    +                                   1747 _DPSNextEvent  (in AppKit) + 660  [0x18e7cfa08]
+    +                                     1747 _BlockUntilNextEventMatchingListInModeWithFilter  (in HIToolbox) + 76  [0x196119eb8]
+    +                                       1747 ReceiveNextEventCommon  (in HIToolbox) + 636  [0x196119d54]
+    +                                         1747 RunCurrentEventLoopInMode  (in HIToolbox) + 292  [0x196113f64]
+    +                                           1747 CFRunLoopRunSpecific  (in CoreFoundation) + 588  [0x18aca3bc4]
+    +                                             1747 __CFRunLoopRun  (in CoreFoundation) + 1996  [0x18aca4a4c]
+    +                                               1747 __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__  (in CoreFoundation) + 16  [0x18ace4e60]
+    +                                                 1747 _dispatch_main_queue_callback_4CF  (in libdispatch.dylib) + 44  [0x18aa1ab84]
+    +                                                   1747 _dispatch_main_queue_drain  (in libdispatch.dylib) + 980  [0x18aa1af68]
+    +                                                     1747 _dispatch_client_callout  (in libdispatch.dylib) + 20  [0x18aa0c658]
+    +                                                       1747 _dispatch_call_block_and_release  (in libdispatch.dylib) + 32  [0x18aa0a8f8]
+    +                                                         1747 ____CFRunLoopSetOptionsReason_block_invoke_5.134  (in CoreFoundation) + 52  [0x18ae06df0]
+    +                                                           1747 ____CFRunLoopSetOptionsReason_block_invoke_3.125  (in CoreFoundation) + 424  [0x18ae06be4]
+    +                                                             1747 rbs_acquire_appnap_assertion  (in RunningBoardServices) + 1380  [0x192159608]
+    +                                                               1747 -[RBSAssertion acquireWithError:]  (in RunningBoardServices) + 188  [0x19211c884]
+    +                                                                 1747 -[RBSConnection acquireAssertion:error:]  (in RunningBoardServices) + 276  [0x19211cc00]
+    +                                                                   1747 -[RBSConnection _connection]  (in RunningBoardServices) + 92  [0x19211cf50]
+    +                                                                     1747 _dispatch_async_and_wait_f  (in libdispatch.dylib) + 108  [0x18aa11aa0]
+    +                                                                       1747 _dispatch_async_and_wait_f_slow  (in libdispatch.dylib) + 44  [0x18aa1c4fc]
+    +                                                                         1747 __DISPATCH_WAIT_FOR_QUEUE__  (in libdispatch.dylib) + 340  [0x18aa1bfa8]
+    +                                                                           1747 _dispatch_event_loop_wait_for_ownership  (in libdispatch.dylib) + 436  [0x18aa2ffb0]
+    +                                                                             1747 _dispatch_kq_poll  (in libdispatch.dylib) + 228  [0x18aa2f5a4]
+    +                                                                               1747 kevent_id  (in libsystem_kernel.dylib) + 8  [0x18ab7fb08]
+    1747 Thread_3784767
+    + 1747 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1747 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1747 ChromeMain  (in Google Chrome Framework) + 180222800  [0x12f20c6f0]
+    +       1747 ChromeMain  (in Google Chrome Framework) + 53442796  [0x12792448c]
+    +         1747 ChromeMain  (in Google Chrome Framework) + 53443676  [0x1279247fc]
+    +           1747 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +             1747 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +               1747 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                 1747 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1747 Thread_3784772: HangWatcher
+    + 1747 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1747 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1747 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125e2bedc]
+    +       1747 ChromeMain  (in Google Chrome Framework) + 145911112  [0x12d1538e8]
+    +         1747 ChromeMain  (in Google Chrome Framework) + 145910904  [0x12d153818]
+    +           1747 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1257d5794]
+    +             1747 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +               1747 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                 1747 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                   1747 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1747 Thread_3784773: PerfettoTrace
+    + 1747 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1747 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1747 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125e2bedc]
+    +       1747 ChromeMain  (in Google Chrome Framework) + 34370752  [0x1266f4060]
+    +         1747 ChromeMain  (in Google Chrome Framework) + 34371408  [0x1266f42f0]
+    +           1747 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1265ecef8]
+    +             1747 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1265ed5ec]
+    +               1747 ChromeMain  (in Google Chrome Framework) + 22918412  [0x125c080ac]
+    +                 1747 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1747 Thread_3784774: ThreadPoolServiceThread
+    + 1747 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1747 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1747 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125e2bedc]
+    +       1747 ChromeMain  (in Google Chrome Framework) + 34370752  [0x1266f4060]
+    +         1747 ChromeMain  (in Google Chrome Framework) + 65369464  [0x128484118]
+    +           1747 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1265ecef8]
+    +             1747 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1265ed5ec]
+    +               1747 ChromeMain  (in Google Chrome Framework) + 22918412  [0x125c080ac]
+    +                 1747 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1747 Thread_3784775: ThreadPoolForegroundWorker
+    + 1747 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1747 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1747 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125e2bedc]
+    +       1747 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1261bfc40]
+    +         1747 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1261bfce8]
+    +           1747 ChromeMain  (in Google Chrome Framework) + 10365276  [0x12500f4fc]
+    +             1747 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1257d5794]
+    +               1747 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1747 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1747 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1747 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1747 Thread_3784776: ThreadPoolForegroundWorker
+    + 1747 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1747 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1747 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125e2bedc]
+    +       1747 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1261bfc40]
+    +         1747 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1261bfce8]
+    +           1747 ChromeMain  (in Google Chrome Framework) + 10365276  [0x12500f4fc]
+    +             1747 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1257d5794]
+    +               1747 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1747 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1747 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1747 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1747 Thread_3784777: ThreadPoolPresentationWorker
+    + 1747 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1747 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1747 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125e2bedc]
+    +       1747 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1261bfc40]
+    +         1747 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1261bfce8]
+    +           1747 ChromeMain  (in Google Chrome Framework) + 10365276  [0x12500f4fc]
+    +             1747 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1257d5794]
+    +               1747 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1747 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1747 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1747 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1747 Thread_3784778: ThreadPoolAudioWorker
+    + 1747 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1747 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1747 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125e2bedc]
+    +       1747 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1261bfc40]
+    +         1747 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1261bfce8]
+--- sample of Chrome 82184
+Sampling process 82184 for 2 seconds with 1 millisecond of run time between samples
+Sampling completed, processing symbols...
+Sample analysis of process 82184 written to file /tmp/Google_Chrome_Helper_(Aperitif_GPU)_2026-11-10_181537_Buxk.sample.txt
+
+Analysis of sampling Google Chrome Helper (Aperitif GPU) (pid 82184) every 1 millisecond
+Process:         Google Chrome Helper (Aperitif GPU) [82184]
+Path:            /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif GPU).app/Contents/MacOS/Google Chrome Helper (Aperitif GPU)
+Load Address:    0x104be0000
+Identifier:      Google Chrome Helper (Aperitif GPU)
+Version:         ???
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  Google Chrome [82180]
+
+Date/Time:       2026-11-10 18:15:37.779 -0800
+Launch Time:     2026-11-10 18:10:21.548 -0800
+OS Version:      macOS 15.1 (24B83)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         14.5M
+Physical footprint (peak):  55.4M
+Idle exit:                  untracked
+----
+
+Call graph:
+    1770 Thread_3784798   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 1770 start  (in dyld) + 2840  [0x18a83c274]
+    +   1770 main  (in Google Chrome Helper (Aperitif GPU)) + 12  [0x104be0590]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 444  [0x12470cd5c]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 44747016  [0x1271b94a8]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 38586180  [0x126bd92e4]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 60573128  [0x1280d1168]
+    +             1770 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1266ccef8]
+    +               1770 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1266cd5ec]
+    +                 1770 ChromeMain  (in Google Chrome Framework) + 44404456  [0x127165a88]
+    +                   1770 ChromeMain  (in Google Chrome Framework) + 44404772  [0x127165bc4]
+    +                     1770 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 212  [0x18be62808]
+    +                       1770 CFRunLoopRunSpecific  (in CoreFoundation) + 588  [0x18aca3bc4]
+    +                         1770 __CFRunLoopRun  (in CoreFoundation) + 1212  [0x18aca473c]
+    +                           1770 __CFRunLoopServiceMachPort  (in CoreFoundation) + 160  [0x18aca5edc]
+    +                             1770 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                               1770 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                                 1770 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                                   1770 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1770 Thread_3784804
+    + 1770 start_wqthread  (in libsystem_pthread.dylib) + 8  [0x18abba0f0]
+    +   1770 _pthread_wqthread  (in libsystem_pthread.dylib) + 364  [0x18abbb424]
+    +     1770 __workq_kernreturn  (in libsystem_kernel.dylib) + 8  [0x18ab7fa84]
+    1770 Thread_3784807
+    + 1770 start_wqthread  (in libsystem_pthread.dylib) + 8  [0x18abba0f0]
+    +   1770 _pthread_wqthread  (in libsystem_pthread.dylib) + 364  [0x18abbb424]
+    +     1770 __workq_kernreturn  (in libsystem_kernel.dylib) + 8  [0x18ab7fa84]
+    1770 Thread_3784814: PerfettoTrace
+    + 1770 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1770 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125f0bedc]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 34370752  [0x1267d4060]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 34371408  [0x1267d42f0]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1266ccef8]
+    +             1770 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1266cd5ec]
+    +               1770 ChromeMain  (in Google Chrome Framework) + 22918412  [0x125ce80ac]
+    +                 1770 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1770 Thread_3784817: HangWatcher
+    + 1770 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1770 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125f0bedc]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 145911112  [0x12d2338e8]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 145910904  [0x12d233818]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1258b5794]
+    +             1770 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +               1770 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                 1770 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                   1770 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1770 Thread_3784849: ThreadPoolServiceThread
+    + 1770 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1770 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125f0bedc]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 34370752  [0x1267d4060]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 65369464  [0x128564118]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1266ccef8]
+    +             1770 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1266cd5ec]
+    +               1770 ChromeMain  (in Google Chrome Framework) + 22918412  [0x125ce80ac]
+    +                 1770 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1770 Thread_3784850: ThreadPoolForegroundWorker
+    + 1770 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1770 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125f0bedc]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 28913824  [0x12629fc40]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 28913992  [0x12629fce8]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1250ef4fc]
+    +             1770 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1258b5794]
+    +               1770 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1770 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1770 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1770 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1770 Thread_3784851: ThreadPoolPresentationWorker
+    + 1770 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1770 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125f0bedc]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 28913824  [0x12629fc40]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 28913992  [0x12629fce8]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1250ef4fc]
+    +             1770 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1258b5794]
+    +               1770 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1770 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1770 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1770 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1770 Thread_3784852: ThreadPoolAudioWorker
+    + 1770 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1770 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125f0bedc]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 28913824  [0x12629fc40]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 28913992  [0x12629fce8]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1250ef4fc]
+    +             1770 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1258b5794]
+    +               1770 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1770 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1770 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1770 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1770 Thread_3784853: ThreadPoolBackgroundWorker
+    + 1770 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1770 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125f0bedc]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 28913880  [0x12629fc78]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 28914188  [0x12629fdac]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1250ef4fc]
+    +             1770 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1258b5794]
+    +               1770 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1770 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1770 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1770 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1770 Thread_3784854: Chrome_ChildIOThread
+    + 1770 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1770 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125f0bedc]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 34370752  [0x1267d4060]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 39698980  [0x126ce8dc4]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1266ccef8]
+    +             1770 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1266cd5ec]
+    +               1770 ChromeMain  (in Google Chrome Framework) + 22918412  [0x125ce80ac]
+    +                 1770 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1770 Thread_3784855: VizCompositorThread
+    + 1770 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1770 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1770 ChromeMain  (in Google Chrome Framework) + 25162556  [0x125f0bedc]
+    +       1770 ChromeMain  (in Google Chrome Framework) + 34370752  [0x1267d4060]
+    +         1770 ChromeMain  (in Google Chrome Framework) + 34371408  [0x1267d42f0]
+    +           1770 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1266ccef8]
+    +             1770 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1266cd5ec]
+--- sample of Chrome 82185
+Sampling process 82185 for 2 seconds with 1 millisecond of run time between samples
+Sampling completed, processing symbols...
+Sample analysis of process 82185 written to file /tmp/Google_Chrome_Helper_(Aperitif)_2026-11-10_181540_jRzh.sample.txt
+
+Analysis of sampling Google Chrome Helper (Aperitif) (pid 82185) every 1 millisecond
+Process:         Google Chrome Helper (Aperitif) [82185]
+Path:            /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif).app/Contents/MacOS/Google Chrome Helper (Aperitif)
+Load Address:    0x102ef4000
+Identifier:      Google Chrome Helper (Aperitif)
+Version:         ???
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  Google Chrome [82180]
+
+Date/Time:       2026-11-10 18:15:40.305 -0800
+Launch Time:     2026-11-10 18:10:21.549 -0800
+OS Version:      macOS 15.1 (24B83)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         7890K
+Physical footprint (peak):  8114K
+Idle exit:                  untracked
+----
+
+Call graph:
+    1771 Thread_3784799   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 1771 start  (in dyld) + 2840  [0x18a83c274]
+    +   1771 main  (in Google Chrome Helper (Aperitif)) + 12  [0x102ef4590]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 444  [0x122a20d5c]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 44747016  [0x1254cd4a8]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 38586180  [0x124eed2e4]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 45305268  [0x125555954]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1249e0ef8]
+    +               1771 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1249e15ec]
+    +                 1771 ChromeMain  (in Google Chrome Framework) + 3719932  [0x122dace9c]
+    +                   1771 ChromeMain  (in Google Chrome Framework) + 18516980  [0x123bc9794]
+    +                     1771 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                       1771 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                         1771 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                           1771 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1771 Thread_3784816: PerfettoTrace
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 34370752  [0x124ae8060]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 34371408  [0x124ae82f0]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1249e0ef8]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1249e15ec]
+    +               1771 ChromeMain  (in Google Chrome Framework) + 22918412  [0x123ffc0ac]
+    +                 1771 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1771 Thread_3784818: HangWatcher
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 145911112  [0x12b5478e8]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 145910904  [0x12b547818]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 18516980  [0x123bc9794]
+    +             1771 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +               1771 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                 1771 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                   1771 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1771 Thread_3784819: ThreadPoolServiceThread
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 34370752  [0x124ae8060]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 65369464  [0x126878118]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1249e0ef8]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1249e15ec]
+    +               1771 ChromeMain  (in Google Chrome Framework) + 22918412  [0x123ffc0ac]
+    +                 1771 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1771 Thread_3784820: ThreadPoolForegroundWorker
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1245b3c40]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1245b3ce8]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1234034fc]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 18516980  [0x123bc9794]
+    +               1771 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1771 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1771 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1771 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1771 Thread_3784821: ThreadPoolPresentationWorker
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1245b3c40]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1245b3ce8]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1234034fc]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 18516980  [0x123bc9794]
+    +               1771 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1771 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1771 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1771 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1771 Thread_3784822: ThreadPoolAudioWorker
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1245b3c40]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1245b3ce8]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1234034fc]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 18516980  [0x123bc9794]
+    +               1771 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1771 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1771 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1771 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1771 Thread_3784823: ThreadPoolBackgroundWorker
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 28913880  [0x1245b3c78]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 28914188  [0x1245b3dac]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1234034fc]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 18516980  [0x123bc9794]
+    +               1771 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1771 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1771 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1771 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1771 Thread_3784824: Chrome_ChildIOThread
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 34370752  [0x124ae8060]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 39698980  [0x124ffcdc4]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1249e0ef8]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1249e15ec]
+    +               1771 ChromeMain  (in Google Chrome Framework) + 22918412  [0x123ffc0ac]
+    +                 1771 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1771 Thread_3784825: ThreadPoolForegroundWorker
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1245b3c40]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1245b3ce8]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1234034fc]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 18516980  [0x123bc9794]
+    +               1771 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1771 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1771 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1771 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1771 Thread_3784826: NetworkConfigWatcher
+    + 1771 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1771 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1771 ChromeMain  (in Google Chrome Framework) + 25162556  [0x12421fedc]
+    +       1771 ChromeMain  (in Google Chrome Framework) + 34370752  [0x124ae8060]
+    +         1771 ChromeMain  (in Google Chrome Framework) + 34371408  [0x124ae82f0]
+    +           1771 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1249e0ef8]
+    +             1771 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1249e15ec]
+--- sample of Chrome 82186
+Sampling process 82186 for 2 seconds with 1 millisecond of run time between samples
+Sampling completed, processing symbols...
+Sample analysis of process 82186 written to file /tmp/Google_Chrome_Helper_(Aperitif)_2026-11-10_181542_oM7K.sample.txt
+
+Analysis of sampling Google Chrome Helper (Aperitif) (pid 82186) every 1 millisecond
+Process:         Google Chrome Helper (Aperitif) [82186]
+Path:            /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/157.0.8103.40/Helpers/Google Chrome Helper (Aperitif).app/Contents/MacOS/Google Chrome Helper (Aperitif)
+Load Address:    0x102bf8000
+Identifier:      Google Chrome Helper (Aperitif)
+Version:         ???
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  Google Chrome [82180]
+
+Date/Time:       2026-11-10 18:15:42.667 -0800
+Launch Time:     2026-11-10 18:10:21.583 -0800
+OS Version:      macOS 15.1 (24B83)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         5938K
+Physical footprint (peak):  6114K
+Idle exit:                  untracked
+----
+
+Call graph:
+    1774 Thread_3784801   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 1774 start  (in dyld) + 2840  [0x18a83c274]
+    +   1774 main  (in Google Chrome Helper (Aperitif)) + 12  [0x102bf8590]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 444  [0x122724d5c]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 44747016  [0x1251d14a8]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 38586180  [0x124bf12e4]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 45305268  [0x125259954]
+    +             1774 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1246e4ef8]
+    +               1774 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1246e55ec]
+    +                 1774 ChromeMain  (in Google Chrome Framework) + 3719932  [0x122ab0e9c]
+    +                   1774 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1238cd794]
+    +                     1774 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                       1774 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                         1774 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                           1774 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1774 Thread_3784829
+    + 1774 start_wqthread  (in libsystem_pthread.dylib) + 8  [0x18abba0f0]
+    +   1774 _pthread_wqthread  (in libsystem_pthread.dylib) + 364  [0x18abbb424]
+    +     1774 __workq_kernreturn  (in libsystem_kernel.dylib) + 8  [0x18ab7fa84]
+    1774 Thread_3784836: PerfettoTrace
+    + 1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 34370752  [0x1247ec060]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 34371408  [0x1247ec2f0]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1246e4ef8]
+    +             1774 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1246e55ec]
+    +               1774 ChromeMain  (in Google Chrome Framework) + 22918412  [0x123d000ac]
+    +                 1774 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1774 Thread_3784837: HangWatcher
+    + 1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 145911112  [0x12b24b8e8]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 145910904  [0x12b24b818]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1238cd794]
+    +             1774 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +               1774 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                 1774 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                   1774 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1774 Thread_3784840: ThreadPoolServiceThread
+    + 1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 34370752  [0x1247ec060]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 65369464  [0x12657c118]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1246e4ef8]
+    +             1774 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1246e55ec]
+    +               1774 ChromeMain  (in Google Chrome Framework) + 22918412  [0x123d000ac]
+    +                 1774 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1774 Thread_3784841: ThreadPoolForegroundWorker
+    + 1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1242b7c40]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1242b7ce8]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1231074fc]
+    +             1774 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1238cd794]
+    +               1774 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1774 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1774 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1774 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1774 Thread_3784842: ThreadPoolPresentationWorker
+    + 1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1242b7c40]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1242b7ce8]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1231074fc]
+    +             1774 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1238cd794]
+    +               1774 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1774 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1774 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1774 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1774 Thread_3784843: ThreadPoolAudioWorker
+    + 1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1242b7c40]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1242b7ce8]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1231074fc]
+    +             1774 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1238cd794]
+    +               1774 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1774 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1774 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1774 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1774 Thread_3784844: ThreadPoolBackgroundWorker
+    + 1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 28913880  [0x1242b7c78]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 28914188  [0x1242b7dac]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1231074fc]
+    +             1774 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1238cd794]
+    +               1774 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1774 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1774 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1774 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1774 Thread_3784845: Chrome_ChildIOThread
+    + 1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 34370752  [0x1247ec060]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 39698980  [0x124d00dc4]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 33293144  [0x1246e4ef8]
+    +             1774 ChromeMain  (in Google Chrome Framework) + 33294924  [0x1246e55ec]
+    +               1774 ChromeMain  (in Google Chrome Framework) + 22918412  [0x123d000ac]
+    +                 1774 kevent64  (in libsystem_kernel.dylib) + 8  [0x18ab89bdc]
+    1774 Thread_3784846: ThreadPoolForegroundWorker
+    + 1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+    +   1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+    +     1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]
+    +       1774 ChromeMain  (in Google Chrome Framework) + 28913824  [0x1242b7c40]
+    +         1774 ChromeMain  (in Google Chrome Framework) + 28913992  [0x1242b7ce8]
+    +           1774 ChromeMain  (in Google Chrome Framework) + 10365276  [0x1231074fc]
+    +             1774 ChromeMain  (in Google Chrome Framework) + 18516980  [0x1238cd794]
+    +               1774 mach_msg  (in libsystem_kernel.dylib) + 24  [0x18ab7e17c]
+    +                 1774 mach_msg_overwrite  (in libsystem_kernel.dylib) + 480  [0x18ab869d8]
+    +                   1774 mach_msg2_internal  (in libsystem_kernel.dylib) + 80  [0x18ab905d0]
+    +                     1774 mach_msg2_trap  (in libsystem_kernel.dylib) + 8  [0x18ab7de34]
+    1774 Thread_3784848: ThreadPoolForegroundWorker
+      1774 thread_start  (in libsystem_pthread.dylib) + 8  [0x18abba0fc]
+        1774 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x18abbf2e4]
+          1774 ChromeMain  (in Google Chrome Framework) + 25162556  [0x123f23edc]

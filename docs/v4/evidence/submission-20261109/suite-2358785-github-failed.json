@@ -1,0 +1,81 @@
+{
+ "tested_commit": "2358785efe43a0d041d6e569f08d848a9d2736b8",
+ "branch": "work/submission-integration-20261109",
+ "role": "coordinator",
+ "contents": "integration 903ada1 (template builder version 2) plus the claim from a template-read agreement and the version 3 term schedule, merged as 2358785",
+ "where": "GitHub Actions, workflow 'Verify offline workbench', job 'replay', ubuntu runner; used as the full run because two local runs on 903ada1 stalled",
+ "run_url": "https://github.com/ronoktanvir/uptime/actions/runs/42945120731",
+ "event": "push",
+ "command": [
+  "uv",
+  "run",
+  "--locked",
+  "pytest",
+  "-q"
+ ],
+ "exit_code": 1,
+ "pytest_result": "1 failed, 5625 passed, 1 warning in 662.07s (0:11:02)",
+ "failed": [
+  "tests/test_vendor_requirements_89.py::test_new_vendor_name_reaches_shadow_with_useful_drafts_and_no_vendor_code"
+ ],
+ "failure": "The test reads every file in the uptime package and refuses any that names the sample vendor. uptime/template_agreements.py and uptime/template_claims.py did: a docstring in each, and a constant vendor id in the claim module. The test was not changed; the name is being removed from package code.",
+ "log": "suite-2358785-github-failed.log",
+ "started_at": "2026-11-11T02:18:36Z",
+ "finished_at": "2026-11-11T02:30:06Z",
+ "steps": [
+  {
+   "name": "Set up job",
+   "conclusion": "success"
+  },
+  {
+   "name": "Run actions/checkout@v4",
+   "conclusion": "success"
+  },
+  {
+   "name": "Run astral-sh/setup-uv@v6",
+   "conclusion": "success"
+  },
+  {
+   "name": "Run uv sync --locked --python 3.13",
+   "conclusion": "success"
+  },
+  {
+   "name": "Run uv run --locked python -m playwright install --with-deps chromium",
+   "conclusion": "success"
+  },
+  {
+   "name": "Run uv run --locked pytest -q",
+   "conclusion": "failure"
+  },
+  {
+   "name": "Run node --test web/*.test.cjs tests/helpers/*.test.cjs",
+   "conclusion": "skipped"
+  },
+  {
+   "name": "Run node scripts/test_progress_graph.cjs",
+   "conclusion": "skipped"
+  },
+  {
+   "name": "Run uv run --locked python scripts/rehearse.py",
+   "conclusion": "skipped"
+  },
+  {
+   "name": "Run uv run --locked python scripts/check_repo.py",
+   "conclusion": "skipped"
+  },
+  {
+   "name": "Post Run astral-sh/setup-uv@v6",
+   "conclusion": "skipped"
+  },
+  {
+   "name": "Post Run actions/checkout@v4",
+   "conclusion": "success"
+  },
+  {
+   "name": "Complete job",
+   "conclusion": "success"
+  }
+ ],
+ "consequence": "main was not moved. It stays at fa382da until a full run passes on the fix.",
+ "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect."
+}
