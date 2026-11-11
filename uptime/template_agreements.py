@@ -217,7 +217,6 @@ def _run(entry, evidence, tenant='template-reading'):
     trace = result['trace'][0] if result.get('trace') else None
     availability = _availability(*minutes) if minutes else None
     percent = _display_percent(result['rate_units']) if 'rate_units' in result else None
-    inputs = inputs + [{'label': "The credit engine's own line", 'value': trace}]
     agreement = {
         'agreement_id': agreement_id, 'state': 'SHADOW', 'read_by': 'template:' + entry['template']['id'],
         'month': usage['month'], 'availability_percent': _availability(*minutes) if minutes else None,

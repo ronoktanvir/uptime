@@ -935,7 +935,7 @@ class TemplateBuilds:
                             "passed": sum(t["second_document_ok"] for t in terms), "total": len(terms),
                             "blocking": True, "by": "UPTIME", "ran": True, "document": second_doc,
                             "readers": second_records,
-                            "basis": "three fresh readers of the second contract; no answer key. A term not stated in "
+                            "basis": "Three fresh readers of the second contract; no answer key. A term not stated in "
                                      "this contract passes only if they all say it is not stated there either."}
         else:
             second_check = {"id": "second_document", "label": "The template reads a second contract of the same form",
@@ -1103,9 +1103,10 @@ class TemplateBuilds:
                 raise TemplateRefused("This template is not approved yet, so it cannot read contracts.")
             sample = self.samples.get(build.get("sample_id")) or {"next_documents": []}
         if document_id is not None:
-            found = next((d for d in sample["next_documents"] if d["id"] == document_id), None)
+            own = [sample["document"]] if sample.get("document") else []
+            found = next((d for d in [*own, *sample["next_documents"]] if d["id"] == document_id), None)
             if found is None:
-                raise TemplateRefused("That document is not one of this template's next contracts.", 404)
+                raise TemplateRefused("That document is neither the contract this template was built from nor one of its next contracts.", 404)
             text = Path(found["_path"]).read_text()
             meta = {k: found[k] for k in ("id", "title", "vendor", "customer")}
         else:

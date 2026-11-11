@@ -66,8 +66,6 @@ def test_authored_month_is_estimated_by_the_engine_to_the_cent():
                              credit={'amount': '4200.00', 'currency': 'USD', 'stage': 'ESTIMATED'})
     assert agreement['evaluation'] == ('44,545 of 44,640 UTC minutes were available (99.787%), so the 35% credit tier applies: '
                                        '35% of USD 12,000.00 is USD 4,200.00.')
-    assert {'label': "The credit engine's own line", 'value': '44545/44640 UTC minutes available. Exact comparison gives '
-            '35000000/1000000% credit.'} in agreement['inputs']
     assert set(agreement) == {'agreement_id', 'state', 'read_by', 'month', 'availability_percent', 'credit_percent',
                               'monthly_fee', 'credit', 'inputs', 'evaluation'}
     assert all(set(row) == {'label', 'value'} for row in agreement['inputs'])
