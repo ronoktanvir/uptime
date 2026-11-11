@@ -437,7 +437,9 @@
 
     function stepCard(view, step, build) {
       const s = object(step) || {};
-      const st = stepState(s, now());
+      const notAsked = s.id === 'classify' && s.state === 'DONE' && object(s.detail)?.asked === false;
+      // Jev was not asked (no approved template on file): no timing or figure is shown for it.
+      const st = notAsked ? {word:'Not asked', tone:''} : stepState(s, now());
       const card = el('article', 'tb-step tb-' + String(s.state || 'PENDING').toLowerCase() + ' tb-actor-' + String(s.actor || '').toLowerCase());
       const detail = object(s.detail) || {};
       const meta = add(el('div', 'tb-step-meta'), el('span', 'tb-actor', actorName(s.actor)), given(s.model) ? el('code', 'tb-model', s.model) : null);

@@ -610,7 +610,8 @@ test('as the engine built it: Jev not asked with no template on file, the scepti
   await s.ui.run(s.root, 'tb_3f9a2c');
   const classify = stepCards(s.root)[0];
   assert.match(text(classify), /No approved template is on file, so Jev was not asked and the readers started\./);
-  assert.doesNotMatch(text(classify), /%|jev-1/);
+  assert.doesNotMatch(text(classify), /%|jev-1|Done in/);
+  assert.match(text(classify), /Not asked/);
   const detail = text(s.root.cls('tb-term-detail')[0]);
   assert.match(detail, /Reader 3 found a conflict Claims are due within forty-five days\./);
   assert.match(detail, /Places the rule matched 2, all with the same value/);
