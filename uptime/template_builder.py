@@ -228,8 +228,10 @@ def reader_prompt(text, role="clause_by_clause"):
     return ("Read the contract below and return these terms:\n" + _schema() + "\n\n"
             "Your role: " + role + ". " + how + "\n\n"
             "For each term give `value` and `quote`.\n"
-            "- percent: value is the number as a string without the % sign (\"99.5\"). choice: value is one of the "
-            "option ids.\n"
+            "- percent: value is the number as a string without the % sign (\"99.5\").\n"
+            "- choice: value is one of the option ids, and add \"phrase\": the exact words of the contract that give "
+            "that option, copied character for character from inside the quote (for example \"monthly billing cycle\", "
+            "\"against future payments\", \"credited to your next invoice\"). The phrase must be in the quote.\n"
             "- duration: value is the number as digits (\"30\") and add \"unit\": one of the term's units, the unit "
             "the contract itself writes (\"business_days\" for Business Days, \"days\" for days or calendar days). "
             "Never convert between units: 5 business days stays {\"value\": \"5\", \"unit\": \"business_days\"}. A "
@@ -258,7 +260,8 @@ RULE_SPEC = (
     "place with different values, Uptime refuses it as ambiguous and reads nothing, so anchor each rule on wording "
     "that occurs only in the clause that states the term.\n"
     "- percent and choice: exactly one capturing group, holding only the value: for percent the number without % "
-    "(like (\\d+(?:\\.\\d+)?)), for choice the contract's own phrase. Use (?:...) for other groups.\n"
+    "(like (\\d+(?:\\.\\d+)?)), for choice exactly the readers' phrase (the contract's own words), which the map "
+    "sends to the option. Use (?:...) for other groups.\n"
     "- duration: exactly two named groups, (?P<value>\\d+) for the number and (?P<unit>...) for the unit word as the "
     "contract writes it (for example (?P<unit>business days|days|hours)). Uptime records the unit; it never converts.\n"
     "- schedule (credit_schedule): {\"rows\": [{\"pattern\": ...}, ...]}, one to six row patterns. Each row pattern "
@@ -276,7 +279,7 @@ RULE_SPEC = (
     "- Avoid nested quantifiers such as (a+)+; prefer explicit wording or [^.;]*? between anchors.\n")
 
 
-def _term_for_prompt(field, value, quote):
+def _term_for_prompt(field, value, quote, phrase=None):
     """One term as the builder and repair prompts show it: a schedule's tiers carry their own sentences."""
     term = rules.TERM[field]
     if term["type"] == "schedule" and isinstance(value, list):
@@ -284,11 +287,14 @@ def _term_for_prompt(field, value, quote):
         return {"field": field, "type": "schedule",
                 "tiers": [{"below": r["below_percent"], "credit": r["credit_percent"], "sentence": q}
                           for r, q in zip(value, quotes)]}
-    return {"field": field, "type": term["type"], "value": value, "sentence": quote}
+    out = {"field": field, "type": term["type"], "value": value, "sentence": quote}
+    if term["type"] == "choice":
+        out["phrase"] = phrase
+    return out
 
 
 def builder_prompt(text, agreed):
-    terms = [_term_for_prompt(f, v["value"], v["quote"]) for f, v in agreed.items()]
+    terms = [_term_for_prompt(f, v["value"], v["quote"], v.get("phrase")) for f, v in agreed.items()]
     return ("Write one extraction rule per term for this contract form.\n" + RULE_SPEC +
             "\nThe terms the readers found in this contract:\n" + json.dumps(terms, indent=1) +
             "\n\nAnswer as {\"rules\": {\"<field>\": {\"pattern\": ...}, ...}} (the schedule as {\"rows\": [...]}) with "
@@ -296,7 +302,7 @@ def builder_prompt(text, agreed):
 
 
 def repair_prompt(text, second_text, agreed, current, failures):
-    rows = [dict(_term_for_prompt(f, agreed[f]["value"], agreed[f]["quote"]), current_rule=current.get(f),
+    rows = [dict(_term_for_prompt(f, agreed[f]["value"], agreed[f]["quote"], agreed[f].get("phrase")), current_rule=current.get(f),
                  what_went_wrong=failures[f]) for f in failures]
     second = ("\n\nSECOND CONTRACT OF THE SAME FORM (its terms are not given to you)\n<<<\n" + second_text + "\n>>>"
               if second_text is not None else "")
@@ -325,7 +331,8 @@ def parse_reader(answer, role="clause_by_clause"):
     for field in order:
         item, term = terms[field], rules.TERM[field]
         keys = {"value", "quote", "conflict"} if role == "sceptic" else {"value", "quote"}
-        extra = {"stated", "reason"} | ({"unit"} if term["type"] == "duration" else set())
+        extra = {"stated", "reason"} | ({"unit"} if term["type"] == "duration" else set()) \
+            | ({"phrase"} if term["type"] == "choice" else set())
         need = keys - {"quote"} if term["type"] == "schedule" else keys
         if not isinstance(item, dict) or not need <= set(item) <= keys | extra:
             raise ModelFailed("The reader's answer for %s was not {%s}." % (field, ", ".join(sorted(keys))))
@@ -368,7 +375,11 @@ def parse_reader(answer, role="clause_by_clause"):
                 value_ = rules.canonical_duration(field, raw, unit) if raw is not None else None
             else:
                 value_ = rules.canonical(term["type"], raw, term.get("options")) if raw is not None else None
+        phrase = item.get("phrase") if term["type"] == "choice" else None
+        if phrase is not None and not isinstance(phrase, str):
+            raise ModelFailed("The reader's phrase for %s is not text." % field)
         out[field] = {"value": value_, "quote": quote, "invalid": raw is not None and value_ is None,
+                      "phrase": ((phrase or "").strip() or None) if value_ is not None else None,
                       "conflict": conflict or None, "stated": raw is not None,
                       "reason": ((reason or "").strip() or None) if raw is None else None}
     numbers = len(value["numbers"]) if role == "numbers_first" else None
@@ -441,6 +452,42 @@ def _probability(value):
         return Decimal(str(value))
     except (InvalidOperation, TypeError):
         return None
+
+
+def _agreed_phrases(agreed, second_found=()):
+    """{field: {phrase (lowercase): option}} the readers vouched for: the phrase the first contract's readers agreed on,
+    and any phrase at least two readers of the second contract gave for the same option."""
+    out = {}
+    for term in rules.TERMS:
+        f = term["field"]
+        if term["type"] != "choice" or not agreed.get(f, {}).get("phrase") or agreed[f]["value"] is None:
+            continue
+        option = agreed[f]["value"]
+        out[f] = {rules.normalize(agreed[f]["phrase"]).lower(): option}
+        votes = Counter(rules.normalize(r[f].get("phrase") or "").lower() for r in second_found or ()
+                        if r is not None and r[f]["value"] == option and r[f].get("phrase") and r[f]["quote_found"])
+        out[f].update({p: option for p, n in votes.items() if n >= 2})
+    return out
+
+
+def _prune_maps(current, phrases):
+    """A choice rule's map keeps only phrases the readers vouched for, each sent to the readers' option. A phrase the
+    builder added that no reader gave is dropped, so an approved template never maps words nobody read."""
+    for f, rule in current.items():
+        if rules.TERM[f]["type"] != "choice" or not isinstance(rule.get("map"), dict):
+            continue
+        allowed = phrases.get(f, {})
+        rule["map"] = {k: v for k, v in rule["map"].items()
+                       if allowed.get(rules.normalize(k).lower()) == v}
+
+
+def _reproduces(term):
+    """The template returns the readers' value; for a choice, by capturing the readers' own phrase."""
+    if not rules.same(term.get("rule_value"), term.get("value")):
+        return False
+    if term.get("type") == "choice":
+        return rules.normalize(term.get("rule_phrase") or "").lower() == rules.normalize(term.get("phrase") or "").lower() != ""
+    return True
 
 
 def _key(value):
@@ -822,16 +869,20 @@ class TemplateBuilds:
         agreed = {}
         for term in rules.TERMS:
             f = term["field"]
-            order = [_key(r[f]["value"]) for _, r in succeeded]
+            # For a choice the readers must agree on the link from the contract's phrase to the option.
+            link = (lambda item: _key([item["value"], rules.normalize(item.get("phrase") or "").lower() or None])) \
+                if term["type"] == "choice" else (lambda item: _key(item["value"]))
+            order = [link(r[f]) for _, r in succeeded]
             votes = Counter(order)
             key, count = max(votes.items(), key=lambda kv: (kv[1], -order.index(kv[0])))
-            holders = [r[f] for _, r in succeeded if _key(r[f]["value"]) == key]
+            holders = [r[f] for _, r in succeeded if link(r[f]) == key]
             value = holders[0]["value"]
             best = next((h for h in holders if h["quote_found"]), holders[0])
             # Not stated only when every answering reader says so; any value or unreadable answer keeps it stated.
             silent = all(not r[f]["stated"] for _, r in succeeded)
             reason = next((r[f]["reason"] for _, r in succeeded if r[f]["reason"]), None) if silent else None
             agreed[f] = {"value": value, "quote": None if silent else best["quote"], "agree": count,
+                         "phrase": None if silent else best.get("phrase"),
                          "stated": not silent, "reason": reason or ("No reader found it in the contract." if silent else None)}
         return agreed
 
@@ -897,6 +948,8 @@ class TemplateBuilds:
         second_found = [r for r, _ in second_results]
         second_records = [rec for _, rec in second_results]
         second_agreed = self._second_agreement(second_found) if second_text is not None else None
+        phrases = _agreed_phrases(agreed, second_found)
+        _prune_maps(current, phrases)
         repairs, repair_note = 0, None
 
         def evaluate():
@@ -906,6 +959,10 @@ class TemplateBuilds:
             failures = {}
             for f in stated:
                 problems = []
+                if rules.TERM[f]["type"] == "choice" and a[f]["value"] is not None and rules.same(a[f]["value"], agreed[f]["value"]) \
+                        and rules.normalize(a[f].get("phrase") or "").lower() != rules.normalize(agreed[f].get("phrase") or "").lower():
+                    problems.append("On this contract the rule captured %r, not the readers' phrase %r; capture exactly the "
+                                    "readers' phrase and map it to the option." % (a[f].get("phrase"), agreed[f].get("phrase")))
                 if a[f]["value"] is None or not rules.same(a[f]["value"], agreed[f]["value"]):
                     problems.append("On this contract the rule " + (
                         "returned %r but the readers found %r." % (a[f]["value"], agreed[f]["value"])
@@ -932,6 +989,7 @@ class TemplateBuilds:
                 repairs += 1
                 continue
             current.update(fixed)
+            _prune_maps(current, phrases)
             repairs += 1
             on_a, on_b, failures = evaluate()
         summary = "%d extraction rules written" % len(current)
@@ -971,6 +1029,7 @@ class TemplateBuilds:
             second = second_agreed[f] if second_agreed is not None else None
             row = {"field": f, "label": term["label"], "type": term["type"], "stated": a["stated"],
                    "readers": [{"reader": i, "value": r[f]["value"], "quote_found": r[f]["quote_found"],
+                                **({"phrase": r[f].get("phrase")} if term["type"] == "choice" else {}),
                                 "stated": r[f]["stated"]} for i, r in succeeded],
                    "agreement": {"agree": a["agree"], "of": len(succeeded)},
                    "second_readers": second, "jev": None, "needs_acknowledgement": True}
@@ -984,7 +1043,8 @@ class TemplateBuilds:
                 row.update(value=a["value"], display=rules.display(f, a["value"]) if a["value"] is not None else None,
                            quote=a["quote"], reason=None,
                            conflict=sceptic[f]["conflict"] if sceptic else None,
-                           value_in_sentence=rules.value_in_sentence(f, a["value"], a["quote"], commitment),
+                           value_in_sentence=rules.value_in_sentence(f, a["value"], a["quote"], commitment, a.get("phrase")),
+                           **({"phrase": a.get("phrase"), "rule_phrase": on_a[f].get("phrase")} if term["type"] == "choice" else {}),
                            rule={k: v for k, v in current[f].items() if k in ("pattern", "group", "map", "rows")} if f in current else None,
                            rule_value=on_a[f]["value"], rule_quote=on_a[f]["quote"], rule_error=on_a[f]["error"],
                            rule_places=on_a[f]["places"],
@@ -999,7 +1059,7 @@ class TemplateBuilds:
             def ask(term):
                 if not term["stated"] or term["value"] is None or not term["quote"]:
                     return None
-                return self._ask_term(term["field"], term["value"], term["quote"], commitment)
+                return self._ask_term(term["field"], term["value"], term["quote"], commitment, term.get("phrase"))
             with ThreadPoolExecutor(4) as pool:
                 for term, verdict in zip(terms, pool.map(ask, terms)):
                     term["jev"] = verdict
@@ -1012,7 +1072,7 @@ class TemplateBuilds:
             t["needs_acknowledgement"] = not jev_pass(t)
             fine = (t["agreement"]["agree"] == t["agreement"]["of"] and t["value"] is not None
                     and all(r["quote_found"] for r in t["readers"] if r["value"] is not None)
-                    and t["value_in_sentence"] and rules.same(t["rule_value"], t["value"]) and not t["conflict"]
+                    and t["value_in_sentence"] and _reproduces(t) and not t["conflict"]
                     and (on_b is None or t["second_document_ok"]) and not t["needs_acknowledgement"])
             t["status"] = "PASS" if fine else "REVIEW"
         reader_quotes = [found for _, r in succeeded for f in r if r[f]["value"] is not None or r[f]["invalid"]
@@ -1046,7 +1106,7 @@ class TemplateBuilds:
              "passed": sum(t["agreement"]["agree"] == t["agreement"]["of"] for t in terms), "total": len(terms),
              "blocking": False, "by": "UPTIME"},
             {"id": "reproduce", "label": "The template returns every stated term from this contract, one value per rule",
-             "passed": sum(t["value"] is not None and rules.same(t["rule_value"], t["value"]) for t in stated_terms),
+             "passed": sum(t["value"] is not None and _reproduces(t) for t in stated_terms),
              "total": len(stated_terms), "blocking": True, "by": "UPTIME"},
             second_check,
             {"id": "jev", "label": "Jev: each term is supported by its sentence", "passed": sum(jev_pass(t) for t in stated_terms),
@@ -1078,7 +1138,7 @@ class TemplateBuilds:
         self._step(build, "review", summary=review, detail={"needs_acknowledgement": flagged})
         self._update(build, state="READY_FOR_REVIEW", finished_at=now())
 
-    def _ask_term(self, field, value, quote, commitment):
+    def _ask_term(self, field, value, quote, commitment, phrase=None):
         """Jev on one stated term: once per term, and once per row for the schedule (each row in its own sentence).
         -> {"yes", "probability", "model"} (a schedule's also has "rows"), or None when Jev did not answer."""
         term = rules.TERM[field]
@@ -1104,7 +1164,9 @@ class TemplateBuilds:
             return {"yes": all(r["yes"] for r in rows), "probability": lowest["probability"], "model": lowest["model"],
                     "rows": rows}
         shown = rules.display(field, value)
-        return one(term["question"].format(display=shown, display_lower=shown.lower()), quote)
+        if term["type"] == "choice" and not phrase:
+            return None  # no phrase of the contract to ask about: the term needs the reviewer's acknowledgement
+        return one(term["question"].format(display=shown, display_lower=shown.lower(), phrase=phrase or ""), quote)
 
     # -- Reviewer approval
     def approve(self, build_id, sha, reviewer, acknowledged=None):
@@ -1151,7 +1213,8 @@ class TemplateBuilds:
         ambiguous = [t["field"] for t in terms if t["ambiguous"]]
         with_value = [t for t in terms if t["value"] is not None]
         in_sentence = [t for t in with_value if rules.value_in_sentence(t["field"], t["value"], t["quote"],
-                                                                         values.get("availability_target_percent"))]
+                                                                         values.get("availability_target_percent"),
+                                                                         t.get("phrase"))]
         problems = rules.plausibility(values)
         guards = [
             {"id": "complete", "ok": result["found"] == result["total"], "detail": "%d of %d" % (result["found"], result["total"]),

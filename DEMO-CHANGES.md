@@ -373,3 +373,24 @@ it), `fixtures/template_builder_public/results/20261111T015844Z.json` and `docs/
 The vendors' text is not in the repository. Found and left unfixed so the published numbers stand: the
 `value_in_sentence` words for `credit_application` and `measurement_period` refuse correct values on most real pages,
 and "invoices" (plural) does not match the word "invoice".
+
+## Template builder version 3.1: choices rest on the contract's phrase (November 11)
+
+Shapes: `docs/demo/TEMPLATE-BUILDER.md`, "Version 3.1". `CHOICE_WORDS` removed from `uptime/template_rules.py`
+(and with it the plural defect); `value_in_sentence` takes the contract's `phrase` for a choice; readers give it, agree
+on (option, phrase), the rule's map is pruned to vouched-for phrases, `reproduce` requires the readers' phrase, Jev is
+asked about it. Numeric checks and every threshold unchanged. Build terms gain `phrase`/`rule_phrase` (choices) and
+readers gain `phrase`; reading terms, `approved_readings()`, `reading.agreement` and `template_agreements.evaluate` are
+unchanged. The page shows the contract's words in a choice term's row.
+
+Existing tests changed in `tests/test_template_builder.py`:
+- helpers `reader_item`, `reader_terms` (and new `phrase_for`): fake readers give the phrase the good rule captures.
+- `test_value_in_sentence_digits_words_and_choices`: the two choice assertions pass the phrase; the negative
+  `refund` case (option word absent) became "no phrase given" and "phrase absent from the sentence".
+- `test_a_read_whose_value_is_not_in_its_sentence_is_refused`: the builder's extra map entry is now pruned, so the read
+  is still REFUSED but by `complete` ("6 of 7") instead of `value_in_sentence`; the pruned map is asserted.
+- `test_jev_questions_ask_what_the_sentence_literally_says`: choice questions start "Does this sentence, in the
+  words …", so the prefix asserted is "Does this sentence"; the count (8) is unchanged.
+New tests: 8 in `tests/test_template_builder.py` (four phrases the old list refused, a phrase not in its sentence,
+agreement and Jev on the phrase, a rule capturing other words, a choice without a phrase), 1 in
+`web/template_builder.test.cjs`.

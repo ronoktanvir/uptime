@@ -48,7 +48,7 @@ def quote_for(field, text=TEXT_A):
     return found["quote"]
 
 
-def reader_item(field, value, quote):
+def reader_item(field, value, quote, phrase=None):
     """One term as a reader answers it (version 3 shapes): a schedule's tiers carry their own sentences, a duration
     its unit."""
     kind = rules.TERM[field]["type"]
@@ -57,11 +57,20 @@ def reader_item(field, value, quote):
                 "quote": None}
     if kind == "duration":
         return {"value": value["value"], "unit": value["unit"], "quote": quote}
+    if kind == "choice":
+        return {"value": value, "phrase": phrase, "quote": quote}
     return {"value": value, "quote": quote}
 
 
 def reader_terms(doc):
-    return {f: reader_item(f, v, quote_for(f, RAW[doc])) for f, v in EXPECTED["halcyon-" + doc]["terms"].items()}
+    return {f: reader_item(f, v, quote_for(f, RAW[doc]), phrase_for(f, RAW[doc])) for f, v in EXPECTED["halcyon-" + doc]["terms"].items()}
+
+
+def phrase_for(field, text=TEXT_A):
+    """For a choice term, the contract's own words the good rule captures ("calendar month", "against the next invoice")."""
+    if rules.TERM[field]["type"] != "choice":
+        return None
+    return rules.run_rule({"field": field, **GOOD_RULES[field]}, rules.normalize(text))["raw"]
 
 
 def which(prompt):
@@ -349,14 +358,16 @@ def test_value_in_sentence_digits_words_and_choices():
     assert rules.value_in_sentence("maintenance_notice", days("72", "hours"), "at least seventy-two hours' notice")
     assert rules.value_in_sentence("availability_target_percent", "99.95", "at least 99.95% during each period")
     assert rules.value_in_sentence("credit_cap_percent", "99.5", "less than 99.50%, a Service Credit")
-    assert rules.value_in_sentence("credit_application", "next_invoice", "applied as a credit against the next invoice")
+    assert rules.value_in_sentence("credit_application", "next_invoice", "applied as a credit against the next invoice",
+                                   phrase="against the next invoice")
     assert not rules.value_in_sentence("claim_window", days("61"), "within sixty (60) days")
     assert not rules.value_in_sentence("claim_window", days("5"), "within five (5) business days")
     assert rules.value_in_sentence("claim_window", days("5", "business_days"), "within five (5) Business Days")
     assert not rules.value_in_sentence("maintenance_notice", days("5", "hours"), "5 days' written notice")
     assert not rules.value_in_sentence("credit_cap_percent", "30", "will not exceed twenty-five percent (25%)")
-    assert not rules.value_in_sentence("credit_application", "refund", "applied as a credit against the next invoice")
-    assert not rules.value_in_sentence("measurement_period", "calendar_month", "the Monthly Fees for that period")
+    assert not rules.value_in_sentence("credit_application", "next_invoice", "applied as a credit against the next invoice")
+    assert not rules.value_in_sentence("measurement_period", "calendar_month", "the Monthly Fees for that period",
+                                       phrase="calendar month")
     assert not rules.value_in_sentence("claim_window", None, "thirty (30) days")
 
 
@@ -670,8 +681,12 @@ def test_a_read_whose_value_is_not_in_its_sentence_is_refused(tmp_path):
     builds, build = approved(tmp_path, FakeClaude(builder_rules=loose))
     reading = read_text(builds, build, edited("applied as a credit against the next invoice",
                                               "applied as a credit against the next statement"))
-    assert reading["status"] == "REFUSED" and guard(reading, "value_in_sentence")["ok"] is False
-    assert guard(reading, "value_in_sentence")["detail"] == "6 of 7" and guard(reading, "complete")["ok"]
+    # The builder's extra map entry ("against the next statement") was given by no reader, so it is not in the
+    # approved template's map: the read finds no value for the term and is refused, as before, now by `complete`.
+    assert reading["status"] == "REFUSED" and guard(reading, "complete")["ok"] is False
+    assert guard(reading, "complete")["detail"] == "6 of 7" and guard(reading, "value_in_sentence")["ok"]
+    rule = next(r for r in builds.builds[build["id"]]["_template_body"]["rules"] if r["field"] == "credit_application")
+    assert rule["map"] == {"against the next invoice": "next_invoice"}
 
 
 def test_an_implausible_read_is_refused(tmp_path):
@@ -830,7 +845,7 @@ def test_jev_questions_ask_what_the_sentence_literally_says(tmp_path):
     assert "Does this sentence give a service credit of 25% of the fees when availability is below 99.5%?" in asked
     assert "Does this sentence give a service credit of 10% of the fees when availability is below 99.95%?" in asked
     # once per stated term, and once per tier of the schedule: 6 terms + 2 tiers
-    assert all(q.startswith("Does this sentence ") and q.endswith("?") and len(q) <= 1000 for q in asked) and len(asked) == 8
+    assert all(q.startswith("Does this sentence") and q.endswith("?") and len(q) <= 1000 for q in asked) and len(asked) == 8
 
 
 # --- A term every reader agrees the contract does not state ---------------------------------------
@@ -1097,3 +1112,69 @@ def test_the_schedule_is_part_of_the_template_hash_and_the_reading(tmp_path):
     schedule_ = next(t for t in reading["terms"] if t["field"] == "credit_schedule")
     assert schedule_["value"] == tiers(("99.99", "15"), ("99.9", "35")) and len(schedule_["quote"]) == 2
     assert builds.approved_readings()[0]["values"]["credit_schedule"] == schedule_["value"]
+
+
+# --- Version 3.1: a choice rests on the contract's own phrase, not on a list of expected words -------
+
+@pytest.mark.parametrize("field, value, phrase, sentence", [
+    ("measurement_period", "calendar_month", "monthly billing cycle",
+     "AWS will make the service available with a Monthly Uptime Percentage of at least 99.99% during any monthly billing cycle."),
+    ("credit_application", "next_invoice", "against future payments",
+     "We will apply any Service Credits only against future payments otherwise due from you."),
+    ("credit_application", "next_invoice", "against the Customer's next payment",
+     "Credits will be applied against the Customer’s next payment for the Covered Services."),
+    ("credit_application", "next_invoice", "credited towards future invoices",
+     "Service Credits apply only to the affected resources and are credited towards future invoices."),
+])
+def test_phrases_the_old_word_list_refused_are_in_their_sentences(field, value, phrase, sentence):
+    assert rules.value_in_sentence(field, value, sentence, phrase=phrase)
+    assert not hasattr(rules, "CHOICE_WORDS")
+
+
+def test_a_choice_phrase_not_in_its_sentence_is_refused():
+    sentence = "We will apply any Service Credits only against future payments otherwise due from you."
+    assert not rules.value_in_sentence("credit_application", "next_invoice", sentence, phrase="against the next invoice")
+    assert not rules.value_in_sentence("credit_application", "next_invoice", sentence, phrase="")
+    assert not rules.value_in_sentence("credit_application", "next_invoice", sentence)
+    assert not rules.value_in_sentence("credit_application", "not_an_option", sentence, phrase="against future payments")
+    # numeric terms are unchanged: the number must be in the sentence
+    assert not rules.value_in_sentence("credit_cap_percent", "30", "Credits may not exceed 25% of fees.")
+
+
+def test_readers_must_agree_on_the_phrase_and_jev_is_asked_about_it(tmp_path):
+    sentence = quote_for("credit_application")
+    other = {"credit_application": {2: {"value": "next_invoice", "phrase": "Service Credits", "quote": sentence}}}
+    jev = FakeJev()
+    build = engine(tmp_path, FakeClaude(reader_override=other), jev).start(SAMPLE)
+    term = next(t for t in build["terms"] if t["field"] == "credit_application")
+    assert term["agreement"] == {"agree": 2, "of": 3} and term["phrase"] == "against the next invoice"
+    assert term["rule_phrase"] == "against the next invoice" and term["value_in_sentence"] is True
+    assert [r["phrase"] for r in term["readers"]] == ["against the next invoice", "Service Credits", "against the next invoice"]
+    asked = [c[1] for c in jev.calls if c[0] == "yes_no"]
+    assert 'Does this sentence, in the words "against the next invoice", say that a service credit reaches the customer ' \
+           'against the next invoice?' in asked
+    assert 'Does this sentence, in the words "calendar month", make each calendar month the measurement period?' in asked
+
+
+def test_a_rule_capturing_other_words_than_the_readers_phrase_does_not_reproduce(tmp_path):
+    loose = dict(GOOD_RULES, credit_application={"pattern": r"Service Credits will be applied as a credit against (the next invoice)",
+                                                 "map": {"the next invoice": "next_invoice"}})
+    claude = FakeClaude(builder_rules=loose, repair_rules=loose)
+    build = engine(tmp_path, claude).start(SAMPLE)
+    term = next(t for t in build["terms"] if t["field"] == "credit_application")
+    # "the next invoice" is not the readers' phrase, so it is pruned from the map and the rule reads nothing.
+    assert term["rule_value"] is None and term["rule"]["map"] == {}
+    assert check(build, "reproduce")["ok"] is False and term["status"] == "REVIEW"
+    assert [c[0] for c in claude.calls].count("repair") == 2
+    # Mapped right but capturing other words than the readers' phrase also fails reproduce.
+    t = {"type": "choice", "value": "next_invoice", "rule_value": "next_invoice", "phrase": "against the next invoice",
+         "rule_phrase": "the next invoice"}
+    assert tb._reproduces(t) is False and tb._reproduces(dict(t, rule_phrase="Against the  next invoice")) is True
+
+
+def test_a_reader_choice_without_a_phrase_fails_value_in_sentence(tmp_path):
+    bare = {"measurement_period": {i: {"value": "calendar_month", "quote": quote_for("measurement_period")} for i in (1, 2, 3)}}
+    build = engine(tmp_path, FakeClaude(reader_override=bare)).start(SAMPLE)
+    term = next(t for t in build["terms"] if t["field"] == "measurement_period")
+    assert term["phrase"] is None and term["value_in_sentence"] is False and term["jev"] is None
+    assert check(build, "value_in_sentence")["ok"] is False
