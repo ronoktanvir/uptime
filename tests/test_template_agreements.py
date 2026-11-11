@@ -49,7 +49,7 @@ def test_overlay_from_halcyon_c_terms_is_the_engines_tier_family():
         (product, plan, 99_900_000, 35_000_000), (product, plan, 99_990_000, 15_000_000)]
     assert (manifest['vendor'], manifest['agreement'], manifest['period'], manifest['filing_days'], manifest['remedy']) == (
         'Halcyon Grid Services', 'HGS-PAA-2026-0457', 'utc_calendar_month', 60, 'affected_monthly_fees_future_invoice')
-    assert manifest['effective'] == ['2026-11-03', None]
+    assert manifest['effective'] == ['2026-08-03', None]
     assert overlay['agreement'] == 'HGS-PAA-2026-0457' and overlay['fee_line_ref'] == 'halcyon-covered-services-line'
     carried = {term for citation in manifest['citations'] for term in citation['terms']}
     assert carried == set(ta.FIELDS) - {'maintenance_notice_hours'}  # the engine takes exclusion-adjusted minutes
@@ -57,11 +57,11 @@ def test_overlay_from_halcyon_c_terms_is_the_engines_tier_family():
 
 def test_authored_month_is_estimated_by_the_engine_to_the_cent():
     agreement = ta.evaluate(entry(), evidence())
-    # December 2026: 31 days x 1,440 = 44,640 minutes; 95 unavailable -> 44,545 available.
+    # October 2026: 31 days x 1,440 = 44,640 minutes; 95 unavailable -> 44,545 available.
     # 44,545 / 44,640 = 99.7871...% is below the second-tier threshold 99.9% (and the 99.99% commitment), so the
     # second tier applies alone: 35%. The cap (50%) is not reached. 35% x USD 12,000.00 = USD 4,200.00.
     assert agreement == dict(agreement, agreement_id='HGS-PAA-2026-0457', state='SHADOW',
-                             read_by='template:halcyon-availability-addendum/1', month='2026-12',
+                             read_by='template:halcyon-availability-addendum/1', month='2026-10',
                              availability_percent='99.787', credit_percent='35', monthly_fee='12000.00',
                              credit={'amount': '4200.00', 'currency': 'USD', 'stage': 'ESTIMATED'})
     assert agreement['evaluation'] == '44545/44640 UTC minutes available. Exact comparison gives 35000000/1000000% credit.'
@@ -157,9 +157,9 @@ def test_opportunity_has_corvids_shape_and_says_where_it_came_from():
     assert set(row['evaluation']) == set(reference['evaluation']) and set(row['invoice']) == set(reference['invoice'])
     assert row['agreement']['read_by'].startswith('template:') and row['agreement']['id'] == 'HGS-PAA-2026-0457'
     assert (row['vendor'], row['period'], row['kind'], row['stage'], row['amount'], row['currency'], row['route']) == (
-        'Halcyon Grid Services', '2026-12', 'service_credit', 'ESTIMATED', '4200.00', 'USD', 'agreements')
+        'Halcyon Grid Services', '2026-10', 'service_credit', 'ESTIMATED', '4200.00', 'USD', 'agreements')
     assert row['agreement']['state'] == 'SHADOW' and row['evaluation']['outcome'] == 'ELIGIBLE'
-    assert row['invoice']['id'] == 'HGS-INV-2026-12-3318' and row['invoice']['total'] == '12000.00'
+    assert row['invoice']['id'] == 'HGS-INV-2026-10-3318' and row['invoice']['total'] == '12000.00'
     assert ta.opportunity(entry(document_id='pasted-1')) is None
 
 

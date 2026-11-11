@@ -91,7 +91,7 @@ def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=Fal
                 return JSONResponse({"detail": "Same-origin authenticated workbench action required"}, 403)
             size = request.headers.get("content-length", "")
             large_intake = any(request.url.path == stem or request.url.path.startswith(stem + "/")
-                               for stem in ("/api/v4", "/api/vendors", "/api/correspondence"))
+                               for stem in ("/api/v4", "/api/vendors", "/api/correspondence", "/api/template-builds"))
             limit = 262144 if large_intake else 4096
             if (request.headers.get("transfer-encoding") or len(size)>6 or not size.isascii()
                     or not size.isdigit() or int(size)>limit):

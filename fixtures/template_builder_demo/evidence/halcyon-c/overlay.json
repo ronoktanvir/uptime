@@ -4,7 +4,7 @@
   "product": "Halcyon Grid Covered Services",
   "plan": "Order Form HGS-OF-78031",
   "currency": "USD",
-  "effective_from": "2026-11-03",
-  "effective_until": "2027-11-02",
+  "effective_from": "2026-08-03",
+  "effective_until": "2027-08-02",
   "fee_line_ref": "halcyon-covered-services-line"
 }

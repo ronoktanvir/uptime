@@ -7,10 +7,10 @@
   "account": "brightwater-halcyon",
   "product": "Halcyon Grid Covered Services",
   "plan": "Order Form HGS-OF-78031",
-  "month": "2026-12",
-  "monitor_ref": "HGS-PROBES-2026-12",
+  "month": "2026-10",
+  "monitor_ref": "HGS-PROBES-2026-10",
   "month_complete": true,
   "exclusions_removed": true,
   "unavailable_minutes": 95,
-  "note": "A scenario month: one authored outage of 95 minutes on 2026-12-09 from 14:20 to 15:55 UTC; no scheduled maintenance or other Excluded Events in the month. December 2026 is the first full calendar month the addendum (effective 2026-11-03) governs."
+  "note": "An authored month: one outage of 95 minutes on 2026-10-09 from 14:20 to 15:55 UTC; no scheduled maintenance or other Excluded Events in the month. The addendum (effective 2026-08-03) governs the whole of October 2026."
 }
