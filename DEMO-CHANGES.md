@@ -174,3 +174,20 @@ A read-only review of everything the demo line adds found nothing that blocked p
 GitHub's check workflow ran the suite on the published commits and one test failed there (5,542 passed): on its Linux image `/usr/bin/true` is a link to `/usr/bin/gnutrue`, and the configuration records the resolved path.
 
 - `tests/test_setup_model_jobs_demo.py` › `test_model_jobs_writes_private_config_and_exact_sample_approvals`: the expected `executable` is now the resolved path of `/usr/bin/true` (it was the literal string). The test came with the demo line and had only run on macOS, where the two are the same. Nothing about approvals, modes or requests changed.
+
+## Template builder version 2: the money link (`work/tb2-money-20261110`)
+
+An ACCEPTED read by an approved template now yields a SHADOW agreement whose estimated credit the existing
+`monthly-availability/1` engine computes (`vendor_terms.compile_terms`, `bind_overlay`, `vendor_eval.evaluate`). No model
+is called and no credit arithmetic was added. Nothing is posted, claimed, filed or applied.
+
+New files: `uptime/template_agreements.py`, `tests/test_template_agreements.py`,
+`fixtures/template_builder_demo/evidence/README.md` and `fixtures/template_builder_demo/evidence/halcyon-c/`
+(`overlay.json`, `usage.json`, `invoice.json`, `estimate.json`; authored, December 2026).
+
+Changed: `uptime/demo_opportunities.py` (`opportunities` takes an optional `templates` callable whose rows follow
+Corvid's; Corvid's evaluation moved unchanged into `_corvid`), one argument in the `opportunities(...)` call in
+`uptime/northwind_workflow.py`, and one line after `app.state.template_builds` is assigned in
+`scripts/setup_northwind.py` (`template_agreements.connect(app)`: sets `on_reading` and the workflow's portfolio lister).
+
+No existing test was changed.

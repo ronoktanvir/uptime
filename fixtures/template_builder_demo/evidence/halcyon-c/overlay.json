@@ -1,0 +1,10 @@
+{
+  "account": "brightwater-halcyon",
+  "agreement": "HGS-PAA-2026-0457",
+  "product": "Halcyon Grid Covered Services",
+  "plan": "Order Form HGS-OF-78031",
+  "currency": "USD",
+  "effective_from": "2026-11-03",
+  "effective_until": "2027-11-02",
+  "fee_line_ref": "halcyon-covered-services-line"
+}

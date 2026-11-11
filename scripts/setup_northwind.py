@@ -540,6 +540,7 @@ def main():
                   +''.join(' Not posted: '+e['sentence'] for e in done['failed'][:3]),file=sys.stderr,flush=True)
         if args.template_builder:
             app.state.template_builds=prepare_template_builds(args.directory,str(args.claude_executable) if args.claude_executable else default_claude_executable())
+            from uptime.template_agreements import connect; connect(app)  # money link: on_reading + portfolio rows
         import uvicorn
         uvicorn.run(app,host='127.0.0.1',port=int(private['origin'].rsplit(':',1)[1]),log_level='warning')
 

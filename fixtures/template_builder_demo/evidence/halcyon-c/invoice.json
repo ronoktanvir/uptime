@@ -1,0 +1,17 @@
+{
+  "schema": "authored-invoice/1",
+  "authored": "Fictional invoice written for the November 10, 2026 template-builder demo; no real vendor issued it.",
+  "id": "HGS-INV-2026-12-3318",
+  "vendor": "Halcyon Grid Services",
+  "customer": "Brightwater Freight Co.",
+  "account": "brightwater-halcyon",
+  "agreement": "HGS-PAA-2026-0457",
+  "issued_on": "2027-01-02",
+  "service_month": "2026-12",
+  "currency": "USD",
+  "lines": [
+    {"ref": "halcyon-covered-services-line", "description": "Halcyon Grid Covered Services (Order Form HGS-OF-78031), monthly fees, December 2026", "amount": "12000.00"}
+  ],
+  "tax": "0.00",
+  "total": "12000.00"
+}

@@ -395,7 +395,7 @@ class WorkspaceWorkflow:
         projection['finance']=summarize(projection)
         # Demo line: other vendors' estimates, set after the finance summary so they never enter Northwind's figures.
         from .demo_opportunities import opportunities
-        projection['opportunities']=opportunities(self.bench.path,p,governing_fees=self.governing_fees,trusted_now=self.now)
+        projection['opportunities']=opportunities(self.bench.path,p,governing_fees=self.governing_fees,trusted_now=self.now,templates=getattr(self,'template_opportunities',None))
         return {'workflow':projection}
 
     def _domain_pin(self,p,claim):

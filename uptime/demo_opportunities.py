@@ -99,8 +99,15 @@ def build(vendor, result, package):
     }
 
 
-def opportunities(path, p, *, governing_fees=(), trusted_now=None):
-    """Read-only: evaluate the authored month with the installed ACTIVE Corvid agreement. Never opens a case."""
+def opportunities(path, p, *, governing_fees=(), trusted_now=None, templates=None):
+    """Read-only: evaluate the authored month with the installed ACTIVE Corvid agreement. Never opens a case.
+
+    `templates`, when the template builder is on, is a callable of the principal returning the SHADOW estimates of
+    approved template reads (`uptime/template_agreements.py`), appended after Corvid's row."""
+    return _corvid(path, p, governing_fees=governing_fees, trusted_now=trusted_now) + (list(templates(p)) if templates else [])
+
+
+def _corvid(path, p, *, governing_fees=(), trusted_now=None):
     from .vendor_registry import evaluate_active, get_vendor
     try:
         vendor = get_vendor(path, p, VENDOR_ID, governing_fees=governing_fees, trusted_now=trusted_now)
