@@ -22,8 +22,13 @@ const reading = {read_by: 'FIXED_RULES', template_id: 'halcyon-availability-adde
 
 test('the reading card says fixed rules, the template, who built it and the approving account; never calls code an agent', () => {
   const lines = TC.readingLines(reading);
-  assert.equal(lines[0], 'Read by fixed rules: approved template halcyon-availability-addendum/1 (SHA-256 abababababab…), with no model call.');
+  assert.equal(lines[0], 'Values read by fixed rules: approved template halcyon-availability-addendum/1 (SHA-256 abababababab…). No model read or computed a value.');
   assert.equal(lines[1], 'Template built by Claude agents: three readers and a template builder, approved by the reviewer account scripted-test-reviewer.');
+  // Jev is a model: its document check is said separately, from the reading's record, and never as "no model call".
+  const withJev = TC.readingLines({...reading, jev_template: {asked: true, probability: '0.91', model: 'jev-1.13.0', ok: true}});
+  assert.ok(withJev.includes('Jev confirmed the document follows the template at 91% (jev-1.13.0). No Claude call took part in the read.'));
+  assert.ok(TC.readingLines({...reading, jev_template: {asked: false}}).includes('Jev was not asked whether the document follows the template. No Claude call took part in the read.'));
+  assert.ok(!withJev.join(' ').includes('no model call'));
   const card = TC.readingCard({reading, reading_current: false}, doc);
   const words = card.textContent;
   assert.match(words, /How this contract was read/);
@@ -141,4 +146,34 @@ test('the read terms are said in version 3 shapes: a schedule of tiers and durat
   assert.equal(TC.termsLine(values), 'Terms read: commitment 99.95%; below the commitment: 10% credit; below 99.5%: 25% credit; cap 30%; claim within 30 days; maintenance notice 1 business day.');
   assert.equal(TC.termsLine({}), null);
   assert.match(TC.readingLines({...reading, values}).join(' '), /Terms read: commitment 99\.95%/);
+});
+
+test('once a claim case exists, the agreement card shows the case stage and amount in both places; before, it is left as drawn', async () => {
+  const applied = {case_id: 'halcyon-a', claim_state: 'AWARDED', stage: 'applied', label: 'Applied to bill', amount: '2000.00', currency: 'USD'};
+  assert.equal(TC.cardFollows({...applied, claim_state: 'NOT_OPENED', label: 'Estimated · not claimed'}), null);
+  assert.equal(TC.cardFollows(null), null);
+  const node = text => ({textContent: text});
+  const parts = {figureLabel: node('Estimated credit'), amountNode: node('$2,000.00'), stageNode: node('Estimated · not claimed'),
+    footNote: node('Computed by Uptime’s credit engine, not by a model. Nothing is posted, claimed or applied.')};
+  await TC.followCard({api: async () => ({claims: [applied]}), caseId: 'halcyon-a', ...parts});
+  assert.deepEqual([parts.figureLabel.textContent, parts.amountNode.textContent, parts.stageNode.textContent], ['Credit', '$2,000.00', 'Claim stage: Applied to bill']);
+  assert.equal(parts.footNote.textContent, 'Computed by Uptime’s credit engine, not by a model. Its claim is at stage “Applied to bill” in its case.');
+  const untouched = {figureLabel: node('Estimated credit'), amountNode: node('$2,000.00'), stageNode: node('Estimated · not claimed'), footNote: node('x')};
+  await TC.followCard({api: async () => { throw new Error('offline'); }, caseId: 'halcyon-a', ...untouched});
+  assert.equal(untouched.stageNode.textContent, 'Estimated · not claimed');
+});
+
+test('the portfolio counters include a template claim case\'s steps with the same legend; Cases lists it with its vendor', () => {
+  const step = (kind, state = 'COMPLETED') => ({authority: {kind}, state});
+  const workflow = {automation: {steps: [step('PERSON')]}, opportunities: [{vendor: 'Halcyon Grid Services', claim: {steps: [
+    step('APPROVED_OPERATION'), step('EVENT_INTAKE'), step('EVENT_INTAKE'), step('PERSON'), step('PERSON'), step('APPROVED_OPERATION', 'FAILED')]}}]};
+  const counters = W.agentCounters(workflow, [], null);
+  assert.deepEqual([counters.reviewerDecisions, counters.agentSteps, counters.received], [3, 1, 2]);
+  assert.deepEqual([W.agentCounters({automation: {steps: [step('PERSON')]}}, [], null).reviewerDecisions], [1]);
+  const section = TC.casesSection([{case_id: 'halcyon-a', href: '#template-claim/halcyon-a', vendor: 'Halcyon Grid Services', month: '2026-10',
+    claim_id: 'inbox-halcyon-a-2026-10', claim_state: 'AWARDED', label: 'Applied to bill', amount: '2000.00', currency: 'USD'}], doc);
+  assert.match(section.textContent, /Halcyon Grid Services · October 2026 service credit · inbox-halcyon-a-2026-10/);
+  assert.match(section.textContent, /Claim stage awarded · credit Applied to bill · \$2,000\.00/);
+  assert.equal(section.all(n => n.tagName === 'A')[0].href, '#template-claim/halcyon-a');
+  assert.equal(TC.casesSection([], doc), null);
 });

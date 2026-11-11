@@ -430,3 +430,22 @@ and "invoices" (plural) does not match the word "invoice".
   at load). It is outside the inputs' SHA-256 set, so case workspaces made before it reopen with `--resume` unchanged
   (checked on the last real run's workspace: same installation id, same applied credit). One docstring line in
   `uptime/template_agreements.py` no longer names the sample's form. The test itself is unchanged.
+- Exact wording about the read (item 5): "with no model call" was in `web/template_claim_ui.js` (the case page's first
+  line) and in the case projection's document description in `uptime/template_claims.py`. Both now say the values were
+  read by fixed rules and no model read or computed a value; a separate line, from the reading's own record
+  (`jev_template` and its `template_match` guard), says Jev confirmed the document follows the template at N%, or that
+  Jev was not asked, and that no Claude call took part. `model_calls` is the reading's own, no longer a constant 0.
+- The agreement card once a claim exists (item 2): with a claim case opened for the reading, the card on the build page
+  shows the case's latest recorded stage and its amount in the figure ("Credit", "Claim stage: Applied to bill") and in
+  the foot; with no case it is drawn exactly as before. One amount, read-only from `GET /api/template-claims`.
+- Counters, Cases and Activity (item 3): `GET /api/template-claims` (read-only) lists each opened case with its vendor,
+  claim id, stage, its steps' authority kinds and states, and its history. The portfolio's "Who is doing the work"
+  counts those steps with the same `stepLegend` it uses for the workspace case; Cases lists each case with its vendor;
+  Activity adds each case's steps and history under "<vendor> · <month> claim". Nothing is written to the main
+  workspace and no amount is added across cases.
+- Changed existing tests (mine, from this branch): `web/template_claim_ui.test.cjs` › `the reading card says fixed
+  rules, the template, who built it and the approving account; never calls code an agent` expects the new first line
+  and the Jev line; `tests/test_template_claims.py` › `test_whole_path_to_the_credit_applied_once_on_the_next_invoice`
+  takes `model_calls` and `jev_template` from the stand-in's reading record (the stand-in's `get` now returns one) and
+  checks the listing. New tests: two in `web/template_claim_ui.test.cjs` (the card following the case; counters and
+  Cases).

@@ -36,7 +36,10 @@ class StandIn:
         pass
 
     def get(self, build_id):
-        return {'id': build_id, 'template': dict(TEMPLATE, approved_by='scripted-test-reviewer', approved_at='2026-11-10T13:04:00Z')}
+        readings = [{'id': e['reading_id'], 'model_calls': 0, 'jev_template': {'choice': TEMPLATE['id'], 'probability': '0.91', 'model': 'jev-1.13.0'},
+                     'guards': [{'id': 'template_match', 'ok': True, 'detail': '0.91', 'advisory': False}]} for e in self.entries]
+        return {'id': build_id, 'readings': readings,
+                'template': dict(TEMPLATE, approved_by='scripted-test-reviewer', approved_at='2026-11-10T13:04:00Z')}
 
 
 @pytest.fixture
@@ -118,7 +121,8 @@ def test_whole_path_to_the_credit_applied_once_on_the_next_invoice(served):
     view = read(client, actor)
     assert view['claim']['state'] == 'NOT_OPENED' and view['next_actions'][0]['label'] == 'Approve October claim'
     assert view['reading']['read_by'] == 'FIXED_RULES' and view['reading']['template_id'] == TEMPLATE['id']
-    assert view['reading']['approved_by'] == 'scripted-test-reviewer' and view['reading']['model_calls'] == 0
+    assert view['reading']['approved_by'] == 'scripted-test-reviewer'
+    assert view['reading']['model_calls'] == 0 and view['reading']['jev_template'] == {'asked': True, 'probability': '0.91', 'model': 'jev-1.13.0', 'ok': True}
     assert stages(view) == {'estimated': '2000.00', 'claimed': '0.00', 'awarded': '0.00', 'posted': '0.00', 'applied': '0.00'}
     row = next(o for o in northwind_before['opportunities'] if o.get('source') == 'template')
     assert row['claim'] == dict(row['claim'], stage='estimated', amount='2000.00', next='Reviewer', href='#template-claim/halcyon-a')
@@ -162,6 +166,13 @@ def test_whole_path_to_the_credit_applied_once_on_the_next_invoice(served):
         northwind_before['as_of'], northwind_before['claim']['state'], 'Approve January claim')
     row = next(o for o in northwind['opportunities'] if o.get('source') == 'template')
     assert row['claim'] == dict(row['claim'], stage='applied', amount='2000.00', next=None)
+    # Read-only listing for Cases, Activity and the portfolio counters: the case's own steps, labelled with its vendor.
+    listed = setup.checked(client.get('/api/template-claims', headers=actor.headers))['claims']
+    assert [(c['case_id'], c['vendor'], c['claim_id'], c['label'], c['amount']) for c in listed] == [
+        ('halcyon-a', 'Halcyon Grid Services', 'inbox-halcyon-a-2026-10', 'Applied to bill', '2000.00')]
+    kinds = [s['authority']['kind'] for s in listed[0]['steps'] if s['state'] == 'COMPLETED']
+    assert (kinds.count('PERSON'), kinds.count('APPROVED_OPERATION'), kinds.count('EVENT_INTAKE')) == (4, 3, 9)
+    assert listed[0]['steps'] == row['claim']['steps'] and listed[0]['audit']
 
     # A second application is refused: the ledger action is no longer offered, and a direct retry records nothing.
     case = app.state.template_claims.cases['halcyon-a']

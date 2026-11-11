@@ -473,11 +473,18 @@ class TemplateClaims:
         except (KeyError, ValueError):
             build = None
         template = dict((build or {}).get('template') or {}, **entry['template'])
+        # What the reading's own record says took part: values by the template's rules (model_calls counts the calls
+        # that produced values), and separately Jev's answer on whether the document follows the template, if asked.
+        record = next((r for r in (build or {}).get('readings') or [] if r.get('id') == entry['reading_id']), {})
+        guard = next((g for g in record.get('guards') or [] if g.get('id') == 'template_match'), None)
+        jev = record.get('jev_template') if isinstance(record.get('jev_template'), dict) else None
         return dict(read_by='FIXED_RULES', template_id=template.get('id'), template_sha256=template.get('sha256'),
                     built_by='Claude agents: three readers and a template builder', approved_by=template.get('approved_by'),
                     approved_at=template.get('approved_at'), build_id=entry['build_id'], reading_id=entry['reading_id'],
                     read_at=entry.get('read_at'), document_id=entry['document'].get('id'), document_title=entry['document'].get('title'),
-                    model_calls=0, values=dict(entry['values']))
+                    model_calls=record.get('model_calls'), values=dict(entry['values']),
+                    jev_template=dict(asked=True, probability=jev.get('probability'), model=jev.get('model'),
+                                      ok=guard.get('ok') if guard else None) if jev else dict(asked=False) if record else None)
 
     def _pin(self, entry, inputs, agreement):
         return dict(reading=reading_digest(entry), reading_id=entry['reading_id'], template_sha256=entry['template']['sha256'],
@@ -505,7 +512,7 @@ class TemplateClaims:
                     contract=dict(title=entry['document'].get('title'), version=None, ref='urn:uptime:template-reading:%s:%s' % (entry['build_id'], entry['reading_id']),
                                   summary=text, documents=[dict(title=entry['document'].get('title'), ref='/fixtures/template_builder_demo/' + document_id + '.txt',
                                                                 version='template ' + str(reading['template_id']), effective_at=inputs['overlay']['effective_from'] + 'T00:00:00Z',
-                                                                description='Read by fixed rules: approved template %s (SHA-256 %s), reading %s, no model call.'
+                                                                description='Values read by fixed rules: approved template %s (SHA-256 %s), reading %s.'
                                                                             % (reading['template_id'], reading['template_sha256'], reading['reading_id']),
                                                                 citations=[], source_sha256=sha256(text.encode()).hexdigest())]),
                     reviewer=dict(name='Dana Reyes', role='Contract reviewer', authority_kind='SCRIPTED_REVIEWER', principal=SCRIPT),
@@ -586,9 +593,22 @@ class TemplateClaims:
         reason = (automation.get('pause') or {}).get('reason')
         nxt = (None if automation.get('state') == 'COMPLETE' else 'Reviewer' if view.get('next_actions')
                else 'Uptime · automatic' if reason == 'ROUTINE_READY' else 'Vendor' if reason == 'WAITING' else 'Reviewer' if reason else None)
+        # `steps` carries only what the portfolio's counters read (who authorised each step and whether it completed),
+        # and `audit` the case's own history, each a read-only copy of this case's records.
         return dict(case_id=document_id, href='#template-claim/' + document_id, stage=stage['stage'] if stage else None,
                     label=('Estimated · not claimed' if stage and stage['stage'] == 'estimated' else stage['label'] if stage else None),
-                    amount=stage['amount'] if stage else None, next=nxt, claim_state=view['claim']['state'])
+                    amount=stage['amount'] if stage else None, currency=view['ledger'].get('currency'), next=nxt,
+                    claim_state=view['claim']['state'], claim_id=view['claim']['id'], month=view['claim']['month'],
+                    vendor=view['vendor'], as_of=view['as_of'],
+                    steps=[dict(seq=s.get('seq'), operation=s['operation'], label=s.get('label'), state=s['state'], at=s.get('at'),
+                                authority=dict(kind=(s.get('authority') or {}).get('kind'))) for s in (view.get('automation') or {}).get('steps', [])],
+                    audit=list(view.get('audit') or []))
+
+    def listing(self, p):
+        """Every claimable or opened template claim in this workspace, as portfolio, Cases and Activity read them."""
+        self.main._authorize(p)
+        rows = [self.row(p, document_id) for document_id in documents()]
+        return [row for row in rows if row is not None]
 
 
 def register_template_claims(app, auth):
@@ -601,6 +621,11 @@ def register_template_claims(app, auth):
         if service is None:
             raise KeyError('template claims')
         return service
+
+    @app.get('/api/template-claims')
+    def listing(p=Depends(auth.actor)):
+        service = getattr(app.state, 'template_claims', None)
+        return {'claims': service.listing(p) if service is not None else []}
 
     @app.get('/api/template-claims/{document_id}')
     def view(document_id: str, p=Depends(auth.actor)):
