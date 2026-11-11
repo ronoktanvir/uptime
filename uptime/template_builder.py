@@ -58,7 +58,7 @@ STEPS = (("classify", "JEV", "Which contract type is this?"), ("reader-1", "CLAU
 READERS = {1: ("clause_by_clause", MODEL), 2: ("numbers_first", MODEL), 3: ("sceptic", SCEPTIC_MODEL)}
 NOT_STARTED = "Not started: Jev matched an approved template"
 # A credit cannot be computed without these; a template whose contract does not state them cannot be approved.
-REQUIRED_TERMS = ("availability_target_percent", "tier_1_credit_percent")
+REQUIRED_TERMS = ("availability_target_percent", "credit_schedule")
 DISABLED = "Building templates with Claude is off on this server; start it with --template-builder."
 GUARD_LABELS = {"complete": "Every rule found a value",
                 "unambiguous": "No rule matched in two places with different values",
@@ -196,6 +196,8 @@ def _schema():
         row = {"field": t["field"], "type": t["type"], "meaning": t["describe"]}
         if t["type"] == "choice":
             row["options"] = list(t["options"])
+        if t["type"] == "duration":
+            row["units"] = list(t["units"])
         out.append(row)
     return json.dumps(out, indent=1)
 
@@ -226,28 +228,47 @@ def reader_prompt(text, role="clause_by_clause"):
     return ("Read the contract below and return these terms:\n" + _schema() + "\n\n"
             "Your role: " + role + ". " + how + "\n\n"
             "For each term give `value` and `quote`.\n"
-            "- value: for percent, the number as a string without the % sign (\"99.5\"); for integer, digits as a "
-            "string (\"30\"); for choice, one of the option ids.\n"
+            "- percent: value is the number as a string without the % sign (\"99.5\"). choice: value is one of the "
+            "option ids.\n"
+            "- duration: value is the number as digits (\"30\") and add \"unit\": one of the term's units, the unit "
+            "the contract itself writes (\"business_days\" for Business Days, \"days\" for days or calendar days). "
+            "Never convert between units: 5 business days stays {\"value\": \"5\", \"unit\": \"business_days\"}. A "
+            "unit that is not in the term's list (weeks, working days, billing cycles) means the term is not stated.\n"
+            "- schedule (credit_schedule): value is a list of every credit tier, one object per tier: {\"below\": "
+            "\"<the availability percentage below which the tier applies>\", \"credit\": \"<the credit, a percent of "
+            "fees>\", \"quote\": \"<the one sentence, list item or table row that states this tier>\"}. A single flat "
+            "credit is one tier. If a tier's sentence states its threshold only as the commitment itself (\"below the "
+            "Availability Commitment\"), give \"below\": \"commitment\". For a tier stated as a range (\"99.0% to "
+            "99.9%\"), below is the upper end. The term's own quote is null.\n"
             "- quote: the one sentence or list item the value comes from, copied character for character from the "
             "contract (keep its section number if it has one).\n"
-            "- Answer only what the contract states, in the unit asked. Never convert units. If the contract does not "
-            "state a term in the unit asked, the term is not stated: for example, maintenance notice given in days or "
-            "business days is not stated in hours, and a credit cap that is not a percentage of the period's fees is "
-            "not a percentage cap. For a term that is not stated answer {\"value\": null, \"quote\": null, "
-            "\"stated\": false, \"reason\": \"<what the contract does state, e.g. 5 days' written notice, or that it "
-            "says nothing about it>\"} (the sceptic also keeps \"conflict\": null).\n"
+            "- Answer only what the contract states. If the contract does not state a term in the form asked, the term "
+            "is not stated: for example, a credit cap that is not a percentage of the period's fees is not a "
+            "percentage cap, and credits in days of service or fixed amounts are not a percentage schedule. For a "
+            "term that is not stated answer {\"value\": null, \"quote\": null, \"stated\": false, \"reason\": "
+            "\"<what the contract does state, or that it says nothing about it>\"} (the sceptic also keeps "
+            "\"conflict\": null).\n"
             + shape + "\n\nCONTRACT\n<<<\n" + text + "\n>>>")
 
 
 RULE_SPEC = (
-    "A rule is {\"pattern\": <regular expression>} (choice terms add \"map\": {<captured phrase, lowercase>: <option id>}).\n"
+    "A rule is {\"pattern\": <regular expression>}. Choice terms add \"map\": {<captured phrase, lowercase>: <option id>}.\n"
     "- Python `re` syntax. Uptime runs re.finditer(pattern, contract, re.IGNORECASE) on the contract with every run of "
     "whitespace (newlines included) collapsed to one space and finds EVERY match. If the rule matches in more than one "
     "place with different values, Uptime refuses it as ambiguous and reads nothing, so anchor each rule on wording "
     "that occurs only in the clause that states the term.\n"
-    "- Exactly one capturing group, holding only the value: for percent the number without % "
-    "(like (\\d+(?:\\.\\d+)?)), for integer the digits, for choice the contract's own phrase. Use (?:...) for other "
-    "groups. No back-references. At most 400 characters.\n"
+    "- percent and choice: exactly one capturing group, holding only the value: for percent the number without % "
+    "(like (\\d+(?:\\.\\d+)?)), for choice the contract's own phrase. Use (?:...) for other groups.\n"
+    "- duration: exactly two named groups, (?P<value>\\d+) for the number and (?P<unit>...) for the unit word as the "
+    "contract writes it (for example (?P<unit>business days|days|hours)). Uptime records the unit; it never converts.\n"
+    "- schedule (credit_schedule): {\"rows\": [{\"pattern\": ...}, ...]}, one to six row patterns. Each row pattern "
+    "has the named groups (?P<below>...) for the threshold percentage and (?P<credit>...) for the credit percentage "
+    "and no other capture group; one pattern may match several tiers (one per sentence, list item or table row). "
+    "A row whose sentence states its threshold only as the commitment itself is {\"pattern\": ..., \"below\": "
+    "\"commitment\"} with only (?P<credit>...). Every tier must be matched in its own sentence or line; two "
+    "different tiers matched in one sentence or line make the schedule read nothing. The rows read must be exactly "
+    "the readers' schedule.\n"
+    "- No back-references. At most 400 characters per pattern.\n"
     "- The same rule must read other contracts of this form, where every number, percentage, party, date, address "
     "and order number is different. Never write the value's own digits into the pattern; Uptime refuses a rule "
     "that does. Beware other numbers in the contract (payment terms, termination notice, emergency maintenance, "
@@ -255,25 +276,39 @@ RULE_SPEC = (
     "- Avoid nested quantifiers such as (a+)+; prefer explicit wording or [^.;]*? between anchors.\n")
 
 
+def _term_for_prompt(field, value, quote):
+    """One term as the builder and repair prompts show it: a schedule's tiers carry their own sentences."""
+    term = rules.TERM[field]
+    if term["type"] == "schedule" and isinstance(value, list):
+        quotes = quote if isinstance(quote, list) else [None] * len(value)
+        return {"field": field, "type": "schedule",
+                "tiers": [{"below": r["below_percent"], "credit": r["credit_percent"], "sentence": q}
+                          for r, q in zip(value, quotes)]}
+    return {"field": field, "type": term["type"], "value": value, "sentence": quote}
+
+
 def builder_prompt(text, agreed):
-    terms = [{"field": f, "type": rules.TERM[f]["type"], "value": v["value"], "sentence": v["quote"]}
-             for f, v in agreed.items()]
+    terms = [_term_for_prompt(f, v["value"], v["quote"]) for f, v in agreed.items()]
     return ("Write one extraction rule per term for this contract form.\n" + RULE_SPEC +
             "\nThe terms the readers found in this contract:\n" + json.dumps(terms, indent=1) +
-            "\n\nAnswer as {\"rules\": {\"<field>\": {\"pattern\": ...}, ...}} with exactly these fields: "
-            + ", ".join(agreed) + ".\n\nCONTRACT\n<<<\n" + text + "\n>>>")
+            "\n\nAnswer as {\"rules\": {\"<field>\": {\"pattern\": ...}, ...}} (the schedule as {\"rows\": [...]}) with "
+            "exactly these fields: " + ", ".join(agreed) + ".\n\nCONTRACT\n<<<\n" + text + "\n>>>")
 
 
 def repair_prompt(text, second_text, agreed, current, failures):
-    rows = [{"field": f, "type": rules.TERM[f]["type"], "value_in_this_contract": agreed[f]["value"],
-             "sentence": agreed[f]["quote"], "current_rule": current.get(f), "what_went_wrong": failures[f]}
-            for f in failures]
+    rows = [dict(_term_for_prompt(f, agreed[f]["value"], agreed[f]["quote"]), current_rule=current.get(f),
+                 what_went_wrong=failures[f]) for f in failures]
     second = ("\n\nSECOND CONTRACT OF THE SAME FORM (its terms are not given to you)\n<<<\n" + second_text + "\n>>>"
               if second_text is not None else "")
     return ("Some extraction rules for this contract form failed. Write corrected rules for these fields only.\n"
             + RULE_SPEC + "\nThe failed rules:\n" + json.dumps(rows, indent=1) +
-            "\n\nAnswer as {\"rules\": {\"<field>\": {\"pattern\": ...}, ...}} with exactly these fields: "
-            + ", ".join(failures) + ".\n\nCONTRACT (the one the readers read)\n<<<\n" + text + "\n>>>" + second)
+            "\n\nAnswer as {\"rules\": {\"<field>\": {\"pattern\": ...}, ...}} (the schedule as {\"rows\": [...]}) with "
+            "exactly these fields: " + ", ".join(failures) + ".\n\nCONTRACT (the one the readers read)\n<<<\n" + text
+            + "\n>>>" + second)
+
+
+def _scalar(raw):
+    return raw is None or isinstance(raw, (str, int, Decimal)) and not isinstance(raw, bool)
 
 
 def parse_reader(answer, role="clause_by_clause"):
@@ -284,31 +319,60 @@ def parse_reader(answer, role="clause_by_clause"):
         raise ModelFailed("The reader's answer did not have exactly the fixed terms.")
     if role == "numbers_first" and not isinstance(value["numbers"], list):
         raise ModelFailed("The reader's list of numbers was not a list.")
-    keys = {"value", "quote", "conflict"} if role == "sceptic" else {"value", "quote"}
+    # The availability commitment first: a tier may take its threshold from it.
+    order = sorted(terms, key=lambda f: f != "availability_target_percent")
     out = {}
-    for field, item in terms.items():
-        if not isinstance(item, dict) or not keys <= set(item) <= keys | {"stated", "reason"}:
+    for field in order:
+        item, term = terms[field], rules.TERM[field]
+        keys = {"value", "quote", "conflict"} if role == "sceptic" else {"value", "quote"}
+        extra = {"stated", "reason"} | ({"unit"} if term["type"] == "duration" else set())
+        need = keys - {"quote"} if term["type"] == "schedule" else keys
+        if not isinstance(item, dict) or not need <= set(item) <= keys | extra:
             raise ModelFailed("The reader's answer for %s was not {%s}." % (field, ", ".join(sorted(keys))))
-        raw, quote = item["value"], item["quote"]
+        raw, quote = item["value"], item.get("quote")
         stated, reason = item.get("stated"), item.get("reason")
         if stated is not None and not isinstance(stated, bool) or reason is not None and not isinstance(reason, str):
             raise ModelFailed("The reader's stated/reason for %s has the wrong type." % field)
         if stated is False and raw is not None:
             raise ModelFailed("The reader said %s is not stated but gave a value." % field)
-        if raw is not None and not isinstance(raw, (str, int, Decimal)) or isinstance(raw, bool):
-            raise ModelFailed("The reader's value for %s has the wrong type." % field)
-        if quote is not None and not isinstance(quote, str):
-            raise ModelFailed("The reader's quote for %s is not text." % field)
         conflict = item.get("conflict")
         if conflict is not None and not isinstance(conflict, str):
             raise ModelFailed("The reader's conflict for %s is not text." % field)
-        term = rules.TERM[field]
-        value_ = rules.canonical(term["type"], raw, term.get("options")) if raw is not None else None
+        if term["type"] == "schedule":
+            if raw is not None and (not isinstance(raw, list) or not all(
+                    isinstance(r, dict) and set(r) <= {"below", "credit", "quote"} and _scalar(r.get("below"))
+                    and _scalar(r.get("credit")) and (r.get("quote") is None or isinstance(r.get("quote"), str))
+                    for r in raw)):
+                raise ModelFailed("The reader's credit schedule is not a list of {below, credit, quote}.")
+            value_, quote = None, None
+            if raw is not None:
+                commitment = (out.get("availability_target_percent") or {}).get("value")
+                value_, _ = rules.canonical_schedule([{"below": r.get("below"), "credit": r.get("credit")} for r in raw],
+                                                     commitment)
+                if value_ is not None:
+                    quotes = {}
+                    for r in raw:
+                        below = commitment if str(r.get("below", "")).strip().lower() == "commitment" else r.get("below")
+                        key = (rules.canonical("percent", below), rules.canonical("percent", r.get("credit")))
+                        quotes.setdefault(key, r.get("quote"))
+                    quote = [quotes.get((row["below_percent"], row["credit_percent"])) for row in value_]
+        else:
+            if not _scalar(raw):
+                raise ModelFailed("The reader's value for %s has the wrong type." % field)
+            if quote is not None and not isinstance(quote, str):
+                raise ModelFailed("The reader's quote for %s is not text." % field)
+            if term["type"] == "duration":
+                unit = item.get("unit")
+                if unit is not None and not isinstance(unit, str):
+                    raise ModelFailed("The reader's unit for %s is not text." % field)
+                value_ = rules.canonical_duration(field, raw, unit) if raw is not None else None
+            else:
+                value_ = rules.canonical(term["type"], raw, term.get("options")) if raw is not None else None
         out[field] = {"value": value_, "quote": quote, "invalid": raw is not None and value_ is None,
                       "conflict": conflict or None, "stated": raw is not None,
                       "reason": ((reason or "").strip() or None) if raw is None else None}
     numbers = len(value["numbers"]) if role == "numbers_first" else None
-    return out, numbers
+    return {f: out[f] for f in rules.TERM}, numbers
 
 
 def parse_rules(answer, fields):
@@ -318,14 +382,26 @@ def parse_rules(answer, fields):
         raise ModelFailed("The builder's answer did not have exactly one rule per requested term.")
     out = {}
     for field, item in found.items():
-        choice = rules.TERM[field]["type"] == "choice"
-        allowed = {"pattern", "map"} if choice else {"pattern"}
+        kind = rules.TERM[field]["type"]
+        rule = {"field": field, "type": kind}
+        if kind == "schedule":
+            rows = item.get("rows") if isinstance(item, dict) else None
+            if set(item or {}) != {"rows"} or not isinstance(rows, list) or not 1 <= len(rows) <= rules.MAX_TIERS or not all(
+                    isinstance(r, dict) and isinstance(r.get("pattern"), str) and set(r) <= {"pattern", "below"}
+                    and r.get("below") in (None, "commitment") for r in rows):
+                raise ModelFailed("The builder's schedule rule is not {rows: [{pattern, below?}]} with one to six rows.")
+            rule["rows"] = [{k: r[k] for k in ("pattern", "below") if k in r} for r in rows]
+            out[field] = rule
+            continue
+        allowed = {"pattern", "map"} if kind == "choice" else {"pattern"}
         if not isinstance(item, dict) or "pattern" not in item or not set(item) <= allowed:
             raise ModelFailed("The builder's rule for %s has the wrong shape." % field)
         if not isinstance(item["pattern"], str):
             raise ModelFailed("The builder's pattern for %s is not text." % field)
-        rule = {"field": field, "type": rules.TERM[field]["type"], "pattern": item["pattern"], "group": 1}
-        if choice:
+        rule["pattern"] = item["pattern"]
+        if kind != "duration":
+            rule["group"] = 1
+        if kind == "choice":
             mapping = item.get("map")
             if not isinstance(mapping, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in mapping.items()):
                 raise ModelFailed("The builder's map for %s is not phrase to option." % field)
@@ -334,11 +410,18 @@ def parse_rules(answer, fields):
     return out
 
 
+def _patterns(rule):
+    """Every pattern of a rule (a schedule has one per row)."""
+    if isinstance(rule.get("rows"), list):
+        return [r.get("pattern", "") for r in rule["rows"] if isinstance(r, dict)]
+    return [rule.get("pattern", "")]
+
+
 def anchors(body, count=3):
     """A few fixed phrases from a template's rules (literal wording between the regular-expression parts)."""
     found = []
-    for rule in body.get("rules", []):
-        s = re.sub(r"\\[dDsSwWbB]", " ", rule.get("pattern", ""))
+    for s in [p for rule in body.get("rules", []) for p in _patterns(rule)]:
+        s = re.sub(r"\\[dDsSwWbB]", " ", s)
         s = re.sub(r"\[[^\]]*\]|\{\d*,?\d*\}|\(\?[:=!<]*", " ", s)
         s = re.sub(r"\\(.)", r"\1", s)
         for part in re.split(r"[()|*+?^$.]", s):
@@ -358,6 +441,11 @@ def _probability(value):
         return Decimal(str(value))
     except (InvalidOperation, TypeError):
         return None
+
+
+def _key(value):
+    """A hashable key for a term value (a schedule is a list, a duration an object)."""
+    return rules.canonical_json(value)
 
 
 # --- The orchestration --------------------------------------------------------------------
@@ -710,9 +798,11 @@ class TemplateBuilds:
         answered = getattr(answer, "model", None) or model
         normalized = rules.normalize(text)
         for item in found.values():
-            item["quote_found"] = bool(item["quote"]) and rules.normalize(item["quote"]) in normalized
+            quotes = item["quote"] if isinstance(item["quote"], list) else [item["quote"]]
+            item["quotes_found"] = [bool(q) and rules.normalize(q) in normalized for q in quotes]
+            item["quote_found"] = bool(quotes) and all(item["quotes_found"])
         stated = sum(i["value"] is not None for i in found.values())
-        quotes = sum(i["quote_found"] for i in found.values() if i["value"] is not None)
+        quotes = sum(sum(i["quotes_found"]) for i in found.values() if i["value"] is not None)
         detail = {"role": role, "terms": stated, "quotes_found": quotes}
         summary = "%d terms, %d quotes found in the contract" % (stated, quotes)
         if numbers is not None:
@@ -732,10 +822,11 @@ class TemplateBuilds:
         agreed = {}
         for term in rules.TERMS:
             f = term["field"]
-            order = [r[f]["value"] for _, r in succeeded]
+            order = [_key(r[f]["value"]) for _, r in succeeded]
             votes = Counter(order)
-            value, count = max(votes.items(), key=lambda kv: (kv[1], -order.index(kv[0])))
-            holders = [r[f] for _, r in succeeded if r[f]["value"] == value]
+            key, count = max(votes.items(), key=lambda kv: (kv[1], -order.index(kv[0])))
+            holders = [r[f] for _, r in succeeded if _key(r[f]["value"]) == key]
+            value = holders[0]["value"]
             best = next((h for h in holders if h["quote_found"]), holders[0])
             # Not stated only when every answering reader says so; any value or unreadable answer keeps it stated.
             silent = all(not r[f]["stated"] for _, r in succeeded)
@@ -752,9 +843,11 @@ class TemplateBuilds:
         out = {}
         for term in rules.TERMS:
             f = term["field"]
-            votes = Counter(r[f]["value"] for r in answered if r[f]["value"] is not None and r[f]["quote_found"])
+            held = {_key(r[f]["value"]): r[f]["value"] for r in answered if r[f]["value"] is not None and r[f]["quote_found"]}
+            votes = Counter(_key(r[f]["value"]) for r in answered if r[f]["value"] is not None and r[f]["quote_found"])
             if votes:
-                value, count = max(votes.items(), key=lambda kv: kv[1])
+                key, count = max(votes.items(), key=lambda kv: kv[1])
+                value = held[key]
                 if list(votes.values()).count(count) > 1:
                     value = None  # a tie is not agreement
             else:
@@ -813,11 +906,11 @@ class TemplateBuilds:
             failures = {}
             for f in stated:
                 problems = []
-                if a[f]["value"] is None or a[f]["value"] != agreed[f]["value"]:
+                if a[f]["value"] is None or not rules.same(a[f]["value"], agreed[f]["value"]):
                     problems.append("On this contract the rule " + (
                         "returned %r but the readers found %r." % (a[f]["value"], agreed[f]["value"])
                         if a[f]["value"] is not None else "failed: " + (a[f]["error"] or "found nothing.")))
-                if b is not None and second_agreed[f]["value"] is not None and b[f]["value"] != second_agreed[f]["value"]:
+                if b is not None and second_agreed[f]["value"] is not None and not rules.same(b[f]["value"], second_agreed[f]["value"]):
                     problems.append("On the second contract the rule " + (
                         "captured a value that is not what that contract's readers agreed on." if b[f]["value"] is not None
                         else "failed: " + (b[f]["error"] or "found nothing.")))
@@ -831,7 +924,7 @@ class TemplateBuilds:
                        % (len(failures), len(stated), repairs + 1), detail={"rules": len(current), "repair_rounds": repairs})
             try:
                 fixed = parse_rules(self.claude(SYSTEM, repair_prompt(
-                    text, second_text, agreed, {f: {k: v for k, v in current[f].items() if k in ("pattern", "map")}
+                    text, second_text, agreed, {f: {k: v for k, v in current[f].items() if k in ("pattern", "map", "rows")}
                                                 for f in failures}, failures), model=MODEL), list(failures))
             except Exception as exc:  # a used round; the next one is tried, up to the limit
                 repair_note = ((repair_note + " ") if repair_note else "") + "Repair round %d failed: %s" % (
@@ -856,7 +949,7 @@ class TemplateBuilds:
             version = 1 + sum(1 for b in self.builds.values() if b.get("_form") == form and b.get("template"))
             vendor = build["source"]["vendor"]
             body = {"id": "%s/%d" % (form, version), "sample_id": build.get("sample_id"), "vendor": vendor,
-                    "form": build["_form_title"], "interpreter": "uptime.template_rules/2",
+                    "form": build["_form_title"], "interpreter": rules.INTERPRETER,
                     "rules": [current[t["field"]] for t in rules.TERMS if t["field"] in current],
                     "not_stated": [t["field"] for t in rules.TERMS if not agreed[t["field"]]["stated"]]}
             digest = rules.sha256(body)
@@ -870,6 +963,7 @@ class TemplateBuilds:
         self._update(build, state="CHECKING")
         self._step(build, "checks", state="RUNNING")
         sceptic = dict(succeeded).get(3)
+        commitment = agreed["availability_target_percent"]["value"]
         terms = []
         for term in rules.TERMS:
             f = term["field"]
@@ -887,15 +981,16 @@ class TemplateBuilds:
                            rule_places=0, second_document_value=None,
                            second_document_ok=second is not None and not second["stated"], status="NOT_STATED")
             else:
-                row.update(value=a["value"], display=rules.display(f, a["value"]), quote=a["quote"], reason=None,
+                row.update(value=a["value"], display=rules.display(f, a["value"]) if a["value"] is not None else None,
+                           quote=a["quote"], reason=None,
                            conflict=sceptic[f]["conflict"] if sceptic else None,
-                           value_in_sentence=rules.value_in_sentence(f, a["value"], a["quote"]),
-                           rule={k: v for k, v in current[f].items() if k in ("pattern", "group", "map")} if f in current else None,
+                           value_in_sentence=rules.value_in_sentence(f, a["value"], a["quote"], commitment),
+                           rule={k: v for k, v in current[f].items() if k in ("pattern", "group", "map", "rows")} if f in current else None,
                            rule_value=on_a[f]["value"], rule_quote=on_a[f]["quote"], rule_error=on_a[f]["error"],
                            rule_places=on_a[f]["places"],
                            second_document_value=on_b[f]["value"] if on_b is not None else None,
                            second_document_ok=(second is not None and second["value"] is not None
-                                               and on_b[f]["value"] == second["value"]), status=None)
+                                               and rules.same(on_b[f]["value"], second["value"])), status=None)
             terms.append(row)
         stated_terms = [t for t in terms if t["stated"]]
         not_stated = len(terms) - len(stated_terms)
@@ -904,13 +999,7 @@ class TemplateBuilds:
             def ask(term):
                 if not term["stated"] or term["value"] is None or not term["quote"]:
                     return None
-                shown = term["display"]
-                question = rules.TERM[term["field"]]["question"].format(display=shown, display_lower=shown.lower())
-                try:
-                    answer = self.jev.yes_no(question, term["quote"][:JEV_CONTEXT])
-                except Exception:
-                    return None
-                return {"yes": bool(answer["yes"]), "probability": str(answer["probability"]), "model": answer.get("model")}
+                return self._ask_term(term["field"], term["value"], term["quote"], commitment)
             with ThreadPoolExecutor(4) as pool:
                 for term, verdict in zip(terms, pool.map(ask, terms)):
                     term["jev"] = verdict
@@ -923,10 +1012,11 @@ class TemplateBuilds:
             t["needs_acknowledgement"] = not jev_pass(t)
             fine = (t["agreement"]["agree"] == t["agreement"]["of"] and t["value"] is not None
                     and all(r["quote_found"] for r in t["readers"] if r["value"] is not None)
-                    and t["value_in_sentence"] and t["rule_value"] == t["value"] and not t["conflict"]
+                    and t["value_in_sentence"] and rules.same(t["rule_value"], t["value"]) and not t["conflict"]
                     and (on_b is None or t["second_document_ok"]) and not t["needs_acknowledgement"])
             t["status"] = "PASS" if fine else "REVIEW"
-        reader_quotes = [r[f] for _, r in succeeded for f in r if r[f]["value"] is not None or r[f]["invalid"]]
+        reader_quotes = [found for _, r in succeeded for f in r if r[f]["value"] is not None or r[f]["invalid"]
+                         for found in (r[f]["quotes_found"] if r[f]["value"] is not None else [r[f]["quote_found"]])]
         answered = [t for t in terms if t["jev"] is not None]
         flagged = [t["field"] for t in terms if t["needs_acknowledgement"]]
         second_doc = build.get("_second_document")
@@ -947,7 +1037,7 @@ class TemplateBuilds:
              "passed": sum(t["stated"] and t["value"] is not None for t in required), "total": len(required),
              "blocking": True, "by": "UPTIME", "required": list(REQUIRED_TERMS)},
             {"id": "quotes", "label": "Every quote is in the contract, word for word",
-             "passed": sum(1 for q in reader_quotes if q.get("quote_found")), "total": len(reader_quotes),
+             "passed": sum(1 for q in reader_quotes if q), "total": len(reader_quotes),
              "blocking": True, "by": "UPTIME"},
             {"id": "value_in_sentence", "label": "Each value is in its sentence, as digits or words",
              "passed": sum(bool(t["value_in_sentence"]) for t in stated_terms), "total": len(stated_terms),
@@ -956,7 +1046,7 @@ class TemplateBuilds:
              "passed": sum(t["agreement"]["agree"] == t["agreement"]["of"] for t in terms), "total": len(terms),
              "blocking": False, "by": "UPTIME"},
             {"id": "reproduce", "label": "The template returns every stated term from this contract, one value per rule",
-             "passed": sum(t["value"] is not None and t["rule_value"] == t["value"] for t in stated_terms),
+             "passed": sum(t["value"] is not None and rules.same(t["rule_value"], t["value"]) for t in stated_terms),
              "total": len(stated_terms), "blocking": True, "by": "UPTIME"},
             second_check,
             {"id": "jev", "label": "Jev: each term is supported by its sentence", "passed": sum(jev_pass(t) for t in stated_terms),
@@ -987,6 +1077,34 @@ class TemplateBuilds:
             review = "Waiting for a reviewer"
         self._step(build, "review", summary=review, detail={"needs_acknowledgement": flagged})
         self._update(build, state="READY_FOR_REVIEW", finished_at=now())
+
+    def _ask_term(self, field, value, quote, commitment):
+        """Jev on one stated term: once per term, and once per row for the schedule (each row in its own sentence).
+        -> {"yes", "probability", "model"} (a schedule's also has "rows"), or None when Jev did not answer."""
+        term = rules.TERM[field]
+
+        def one(question, context):
+            try:
+                answer = self.jev.yes_no(question, context[:JEV_CONTEXT])
+            except Exception:
+                return None
+            return {"yes": bool(answer["yes"]), "probability": str(answer["probability"]), "model": answer.get("model")}
+        if term["type"] == "schedule":
+            rows = []
+            for row, sentence in zip(value, quote if isinstance(quote, list) else []):
+                below = row["below_percent"] + "%"
+                if commitment is not None and rules.same(row["below_percent"], commitment) and sentence and \
+                        not rules.value_in_sentence("availability_target_percent", row["below_percent"], sentence):
+                    below = "the availability commitment (%s%%)" % row["below_percent"]
+                rows.append(one(term["question"].format(credit=row["credit_percent"], below=below), sentence or "")
+                            if sentence else None)
+            if not rows or any(r is None for r in rows):
+                return None
+            lowest = min(rows, key=lambda r: Decimal(r["probability"]))
+            return {"yes": all(r["yes"] for r in rows), "probability": lowest["probability"], "model": lowest["model"],
+                    "rows": rows}
+        shown = rules.display(field, value)
+        return one(term["question"].format(display=shown, display_lower=shown.lower()), quote)
 
     # -- Reviewer approval
     def approve(self, build_id, sha, reviewer, acknowledged=None):
@@ -1032,7 +1150,8 @@ class TemplateBuilds:
         values = {t["field"]: t["value"] for t in terms}
         ambiguous = [t["field"] for t in terms if t["ambiguous"]]
         with_value = [t for t in terms if t["value"] is not None]
-        in_sentence = [t for t in with_value if rules.value_in_sentence(t["field"], t["value"], t["quote"])]
+        in_sentence = [t for t in with_value if rules.value_in_sentence(t["field"], t["value"], t["quote"],
+                                                                         values.get("availability_target_percent"))]
         problems = rules.plausibility(values)
         guards = [
             {"id": "complete", "ok": result["found"] == result["total"], "detail": "%d of %d" % (result["found"], result["total"]),

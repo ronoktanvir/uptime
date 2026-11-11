@@ -56,9 +56,22 @@
     const figure = m[1] + thousands(m[2]) + (m[3] || '');
     return currency === 'USD' ? (m[1] ? '-$' + figure.slice(1) : '$' + figure) : figure + (given(currency) ? ' ' + currency : '');
   }
+  // Version 3 units: a duration is {value, unit}, recorded in the contract's own unit and never converted.
+  const UNIT_WORDS = {hours:['hour', 'hours'], days:['day', 'days'], business_days:['business day', 'business days'], months:['month', 'months']};
+  // A credit schedule is a list of tiers {below_percent, credit_percent}; each is drawn as its own row.
+  const scheduleTiers = value => Array.isArray(value) ? value.filter(r => object(r) && given(r.below_percent) && given(r.credit_percent)) : [];
+  const tierWords = r => 'below ' + r.below_percent + '%: ' + r.credit_percent + '%';
+  // A value as sent: text as it is; a schedule or a duration in words (their parts are shown as sent).
+  const plainValue = (term, v) => Array.isArray(v) || object(v) ? withUnit(term, v) || '' : String(v);
   // A term's value with its unit, from the term's own type or field name; the value text is shown as sent.
   function withUnit(term, value) {
     if (value === null || value === undefined || value === '') return null;
+    if (Array.isArray(value)) { const tiers = scheduleTiers(value); return tiers.length ? tiers.map(tierWords).join('; ') : null; }
+    if (object(value)) {
+      if (!given(value.value)) return null;
+      const words = UNIT_WORDS[value.unit];
+      return value.value + ' ' + (words ? words[String(value.value) === '1' ? 0 : 1] : given(value.unit) ? String(value.unit).replace(/_/g, ' ') : '');
+    }
     const t = object(term) || {}, field = String(t.field || ''), type = String(t.type || '');
     if (type === 'percent' || field.endsWith('_percent')) return value + '%';
     if (type === 'days' || field.endsWith('_days')) return value + (String(value) === '1' ? ' day' : ' days');
@@ -166,6 +179,22 @@
       node.addEventListener('click', handler); return node;
     }
     const pill = (text, tone) => el('span', 'pill' + (tone ? ' ' + tone : ''), text);
+    // A schedule as rows: "Below 99.95% · 10% credit", highest threshold first, as the server ordered them.
+    function scheduleList(value, className) {
+      const tiers = scheduleTiers(value);
+      if (!tiers.length) return null;
+      return add(el('ol', 'tb-schedule' + (className ? ' ' + className : '')), tiers.map((r, i) => add(el('li', 'tb-tier'),
+        el('span', 'tb-tier-number', 'Tier ' + (i + 1)), el('span', 'tb-tier-below', 'Below ' + r.below_percent + '%'),
+        el('span', 'tb-tier-credit', r.credit_percent + '% credit'))));
+    }
+    // A term's sentence, or a schedule's sentences (one per tier).
+    const sentences = quote => (Array.isArray(quote) ? quote : [quote]).filter(given);
+    function sentenceBlock(quote, tag) {
+      const all = sentences(quote);
+      if (!all.length) return null;
+      if (!Array.isArray(quote)) return el(tag || 'blockquote', tag ? 'tb-quote-text' : '', all[0]);
+      return add(el('ol', 'tb-tier-sentences'), all.map((q, i) => add(el('li', ''), el('span', 'tb-tier-number', 'Tier ' + (i + 1)), el(tag || 'blockquote', tag ? 'tb-quote-text' : '', q))));
+    }
     const errorSentence = (error, fallback) => error && error.message ? error.message : fallback;
     function input(className, kind) { const node = el(kind === 'textarea' ? 'textarea' : 'input', className); if (kind !== 'textarea') node.type = kind || 'text'; node.value = ''; return node; }
     function field(label, control, extra) { return add(el('label', 'tb-field'), el('span', 'tb-field-label', label), control, extra); }
@@ -513,7 +542,7 @@
         const agreement = object(term.agreement);
         const jev = object(term.jev);
         const second = object(term.second_readers);
-        const shownValue = v => v !== null && v !== undefined && v === term.value && given(term.display) ? term.display : withUnit(term, v);
+        const shownValue = v => v !== null && v !== undefined && JSON.stringify(v) === JSON.stringify(term.value) && given(term.display) ? term.display : withUnit(term, v);
         const toggle = button(open ? (unstated ? 'Hide reason' : 'Hide sentence') : (unstated ? 'Show reason' : 'Show sentence'), () => { if (view.open.has(term.field)) view.open.delete(term.field); else view.open.add(term.field); draw(view, view.build, true); }, 'link-button');
         toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         const secondCell = !showSecond ? null : add(el('td', 'tb-second-cell'), second && Number.isInteger(second.agree) && Number.isInteger(second.of)
@@ -522,7 +551,9 @@
         const status = needsAck && !approved ? (acked ? pill('Acknowledged', 'ok') : pill('To acknowledge', 'warn'))
           : needsAck ? pill('Acknowledged', 'ok') : unstated ? pill('Not stated', '') : term.status === 'PASS' ? pill('Passed', 'ok') : term.status === 'REVIEW' ? pill('For the reviewer', 'warn') : pill('Checking', '');
         add(row, add(el('td', 'tb-term-label'), el('strong', '', given(term.label) ? term.label : term.field)),
-          unstated ? add(el('td', 'tb-value tb-value-unstated'), el('span', 'tb-unstated', 'Not stated in this contract')) : el('td', 'tb-value', given(term.display) ? term.display : 'Not found'),
+          unstated ? add(el('td', 'tb-value tb-value-unstated'), el('span', 'tb-unstated', 'Not stated in this contract'))
+            : scheduleTiers(term.value).length ? add(el('td', 'tb-value tb-value-schedule'), scheduleList(term.value))
+            : el('td', 'tb-value', given(term.display) ? term.display : withUnit(term, term.value) || 'Not found'),
           el('td', 'tb-agree', agreement && Number.isInteger(agreement.agree) && Number.isInteger(agreement.of) ? agreement.agree + ' of ' + agreement.of : 'Not yet'),
           secondCell,
           showInSentence ? add(el('td', 'tb-in-sentence'), unstated ? el('span', 'help', 'No value') : term.value_in_sentence === true ? pill('Yes', 'ok') : term.value_in_sentence === false ? pill('No', 'bad') : el('span', 'help', 'Not yet')) : null,
@@ -541,19 +572,23 @@
               + (term.second_document_ok === true ? ' · the same' : term.second_document_ok === false ? ' · different' : '')
             : term.second_readers === null ? 'No second contract was given' : null;
           add(cell, unstated ? [el('p', 'tb-detail-label', 'Why it is not stated'), el('p', 'tb-unstated-reason', given(term.reason) ? term.reason : 'Every reader agrees the contract does not state this term.')]
-              : [el('p', 'tb-detail-label', 'The sentence in the contract'), given(term.quote) ? el('blockquote', '', term.quote) : el('p', 'help', 'No sentence was recorded for this term.')],
+              : [el('p', 'tb-detail-label', Array.isArray(term.quote) ? 'The sentence of each tier in the contract' : 'The sentence in the contract'),
+                sentenceBlock(term.quote) || el('p', 'help', 'No sentence was recorded for this term.')],
             add(el('dl', 'record tb-detail'),
               typeof term.value_in_sentence === 'boolean' ? [el('dt', '', 'Value in its sentence'), el('dd', term.value_in_sentence ? '' : 'tb-rule-error', term.value_in_sentence ? 'Yes: the value is written in this sentence' : 'No: the value is not written in this sentence')] : null,
               rule && given(rule.pattern) ? [el('dt', '', 'Extraction rule'), add(el('dd'), el('code', 'tb-pattern', rule.pattern))] : null,
+              rule && Array.isArray(rule.rows) ? [el('dt', '', 'Extraction rule, one pattern per kind of tier'), add(el('dd'), list(rule.rows).filter(object).map(r =>
+                add(el('div', 'tb-row-rule'), el('code', 'tb-pattern', given(r.pattern) ? r.pattern : ''), r.below === 'commitment' ? el('span', 'help', ' · threshold: the commitment') : null)))] : null,
               rule && object(rule.map) ? [el('dt', '', 'Phrase to option'), el('dd', '', Object.entries(rule.map).map(([k, v]) => '“' + k + '” → ' + v).join(' · '))] : null,
-              given(term.rule_value) || term.rule_value === null ? [el('dt', '', 'The rule returns'), el('dd', '', term.rule_value === null ? 'Not found' : term.rule_value)] : null,
-              given(term.rule_quote) && term.rule_quote !== term.quote ? [el('dt', '', 'The rule matched'), el('dd', 'tb-quote-text', term.rule_quote)] : null,
+              given(term.rule_value) || term.rule_value === null || object(term.rule_value) || Array.isArray(term.rule_value) ? [el('dt', '', 'The rule returns'), el('dd', '', term.rule_value === null ? 'Not found' : plainValue(term, term.rule_value))] : null,
+              sentences(term.rule_quote).length && JSON.stringify(term.rule_quote) !== JSON.stringify(term.quote) ? [el('dt', '', 'The rule matched'), add(el('dd', 'tb-quote-text'), sentenceBlock(term.rule_quote, 'span'))] : null,
               given(term.rule_error) ? [el('dt', '', 'Rule error'), el('dd', 'tb-rule-error', term.rule_error)] : null,
-              list(term.readers).length ? [el('dt', '', 'Each reader'), el('dd', '', list(term.readers).filter(object).map(r => 'Reader ' + r.reader + ': ' + (r.stated === false ? 'not stated' : r.value === null || r.value === undefined ? 'Not found' : r.value) + (r.quote_found === false ? ' (quote not in the contract)' : '')).join(' · '))] : null,
+              list(term.readers).length ? [el('dt', '', 'Each reader'), el('dd', '', list(term.readers).filter(object).map(r => 'Reader ' + r.reader + ': ' + (r.stated === false ? 'not stated' : r.value === null || r.value === undefined ? 'Not found' : plainValue(term, r.value)) + (r.quote_found === false ? ' (quote not in the contract)' : '')).join(' · '))] : null,
               secondLine ? [el('dt', '', 'Second contract'), el('dd', term.second_document_ok === false ? 'tb-rule-error' : '', secondLine)]
-                : term.second_document_value !== undefined && term.second_readers === undefined ? [el('dt', '', 'Second contract'), el('dd', '', (term.second_document_value === null ? 'Not found' : term.second_document_value) + (term.second_document_ok === true ? ' · as authored' : term.second_document_ok === false ? ' · does not match the authored value' : ''))] : null,
+                : term.second_document_value !== undefined && term.second_readers === undefined ? [el('dt', '', 'Second contract'), el('dd', '', (term.second_document_value === null ? 'Not found' : plainValue(term, term.second_document_value)) + (term.second_document_ok === true ? ' · as authored' : term.second_document_ok === false ? ' · does not match the authored value' : ''))] : null,
               given(term.conflict) ? [el('dt', '', 'Reader 3 found a conflict'), el('dd', 'tb-quote-text tb-conflict', term.conflict)] : null,
               Number.isInteger(term.rule_places) && term.rule_places > 1 ? [el('dt', '', 'Places the rule matched'), el('dd', '', term.rule_places + ', all with the same value')] : null,
+              showJev && jev && list(jev.rows).length ? [el('dt', '', 'Jev, tier by tier'), el('dd', '', list(jev.rows).filter(object).map((r, i) => 'Tier ' + (i + 1) + ': ' + (r.yes ? 'yes' : 'no') + (percent(r.probability) ? ' ' + percent(r.probability) : '')).join(' · '))] : null,
               showJev && jev && given(jev.model) ? [el('dt', '', 'Jev model'), el('dd', '', jev.model)] : null));
           if (needsAck && !approved) {
             const why = unstated ? 'Every reader agrees the contract does not state this, so the template has no rule for it.' : !jev ? 'Jev did not answer for this term.' : !jev.yes ? 'Jev says this sentence does not support the value' + (percent(jev.probability) ? ' (' + percent(jev.probability) + ' yes)' : '') + '.'
@@ -774,9 +809,9 @@
           // A term the template was built without (its contract did not state it) is never called "Not found".
           const unstated = !found && (term.stated === false || list(reading.not_stated).includes(term.field));
           body.append(add(el('tr', found ? '' : unstated ? 'tb-unstated-row' : 'tb-not-found'), add(el('td', 'tb-term-label'), el('strong', '', given(term.label) ? term.label : term.field)),
-            add(el('td', refused ? 'tb-value tb-value-refused' : 'tb-value'), found ? el('span', '', given(term.display) ? term.display : term.value)
+            add(el('td', refused ? 'tb-value tb-value-refused' : 'tb-value'), found ? (scheduleList(term.value) || el('span', '', given(term.display) ? term.display : withUnit(term, term.value) || String(term.value)))
               : unstated ? el('span', 'tb-unstated', 'Not stated when this template was built') : pill('Not found', 'warn')),
-            add(el('td', 'tb-quote'), found && given(term.quote) ? el('span', 'tb-quote-text', term.quote)
+            add(el('td', 'tb-quote'), found && sentences(term.quote).length ? sentenceBlock(term.quote, 'span')
               : unstated ? el('span', 'help', given(term.error) ? term.error : 'Not stated in the contract this template was built from')
               : el('span', 'help', 'No sentence matched. Nothing is guessed.'),
             given(term.error) && !unstated ? el('p', 'tb-term-error', term.error) : null)));
@@ -815,7 +850,7 @@
     return Object.freeze({section, run, unmount});
   }
 
-  const api = Object.freeze({create, percent, money, monthLabel, withUnit, readByWords, stepState, actorName, jevRan, blockingFailures, orderedChecks,
+  const api = Object.freeze({create, percent, money, monthLabel, withUnit, scheduleTiers, readByWords, stepState, actorName, jevRan, blockingFailures, orderedChecks,
     needsAcknowledgement, routeLine, readingLine, latestBuild, TERMINAL, POLL_MS, ROLES, CHECK_ORDER});
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (global) global.UptimeTemplateBuilder = api;

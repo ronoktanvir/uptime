@@ -1218,6 +1218,12 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-not-accepted { opacity: .8; border: 1px dashed var(--bad-line); }
 .tb-not-accepted-label { margin: 0; padding: 8px 12px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--bad); }
 .tb-value-refused { text-decoration: line-through; text-decoration-color: var(--bad-line); color: var(--muted); }
+/* Version 3: a credit schedule drawn as rows, and one sentence per tier. */
+.tb-schedule, .tb-tier-sentences { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tb-tier { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; }
+.tb-tier-number { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-right: 6px; }
+.tb-tier-credit { font-variant-numeric: tabular-nums; }
+.tb-row-rule + .tb-row-rule { margin-top: 4px; }
 .tb-reading-refused .tb-rules-mark { background: var(--surface); color: var(--muted); }
 /* The money link */
 .tb-money { display: grid; gap: 12px; padding: 16px 18px; border: 1px solid var(--accent-line); border-radius: 10px; background: linear-gradient(180deg, var(--accent-soft), var(--surface) 90px); }
