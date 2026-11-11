@@ -249,3 +249,18 @@ def test_a_misread_term_fails_the_controls_and_opens_nothing(served):
     assert response.status_code == 409 and 'controls' in response.json()['detail']
     assert not (app.state.template_claim_inputs['directory'] / 'template-claims' / 'halcyon-a').exists()
     assert read(client, actor)['claim']['state'] == 'NOT_OPENED'
+
+
+def test_the_reading_is_marked_only_when_a_claim_can_be_opened(served):
+    app, client, actor = served
+    connect(app, [])
+    on_reading = app.state.template_builds.on_reading
+    assert on_reading(entry())['claim'] == {'available': True, 'case': 'halcyon-a'}
+    # halcyon-c has an estimate but no claim evidence: no marker, so the build page shows no claim link.
+    other = entry()
+    other['document'] = {'id': 'halcyon-c', 'title': 'Halcyon Grid: Platform Availability Addendum (Brightwater)', 'customer': 'Brightwater Freight Co.'}
+    other['values'] = json.loads((tc.CONTRACTS / 'expected.json').read_text())['halcyon-c']['terms']
+    marked = on_reading(other)
+    assert marked['credit']['stage'] == 'ESTIMATED' and 'claim' not in marked
+    # A read that reaches no credit is not marked either.
+    assert 'claim' not in on_reading(entry(dict(EXPECTED['terms'], measurement_period='calendar_quarter')))

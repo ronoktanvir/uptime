@@ -313,3 +313,15 @@ allocation ledger, the local ledger provider, the coordinator). Each such case l
 - New files: `uptime/template_claims.py`, `web/template_claim_ui.js`, `web/template_claim_ui.test.cjs` (4 tests),
   `tests/test_template_claims.py` (6 tests), `fixtures/template_builder_demo/evidence/halcyon-a/` (README, overlay,
   usage, invoice, estimate, lifecycle, correspondence, next_invoice, agreement, order-monthly-rate.txt, service-log.txt).
+- Follow-ups (same evening): a lone outcome card takes the whole row (`web/style.css`, one rule beside `.outcome`), so the
+  case page's invoice figures fit on one line; Northwind's page has two cards and is unchanged. After approval the
+  build page offers "Read this contract with the approved template" for the sample's own document (POST
+  `{"document_id": <its id>}`). "Open the claim" now appears only when the server marks the reading's agreement
+  `"claim": {"available": true, "case": <document id>}` (`template_claims.connect` wraps the money link's `on_reading`);
+  a reading with an estimate but no claim evidence carries no marker and shows no link. New tests: 2 in
+  `web/template_claim_ui.test.cjs`, 1 in `tests/test_template_claims.py`.
+- Known limits: (1) the first decision's packet approval is of the estimate the reviewer saw (reading, template SHA-256,
+  values, evidence hashes, amount); the inbox's approval of the claim packet is recorded under it only after the
+  engine's assessed claim matches that estimate, not on a packet the reviewer saw on screen. (2) Because each case
+  lives in its own database, its steps and agreement are not yet counted in the portfolio's "Who is doing the work",
+  Activity, Cases or "Agreements on file", and the generic `/api/dashboard` does not list it.

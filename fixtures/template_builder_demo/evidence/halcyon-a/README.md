@@ -49,3 +49,7 @@ be submitted within 30 days after the end of the month (4.1). The addendum takes
 What these show: a contract whose reader Claude agents built, read by that template alone, drives a credit through the
 same claim, correspondence, ledger and invoice machinery as the Northwind case. What they do not show: any real outage,
 reply, invoice or payment; that Halcyon would agree; that a real customer executed the addendum.
+
+Limits of the demo around this evidence: the first decision approves the estimate shown, and the claim packet's
+approval is recorded under it only after the engine's assessed claim matches that estimate. The case lives in its own
+database, so it is not yet counted in the portfolio's "Who is doing the work", Activity, Cases or "Agreements on file".

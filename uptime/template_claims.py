@@ -598,10 +598,28 @@ def register_template_claims(app, auth):
         return {'workflow': await claims().act(p, document_id, identity)}
 
 
+def claim_marker(entry, agreement):
+    """`{"available": true, "case": <document id>}` when a claim can be opened for this reading, else None."""
+    document_id = (entry.get('document') or {}).get('id')
+    credit = (agreement or {}).get('credit') or {}
+    if document_id in documents() and credit.get('stage') == 'ESTIMATED' and credit.get('amount') is not None:
+        return {'available': True, 'case': document_id}
+    return None
+
+
 def connect(app, directory, senders):
     """Turn on template claims for a served workspace and give the portfolio rows their claim stage."""
     service = TemplateClaims(app, directory, senders)
     app.state.template_claims = service
+    builds = getattr(app.state, 'template_builds', None)
+    estimate = getattr(builds, 'on_reading', None)
+    if estimate is not None:
+        def on_reading(entry):
+            # The money link's agreement, marked when a claim can be opened for it (the build page's link reads this).
+            agreement = estimate(entry)
+            marker = claim_marker(entry, agreement) if isinstance(agreement, dict) else None
+            return dict(agreement, claim=marker) if marker else agreement
+        builds.on_reading = on_reading
     workflow = getattr(app.state, 'workflow', None)
     lister = getattr(workflow, 'template_opportunities', None) if workflow is not None else None
     if lister is not None:

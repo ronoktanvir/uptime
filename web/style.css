@@ -527,6 +527,8 @@ details.panel > :not(summary) { margin: 20px 24px; }
 
 /* 9. Overview */
 .outcome { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 20px; }
+/* A case with no price exception has one outcome card: it takes the whole row so its figures stay on one line. */
+.outcome > .outcome-card:only-child { grid-column: 1 / -1; }
 .outcome-card { min-width: 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); display: flex; flex-direction: column; }
 .outcome-card h2 { font-size: 13px; line-height: 20px; font-weight: 500; color: var(--muted); }
 .outcome-value { margin-top: 8px; font-size: 40px; line-height: 44px; font-weight: 600; letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
