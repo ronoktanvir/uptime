@@ -1,0 +1,572 @@
+{
+ "_about": "Written by hand by the evaluating agent (Claude Opus 5.5 in Claude Code) on November 10, 2026, after reading each cached page, having seen the builder's term list. Values only. 'other_service' lists values the page states for another covered service, plan or storage class than the first one it lists (the key's choice); a returned value equal to one of those is counted as other_service, not correct. 'also_correct' lists a second reading the key accepts as correct. 'monthly billing cycle' is keyed calendar_month. One key value was corrected after the run (twilio maintenance_notice); see its note.",
+ "aws-ec2": {
+  "terms": {
+   "availability_target_percent": "99.99",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.99",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "30"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "100"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "2",
+    "unit": "months"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "99.5"
+   ],
+   "credit_schedule": [
+    [
+     {
+      "below_percent": "99.5",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "99",
+      "credit_percent": "30"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "100"
+     }
+    ]
+   ]
+  },
+  "notes": {
+   "claim_window": "by the end of the second billing cycle after the incident, keyed as 2 months",
+   "credit_cap_percent": "no cap stated (the top tier is 100%)"
+  }
+ },
+ "aws-s3": {
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.9",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "25"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "100"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "2",
+    "unit": "months"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "99"
+   ],
+   "credit_schedule": [
+    [
+     {
+      "below_percent": "99",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "98",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "100"
+     }
+    ]
+   ]
+  },
+  "notes": {
+   "availability_target_percent": "no number in the commitment sentence; keyed as the first table's top threshold",
+   "claim_window": "end of the second billing cycle, keyed as 2 months"
+  }
+ },
+ "gcp-compute": {
+  "terms": {
+   "availability_target_percent": "99.99",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.99",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "25"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "100"
+    }
+   ],
+   "credit_cap_percent": "100",
+   "claim_window": {
+    "value": "60",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "99.95",
+    "99.9"
+   ],
+   "credit_schedule": [
+    [
+     {
+      "below_percent": "99.95",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "99",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "100"
+     }
+    ],
+    [
+     {
+      "below_percent": "99.9",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "99",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "100"
+     }
+    ],
+    [
+     {
+      "below_percent": "99.95",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "90",
+      "credit_percent": "100"
+     }
+    ],
+    [
+     {
+      "below_percent": "99.9",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "90",
+      "credit_percent": "100"
+     }
+    ]
+   ]
+  },
+  "notes": {
+   "credit_cap_percent": "credits in a month may not exceed the amount due for the month: keyed as 100",
+   "credit_schedule": "first table, Premium Tier, multiple zones"
+  }
+ },
+ "gcp-storage": {
+  "terms": {
+   "availability_target_percent": "99.95",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.95",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "25"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "50"
+    }
+   ],
+   "credit_cap_percent": "50",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "99.9",
+    "99",
+    "99.5"
+   ],
+   "credit_schedule": [
+    [
+     {
+      "below_percent": "99.9",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "99",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "50"
+     }
+    ],
+    [
+     {
+      "below_percent": "99",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "98",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "50"
+     }
+    ],
+    [
+     {
+      "below_percent": "99.5",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "99",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "50"
+     }
+    ]
+   ]
+  }
+ },
+ "digitalocean": {
+  "terms": {
+   "availability_target_percent": "99.99",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.99",
+     "credit_percent": "100"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "2",
+    "unit": "months"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "claim_window": "within two billing cycles of the month"
+  }
+ },
+ "backblaze": {
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.9",
+     "credit_percent": "5"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "10"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "maintenance_notice": "only a link to a maintenance window page"
+  }
+ },
+ "mongodb-atlas": {
+  "terms": {
+   "availability_target_percent": "99.995",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.995",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "25"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "100"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "1",
+    "unit": "months"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "availability_target_percent": "no number outside the table; keyed as its top threshold",
+   "claim_window": "by the end of the month following the month of the downtime"
+  }
+ },
+ "twilio": {
+  "terms": {
+   "availability_target_percent": "99.95",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.95",
+     "credit_percent": "10"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": {
+    "value": "24",
+    "unit": "hours"
+   },
+   "credit_application": "next_invoice"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "99.99"
+   ],
+   "credit_schedule": [
+    [
+     {
+      "below_percent": "99.99",
+      "credit_percent": "10"
+     }
+    ]
+   ]
+  },
+  "notes": {
+   "maintenance_notice": "Key corrected after the run: I had first keyed this not_stated, having missed the exclusion for scheduled maintenance with 24 hours' prior notice. The builder's value was right and my key was wrong."
+  }
+ },
+ "mailgun": {
+  "terms": {
+   "availability_target_percent": "99.99",
+   "measurement_period": "calendar_month",
+   "credit_schedule": "not_stated",
+   "credit_cap_percent": "50",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "not_stated"
+  },
+  "notes": {
+   "credit_schedule": "5% of the monthly fee per 30 minutes of unavailability: a rate, not tiers",
+   "maintenance_notice": "best efforts, no period",
+   "credit_application": "not said"
+  }
+ },
+ "github": {
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_quarter",
+   "credit_schedule": [
+    {
+     "below_percent": "99.9",
+     "credit_percent": "5"
+    },
+    {
+     "below_percent": "99.5",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "25"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": {
+    "value": "5",
+    "unit": "days"
+   },
+   "credit_application": "not_stated"
+  },
+  "notes": {
+   "credit_cap_percent": "capped at 90 days of paid service per quarter, not a percentage",
+   "credit_application": "either a refund or a credit to the account"
+  }
+ },
+ "vercel": {
+  "terms": {
+   "availability_target_percent": "99.99",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.98",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "25"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "50"
+    }
+   ],
+   "credit_cap_percent": "50",
+   "claim_window": {
+    "value": "30",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "also_correct": {
+   "credit_schedule": [
+    [
+     {
+      "below_percent": "99.99",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "99",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "50"
+     }
+    ]
+   ]
+  },
+  "notes": {
+   "credit_schedule": "ranges with inclusive upper ends and a gap between 99% and 99.1%; not exactly 'below X' tiers. Keyed by the upper ends (as the reader prompt says); below the 99.99% commitment also accepted"
+  }
+ },
+ "atlassian": {
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "credit_schedule": [
+    {
+     "below_percent": "99.9",
+     "credit_percent": "10"
+    },
+    {
+     "below_percent": "99",
+     "credit_percent": "25"
+    },
+    {
+     "below_percent": "95",
+     "credit_percent": "50"
+    }
+   ],
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "15",
+    "unit": "days"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "other_service": {
+   "availability_target_percent": [
+    "99.95"
+   ],
+   "credit_schedule": [
+    [
+     {
+      "below_percent": "99.95",
+      "credit_percent": "5"
+     },
+     {
+      "below_percent": "99.9",
+      "credit_percent": "10"
+     },
+     {
+      "below_percent": "99",
+      "credit_percent": "25"
+     },
+     {
+      "below_percent": "95",
+      "credit_percent": "50"
+     }
+    ]
+   ]
+  },
+  "notes": {
+   "credit_schedule": "Premium plan (listed first); Enterprise is other_service"
+  }
+ },
+ "cloudflare": {
+  "terms": {
+   "availability_target_percent": "100",
+   "measurement_period": "calendar_month",
+   "credit_schedule": "not_stated",
+   "credit_cap_percent": "not_stated",
+   "claim_window": {
+    "value": "1",
+    "unit": "months"
+   },
+   "maintenance_notice": "not_stated",
+   "credit_application": "not_stated"
+  },
+  "notes": {
+   "credit_schedule": "a formula (outage minutes times affected-visitor ratio over scheduled minutes), not tiers",
+   "credit_cap_percent": "one month of fees over twelve months, not a percentage of the period",
+   "claim_window": "by the end of the billing month following the incident's month"
+  }
+ }
+}

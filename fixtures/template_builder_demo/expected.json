@@ -4,12 +4,25 @@
     "terms": {
       "availability_target_percent": "99.95",
       "measurement_period": "calendar_month",
-      "tier_1_credit_percent": "10",
-      "tier_2_threshold_percent": "99.5",
-      "tier_2_credit_percent": "25",
+      "credit_schedule": [
+        {
+          "below_percent": "99.95",
+          "credit_percent": "10"
+        },
+        {
+          "below_percent": "99.5",
+          "credit_percent": "25"
+        }
+      ],
       "credit_cap_percent": "30",
-      "claim_window_days": "30",
-      "maintenance_notice_hours": "72",
+      "claim_window": {
+        "value": "30",
+        "unit": "days"
+      },
+      "maintenance_notice": {
+        "value": "72",
+        "unit": "hours"
+      },
       "credit_application": "next_invoice"
     }
   },
@@ -18,12 +31,25 @@
     "terms": {
       "availability_target_percent": "99.9",
       "measurement_period": "calendar_month",
-      "tier_1_credit_percent": "5",
-      "tier_2_threshold_percent": "99",
-      "tier_2_credit_percent": "15",
+      "credit_schedule": [
+        {
+          "below_percent": "99.9",
+          "credit_percent": "5"
+        },
+        {
+          "below_percent": "99",
+          "credit_percent": "15"
+        }
+      ],
       "credit_cap_percent": "25",
-      "claim_window_days": "45",
-      "maintenance_notice_hours": "48",
+      "claim_window": {
+        "value": "45",
+        "unit": "days"
+      },
+      "maintenance_notice": {
+        "value": "48",
+        "unit": "hours"
+      },
       "credit_application": "next_invoice"
     }
   },
@@ -32,12 +58,25 @@
     "terms": {
       "availability_target_percent": "99.99",
       "measurement_period": "calendar_month",
-      "tier_1_credit_percent": "15",
-      "tier_2_threshold_percent": "99.9",
-      "tier_2_credit_percent": "35",
+      "credit_schedule": [
+        {
+          "below_percent": "99.99",
+          "credit_percent": "15"
+        },
+        {
+          "below_percent": "99.9",
+          "credit_percent": "35"
+        }
+      ],
       "credit_cap_percent": "50",
-      "claim_window_days": "60",
-      "maintenance_notice_hours": "96",
+      "claim_window": {
+        "value": "60",
+        "unit": "days"
+      },
+      "maintenance_notice": {
+        "value": "96",
+        "unit": "hours"
+      },
       "credit_application": "next_invoice"
     }
   }

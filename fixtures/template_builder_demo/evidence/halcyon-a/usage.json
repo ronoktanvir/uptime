@@ -1,0 +1,16 @@
+{
+  "schema": "authored-usage/1",
+  "authored": "Fictional usage written for the November 10, 2026 claim demo; not from any monitor, vendor or customer.",
+  "vendor": "Halcyon Grid Services",
+  "customer": "Save Time Inc",
+  "agreement": "HGS-PAA-2026-0412",
+  "account": "savetime-halcyon",
+  "product": "Halcyon Grid Covered Services",
+  "plan": "Order Form HGS-OF-77120",
+  "month": "2026-10",
+  "monitor_ref": "HGS-PROBES-2026-10",
+  "month_complete": true,
+  "exclusions_removed": true,
+  "unavailable_minutes": 263,
+  "note": "An authored month: one outage of 263 minutes on 2026-10-14 from 06:12 to 10:35 UTC; no scheduled maintenance or other Excluded Events in the month. The addendum (effective 2026-10-01) governs the whole of October 2026."
+}

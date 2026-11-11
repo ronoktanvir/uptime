@@ -1,0 +1,10 @@
+{
+  "account": "savetime-halcyon",
+  "agreement": "HGS-PAA-2026-0412",
+  "product": "Halcyon Grid Covered Services",
+  "plan": "Order Form HGS-OF-77120",
+  "currency": "USD",
+  "effective_from": "2026-10-01",
+  "effective_until": "2027-09-30",
+  "fee_line_ref": "halcyon-covered-services-line"
+}

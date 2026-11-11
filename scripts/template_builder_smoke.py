@@ -4,7 +4,8 @@
       terms that need the reviewer's acknowledgement;
   (b) approves it in a throwaway folder as the reviewer name `smoke-script`, acknowledging what is flagged. A script
       is not a reviewer: this approval exists only in that throwaway folder and says so;
-  (c) reads the shipped next contract with the approved template and prints its status and guards;
+  (c) reads the shipped next contract with the approved template and prints its status, guards and the money link's
+      estimate (uptime/template_agreements.py, the credit engine on the authored month);
   (d) starts a second build for a contract of the same form (the next contract, pasted) and shows whether Jev matched
       the approved template and whether any Claude reader ran.
 
@@ -21,6 +22,7 @@ from time import perf_counter
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from uptime import template_agreements  # noqa: E402
 from uptime.jev import JevClient  # noqa: E402
 from uptime.template_builder import FIXTURES, ClaudeCLI, TemplateBuilds  # noqa: E402
 
@@ -72,6 +74,10 @@ def show_reading(reading):
         print("  %-28s %s" % (t["field"], t["display"] if t["value"] is not None else "null: " + str(t["error"])))
     if reading["reasons"]:
         print("  refused because:", "; ".join(reading["reasons"]))
+    agreement = reading.get("agreement")
+    if agreement:
+        print("  money link: agreement %s, credit %s; %s" % (agreement.get("agreement_id"), agreement.get("credit"),
+                                                           agreement.get("evaluation")))
 
 
 def main():
@@ -84,6 +90,7 @@ def main():
     folder = Path(tempfile.mkdtemp(prefix="uptime-tb-smoke-"))
     claude = Counted(ClaudeCLI(executable))
     builds = TemplateBuilds(folder / "template-builds", claude, JevClient(), background=False)
+    builds.on_reading = template_agreements.on_reading
     print("Throwaway folder:", folder)
 
     print("\n(a) Build from the shipped sample")

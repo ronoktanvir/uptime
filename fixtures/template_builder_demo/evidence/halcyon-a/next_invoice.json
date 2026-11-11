@@ -1,0 +1,65 @@
+{
+  "month": "2026-12",
+  "observed_at": "2026-12-01T09:00:00Z",
+  "invoice": {
+    "id": "HGS-INV-2026-12-2391",
+    "customer": "Save Time Inc",
+    "vendor": "Halcyon Grid Services",
+    "issued_at": "2026-12-01T00:00:00Z",
+    "payment_status": "pending",
+    "currency": "USD",
+    "total": "8000.00",
+    "lines": [
+      {
+        "id": "halcyon-covered-services-line",
+        "product": "Halcyon Grid Covered Services",
+        "quantity": "1",
+        "unit": "service-month",
+        "start": "2026-12-01T00:00:00Z",
+        "end": "2027-01-01T00:00:00Z",
+        "net": "8000.00",
+        "tax": "0.00",
+        "allocation_ref": "halcyon-subscription-2026-12",
+        "allocation_complete": true
+      }
+    ]
+  },
+  "opening_capacity": {
+    "invoice_id": "HGS-INV-2026-12-2391",
+    "account": "savetime-halcyon",
+    "vendor": "Halcyon Grid Services",
+    "contract": "HGS-PAA-2026-0412",
+    "product": "Halcyon Grid Covered Services",
+    "currency": "USD",
+    "amount": "8000.00",
+    "payment_status": "unpaid",
+    "source_ref": "halcyon-december-opening-balance",
+    "issued_at": "2026-12-01T00:00:00Z",
+    "service_start": "2026-12-01T00:00:00Z",
+    "service_end": "2027-01-01T00:00:00Z",
+    "effective_at": "2026-12-01T00:00:00Z",
+    "known_at": "2026-12-01T09:00:00Z"
+  },
+  "scope": {
+    "account": "savetime-halcyon",
+    "vendor": "Halcyon Grid Services",
+    "contract": "HGS-PAA-2026-0412",
+    "service": "Halcyon Grid Covered Services",
+    "invoice": "HGS-INV-2026-12-2391",
+    "incident": "HGS-MONTH-2026-12",
+    "currency": "USD",
+    "month": "2026-12"
+  },
+  "unchanged_sla": {
+    "citation_id": "halcyon-a.txt:3.3",
+    "citation": {
+      "id": "halcyon-a.txt:3.3",
+      "source_file": "halcyon-a.txt",
+      "source_sha256": "bd135d168800bf0ead999bd6b3f28dd313297b969c57109b19dec87512a89583",
+      "start": 2829,
+      "end": 2964,
+      "quote": "3.3 Service Credits will be applied as a credit against the next invoice issued by Halcyon to Customer following approval of the claim.",
+      "quote_sha256": "63eb1468480ffd8a46333c411de3ebdcb484486da9ab1a830ced55aacbd82721"
+    }
+  }
+}

@@ -410,3 +410,95 @@ the unit Uptime asks for, for example maintenance notice in days or business day
   reading terms carry `"stated": true`. `approved_readings()` gives `None` for not-stated fields. In
   `uptime/template_rules.py`, `apply` honours `template["not_stated"]` the same way (its `total` excludes those fields,
   and it returns `not_stated`).
+
+# Version 3: a schedule of tiers, and units (November 10, night)
+
+Many real service-level agreements do not have exactly two credit tiers, and state notice and claim periods in days,
+business days or months. This section changes the term set. Where it differs from the text above, it wins. Everything
+not mentioned stays, including `reading.agreement` and `template_agreements.evaluate(entry, evidence)`.
+
+## The term set (7)
+
+| Field | Type | Value |
+|:---|:---|:---|
+| `availability_target_percent` | percent | `"99.95"` |
+| `measurement_period` | choice | `"calendar_month"`, `"calendar_quarter"` or `"calendar_year"` |
+| `credit_schedule` | schedule | `[{"below_percent": "99.95", "credit_percent": "10"}, {"below_percent": "99.5", "credit_percent": "25"}]` |
+| `credit_cap_percent` | percent | `"30"` |
+| `claim_window` | duration | `{"value": "30", "unit": "days"}`; units `days`, `business_days`, `months` |
+| `maintenance_notice` | duration | `{"value": "72", "unit": "hours"}`; units `hours`, `days`, `business_days` |
+| `credit_application` | choice | `"next_invoice"`, `"refund"` or `"account_balance"` |
+
+**Removed:** `tier_1_credit_percent`, `tier_2_threshold_percent`, `tier_2_credit_percent` (now `credit_schedule`),
+`claim_window_days` (now `claim_window`) and `maintenance_notice_hours` (now `maintenance_notice`). The type `integer`
+is no longer used by any term.
+
+- **A schedule** has one to six tiers, each "availability below X% earns a credit of Y%", ordered by threshold, highest
+  first. A single flat credit is a schedule of one. The first tier's threshold may be the commitment itself. A schedule
+  that repeats a threshold with different credits, or whose thresholds do not fall as the credits rise, is refused
+  wherever it appears (a reader's answer, a rule's read, the plausibility guard, the money link). Identical tiers
+  found in several places are one tier.
+- **A duration** keeps the unit the contract writes. Nothing is converted: "5 Business Days" is
+  `{"value": "5", "unit": "business_days"}`, never 120 hours. "Calendar days" is `days`; "calendar months" is `months`.
+  A unit outside the term's list (weeks, "working days", billing cycles) is not a value of the term: readers report
+  the term as not stated with the unit in their reason, and a rule that captures it reads nothing.
+- "Not stated" is unchanged: it is for a term the contract does not state at all (or not in a form above).
+- `stated` now requires `availability_target_percent` and `credit_schedule`.
+
+## Reader answers
+
+Percent and choice terms as before. A duration adds `"unit"`: `{"value": "10", "unit": "business_days", "quote": "…"}`.
+The schedule's `value` is a list of tiers, each with its own sentence, and the term's `quote` is null:
+
+```json
+{"credit_schedule": {"value": [{"below": "99.95", "credit": "10", "quote": "(a) where …, a Service Credit of 10% …"},
+                                {"below": "99.5", "credit": "25", "quote": "(b) where …"}], "quote": null}}
+```
+
+A tier whose sentence states its threshold only as the commitment gives `"below": "commitment"`; it is resolved to the
+reader's own `availability_target_percent`.
+
+## Rules (data, interpreter `uptime.template_rules/3`)
+
+- percent and choice: as before (one capture group; a choice adds `map`).
+- duration: `{"field", "type": "duration", "pattern"}` with exactly the named groups `(?P<value>…)` and `(?P<unit>…)`.
+  The captured unit phrase becomes a unit id by a fixed table in code (`UNIT_PHRASES`); the rule has no map.
+- schedule: `{"field": "credit_schedule", "type": "schedule", "rows": [{"pattern": …}, …]}`, one to six row
+  patterns. A row pattern has exactly the named groups `(?P<below>…)` and `(?P<credit>…)`, or only `(?P<credit>…)` with
+  `"below": "commitment"`. Every match of every row pattern is a tier. The text is matched with whitespace collapsed,
+  as for every rule, but the interpreter keeps a map from each character to its original line
+  (`normalize_lines`): a tier's sentence is its sentence clipped to the lines the match spans, so a table row on its
+  own line is its own sentence. Two different tiers matched in one sentence or line make the schedule read nothing
+  (`ambiguous: true`). A row pattern that spells out a value it captured is refused, as before.
+- `apply` reads `availability_target_percent` before the schedule, so a commitment row takes that read value.
+
+## Shapes
+
+- A schedule term's `value`, `rule_value`, `second_document_value` and `second_readers.value` are lists of tiers, and
+  its `quote` and `rule_quote` are lists of sentences, one per tier, in the same order. `display` is a string:
+  `"below 99.95%: 10%; below 99.5%: 25%"`. A duration's `display` is `"30 days"`, `"10 business days"`, `"1 month"`.
+- `term.rule` carries `rows` for the schedule, `pattern` otherwise.
+- `term.readers[].value` has the same shape as `term.value`.
+- **Jev is asked once per stated term and once per tier of the schedule**, each tier with its own sentence:
+  "Does this sentence give a service credit of 25% of the fees when availability is below 99.5%?" (for a commitment
+  row, "below the availability commitment (99.5%)"). The schedule's `jev` is `{"yes": every tier yes, "probability":
+  the lowest, "model", "rows": [{"yes", "probability", "model"}, …]}`, and `null` if any tier went unanswered.
+  The 0.90 threshold is unchanged; the check counts terms.
+- `quotes` counts each tier's sentence: the Halcyon sample has 24 (6 terms and 2 tiers, 3 readers).
+- `value_in_sentence` for the schedule: every tier's credit is in its own sentence, and its threshold too, or the
+  threshold equals the commitment and the sentence names it (commitment, guarantee, service level, SLA, SLO,
+  target). For a duration: the number and the unit's word (`days` does not match "business days").
+- `plausible` (read guard): percentages within 0 to 100; the schedule fits together as above; no tier's threshold
+  above the commitment; the cap not below the highest credit; durations positive and in one of the term's units.
+- `approved_readings()[].values`: the schedule as its list, durations as their objects.
+- The page draws a schedule as rows ("Tier 1 · Below 99.95% · 10% credit") in the terms table and in reading tables,
+  each tier's sentence numbered under it, the schedule's row patterns, and Jev tier by tier.
+
+## The money link
+
+`credit_schedule` maps to one engine tier per row (`monthly-availability/1`), each credit capped at
+`credit_cap_percent` as before; tiers the cap makes equal are stated as one, the one with the highest threshold. A
+claim window not in calendar days is refused with a sentence ("the claim window is 10 business days, and the engine
+counts calendar days after the month; it is not converted."), and so is a cap the contract does not state ("no value
+for Credit cap"). The maintenance notice is shown in its own unit and, as before, does not change the estimate. The
+Halcyon sample still estimates USD 4,200.00 for October 2026.

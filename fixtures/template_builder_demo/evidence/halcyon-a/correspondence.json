@@ -1,0 +1,15 @@
+{
+  "month": "2026-10",
+  "denial": {
+    "event_id": "halcyon-reply-oct",
+    "known_at": "2026-11-03T12:10:00Z",
+    "text": "Please furnish the dated service log, document HGS-OCT-LOG-001."
+  },
+  "credit_decision": {
+    "event_id": "HGS-CM-2026-10",
+    "known_at": "2026-11-05T13:00:00Z",
+    "text": "We have approved a service credit of USD 2000.00.",
+    "credit_id": "HGS-CM-2026-10",
+    "memo_ref": "HGS-CM-2026-10"
+  }
+}

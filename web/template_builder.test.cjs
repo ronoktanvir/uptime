@@ -702,3 +702,51 @@ test('a reading names a not-stated field as not stated when the template was bui
   assert.equal(reading.cls('tb-not-found').length, 0);
   assert.doesNotMatch(text(reading), /Not found|Nothing is guessed/);
 });
+
+// ---- Version 3 (docs/demo/TEMPLATE-BUILDER.md, "Version 3"): a credit schedule of tiers, and durations with units ----
+const SCHEDULE = [{below_percent: '99.95', credit_percent: '10'}, {below_percent: '99.5', credit_percent: '25'}];
+const SCHEDULE_QUOTES = ['(a) where Platform Availability is less than 99.95% but at least 99.5%, a Service Credit of 10%;',
+  '(b) where Platform Availability is less than 99.5%, a Service Credit of 25%.'];
+const V3_TERMS = [v2Term('availability_target_percent', 'Availability commitment', '99.95', '99.95%'),
+  {...v2Term('credit_schedule', 'Credit schedule', SCHEDULE, 'below 99.95%: 10%; below 99.5%: 25%'), type: 'schedule', quote: SCHEDULE_QUOTES,
+    rule: {rows: [{pattern: 'less than (?P<below>[\\d.]+)%[^,]*, a Service Credit of (?P<credit>[\\d.]+)%'}]},
+    rule_value: SCHEDULE, rule_quote: SCHEDULE_QUOTES, second_readers: {agree: 3, of: 3, value: [{below_percent: '99.9', credit_percent: '5'}], stated: true},
+    second_document_value: [{below_percent: '99.9', credit_percent: '5'}],
+    jev: {yes: true, probability: '0.93', model: 'jev-1.13.0', rows: [{yes: true, probability: '0.97'}, {yes: true, probability: '0.93'}]}},
+  {...v2Term('claim_window', 'Claim window', {value: '10', unit: 'business_days'}, '10 business days'), type: 'duration',
+    second_readers: {agree: 3, of: 3, value: {value: '1', unit: 'months'}, stated: true}, second_document_value: {value: '1', unit: 'months'}}];
+
+test('version 3: a schedule shows as rows with one sentence per tier, and a duration keeps its unit', async () => {
+  assert.equal(TB.withUnit({type: 'schedule'}, SCHEDULE), 'below 99.95%: 10%; below 99.5%: 25%');
+  assert.equal(TB.withUnit({type: 'duration'}, {value: '5', unit: 'business_days'}), '5 business days');
+  assert.equal(TB.withUnit({type: 'duration'}, {value: '1', unit: 'months'}), '1 month');
+  assert.equal(TB.withUnit({type: 'duration'}, {value: '3', unit: 'weeks'}), '3 weeks');
+  const build = {...v2Ready, terms: V3_TERMS};
+  const s = setup(() => ({build}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const schedule = s.root.cls('tb-term')[1];
+  assert.deepEqual(schedule.cls('tb-tier').map(text), [' Tier 1 Below 99.95% 10% credit', ' Tier 2 Below 99.5% 25% credit']);
+  assert.match(text(schedule), /3 of 3 · below 99\.9%: 5%/);
+  buttonNamed(s.root.cls('tb-term')[1], 'Show sentence').listeners.click();
+  const detail = text(s.root.cls('tb-detail-row')[0]);
+  assert.match(detail, /The sentence of each tier in the contract/);
+  assert.match(detail, /Tier 1 \(a\) where Platform Availability is less than 99\.95%/);
+  assert.match(detail, /Tier 2 \(b\) where/);
+  assert.match(detail, /one pattern per kind of tier/);
+  assert.match(detail, /Jev, tier by tier Tier 1: yes 97% · Tier 2: yes 93%/);
+  assert.match(detail, /The rule returns below 99\.95%: 10%; below 99\.5%: 25%/);
+  const claim = s.root.cls('tb-term')[2];
+  assert.match(text(claim), /10 business days/); assert.match(text(claim), /1 month\b/);
+});
+
+test('version 3: a reading draws the schedule as rows and each tier’s sentence', async () => {
+  const reading = {...V2_READING, terms: [READING.terms[0],
+    {field: 'credit_schedule', label: 'Credit schedule', type: 'schedule', value: SCHEDULE, display: 'below 99.95%: 10%; below 99.5%: 25%', quote: SCHEDULE_QUOTES},
+    {field: 'claim_window', label: 'Claim window', type: 'duration', value: {value: '60', unit: 'days'}, display: '60 days', quote: 'within sixty (60) days'}]};
+  const s = setup(() => ({build: {...BUILDS.approved, readings: [reading]}}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const view = s.root.cls('tb-reading')[0];
+  assert.equal(view.cls('tb-tier').length, 2);
+  assert.equal(view.cls('tb-tier-sentences')[0].tag('li').length, 2);
+  assert.match(text(view), /60 days within sixty \(60\) days/);
+});

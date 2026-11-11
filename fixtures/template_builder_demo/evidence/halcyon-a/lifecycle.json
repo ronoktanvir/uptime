@@ -1,0 +1,90 @@
+{
+  "schema": "authored-claim-lifecycle/1",
+  "authored": "Fictional October 2026 records for the claim demo; no monitor, vendor or customer produced them.",
+  "clock_start": "2026-11-03T12:00:00Z",
+  "claim_scope": {
+    "account": "savetime-halcyon",
+    "vendor": "Halcyon Grid Services",
+    "contract": "HGS-PAA-2026-0412",
+    "service": "Halcyon Grid Covered Services",
+    "invoice": "HGS-INV-2026-10-2207",
+    "incident": "HGS-INC-2026-10-14",
+    "currency": "USD",
+    "month": "2026-10"
+  },
+  "usage": {
+    "month": "2026-10",
+    "start": "2026-10-01T00:00:00Z",
+    "end": "2026-11-01T00:00:00Z",
+    "monitor_source": "simulated_vendor",
+    "monitor_ref": "HGS-PROBES-2026-10",
+    "observed_at": "2026-11-01T00:00:00Z",
+    "month_complete": true,
+    "exclusions_removed": true,
+    "eligible_downtime_minutes": 263,
+    "exclusions": [],
+    "coverage_note": "Complete month, no excluded intervals.",
+    "incident_id": "HGS-INC-2026-10-14",
+    "component_id": null,
+    "region": null,
+    "status_event_id": "halcyon-status-2026-10",
+    "eligible_intervals": [
+      {
+        "ref": "halcyon-outage-2026-10",
+        "incident_id": "HGS-INC-2026-10-14",
+        "start": "2026-10-14T06:12:00Z",
+        "end": "2026-10-14T10:35:00Z",
+        "component_id": null,
+        "affected": true,
+        "exclusion": "none"
+      }
+    ]
+  },
+  "invoice": {
+    "id": "HGS-INV-2026-10-2207",
+    "customer": "Save Time Inc",
+    "vendor": "Halcyon Grid Services",
+    "issued_at": "2026-10-01T00:00:00Z",
+    "payment_status": "paid",
+    "currency": "USD",
+    "total": "8000.00",
+    "lines": [
+      {
+        "id": "halcyon-covered-services-line",
+        "product": "Halcyon Grid Covered Services",
+        "quantity": "1",
+        "unit": "service-month",
+        "start": "2026-10-01T00:00:00Z",
+        "end": "2026-11-01T00:00:00Z",
+        "net": "8000.00",
+        "tax": "0.00",
+        "allocation_ref": "halcyon-subscription-2026-10",
+        "allocation_complete": true
+      }
+    ]
+  },
+  "supplement": {
+    "month": "2026-10",
+    "release_after": "vendor-denial",
+    "artifact_event_id": "halcyon-oct-service-log",
+    "artifact": {
+      "kind": "artifact",
+      "source_ref": "savetime-local-log-export",
+      "observed_at": "2026-11-04T09:00:00Z",
+      "artifact_ref": "HGS-OCT-LOG-001",
+      "artifact_type": "resource_log",
+      "body_sha256": "a8abceb56a8861f7f2ff3f679ff824b579b18be06db7a8adb90b3aeeda068724",
+      "content_file": "service-log.txt"
+    },
+    "verification_event_id": "halcyon-oct-status-verification",
+    "verification": {
+      "kind": "status_verification",
+      "source_ref": "halcyon-status-verifier",
+      "observed_at": "2026-11-04T09:05:00Z",
+      "artifact_ref": "HGS-OCT-LOG-001",
+      "artifact_type": "resource_log",
+      "body_sha256": "a8abceb56a8861f7f2ff3f679ff824b579b18be06db7a8adb90b3aeeda068724",
+      "linked_ref": "halcyon-status-2026-10"
+    }
+  }
+}

@@ -167,6 +167,12 @@ def prepare(directory,origin,*,routine_automation=False,reviewer_credential=None
             subject='northwind-'+month+'-'+role
             grant,sender=create_source(config,subject,role,scope);grants.append(grant)
             _write_new(directory/(subject+'.json'),sender)
+    # Demo line: the same four signed sources for each authored template claim (uptime/template_claims.py).
+    from uptime.template_claims import source_scopes,ROLES
+    for prefix,month,scope in source_scopes():
+        for role in ROLES:
+            grant,sender=create_source(config,prefix+'-'+role,role,scope);grants.append(grant)
+            _write_new(directory/(prefix+'-'+role+'.json'),sender)
     _write_new(directory/'sources.json',config.model_copy(update={'services':grants}))
     private=dict(schema='authored-workspace/1',origin=origin,rehearsal_secret=secrets.token_urlsafe(48),
                  package_sha256=fingerprint(package['input_sha256']))
@@ -228,6 +234,7 @@ def open_workspace(directory, *, proposal_config=None, side_panel_origin=None, r
         rehearsal_secret=private['rehearsal_secret'],service_credentials=registry,origin=private['origin'],workflow_config=config,
         proposal_config=proposal_config,side_panel_origin=side_panel_origin,
         **ramp_options(directory,ramp_records,ramp_notes,ramp_provider,ramp_reader))
+    app.state.template_claim_inputs=dict(directory=directory,senders=senders)  # read by uptime.template_claims.connect
     return app,private,events
 
 
@@ -541,6 +548,7 @@ def main():
         if args.template_builder:
             app.state.template_builds=prepare_template_builds(args.directory,str(args.claude_executable) if args.claude_executable else default_claude_executable())
             from uptime.template_agreements import connect; connect(app)  # money link: on_reading + portfolio rows
+            from uptime.template_claims import connect as claims; claims(app,**app.state.template_claim_inputs)  # its claim lifecycle
         import uvicorn
         uvicorn.run(app,host='127.0.0.1',port=int(private['origin'].rsplit(':',1)[1]),log_level='warning')
 

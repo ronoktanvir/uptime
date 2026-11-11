@@ -10,14 +10,16 @@ The result is an agreement in SHADOW: an estimate from authored usage, not a cla
 agreement, never posted, filed, applied or added to Northwind's figures.
 
 Term mapping (the engine's tier family: "availability below X% earns a Y% credit", only the most severe applicable
-tier, tiers never summed):
-- availability_target_percent + tier_1_credit_percent -> tier "below the commitment: tier 1 credit";
-- tier_2_threshold_percent + tier_2_credit_percent -> tier "below the second threshold: tier 2 credit";
+tier, tiers never summed). Version 3 terms (docs/demo/TEMPLATE-BUILDER.md, "Version 3"):
+- credit_schedule: each tier {below_percent, credit_percent} -> one engine tier "availability below X% earns a Y%
+  credit", one to six of them;
 - credit_cap_percent: the tier family has no cap operator. Because exactly one tier applies in a month, the capped
   credit for a tier is min(tier credit, cap); each tier's rate is stated that way. Tiers the cap makes equal are
-  stated as one tier below the commitment (the same schedule). For an ACCEPTED read the cap never binds, because the
-  read's plausibility guard refuses a cap below the highest credit;
-- claim_window_days -> the engine's filing window in calendar days after the month;
+  stated as one tier, the one with the highest threshold among them (the same schedule). For an ACCEPTED read the cap
+  never binds, because the read's plausibility guard refuses a cap below the highest credit. A cap the contract does
+  not state means no estimate: a cap may exist in another form, so it is never assumed absent;
+- claim_window {value, unit} -> the engine's filing window in calendar days after the month. Only a window in
+  calendar days is stated to the engine; business days or months are refused with a sentence, never converted;
 - measurement_period must be `calendar_month` (stated to the engine as the UTC calendar month; the Halcyon form
   names no time zone, so that is an assumption shown in the inputs); other periods are refused;
 - credit_application must be `next_invoice` (the engine's only remedy, a future-invoice credit on the affected
@@ -33,14 +35,12 @@ from . import demo_opportunities as corvid
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / 'fixtures' / 'template_builder_demo' / 'evidence'
-FIELDS = ('availability_target_percent', 'measurement_period', 'tier_1_credit_percent', 'tier_2_threshold_percent',
-          'tier_2_credit_percent', 'credit_cap_percent', 'claim_window_days', 'maintenance_notice_hours',
-          'credit_application')
+FIELDS = ('availability_target_percent', 'measurement_period', 'credit_schedule', 'credit_cap_percent', 'claim_window',
+          'maintenance_notice', 'credit_application')
 LABELS = {
     'availability_target_percent': 'Availability commitment', 'measurement_period': 'Measurement period',
-    'tier_1_credit_percent': 'Credit, first tier below the commitment', 'tier_2_threshold_percent': 'Second tier starts below',
-    'tier_2_credit_percent': 'Credit, second tier', 'credit_cap_percent': 'Credit cap', 'claim_window_days': 'Claim window',
-    'maintenance_notice_hours': 'Scheduled-maintenance notice', 'credit_application': 'How a credit is applied'}
+    'credit_schedule': 'Credit schedule', 'credit_cap_percent': 'Credit cap', 'claim_window': 'Claim window',
+    'maintenance_notice': 'Scheduled-maintenance notice', 'credit_application': 'How a credit is applied'}
 NEEDS_EVIDENCE = 'Needs usage evidence'
 
 
@@ -57,10 +57,39 @@ def _min_percent(a, b):
     return a if Decimal(a) <= Decimal(b) else b
 
 
+def _tiers(values):
+    """The schedule's tiers as (below, credit, fields), each credit capped; tiers the cap makes equal merged into the
+    one with the highest threshold. Comparisons of read terms only: the engine computes every amount."""
+    from .template_rules import plausibility
+    schedule = values['credit_schedule']
+    if not isinstance(schedule, list) or not schedule or not all(isinstance(r, dict) for r in schedule):
+        raise TermsRefused('Cannot estimate a credit: the credit schedule is not a list of tiers.')
+    for row in schedule:
+        for key in ('below_percent', 'credit_percent'):
+            try:
+                Decimal(row.get(key))
+            except (ArithmeticError, TypeError):
+                raise TermsRefused('Cannot estimate a credit: a tier of the credit schedule is not two numbers.') from None
+    problems = [p for p in plausibility({'availability_target_percent': values['availability_target_percent'],
+                                         'credit_schedule': schedule}) if 'schedule' in p or 'tier' in p]
+    if problems:
+        raise TermsRefused('Cannot estimate a credit: ' + problems[0])
+    ordered = sorted(schedule, key=lambda r: Decimal(r['below_percent']), reverse=True)
+    out = []
+    for row in ordered:
+        credit = _min_percent(row['credit_percent'], values['credit_cap_percent'])
+        if out and Decimal(out[-1][1]) == Decimal(credit):
+            continue  # the cap made this tier's credit equal to the tier above it
+        commitment = Decimal(row['below_percent']) == Decimal(values['availability_target_percent'])
+        out.append((row['below_percent'], credit, (('availability_target_percent',) if commitment else ())
+                    + ('credit_schedule', 'credit_cap_percent')))
+    return out
+
+
 def _restatement(values, *, vendor, document):
     """The read terms in the engine's clause grammar, one clause per line, with each clause's term fields."""
     # The engine takes exclusion-adjusted minutes, so the maintenance-notice term is the one it can do without.
-    missing = [f for f in FIELDS if f != 'maintenance_notice_hours' and values.get(f) in (None, '')]
+    missing = [f for f in FIELDS if f != 'maintenance_notice' and values.get(f) in (None, '', [])]
     if missing:
         raise TermsRefused('Cannot estimate a credit: the read has no value for '
                            + ', '.join(LABELS[f] + ' (' + f + ')' for f in missing) + '.')
@@ -70,32 +99,26 @@ def _restatement(values, *, vendor, document):
     if values['credit_application'] != 'next_invoice':
         raise TermsRefused('Cannot estimate a credit: the engine estimates a credit against a future invoice, and this '
                            'contract applies credits as ' + values['credit_application'].replace('_', ' ') + '.')
-    for f in ('claim_window_days', 'maintenance_notice_hours'):
-        if f == 'maintenance_notice_hours' and values.get(f) in (None, ''):
-            continue
-        if not str(values[f]).isdigit():
-            raise TermsRefused('Cannot estimate a credit: ' + LABELS[f] + ' is not a whole number.')
-    for f in ('availability_target_percent', 'tier_1_credit_percent', 'tier_2_threshold_percent',
-              'tier_2_credit_percent', 'credit_cap_percent'):
+    window = values['claim_window']
+    if not isinstance(window, dict) or not str(window.get('value', '')).isdigit():
+        raise TermsRefused('Cannot estimate a credit: ' + LABELS['claim_window'] + ' is not a whole number.')
+    if window.get('unit') != 'days':
+        raise TermsRefused('Cannot estimate a credit: the claim window is %s %s, and the engine counts calendar days '
+                           'after the month; it is not converted.' % (window['value'], str(window.get('unit')).replace('_', ' ')))
+    for f in ('availability_target_percent', 'credit_cap_percent'):
         try:
             Decimal(values[f])
-        except ArithmeticError:
+        except (ArithmeticError, TypeError):
             raise TermsRefused('Cannot estimate a credit: ' + LABELS[f] + ' is not a number.') from None
-    cap = values['credit_cap_percent']
-    first = _min_percent(values['tier_1_credit_percent'], cap)
-    second = _min_percent(values['tier_2_credit_percent'], cap)
     scope = 'For %s on the %s plan, availability below ' % (document['product'], document['plan'])
-    tiers = [(scope + _percent(values['availability_target_percent']) + ' earns a ' + _percent(first) + ' service credit.',
-              ('availability_target_percent', 'tier_1_credit_percent', 'credit_cap_percent'))]
-    if Decimal(first) != Decimal(second):
-        tiers.append((scope + _percent(values['tier_2_threshold_percent']) + ' earns a ' + _percent(second)
-                      + ' service credit.', ('tier_2_threshold_percent', 'tier_2_credit_percent', 'credit_cap_percent')))
+    tiers = [(scope + _percent(below) + ' earns a ' + _percent(credit) + ' service credit.', fields)
+             for below, credit, fields in _tiers(values)]
     effective = 'Effective: ' + document['effective_from']
     return [('Vendor: ' + vendor, ()), ('Agreement: ' + document['agreement'], ()), (effective, ()),
             ('Availability is measured over each full UTC calendar month.', ('measurement_period',)),
             *tiers,
             ('Credit requests must be received within %s calendar days after the end of each calendar month.'
-             % int(values['claim_window_days']), ('claim_window_days',)),
+             % int(window['value']), ('claim_window',)),
             ('Credits are calculated as a percentage of the affected monthly fees and are applied to a future invoice.',
              ('credit_application',))]
 
@@ -150,20 +173,29 @@ def _availability(available, total):
 
 
 def _term_inputs(values):
+    from .template_rules import TERM, display
     rows = []
     for f in FIELDS:
         value = values.get(f)
+        if f == 'credit_schedule' and isinstance(value, list) and value:
+            for i, row in enumerate(value, 1):
+                shown = (_percent(row.get('credit_percent')) + ' credit below ' + _percent(row.get('below_percent'))
+                         if isinstance(row, dict) else str(row))
+                rows.append({'label': 'Credit tier %d of %d (read by the template)' % (i, len(value)), 'value': shown})
+            continue
         if value is not None and f.endswith('_percent'):
             value = _percent(value)
         elif value is not None and f in ('measurement_period', 'credit_application'):
-            from .template_rules import TERM
             value = TERM[f].get('options', {}).get(value, value)
-        elif value is not None and f == 'claim_window_days':
-            value = value + ' days after the month'
-        elif value is not None and f == 'maintenance_notice_hours':
-            value = value + ' hours (governs excluded downtime; the authored usage is exclusion-adjusted)'
-        if value is None and f == 'maintenance_notice_hours':
-            value = 'Not stated in hours in this contract (the authored usage is exclusion-adjusted)'
+        elif value is not None and f in ('claim_window', 'maintenance_notice'):
+            try:
+                shown = display(f, value)
+            except (KeyError, TypeError, AttributeError):
+                shown = str(value)
+            value = shown + (' after the month' if f == 'claim_window' else
+                             ' (governs excluded downtime; the authored usage is exclusion-adjusted)')
+        if value is None and f == 'maintenance_notice':
+            value = 'Not stated in this contract (the authored usage is exclusion-adjusted)'
         rows.append({'label': LABELS[f] + ' (read by the template)', 'value': value})
     return rows
 

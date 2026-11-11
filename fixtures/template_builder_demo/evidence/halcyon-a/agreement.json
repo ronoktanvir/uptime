@@ -1,0 +1,44 @@
+{
+  "id": "HGS-PAA-2026-0412",
+  "customer": "Save Time Inc",
+  "vendor": "Halcyon Grid Services",
+  "expires_at": "2027-10-01T00:00:00Z",
+  "versions": [
+    {
+      "id": "order-HGS-OF-77120",
+      "effective_at": "2026-10-01T00:00:00Z",
+      "signed_at": "2026-09-15T15:00:00Z",
+      "signatories": ["Halcyon Grid Services", "Save Time Inc"],
+      "supersedes": null,
+      "rates": [
+        {
+          "product": "Halcyon Grid Covered Services",
+          "unit": "service-month",
+          "tiers": [{"upper": null, "rate": "8000.00"}],
+          "mode": "graduated",
+          "quantity_scope": "complete_performance_slice",
+          "boundary": "upper_inclusive",
+          "fixed_monthly": {
+            "source_file": "order-monthly-rate.txt",
+            "citation": {
+              "document": "Order Form HGS-OF-77120 monthly rate schedule (authored)",
+              "version": "order-HGS-OF-77120",
+              "section": "Complete fixed monthly rate schedule",
+              "uri": "urn:uptime:authored:halcyon-a:order-monthly-rate.txt"
+            }
+          }
+        }
+      ],
+      "excluded_products": [],
+      "citation": {
+        "document": "Order Form HGS-OF-77120 (authored)",
+        "version": "order-HGS-OF-77120",
+        "section": "Monthly Fees for the Covered Services",
+        "uri": "urn:uptime:authored:halcyon-a:order-monthly-rate.txt"
+      },
+      "currency": "USD",
+      "tax_treatment": "separate_excluded",
+      "rounding": "line_half_up_cent"
+    }
+  ]
+}

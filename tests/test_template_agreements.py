@@ -52,7 +52,7 @@ def test_overlay_from_halcyon_c_terms_is_the_engines_tier_family():
     assert manifest['effective'] == ['2026-08-03', None]
     assert overlay['agreement'] == 'HGS-PAA-2026-0457' and overlay['fee_line_ref'] == 'halcyon-covered-services-line'
     carried = {term for citation in manifest['citations'] for term in citation['terms']}
-    assert carried == set(ta.FIELDS) - {'maintenance_notice_hours'}  # the engine takes exclusion-adjusted minutes
+    assert carried == set(ta.FIELDS) - {'maintenance_notice'}  # the engine takes exclusion-adjusted minutes
 
 
 def test_authored_month_is_estimated_by_the_engine_to_the_cent():
@@ -117,13 +117,18 @@ def test_reading_with_no_evidence_has_no_credit():
 
 
 def test_the_maintenance_notice_term_may_be_missing_because_the_engine_does_not_use_it():
-    # Some contracts give notice in days or business days; the template then has no hours value. The engine takes
-    # exclusion-adjusted minutes, so the estimate is unchanged: 35% x USD 12,000.00 = USD 4,200.00.
-    values = dict(EXPECTED['terms'], maintenance_notice_hours=None)
+    # A contract may not state maintenance notice at all. The engine takes exclusion-adjusted minutes, so the
+    # estimate is unchanged: 35% x USD 12,000.00 = USD 4,200.00.
+    values = dict(EXPECTED['terms'], maintenance_notice=None)
     agreement = ta.evaluate(entry(values), evidence())
     assert agreement['credit'] == {'amount': '4200.00', 'currency': 'USD', 'stage': 'ESTIMATED'}
     assert {'label': 'Scheduled-maintenance notice (read by the template)',
-            'value': 'Not stated in hours in this contract (the authored usage is exclusion-adjusted)'} in agreement['inputs']
+            'value': 'Not stated in this contract (the authored usage is exclusion-adjusted)'} in agreement['inputs']
+    # Notice in business days is shown as written and does not change the estimate either.
+    agreement = ta.evaluate(entry(dict(EXPECTED['terms'], maintenance_notice={'value': '5', 'unit': 'business_days'})), evidence())
+    assert agreement['credit']['amount'] == '4200.00'
+    assert {'label': 'Scheduled-maintenance notice (read by the template)',
+            'value': '5 business days (governs excluded downtime; the authored usage is exclusion-adjusted)'} in agreement['inputs']
 
 
 def test_a_missing_cap_gives_no_credit():
@@ -133,17 +138,23 @@ def test_a_missing_cap_gives_no_credit():
 
 
 def test_missing_term_gives_no_credit_and_names_the_term():
-    values = dict(EXPECTED['terms'], tier_2_credit_percent=None)
+    values = dict(EXPECTED['terms'], credit_schedule=None)
     agreement = ta.evaluate(entry(values), evidence())
     assert agreement['credit'] is None and agreement['credit_percent'] is None
-    assert agreement['evaluation'] == ('Cannot estimate a credit: the read has no value for Credit, second tier '
-                                       '(tier_2_credit_percent).')
+    assert agreement['evaluation'] == ('Cannot estimate a credit: the read has no value for Credit schedule '
+                                       '(credit_schedule).')
 
 
 @pytest.mark.parametrize('change, sentence', [
     (dict(credit_application='refund'), 'applies credits as refund'),
     (dict(measurement_period='calendar_quarter'), 'measures availability by calendar quarter'),
-    (dict(tier_2_threshold_percent='99.995'), 'The engine refused these terms: Overlapping or nonmonotonic credit tiers.'),
+    (dict(credit_schedule=[{'below_percent': '99.995', 'credit_percent': '15'}, {'below_percent': '99.9', 'credit_percent': '35'}]),
+     "Cannot estimate a credit: A tier's threshold (99.995%) is above the commitment (99.99%)."),
+    (dict(credit_schedule=[{'below_percent': '99.99', 'credit_percent': '35'}, {'below_percent': '99.9', 'credit_percent': '15'}]),
+     'do not fall as the credits rise'),
+    (dict(claim_window={'value': '10', 'unit': 'business_days'}),
+     'the claim window is 10 business days, and the engine counts calendar days after the month; it is not converted.'),
+    (dict(claim_window={'value': '2', 'unit': 'months'}), 'the claim window is 2 months'),
 ])
 def test_terms_the_engine_cannot_express_are_refused(change, sentence):
     agreement = ta.evaluate(entry(dict(EXPECTED['terms'], **change)), evidence())
@@ -211,3 +222,23 @@ def test_on_reading_never_raises():
     agreement = ta.on_reading({'template': {'id': 'x/1'}, 'document': {'id': 'halcyon-c'}, 'values': None,
                                'vendor': 'Halcyon Grid Services'})
     assert agreement['credit'] is None and agreement['state'] == 'SHADOW'
+
+
+def test_a_schedule_of_one_and_of_three_tiers_reach_the_engine():
+    package = evidence()
+    one = dict(EXPECTED['terms'], credit_schedule=[{'below_percent': '99.99', 'credit_percent': '20'}])
+    manifest, _ = ta.overlay_from_values(one, vendor='Halcyon Grid Services', document=package['overlay'])
+    assert [(t['below_units'], t['credit_units']) for t in manifest['tiers']] == [(99_990_000, 20_000_000)]
+    # 99.787% is below 99.99%: the one flat tier applies, 20% x USD 12,000.00 = USD 2,400.00.
+    assert ta.evaluate(entry(one), package)['credit']['amount'] == '2400.00'
+    three = dict(EXPECTED['terms'], credit_cap_percent='100', credit_schedule=[
+        {'below_percent': '99.99', 'credit_percent': '10'}, {'below_percent': '99.9', 'credit_percent': '25'},
+        {'below_percent': '99', 'credit_percent': '50'}])
+    manifest, _ = ta.overlay_from_values(three, vendor='Halcyon Grid Services', document=package['overlay'])
+    assert [(t['below_units'], t['credit_units']) for t in manifest['tiers']] == [
+        (99_000_000, 50_000_000), (99_900_000, 25_000_000), (99_990_000, 10_000_000)]
+    # 99.787% is below 99.9% but not below 99%: the middle tier alone, 25% x USD 12,000.00 = USD 3,000.00.
+    agreement = ta.evaluate(entry(three), package)
+    assert agreement['credit']['amount'] == '3000.00' and agreement['credit_percent'] == '25'
+    labels = [row['label'] for row in agreement['inputs'] if row['label'].startswith('Credit tier')]
+    assert labels == ['Credit tier %d of 3 (read by the template)' % i for i in (1, 2, 3)]

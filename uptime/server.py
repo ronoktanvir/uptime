@@ -206,5 +206,8 @@ def create_app(db_path, *, mode="replay", rehearsal=False, approvals_enabled=Fal
     # Demo line: template builder routes; on only when app.state.template_builds is set (--template-builder).
     from .template_builder import register_template_builds
     register_template_builds(app, bench, auth)
+    # Demo line: claims for contracts an approved template read; on only when app.state.template_claims is set.
+    from .template_claims import register_template_claims
+    register_template_claims(app, auth)
     app.mount("/static",StaticFiles(directory=ROOT/"web",check_dir=False),name="static")
     return app

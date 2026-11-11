@@ -51,6 +51,8 @@
     if (requested === 'ramp-bills') return 'ramp-bills';
     if (requested === 'ramp' || requested.startsWith('ramp/')) return 'ramp';
     if (requested.startsWith('template-build/')) return 'template-build';
+    // The claim for a contract an approved template read: the recovery page over that case's own routes.
+    if (requested.startsWith('template-claim/')) return 'template-claim';
     return ['dashboard','onboarding','lab','regression','advanced','vendors','disputes','policy','integrations'].includes(requested) || requested.startsWith('disputes/') ? requested : 'ramp';
   }
   // ---- Panel mode ----
@@ -119,6 +121,8 @@
   const filters = {query: '', status: '', sort: 'value-desc'};
   // A run of the template builder (#template-build/<id>) and its section on the Agreements page.
   let templateBuildId = null;
+  let templateClaimId = null;
+  const templateClaim = window.UptimeTemplateClaim?.create({api, onUnauthorized: account, canAct: () => window.uptimeAuth?.canSign?.() !== false});
   const templateBuilder = window.UptimeTemplateBuilder?.create({api, onUnauthorized: account, onNavigate: route => { history.pushState(null, '', '#' + route); navigate(); }});
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = display(text); return node; }
   function add(parent, ...children) { children.flat().filter(Boolean).forEach(child => parent.append(child)); return parent; }
@@ -444,6 +448,17 @@
       if (token === generation) { const current = window.uptimeAuth.session(); if (current) showAccount(current.subject); }
       return;
     }
+    if (route === 'template-claim') {
+      if (!templateClaim) throw new Error('Template claim asset unavailable.');
+      try { await templateClaim.render(content, templateClaimId); }
+      catch (error) {
+        if (error && error.status === 404) content.replaceChildren(heading('Claim', 'The claim for a contract an approved template read.'),
+          empty('No claim is on file for this contract: it needs an accepted template read with an estimated credit and authored claim evidence.'));
+        else throw error;
+      }
+      if (token === generation) { const current = window.uptimeAuth.session(); if (current) showAccount(current.subject); }
+      return;
+    }
     if (route === 'recovery') {
       const projection = await api('/api/workspace/workflow');
       if (token !== generation) return;
@@ -534,6 +549,9 @@
     workspaceWorkflow?.unmount();
     companion?.unmount(content);
     templateBuilder?.unmount();
+    templateClaim?.unmount();
+    templateClaimId = requested.startsWith('template-claim/') ? requested.slice(15) : null;
+    try { if (templateClaimId) templateClaimId = decodeURIComponent(templateClaimId); } catch { templateClaimId = null; }
     templateBuildId = requested.startsWith('template-build/') ? requested.slice(15) : null;
     try { if (templateBuildId) templateBuildId = decodeURIComponent(templateBuildId); } catch { templateBuildId = null; }
     if (dialog.open) dialog.close();
@@ -547,7 +565,7 @@
     view = companionRoute(requested);
     // A page under a destination (one case under Cases) keeps that destination marked as the current one.
     // One Ramp record keeps the page it was opened from marked.
-    const marked = rampCase ? rampOrigin : view === 'ramp-bill' || view === 'ramp-bill-none' || view === 'ramp-bills' ? 'records' : view === 'recovery' ? 'ramp' : view === 'template-build' ? 'vendors' : view;
+    const marked = rampCase ? rampOrigin : view === 'ramp-bill' || view === 'ramp-bill-none' || view === 'ramp-bills' ? 'records' : view === 'recovery' ? 'ramp' : view === 'template-build' ? 'vendors' : view === 'template-claim' ? 'ramp' : view;
     document.querySelectorAll('[data-view]').forEach(link => { if (link.dataset.view === marked || marked.startsWith(link.dataset.view + '/')) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current'); });
     // On a wide screen the group that holds the current page is opened. On a narrow one the header stays slim:
     // the group's own label is marked instead, and the list opens only when asked for.

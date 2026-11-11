@@ -16,6 +16,21 @@ start() accepts `contract`: a pasted contract, a keyless second-contract check a
 version 1 API is used: the form goes in through `samples=`, and the second-contract check is given the hand-written
 key for B as its answer key (recorded in the results as `second_check_uses_answer_key: true`).
 
+The keys (forms/form-<n>/key.json) keep the nine field names of the version 1 and 2 engines. For the version 3 term
+set (a credit schedule and durations with units), `version3_key` maps them, and says so in the results:
+
+- credit_schedule = [{below: availability_target_percent, credit: tier_1_credit_percent},
+                     {below: tier_2_threshold_percent, credit: tier_2_credit_percent}]. Every held-out C states its
+  first tier as starting below the commitment itself (checked by reading each C), so the first tier's threshold is the
+  commitment. If any of the five old fields is not_stated, the schedule is not_stated.
+- claim_window = {value: claim_window_days, unit: "days"}. Every held-out C states its claim window in calendar days
+  (checked by reading each C).
+- maintenance_notice: the old key held hours, converting calendar days to hours (days x 24) and marking Business Days
+  not_stated. Version 3 records the unit the contract writes, so for each held-out C the key is restated from the
+  contract's own sentence in NOTICE_AS_WRITTEN (written by the evaluating agent from the six sentences, after the
+  version 3 engine was written). A and B, which are not scored, map hours to {value, "hours"}.
+- The other four fields are unchanged.
+
 No credential is read here: the Claude Code CLI uses its own sign-in, and uptime.jev.JevClient reads its key file
 itself. Builds run one at a time. The script stops before a form if it has made MAX_CLAUDE_CALLS Claude calls.
 """
@@ -42,6 +57,43 @@ RESULTS = HELDOUT / "results"
 REVIEWER = "evaluation-script"
 MAX_CLAUDE_CALLS = 80
 FIELDS = [t["field"] for t in rules.TERMS]
+VERSION3 = "credit_schedule" in rules.TERM
+# Maintenance notice in each held-out C, as the contract writes it. The old key's value is in the comment.
+NOTICE_AS_WRITTEN = {
+    "form-1": {"value": "96", "unit": "hours"},           # 5.1 "ninety-six (96) hours' advance notice"; old key 96
+    "form-2": {"value": "10", "unit": "days"},            # "at least 10 days' notice"; old key 240 (10 x 24)
+    "form-3": {"value": "3", "unit": "business_days"},    # 8.2 "three (3) Business Days' written notice"; old not_stated
+    "form-4": {"value": "10", "unit": "business_days"},   # 1.12 "not less than 10 Business Days"; old not_stated
+    "form-5": {"value": "10", "unit": "days"},            # 9. "at least 10 days' written notice"; old key 240
+    "form-6": {"value": "3", "unit": "business_days"},    # 5.2 "three (3) Business Days' written notice"; old not_stated
+}
+KEY_MAPPING_NOTE = (
+    "Keys keep the old nine field names; version3_key maps them: credit_schedule from the commitment and tier 1 credit "
+    "plus tier 2 threshold and credit; claim_window as calendar days; maintenance_notice for each held-out C restated "
+    "from the contract's own sentence (NOTICE_AS_WRITTEN), because the old key converted days to hours and marked "
+    "Business Days not stated.")
+
+
+def version3_key(form_id, letter, key_doc):
+    """A key document in the version 3 shape (see the module docstring)."""
+    old = key_doc["terms"]
+    if not VERSION3:
+        return key_doc
+    tiers = ("availability_target_percent", "tier_1_credit_percent", "tier_2_threshold_percent", "tier_2_credit_percent")
+    if any(old[f] == "not_stated" for f in tiers):
+        schedule = "not_stated"
+    else:
+        schedule, _ = rules.canonical_schedule([{"below": old["availability_target_percent"], "credit": old["tier_1_credit_percent"]},
+                                                {"below": old["tier_2_threshold_percent"], "credit": old["tier_2_credit_percent"]}])
+    claim = "not_stated" if old["claim_window_days"] == "not_stated" else {"value": old["claim_window_days"], "unit": "days"}
+    if letter == "c":
+        notice = NOTICE_AS_WRITTEN[form_id]
+    else:
+        notice = "not_stated" if old["maintenance_notice_hours"] == "not_stated" else {"value": old["maintenance_notice_hours"], "unit": "hours"}
+    terms = {"availability_target_percent": old["availability_target_percent"], "measurement_period": old["measurement_period"],
+             "credit_schedule": schedule, "credit_cap_percent": old["credit_cap_percent"], "claim_window": claim,
+             "maintenance_notice": notice, "credit_application": old["credit_application"]}
+    return dict(key_doc, terms=terms)
 
 
 def now():
@@ -106,6 +158,7 @@ def load_forms():
             if name.endswith(".txt") and name != "response.txt":
                 if hashlib.sha256((folder / name).read_text().encode()).hexdigest() != digest:
                     raise SystemExit("%s/%s does not match its frozen SHA-256; the evaluation stops." % (folder.name, name))
+        key = {d: version3_key(folder.name, d, key[d]) if d in "abc" else key[d] for d in key}
         forms.append({"id": folder.name, "folder": folder, "manifest": manifest, "key": key,
                       "texts": {d: (folder / (d + ".txt")).read_text() for d in "abc"}})
     return forms
@@ -147,7 +200,8 @@ def start(service, form, api):
             # Jev could not be reached. The product lets a reviewer press "Build without Jev"; the script does so and says so.
             for name in ("continue_build", "continue_without_jev", "proceed", "continue_"):
                 if hasattr(service, name):
-                    build = getattr(service, name)(build["id"])
+                    build = getattr(service, name)(build["id"], REVIEWER) if name == "continue_without_jev" \
+                        else getattr(service, name)(build["id"])
                     build["_evaluation_note"] = "Jev could not be reached; the script continued the build without Jev (%s)." % name
                     break
         return build
@@ -216,7 +270,7 @@ def score(reading_terms, key_doc, refused_read=False):
             outcome = "not_stated" if value is None else "wrong"
         elif value is None:
             outcome = "refused"
-        elif value == want:
+        elif rules.same(value, want):
             outcome = "correct"
         else:
             outcome = "wrong"
@@ -309,6 +363,7 @@ def main():
     out = RESULTS / (stamp + ".json")
     run = {"started_at": now(), "api_version": api, "engine_commit": None, "reviewer": REVIEWER,
            "reviewer_note": "Approvals in this run were made by a script named evaluation-script, not by a person.",
+           "key_mapping_note": KEY_MAPPING_NOTE if VERSION3 else None,
            "second_check_note": ("Version 1: the second-contract check is given the hand-written key for B as its "
                                  "answer key, because that API needs one." if api == 1 else
                                  "Version 2: the second-contract check runs without an answer key."),
@@ -354,6 +409,8 @@ def main():
     print("Held-out evaluation, engine API version %d (%s). Approvals were made by a script (%s), not a person."
           % (api, run["engine_commit"], REVIEWER))
     print(run["second_check_note"])
+    if VERSION3:
+        print(KEY_MAPPING_NOTE)
     print(table(done))
     s = run["summary"]
     print()
@@ -365,7 +422,8 @@ def main():
     print("(n/s: the key says the contract does not state the term and the read returned nothing; a value returned "
           "for such a term is counted wrong: %d)" % s["values_returned_for_not_stated_terms"])
     for w in s["wrong"]:
-        print("WRONG %s %s: key %s, returned %s, from: %s" % (w["form"], w["field"], w["key"], w["value"], w["quote"]))
+        print("WRONG %s %s: key %s, returned %s, from: %s" % (w["form"], w["field"], json.dumps(w["key"]), json.dumps(w["value"]),
+                                                            w["quote"]))
     print("calls: %d Claude, %d Jev; %.1f s in all" % (s["claude_calls"], s["jev_calls"], s["seconds"]))
     print("results:", out.relative_to(ROOT))
 
