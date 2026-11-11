@@ -1238,6 +1238,9 @@ dl.record.tb-money-inputs { margin: 0; grid-template-columns: minmax(240px, max-
 .tb-terms th:first-child, .tb-terms td:first-child { padding-left: 16px; }
 .tb-terms .tb-value { min-width: 96px; }
 .tb-pasted .link-button { color: var(--accent-strong); }
+.tb-term-error { margin-top: 4px; font-size: 12.5px; line-height: 18px; color: var(--warn); }
+.tb-second-readers { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px; }
+.tb-conflict { color: var(--warn); }
 .tb-evaluation { font-family: var(--serif); font-size: 14.5px; line-height: 22px; color: var(--ink); }
 .tb-money-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .tb-portfolio-link { font-weight: 600; text-decoration: none; }

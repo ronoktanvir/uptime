@@ -121,6 +121,7 @@
       return 'Jev could not be reached; the readers started on a reviewer’s decision' + (by ? ' (' + by + ')' : '') + '.';
     }
     if (classify.state !== 'DONE') return null;
+    if (detail.asked === false) return 'No approved template is on file, so Jev was not asked and the readers started.';
     if (detail.choice === 'unrecognised' || !given(detail.choice)) return 'No approved template matched, so the readers started.';
     return 'Jev’s closest template, ' + detail.choice + (percent(detail.probability) ? ' at ' + percent(detail.probability) : '') + ', was not a confident match, so the readers started.';
   }
@@ -541,6 +542,8 @@
               list(term.readers).length ? [el('dt', '', 'Each reader'), el('dd', '', list(term.readers).filter(object).map(r => 'Reader ' + r.reader + ': ' + (r.value === null || r.value === undefined ? 'Not found' : r.value) + (r.quote_found === false ? ' (quote not in the contract)' : '')).join(' · '))] : null,
               secondLine ? [el('dt', '', 'Second contract'), el('dd', term.second_document_ok === false ? 'tb-rule-error' : '', secondLine)]
                 : term.second_document_value !== undefined && term.second_readers === undefined ? [el('dt', '', 'Second contract'), el('dd', '', (term.second_document_value === null ? 'Not found' : term.second_document_value) + (term.second_document_ok === true ? ' · as authored' : term.second_document_ok === false ? ' · does not match the authored value' : ''))] : null,
+              given(term.conflict) ? [el('dt', '', 'Reader 3 found a conflict'), el('dd', 'tb-quote-text tb-conflict', term.conflict)] : null,
+              Number.isInteger(term.rule_places) && term.rule_places > 1 ? [el('dt', '', 'Places the rule matched'), el('dd', '', term.rule_places + ', all with the same value')] : null,
               showJev && jev && given(jev.model) ? [el('dt', '', 'Jev model'), el('dd', '', jev.model)] : null));
           if (needsAck && !approved) {
             const why = !jev ? 'Jev did not answer for this term.' : !jev.yes ? 'Jev says this sentence does not support the value' + (percent(jev.probability) ? ' (' + percent(jev.probability) + ' yes)' : '') + '.'
@@ -575,7 +578,8 @@
         add(row, add(el('div', 'tb-check-text'), el('strong', '', given(check.label) ? check.label : check.id),
           isSecond && notRun ? el('p', 'tb-check-doc tb-not-checked', 'No second contract was given, so the template was not checked on a second contract.')
             : named && given(named.title) ? el('p', 'tb-check-doc', 'Second contract: ' + named.title) : null,
-          isSecond && !notRun ? el('p', 'tb-check-doc', 'No answer key: three fresh Claude readers read the second contract, and the template must return what they agreed on.') : null,
+          isSecond && !notRun ? el('p', 'tb-check-doc', given(check.basis) ? check.basis : 'No answer key: three fresh Claude readers read the second contract, and the template must return what they agreed on.') : null,
+          isSecond && !notRun && list(check.readers).filter(object).length ? add(el('p', 'help tb-second-readers'), list(check.readers).filter(object).map(r => el('span', 'tb-second-reader' + (r.ok === false ? ' tb-mismatch' : ''), 'Reader ' + r.reader + (ROLES[r.role] ? ' · ' + ROLES[r.role].toLowerCase() : '') + (given(r.model) ? ' · ' + r.model : '') + (given(r.seconds) ? ' · ' + r.seconds + ' s' : '') + (r.ok === false ? ' · ' + (given(r.summary) ? r.summary : 'failed') : '')))) : null,
           el('p', 'help', [CHECK_BY[check.by] || actorName(check.by), how].join(' · '))),
           add(el('div', 'tb-check-figures'), el('span', 'tb-check-count', figures), extra ? el('span', 'help', extra) : null),
           notRun ? pill(isJev ? 'Not run' : 'Not checked', '') : check.ok ? pill('Pass', 'ok') : advisory ? pill('For the reviewer', 'warn') : pill('Fail', 'bad'));
@@ -747,7 +751,8 @@
           add(el('p', 'tb-reading-line'), el('span', 'tb-rules-mark', readingLine(reading)))),
         Number.isInteger(reading.found) && Number.isInteger(reading.total) ? el('p', 'help', reading.found + ' of ' + reading.total + ' terms found' + (given(reading.read_at) ? ' · ' + instant(reading.read_at) : '')) : null,
         refused ? add(el('div', 'tb-refused'), el('p', 'tb-refused-line', 'This reading was refused, so nothing from it is used: no agreement, no credit.'),
-          failed.length ? add(el('ul', 'tb-refused-reasons'), failed.map(g => el('li', '', (given(g.label) ? g.label : g.id) + (given(g.detail) ? ': ' + g.detail : '')))) : null) : null,
+          list(reading.reasons).filter(given).length ? add(el('ul', 'tb-refused-reasons'), list(reading.reasons).filter(given).map(r => el('li', '', r)))
+            : failed.length ? add(el('ul', 'tb-refused-reasons'), failed.map(g => el('li', '', (given(g.label) ? g.label : g.id) + (given(g.detail) ? ': ' + g.detail : '')))) : null) : null,
         list(reading.guards).length ? add(el('div', 'tb-guards-box'), el('p', 'tb-detail-label', 'Guards on this read'), guardList(reading.guards, reading)) : null);
       const terms = list(reading.terms).filter(object);
       if (terms.length) {
@@ -757,11 +762,13 @@
           const found = term.value !== null && term.value !== undefined;
           body.append(add(el('tr', found ? '' : 'tb-not-found'), add(el('td', 'tb-term-label'), el('strong', '', given(term.label) ? term.label : term.field)),
             add(el('td', refused ? 'tb-value tb-value-refused' : 'tb-value'), found ? el('span', '', given(term.display) ? term.display : term.value) : pill('Not found', 'warn')),
-            add(el('td', 'tb-quote'), found && given(term.quote) ? el('span', 'tb-quote-text', term.quote) : el('span', 'help', 'No sentence matched. Nothing is guessed.'))));
+            add(el('td', 'tb-quote'), found && given(term.quote) ? el('span', 'tb-quote-text', term.quote) : el('span', 'help', 'No sentence matched. Nothing is guessed.'),
+            given(term.error) ? el('p', 'tb-term-error', term.error) : null)));
         });
         node.append(add(el('div', 'table-scroll' + (refused ? ' tb-not-accepted' : '')), refused ? el('p', 'tb-not-accepted-label', 'What the rules found · not accepted') : null, table));
       }
       if (!refused && object(reading.agreement)) node.append(agreementCard(reading.agreement));
+      else if (!refused && given(reading.agreement_note)) node.append(el('p', 'help tb-agreement-note', reading.agreement_note));
       return node;
     }
 

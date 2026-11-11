@@ -599,3 +599,34 @@ test('read_by is worded for a person: a template read is "Fixed rules · templat
   const ramp = fs.readFileSync(__dirname + '/ramp_ui.js', 'utf8'), workspace = fs.readFileSync(__dirname + '/workspace_ui.js', 'utf8');
   assert.ok(ramp.includes("'Fixed rules · template '"), 'ramp_ui.js words a template read'); assert.ok(workspace.includes("' · Fixed rules · template '"), 'workspace_ui.js words a template read');
 });
+
+test('as the engine built it: Jev not asked with no template on file, the sceptic’s conflict, second readers, reasons and blank-term errors', async () => {
+  const notAsked = {...v2Ready, steps: steps(allDone, {...doneExtra, ...ROLE_STEPS, classify: {...DONE, model: null, seconds: '0.0',
+    summary: 'No approved template is on file, so there was nothing for Jev to match; reading the contract', detail: {choice: 'unrecognised', probability: null, options: ['unrecognised'], asked: false}}}),
+    terms: V2_TERMS.map(t => t.field === 'claim_window_days' ? {...t, conflict: 'Claims are due within forty-five days.', rule_places: 2} : t),
+    checks: V2_CHECKS.map(c => c.id === 'second_document' ? {...c, basis: 'Three fresh readers read the second contract; a value counts when two agree.',
+      readers: [{reader: 1, role: 'clause_by_clause', model: 'claude-opus-5-5', seconds: '9.1', ok: true}, {reader: 3, role: 'sceptic', model: 'claude-sonnet-5-5', seconds: '8.0', ok: false, summary: 'No answer in time'}]} : c)};
+  const s = setup(() => ({build: notAsked}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const classify = stepCards(s.root)[0];
+  assert.match(text(classify), /No approved template is on file, so Jev was not asked and the readers started\./);
+  assert.doesNotMatch(text(classify), /%|jev-1/);
+  const detail = text(s.root.cls('tb-term-detail')[0]);
+  assert.match(detail, /Reader 3 found a conflict Claims are due within forty-five days\./);
+  assert.match(detail, /Places the rule matched 2, all with the same value/);
+  const second = text(s.root.cls('tb-check-second_document')[0]);
+  assert.match(second, /a value counts when two agree/);
+  assert.match(second, /Reader 1 · reads clause by clause · claude-opus-5-5 · 9\.1 s/);
+  assert.match(second, /Reader 3 · looks for a conflicting second statement · claude-sonnet-5-5 · 8\.0 s · No answer in time/);
+  const approved = {...v2Ready, sample_id: sample.id, state: 'APPROVED', template: {...TEMPLATE, state: 'APPROVED'}, terms: V2_TERMS.map(t => ({...t, needs_acknowledgement: false})),
+    readings: [{...REFUSED, reasons: ['Claim window matched in two places with different values.'],
+      terms: [{...REFUSED.terms[1], value: null, display: null, quote: null, error: 'The rule matched 30 and 45.', failed_guards: ['unambiguous']}]}]};
+  const r = setup(() => ({build: approved}));
+  await r.ui.run(r.root, 'tb_3f9a2c');
+  const reading = r.root.cls('tb-reading')[0];
+  assert.deepEqual(reading.cls('tb-refused-reasons')[0].children.map(li => li._text), ['Claim window matched in two places with different values.']);
+  assert.match(text(reading), /The rule matched 30 and 45\./);
+  const noted = setup(() => ({build: {...approved, readings: [{...V2_READING, agreement: null, agreement_note: 'No usage evidence is on file for this vendor.'}]}}));
+  await noted.ui.run(noted.root, 'tb_3f9a2c');
+  assert.match(text(noted.root.cls('tb-reading')[0]), /No usage evidence is on file for this vendor\./);
+});
