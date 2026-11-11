@@ -174,3 +174,16 @@ A read-only review of everything the demo line adds found nothing that blocked p
 GitHub's check workflow ran the suite on the published commits and one test failed there (5,542 passed): on its Linux image `/usr/bin/true` is a link to `/usr/bin/gnutrue`, and the configuration records the resolved path.
 
 - `tests/test_setup_model_jobs_demo.py` › `test_model_jobs_writes_private_config_and_exact_sample_approvals`: the expected `executable` is now the resolved path of `/usr/bin/true` (it was the literal string). The test came with the demo line and had only run on macOS, where the two are the same. Nothing about approvals, modes or requests changed.
+
+## Held-out evaluation of the template builder (evaluation agent, November 10)
+
+No existing test, engine file, prompt, shipped sample or page file was changed. New files:
+
+- `scripts/evaluate_template_builder.py`: one command, no arguments; builds a template from each held-out form's
+  document A (B as the second contract), approves it as `evaluation-script` when every blocking check passed, reads the
+  held-out document C with it, scores C against the hand key and writes `fixtures/template_builder_heldout/results/<timestamp>.json`.
+  Uses the version 2 API when present and the version 1 API otherwise.
+- `fixtures/template_builder_heldout/author.py`, `briefs/` (the common brief, six style briefs and the exact text sent
+  for each form), `forms/form-1` to `form-6` (`response.txt` as returned, `a.txt`, `b.txt`, `c.txt`, the author's
+  `author_values.json`, `manifest.json` with SHA-256s, and the hand-written `key.json`), and `results/`.
+- `docs/demo/TEMPLATE-BUILDER-HELDOUT.md`: how the contracts were written and frozen, and the baseline result.
