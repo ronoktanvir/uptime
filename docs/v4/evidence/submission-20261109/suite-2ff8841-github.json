@@ -1,0 +1,29 @@
+{
+ "tested_commit": "2ff8841d4e1ad834b5a8fc4a90ecf0ec5cc39b56",
+ "branch": "work/submission-integration-20261109",
+ "role": "coordinator",
+ "contents": "integration 2358785 plus the fix 2ae769d (no vendor named in package code; the claim's catalog id and controls are data), merged as 2ff8841",
+ "where": "GitHub Actions, workflow 'Verify offline workbench', job 'replay', ubuntu runner; used as the full run because full local runs stall on the development machine",
+ "run_url": "https://github.com/ronoktanvir/uptime/actions/runs/42959283653",
+ "event": "push",
+ "command": [
+  "uv",
+  "run",
+  "--locked",
+  "pytest",
+  "-q"
+ ],
+ "exit_code": 0,
+ "pytest_result": "5626 passed, 1 warning in 620.03s (0:10:20)",
+ "log": "suite-2ff8841-github-pytest.log",
+ "started_at": "2026-11-11T04:26:49Z",
+ "finished_at": "2026-11-11T04:37:52Z",
+ "other_checks": {
+  "node --test web/*.test.cjs tests/helpers/*.test.cjs": "244 passed, 0 failed",
+  "node scripts/test_progress_graph.cjs": "success",
+  "uv run --locked python scripts/rehearse.py": "success",
+  "uv run --locked python scripts/check_repo.py": "success"
+ },
+ "limits": "Regression verification. Not evidence of contract generalization, human release or any Ramp effect.",
+ "note": "The run on 2358785 had failed one test (suite-2358785-github-failed.json); this run is the same suite on the fix. Later commits on the branch have their own runs."
+}

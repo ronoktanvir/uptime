@@ -482,7 +482,7 @@ The two new results files had their choice phrases hashed after the run, before 
   checks the listing. New tests: two in `web/template_claim_ui.test.cjs` (the card following the case; counters and
   Cases).
 
-### The reader prompt's example phrases (coordinator, November 10, 20:35 PST)
+### The reader prompt's example phrases (coordinator, November 10, 20:32 PST)
 
 The choice-phrase fix (`46d1968`) gave the readers three example phrases. Two, "monthly billing cycle" and "against
 future payments", were AWS's wording from the first set of public pages. The fix was committed before the fresh pages
