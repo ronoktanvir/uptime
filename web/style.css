@@ -1145,7 +1145,108 @@ dialog::backdrop { background: rgba(15, 26, 54, .45); }
 .tb-reading .table-scroll { background: var(--surface); }
 .tb-quote-text { font-family: var(--serif); font-size: 14px; color: var(--ink); }
 .tb-not-found td { background: var(--sunken); }
-@media (max-width: 900px) { .tb-stage-cards.tb-parallel { grid-template-columns: minmax(0, 1fr); } .tb-head-state { justify-items: start; } }
+/* Version 2 (tb2-page-20261110): pasted contracts, Jev's route, differing readers, acknowledgements, guarded reads and
+   the money link. */
+.tb-paste { display: grid; gap: 12px; margin-top: 14px; padding: 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); }
+.tb-paste h3 { font-size: 15px; line-height: 22px; }
+.tb-paste-head .help { margin-top: 2px; }
+.tb-paste-names { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tb-field { display: grid; gap: 4px; }
+.tb-field-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.tb-textarea { min-height: 180px; font-family: var(--serif); font-size: 14px; line-height: 21px; }
+.tb-textarea-small { min-height: 110px; }
+.tb-char-count { justify-self: end; font-variant-numeric: tabular-nums; }
+.tb-second { padding: 10px 14px; border: 1px dashed var(--line-strong); border-radius: 8px; background: var(--sunken); }
+.tb-second[open] { display: grid; gap: 10px; }
+.tb-second summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent-strong); }
+.tb-check-box { display: flex; align-items: flex-start; gap: 10px; font-weight: 500; color: var(--ink); cursor: pointer; }
+.tb-check-box input { margin-top: 3px; width: 16px; height: 16px; flex: none; }
+.tb-consent { padding: 10px 14px; border: 1px solid var(--accent-line); border-radius: 8px; background: var(--accent-soft); font-size: 13px; line-height: 19px; }
+.tb-paste .actions, .tb-next-paste .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.uptime-v4 .tb-page button.tb-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.uptime-v4 .tb-page button.tb-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.tb-section button.tb-primary:disabled, .tb-page button.tb-primary:disabled, .tb-approval button:disabled { opacity: .45; cursor: not-allowed; }
+.tb-pasted { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+.tb-pasted-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13px; }
+.tb-pasted-title { font-weight: 600; color: var(--ink); }
+.tb-source { margin-top: 4px !important; }
+.tb-orchestration-matched { color: var(--ok) !important; font-weight: 600; }
+/* Jev's route */
+.tb-needs { border-color: var(--warn-line); background: linear-gradient(180deg, var(--warn-soft), var(--surface) 110px); }
+.tb-needs-sentence { font-weight: 600; color: var(--warn); margin-bottom: 6px; }
+.tb-needs .actions { margin: 12px 0 6px; }
+.tb-matched { border-color: var(--ok-line); background: linear-gradient(180deg, var(--ok-soft), var(--surface) 120px); }
+.tb-matched .panel-head { flex-wrap: wrap; }
+.tb-no-agents { padding: 10px 14px; border-left: 3px solid var(--ok); border-radius: 0 8px 8px 0; background: var(--surface); color: var(--ink); font-weight: 500; }
+.tb-route { margin-top: 4px; padding: 6px 10px; border-radius: 6px; background: var(--accent-soft); color: var(--accent-strong); font-size: 12.5px; line-height: 18px; font-weight: 500; }
+.tb-skipped { background: transparent; border-style: dashed; box-shadow: none; }
+.tb-skipped h3, .tb-skipped .tb-actor, .tb-skipped .tb-summary { color: var(--muted); }
+.tb-stage-skipped .tb-stage-number { border-style: dashed; color: var(--muted); background: var(--surface); }
+/* Readers that differ */
+.tb-role { justify-self: start; margin: 2px 0; padding: 2px 8px; border-radius: 999px; font-size: 12px; line-height: 18px; font-weight: 600; background: var(--neutral-soft); color: var(--neutral); }
+.tb-role-clause_by_clause { background: #fbeee8; color: #8a3b1c; }
+.tb-role-numbers_first { background: #e9f1fb; color: #1f4f8a; }
+.tb-role-sceptic { background: #f1ecfa; color: #57348f; }
+/* Terms: second contract, value in its sentence, acknowledgement */
+.tb-second-cell { white-space: nowrap; color: var(--ink); }
+.tb-second-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tb-mismatch { color: var(--bad); }
+.tb-term-acked td { background: var(--ok-soft); }
+.tb-term-acked td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
+.tb-ack-box { display: grid; gap: 6px; margin: 12px 0 4px; padding: 12px 14px; border: 1px solid var(--warn-line); border-radius: 8px; background: var(--surface); }
+.tb-ack-box.tb-ack-done { border-color: var(--ok-line); }
+.tb-ack-why { font-size: 13px; color: var(--warn); font-weight: 500; }
+.tb-ack-done .tb-ack-why { color: var(--muted); }
+.tb-ack-count { font-size: 13px; font-weight: 600; color: var(--warn); }
+.tb-ack-all { margin-top: 4px; padding: 10px 14px; border-left: 3px solid var(--ok); border-radius: 0 8px 8px 0; background: var(--ok-soft); color: var(--ok); font-weight: 500; }
+.tb-not-checked, .tb-not-checked-note { color: var(--muted); font-style: italic; }
+.tb-not-checked-note { margin-top: 8px; }
+.tb-acked-line { margin-top: 4px; }
+/* Guarded reads */
+.tb-reading-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.tb-guards-box { padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.tb-guards-box .tb-detail-label { margin: 0 0 6px; }
+.tb-guards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 28px; }
+.tb-guard { display: grid; grid-template-columns: 66px minmax(0, 1fr); align-items: start; gap: 10px; font-size: 13px; line-height: 20px; color: var(--ink); }
+.tb-guard .pill { justify-self: start; white-space: nowrap; }
+.tb-guard-text { display: flex; flex-wrap: wrap; gap: 0 8px; }
+.tb-guard-detail { font-variant-numeric: tabular-nums; }
+.tb-guard-bad .tb-guard-detail { color: var(--bad); }
+.tb-reading-refused { padding: 12px 14px; border: 1px solid var(--bad-line); border-radius: 10px; background: var(--bad-soft); }
+.tb-refused-line { font-weight: 600; color: var(--bad); }
+.tb-refused-reasons { margin: 6px 0 0 18px; padding: 0; color: var(--bad); font-size: 13px; line-height: 20px; }
+.tb-not-accepted { opacity: .8; border: 1px dashed var(--bad-line); }
+.tb-not-accepted-label { margin: 0; padding: 8px 12px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--bad); }
+.tb-value-refused { text-decoration: line-through; text-decoration-color: var(--bad-line); color: var(--muted); }
+.tb-reading-refused .tb-rules-mark { background: var(--surface); color: var(--muted); }
+/* The money link */
+.tb-money { display: grid; gap: 12px; padding: 16px 18px; border: 1px solid var(--accent-line); border-radius: 10px; background: linear-gradient(180deg, var(--accent-soft), var(--surface) 90px); }
+.tb-money-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.tb-money-head h3 { font-size: 16px; line-height: 22px; font-family: var(--mono); }
+.tb-money-readby { margin-top: -6px; }
+.tb-money-body { display: grid; grid-template-columns: minmax(200px, auto) minmax(0, 1fr); gap: 24px; align-items: center; }
+.tb-money-figure { display: grid; gap: 2px; padding-right: 24px; border-right: 1px solid var(--line); }
+.tb-money-figure .tb-detail-label { margin: 0; }
+.tb-money-amount { font-size: 34px; line-height: 40px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.tb-money-missing { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--warn); }
+.tb-money-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+dl.record.tb-money-inputs { margin: 0; grid-template-columns: minmax(240px, max-content) minmax(0, 1fr); gap: 4px 16px; }
+.tb-money-inputs dt, .tb-money-inputs dd { margin: 0; }
+.tb-terms .tb-term-label { min-width: 150px; }
+.tb-terms th { white-space: normal; padding: 9px 10px; vertical-align: bottom; }
+.tb-terms td { padding-left: 10px; padding-right: 10px; }
+.tb-terms th:first-child, .tb-terms td:first-child { padding-left: 16px; }
+.tb-terms .tb-value { min-width: 96px; }
+.tb-pasted .link-button { color: var(--accent-strong); }
+.tb-evaluation { font-family: var(--serif); font-size: 14.5px; line-height: 22px; color: var(--ink); }
+.tb-money-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.tb-portfolio-link { font-weight: 600; text-decoration: none; }
+.tb-portfolio-link::after { content: ""; display: inline-block; width: 1em; height: 1em; margin-left: 6px; vertical-align: -0.14em; background: currentColor; -webkit-mask: var(--i-arrow-right) center / contain no-repeat; mask: var(--i-arrow-right) center / contain no-repeat; }
+.tb-next-paste { margin-top: 14px; padding: 12px 16px; border: 1px dashed var(--line-strong); border-radius: 10px; }
+.tb-next-paste[open] { display: grid; gap: 10px; }
+.tb-next-paste summary { cursor: pointer; font-weight: 600; color: var(--accent-strong); }
+@media (max-width: 900px) { .tb-stage-cards.tb-parallel { grid-template-columns: minmax(0, 1fr); } .tb-head-state { justify-items: start; }
+  .tb-paste-names, .tb-money-body, .tb-guards, .tb-money-inputs { grid-template-columns: minmax(0, 1fr); } .tb-money-figure { border-right: 0; padding-right: 0; } }
 /* 16. Side panel (submission-panel-20261110). Everything in this block applies only when the page is framed by the
    one extension the server allows (app.js adds .panel-mode to <html> then), or styles the one-bill page's own parts.
    Presentation only: no state, record or word is hidden by it. The full app in an ordinary tab is unchanged. */

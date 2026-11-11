@@ -448,7 +448,7 @@
         ...readParts(v, ctx, rerender));
       // The evidence: the agreement, its clause quoted exactly, and the inputs.
       const evidence = add(el('section', null, 'panel match-evidence'), el('h2', 'The evidence'),
-        fields([['Agreement', agreement.id || 'Not provided'], ...(typeof agreement.read_by === 'string' && agreement.read_by ? [['Contract read by', /^claude/i.test(agreement.read_by) ? 'Claude (' + agreement.read_by + ')' : 'Fixed rules (' + agreement.read_by.replace(/_/g, ' ') + ')']] : [])]),
+        fields([['Agreement', agreement.id || 'Not provided'], ...(typeof agreement.read_by === 'string' && agreement.read_by ? [['Contract read by', /^claude/i.test(agreement.read_by) ? 'Claude (' + agreement.read_by + ')' : agreement.read_by.startsWith('template:') ? 'Fixed rules · template ' + agreement.read_by.slice(9) : 'Fixed rules (' + agreement.read_by.replace(/_/g, ' ') + ')']] : [])]),
         typeof agreement.clause === 'string' && agreement.clause ? el('blockquote', agreement.clause) : note('No clause quoted.'),
         typeof agreement.citation === 'string' && agreement.citation ? el('p', agreement.citation, 'help match-citation') : null,
         list(match.inputs).length ? fields(list(match.inputs).filter(i => i && typeof i === 'object').map(i => [shown(i.label), shown(i.value)]), 'match-inputs') : null);
