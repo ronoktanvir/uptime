@@ -143,7 +143,7 @@ flowchart LR
 **Building a reader.** One real run on the shipped sample, the one in these screenshots (November 10):
 
 <p align="center">
-  <img src="docs/assets/demo/template-terms.png" alt="The nine terms the three Claude readers agreed on for the Halcyon Grid addendum, each 3 of 3, with the second contract's readers and Jev's answer beside each. Two terms, the first-tier and second-tier credits, came back from Jev under the 90% bar and show a ticked acknowledgement box; one is opened to its sentence and its extraction rule." width="100%">
+  <img src="docs/assets/demo/template-terms.png" alt="The terms table for the Halcyon Grid addendum after approval. Each term shows its value, that the three readers agreed, what three fresh readers found in the second contract, that the value is in its sentence, and Jev's answer. Two terms, the first-tier credit of 10% and the second-tier credit of 25%, came back from Jev at 84% and 82%, under the 90% bar, and are marked as acknowledged by the reviewer when this version was approved. One is opened to its sentence, its extraction rule, each reader's value and the second contract's value." width="100%">
 </p>
 
 - **Three Claude readers that differ.** One reads clause by clause (Opus 5.5, 7.2 s). One lists every number in the contract first (Opus 5.5, 12.7 s, 21 numbers). One looks for a second statement that conflicts (Sonnet 5.5, 6.0 s, none found). Tools are off. All 27 quotes were in the contract word for word, and the three agreed on all nine terms.
