@@ -201,7 +201,7 @@
       list(w.opportunities).filter(o => o && typeof o === 'object' && (o.kind == null || o.kind === 'service_credit')).forEach((o, index) => {
         const route = typeof o.route === 'string' && o.route ? (o.route.startsWith('#') ? o.route : '#' + o.route) : '#overview';
         const agreement = o.agreement && typeof o.agreement === 'object' ? o.agreement : {};
-        rows.push({vendor: o.vendor, key:'opportunity-' + index, subject: monthLabel(o.period), month: o.period, detail: agreement.id ? 'Agreement ' + text(agreement.id) : null,
+        rows.push({vendor: o.vendor, key:'opportunity-' + index, subject: monthLabel(o.period), month: o.period, detail: agreement.id ? 'Agreement ' + text(agreement.id) + (typeof agreement.read_by === 'string' && agreement.read_by.startsWith('template:') ? ' · Fixed rules · template ' + agreement.read_by.slice(9) : '') : null,
           kind:'credit', kindLabel:'Service credit', amount: o.amount == null ? null : o.amount, currency: o.currency || currency,
           stage: o.stage === 'ESTIMATED' ? 'Estimated · not claimed' : state(o.stage), open:true, next:'Reviewer', href: route});
       });

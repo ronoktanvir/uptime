@@ -151,7 +151,7 @@ test('READY_FOR_REVIEW: terms with agreement, Jev percentage and a term marked f
   const checks = s.root.cls('tb-check');
   assert.equal(checks.length, 5);
   assert.match(text(checks[0]), /Every quote is in the contract, word for word Uptime’s code · blocks approval if it fails 6 of 6 Pass/);
-  assert.match(text(checks[4]), /Jev · advisory 1 of 2 lowest 87\.5%, threshold 90% For the reviewer/);
+  assert.match(text(checks[4]), /Jev · a term it does not support needs your acknowledgement 1 of 2 lowest 87\.5%, threshold 90% For the reviewer/);
   assert.match(text(checks[3]), /Pass/); assert.doesNotMatch(text(s.root.cls('tb-checks')[0]), /Fail/);
   assert.match(rows[1].cls('tb-jev')[0].children[0].children[0].className, /warn/);
   const approval = s.root.cls('tb-approval')[0];
@@ -191,7 +191,7 @@ test('approving POSTs the exact SHA-256, then shows who approved it and offers t
   const s = setup((path, body) => path.endsWith('/approve') ? {build: BUILDS.approved} : path.endsWith('/read') ? {reading: READING} : {build: BUILDS.ready});
   await s.ui.run(s.root, 'tb_3f9a2c');
   await buttonNamed(s.root, 'Approve this template').listeners.click();
-  assert.deepEqual(s.requests[2], ['/api/template-builds/tb_3f9a2c/approve', {template_sha256: TEMPLATE.sha256}]);
+  assert.deepEqual(s.requests[2], ['/api/template-builds/tb_3f9a2c/approve', {template_sha256: TEMPLATE.sha256, acknowledged: []}]);
   assert.match(text(s.root), /Approved by scripted-reviewer · Nov 10, 2026, 13:05 UTC/);
   assert.equal(buttonNamed(s.root, 'Approve this template'), undefined);
   await buttonNamed(s.root, 'Read the next contract with the template').listeners.click();
@@ -298,4 +298,304 @@ test('a REVIEW term is explained beside an enabled Approve; a refused start show
   assert.match(text(node), /Six template builds have run on this server; restart it to build more\./);
   assert.deepEqual(busy.routes, []);
   assert.equal(buttonNamed(node, 'Build a reader with Claude agents').disabled, false);
+});
+
+// ---- Version 2 (docs/demo/TEMPLATE-BUILDER.md, "Version 2"): canned objects in the interface page's shapes ----
+const inputs = root => root.tag('input');
+const checkboxes = root => root.tag('input').filter(i => i.type === 'checkbox');
+const SOURCE = {kind: 'pasted', title: 'Meridian Relay: Uptime Schedule', vendor: 'Meridian Relay Ltd', chars: 6077};
+const ROLE_STEPS = {'reader-1': {...DONE, model: 'claude-opus-5-5', detail: {role: 'clause_by_clause', terms: 9}},
+  'reader-2': {...DONE, model: 'claude-opus-5-5', detail: {role: 'numbers_first', terms: 9}},
+  'reader-3': {...DONE, model: 'claude-sonnet-5-5', detail: {role: 'sceptic', terms: 9}}};
+const v2Term = (field, label, value, display, extra = {}) => ({...term(field, label, value, display, 'PASS'), value_in_sentence: true, needs_acknowledgement: false,
+  second_readers: {agree: 3, of: 3, value: field === 'availability_target_percent' ? '99.9' : value}, second_document_value: field === 'availability_target_percent' ? '99.9' : value, ...extra});
+const V2_TERMS = [v2Term('availability_target_percent', 'Availability commitment', '99.95', '99.95%'),
+  v2Term('claim_window_days', 'Claim window', '30', '30 days', {status: 'REVIEW', needs_acknowledgement: true, jev: {yes: false, probability: '0.31', model: 'jev-1.13.0'}}),
+  v2Term('maintenance_notice_hours', 'Maintenance notice', '72', '72 hours', {status: 'REVIEW', needs_acknowledgement: true, jev: null})];
+// Deliberately out of order: the page draws the interface page's order.
+const V2_CHECKS = [
+  {id: 'jev', label: 'Jev: each term is supported by its sentence', passed: 1, total: 3, ok: false, blocking: false, by: 'JEV', threshold: '0.90', lowest: '0.31', ran: true},
+  {id: 'quotes', label: 'Every quote is in the contract, word for word', passed: 9, total: 9, ok: true, blocking: true, by: 'UPTIME'},
+  {id: 'agreement', label: 'The three readers agree', passed: 3, total: 3, ok: true, blocking: false, by: 'UPTIME'},
+  {id: 'value_in_sentence', label: 'Each value is in its sentence', passed: 3, total: 3, ok: true, blocking: true, by: 'UPTIME'},
+  {id: 'reproduce', label: 'The template returns every term from this contract', passed: 3, total: 3, ok: true, blocking: true, by: 'UPTIME'},
+  {id: 'second_document', label: 'The template reads a second contract of the same form', passed: 3, total: 3, ok: true, blocking: true, by: 'UPTIME', document: {id: 'pasted-2', title: 'Meridian Relay: Uptime Schedule (EU)'}}];
+const V2_BASE = {...base, sample_id: null, source: SOURCE, second: {provided: true, title: 'Meridian Relay: Uptime Schedule (EU)'}, matched_template: null, readings: []};
+const v2Ready = {...V2_BASE, state: 'READY_FOR_REVIEW', steps: steps(allDone, {...doneExtra, ...ROLE_STEPS}), terms: V2_TERMS, checks: V2_CHECKS, template: {...TEMPLATE, rules: 3}};
+const GUARDS = [{id: 'complete', label: 'Every rule found a value', ok: true, detail: '9 of 9'},
+  {id: 'unambiguous', label: 'No rule matched two different values', ok: true, detail: null},
+  {id: 'value_in_sentence', label: 'Each value is in the sentence its rule matched', ok: true, detail: '9 of 9'},
+  {id: 'plausible', label: 'The values are plausible together', ok: true, detail: null},
+  {id: 'template_match', label: 'Jev: this document follows the template', ok: true, detail: '0.94', advisory: false}];
+const AGREEMENT = {agreement_id: 'HGS-PAA-2026-0518', state: 'SHADOW', read_by: 'template:halcyon-availability-addendum/1', month: '2026-10',
+  availability_percent: '99.41', credit_percent: '25', monthly_fee: '8000.00', credit: {amount: '2000.00', currency: 'USD', stage: 'ESTIMATED'},
+  inputs: [{label: 'Minutes unavailable', value: '254'}, {label: 'Minutes in the month', value: '44640'}],
+  evaluation: 'Availability of 99.41% falls in the 25% tier, so the estimated credit is 25% of the monthly fee.'};
+const V2_READING = {...READING, id: 'rd_4be1', status: 'ACCEPTED', found: 2, total: 2, guards: GUARDS,
+  jev_template: {choice: TEMPLATE.id, probability: '0.94', model: 'jev-1.13.0'}, agreement: AGREEMENT,
+  terms: [READING.terms[0], {field: 'claim_window_days', label: 'Claim window', type: 'days', value: '45', display: '45 days', quote: 'Claims must be made within 45 days.'}]};
+const REFUSED = {...V2_READING, id: 'rd_9c0d', status: 'REFUSED', agreement: null,
+  guards: GUARDS.map(g => g.id === 'unambiguous' ? {...g, ok: false, detail: 'Claim window matched in 2 places with different values'}
+    : g.id === 'plausible' ? {...g, ok: false, detail: 'The second tier’s credit is not above the first'} : g)};
+const matched = {...V2_BASE, state: 'MATCHED', matched_template: {id: TEMPLATE.id, sha256: TEMPLATE.sha256, probability: '0.93'},
+  steps: steps({classify: 'DONE', 'reader-1': 'SKIPPED', 'reader-2': 'SKIPPED', 'reader-3': 'SKIPPED', build: 'SKIPPED', checks: 'DONE', review: 'SKIPPED'},
+    {classify: {...DONE, seconds: '0.9', summary: 'Jev matched an approved template', detail: {choice: TEMPLATE.id, probability: '0.93'}},
+      'reader-1': {summary: 'Not started: Jev matched an approved template'}, 'reader-2': {summary: 'Not started: Jev matched an approved template'},
+      'reader-3': {summary: 'Not started: Jev matched an approved template'}, build: {summary: 'Not started: Jev matched an approved template'},
+      review: {summary: 'Not started: Jev matched an approved template'}}),
+  checks: GUARDS.map(g => ({...g, passed: null, total: null})), readings: [V2_READING]};
+const needsReviewer = {...V2_BASE, state: 'NEEDS_REVIEWER', steps: steps({classify: 'FAILED'}, {classify: {summary: 'Jev could not be reached: the request timed out after 20 seconds.'}})};
+
+test('MATCHED: no reader starts, the page leads with the reading and its guards, and says no Claude agent ran', async () => {
+  const s = setup(() => ({build: matched}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const page = s.root.children[0];
+  assert.match(page.children[1].className, /tb-matched/, 'the reading comes straight after the heading');
+  assert.match(text(s.root), /Jev recognised an approved template, so no Claude agent ran/);
+  assert.match(text(s.root), /No Claude agent ran\. Uptime’s fixed interpreter read the contract/);
+  assert.match(text(s.root), /Read by an approved template/);
+  assert.equal(s.timers.length, 0, 'MATCHED is final');
+  const cards = stepCards(s.root);
+  for (const c of cards.slice(1, 5)) { assert.match(text(c), /Not started/); assert.match(text(c), /Jev matched an approved template/); assert.doesNotMatch(text(c), /Not started: Jev/); }
+  assert.match(text(cards[0]), /Matched approved template halcyon-availability-addendum\/1 \(93%\), so no reader started\./);
+  assert.equal(s.root.cls('tb-stage-skipped').length, 3);
+  const matchedPanel = s.root.cls('tb-matched')[0];
+  assert.match(text(matchedPanel), /Jev · 93%/);
+  assert.equal(matchedPanel.cls('tb-guard').length, 5);
+  assert.match(text(matchedPanel.cls('tb-guard')[4]), /Pass Jev: this document follows the template Jev · 94% · jev-1\.13\.0/);
+  assert.match(text(matchedPanel), /Values by fixed rules · Jev checked the document type · template halcyon-availability-addendum\/1 · 3\.4 ms/);
+  assert.equal(s.root.cls('tb-terms').length, 0); assert.equal(s.root.cls('tb-approval').length, 0); assert.equal(s.root.cls('tb-checks').length, 0);
+});
+
+test('NEEDS_REVIEWER: nothing has started; "Build without Jev" POSTs /continue with {} and polling resumes', async () => {
+  const running = {...V2_BASE, state: 'READING', steps: steps({classify: 'FAILED', 'reader-1': 'RUNNING', 'reader-2': 'RUNNING', 'reader-3': 'RUNNING'},
+    {classify: {summary: 'Jev could not be reached.', detail: {reviewer_decision: {by: 'scripted-reviewer', at: T0}}},
+      'reader-1': {started_at: T0}, 'reader-2': {started_at: T0}, 'reader-3': {started_at: T0}})};
+  const s = setup(path => path.endsWith('/continue') ? {build: running} : {build: needsReviewer});
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  assert.equal(s.timers.length, 0, 'nothing moves until the reviewer decides');
+  const t = text(s.root);
+  assert.match(t, /Jev could not be reached, so nothing has started/);
+  assert.match(t, /Jev could not be reached: the request timed out after 20 seconds\./);
+  assert.match(t, /Your choice is recorded on the run as a reviewer’s decision\./);
+  assert.equal(s.root.tag('button').filter(b => b._text === 'Build without Jev').length, 1);
+  await buttonNamed(s.root, 'Build without Jev').listeners.click();
+  assert.deepEqual(s.requests[2], ['/api/template-builds/tb_3f9a2c/continue', {}]);
+  assert.equal(s.timers.length, 1, 'polling resumes');
+  assert.equal(buttonNamed(s.root, 'Build without Jev'), undefined);
+  assert.match(text(stepCards(s.root)[0]), /the readers started on a reviewer’s decision \(scripted-reviewer\)/);
+  const refused = setup(path => path.endsWith('/continue') ? Object.assign(new Error('Only a reviewer can continue a run.'), {status: 409}) : {build: needsReviewer});
+  await refused.ui.run(refused.root, 'tb_3f9a2c');
+  await buttonNamed(refused.root, 'Build without Jev').listeners.click();
+  assert.match(text(refused.root), /Only a reviewer can continue a run\./);
+  assert.equal(buttonNamed(refused.root, 'Build without Jev').disabled, false);
+});
+
+test('readers differ: each card shows its role in words and the model that answered; the Jev step says why they started', async () => {
+  const s = setup(() => ({build: v2Ready}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const [classify, r1, r2, r3] = stepCards(s.root);
+  assert.match(text(r1), /Reads clause by clause/); assert.match(text(r1), /claude-opus-5-5/);
+  assert.match(text(r2), /Lists every number first/); assert.match(text(r2), /claude-opus-5-5/);
+  assert.match(text(r3), /Looks for a conflicting second statement/); assert.match(text(r3), /claude-sonnet-5-5/); assert.doesNotMatch(text(r3), /opus/);
+  assert.match(text(classify), /No approved template matched, so the readers started\./);
+  assert.equal(TB.routeLine({...v2Ready, steps: steps(allDone, {classify: {detail: {choice: 'northwind-cloud-sla', probability: '0.62'}}})}),
+    'Jev’s closest template, northwind-cloud-sla at 62%, was not a confident match, so the readers started.');
+  assert.match(text(s.root), /Meridian Relay Ltd/); assert.match(text(s.root), /Meridian Relay: Uptime Schedule/);
+  assert.match(text(s.root), /Pasted contract · 6,077 characters · Second contract: Meridian Relay: Uptime Schedule \(EU\)/);
+});
+
+test('checks: six in the interface page order; a failing value-in-sentence check blocks approval', async () => {
+  const s = setup(() => ({build: v2Ready}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const checks = s.root.cls('tb-check');
+  assert.deepEqual(checks.map(c => c.children[0].children[0]._text), ['Every quote is in the contract, word for word', 'Each value is in its sentence',
+    'The three readers agree', 'The template returns every term from this contract', 'The template reads a second contract of the same form', 'Jev: each term is supported by its sentence']);
+  assert.match(text(checks[4]), /Second contract: Meridian Relay: Uptime Schedule \(EU\)/);
+  assert.match(text(checks[4]), /No answer key: three fresh Claude readers read the second contract/);
+  const bad = {...v2Ready, checks: V2_CHECKS.map(c => c.id === 'value_in_sentence' ? {...c, passed: 2, ok: false} : c),
+    terms: V2_TERMS.map(t => t.field === 'availability_target_percent' ? {...t, value_in_sentence: false} : t)};
+  const b = setup(() => ({build: bad}));
+  await b.ui.run(b.root, 'tb_3f9a2c');
+  assert.match(text(b.root.cls('tb-check')[1]), /Each value is in its sentence Uptime’s code · blocks approval if it fails 2 of 3 Fail/);
+  assert.match(text(b.root.cls('tb-approval')[0]), /Approval is not possible: Each value is in its sentence failed\./);
+  assert.equal(buttonNamed(b.root, 'Approve this template').disabled, true);
+  assert.match(text(b.root.cls('tb-term')[0].cls('tb-in-sentence')[0]), /No/);
+  assert.match(b.root.cls('tb-term')[0].cls('tb-in-sentence')[0].children[0].className, /bad/);
+});
+
+test('the second-contract check that did not run is neither a pass nor a failure, and approval stays possible', async () => {
+  const none = {...v2Ready, second: {provided: false, title: null}, terms: V2_TERMS.map(t => ({...t, second_readers: null, second_document_value: null, second_document_ok: null})),
+    checks: V2_CHECKS.map(c => c.id === 'second_document' ? {id: c.id, label: c.label, passed: null, total: null, ok: false, blocking: false, by: 'UPTIME', ran: false} : c)};
+  const s = setup(() => ({build: none}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const row = s.root.cls('tb-check')[4];
+  assert.match(text(row), /the template was not checked on a second contract/);
+  assert.match(text(row), /Not checked/);
+  assert.doesNotMatch(text(row), /Pass|Fail|For the reviewer|of 3/);
+  assert.match(row.className, /tb-check-off/);
+  assert.deepEqual(TB.blockingFailures(none), []);
+  assert.match(text(s.root.cls('tb-approval')[0]), /This template was not checked on a second contract\./);
+  assert.match(text(s.root.cls('tb-terms')[0]), /No second contract given|Not given/);
+  assert.match(text(s.root), /No second contract given/);
+});
+
+test('terms show the second contract’s readers and the value in its sentence; approval waits for every acknowledgement and sends them', async () => {
+  const approvedBuild = {...v2Ready, state: 'APPROVED', template: {...TEMPLATE, rules: 3, state: 'APPROVED', approved_by: 'scripted-reviewer', approved_at: '2026-11-10T13:05:00Z'},
+    steps: steps({...allDone, review: 'DONE'}, {...doneExtra, ...ROLE_STEPS, review: {summary: 'Approved', detail: {acknowledged: ['claim_window_days', 'maintenance_notice_hours']}}})};
+  const s = setup(path => path.endsWith('/approve') ? {build: approvedBuild} : {build: v2Ready});
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const rows = s.root.cls('tb-term');
+  assert.match(text(rows[0]), /Availability commitment 99\.95% 3 of 3 3 of 3 · 99\.9% Yes Yes · 98% Passed/);
+  assert.match(text(rows[1]), /Needs your acknowledgement/);
+  assert.match(text(s.root.cls('tb-terms')[0]), /2 terms need your acknowledgement/);
+  assert.equal(s.root.cls('tb-detail-row').length, 2, 'terms to acknowledge open by themselves');
+  const approve = () => buttonNamed(s.root, 'Approve this template');
+  assert.equal(approve().disabled, true);
+  assert.match(text(s.root.cls('tb-approval')[0]), /2 of 2 terms still to acknowledge: Claim window, Maintenance notice/);
+  assert.match(text(s.root.cls('tb-approval')[0]), /2 still to acknowledge/);
+  const detail = text(s.root.cls('tb-term-detail')[0]);
+  assert.match(detail, /Jev says this sentence does not support the value \(31% yes\)\./);
+  assert.match(detail, /I have read this sentence and the value is right/);
+  assert.match(text(s.root.cls('tb-term-detail')[1]), /Jev did not answer for this term\./);
+  let boxes = checkboxes(s.root);
+  assert.equal(boxes.length, 2);
+  boxes[0].checked = true; boxes[0].listeners.change();
+  assert.equal(approve().disabled, true);
+  assert.match(text(s.root.cls('tb-approval')[0]), /1 of 2 terms still to acknowledge: Maintenance notice/);
+  boxes = checkboxes(s.root); assert.equal(boxes[0].checked, true, 'the tick survives the redraw');
+  boxes[1].checked = true; boxes[1].listeners.change();
+  assert.equal(approve().disabled, false);
+  assert.match(text(s.root.cls('tb-terms')[0]), /All 2 acknowledged/);
+  await approve().listeners.click();
+  assert.deepEqual(s.requests[2], ['/api/template-builds/tb_3f9a2c/approve', {template_sha256: TEMPLATE.sha256, acknowledged: ['claim_window_days', 'maintenance_notice_hours']}]);
+  assert.match(text(s.root.cls('tb-approval')[0]), /The reviewer acknowledged Claim window, Maintenance notice\./);
+  assert.equal(checkboxes(s.root.cls('tb-terms')[0]).length, 0);
+  const refused = setup(path => path.endsWith('/approve') ? Object.assign(new Error('Acknowledge exactly the terms Jev did not support.'), {status: 409}) : {build: v2Ready});
+  await refused.ui.run(refused.root, 'tb_3f9a2c');
+  checkboxes(refused.root).forEach((b, i) => { checkboxes(refused.root)[i].checked = true; checkboxes(refused.root)[i].listeners.change(); });
+  await buttonNamed(refused.root, 'Approve this template').listeners.click();
+  assert.match(text(refused.root), /Acknowledge exactly the terms Jev did not support\./);
+  assert.equal(buttonNamed(refused.root, 'Approve this template').disabled, false);
+});
+
+test('a REFUSED reading says so with each failed guard’s reason, marks what was found as not accepted, and shows no agreement', async () => {
+  const approved = {...v2Ready, sample_id: sample.id, state: 'APPROVED', template: {...TEMPLATE, state: 'APPROVED', approved_by: 'scripted-reviewer'}, readings: [], terms: V2_TERMS.map(t => ({...t, needs_acknowledgement: false}))};
+  const s = setup(path => path.endsWith('/read') ? {reading: REFUSED} : {build: approved});
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  await buttonNamed(s.root, 'Read the next contract with the template').listeners.click();
+  const reading = s.root.cls('tb-reading')[0];
+  assert.match(reading.className, /tb-reading-refused/);
+  assert.match(text(reading), /Refused/);
+  assert.match(text(reading), /This reading was refused, so nothing from it is used/);
+  const reasons = reading.cls('tb-refused-reasons')[0].children.map(li => li._text);
+  assert.deepEqual(reasons, ['No rule matched two different values: Claim window matched in 2 places with different values', 'The values are plausible together: The second tier’s credit is not above the first']);
+  assert.equal(reading.cls('tb-guard').length, 5);
+  assert.equal(reading.cls('tb-guard-bad').length, 2);
+  assert.match(text(reading), /What the rules found · not accepted/);
+  assert.match(text(reading), /Found \(not accepted\)/);
+  assert.equal(reading.cls('tb-money').length, 0);
+  assert.doesNotMatch(text(reading), /\$|2,000/);
+});
+
+test('an accepted reading with an agreement shows the money link exactly as sent; credit null shows the evaluation and no amount', async () => {
+  const approved = {...v2Ready, state: 'APPROVED', template: {...TEMPLATE, state: 'APPROVED', approved_by: 'scripted-reviewer'}, readings: [V2_READING],
+    terms: V2_TERMS.map(t => ({...t, needs_acknowledgement: false}))};
+  const s = setup(() => ({build: {...approved, sample_id: sample.id}}));
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  assert.equal(s.root.cls('tb-next-doc')[0].cls('tb-money').length, 1, 'the server’s reading is drawn under its listed document');
+  const money = s.root.cls('tb-money')[0];
+  assert.ok(money, 'the reading from the server is drawn under its document');
+  const t = text(money);
+  assert.match(t, /HGS-PAA-2026-0518/); assert.match(t, /In shadow/);
+  assert.match(t, /Contract read by Fixed rules · template halcyon-availability-addendum\/1/);
+  assert.equal(money.cls('tb-money-amount')[0]._text, '$2,000.00');
+  assert.match(t, /Estimated · not claimed/);
+  assert.match(t, /Service month October 2026/); assert.match(t, /Availability 99\.41%/); assert.match(t, /Credit percent 25%/); assert.match(t, /Monthly fee \$8,000\.00/);
+  assert.match(t, /Minutes unavailable 254/);
+  assert.match(t, /Availability of 99\.41% falls in the 25% tier/);
+  const link = money.tag('a')[0];
+  assert.equal(link.href, '#overview'); link.listeners.click({preventDefault() {}});
+  assert.deepEqual(s.routes, ['overview']);
+  assert.match(text(s.root.cls('tb-reading')[0]), /Accepted Values by fixed rules · Jev checked the document type/);
+  const noUsage = {...approved, readings: [{...V2_READING, agreement: {...AGREEMENT, credit: null, evaluation: 'Needs usage evidence', availability_percent: null, credit_percent: null}}]};
+  const n = setup(() => ({build: noUsage}));
+  await n.ui.run(n.root, 'tb_3f9a2c');
+  const card = n.root.cls('tb-money')[0];
+  assert.equal(card.cls('tb-money-amount').length, 0);
+  assert.equal(card.cls('tb-money-missing')[0]._text, 'Needs usage evidence');
+  assert.match(text(card), /Availability Not known/);
+  assert.doesNotMatch(text(card), /2,000|Estimated credit|\$0/);
+});
+
+test('after approval a next contract can be pasted and read; its body carries the text and consent', async () => {
+  const approved = {...v2Ready, state: 'APPROVED', template: {...TEMPLATE, state: 'APPROVED', approved_by: 'scripted-reviewer'}, terms: V2_TERMS.map(t => ({...t, needs_acknowledgement: false}))};
+  const s = setup(path => path.endsWith('/read') ? {reading: {...V2_READING, id: 'rd_77', document: {id: 'pasted-3', title: 'Meridian Relay: Schedule B', vendor: 'Meridian Relay Ltd'}}} : {build: approved});
+  await s.ui.run(s.root, 'tb_3f9a2c');
+  const form = s.root.cls('tb-next-paste')[0];
+  const go = buttonNamed(form, 'Read this contract with the template');
+  assert.equal(go.disabled, true);
+  const [title, vendor] = form.tag('input'); const area = form.tag('textarea')[0];
+  title.value = 'Meridian Relay: Schedule B'; title.listeners.input(); vendor.value = 'Meridian Relay Ltd'; vendor.listeners.input();
+  area.value = 'Schedule B. Availability will be 99.9%.'; area.listeners.input();
+  assert.equal(go.disabled, true, 'consent is still needed');
+  const consent = checkboxes(form)[0]; consent.checked = true; consent.listeners.change();
+  assert.equal(go.disabled, false);
+  await go.listeners.click();
+  assert.deepEqual(s.requests[2], ['/api/template-builds/tb_3f9a2c/read', {contract: {title: 'Meridian Relay: Schedule B', vendor: 'Meridian Relay Ltd', text: 'Schedule B. Availability will be 99.9%.'}, consent: true}]);
+  assert.match(text(s.root.cls('tb-next')[0]), /Meridian Relay: Schedule B/);
+  assert.equal(s.root.cls('tb-money').length, 1);
+});
+
+test('Paste a contract: disabled until the text is there and consent is ticked; POSTs the pasted shape; shows the server sentence', async () => {
+  const s = setup((path, body) => ({build: {...V2_BASE, ...BUILDS.queued, id: 'tb_pasted'}}));
+  const node = await s.ui.section(s.root);
+  const card = node.cls('tb-paste')[0];
+  assert.match(text(card), /Paste a contract/);
+  const consentLabel = card.cls('tb-consent')[0];
+  assert.match(text(consentLabel), /will be sent to Claude and to Jev/);
+  const go = buttonNamed(card, 'Build a reader from this contract');
+  assert.equal(go.disabled, true);
+  assert.match(text(card), /Paste the contract text to start\./);
+  const [title, vendor, secondTitle] = card.tag('input').filter(i => i.type === 'text');
+  const [area, secondArea] = card.tag('textarea');
+  title.value = '  Meridian Relay: Uptime Schedule '; title.listeners.input();
+  vendor.value = 'Meridian Relay Ltd'; vendor.listeners.input();
+  area.value = 'Uptime Schedule. Availability will be 99.95%.'; area.listeners.input();
+  assert.equal(go.disabled, true, 'text without consent');
+  assert.match(text(card), /Tick the box above to send the text\./);
+  const consent = checkboxes(card)[0];
+  consent.checked = true; consent.listeners.change();
+  assert.equal(go.disabled, false);
+  area.value = '   '; area.listeners.input();
+  assert.equal(go.disabled, true, 'blank text');
+  area.value = 'Uptime Schedule. Availability will be 99.95%.'; area.listeners.input();
+  await go.listeners.click();
+  assert.deepEqual(s.requests[1], ['/api/template-builds', {contract: {title: 'Meridian Relay: Uptime Schedule', vendor: 'Meridian Relay Ltd', text: 'Uptime Schedule. Availability will be 99.95%.'}, second_contract: null, consent: true}]);
+  assert.deepEqual(s.routes, ['template-build/tb_pasted']);
+  secondTitle.value = 'Schedule (EU)'; secondTitle.listeners.input(); secondArea.value = 'Second text.'; secondArea.listeners.input();
+  await go.listeners.click();
+  assert.deepEqual(s.requests[2][1].second_contract, {title: 'Schedule (EU)', text: 'Second text.'});
+  for (const [status, sentence] of [[409, 'A build for this contract is already running.'], [404, 'That sample is not shipped.'], [429, 'Six template builds have run on this server; restart it to build more.'], [422, 'The contract text is over 60,000 characters.']]) {
+    const e = setup(() => Object.assign(new Error(sentence), {status}));
+    const n = await e.ui.section(e.root);
+    const c = n.cls('tb-paste')[0];
+    c.tag('textarea')[0].value = 'Some text'; c.tag('textarea')[0].listeners.input();
+    checkboxes(c)[0].checked = true; checkboxes(c)[0].listeners.change();
+    await buttonNamed(c, 'Build a reader from this contract').listeners.click();
+    assert.match(text(c), new RegExp(sentence.replace(/[.()]/g, '\\$&')), String(status));
+    assert.equal(buttonNamed(c, 'Build a reader from this contract').disabled, false);
+    assert.deepEqual(e.routes, []);
+  }
+  const off = setup(() => ({}), {enabled: false, reason: 'Off.', samples: [], builds: [], templates: []});
+  assert.equal((await off.ui.section(off.root)).cls('tb-paste').length, 0, 'no form when the server has building off');
+});
+
+test('read_by is worded for a person: a template read is "Fixed rules · template <id>"', () => {
+  assert.equal(TB.readByWords('template:halcyon-availability-addendum/1'), 'Fixed rules · template halcyon-availability-addendum/1');
+  assert.equal(TB.money('2000.00', 'USD'), '$2,000.00'); assert.equal(TB.money('1234567.5', 'EUR'), '1,234,567.5 EUR'); assert.equal(TB.money(null, 'USD'), null);
+  assert.equal(TB.monthLabel('2026-10'), 'October 2026');
+  assert.equal(TB.withUnit({field: 'claim_window_days'}, '30'), '30 days'); assert.equal(TB.withUnit({type: 'percent'}, '99.9'), '99.9%');
+  const ramp = fs.readFileSync(__dirname + '/ramp_ui.js', 'utf8'), workspace = fs.readFileSync(__dirname + '/workspace_ui.js', 'utf8');
+  assert.ok(ramp.includes("'Fixed rules · template '"), 'ramp_ui.js words a template read'); assert.ok(workspace.includes("' · Fixed rules · template '"), 'workspace_ui.js words a template read');
 });
