@@ -361,3 +361,15 @@ READY_FOR_REVIEW with every blocking check passing (24 of 24 quotes, 7 of 7 valu
 script `smoke-script` (not a person); halcyon-c read ACCEPTED with 7 of 7 terms and estimated USD 4,200.00 for
 October 2026; a second build of halcyon-c pasted was MATCHED by Jev (0.91) with no Claude call. The full
 `uv run --locked pytest` merge suite was not run on this branch. Held-out run 4: `docs/demo/TEMPLATE-BUILDER-HELDOUT.md`.
+
+### Real public SLAs (part 2, same branch)
+
+No engine, prompt, check or threshold was changed for this part, and no existing test was changed. New files:
+`scripts/evaluate_public_slas.py` (fetch once with urllib into `~/uptime-demo/public-slas/`, HTML to text with
+html.parser, one real build per page, script approval, guarded read, scoring in two views, every quoted sentence,
+pattern, map phrase, reader reason and interpreter message hashed), `fixtures/template_builder_public/sources.json`,
+`fixtures/template_builder_public/key.json` (values only, written by hand; one value corrected after the run, noted in
+it), `fixtures/template_builder_public/results/20261111T015844Z.json` and `docs/demo/TEMPLATE-BUILDER-PUBLIC-SLAS.md`.
+The vendors' text is not in the repository. Found and left unfixed so the published numbers stand: the
+`value_in_sentence` words for `credit_application` and `measurement_period` refuse correct values on most real pages,
+and "invoices" (plural) does not match the word "invoice".
