@@ -140,6 +140,14 @@ are the shapes the term set has no place for; they are recorded as not stated (o
 | Tier tables whose cells are not one line each | 1 | 0 | Vercel |
 | Pages drawn by script (no text without a browser) | 1 | 1 | Slack; Wasabi |
 
+**Where a claim window starts is not a term.** \`claim_window\` holds a number and a unit and nothing else. Pages
+start the count from different points: Civo gives 30 days "from the date of an outage"; OneUptime gives 30 days "of the
+incident" in its summary and 30 days from the end of the month in its claim section; the shipped sample counts from the
+end of the month. The money link counts every window as calendar days after the end of the month, so for a page like
+Civo's it would give a later deadline than the page states. No estimate or claim was run on a real page, so this
+produced nothing wrong here, but it is a limit of what a template holds. Scoring a claim window "correct" in these
+tables means the number and unit match the key; the starting point is not keyed or scored.
+
 Also, from the held-out forms: tiers stated through defined terms ("Tier Threshold", "Tier 1 Credit").
 
 ## After the phrase fix: fresh pages (second table)
@@ -182,6 +190,14 @@ WRONG (shown) supabase credit_application: key "next_invoice", shown "account_ba
 ```
 
 58 Claude calls and 66 Jev calls, 637.0 seconds of builds.
+
+**The reader prompt's examples were real wording.** When this table was run, the reader prompt gave three example
+choice phrases. Two were AWS's wording from the first set: "monthly billing cycle" (in the cached text of AWS EC2, AWS
+S3, DigitalOcean and Upstash) and "against future payments" (in AWS EC2, AWS S3, Ably, Neon and Upstash); the third,
+"credited to your next invoice", is in none of the pages. So on three fresh pages (Ably, Neon, Upstash) an example
+in the prompt was literally the answer phrase, and Upstash is one of the pages that passed. The coordinator found
+this and replaced the examples with invented phrases (integration commit `08dd0b7`); the next table re-runs these pages
+on that prompt.
 
 - **Approved and read:** Civo (7 of 7 correct), OneUptime (7 of 7), Upstash (4 correct; the claim window, "before the
   end of the second billing cycle", was read by nobody). Supabase's template was approved, but its read of the same
@@ -242,6 +258,71 @@ shown to the reviewer: 44 correct, 0 wrong, 22 not read, 25 not stated, 0 anothe
 - No wrong value in either view.
 
 The first table above is unchanged, as the record of the engine before the fix.
+
+## The same fresh pages again, with only the prompt's examples replaced (fourth table)
+
+**These are the same 13 fresh pages, seen once already, run again with only the reader prompt's three example
+phrases replaced by invented ones** ("in any one calendar quarter", "returned to you as a refund", "kept as a balance on
+your account", which are in none of the 26 pages or the repository's contracts). It checks whether the first fresh
+result leaned on those examples; **it is not a new clean measurement.** Same cached text, same `key_fresh.json` (with
+its one recorded change), engine `08dd0b7`; nothing else in the engine, prompt, checks or thresholds changed.
+
+```
+uv run --locked python scripts/evaluate_public_slas.py --set fresh --score fixtures/template_builder_public/results/fresh-20261111T043341Z.json
+                                                                   returned downstream (accepted read) | shown to the reviewer
+page           build                  refused at                     ok wrong unread  n/s other |   ok wrong unread  n/s other   secs claude  jev
+-------------------------------------------------------------------------------------------------------------------------------------------------
+vultr          not built: URLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)
+civo           approved, read ACCEPTE -                               7     0      0    0     0 |    7     0      0    0     0   26.9      4   10
+virtua         READY_FOR_REVIEW       stated                          0     0      1    6     0 |    1     0      0    6     0   15.8      4    1
+shockbyte      READY_FOR_REVIEW       stated                          0     0      4    3     0 |    4     0      0    3     0   17.9      4    4
+wasabi         not built: only 316 characters of text (the page is probably drawn by script)
+ably           READY_FOR_REVIEW       stated,value_in_sentence,rep    0     0      5    2     0 |    4     0      1    2     0   51.2      6    4
+sinch          READY_FOR_REVIEW       stated                          0     0      3    4     0 |    3     0      0    4     0   28.3      5    3
+plivo          FAILED                 -                               0     0      0    7     0 |    0     0      0    7     0    8.7      3    0
+gitlab         approved, read ACCEPTE -                               5     0      0    2     0 |    5     0      0    2     0   47.4      5    7
+oneuptime      approved, read ACCEPTE -                               7     0      0    0     0 |    7     0      0    0     0   34.2      4   10
+supabase       approved, read ACCEPTE -                               4     1      0    2     0 |    4     1      0    2     0   33.2      4    9
+neon           approved, read ACCEPTE -                               6     0      0    1     0 |    6     0      0    1     0   37.1      4   10
+upstash        approved, read ACCEPTE -                               4     0      1    2     0 |    4     0      1    2     0   22.4      4    7
+clickhouse     approved, read ACCEPTE -                               5     0      1    1     0 |    5     0      1    1     0   31.6      4    8
+aerospike      READY_FOR_REVIEW       stated,value_in_sentence,rep    0     0      6    1     0 |    4     0      2    1     0   62.5      6    4
+
+returned downstream: 38 correct, 1 wrong, 21 not read, 31 not stated, 0 another service's value
+shown to the reviewer: 54 correct, 1 wrong, 5 not read, 31 not stated, 0 another service's value
+WRONG (returned) supabase credit_application: key "next_invoice", returned "account_balance"
+WRONG (shown) supabase credit_application: key "next_invoice", shown "account_balance"
+```
+
+57 Claude calls and 77 Jev calls, 417.2 seconds of builds.
+
+Page by page against the first fresh run (one run each; model output varies between runs, so a difference here is
+not shown to come from the prompt change):
+
+| Page | First fresh run | This run |
+|:---|:---|:---|
+| Civo | Approved, read accepted, 7 correct | Same |
+| Virtua, Shockbyte, Sinch | Refused at `stated` | Same |
+| Ably | Refused at `stated`, `value_in_sentence`, `reproduce` | Same |
+| Plivo | Failed: readers found nothing stated | Same |
+| GitLab | Failed: the builder's choice map in the wrong shape | **Changed:** approved, read accepted, 5 correct, 2 not stated |
+| OneUptime | Approved, read accepted, 7 correct | Same |
+| Supabase | Approved; read refused by Jev's template match (0.66) | **Changed:** read accepted; 4 correct, **1 wrong returned downstream** (below), 2 not stated |
+| Neon | Refused: readers split on the claim window | **Changed:** approved, read accepted, 6 correct (claim window 21 days, which the key accepts), 1 not stated |
+| Upstash | Approved, read accepted, 4 correct, claim window not read | Same |
+| ClickHouse | Refused at `stated`: readers said the commitment is not stated | **Changed:** readers gave 99.9; approved, read accepted, 5 correct, claim window not read |
+| Aerospike | Refused at `stated`, `value_in_sentence`, `reproduce` | Same |
+
+Of the three pages whose answer phrase was a prompt example: Upstash kept the same outcome; Ably was refused in both
+runs (no percentage tiers); Neon was refused in the first run on its claim window and passed in this one, and its
+payment term (the phrase that was an example) was read the same way in both.
+
+**Wrong values in this run.** One, in both views: Supabase, `credit_application`: key `next_invoice`, returned
+`account_balance`. The page says Supabase "will issue a credit to Customer's account" and that credits "may only be
+applied to future billing charges"; my key took the second, the readers the first. In the first fresh run the same
+value was shown to the reviewer but did not go downstream, because that read was refused; this time the read was
+accepted, so it is the first wrong value returned downstream in any public-SLA run. It is a reading of an ambiguous
+payment term, not a misread number, and the key was not changed.
 
 ## What this does not establish
 

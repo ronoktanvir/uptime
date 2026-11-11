@@ -6,7 +6,7 @@ no monitor, vendor or customer supplied any of this. The shapes mirror `fixtures
 
 | File | What it is |
 |---|---|
-| `halcyon-c/overlay.json` | Account binding the nine read terms do not carry: agreement `HGS-PAA-2026-0457` (the addendum number in `halcyon-c.txt`), account, covered service (Order Form HGS-OF-78031), USD, fee line, and the effective date 2026-08-03 stated in the addendum. |
+| `halcyon-c/overlay.json` | Account binding the seven read terms do not carry: agreement `HGS-PAA-2026-0457` (the addendum number in `halcyon-c.txt`), account, covered service (Order Form HGS-OF-78031), USD, fee line, and the effective date 2026-08-03 stated in the addendum. |
 | `halcyon-c/usage.json` | Authored: October 2026, 95 unavailable minutes (one outage), month complete, Excluded Events removed. |
 | `halcyon-c/invoice.json` | Authored: invoice `HGS-INV-2026-10-3318`, one line of USD 12,000.00 monthly fees for October 2026, no tax. |
 | `halcyon-c/estimate.json` | The instant the estimate is evaluated as if a claim were received (2026-11-10, inside the 60-day window). Nothing is filed. |

@@ -500,3 +500,15 @@ a balance on your account". Nothing else in the prompt, the checks or the thresh
 - One docstring sentence in `uptime/template_agreements.py` reworded (the template reads no time zone).
 - The fresh-pages table in `docs/demo/TEMPLATE-BUILDER-PUBLIC-SLAS.md` was measured with the old examples; a re-run
   with the new ones is labelled as such there.
+
+### Fresh pages re-run with invented prompt examples (November 11, evening)
+
+Merged `work/submission-integration-20261109` (08dd0b7, which replaced the reader prompt's three example phrases with
+invented ones); the merge fast-forwarded with no conflict. No engine, prompt, check or threshold change on this branch.
+One re-run of the 13 buildable fresh pages from the cache (57 Claude calls, 77 Jev calls):
+`fixtures/template_builder_public/results/fresh-20261111T043341Z.json`, with choice phrases hashed at run time. Docs:
+`docs/demo/TEMPLATE-BUILDER-PUBLIC-SLAS.md` says beside the second table which examples were AWS's wording and which
+fresh pages contain them, adds the re-run as a fourth table labelled as a check rather than a clean measurement, with a
+page-by-page comparison, and adds to the limits that a claim window's starting point is not a term (and is not
+scored). `fixtures/template_builder_demo/evidence/README.md` and `.../halcyon-a/README.md`: "nine read terms" is now
+"seven". No test changed.
