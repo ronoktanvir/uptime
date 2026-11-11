@@ -16,7 +16,7 @@ Built for the **Berkeley BBS × Ramp Hackathon: Automate the Old Way**.
   <a href="docs/demo/film/uptime-demo.mp4?raw=true"><img src="docs/assets/demo/ramp-panel.png" alt="A bill in Ramp's sandbox for Northwind Cloud, with a note from Uptime in its activity saying the bill may be eligible for a USD 2,400.00 service credit under agreement NW-2026-001. Beside it, Uptime's side panel shows the matched invoice NW-2026-04, a service credit of $2,400.00 for January 2026, and the button Review and file the claim." width="100%"></a>
 </p>
 
-<p align="center"><em>A frame from the 2:48 narrated demo film (<a href="docs/demo/film/uptime-demo.mp4?raw=true">download, 10 MB</a>; GitHub does not play video files in place). The bill and Uptime's note are real records in Ramp's sandbox; the panel is Uptime's real page for that bill. The browser window around them is drawn. <a href="docs/demo/film/README.md">How the film was made</a>.</em></p>
+<p align="center"><em>A frame from the 2:48 narrated demo film (<a href="docs/demo/film/uptime-demo.mp4?raw=true">download, 10 MB</a>; GitHub does not play video files in place). The bill and Uptime's note are real records in Ramp's sandbox; the panel is Uptime's real page for that bill. The browser window around them is drawn. <a href="docs/demo/film/README.md">How the film was made</a>. Its template-builder scene shows the first version of that feature; the screenshots below are the current one.</em></p>
 
 ## The old way
 
@@ -42,21 +42,25 @@ We do not publish a time or dollar saving: no measurement supports one, and publ
   <img src="docs/assets/demo/portfolio.png" alt="Uptime's portfolio: 3 agreements on file, 3 opportunities open, 4 Ramp bills tracked. Seven rows, including Northwind Cloud January 2026, service credit $2,400.00, applied to bill, with bill NW-2026-04 in Ramp carrying Uptime's note; invoice NW-2026-03 above the contracted price by $1,000.00; and Corvid Data Cooperative, an estimated $2,000.00 credit, not claimed. A panel counts the work: Claude 2 contracts read, Uptime automatic 2 steps, Reviewer 4 decisions, 4 notes in Ramp." width="100%">
 </p>
 
-**3. A contract type it has never read gets a reader built for it.** A decision model, Jev, finds no template on file that matches. Uptime starts three Claude agents to read the contract in parallel and a fourth to write a template: one extraction rule per term, stored as data. Code checks every quote and runs the template on a second contract; Jev checks each term against its sentence; a reviewer approves that exact version. From then on that contract type is read by fixed rules, with no model call. [More below.](#where-the-ai-is)
+**3. A contract type it has never read gets a reader built for it.** Three Claude agents read the contract in three different ways, one of them on a different model, and a fourth writes a template: one extraction rule per term, stored as data. Code checks that every quote is in the contract and every value is in its sentence, and compares the template with three fresh readings of a second contract. Jev, a decision model, checks each term against its sentence; a term it does not support has to be acknowledged by the reviewer before that exact version can be approved. [More below.](#where-the-ai-is)
 
 <p align="center">
-  <img src="docs/assets/demo/template-builder.gif" alt="Eleven seconds of the template builder's run, from the film, at real speed: Jev decides in 0.2 seconds that no template on file matches; three Claude readers work in parallel with live counters and finish with 9 terms and 9 quotes each; the Claude template builder starts writing." width="100%">
+  <img src="docs/assets/demo/template-run.png" alt="The template builder's run page for Halcyon Grid's Platform Availability Addendum while three Claude readers work in parallel: Reader 1 reads clause by clause on claude-opus-5-5, Reader 2 lists every number first on claude-opus-5-5, Reader 3 looks for a conflicting second statement on claude-sonnet-5-5. Jev was not asked because no approved template was on file. The template builder, the checks and the reviewer's approval are waiting." width="100%">
 </p>
 
-<p align="center"><em>Eleven seconds of that run, from the film, at real speed.</em></p>
+**4. The next contract of that type starts no agent.** Jev recognises the approved template, fixed rules read the contract under five guards, and the same credit engine as everywhere else turns the terms into an agreement in shadow and an estimated credit. In the shipped sample that is $4,200.00 for October 2026, and it is listed on the portfolio.
 
-**4. The claim takes four reviewer decisions.** Approve the claim; Uptime files it, takes in the vendor's request for a log and the log's verification, and drafts the response. Approve the response; the vendor awards the credit. Two more decisions post it and apply it: April's invoice goes from $11,000.00 to $8,600.00 in Uptime. After each decision the steps it set off are shown one at a time, tagged by who took them.
+<p align="center">
+  <img src="docs/assets/demo/template-credit.png" alt="The agreement created from a contract read by fixed rules with template halcyon-availability-addendum/1: agreement HGS-PAA-2026-0457, in shadow, estimated credit $4,200.00, estimated and not claimed, for service month October 2026, availability 99.787%, credit 35%, monthly fee $12,000.00, with the terms the template read and the inputs listed, and the note that it was computed by Uptime's credit engine, not by a model." width="100%">
+</p>
+
+**5. The claim takes four reviewer decisions.** Approve the claim; Uptime files it, takes in the vendor's request for a log and the log's verification, and drafts the response. Approve the response; the vendor awards the credit. Two more decisions post it and apply it: April's invoice goes from $11,000.00 to $8,600.00 in Uptime. After each decision the steps it set off are shown one at a time, tagged by who took them. This claim is Northwind's, whose contract fixed rules read; a claim cannot yet be filed from a template-read agreement.
 
 <p align="center">
   <img src="docs/assets/demo/recovery.png" alt="The Northwind Cloud case after the four reviewer decisions: April invoice NW-2026-04, invoice $11,000.00, credit applied $2,400.00, remaining balance $8,600.00, recorded in the local ledger; the separate open March price exception of $1,000.00; and the credit lifecycle showing one $2,400.00 credit at each of five stages." width="100%">
 </p>
 
-**5. And back on the bill.** Uptime's second note says the credit was awarded and what the balance is in Uptime. The vendor's credit sits on file in Ramp, not yet applied: [what that means](#where-ramp-fits).
+**6. And back on the bill.** Uptime's second note says the credit was awarded and what the balance is in Uptime. The vendor's credit sits on file in Ramp, not yet applied: [what that means](#where-ramp-fits).
 
 ## How it works
 
@@ -110,7 +114,7 @@ Optional, each added to the same command:
 
 | Option | What it turns on | What it needs |
 |:---|:---|:---|
-| `--template-builder` | On **Agreements**, "Build a reader with Claude agents" for a contract type Uptime has not read. | The [Claude Code CLI](https://claude.com/claude-code), signed in on this machine. For Jev's checks, a TypeSafe API key saved in `~/.config/uptime/jev-api-key`; without it the run says Jev could not be reached and shows no Jev result. |
+| `--template-builder` | On **Agreements**, "Build a reader with Claude agents" for the shipped sample or a contract you paste. | The [Claude Code CLI](https://claude.com/claude-code), signed in on this machine. For Jev's checks, a TypeSafe API key saved in `~/.config/uptime/jev-api-key`; without it the run says Jev could not be reached and shows no Jev result. |
 | `--model-jobs` | Live Claude readings of three sample contracts on **Agreements**. | The Claude Code CLI. |
 | `--ramp-records DIR` | Bills read from Ramp, matched to invoices, on the portfolio and in the panel. | Records read from your own Ramp sandbox: [connection guide](docs/v4/RAMP-DEMO-CONNECTION.md). |
 | `--ramp-notes` or `--ramp-notes auto` | Uptime's notes on matched bills, by a button or by itself. | A Ramp sandbox credential with `bills:write`. |
@@ -122,36 +126,55 @@ Models propose. Code and a person decide. No model computes money, and nothing a
 
 ```mermaid
 flowchart LR
-    N["Contract of a<br/>new type"] --> J["Jev<br/>which template?"]
-    J -->|"none matches"| R1["Claude reader 1"] & R2["Claude reader 2"] & R3["Claude reader 3"]
-    R1 & R2 & R3 --> B["Claude<br/>template builder"]
+    N["A contract"] --> J{"Jev: does an approved<br/>template match?"}
+    J -->|"no"| R["Three Claude readers<br/>three ways, two models"]
+    R --> B["Claude<br/>template builder"]
     B --> K["Code checks<br/>Jev per term"]
-    K --> H["Reviewer approves<br/>this exact version"]
-    H --> F["Fixed rules read<br/>the next contract"]
+    K --> H["Reviewer acknowledges,<br/>approves this version"]
+    H --> F
+    J -->|"yes, 0.80 or more"| F["Fixed rules read it<br/>under five guards"]
+    F --> M["Credit engine:<br/>agreement and estimate"]
     classDef model fill:#EEF0FF,stroke:#4353E0,color:#1A1F36;
     classDef code fill:#EAF3D0,stroke:#52683D,color:#18312C;
-    class J,R1,R2,R3,B model;
-    class K,H,F code;
+    class J,R,B model;
+    class K,H,F,M code;
 ```
 
-**The template builder.** One real run, the one in the film:
+**Building a reader.** One real run on the shipped sample, the one in these screenshots (November 10):
 
 <p align="center">
-  <img src="docs/assets/demo/template-terms.png" alt="The nine terms the three Claude readers agreed on for the Halcyon Grid addendum, each 3 of 3: availability commitment 99.95%, measurement period calendar month, first-tier credit 10%, second tier starts below 99.5%, second-tier credit 25%, credit cap 30%, claim window 30 days, scheduled-maintenance notice 72 hours, credit applied against the next invoice. Jev answered yes for each with 85% to 99%; the 85% term is marked for the reviewer." width="100%">
+  <img src="docs/assets/demo/template-terms.png" alt="The nine terms the three Claude readers agreed on for the Halcyon Grid addendum, each 3 of 3, with the second contract's readers and Jev's answer beside each. Two terms, the first-tier and second-tier credits, came back from Jev under the 90% bar and show a ticked acknowledgement box; one is opened to its sentence and its extraction rule." width="100%">
 </p>
 
-- **Jev** ([TypeSafe AI](https://docs.typesafe.ai/)'s decision model, `jev-1.13.0`) returns typed decisions with probabilities. It makes two kinds here: which template a contract follows (a choice), and whether a term is supported by its sentence (a yes or no). It answered in about 0.2 seconds. It is never used for arithmetic, dates or deadlines.
-- **Three Claude Opus 5.5 readers** ran in parallel, about 5.5 seconds each, with tools off. Each returned the same nine typed terms with the sentence each came from. All 27 quotes were found in the contract word for word, and the readers agreed on all nine terms.
-- **A fourth Claude call** wrote nine extraction rules in 15.8 seconds. A rule is a regular expression with one capture group and a type. Uptime's interpreter runs it with a length limit and a time limit, and refuses a rule that contains the value it is meant to find.
-- **Code checked the template**: it returned every term from the contract (9 of 9) and read a second contract of the same form correctly (9 of 9).
-- **Jev confirmed 8 of 9 terms.** One came back at 85%, under the 0.90 threshold, and was marked for the reviewer, who read its sentence before approving. That check is advisory; the code checks block approval if they fail.
-- **After approval**, the next contract of that type was read by the template alone: 9 of 9 terms, no model call, 0.9 milliseconds.
+- **Three Claude readers that differ.** One reads clause by clause (Opus 5.5, 7.2 s). One lists every number in the contract first (Opus 5.5, 12.7 s, 21 numbers). One looks for a second statement that conflicts (Sonnet 5.5, 6.0 s, none found). Tools are off. All 27 quotes were in the contract word for word, and the three agreed on all nine terms.
+- **A fourth Claude call** wrote nine extraction rules in 16.1 s. A rule is a regular expression with a type. The interpreter runs it with a length limit and a time limit, refuses a rule that contains the value it is meant to find, and refuses a rule that matches in two places with different values.
+- **Code checks block approval if they fail.** Every value is literally in its sentence (9 of 9). The template returns every term from the contract (9 of 9). On a second contract of the same form it returns what three fresh readers agreed on (9 of 9); there is no answer key.
+- **Jev gates approval.** [TypeSafe AI](https://docs.typesafe.ai/)'s decision model (`jev-1.13.0`) answers whether each term is supported by its sentence. It supported 7 of 9. The other two came back at 84% and 82%, under the 0.90 bar, and "Approve" stayed disabled until the reviewer had ticked each. Both values were in fact right: on this sample the bar raises false alarms, and what it catches has not been measured. Jev is never used for arithmetic, dates or deadlines.
+- **A term the contract does not state** is recorded as not stated, gets no rule, and must be acknowledged too. Units are never converted: five days' notice does not become 120 hours.
+
+**After approval, Jev routes.**
 
 <p align="center">
-  <img src="docs/assets/demo/template-next-contract.png" alt="The next contract of the same type, for Brightwater Freight Co., read by fixed rules with template halcyon-availability-addendum/1: 0 model calls, 9 of 9 terms found, each shown beside the sentence the rule matched, with different values from the first contract, such as 99.99% availability and a 60-day claim window." width="100%">
+  <img src="docs/assets/demo/template-matched.png" alt="A pasted contract of the same type: Jev recognised the approved template halcyon-availability-addendum/1 at 95%, so no Claude agent ran. The reading is accepted, values by fixed rules in 1.2 milliseconds, with five guards passed: every rule found a value, no rule matched two different values, each value is in its sentence, the values fit together, and Jev agrees the document follows the template." width="100%">
 </p>
 
-**What that run does not show.** The three sample contracts are authored, and they are the same form word for word apart from numbers, names, dates and addresses. So the run shows rules generalising across a form, not surviving different wording, and accuracy is unmeasured. The repair step for a rule that fails has only run against stand-ins, because real output passed first time. [Interface and limits](docs/demo/TEMPLATE-BUILDER.md) · [Sample contracts](fixtures/template_builder_demo/README.md)
+- The next contract of the same type was pasted in. Jev matched it to the approved template at 95% in 0.1 s, and no Claude agent started.
+- Fixed rules read it in 1.2 ms under five guards: every rule found a value; no rule matched two different values; each value is in its sentence; the values fit together; and Jev agrees the document follows the template. A read that fails a guard is refused whole.
+- With no approved template on file there is nothing for Jev to match, so it is not asked and the readers start. Once a template exists, if Jev cannot be reached nothing starts until a reviewer chooses to build without it.
+
+**The money link.** An accepted read becomes an agreement in shadow, and the same credit engine evaluates an authored usage month against it. For the sample: 44,545 of 44,640 minutes available in October 2026, the 35% tier, $4,200.00 on a $12,000.00 fee, estimated and not claimed. No model takes part in that. It refuses, with the reason, when the read lacks a term it needs or the contract measures something other than a calendar month.
+
+**On contracts it was not written for.** Six contract forms were written blind by separate Claude calls, frozen, and run as the engine changed. Each form has a contract to build from, a second for the check, and a third held out for the read:
+
+| Run | Engine | Forms that passed every blocking check | Held-out terms correct | Wrong | Unread | Not stated |
+|:---|:---|:---|:---|:---|:---|:---|
+| 1 | First version, given an answer key for the second contract | 5 of 6 | 36 | 0 | 4 | 5 |
+| 2 | Current checks, no answer key, all nine terms required | 1 of 6 | 9 | 0 | 0 | 0 |
+| 3 | Current engine: a term the contract does not state is recorded, not refused | 4 of 6 | 25 | 0 | 8 | 3 |
+
+No run returned a wrong value; every miss was a blank or a refusal. Run 2 fell because five of the six forms state maintenance notice in days or business days and the engine demanded hours. Run 3's change was made after seeing run 2 on these same forms, so it is not a clean held-out number for that change. [All three runs, form by form](docs/demo/TEMPLATE-BUILDER-HELDOUT.md)
+
+**What none of this shows.** The six forms were written by Claude models, as the readers are; no real vendor's contract has been through the builder. The term list is fixed at nine terms with exactly two credit tiers. The estimate uses an authored usage month. [Interface and limits](docs/demo/TEMPLATE-BUILDER.md) · [Sample contracts](fixtures/template_builder_demo/README.md)
 
 **Single readings.** Claude Opus 5.5 also proposes contract terms for wording the fixed rules do not know, and proposes a reading of a vendor's reply, with the cited text, for a reviewer to check. Both run through the ordinary application routes with tools off. The output is a proposal: it cannot approve itself, invent evidence or set an amount. Northwind's own agreement is read by fixed rules with no model call.
 
@@ -170,7 +193,7 @@ flowchart LR
 
 **On contracts it has not seen, a single reading is not reliable yet.** In the latest independent first pass, 12 actual Opus calls returned and all 12 proposals failed validation: 0 of 4 intended positive contracts reached shadow, all 6 contracts were refused, and all 8 dispute cases stopped at setup, so held-out dispute accuracy is unmeasured. A refusal names the passage it stopped at; it never produces a number. This is the gap the template builder is aimed at: a model that builds a reader once, behind checks and a reviewer, only has to be right once. [Independent results](docs/v4/evaluation-finish-20261109/RESULTS.md)
 
-**How it was built.** A coordinator ran parallel AI coding agents, each in its own worktree with its own files, behind the test suite below. The template builder went from request to a real run in under an hour that way: three agents at once, on one shared interface page.
+**How it was built.** A coordinator ran parallel AI coding agents, each in its own worktree with its own files, behind the test suite below. The template builder went from request to a real run in under an hour that way: three agents at once, on one shared interface page. Its second version, answering a judge's review, was four agents the same afternoon.
 
 ## Where Ramp fits
 
@@ -198,7 +221,7 @@ Uptime runs **beside Ramp**, as a separate local application with a Chrome side 
 |:---|:---|:---|
 | **Money engine** | SLA credits, price checks, amendments, deadlines, exclusions and credit allocation, with exact decimal arithmetic and a clause citation for every amount | Supports specific contract wording families; anything else is refused, with the passage named |
 | **Contract reading** | Fixed rules for known wording; Claude Opus 5.5 proposals for other wording, validated by code and staged in shadow | Single readings are not reliable yet: 1 of 2 authored contracts reached shadow in the recorded runs, and 0 of 4 intended positives in the latest independent pass |
-| **Template builder** | For a new contract type: Jev triage, three Claude readers, a Claude-written template stored as data, code checks, Jev per term, approval of the exact version, then fixed rules | One contract form, three authored samples of it; accuracy on other wording unmeasured |
+| **Template builder** | For a new contract type: three differing Claude readers, a Claude-written template stored as data, blocking code checks, Jev per term with the reviewer's acknowledgement, approval of the exact version. Then Jev routes a matching contract to fixed rules under five guards, and an accepted read gives an agreement in shadow with an engine-computed estimate. A pasted contract is accepted | On six contract forms written blind, the current engine approved 4 and returned no wrong value; Claude wrote those contracts and none is a real vendor's. Nine terms, exactly two credit tiers, no unit conversion. No claim can be filed from a template-read agreement yet |
 | **Disputes** | Denial → evidence cure → reviewed response → award, with routine steps run automatically and a reviewer deciding each judgment | Evidence requests are recognized only in wording the rules know. Held-out dispute accuracy unmeasured. Replies come from a local counterparty; no real vendor is contacted |
 | **Approvals** | A reviewer approves the claim, the response, posting and application; each approval is bound to the exact content approved | In the walkthrough the presenter acts as a scripted test reviewer account; that is not a record of an enrolled person's approval |
 | **Ramp reads** | Bills, vendors, transactions, purchase orders and approvals from the Ramp sandbox, with read time and completeness; bills matched to invoices by vendor, invoice number and amount | Each read is started explicitly; the demo uses the sandbox, not a customer business |
