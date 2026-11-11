@@ -147,7 +147,7 @@ A term a rule does not find has `"value": null, "display": null, "quote": null`;
   or why it failed.
 - Check `second_document` carries `document: {id, title}`. Check `jev` has `lowest: null` when Jev did not answer.
 - The disabled answer also carries `samples: [], builds: [], templates: []`.
-- `POST /api/template-builds` answers `429 {"detail": sentence}` after six builds in one server process, and `404`
+- `POST /api/template-builds` answers `429 {"detail": sentence}` after twelve builds (version 2; six before) in one server process, and `404`
   for a sample that is not shipped.
 - The term set (9): `availability_target_percent`, `measurement_period` (choice), `tier_1_credit_percent`,
   `tier_2_threshold_percent`, `tier_2_credit_percent`, `credit_cap_percent`, `claim_window_days` (integer, days),
@@ -311,3 +311,68 @@ Unknown stays null. Nothing here is posted, claimed or applied.
 | Page | `web/template_builder_ui.js`, `web/template_builder.test.cjs`, its block in `web/style.css`, and the one line in `web/workspace_ui.js` or `web/ramp_ui.js` that words `read_by` when it starts with `template:` |
 
 Each agent appends its own section to `DEMO-CHANGES.md`: changed existing tests by exact name and reason, and new files.
+
+## Version 2 as the engine built it (engine agent, November 10)
+
+Everything above holds, with these changes and additions. Fields below are additive unless marked **changed**.
+
+- **Changed: with no approved template on file, Jev is not asked.** A choice with the single option `unrecognised`
+  would force Jev to choose it with certainty, so the build skips that call. `classify` is then `DONE` with `model: null`, summary "No approved
+  template is on file, so there was nothing for Jev to match; reading the contract", and detail
+  `{"choice": "unrecognised", "probability": null, "options": ["unrecognised"], "asked": false}`. When Jev is
+  asked, `detail.asked` is `true`. `NEEDS_REVIEWER` therefore happens only when there is at least one approved
+  template to route to and Jev cannot be reached.
+- **Changed: `reproduce` means one value per rule.** The interpreter accepts a rule that matches in several places
+  with the same value, and refuses one that matches different values. `reproduce` passes when the rule's single value
+  equals the readers' value. It no longer requires exactly one match. `term.rule_places` says how many places matched.
+- How Jev is asked: each option is `"<template id>: <vendor>, <title>"` (at most 200 characters). The question, at most
+  1,000 characters, names up to three fixed phrases from each template's rules. The context is the first 6,000
+  characters of the contract.
+- `POST /api/template-builds/{id}/continue` (body `{}`) answers `{"build": build}` (200), and `409` unless the build is
+  `NEEDS_REVIEWER`. The reviewer's choice is recorded as `classify.detail.reviewer_decision = {"by": <reviewer>, "at":
+  <iso time>}`. Every step that runs afterwards gets real server `started_at` / `finished_at` times. The `review`
+  step's detail on approval is `{"template_sha256", "acknowledged": [field], "without_jev": bool}`. Before approval
+  it is `{"needs_acknowledgement": [field]}`.
+- `POST .../read` body (as the page agent chose it): `{"document_id": str}` or a pasted next contract
+  `{"contract": {"title": str, "vendor": str, "text": str}, "consent": true}`, with the same limits as starting a build.
+  `consent` is required because the text goes to Jev for the template-match guard. Python: `read(build_id,
+  document_id=None, document=None)` with `document = {"title", "text"}` and an optional `"vendor"`. A pasted reading's
+  `document` is `{"id": "pasted-<reading id>", "title", "vendor", "customer": null}`.
+- **Blocker outside the engine:** `uptime/server.py` caps a signed POST body at 4,096 bytes unless its path starts with
+  `/api/v4`, `/api/vendors` or `/api/correspondence` (262,144 bytes). A pasted contract over about 4 KB is therefore
+  answered `413 {"detail": "Action body too large"}` before it reaches these routes. Pasted contracts work in Python
+  and in short HTTP bodies, and real ones over HTTP need `/api/template-builds` added to that list (one line in
+  `uptime/server.py`, which the engine agent does not own).
+- A pasted contract's template id is `<slug of vendor and title>/<n>`, for example
+  `halcyon-grid-services-platform-availability-addendum/1`. The template body records `interpreter: uptime.template_rules/2`.
+- A `term` also has `conflict` (the sentence the sceptic reader says states the term differently, or `null`; a
+  conflict makes the term `REVIEW`) and `rule_places`.
+- Reader steps: `detail.role`, plus `numbers_listed` for `numbers_first` and `conflicts: [{field, sentence}]` for the
+  sceptic. A `SKIPPED` or `FAILED` Claude step has `model: null`. Before a step answers, `model` is the model it will ask.
+- Check `second_document` also has `ran`, `readers` (one row per second reader: `reader`, `role`, `model`, `seconds`,
+  `ok`, `summary`) and `basis` (a sentence). A second-contract value counts only when at least two of its readers
+  agree on it, with quotes found in that contract. A tie, or fewer than two readers, fails that term. Check `jev` also has
+  `needs_acknowledgement: [field]`.
+- In a `MATCHED` build, each entry of `checks` is a read guard with `blocking` (false only for an advisory guard),
+  `by` (`JEV` for `template_match`), `passed` and `total`.
+- A `reading` also has `reasons` (the failed non-advisory guards as sentences; empty when ACCEPTED). Each reading
+  term has `error` (why it is blank or doubtful, in a sentence, or `null`) and `failed_guards` (the ids among
+  `complete`, `unambiguous` and `value_in_sentence` that this term failed). When `on_reading` raises, `agreement` stays `null` and `agreement_note` says why.
+- `uptime/template_rules.py`: `apply` terms also carry `places` and `ambiguous`. `value_in_sentence` accepts digits
+  (`99.95`, `(30)`, `99.50` for `99.5`) or number words (`seventy-two`). For a choice it accepts the option's own word
+  (`month`, `quarter`, `year`, `invoice`, `refund`, `balance`).
+- `ClaudeCLI(executable)` is unchanged to construct. A call is `claude(system, prompt, model=None)`, and the answer
+  is a `str` carrying `.model`, the model the CLI's own JSON envelope (`modelUsage`) says answered. A different
+  model is refused. On November 10 one real call on this machine confirmed that the Claude Code CLI (2.1.318)
+  accepts `--model claude-sonnet-5-5` and that the envelope names `claude-sonnet-5-5`.
+- At most 12 builds start per server process (`429` after that).
+- A choice rule's `map` must name only that term's options. A map naming anything else is a failed rule (the
+  interpreter reads nothing with it), so it goes to the repair round. A repair answer in the wrong shape uses that round,
+  and the next round is still tried, up to two. `detail.repair_note` collects each failed round's sentence.
+- Jev's per-term questions ask what the sentence literally says, for example "Does this sentence give 99.9% as an
+  availability level at which the service credit changes, such as a threshold or the boundary between credit levels?",
+  not how Uptime names the term. The 0.90 threshold is unchanged. The full wording is `TERMS[...]["question"]` in
+  `uptime/template_rules.py`.
+- Stated limits: a rule only captures text, so maintenance notice stated in days, or in "Business Days", cannot
+  become hours and stays unread with its reason. A choice is read only when the captured phrase is an option id or in
+  the rule's map, so a measurement period other than those listed stays unread with its reason and is never guessed.
