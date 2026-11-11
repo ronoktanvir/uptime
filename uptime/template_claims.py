@@ -28,6 +28,7 @@ from functools import partial
 from hashlib import sha256
 import json
 from pathlib import Path
+import re
 from threading import RLock
 
 from . import template_agreements as money_link
@@ -38,7 +39,6 @@ from .correspondence_types import Claim, Delivery, Scope, instant
 from .northwind_workflow import LABELS, WorkspaceWorkflow, encoded
 from .storage import database
 
-VENDOR_ID = 'halcyon-grid'
 OPEN = 'open-claim'
 ROLES = ('billing', 'customer', 'status', 'vendor')
 FILES = ('overlay.json', 'usage.json', 'invoice.json', 'estimate.json', 'lifecycle.json', 'correspondence.json',
@@ -165,19 +165,31 @@ def fee_registry(package):
                                  package['manifest']['document']['sha256'], fingerprint(package['manifest']), fingerprint(overlay)),))
 
 
-def controls(overlay, values):
-    """Engine controls for installing the read terms, authored from the contract text (halcyon-a: 99.95% / 10%,
-    99.5% / 25%, 30 days), never from the read. A misread term fails a control and nothing is installed."""
-    base = dict(agreement=overlay['agreement'], account=overlay['account'], product=overlay['product'], plan=overlay['plan'],
-                month='2026-11', monitor_source='simulated_vendor', monitor_ref='control-status', month_complete=True,
-                exclusions_removed=True, monthly_fee_cents=10000, fee_line_ref=overlay['fee_line_ref'], fee_ref='control-invoice',
-                received_at='2026-12-02T00:00:00Z')
-    return [dict(name='Source control: ' + name, facts=dict(base, **change), expected=expected) for name, change, expected in (
-        ('60 of 43,200 minutes unavailable (99.861%); 10 percent of USD 100', dict(eligible_downtime_minutes=60), dict(outcome='ELIGIBLE', amount='10.00')),
-        ('300 of 43,200 minutes unavailable (99.305%); 25 percent of USD 100', dict(eligible_downtime_minutes=300), dict(outcome='ELIGIBLE', amount='25.00')),
-        ('no unavailability earns no credit', dict(eligible_downtime_minutes=0), dict(outcome='INELIGIBLE')),
-        ('a request at the exclusive 30-day cutoff is refused', dict(eligible_downtime_minutes=60, received_at='2026-12-31T00:00:00Z'),
-         dict(outcome='INELIGIBLE')))]
+VENDOR_ID_SHAPE = re.compile(r'[a-z0-9][a-z0-9-]{0,62}[a-z0-9]')
+
+
+def catalog(document_id):
+    """The document's authored catalog data (`catalog.json`): the installation id its case workspace uses and the
+    engine controls written from its contract text. Data, not code: no vendor is named in this package.
+
+    Kept outside `input_sha256`, so a case workspace opened before this file existed keeps its package digest."""
+    data = json.loads((money_link.EVIDENCE / document_id / 'catalog.json').read_text())
+    vendor_id, rows = data.get('vendor_id'), data.get('controls')
+    if (data.get('schema') != 'authored-claim-catalog/1' or not isinstance(vendor_id, str) or not VENDOR_ID_SHAPE.fullmatch(vendor_id)
+            or not isinstance(rows, list) or not 1 <= len(rows) <= 60 or not isinstance(data.get('control_base'), dict)
+            or any(not isinstance(r, dict) or set(r) != {'name', 'facts', 'expected'} for r in rows)):
+        raise ValueError('The authored catalog data for ' + document_id + ' is malformed.')
+    return data
+
+
+def controls(overlay, document_id):
+    """Engine controls for installing the read terms: authored per document from its contract text, never from the
+    read. A misread term fails a control and nothing is installed."""
+    data = catalog(document_id)
+    base = dict(data['control_base'], agreement=overlay['agreement'], account=overlay['account'], product=overlay['product'],
+                plan=overlay['plan'], fee_line_ref=overlay['fee_line_ref'])
+    return [dict(name='Source control: ' + row['name'], facts=dict(base, **row['facts']), expected=dict(row['expected']))
+            for row in data['controls']]
 
 
 def preflight(entry, inputs):
@@ -185,7 +197,7 @@ def preflight(entry, inputs):
     from .vendor_eval import evaluate as engine
     package = build_package(entry, inputs)
     failed = []
-    for control in controls(package['overlay'], entry['values']):
+    for control in controls(package['overlay'], entry['document']['id']):
         result = engine(package['manifest'], package['bound_overlay'], control['facts'], 'bears')
         if any(result.get(k) != v for k, v in control['expected'].items()):
             failed.append(control['name'])
@@ -242,18 +254,18 @@ class TemplateClaim(WorkspaceWorkflow):
         from .vendor_registry import TestSubmission
         path = self.bench.path
         try:
-            current = registry.get_vendor(path, p, VENDOR_ID)
+            current = registry.get_vendor(path, p, self.installation)
         except KeyError:
             current = None
         if current and current.get('state') == 'ACTIVE':
             if current['manifest']['document']['sha256'] != self.package['manifest']['document']['sha256']:
                 raise ValueError('A different agreement is already installed in this case workspace.')
             return current
-        state = registry.install(path, p, VENDOR_ID, dict(document=self.package['document'], overlay=self.package['overlay']))
+        state = registry.install(path, p, self.installation, dict(document=self.package['document'], overlay=self.package['overlay']))
         if (state.get('manifest') or {}).get('document', {}).get('sha256') != self.package['manifest']['document']['sha256']:
             raise ValueError('The catalog compiled different terms from the restated reading: ' + str(state.get('reason') or ''))
-        state = registry.submit_tests(path, p, VENDOR_ID, TestSubmission.model_validate(
-            dict(revision=state['revision'], tests=controls(self.package['overlay'], self.entry['values']))), governing_fees=())
+        state = registry.submit_tests(path, p, self.installation, TestSubmission.model_validate(
+            dict(revision=state['revision'], tests=controls(self.package['overlay'], self.entry['document']['id']))), governing_fees=())
         failed = [row.get('name') for row in state['checks'] if not row['passed']]
         if failed:
             raise ValueError('The read terms failed authored controls, so they were not installed: ' + '; '.join(map(str, failed)))
@@ -261,7 +273,7 @@ class TemplateClaim(WorkspaceWorkflow):
             offer = next((a for a in state['actions'] if a['operation'] == operation), None)
             if offer is None:
                 raise ValueError('The agreement catalog did not offer ' + operation + '.')
-            state = registry.act(path, p, VENDOR_ID, offer['id'], governing_fees=self.governing_fees, trusted_now=self.now)
+            state = registry.act(path, p, self.installation, offer['id'], governing_fees=self.governing_fees, trusted_now=self.now)
         return state
 
     async def open_and_approve(self, p, offer):
@@ -445,7 +457,8 @@ class TemplateClaims:
         if len(senders) != len(months) * len(ROLES):
             raise PermissionError('This workspace has no enrolled signed sources for this claim; create a new workspace.')
         month = months[0]
-        config = dict(package=package, installation=VENDOR_ID, onboarding_installation=VENDOR_ID + '-none',
+        vendor_id = catalog(document_id)['vendor_id']
+        config = dict(package=package, installation=vendor_id, onboarding_installation=vendor_id + '-none',
                       claim_month=month, bill_month=month, claim_ids={month: 'inbox-' + document_id + '-' + month},
                       scopes={month: Scope(**package['months'][0]['scope'])}, senders=senders,
                       clock_start=inputs['lifecycle']['clock_start'], clock_steps={}, correspondence=deepcopy(inputs['correspondence']),
