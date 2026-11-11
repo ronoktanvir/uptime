@@ -1,0 +1,64 @@
+{
+ "written_by": "the evaluating agent (Claude Opus 5.5, Claude Code), by hand, from the author's VALUES and the contract text; it had seen the builder's nine-term list (uptime/template_rules.py TERMS) when writing it",
+ "scoring_only": "The product never sees this file.",
+ "values": "canonical as uptime.template_rules.canonical writes them; not_stated when the contract does not state the term in the term's meaning or unit",
+ "a": {
+  "vendor": "Vantriss Cloud Limited",
+  "customer": "Dunmarrow Freight Services Limited",
+  "title": "Service Level Schedule",
+  "terms": {
+   "availability_target_percent": "99.9",
+   "measurement_period": "calendar_month",
+   "tier_1_credit_percent": "5",
+   "tier_2_threshold_percent": "99",
+   "tier_2_credit_percent": "15",
+   "credit_cap_percent": "25",
+   "claim_window_days": "30",
+   "maintenance_notice_hours": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "maintenance_notice_hours": "The contract states the notice in Business Days, which has no fixed number of hours; the term is an integer number of hours, so the key is not_stated and any number returned for it is scored wrong."
+  }
+ },
+ "b": {
+  "vendor": "Halvoran Data Works Incorporated",
+  "customer": "Strathmere Medical Partners LLP",
+  "title": "Service Level Schedule",
+  "terms": {
+   "availability_target_percent": "99.95",
+   "measurement_period": "calendar_quarter",
+   "tier_1_credit_percent": "7",
+   "tier_2_threshold_percent": "99.5",
+   "tier_2_credit_percent": "20",
+   "credit_cap_percent": "30",
+   "claim_window_days": "45",
+   "maintenance_notice_hours": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "maintenance_notice_hours": "The contract states the notice in Business Days, which has no fixed number of hours; the term is an integer number of hours, so the key is not_stated and any number returned for it is scored wrong.",
+   "credit_application": "Credit note which the Customer may set off against the next invoice; otherwise electronic transfer. Mapped to next_invoice."
+  }
+ },
+ "c": {
+  "vendor": "Ilgarra Platform Solutions S.A.S.",
+  "customer": "Aldermoor Retail Group PLC",
+  "title": "Service Level Schedule",
+  "terms": {
+   "availability_target_percent": "99.5",
+   "measurement_period": "not_stated",
+   "tier_1_credit_percent": "10",
+   "tier_2_threshold_percent": "98",
+   "tier_2_credit_percent": "25",
+   "credit_cap_percent": "40",
+   "claim_window_days": "15",
+   "maintenance_notice_hours": "not_stated",
+   "credit_application": "next_invoice"
+  },
+  "notes": {
+   "maintenance_notice_hours": "The contract states the notice in Business Days, which has no fixed number of hours; the term is an integer number of hours, so the key is not_stated and any number returned for it is scored wrong.",
+   "measurement_period": "'each rolling period of thirty (30) consecutive days ending on the last day of a calendar month': none of the term's options (calendar month, quarter, year), so not_stated; a returned option is scored wrong."
+  }
+ }
+}

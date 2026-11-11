@@ -1,0 +1,77 @@
+{
+  "A": {
+    "reference": "SLA-VCL-0417-A",
+    "date": "2027-03-01",
+    "parties": {
+      "vendor": "Vantriss Cloud Limited (Port Veltane)",
+      "customer": "Dunmarrow Freight Services Limited (Halsey Vale)"
+    },
+    "master_agreement_date": "2027-02-01",
+    "fee_basis": "Monthly Fees, USD 18,400 per month",
+    "commitment_percent": 99.90,
+    "measurement": {
+      "method": "Availability = ((Total Minutes − Downtime Minutes) ÷ Total Minutes) × 100, rounded down to two decimal places",
+      "period": "Each calendar month",
+      "monitoring": "Polling at intervals of not more than 1 minute from at least 2 locations"
+    },
+    "credit_tiers": [
+      {"tier": 1, "availability_range": "Below 99.90% but not below 99.00%", "credit_percent_of_fees": 5},
+      {"tier": 2, "availability_range": "Below 99.00%", "credit_percent_of_fees": 15}
+    ],
+    "cap_percent_of_fees_per_period": 25,
+    "claim_deadline_days_after_period_end": 30,
+    "maintenance_notice_business_days": 5,
+    "maintenance_window": "06:00 to 22:00 UTC excluded from permitted window; maintenance excluded up to 4 hours per period",
+    "credit_delivery": "Applied as credit against next invoice; if no further invoice, paid by bank transfer within 30 days"
+  },
+  "B": {
+    "reference": "SLA-HDW-0932-B",
+    "date": "2027-06-14",
+    "parties": {
+      "vendor": "Halvoran Data Works Incorporated (Caddis Reach)",
+      "customer": "Strathmere Medical Partners LLP (Vell Harbour)"
+    },
+    "master_agreement_date": "2027-05-28",
+    "fee_basis": "Quarterly Fees, USD 96,000 per quarter",
+    "commitment_percent": 99.95,
+    "measurement": {
+      "method": "Availability = ((Total Minutes − Downtime Minutes) ÷ Total Minutes) × 100, rounded down to two decimal places",
+      "period": "Each calendar quarter",
+      "monitoring": "Synthetic transactions every 30 seconds from at least 3 locations; minute counts as Downtime if majority of locations fail"
+    },
+    "credit_tiers": [
+      {"tier": 1, "availability_range": "Below 99.95% but not below 99.50%", "credit_percent_of_fees": 7},
+      {"tier": 2, "availability_range": "Below 99.50%", "credit_percent_of_fees": 20}
+    ],
+    "cap_percent_of_fees_per_period": 30,
+    "claim_deadline_days_after_period_end": 45,
+    "maintenance_notice_business_days": 10,
+    "maintenance_window": "01:00 to 04:00 UTC on Sundays; maintenance excluded up to 3 hours per period",
+    "credit_delivery": "Credit note issued within 15 Business Days of confirmation; set-off against next invoice if one is due, otherwise electronic transfer within 60 days after period end"
+  },
+  "C": {
+    "reference": "SLA-ILG-2291-C",
+    "date": "2027-09-02",
+    "parties": {
+      "vendor": "Ilgarra Platform Solutions S.A.S. (Corvel)",
+      "customer": "Aldermoor Retail Group PLC (Pendle Cross)"
+    },
+    "master_agreement_date": "2027-08-18",
+    "fee_basis": "Period Fees, one-twelfth of annual fees, USD 20,000 per month",
+    "commitment_percent": 99.50,
+    "measurement": {
+      "method": "Availability = ((Total Minutes − Downtime Minutes) ÷ Total Minutes) × 100, rounded down to two decimal places",
+      "period": "Rolling 30-day period ending on the last day of each calendar month",
+      "monitoring": "Checks at intervals of not more than 2 minutes from 2 locations"
+    },
+    "credit_tiers": [
+      {"tier": 1, "availability_range": "Below 99.50% but not below 98.00%", "credit_percent_of_fees": 10},
+      {"tier": 2, "availability_range": "Below 98.00%", "credit_percent_of_fees": 25}
+    ],
+    "cap_percent_of_fees_per_period": 40,
+    "claim_deadline_days_after_period_end": 15,
+    "maintenance_notice_business_days": 3,
+    "maintenance_window": "22:00 to 05:00 UTC permitted; maintenance excluded up to 2 hours per period",
+    "credit_delivery": "Credit memo applied against next invoice; if no invoice within 60 days of validated claim, bank transfer within 14 days after that 60-day period"
+  }
+}

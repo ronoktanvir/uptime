@@ -1,0 +1,132 @@
+SCHEDULE 4
+SERVICE LEVEL AND AVAILABILITY ADDENDUM
+
+Reference: SLA-VCL-0417-A
+Dated: 1 March 2027
+
+Between:
+(1) VANTRISS CLOUD LIMITED, a company registered in Port Veltane with its registered office at 40 Quenby Row, Port Veltane, PV4 2LJ (the "Vendor"); and
+(2) DUNMARROW FREIGHT SERVICES LIMITED, a company registered in Halsey Vale with its registered office at 7 Tallow Wharf, Halsey Vale, HV2 9RT (the "Customer").
+
+This Schedule forms part of, and is subject to, the Master Software-as-a-Service Agreement between the Vendor and the Customer dated 1 February 2027 (the "Master Agreement").
+
+1. DEFINITIONS AND INTERPRETATION
+
+1.1 In this Schedule the following terms have the following meanings:
+
+"Availability" means the percentage calculated in accordance with paragraph 3.2.
+
+"Business Day" means a day other than a Saturday, Sunday or public holiday in Port Veltane.
+
+"Commitment" means the Availability commitment set out in paragraph 2.1.
+
+"Downtime" means any period during which the Service is unavailable to the Customer's authorised users over the internet, excluding Excluded Time.
+
+"Excluded Time" has the meaning given in paragraph 10.1.
+
+"Measurement Period" means each calendar month during the Term.
+
+"Monthly Fees" means the subscription fees payable under the Master Agreement for the Service in respect of the relevant Measurement Period, being USD 18,400 per month as at the date of this Schedule.
+
+"Scheduled Maintenance" means maintenance carried out in accordance with paragraph 8.
+
+"Service" means the hosted freight-routing platform described in the Master Agreement.
+
+"Service Credit" means a credit calculated in accordance with paragraph 4.
+
+1.2 Capitalised terms not defined in this Schedule have the meanings given in the Master Agreement. If there is any conflict between this Schedule and the Master Agreement regarding service levels or service credits, this Schedule prevails.
+
+2. AVAILABILITY COMMITMENT
+
+2.1 The Vendor shall make the Service Available for at least 99.90% of each Measurement Period (the "Commitment").
+
+2.2 The Vendor shall use reasonable endeavours to exceed the Commitment in each Measurement Period.
+
+3. MEASUREMENT
+
+3.1 The Vendor shall measure Availability for each Measurement Period using its automated monitoring tools, which poll the Service at intervals of not more than one (1) minute from at least two geographically separate locations.
+
+3.2 Availability is calculated as follows:
+
+Availability (%) = ((Total Minutes − Downtime Minutes) ÷ Total Minutes) × 100
+
+where "Total Minutes" is the number of minutes in the Measurement Period less all Excluded Time, and "Downtime Minutes" is the number of minutes of Downtime in that Measurement Period. The result is rounded down to two decimal places.
+
+3.3 Monitoring data is measured in Coordinated Universal Time. Where the Customer disputes the monitoring data, the Vendor shall provide the raw polling logs for the relevant Measurement Period within ten (10) Business Days of a written request.
+
+4. SERVICE CREDITS
+
+4.1 If Availability in a Measurement Period falls below the Commitment, the Customer is entitled to a Service Credit calculated by reference to Table 1 below. No Service Credit is due where Availability is equal to or higher than the Commitment.
+
+Table 1: Service Credits
+
++-------------------------------------------+------------------------------+
+| Availability in the Measurement Period    | Service Credit               |
++-------------------------------------------+------------------------------+
+| Below 99.90% but not below 99.00%         | 5% of the Monthly Fees       |
++-------------------------------------------+------------------------------+
+| Below 99.00%                              | 15% of the Monthly Fees      |
++-------------------------------------------+------------------------------+
+
+4.2 Only one Service Credit applies to each Measurement Period, being the credit in the row of Table 1 that corresponds to the lowest Availability achieved in that Measurement Period.
+
+5. CAP ON SERVICE CREDITS
+
+5.1 The total Service Credits payable in respect of any single Measurement Period shall not exceed 25% of the Monthly Fees for that Measurement Period.
+
+5.2 Service Credits are the Customer's sole financial remedy for failure to meet the Commitment, without prejudice to the Customer's rights of termination under clause 14 of the Master Agreement.
+
+6. CLAIMING SERVICE CREDITS
+
+6.1 The Vendor shall notify the Customer of the Availability achieved in each Measurement Period within ten (10) Business Days after the end of that Measurement Period, together with any Service Credit that appears to be due under Table 1.
+
+6.2 The Customer must claim any Service Credit by written notice to the Vendor no later than thirty (30) days after the end of the relevant Measurement Period. A claim received after that deadline is invalid, and the Customer waives any Service Credit for that Measurement Period.
+
+6.3 The Vendor shall acknowledge a valid claim within five (5) Business Days.
+
+7. DELIVERY OF SERVICE CREDITS
+
+7.1 The Vendor shall apply each validated Service Credit as a credit against the next invoice issued under the Master Agreement.
+
+7.2 If no further invoice is due to be issued under the Master Agreement, including following its expiry or termination, the Vendor shall pay the value of the outstanding Service Credit to the Customer by bank transfer within thirty (30) days.
+
+7.3 Service Credits are stated exclusive of value added tax. Where VAT is chargeable on a Service Credit, the Vendor shall issue a valid credit note for that VAT.
+
+8. SCHEDULED MAINTENANCE
+
+8.1 The Vendor may carry out Scheduled Maintenance outside the hours of 06:00 to 22:00 Coordinated Universal Time on any day.
+
+8.2 The Vendor shall give the Customer at least five (5) Business Days' written notice of any Scheduled Maintenance, stating its expected start and end times and the Service components affected.
+
+8.3 Scheduled Maintenance that is notified in accordance with paragraph 8.2 and does not exceed four (4) hours in any Measurement Period is Excluded Time. Scheduled Maintenance exceeding that limit is Downtime.
+
+9. REPORTING DOWNTIME
+
+9.1 The Customer shall report any suspected Downtime by email to support@vantriss-cloud.example or through the Vendor's status portal, stating the time of the first observed failure and the affected functions.
+
+9.2 The Vendor shall acknowledge each report within thirty (30) minutes and shall provide an incident reference and status updates at least every two (2) hours until service is restored.
+
+9.3 The Vendor shall provide a written root cause summary within five (5) Business Days after restoration of any Downtime lasting more than sixty (60) minutes.
+
+10. EXCLUSIONS
+
+10.1 Excluded Time comprises:
+(a) Scheduled Maintenance notified in accordance with paragraph 8;
+(b) unavailability caused by the Customer's systems, networks, or third-party services not provided by the Vendor;
+(c) unavailability caused by misuse of the Service or breach of the Master Agreement by the Customer or its users;
+(d) force majeure events as described in clause 19 of the Master Agreement; and
+(e) suspension of the Service by the Vendor in accordance with the Master Agreement.
+
+10.2 The Vendor shall bear the burden of demonstrating that any period is Excluded Time.
+
+11. RELATIONSHIP TO THE MASTER AGREEMENT
+
+11.1 This Schedule is incorporated into the Master Agreement. Except as expressly varied by this Schedule, the Master Agreement remains in full force and effect.
+
+11.2 The Commitment and Service Credits apply to the Service only and do not extend to any pre-production or trial environment.
+
+11.3 This Schedule is governed by the governing law and dispute resolution provisions of the Master Agreement.
+
+Signed for and on behalf of VANTRISS CLOUD LIMITED: ____________________ Name: Ferelith Ankers, Title: Commercial Director, Date: ____________
+
+Signed for and on behalf of DUNMARROW FREIGHT SERVICES LIMITED: ____________________ Name: Tobiah Reddan, Title: Operations Director, Date: ____________

@@ -1,0 +1,156 @@
+SCHEDULE 2
+SERVICE LEVEL AND AVAILABILITY ADDENDUM
+
+(Illustrative drafting exercise. Not for execution.)
+
+This Addendum is dated 8 April 2027 and forms Schedule 2 to the Software-as-a-Service Agreement dated 25 March 2027 (the "Agreement") between:
+
+(1) BRIGHTMERE SOFTWARE SOLUTIONS LIMITED, a company incorporated in England and Wales with registered number [●], whose registered office is at 7 Orchard Lane Mews, Calderwick, Ferrowby (the "Supplier"); and
+
+(2) TESSALY MUTUAL HOLDINGS LIMITED, a company incorporated in England and Wales with registered number [●], whose registered office is at Harrowdene House, 3 Quillon Gate, Dunmere Vale (the "Customer").
+
+1. DEFINITIONS AND INTERPRETATION
+
+1.1 In this Addendum the following definitions apply:
+
+"Authorised Users" means the employees and contractors of the Customer whom the Customer authorises to use the Services under the Agreement.
+
+"Availability" means the percentage calculated in accordance with clause 3.2.
+
+"Availability Commitment" has the meaning given in clause 2.1.
+
+"Business Day" means a day other than a Saturday, a Sunday or a public holiday in England.
+
+"Charges" means the subscription fees payable by the Customer for the Services under the Agreement for the relevant Service Period, being £6,750 per calendar month at the date of this Addendum, excluding VAT, pass-through costs and one-off implementation fees.
+
+"Claim Deadline" has the meaning given in clause 9.1.
+
+"Downtime" means any minute within a Service Period in which the Production Environment is unavailable to Authorised Users, determined in accordance with clause 3.3.
+
+"Excluded Event" has the meaning given in clause 4.1.
+
+"Measurement Period" means each successive period of twelve (12) months beginning on the Start Date under the Agreement or on an anniversary of it.
+
+"Production Environment" means the live instance of the Services hosted by the Supplier and used by the Customer for its business operations.
+
+"Scheduled Maintenance" has the meaning given in clause 5.1.
+
+"Service Level Rebate" means a rebate calculated in accordance with clause 7.
+
+"Service Period" means each calendar month during the Term.
+
+"Tier Threshold" has the meaning given in clause 7.1.
+
+"Term" has the meaning given in the Agreement.
+
+1.2 References to clauses are to clauses of this Addendum. Capitalised terms not defined in this Addendum have the meanings given in the Agreement.
+
+1.3 If there is any conflict between this Addendum and the Agreement in relation to service levels, availability or Service Level Rebates, this Addendum prevails.
+
+2. AVAILABILITY COMMITMENT
+
+2.1 The Supplier shall ensure that Availability in each Service Period is not less than 99.50 per cent (the "Availability Commitment").
+
+2.2 The Supplier shall use reasonable endeavours to exceed the Availability Commitment and to minimise the duration of any Downtime, whether or not that Downtime is attributable to an Excluded Event.
+
+3. MEASUREMENT OF AVAILABILITY
+
+3.1 Availability is measured over each Service Period, counted in whole minutes from 00:00 on the first day to 23:59 on the last day of that Service Period. Measurement uses automated monitoring operated by the Supplier from at least two geographically separate locations, with probes sent at intervals of not more than one minute.
+
+3.2 Availability for a Service Period is calculated as ((M − D) ÷ M) × 100, expressed as a percentage to two decimal places, where:
+
+(a) M is the total number of minutes in the Service Period less the minutes of Excluded Events; and
+
+(b) D is the number of minutes of Downtime in the Service Period, not counting any minute which is also an Excluded Event.
+
+3.3 A minute is Downtime only if, during that minute, the Production Environment fails to return a successful response to at least three (3) consecutive monitoring probes, or Authorised Users are unable to log in to it. A minute which is an Excluded Event is not Downtime.
+
+3.4 The Supplier's monitoring records are the primary evidence of Availability. Within five (5) Business Days of a written request by the Customer, the Supplier shall provide the raw monitoring data for the Service Period concerned. The parties shall cooperate in good faith to resolve any disagreement about Availability.
+
+4. EXCLUSIONS
+
+4.1 The following periods are "Excluded Events" and are not Downtime:
+
+(a) Scheduled Maintenance carried out in accordance with clause 5;
+
+(b) unavailability caused by the acts or omissions of the Customer or its Authorised Users, including misuse, misconfiguration or breach of the Agreement;
+
+(c) failure of the Customer's network, hardware, browser software or other equipment, or of third-party services not provided by or on behalf of the Supplier;
+
+(d) a Force Majeure Event as defined in the Agreement;
+
+(e) suspension of the Services permitted under the Agreement, including suspension for non-payment or to protect the security of the Services; and
+
+(f) any period during which the Customer has requested or approved a change which the Supplier has implemented in accordance with the Agreement.
+
+4.2 The Supplier shall identify each Excluded Event in its availability report under clause 6.2 and shall bear the burden of demonstrating that an Excluded Event occurred.
+
+5. SCHEDULED MAINTENANCE
+
+5.1 "Scheduled Maintenance" means planned work on the Production Environment which is notified to the Customer in accordance with clause 5.2 and carried out, wherever reasonably practicable, between 22:00 and 06:00 UK time.
+
+5.2 The Supplier shall give the Customer not less than three (3) Business Days' written notice of any Scheduled Maintenance, stating its start and end times and its expected effect on the Services.
+
+5.3 The Supplier shall not carry out more than eight (8) hours of Scheduled Maintenance in aggregate in any Service Period.
+
+5.4 Maintenance performed without the notice required by clause 5.2, or in excess of the limit in clause 5.3, is not Scheduled Maintenance, and any resulting unavailability is Downtime.
+
+6. REPORTING OF DOWNTIME
+
+6.1 The Customer may report any suspected Downtime to the Supplier's service desk by telephone or by email. The Supplier shall acknowledge each report within sixty (60) minutes of receipt and shall record the time at which the report was made.
+
+6.2 Within ten (10) Business Days after the end of each Service Period, the Supplier shall provide the Customer with a written availability report stating the Availability for that Service Period, the Downtime and Excluded Events (with their start and end times), and any Service Level Rebate due.
+
+6.3 For any single period of Downtime exceeding sixty (60) minutes, the Supplier shall provide a written root cause analysis within five (5) Business Days after that Downtime ends.
+
+7. SERVICE LEVEL REBATES
+
+7.1 If Availability in a Service Period is below the Availability Commitment but equal to or above 98.75 per cent (the "Tier Threshold"), the Supplier shall give the Customer a Service Level Rebate equal to seven and a half per cent (7.5%) of the Charges for that Service Period.
+
+7.2 If Availability in a Service Period is below the Tier Threshold, the Supplier shall give the Customer a Service Level Rebate equal to twenty per cent (20%) of the Charges for that Service Period.
+
+7.3 Only one of the rebates in clauses 7.1 and 7.2 may apply to any Service Period, and the rebates are not cumulative.
+
+7.4 The parties agree that the Service Level Rebates are a price adjustment reflecting the reduced value of the Services in a Service Period and are not a penalty.
+
+8. CAP
+
+8.1 The total of all Service Level Rebates in respect of any Measurement Period shall not exceed thirty per cent (30%) of the Charges payable for that Measurement Period.
+
+8.2 Where a Service Level Rebate calculated under clause 7 would cause the limit in clause 8.1 to be exceeded, that Service Level Rebate is reduced so that the limit is not exceeded.
+
+9. CLAIMING A SERVICE LEVEL REBATE
+
+9.1 The Customer shall claim a Service Level Rebate by written notice to the Supplier's account manager, copied to the Supplier's service desk, identifying the Service Period concerned. The notice must be given no later than fourteen (14) days after the end of that Service Period (the "Claim Deadline").
+
+9.2 The Supplier shall confirm or reject each claim in writing within ten (10) Business Days after receipt. The Supplier may reject a claim only on the ground that the relevant Downtime is an Excluded Event, and shall give its reasons.
+
+9.3 Where the availability report under clause 6.2 shows a Service Level Rebate due, that rebate is treated as claimed by the Customer, and clause 9.1 does not apply to it.
+
+9.4 A Service Level Rebate which the Customer has not claimed by the Claim Deadline, and which is not shown in a report under clause 6.2, is waived.
+
+10. DELIVERY AND PAYMENT OF REBATES
+
+10.1 Where the Customer is due to be invoiced for Charges after the Supplier has confirmed a Service Level Rebate, the Supplier shall deliver that Service Level Rebate as a credit against the next invoice for Charges, shown as a separate line item.
+
+10.2 If no further invoice for Charges is due before the end of the Term, or if the Agreement has terminated, the Supplier shall pay the amount of the Service Level Rebate to the Customer by Faster Payment to the account which the Customer nominates in writing, within thirty (30) days after the claim is confirmed.
+
+10.3 Any VAT chargeable on a Service Level Rebate shall be adjusted on the relevant credit note in accordance with applicable law.
+
+11. SOLE FINANCIAL REMEDY AND RELATIONSHIP WITH THE AGREEMENT
+
+11.1 Subject to clause 11.2, Service Level Rebates are the Customer's sole financial remedy for any failure to meet the Availability Commitment.
+
+11.2 Nothing in this clause 11 affects:
+
+(a) the Customer's right to terminate the Agreement under clause 14.3 of the Agreement if Availability falls below the Tier Threshold in three (3) or more Service Periods in any period of twelve (12) consecutive months; or
+
+(b) the Customer's right to claim damages for losses arising from a breach of the Agreement other than a failure to meet the Availability Commitment.
+
+11.3 Service Level Rebates paid or credited under this Addendum count towards the aggregate liability cap in clause 16.2 of the Agreement.
+
+12. GOVERNING LAW AND JURISDICTION
+
+12.1 This Addendum and any dispute or claim arising out of or in connection with it are governed by the law of England and Wales.
+
+12.2 The courts of England and Wales have exclusive jurisdiction to settle any such dispute or claim.

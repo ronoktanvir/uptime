@@ -1,0 +1,21 @@
+{
+ "form": "5",
+ "model_requested": "claude-sonnet-5-5",
+ "models_answered": [
+  "claude-sonnet-5-5"
+ ],
+ "asked_at": "2026-11-11T00:59:57Z",
+ "seconds": 49.9,
+ "brief_file": "briefs/form-5.md",
+ "brief_sha256": "c5c62616c4630b14577856799e94ad008730d898d40590430b18d2e5691c55e7",
+ "system_prompt": "You are an experienced commercial lawyer who drafts technology contracts.",
+ "cutting": "a.txt, b.txt, c.txt are the text between the markers in response.txt, with leading and trailing newlines removed and one final newline; author_values.json is the VALUES part without a ```json fence. Nothing else is changed.",
+ "files": {
+  "response.txt": "5ba6b0740ffc6247f333c823064ac11428a88ca487f502b1438d15a1f23fac78",
+  "a.txt": "1270a51f302466a8cdd5db993b0a329cc487056136b8908e64e0a3b670ce9afe",
+  "b.txt": "73e172f7c3cbfb547e6ab8eacb656d7e0396832bbd40c98bf0e452259499670e",
+  "c.txt": "cfbc922f252301c51a97efd189cc082033c67a20a21eb2de34f89c0000c7c69f",
+  "author_values.json": "75efad8d5570f55e98864e323b9aba0332dcd3a385de60f45314f5b20ea145ec"
+ },
+ "problems": []
+}

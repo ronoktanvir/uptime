@@ -1,0 +1,59 @@
+{
+  "A": {
+    "vendor": "Larkspire Systems, Inc.",
+    "customer": "Hollowmere Freight Company",
+    "agreement_date": "3 March 2025",
+    "addendum_effective_date": "1 April 2026",
+    "order_form": "LS-2026-0117",
+    "monthly_fees": "USD 18,400",
+    "availability_commitment_percent": 99.9,
+    "measurement": {
+      "period": "calendar month (pro-rated for partial months)",
+      "method": "external Monitoring System checks every 60 seconds from at least 3 locations; Unavailable when 2 consecutive checks from at least 2 locations fail to get a successful response within 30 seconds; Availability = ((Total Minutes - Excluded Minutes - Downtime) / (Total Minutes - Excluded Minutes)) x 100, rounded down to 2 decimals"
+    },
+    "tier_1": {"trigger": "below 99.9% but at or above 99.0%", "credit_percent_of_monthly_fees": 10},
+    "tier_2": {"trigger": "below 99.0%", "lower_threshold_percent": 99.0, "credit_percent_of_monthly_fees": 25},
+    "credit_cap_percent_of_monthly_fees": 50,
+    "claim_deadline": "30 days after end of the Measurement Period",
+    "maintenance_notice": "not less than 5 Business Days",
+    "credit_delivery": "deduction from next invoice after confirmation; bank transfer within 30 days of confirmation if no further invoice because the Agreement has ended (not where Vendor terminated for Customer's breach)"
+  },
+  "B": {
+    "vendor": "Larkspire Systems, Inc.",
+    "customer": "Quillstone Dental Partners LLC",
+    "agreement_date": "14 August 2024",
+    "addendum_effective_date": "1 June 2026",
+    "order_form": "LS-2026-0342",
+    "monthly_fees": "USD 7,250",
+    "availability_commitment_percent": 99.5,
+    "measurement": {
+      "period": "calendar month (pro-rated for partial months)",
+      "method": "external Monitoring System checks every 60 seconds from at least 3 locations; Unavailable when 2 consecutive checks from at least 2 locations fail to get a successful response within 30 seconds; Availability = ((Total Minutes - Excluded Minutes - Downtime) / (Total Minutes - Excluded Minutes)) x 100, rounded down to 2 decimals"
+    },
+    "tier_1": {"trigger": "below 99.5% but at or above 98.0%", "credit_percent_of_monthly_fees": 5},
+    "tier_2": {"trigger": "below 98.0%", "lower_threshold_percent": 98.0, "credit_percent_of_monthly_fees": 15},
+    "credit_cap_percent_of_monthly_fees": 30,
+    "claim_deadline": "45 days after end of the Measurement Period",
+    "maintenance_notice": "not less than 3 Business Days",
+    "credit_delivery": "deduction from next invoice after confirmation; bank transfer within 30 days of confirmation if no further invoice because the Agreement has ended (not where Vendor terminated for Customer's breach)"
+  },
+  "C": {
+    "vendor": "Larkspire Systems, Inc.",
+    "customer": "Tamarind Ridge Credit Union",
+    "agreement_date": "22 January 2026",
+    "addendum_effective_date": "1 September 2026",
+    "order_form": "LS-2026-0588",
+    "monthly_fees": "USD 42,000",
+    "availability_commitment_percent": 99.95,
+    "measurement": {
+      "period": "calendar month (pro-rated for partial months)",
+      "method": "external Monitoring System checks every 60 seconds from at least 3 locations; Unavailable when 2 consecutive checks from at least 2 locations fail to get a successful response within 30 seconds; Availability = ((Total Minutes - Excluded Minutes - Downtime) / (Total Minutes - Excluded Minutes)) x 100, rounded down to 2 decimals"
+    },
+    "tier_1": {"trigger": "below 99.95% but at or above 99.5%", "credit_percent_of_monthly_fees": 15},
+    "tier_2": {"trigger": "below 99.5%", "lower_threshold_percent": 99.5, "credit_percent_of_monthly_fees": 30},
+    "credit_cap_percent_of_monthly_fees": 40,
+    "claim_deadline": "60 days after end of the Measurement Period",
+    "maintenance_notice": "not less than 10 Business Days",
+    "credit_delivery": "deduction from next invoice after confirmation; bank transfer within 30 days of confirmation if no further invoice because the Agreement has ended (not where Vendor terminated for Customer's breach)"
+  }
+}

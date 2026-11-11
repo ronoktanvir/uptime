@@ -1,0 +1,65 @@
+{
+  "A": {
+    "vendor": "Larkspire Systems, Inc. (Delaware corporation)",
+    "customer": "Hollowmere Logistics LLC (Ohio limited liability company)",
+    "covered_service": "Larkspire RouteWorks",
+    "agreement_date": "2026-03-03",
+    "addendum_effective_date": "2026-04-01",
+    "monthly_fees_usd": 14500,
+    "availability_commitment_percent": 99.9,
+    "measurement": {
+      "period": "calendar month (partial months pro-rated by minutes within the Subscription Term)",
+      "method": "automated probes at intervals of not more than 1 minute from at least 3 geographically distinct locations; Unavailable if no successful response within 30 seconds from at least 2 locations; Availability = ((Total Minutes - Excluded Minutes - Downtime Minutes) / (Total Minutes - Excluded Minutes)) x 100, rounded to 2 decimal places"
+    },
+    "credit_tiers": [
+      {"tier": 1, "condition": "availability below 99.9% but at or above 99.0%", "credit_percent_of_monthly_fees": 10},
+      {"tier": 2, "condition": "availability below 99.0%", "lower_threshold_percent": 99.0, "credit_percent_of_monthly_fees": 25}
+    ],
+    "credit_cap_percent_of_monthly_fees_per_period": 30,
+    "claim_deadline": "30 days after the last day of the Measurement Period",
+    "maintenance_notice": "72 hours",
+    "credit_delivery": "applied as a credit against the next invoice for Monthly Fees; refunded within 30 days if no further invoice will be issued after expiry or termination (unless Vendor terminated for Customer's uncured material breach); otherwise no cash value"
+  },
+  "B": {
+    "vendor": "Larkspire Systems, Inc. (Delaware corporation)",
+    "customer": "Quillfeather Dental Partners, P.C. (Colorado professional corporation)",
+    "covered_service": "Larkspire ChairSide",
+    "agreement_date": "2026-07-14",
+    "addendum_effective_date": "2026-08-01",
+    "monthly_fees_usd": 6200,
+    "availability_commitment_percent": 99.5,
+    "measurement": {
+      "period": "calendar month (partial months pro-rated by minutes within the Subscription Term)",
+      "method": "automated probes at intervals of not more than 1 minute from at least 3 geographically distinct locations; Unavailable if no successful response within 30 seconds from at least 2 locations; Availability = ((Total Minutes - Excluded Minutes - Downtime Minutes) / (Total Minutes - Excluded Minutes)) x 100, rounded to 2 decimal places"
+    },
+    "credit_tiers": [
+      {"tier": 1, "condition": "availability below 99.5% but at or above 98.0%", "credit_percent_of_monthly_fees": 5},
+      {"tier": 2, "condition": "availability below 98.0%", "lower_threshold_percent": 98.0, "credit_percent_of_monthly_fees": 15}
+    ],
+    "credit_cap_percent_of_monthly_fees_per_period": 20,
+    "claim_deadline": "15 days after the last day of the Measurement Period",
+    "maintenance_notice": "48 hours",
+    "credit_delivery": "applied as a credit against the next invoice for Monthly Fees; refunded within 30 days if no further invoice will be issued after expiry or termination (unless Vendor terminated for Customer's uncured material breach); otherwise no cash value"
+  },
+  "C": {
+    "vendor": "Larkspire Systems, Inc. (Delaware corporation)",
+    "customer": "Tidewater Arcfield Holdings, Inc. (Maryland corporation)",
+    "covered_service": "Larkspire GridLens",
+    "agreement_date": "2026-09-22",
+    "addendum_effective_date": "2026-10-01",
+    "monthly_fees_usd": 38750,
+    "availability_commitment_percent": 99.95,
+    "measurement": {
+      "period": "calendar month (partial months pro-rated by minutes within the Subscription Term)",
+      "method": "automated probes at intervals of not more than 1 minute from at least 3 geographically distinct locations; Unavailable if no successful response within 30 seconds from at least 2 locations; Availability = ((Total Minutes - Excluded Minutes - Downtime Minutes) / (Total Minutes - Excluded Minutes)) x 100, rounded to 2 decimal places"
+    },
+    "credit_tiers": [
+      {"tier": 1, "condition": "availability below 99.95% but at or above 99.5%", "credit_percent_of_monthly_fees": 15},
+      {"tier": 2, "condition": "availability below 99.5%", "lower_threshold_percent": 99.5, "credit_percent_of_monthly_fees": 35}
+    ],
+    "credit_cap_percent_of_monthly_fees_per_period": 50,
+    "claim_deadline": "45 days after the last day of the Measurement Period",
+    "maintenance_notice": "96 hours",
+    "credit_delivery": "applied as a credit against the next invoice for Monthly Fees; refunded within 30 days if no further invoice will be issued after expiry or termination (unless Vendor terminated for Customer's uncured material breach); otherwise no cash value"
+  }
+}

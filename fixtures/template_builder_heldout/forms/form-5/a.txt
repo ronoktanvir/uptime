@@ -1,0 +1,37 @@
+ORDER FORM RIDER: SERVICE LEVELS
+
+Order Number: HC-2026-0417
+Rider Date: 12 November 2026
+Vendor: Halvorsen Cloudworks Ltd
+Customer: Brindlemoor Logistics GmbH
+Start Date: 1 February 2027
+Subscription Fee: USD 84,000 per year, invoiced annually in advance
+Measurement Period: calendar month
+
+1. Purpose. This Rider is attached to the Order Form above and forms part of the Agreement. Capitalised terms not defined here have the meaning given in the Agreement.
+
+2. Definitions. "Downtime" means a period of five or more consecutive minutes in which the Service is unavailable to the Customer's users, other than a period excluded under clause 10. "Measurement Period" means each calendar month starting on or after the Start Date. "Period Fees" means the annual Subscription Fee divided by 12 (USD 7,000 at the date of this Rider).
+
+3. Commitment. The Vendor will make the Service available at least 99.9% of the time in each Measurement Period.
+
+4. Measurement. Availability equals total minutes in the Measurement Period less Downtime minutes, divided by total minutes less excluded minutes, expressed as a percentage rounded to two decimal places. The Vendor measures it by automated checks every minute from three separate locations.
+
+5. Service Credits. If Availability is below 99.9% but at least 99.0%, the credit is 5% of Period Fees. If Availability is below 99.0%, the credit is 15% of Period Fees. Only one credit applies to a Measurement Period.
+
+6. Cap. Total credits for any Measurement Period will not exceed 25% of Period Fees.
+
+7. Claims. The Customer must claim a credit in writing within 30 days after the end of the Measurement Period, identifying the dates and times of the Downtime. A credit not claimed within that time is waived.
+
+8. Delivery of Credits. The Vendor will apply an agreed credit against the next invoice issued under the Order Form. If no further invoice is due, the Vendor will pay the credit to the Customer within 30 days after the claim is agreed. Credits have no other cash value.
+
+9. Scheduled Maintenance. The Vendor will give at least 5 days' written notice of scheduled maintenance, which will take place between 22:00 and 04:00 UTC. Scheduled maintenance is excluded from Downtime up to 8 hours per Measurement Period; any excess counts as Downtime.
+
+10. Exclusions. Downtime does not include unavailability caused by scheduled maintenance within clause 9, the Customer's systems or networks, misuse of the Service, third-party services outside the Vendor's control, force majeure events, or suspension permitted by the Agreement.
+
+11. Reporting. The Vendor will publish Availability on its status page and send the Customer a written report within 5 business days after each Measurement Period. The Vendor will respond to any disputed figure within 10 business days.
+
+12. Chronic Failure. If Availability falls below 99.0% in 3 Measurement Periods within any 6 consecutive Measurement Periods, the Customer may terminate the Order Form by 30 days' written notice, given within 30 days after the third such period, and receive a refund of prepaid Subscription Fees for the period after termination.
+
+13. Sole Remedy. Except for clause 12, service credits are the Customer's sole and exclusive remedy for failure to meet the commitment in clause 3.
+
+14. Relationship to Agreement. This Rider prevails over the Agreement on service levels. In all other respects the Agreement applies.
